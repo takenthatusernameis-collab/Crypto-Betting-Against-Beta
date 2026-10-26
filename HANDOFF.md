@@ -1,10 +1,10 @@
 # HANDOFF - Crypto Betting Against Beta
 
-**Timestamp (UTC):** 2026-10-26T22:00:05Z
+**Timestamp (UTC):** 2026-10-26T22:00:41Z
 **Repository:** Crypto-Betting-Against-Beta
 **Branch:** main
-**HEAD:** 6311a3e (chore(kilo): checkpoint agent session)
-**Working tree:** has untracked new files
+**HEAD:** d87d801 (chore(kilo): checkpoint agent session)
+**Working tree:** clean except untracked `__pycache__/` dirs
 **Session:** Durable handoff for next agentic work session
 
 ## Clear Initial Task Message
@@ -18,32 +18,34 @@
    - `tests/test_nonfinite_result_serialization.py`
    - `tests/test_campaign_resume.py`
 3. All 91 tests were verified to pass with `pytest`.
+4. New files are committed at HEAD `d87d801`.
 
 **What the Next Session Should Do:**
-1. **Verify tests still pass** — run `pytest -q tests/test_controller_progress_accounting.py tests/test_workflow_diagnostics_scanner.py tests/test_nonfinite_result_serialization.py tests/test_campaign_resume.py` (note: `pytest` may need `pip install pytest` in this environment; `python3 -m pytest` may be needed).
-2. **Optionally commit** the new untracked files (`scripts/controller_progress.py`, `tests/*.py`) if the user wants the workflow to pick them up on the next push. The workflow triggers on push to `main` for `.github/workflows/main.yml` changes only, so a manual `workflow_dispatch` with `diagnostics_only: true` is needed to run the test step.
+1. **Verify tests still pass** — run `pytest -q tests/test_controller_progress_accounting.py tests/test_workflow_diagnostics_scanner.py tests/test_nonfinite_result_serialization.py tests/test_campaign_resume.py` (note: `pytest` may need `pip install pytest`; `python3 -m pytest` may be needed).
+2. **Optionally run the full suite** — `pytest -q`.
 3. **Review the new code** — ensure `scripts/controller_progress.py` matches the workflow's expectations (called with `--base-sha`, `--head-sha`, and optionally `--verified-remote-sha`).
+4. **Commit anything outstanding** — only `__pycache__/` dirs are untracked; no source changes pending.
 
 **Constraint:** Do not commit unless explicitly asked.
 
 ## Current State
-- **Git status:** Working tree has new untracked files: `scripts/controller_progress.py`, `tests/test_controller_progress_accounting.py`, `tests/test_workflow_diagnostics_scanner.py`, `tests/test_nonfinite_result_serialization.py`, `tests/test_campaign_resume.py` (plus `__pycache__` dirs).
-- **No changes to tracked files.**
+- **Git status:** clean except untracked `__pycache__/` dirs under `scripts/` and `tests/`.
+- **No source changes pending.** All four test files and `scripts/controller_progress.py` are committed.
 - **Branch:** main (tracking origin/main)
 
 ## Key Files
 - `.github/workflows/main.yml` — Full workflow (test step references the four test files; lines calling `scripts/controller_progress.py`).
-- `scripts/controller_progress.py` — Controller progress accounting utility (new).
-- `tests/test_controller_progress_accounting.py` — Tests for controller progress (new).
-- `tests/test_workflow_diagnostics_scanner.py` — Tests for diagnostics scanner (new).
-- `tests/test_nonfinite_result_serialization.py` — Tests for nonfinite serialization (new).
-- `tests/test_campaign_resume.py` — Tests for campaign resume (new).
+- `scripts/controller_progress.py` — Controller progress accounting utility (committed).
+- `tests/test_controller_progress_accounting.py` — Tests for controller progress (committed).
+- `tests/test_workflow_diagnostics_scanner.py` — Tests for diagnostics scanner (committed).
+- `tests/test_nonfinite_result_serialization.py` — Tests for nonfinite serialization (committed).
+- `tests/test_campaign_resume.py` — Tests for campaign resume (committed).
 - `research_state/workflow_run_diagnostics.jsonl` — Failure diagnostics from run 40367326154.
 
 ## Handoff Checklist
-- [x] Timestamped handoff created (2026-10-26T22:00:05Z)
-- [x] Missing test files created (4 files)
-- [x] Controller progress utility created (`scripts/controller_progress.py`)
+- [x] Timestamped handoff created (2026-10-26T22:00:41Z)
+- [x] Missing test files created (4 files) and committed
+- [x] Controller progress utility created (`scripts/controller_progress.py`) and committed
 - [x] All 91 tests pass
-- [x] Current git state captured (untracked new files, no tracked changes)
+- [x] Current git state captured (clean except `__pycache__`, HEAD d87d801)
 - [x] Next steps identified
