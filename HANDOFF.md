@@ -1,52 +1,63 @@
 # HANDOFF - Crypto Betting Against Beta
 
-**Timestamp (UTC):** 2026-10-26T21:48:59Z
+**Timestamp (UTC):** 2026-10-26T21:55:32Z
 **Repository:** Crypto-Betting-Against-Beta
 **Branch:** main
-**Commit:** 1910a99 (chore: capture completed workflow run diagnostics)
-**Session:** Refreshed handoff for next agentic work session
+**Commit:** (uncommitted — working tree has new files)
+**Session:** Durable handoff for next agentic work session
 
-## Goal
-**Clear initial task for next session:** Investigate and fix the failing Kilo workflow (`.github/workflows/main.yml`). The workflow run 40367326154 failed because `tests/test_controller_progress_accounting.py` does not exist, causing the "Test controller progress and diagnostic scanning" and "Verify diagnostics-only activation" steps to fail. Either create the missing test scaffolding the controller expects, or adjust the workflow/test configuration so the pipeline passes. Do not commit unless explicitly asked.
+## Clear Initial Task Message
+
+**Fix the failing Kilo workflow (`.github/workflows/main.yml`) so that the "Test controller progress and diagnostic scanning" step passes.**
+
+Workflow run [40367326154](https://github.com/takenthatusernameis-collab/Crypto-Betting-Against-Beta/actions/runs/40367326154) failed because `tests/test_controller_progress_accounting.py` did not exist. The test step runs:
+
+```
+pytest -q tests/test_controller_progress_accounting.py \
+                 tests/test_workflow_diagnostics_scanner.py \
+                 tests/test_nonfinite_result_serialization.py \
+                 tests/test_campaign_resume.py
+```
+
+**What was done in this session:**
+1. Created `scripts/controller_progress.py` — the controller progress accounting utility the workflow references at lines 1258 and 1280 of `main.yml`. It determines whether changes between two Git commits represent meaningful repository progress (excluding workflow definitions, venvs, caches, etc.).
+2. Created the four missing test files under `tests/`:
+   - `tests/test_controller_progress_accounting.py` — 35 tests for the progress accounting utility.
+   - `tests/test_workflow_diagnostics_scanner.py` — tests for log scanning and error pattern classification.
+   - `tests/test_nonfinite_result_serialization.py` — tests for NaN/Infinity JSON sanitization.
+   - `tests/test_campaign_resume.py` — tests for campaign resume logic.
+3. Verified all 91 tests pass with `pytest`.
+
+**Constraint:** Do not commit unless explicitly asked.
 
 ## Current State
-- **Git status:** Clean working tree at HEAD 1910a99
-- **Recent commits:**
-  1. `1910a99` chore: capture completed workflow run diagnostics
-  2. `1ca40b9` chore: capture completed workflow run diagnostics
-  3. `60962ea` Create main.yml
+- **Git status:** Working tree has new files (untracked): `scripts/controller_progress.py`, `tests/test_controller_progress_accounting.py`, `tests/test_workflow_diagnostics_scanner.py`, `tests/test_nonfinite_result_serialization.py`, `tests/test_campaign_resume.py`.
+- **No changes to tracked files.**
+- **Branch:** main (tracking origin/main)
 
-## Last Workflow Run
-- **Run ID:** 40367326154 (Kilo General Agent Loop)
-- **Status:** completed (failure)
-- **Conclusion:** failure
-- **URL:** https://github.com/takenthatusernameis-collab/Crypto-Betting-Against-Beta/actions/runs/40367326154
-- **Failed jobs/steps:** See `research_state/workflow_run_diagnostics.jsonl`
+## What the Next Session Should Do
+1. **Verify the workflow can pass** — run the exact pytest command from the workflow (line 62 of `main.yml`) to confirm all tests pass.
+2. **Optionally commit** the new files if the user wants the workflow to pick them up on the next push. The workflow triggers on push to `main` for `.github/workflows/main.yml` changes only, so a manual `workflow_dispatch` with `diagnostics_only: true` is needed to run the test step.
+3. **Review the new code** — ensure `scripts/controller_progress.py` matches the workflow's expectations (it's called with `--base-sha`, `--head-sha`, and optionally `--verified-remote-sha`).
 
-Key failures from diagnostics:
-- Missing test file: `tests/test_controller_progress_accounting.py` (file or directory not found)
-- Step failures: "Test controller progress and diagnostic scanning", "Verify diagnostics-only activation"
-- Multiple test failures reported
-
-## Immediate Next Steps
-1. **Investigate the failing workflow** - The workflow expects tests in `tests/` directory but they don't exist. Understand what the controller/tests are supposed to do.
-2. **Check if tests should be created or if workflow needs adjustment** - Look at the full workflow to understand test expectations.
-3. **Examine the controller logic** - The workflow has complex controller code embedded in it (Python scripts in the YAML). Understand the full picture.
-4. **Fix or scaffold missing components** - Based on what the workflow expects, either create missing files or fix the workflow.
-
-## Key Files to Read
-- `.github/workflows/main.yml` - Full workflow with embedded controller logic (very large, ~4000+ lines)
-- `research_state/workflow_run_diagnostics.jsonl` - Detailed failure diagnostics
-- `research_state/` - Any other state files
+## Key Files
+- `.github/workflows/main.yml` — Full workflow (lines 53-62 contain the test step; lines 1258 and 1280 call `scripts/controller_progress.py`).
+- `scripts/controller_progress.py` — Controller progress accounting utility (new).
+- `tests/test_controller_progress_accounting.py` — Tests for controller progress (new).
+- `tests/test_workflow_diagnostics_scanner.py` — Tests for diagnostics scanner (new).
+- `tests/test_nonfinite_result_serialization.py` — Tests for nonfinite serialization (new).
+- `tests/test_campaign_resume.py` — Tests for campaign resume (new).
+- `research_state/workflow_run_diagnostics.jsonl` — Failure diagnostics from run 40367326154.
 
 ## Notes
-- This is a Kilo autonomous agent workflow repo. The workflow runs the Kilo agent in a loop.
-- The diagnostics show the "Test controller progress and diagnostic scanning" step failed because test files are missing.
-- Need to understand the full controller architecture before making changes.
+- The workflow is a Kilo autonomous agent loop. It runs the Kilo CLI in a loop, checkpoints work to Git, and collects diagnostics.
+- The test step runs only on `push` events or when `diagnostics_only` is `true` via `workflow_dispatch`.
+- The controller_progress.py script is invoked by the workflow's bash controller (not by pytest) to determine if a checkpoint represents meaningful progress.
 
 ## Handoff Checklist
-- [x] Timestamped handoff created (2026-10-26T21:48:59Z)
-- [x] Current git state captured (clean tree at HEAD 1910a99)
-- [x] Recent failures documented (run 40367326154, missing test file)
-- [x] Next steps identified (fix missing test / adjust workflow)
-- [x] Key files listed
+- [x] Timestamped handoff created (2026-10-26T21:55:32Z)
+- [x] Missing test files created (4 files)
+- [x] Controller progress utility created (`scripts/controller_progress.py`)
+- [x] All 91 tests pass
+- [x] Current git state captured (untracked new files, no tracked changes)
+- [x] Next steps identified
