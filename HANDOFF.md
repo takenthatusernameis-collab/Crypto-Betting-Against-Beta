@@ -1,53 +1,47 @@
 # HANDOFF - Crypto Betting Against Beta
 
-**Timestamp (UTC):** 2026-10-26T22:02:11Z
+**Timestamp (UTC):** 2026-10-26T22:52:07Z
 **Repository:** Crypto-Betting-Against-Beta
 **Branch:** main
-**HEAD:** 9708d70 (chore(kilo): checkpoint agent session)
+**HEAD:** eaffd72 (chore(kilo): checkpoint agent session)
 **Working tree:** clean except untracked `__pycache__/` dirs under `scripts/` and `tests/`
 **Session:** Durable handoff for next agentic work session
 
 ## Clear Initial Task Message
 
-**No active task — the Kilo workflow fix is complete.**
+**Task:** Verify workflow/test stability after latest checkpoint (no active feature work).
 
-All required work has been done in prior sessions and is committed at HEAD `d21faed`:
+### Immediate actions (in order)
+1. **Confirm test environment** — `python3 -m pytest --version` (install `pytest` if missing). Run tests: `python3 -m pytest -q tests/test_controller_progress_accounting.py tests/test_workflow_diagnostics_scanner.py tests/test_nonfinite_result_serialization.py tests/test_campaign_resume.py`
+2. **Optional full suite** — if time permits, `python3 -m pytest -q`
+3. **Validate workflow integration** — confirm `scripts/controller_progress.py` behaves as expected for calls in `.github/workflows/main.yml` (`--base-sha`, `--head-sha`, optional `--verified-remote-sha`)
+4. **Triage diagnostics** — review `research_state/workflow_run_diagnostics.jsonl` for recurring patterns
+5. **Clean up artifacts (optional)** — remove untracked `__pycache__` dirs: `find . -name '__pycache__' -type d -exec rm -rf {} + 2>&1 | tail -2`
 
-1. `scripts/controller_progress.py` — controller progress accounting utility referenced by `.github/workflows/main.yml` (committed).
-2. Four test files created and committed under `tests/`:
-   - `tests/test_controller_progress_accounting.py`
-   - `tests/test_workflow_diagnostics_scanner.py`
-   - `tests/test_nonfinite_result_serialization.py`
-   - `tests/test_campaign_resume.py`
-3. All 91 tests were verified to pass with `pytest`.
-4. New files committed at HEAD `d87d801` (superseded by checkpoint `d21faed`).
-
-### What the Next Session Should Do (maintenance / verification only)
-1. **Verify tests still pass** — run `pytest -q tests/test_controller_progress_accounting.py tests/test_workflow_diagnostics_scanner.py tests/test_nonfinite_result_serialization.py tests/test_campaign_resume.py` (note: `pytest` may need `pip install pytest`; `python3 -m pytest` may be needed).
-2. **Optionally run the full suite** — `pytest -q`.
-3. **Review `scripts/controller_progress.py`** — ensure it matches the workflow's expectations (called with `--base-sha`, `--head-sha`, and optionally `--verified-remote-sha`).
-4. **Commit anything outstanding** — only `__pycache__/` dirs are untracked; no source changes pending.
-
-**Constraint:** Do not commit unless explicitly asked.
+### Notes / constraints
+- Working tree clean aside from untracked `__pycache__/`. Do not commit unless explicitly asked.
+- All four test files and `scripts/controller_progress.py` are committed at HEAD.
+- Prior sessions completed the Kilo workflow fix (tests + controller progress utility).
+- Verified at handoff time: all 91 tests pass (pytest 9.1.1).
 
 ## Current State
-- **Git status:** clean except untracked `scripts/__pycache__/` and `tests/__pycache__/` dirs.
-- **No source changes pending.** All four test files and `scripts/controller_progress.py` are committed.
+- **Git status:** clean except untracked `scripts/__pycache__/` and `tests/__pycache__/`
 - **Branch:** main (tracking origin/main)
+- **HEAD:** eaffd72
 
 ## Key Files
-- `.github/workflows/main.yml` — Full workflow; test step references the four test files.
-- `scripts/controller_progress.py` — Controller progress accounting utility (committed).
-- `tests/test_controller_progress_accounting.py` — committed
-- `tests/test_workflow_diagnostics_scanner.py` — committed
-- `tests/test_nonfinite_result_serialization.py` — committed
-- `tests/test_campaign_resume.py` — committed
-- `research_state/workflow_run_diagnostics.jsonl` — Failure diagnostics from run 40367326154.
+- `.github/workflows/main.yml`
+- `scripts/controller_progress.py`
+- `tests/test_controller_progress_accounting.py`
+- `tests/test_workflow_diagnostics_scanner.py`
+- `tests/test_nonfinite_result_serialization.py`
+- `tests/test_campaign_resume.py`
+- `research_state/workflow_run_diagnostics.jsonl`
 
 ## Handoff Checklist
-- [x] Timestamped handoff created (2026-10-26T22:01:31Z)
-- [x] Missing test files created (4 files) and committed
-- [x] Controller progress utility created (`scripts/controller_progress.py`) committed
-- [x] All 91 tests pass
-- [x] Current git state captured (clean except `__pycache__`, HEAD d21faed)
+- [x] Timestamped handoff created (2026-10-26T22:52:07Z)
+- [x] Clear initial task message provided
+- [x] Current git state captured
+- [x] Key files listed
 - [x] Next steps identified
+- [x] Test environment verified (91 tests passing)
