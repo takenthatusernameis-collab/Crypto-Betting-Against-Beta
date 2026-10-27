@@ -45,6 +45,15 @@ class TestIsExcluded:
             ("*.sqlite", True),
             ("*.sqlite3", True),
             ("*.db", True),
+            # Nested variants must also be excluded.
+            ("subdir/.venv/lib/python.py", True),
+            ("subdir/venv/bin/python", True),
+            ("subdir/node_modules/foo/index.js", True),
+            ("subdir/__pycache__/cache.pyc", True),
+            ("subdir/.pytest_cache/v/cache.txt", True),
+            ("subdir/.mypy_cache/info.json", True),
+            ("subdir/.ruff_cache/lock.txt", True),
+            ("subdir/.tox/py312/bin/python", True),
         ],
     )
     def test_exclusion(self, path: str, expected: bool) -> None:

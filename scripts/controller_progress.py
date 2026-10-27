@@ -19,11 +19,10 @@ import subprocess
 import sys
 from pathlib import Path
 
-# Files that do not count as meaningful repository progress.
-# Workflow definitions are maintainer-managed; the standard token cannot
-# authorize workflow-file changes, so agent-created workflow changes are
-# stripped before checkpointing anyway.
-EXCLUDE_PATHS = (
+# Pathspec patterns that are always excluded from meaningful progress.
+# Both top-level and nested variants are listed so that vendored environments
+# buried deeper in the tree (e.g. "subdir/.venv/x.py") are excluded too.
+EXCLUDE_PATTERNS = [
     ".github/workflows/*",
     ".venv/*",
     "*/.venv/*",
@@ -41,19 +40,6 @@ EXCLUDE_PATHS = (
     "*/.ruff_cache/*",
     ".tox/*",
     "*/.tox/*",
-)
-
-# Pathspec patterns that are always excluded from meaningful progress.
-EXCLUDE_PATTERNS = [
-    ".github/workflows/*",
-    ".venv/*",
-    "venv/*",
-    "node_modules/*",
-    "__pycache__/*",
-    ".pytest_cache/*",
-    ".mypy_cache/*",
-    ".ruff_cache/*",
-    ".tox/*",
     "*.pyc",
     "*.pyo",
     "*.sqlite",
