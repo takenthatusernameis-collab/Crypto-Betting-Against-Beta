@@ -1,11 +1,11 @@
 # HANDOFF: Crypto-Betting-Against-Beta — Initial Task for Next Agentic Work Session
 
-- Timestamp (UTC): 2026-10-27T12-28-00Z
+- Timestamp (UTC): 2026-10-27T12-30-11Z
 - Repo: /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
 - Branch: main
 - HEAD: dc026d9 `chore(kilo): checkpoint agent session`
-- Previous handoff: HANDOFF_2026-10-27T12-27-14Z
-- Pointer file: HANDOFF_NEXT_SESSION.md -> HANDOFF_2026-10-27T12-28-00Z
+- Previous handoff: HANDOFF_2026-10-27T12-28-00Z
+- Pointer file: HANDOFF_NEXT_SESSION.md -> HANDOFF_2026-10-27T12-30-11Z.md
 
 ## Objective
 Resume work on this controller-only repo. This is the Kilo General Agent Loop controller infrastructure (the "Crypto Betting Against Beta" name is vestigial). There is no active crypto-strategy code. Leave a clean, actionable starting point for the next agentic work session.
@@ -21,11 +21,9 @@ Resume work on this controller-only repo. This is the Kilo General Agent Loop co
 5. Propose/execute next step — identify the clearest next actionable task within controller/observability scope.
 
 ## Completed Work This Session
-- **Oriented fully** — read `.github/workflows/main.yml` (1561 lines), `scripts/controller_progress.py`, all 4 test modules, and the diagnostics ledger.
-- **Verified health** — `python3 -m pytest -q` passes (117 passed).
-- **Fixed a concrete gap** in `scripts/controller_progress.py:26` (EXCLUDE_PATTERNS): added nested variants for `.env`/`.env.*`, `coverage.xml`/`.coverage`, `kilo-session-*`/`kilo-progress-*` logs, plus SQLite WAL/SHM files (`*.sqlite-wal`, `*.sqlite-shm`, `*.sqlite3-wal`, `*.sqlite3-shm`, `*.db-wal`, `*.db-shm`) and `*.tmp`. Previously only top-level paths were excluded, so nested transient artifacts (e.g. `subdir/.env`, `subdir/data.db-wal`) could be miscounted as meaningful progress and wrongly staged for checkpointing.
-- **Added 18 parametrized test cases** in `tests/test_controller_progress_accounting.py:TestIsExclusion` covering the new nested/WAL/SHM/tmp patterns. All pass.
-- No commits made (per standing instruction).
+- Created this timestamped durable handoff (`HANDOFF_2026-10-27T12-30-11Z.md`).
+- Updated `HANDOFF.md` copy and `HANDOFF_NEXT_SESSION.md` symlink to point to the new handoff.
+- No code changes made; no commits (per standing instruction).
 
 ## Current State (verified this session)
 - Repo contains ONLY controller/infra code — no trading strategy, no market data, no backtest engine.
@@ -50,4 +48,3 @@ python -m pytest -q
 - The repo is intentionally infra-only. Any new work should fit the controller/observability scope.
 - **Known follow-up (not done this session):** the `stage_safe_changes` case statement in `.github/workflows/main.yml:1163` has the same nested-path gap as the old `controller_progress.EXCLUDE_PATTERNS`. It is a separate workflow file (maintainer-managed; the standard token cannot push workflow changes), so it was left untouched. If you close that gap, mirror the new patterns there too.
 - Durable pointer: always read `HANDOFF_NEXT_SESSION.md` to find the current handoff. It is a symlink; update it to point to the newest timestamped handoff.
-(End of file)
