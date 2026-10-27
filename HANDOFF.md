@@ -1,31 +1,23 @@
 # HANDOFF: Crypto-Betting-Against-Beta — Initial Task for Next Agentic Work Session
 
-- Timestamp (UTC): 2026-10-27T08:38:45Z
+- Timestamp (UTC): 2026-10-27T08:39:06Z
 - Repo: /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
 - Branch: main
-- HEAD: 4f26f37
+- HEAD: 24f5eaa
 - Previous handoff: HANDOFF_2026-10-27T07-48-14Z.md
-- Pointer file: HANDOFF_NEXT_SESSION.md -> HANDOFF_2026-10-27T08-38-45Z.md
+- Pointer file: HANDOFF_NEXT_SESSION.md -> HANDOFF_2026-10-27T08-39-06Z.md
 
 ## Objective
-Resume work on this repository. This is the Kilo General Agent Loop controller infrastructure (the "Crypto Betting Against Beta" name is vestigial). There is no active crypto-strategy code.
+Resume work on this repository. This is the Kilo General Agent Loop controller infrastructure (the "Crypto Betting Against Beta" name is vestigial). There is no active crypto-strategy code. This handoff leaves a clear initial task for the next agentic work session.
 
-## Immediate Priority (Start Here)
-1. **Read context** - Review HANDOFF.md and HANDOFF_2026-10-27T08-38-45Z.md to understand current state, decisions, blockers, and any in-flight work.
-2. **Map the codebase** - Get oriented with source files (`scripts/`, `tests/`, `.github/workflows/`, `research_state/`). Focus on entry points and core modules.
-3. **Understand tests** - Inspect `tests/` to see expected behavior and validation patterns.
-4. **Assess health** - Run the controller tests to verify current state.
-5. **Propose/execute next step** - Based on findings, identify the clearest next actionable task (fix/blocker or incremental feature) and proceed methodically.
-
-## Clear Initial Task Message
-**TASK FOR NEXT AGENT:** Orient yourself in this controller-only repo. Read the most recent HANDOFF_*.md files, understand the controller workflow in `.github/workflows/main.yml` and `scripts/controller_progress.py`, verify tests pass, then identify and propose the next concrete improvement/fix within controller/observability scope (progress accounting, diagnostics scanning, campaign resume, serialization safety). Do not introduce crypto-strategy code. Update/create a new timestamped handoff when you complete orientation or start new work. Be explicit about decisions, blockers, and next steps.
+## Clear Initial Task Message (for the next agent)
+**TASK:** Orient in this controller-only repo. Read the most recent HANDOFF files (including this one), understand `.github/workflows/main.yml` and `scripts/controller_progress.py`, run tests (`pytest -q`). Identify and propose ONE concrete, testable improvement/fix within controller/observability scope (progress accounting, diagnostics scanning, campaign resume, or serialization safety). Do not add strategy/trading code. If you make changes, follow existing patterns, run tests, and create/update a timestamped handoff with decisions/blockers/next steps. Do not commit unless explicitly asked.
 
 ## Handoff Notes
-- This is a durable, timestamped handoff created for the next agentic work session.
-- Update this handoff (or create a new timestamped one) as you make progress, note blockers, and record decisions.
-- Follow existing patterns and conventions in the codebase. Run tests/checks before committing if changes are made.
+- This is a durable, timestamped handoff for the next agentic work session.
+- Timestamp: 2026-10-27T08:39:06Z
+- Update/create a new timestamped handoff as you make progress, note blockers, and record decisions.
+- Follow existing conventions. Run tests/checks before committing if changes made.
 - Do not commit unless explicitly asked.
-- The repo is intentionally infra-only. Any new work should fit the controller/observability scope.
-(End of file)
-" filePath">
-/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta/HANDOFF_NEXT_SESSION.md
+- Repo is intentionally infra-only — keep changes in controller/observability scope.
+- Git status: clean except for untracked `scripts/__pycache__/` and `tests/__pycache__/`.
