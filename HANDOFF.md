@@ -1,7 +1,7 @@
-# HANDOFF - 2026-10-27T21-07-00Z
+# HANDOFF - 2026-10-27T21-10-15Z
 
 ## Timestamp
-2026-10-27T21-07-00Z (this session's handoff)
+2026-10-27T21:10:15Z (this session's handoff)
 
 ## Purpose
 Durable handoff for the next agentic work session. Start here.
@@ -9,19 +9,22 @@ Durable handoff for the next agentic work session. Start here.
 ## INITIAL TASK FOR NEXT SESSION (Clear & Actionable)
 **PRIORITY: Implement Crypto-Betting-Against-Beta Strategy**
 
-The project name indicates a strategy implementation. No core strategy code found yet. Focus on building the strategy.
+The project name indicates a strategy implementation. **No core strategy code exists yet.** The repository contains only Kilo agent-loop infrastructure (controller progress accounting, workflow diagnostics scanning, campaign resume logic). The actual "betting against beta" crypto trading strategy is the missing piece and is the sole remaining deliverable.
+
+### CRITICAL: Do not get distracted by infrastructure
+The repo has an elaborate GitHub Actions workflow (`.github/workflows/main.yml`, 1561 lines) that runs Kilo agent sessions, checkpoints progress, and collects diagnostics. This is scaffolding, NOT the product. **The product is the trading strategy.** Do not modify the workflow or infrastructure unless a test fails.
 
 ### Start with this sequence:
 
 1. **Establish context**
-   - Read `HANDOFF.md` (canonical) and recent handoffs.
+   - Read this `HANDOFF.md` (canonical) and this timestamped handoff.
    - Review git history: `git log --oneline -10`
    - Check current state: `git status && git diff`
-   - Understand tests: all 124 tests pass (including controller/diagnostics tests)
+   - Understand tests: all 124 tests pass (infrastructure tests only; no strategy tests exist)
 
 2. **Research and design the strategy**
    - Look for any existing references to "beta", "betting against beta", or strategy docs
-   - Search: `grep -rn "beta" . 2>&1 | head -30`
+   - Search: `grep -rn "beta\|BAB\|betting.*beta" . 2>&1 | head -30`
    - Common pattern: short low-beta/long high-beta crypto assets or vice versa
    - Need to determine data sources, universe, rebalance frequency, signals
 
