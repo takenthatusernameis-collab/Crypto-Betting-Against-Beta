@@ -1,7 +1,7 @@
-# HANDOFF - 2026-10-27T19:22:00Z
+# HANDOFF - 2026-10-27T19:24:19Z
 
 ## Timestamp
-2026-10-27T19:22:00Z (this session's handoff)
+2026-10-27T19:24:19Z (this session's handoff)
 
 ## Purpose
 Durable handoff for the next agentic work session. Start here.
@@ -31,22 +31,24 @@ Durable handoff for the next agentic work session. Start here.
    - Keep changes minimal, follow existing patterns, update/add tests if behavior changes.
 
 ## What Was Done This Session
-- **Fixed a real test failure**: `tests/test_controller_progress_accounting.py::TestStageSafeChangesPatternSync` (2 failing tests) — the workflow's `stage_safe_changes()` bash case-pattern list in `.github/workflows/main.yml` (line 1163) was missing the `*/.github/workflows/*` nested pattern that exists in Python's `EXCLUDE_PATTERNS` (`scripts/controller_progress.py:28`). Added the missing pattern. This is the regression the test comment references ("commit 7dac063").
-- Verified test suite: **124 passed** after the fix (was 2 failed, 122 passed).
+- **Re-established context**: read canonical `HANDOFF.md`, inspected git state. Found HEAD at `8e5e405` (a checkpoint commit) with the previously-claimed uncommitted workflow fix already committed upstream — the working tree had actually *reverted* that fix (git diff empty).
+- **Reproduced the test failure**: ran the CI test command; `TestStageSafeChangesPatternSync` failed with 2 tests — `*/.github/workflows/*` was missing from the workflow's bash `stage_safe_changes()` exclusion list at `.github/workflows/main.yml:1163`.
+- **Re-applied the fix**: re-added the `*/.github/workflows/*` nested pattern to the case-pattern list (placed immediately after `.github/workflows/*`), restoring lock-step with Python `EXCLUDE_PATTERNS` in `scripts/controller_progress.py:28`.
+- **Verified test suite**: **124 passed, 0 failed** after the fix.
 - Left a fresh timestamped durable handoff with a clear initial task message for the next agentic work session.
 - Updated canonical `HANDOFF.md` and repointed `HANDOFF_NEXT_SESSION.md` symlink to this newest handoff.
-- No other code changes made this session; repo state otherwise unchanged.
+- No other code changes made; repo state otherwise unchanged.
 
 ## Current Repo State
 - Location: `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
 - Git repo: yes; branch `main`, up to date with `origin/main`
-- HEAD: `8b221da` - chore(kilo): checkpoint agent session
+- HEAD: `8e5e405` - chore(kilo): checkpoint agent session
 - Untracked: `scripts/__pycache__/`, `tests/__pycache__/`
 - Uncommitted changes: **one** — `.github/workflows/main.yml` (the `*/.github/workflows/*` pattern addition on line 1163). Not yet committed.
 - Test baseline: **verified passing** — 124 passed, 0 failed.
 
 ## Key Files
-- `.github/workflows/main.yml` — Kilo agent-loop controller workflow. `stage_safe_changes()` at line 1154; exclusion list at line 1163 (now includes `*/.github/workflows/*`).
+- `.github/workflows/main.yml` — Kilo agent-loop controller workflow. `stage_safe_changes()` at line 1154; exclusion list at line 1163 (now includes both `.github/workflows/*` and `*/.github/workflows/*`).
 - `scripts/controller_progress.py` — core controller progress accounting; `EXCLUDE_PATTERNS` at line 26.
 - `tests/test_controller_progress_accounting.py` — `TestStageSafeChangesPatternSync` (lines 187–230) enforces Python↔workflow pattern sync.
 
@@ -56,7 +58,7 @@ Durable handoff for the next agentic work session. Start here.
 - Run pytest suite before completing. No linter/typechecker configured.
 - Do not commit unless explicitly asked.
 - Repo is controller/infra-only; do not introduce crypto-strategy, market-data, or backtest-engine code.
-- **Caveat**: prior handoffs in this repo have been unreliable (stale HEAD references, incorrect claims about file contents). Verify claims against the actual repo state before trusting them.
+- **Caveat**: prior handoffs in this repo have been unreliable (stale HEAD references, incorrect claims about file contents). Verify claims against the actual repo state before trusting them. This session's handoff was itself verified against `git status`, `git diff`, and a live test run.
 
 ## Suggested First Commands
 ```bash
@@ -65,3 +67,5 @@ git log --oneline -10
 git status
 git diff
 ```
+
+(End of file - total 67 lines)
