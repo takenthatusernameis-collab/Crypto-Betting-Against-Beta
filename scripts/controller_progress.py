@@ -15,6 +15,7 @@ Exit code 1: no meaningful progress, or remote SHA mismatch
 from __future__ import annotations
 
 import argparse
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -81,13 +82,15 @@ def _is_excluded(path: str) -> bool:
     return False
 
 
+def list_meaningful_changes(base_sha: str, head_sha: str) -> list[str]:
+    """Return the list of meaningful (non-excluded) changed file paths."""
+    changed = _git_diff_names(base_sha, head_sha)
+    return [path for path in changed if not _is_excluded(path)]
+
+
 def has_meaningful_changes(base_sha: str, head_sha: str) -> bool:
     """Return True if there are meaningful (non-excluded) changes between commits."""
-    changed = _git_diff_names(base_sha, head_sha)
-    for path in changed:
-        if not _is_excluded(path):
-            return True
-    return False
+    return bool(list_meaningful_changes(base_sha, head_sha))
 
 
 def verify_remote_sha(head_sha: str, verified_remote_sha: str) -> bool:
@@ -106,14 +109,36 @@ def main() -> int:
         default=None,
         help="Optional remote SHA to verify against the head SHA",
     )
+    parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Emit a JSON object with the meaningful file list and verification result",
+    )
     args = parser.parse_args()
 
-    if not has_meaningful_changes(args.base_sha, args.head_sha):
+    meaningful = list_meaningful_changes(args.base_sha, args.head_sha)
+    remote_ok = True
+    if args.verified_remote_sha is not None:
+        remote_ok = verify_remote_sha(args.head_sha, args.verified_remote_sha)
+
+    if args.json:
+        payload = {
+            "base_sha": args.base_sha,
+            "head_sha": args.head_sha,
+            "meaningful_changes": meaningful,
+            "has_meaningful_changes": bool(meaningful),
+            "verified_remote_sha": args.verified_remote_sha,
+            "remote_sha_verified": remote_ok,
+            "exit_code": 0 if (bool(meaningful) and remote_ok) else 1,
+        }
+        print(json.dumps(payload, sort_keys=True, separators=(",", ":")))
+        return payload["exit_code"]
+
+    if not meaningful:
         return 1
 
-    if args.verified_remote_sha is not None:
-        if not verify_remote_sha(args.head_sha, args.verified_remote_sha):
-            return 1
+    if args.verified_remote_sha is not None and not remote_ok:
+        return 1
 
     return 0
 
