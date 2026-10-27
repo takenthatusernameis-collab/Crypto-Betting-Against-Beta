@@ -8,6 +8,7 @@ from .backtest import run_backtest
 from .beta import calculate_rolling_beta
 from .config import BABConfig
 from .data import generate_synthetic_returns
+from .data_loader import load_returns
 from .portfolio import construct_portfolio
 from .signals import generate_bab_signals
 
@@ -28,29 +29,65 @@ class BABStrategy:
     """Betting Against Beta strategy: long low-beta, short high-beta crypto assets.
 
     Pipeline:
-        1. Estimate rolling beta of each asset vs the benchmark.
-        2. Rank assets by beta each period.
-        3. Go long the lowest-beta quantile, short the highest-beta quantile.
-        4. Construct dollar-neutral (or long-only) equal weights.
-        5. Backtest with one-day lagged weights (no lookahead).
+        1. Load/validate returns (synthetic by default, or from a CSV/JSON/DataFrame).
+        2. Estimate rolling beta of each asset vs the benchmark.
+        3. Rank assets by beta each period.
+        4. Go long the lowest-beta quantile, short the highest-beta quantile.
+        5. Construct dollar-neutral (or long-only) equal weights.
+        6. Backtest with one-day lagged weights (no lookahead).
     """
 
     def __init__(self, config: BABConfig | None = None) -> None:
         self.config = config or BABConfig()
 
+    def _load_returns(self, returns_df: object | None) -> "pd.DataFrame":  # noqa: ANN401
+        """Resolve the returns DataFrame, validating it for the pipeline."""
+        import pandas as pd  # local import keeps module import light
+
+        cfg = self.config
+        if returns_df is not None:
+            # Explicit override wins over config.data_source.
+            return load_returns(
+                returns_df,
+                benchmark=cfg.benchmark,
+                min_rows=cfg.min_rows,
+            )
+
+        if cfg.data_source is not None:
+            return load_returns(
+                cfg.data_source,
+                benchmark=cfg.benchmark,
+                min_rows=cfg.min_rows,
+            )
+
+        universe = list(cfg.universe) if cfg.universe else None
+        n_assets = len(universe) if universe else 5
+        return generate_synthetic_returns(
+            n_days=cfg.synthetic_n_days,
+            n_assets=n_assets,
+            asset_names=universe,
+            benchmark_name=cfg.benchmark,
+            seed=cfg.synthetic_seed,
+        )
+
     def run(self, returns_df: object | None = None) -> BABResult:  # noqa: ANN401
         """Run the full strategy pipeline and return results."""
         cfg = self.config
-        if returns_df is None:
-            returns_df = generate_synthetic_returns(
-                n_days=252,
-                n_assets=len(cfg.universe),
-                asset_names=list(cfg.universe),
-                benchmark_name=cfg.benchmark,
+        returns = self._load_returns(returns_df)
+
+        # Resolve the effective universe from the validated data and persist it so
+        # downstream consumers (reports, diagnostics) see the actual tradable
+        # set rather than the configured default.
+        effective_universe = cfg.resolved_universe(list(returns.columns))
+        if not effective_universe:
+            raise ValueError(
+                "No tradable assets remain after intersecting the configured "
+                f"universe {cfg.universe} with data columns {list(returns.columns)}"
             )
+        cfg.universe = effective_universe
 
         betas = calculate_rolling_beta(
-            returns_df,
+            returns,
             cfg.benchmark,
             window=cfg.beta_window,
             min_obs=cfg.min_observations,
@@ -59,11 +96,11 @@ class BABStrategy:
             betas, long_quantile=cfg.long_quantile, short_quantile=cfg.short_quantile
         )
         weights = construct_portfolio(signals, dollar_neutral=cfg.dollar_neutral)
-        backtest = run_backtest(returns_df, weights)
+        backtest = run_backtest(returns, weights, transaction_costs=cfg.transaction_costs)
 
         return BABResult(
             config=cfg,
-            returns=returns_df,
+            returns=returns,
             betas=betas,
             signals=signals,
             weights=weights,

@@ -1,0 +1,211 @@
+"""Unit tests for the BAB data loader and validation."""
+
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+import pytest
+
+from strategies.betting_against_beta.data_loader import (
+    BABDataError,
+    iter_assets,
+    list_columns,
+    load_returns,
+    load_returns_from_csv,
+    load_returns_from_dataframe,
+    load_returns_from_json,
+    validate_returns_dataframe,
+)
+
+
+def _valid_df(rows: int = 30, benchmark: str = "BTC", assets=("ETH", "SOL")) -> pd.DataFrame:
+    idx = pd.date_range("2023-01-01", periods=rows, freq="D")
+    data = {benchmark: np.random.default_rng(1).normal(0, 0.01, rows)}
+    for a in assets:
+        data[a] = np.random.default_rng(2).normal(0, 0.01, rows)
+    return pd.DataFrame(data, index=idx)
+
+
+class TestValidateReturnsDataFrame:
+    def test_valid_df_passes(self):
+        df = _valid_df()
+        out = validate_returns_dataframe(df, benchmark="BTC")
+        assert isinstance(out, pd.DataFrame)
+        assert len(out) == len(df)
+
+    def test_none_raises(self):
+        with pytest.raises(BABDataError):
+            validate_returns_dataframe(None)
+
+    def test_non_dataframe_raises(self):
+        with pytest.raises(BABDataError):
+            validate_returns_dataframe([1, 2, 3])  # type: ignore[arg-type]
+
+    def test_empty_raises(self):
+        with pytest.raises(BABDataError):
+            validate_returns_dataframe(pd.DataFrame())
+
+    def test_string_index_normalized(self):
+        df = _valid_df()
+        df.index = [d.strftime("%Y-%m-%d") for d in df.index]
+        out = validate_returns_dataframe(df, benchmark="BTC")
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+    def test_unsorted_index_sorted(self):
+        df = _valid_df()
+        df = df.iloc[::-1]
+        out = validate_returns_dataframe(df, benchmark="BTC")
+        assert out.index.equals(out.index.sort_values())
+
+    def test_duplicate_columns_raise(self):
+        df = _valid_df()
+        df.columns = ["BTC", "ETH", "ETH"]
+        with pytest.raises(BABDataError):
+            validate_returns_dataframe(df, benchmark="BTC")
+
+    def test_non_numeric_raises(self):
+        df = _valid_df()
+        # Build an object-dtyped column with a string in it so the validator's
+        # numeric coercion path actually sees the bad value.
+        bad_col = df["BTC"].astype(object)
+        bad_col.iloc[0] = "abc"
+        df["BTC"] = bad_col
+        with pytest.raises(BABDataError):
+            validate_returns_dataframe(df, benchmark="BTC")
+
+    def test_inf_raises(self):
+        df = _valid_df()
+        df.iloc[0, 0] = np.inf
+        with pytest.raises(BABDataError):
+            validate_returns_dataframe(df, benchmark="BTC")
+
+    def test_missing_benchmark_raises(self):
+        df = _valid_df()
+        with pytest.raises(BABDataError):
+            validate_returns_dataframe(df, benchmark="MISSING")
+
+    def test_only_benchmark_raises(self):
+        df = pd.DataFrame({"BTC": np.random.default_rng(3).normal(0, 0.01, 30)},
+                          index=pd.date_range("2023-01-01", periods=30, freq="D"))
+        with pytest.raises(BABDataError):
+            validate_returns_dataframe(df, benchmark="BTC")
+
+    def test_min_rows_enforced(self):
+        df = _valid_df(rows=5)
+        with pytest.raises(BABDataError):
+            validate_returns_dataframe(df, benchmark="BTC", min_rows=10)
+
+
+class TestLoaders:
+    def test_load_returns_from_csv(self, tmp_path: Path):
+        df = _valid_df()
+        path = tmp_path / "returns.csv"
+        df.to_csv(path)
+        out = load_returns_from_csv(path, benchmark="BTC")
+        assert "BTC" in out.columns
+        assert "ETH" in out.columns
+
+    def test_load_returns_from_csv_missing_file(self, tmp_path: Path):
+        with pytest.raises(BABDataError):
+            load_returns_from_csv(tmp_path / "nope.csv", benchmark="BTC")
+
+    def test_load_returns_from_csv_bad_data(self, tmp_path: Path):
+        path = tmp_path / "bad.csv"
+        path.write_text("BTC,ETH\nabc,def\n1,2\n")
+        with pytest.raises(BABDataError):
+            load_returns_from_csv(path, benchmark="BTC")
+
+    def test_load_returns_from_json(self, tmp_path: Path):
+        df = _valid_df()
+        path = tmp_path / "returns.json"
+        # object-of-arrays form
+        payload = {col: list(df[col].values) for col in df.columns}
+        payload["index"] = [d.strftime("%Y-%m-%d") for d in df.index]
+        path.write_text(json.dumps(payload))
+        out = load_returns_from_json(path, benchmark="BTC")
+        assert "BTC" in out.columns
+        assert len(out) == len(df)
+
+    def test_load_returns_from_json_missing_file(self, tmp_path: Path):
+        with pytest.raises(BABDataError):
+            load_returns_from_json(tmp_path / "nope.json", benchmark="BTC")
+
+    def test_load_returns_from_dataframe(self):
+        df = _valid_df()
+        out = load_returns_from_dataframe(df, benchmark="BTC")
+        assert len(out) == len(df)
+
+    def test_load_returns_dispatch_csv(self, tmp_path: Path):
+        df = _valid_df()
+        path = tmp_path / "returns.csv"
+        df.to_csv(path)
+        out = load_returns(path, benchmark="BTC")
+        assert "BTC" in out.columns
+
+    def test_load_returns_dispatch_dataframe(self):
+        df = _valid_df()
+        out = load_returns(df, benchmark="BTC")
+        assert len(out) == len(df)
+
+    def test_load_returns_unsupported_extension(self, tmp_path: Path):
+        with pytest.raises(BABDataError):
+            load_returns(tmp_path / "file.txt", benchmark="BTC")
+
+
+class TestHelpers:
+    def test_list_columns_sorted(self):
+        df = _valid_df()
+        cols = list_columns(df)
+        assert cols == sorted(df.columns)
+
+    def test_iter_assets_excludes_benchmark(self):
+        df = _valid_df()
+        assets = list(iter_assets(df, benchmark="BTC"))
+        assert "BTC" not in assets
+        assert "ETH" in assets
+
+
+class TestIntegrationWithStrategy:
+    """End-to-end: feed a CSV through the strategy and ensure it runs."""
+
+    def test_strategy_runs_on_csv(self, tmp_path: Path):
+        from strategies.betting_against_beta import BABConfig, BABStrategy
+
+        df = _valid_df(rows=120, benchmark="BTC", assets=("ETH", "SOL", "BNB", "XRP"))
+        path = tmp_path / "returns.csv"
+        df.to_csv(path)
+
+        cfg = BABConfig(
+            benchmark="BTC",
+            beta_window=60,
+            min_observations=30,
+            data_source=str(path),
+        )
+        strategy = BABStrategy(cfg)
+        result = strategy.run()
+        assert "returns" in result.backtest.columns
+        assert "cumulative" in result.backtest.columns
+        assert len(result.backtest) == len(df)
+        # Universe should be derived from the CSV columns.
+        assert set(strategy.config.universe) == set(df.columns)
+
+    def test_strategy_runs_on_dataframe(self):
+        from strategies.betting_against_beta import BABConfig, BABStrategy
+
+        df = _valid_df(rows=120, benchmark="BTC", assets=("ETH", "SOL", "BNB"))
+        cfg = BABConfig(benchmark="BTC", beta_window=60, min_observations=30)
+        strategy = BABStrategy(cfg)
+        result = strategy.run(returns_df=df)
+        assert len(result.backtest) == len(df)
+
+    def test_strategy_invalid_data_raises(self):
+        from strategies.betting_against_beta import BABConfig, BABStrategy
+
+        bad = pd.DataFrame({"BTC": ["a", "b"]}, index=[0, 1])
+        cfg = BABConfig(benchmark="BTC")
+        strategy = BABStrategy(cfg)
+        with pytest.raises(BABDataError):
+            strategy.run(returns_df=bad)
