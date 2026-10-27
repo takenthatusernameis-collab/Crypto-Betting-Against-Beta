@@ -1,31 +1,53 @@
 # HANDOFF: Crypto-Betting-Against-Beta — Initial Task for Next Agentic Work Session
 
-- Timestamp (UTC): 2026-10-27T11-38-38Z
+- Timestamp (UTC): 2026-10-27T12-28-00Z
 - Repo: /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
 - Branch: main
-- HEAD: 0c544f5f1c01b759ef22a9d4ceee3a3c0abef870
-- Previous handoff: HANDOFF_2026-10-27T11-36-44Z.md
-- Pointer file: HANDOFF_NEXT_SESSION.md -> HANDOFF_2026-10-27T11-38-38Z.md
+- HEAD: dc026d9 `chore(kilo): checkpoint agent session`
+- Previous handoff: HANDOFF_2026-10-27T12-27-14Z
+- Pointer file: HANDOFF_NEXT_SESSION.md -> HANDOFF_2026-10-27T12-28-00Z
 
 ## Objective
-Resume work on this controller-only repo. This is the Kilo General Agent Loop controller infrastructure (the "Crypto Betting Against Beta" name is vestigial). This handoff leaves a clear initial task for the next agentic work session.
+Resume work on this controller-only repo. This is the Kilo General Agent Loop controller infrastructure (the "Crypto Betting Against Beta" name is vestigial). There is no active crypto-strategy code. Leave a clean, actionable starting point for the next agentic work session.
 
 ## Clear Initial Task Message (for the next agent)
-**TASK:** Orient in this controller-only repo. Read the most recent HANDOFF files (including this one), understand `.github/workflows/main.yml` and `scripts/controller_progress.py`, run tests (`pytest -q`). Identify and propose ONE concrete, testable improvement/fix within controller/observability scope (progress accounting, diagnostics scanning, campaign resume, or serialization safety). Do not add strategy/trading code. If you make changes, follow existing patterns, run tests, and create/update a timestamped handoff with decisions/blockers/next steps. Do not commit unless explicitly asked.
+**TASK FOR NEXT AGENT:** Orient yourself in this controller-only repo. Read `HANDOFF_NEXT_SESSION.md` (and this file plus the 3 most recent HANDOFF_*.md files), understand the controller workflow in `.github/workflows/main.yml` and `scripts/controller_progress.py`, verify tests pass (`python -m pytest -q`), then identify and propose ONE concrete, testable improvement/fix within controller/observability scope (progress accounting, diagnostics scanning, campaign resume, or serialization safety). Do not introduce crypto-strategy code. Update/create a new timestamped handoff when you complete orientation or start new work. Be explicit about decisions, blockers, and next steps.
+
+## Immediate Priority (Start Here)
+1. Read context — review this handoff and the 3 most recent HANDOFF_*.md files.
+2. Map the codebase — `scripts/`, `tests/`, `.github/workflows/`, `research_state/`.
+3. Understand tests — inspect `tests/` for expected behavior and validation patterns.
+4. Assess health — run controller tests to verify current state.
+5. Propose/execute next step — identify the clearest next actionable task within controller/observability scope.
 
 ## Completed Work This Session
-- Created this durable, timestamped handoff for the next agentic session. No code changes, no commits.
-- Verified current HEAD (0c544f5) and pointer chain updated.
+- **Oriented fully** — read `.github/workflows/main.yml` (1561 lines), `scripts/controller_progress.py`, all 4 test modules, and the diagnostics ledger.
+- **Verified health** — `python3 -m pytest -q` passes (117 passed).
+- **Fixed a concrete gap** in `scripts/controller_progress.py:26` (EXCLUDE_PATTERNS): added nested variants for `.env`/`.env.*`, `coverage.xml`/`.coverage`, `kilo-session-*`/`kilo-progress-*` logs, plus SQLite WAL/SHM files (`*.sqlite-wal`, `*.sqlite-shm`, `*.sqlite3-wal`, `*.sqlite3-shm`, `*.db-wal`, `*.db-shm`) and `*.tmp`. Previously only top-level paths were excluded, so nested transient artifacts (e.g. `subdir/.env`, `subdir/data.db-wal`) could be miscounted as meaningful progress and wrongly staged for checkpointing.
+- **Added 18 parametrized test cases** in `tests/test_controller_progress_accounting.py:TestIsExclusion` covering the new nested/WAL/SHM/tmp patterns. All pass.
+- No commits made (per standing instruction).
+
+## Current State (verified this session)
+- Repo contains ONLY controller/infra code — no trading strategy, no market data, no backtest engine.
+- `.github/workflows/main.yml` — controller orchestrating diagnostics, checkpointing, and worker loop.
+- `scripts/controller_progress.py` — CLI utility determining if changes represent meaningful repo progress.
+- Tests run in throwaway venv with pytest + numpy + requests.
+- Git status: clean except for untracked `scripts/__pycache__/` and `tests/__pycache__/`.
+- HEAD: dc026d9 `chore(kilo): checkpoint agent session`.
+
+## Suggested First Commands
+```bash
+git -C /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta log --oneline -5
+git -C /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta status --short
+python -m pytest -q
+```
 
 ## Handoff Notes
-- Durable pointer: always read `HANDOFF_NEXT_SESSION.md` to find the current handoff. It is a symlink; update it to point to the newest timestamped handoff.
-- Update/create a new timestamped handoff as you make progress, note blockers, and record decisions.
-- Follow existing conventions. Run tests/checks before committing if changes made.
+- This is a durable, timestamped handoff created for the next agentic work session.
+- Update this handoff (or create a new timestamped one) as you make progress, note blockers, and record decisions.
+- Follow existing patterns and conventions in the codebase. Run tests/checks before committing if changes are made.
 - Do not commit unless explicitly asked.
-- Repo is intentionally infra-only — keep changes in controller/observability scope.
-- Git status: clean except for untracked `scripts/__pycache__/` and `tests/__pycache__/` (regenerated by test runs).
-- Tests live in `tests/`: `test_controller_progress_accounting.py`, `test_workflow_diagnostics_scanner.py`, `test_nonfinite_result_serialization.py`, `test_campaign_resume.py`. The workflow runs all four with `pytest -q`.
-- Controller logic is primarily in `.github/workflows/main.yml`; supporting utilities in `scripts/controller_progress.py`.
-- pytest is not installed globally in this environment; install with `pip install pytest -q` before running the suite.
-
+- The repo is intentionally infra-only. Any new work should fit the controller/observability scope.
+- **Known follow-up (not done this session):** the `stage_safe_changes` case statement in `.github/workflows/main.yml:1163` has the same nested-path gap as the old `controller_progress.EXCLUDE_PATTERNS`. It is a separate workflow file (maintainer-managed; the standard token cannot push workflow changes), so it was left untouched. If you close that gap, mirror the new patterns there too.
+- Durable pointer: always read `HANDOFF_NEXT_SESSION.md` to find the current handoff. It is a symlink; update it to point to the newest timestamped handoff.
 (End of file)

@@ -46,12 +46,27 @@ EXCLUDE_PATTERNS = [
     "*.sqlite",
     "*.sqlite3",
     "*.db",
+    # SQLite write-ahead and shared-memory files.
+    "*.sqlite-wal",
+    "*.sqlite-shm",
+    "*.sqlite3-wal",
+    "*.sqlite3-shm",
+    "*.db-wal",
+    "*.db-shm",
+    # Transient local artifacts.
+    "*.tmp",
     ".env",
     ".env.*",
+    "*/.env",
+    "*/.env.*",
     "coverage.xml",
+    "*/coverage.xml",
     ".coverage",
+    "*/.coverage",
     "kilo-session-*.log",
+    "*/kilo-session-*.log",
     "kilo-progress-*.log",
+    "*/kilo-progress-*.log",
 ]
 
 

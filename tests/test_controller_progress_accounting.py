@@ -45,6 +45,13 @@ class TestIsExcluded:
             ("*.sqlite", True),
             ("*.sqlite3", True),
             ("*.db", True),
+            ("*.sqlite-wal", True),
+            ("*.sqlite-shm", True),
+            ("*.sqlite3-wal", True),
+            ("*.sqlite3-shm", True),
+            ("*.db-wal", True),
+            ("*.db-shm", True),
+            ("*.tmp", True),
             # Nested variants must also be excluded.
             ("subdir/.venv/lib/python.py", True),
             ("subdir/venv/bin/python", True),
@@ -54,6 +61,18 @@ class TestIsExcluded:
             ("subdir/.mypy_cache/info.json", True),
             ("subdir/.ruff_cache/lock.txt", True),
             ("subdir/.tox/py312/bin/python", True),
+            # Nested variants for env, coverage, and SQLite WAL/SHM files.
+            ("subdir/.env", True),
+            ("subdir/.env.local", True),
+            ("subdir/coverage.xml", True),
+            ("subdir/.coverage", True),
+            ("subdir/kilo-session-123.log", True),
+            ("subdir/kilo-progress-456.log", True),
+            ("main.db-wal", True),
+            ("main.sqlite3-shm", True),
+            ("subdir/data.db-wal", True),
+            ("subdir/cache.db-shm", True),
+            ("subdir/x.tmp", True),
         ],
     )
     def test_exclusion(self, path: str, expected: bool) -> None:
