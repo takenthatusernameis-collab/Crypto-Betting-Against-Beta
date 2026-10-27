@@ -1,46 +1,74 @@
-# HANDOFF: Crypto-Betting-Against-Beta — Initial Task for Next Agentic Work Session
+# HANDOFF - 2026-10-27T17-15-33Z
 
-- Timestamp (UTC): 2026-10-27T16:21:00Z
-- Repo: /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
-- Branch: main
-- HEAD: 3cf7452 `chore(kilo): checkpoint agent session` (2026-10-27)
-- Previous handoff: HANDOFF_2026-10-27T16-20-25Z.md
-- Pointer file: HANDOFF_NEXT_SESSION.md -> HANDOFF_2026-10-27T16-21-00Z.md
+## Timestamp
+2026-10-27T17-15-33Z
 
-## Objective
-Resume work on this controller-only repo. There is no active crypto-strategy code. Leave a clean, actionable starting point for the next agentic work session.
+## Purpose
+Durable handoff for the next agentic work session. Start here.
 
-## Clear Initial Task Message (for the next agent)
-**TASK FOR NEXT AGENT:** Orient yourself in this controller-only repo. Read `HANDOFF_NEXT_SESSION.md` (and this file plus the 3 most recent HANDOFF_*.md files), understand the controller workflow in `.github/workflows/main.yml` and `scripts/controller_progress.py`, verify tests pass (`python -m pytest -q`), then identify and propose ONE concrete, testable improvement/fix within controller/observability scope (progress accounting, diagnostics scanning, campaign resume, or serialization safety). Do not introduce crypto-strategy code. Update/create a new timestamped handoff when you complete orientation or start new work. Be explicit about decisions, blockers, and next steps.
+## INITIAL TASK FOR NEXT SESSION (Clear & Actionable)
+**Start with this sequence:**
 
-## Immediate Priority (Start Here)
-1. Read context — review this handoff and the 3 most recent HANDOFF_*.md files.
-2. Map the codebase — `scripts/`, `tests/`, `.github/workflows/`, `research_state/`.
-3. Understand tests — inspect `tests/` for expected behavior and validation patterns.
-4. Assess health — run controller tests to verify current state.
-5. Propose/execute next step — identify the clearest next actionable task within controller/observability scope.
+1. **Establish context**
+   - Read `HANDOFF.md` (this file after update) and the most recent `HANDOFF_*.md` for full history
+   - Check repo state: `git log --oneline -10` and `git status`
 
-## Current State (verified this session)
-- Repo contains ONLY controller/infra code — no trading strategy, no market data, no backtest engine.
-- `.github/workflows/main.yml` — controller orchestrating diagnostics, checkpointing, and worker loop. The `stage_safe_changes()` function (line 1154) and `scripts/controller_progress.py` share an identical exclusion pattern set (42 patterns each, verified by sync tests).
-- `scripts/controller_progress.py` — CLI utility determining if changes represent meaningful repo progress.
-- Tests run in a throwaway venv with pytest + numpy + requests. Recipe: `python3 -m venv /tmp/test-venv && /tmp/test-venv/bin/pip install -q pytest numpy requests && /tmp/test-venv/bin/python -m pytest -q`.
-- Git status: clean except for untracked `scripts/__pycache__/` and `tests/__pycache__/`.
-- HEAD advanced to 1ba70c4 (`chore(kilo): checkpoint agent session`) since the previous handoff; no working-tree changes were committed.
+2. **Establish test baseline**
+   - Inspect test configuration (look for `pytest.ini`, `pyproject.toml`, `package.json`, `Makefile`, `tox.ini`)
+   - Run tests to see current pass/fail state and capture failures
+   - Do not guess test commands - discover from repo config
+
+3. **Tackle highest priority work**
+   - If tests are failing, fix the most critical/blocking failures first
+   - If tests pass, review `HANDOFF.md` for any TODOs/planned work and proceed with the highest priority item
+   - Keep changes minimal, follow existing patterns, and update/add tests if behavior changes
+
+## Current Repo State
+- Location: `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
+- Git repo: yes (see `.git/`)
+- Many historical handoffs present (`HANDOFF_*.md`)
+
+## Notes for Next Agent
+- Update this handoff (`HANDOFF.md`) and create a new timestamped `HANDOFF_<UTC>.md` before ending your session
+- Update `HANDOFF_NEXT_SESSION.md` symlink to point to the newest handoff
+- Run lint/typecheck/tests if configured in repo before completing
+- Avoid speculative changes; fix what’s broken or what’s explicitly planned
 
 ## Suggested First Commands
-```bash
-git -C /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta log --oneline -5
-git -C /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta status --short
-python3 -m venv /tmp/test-venv && /tmp/test-venv/bin/pip install -q pytest numpy requests && /tmp/test-venv/bin/python -m pytest -q
-```
+f514c04 chore(kilo): checkpoint agent session
+b2c79a0 chore(kilo): checkpoint agent session
+638b62f chore(kilo): checkpoint agent session
+8c433d3 chore(kilo): checkpoint agent session
+4a42c82 chore(kilo): checkpoint agent session
+On branch main
+Your branch is up to date with 'origin/main'.
 
-## Handoff Notes
-- This is a durable, timestamped handoff created for the next agentic work session.
-- Update this handoff (or create a new timestamped one) as you make progress, note blockers, and record decisions.
-- Follow existing patterns and conventions in the codebase. Run tests/checks before committing if changes are made.
-- Do not commit unless explicitly asked.
-- The repo is intentionally infra-only. Any new work should fit the controller/observability scope.
-- Durable pointer: always read `HANDOFF_NEXT_SESSION.md` to find the current handoff. It is a symlink; update it to point to the newest timestamped handoff.
-- If you touch either exclusion list (Python or bash), the `TestStageSafeChangesPatternSync` tests will catch drift — update both lists together.
-- **Lesson learned:** working-tree edits to `.github/workflows/main.yml` are at high risk of being discarded by the controller's checkpoint routine (which restores `.github/workflows` from the base SHA and runs `git clean -fd` on that directory). If you need a workflow change to persist, ensure it is committed before any checkpoint step runs, or expect to re-apply it.
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	HANDOFF_2026-10-27T17-15-33Z.md
+	scripts/__pycache__/
+	tests/__pycache__/
+
+nothing added to commit but untracked files present (use "git add" to track)
+research_state/:
+total 44
+drwxr-xr-x 2 runner runner  4096 Oct 27 15:12 .
+drwxr-xr-x 9 runner runner 20480 Oct 27 17:15 ..
+-rw------- 1 runner runner 18178 Oct 27 15:12 workflow_run_diagnostics.jsonl
+
+scripts/:
+total 36
+drwxr-xr-x 3 runner runner  4096 Oct 27 15:16 .
+drwxr-xr-x 9 runner runner 20480 Oct 27 17:15 ..
+drwx------ 2 runner runner  4096 Oct 27 15:16 __pycache__
+-rw-r--r-- 1 runner runner  5196 Oct 27 15:12 controller_progress.py
+
+tests/:
+total 64
+drwxr-xr-x 3 runner runner  4096 Oct 27 15:16 .
+drwxr-xr-x 9 runner runner 20480 Oct 27 17:15 ..
+drwx------ 2 runner runner  4096 Oct 27 15:25 __pycache__
+-rw-r--r-- 1 runner runner  5867 Oct 27 15:12 test_campaign_resume.py
+-rw-r--r-- 1 runner runner  9454 Oct 27 15:25 test_controller_progress_accounting.py
+-rw-r--r-- 1 runner runner  4151 Oct 27 15:12 test_nonfinite_result_serialization.py
+-rw-r--r-- 1 runner runner  5959 Oct 27 15:12 test_workflow_diagnostics_scanner.py
