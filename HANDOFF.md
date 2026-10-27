@@ -1,11 +1,11 @@
 # HANDOFF: Crypto-Betting-Against-Beta — Initial Task for Next Agentic Work Session
 
-- Timestamp (UTC): 2026-10-27T08-45-08Z
+- Timestamp (UTC): 2026-10-27T08-45-38Z
 - Repo: /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
 - Branch: main
-- HEAD: 496fc20
-- Previous handoff: HANDOFF_2026-10-27T08-44-39Z.md
-- Pointer file: HANDOFF_NEXT_SESSION.md -> HANDOFF_2026-10-27T08-45-08Z.md
+- HEAD: e61cc5943859a5d6ccaa23843e8ee36e39cd4225
+- Previous handoff: HANDOFF_2026-10-27T08-45-08Z.md
+- Pointer file: HANDOFF_NEXT_SESSION.md -> HANDOFF_2026-10-27T08-45-38Z.md
 
 ## Objective
 Resume work on this repository. This is the Kilo General Agent Loop controller infrastructure (the "Crypto Betting Against Beta" name is vestigial). There is no active crypto-strategy code. This handoff leaves a clear initial task for the next agentic work session.
@@ -15,11 +15,14 @@ Resume work on this repository. This is the Kilo General Agent Loop controller i
 
 ## Handoff Notes
 - This is a durable, timestamped handoff for the next agentic work session.
-- Timestamp: 2026-10-27T08-45-08Z
+- Timestamp: 2026-10-27T08-45-38Z
 - Update/create a new timestamped handoff as you make progress, note blockers, and record decisions.
 - Follow existing conventions. Run tests/checks before committing if changes made.
 - Do not commit unless explicitly asked.
 - Repo is intentionally infra-only — keep changes in controller/observability scope.
 - Git status: clean except for untracked `scripts/__pycache__/` and `tests/__pycache__/`.
+- HEAD commit `e61cc59` is a `chore(kilo): checkpoint agent session` commit dated 2026-10-27T08:45:29Z; the previous handoff's recorded HEAD (`1e8f0a4`) is now stale.
+- The `.github/workflows/main.yml` controller script is large (1040+ lines); the diagnostics collector (lines 85-651) and the idle watchdog (lines 738-961) are the primary in-workflow Python.
+- Tests live in `tests/`: `test_controller_progress_accounting.py`, `test_workflow_diagnostics_scanner.py`, `test_nonfinite_result_serialization.py`, `test_campaign_resume.py`. The workflow runs all four with `pytest -q`.
 
-(End of file - total 23 lines)
+(End of file - total 31 lines)
