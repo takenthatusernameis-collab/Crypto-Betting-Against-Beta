@@ -1,8 +1,8 @@
 # Handoff - Crypto Betting Against Beta
 
-**Timestamp:** 2026-10-27T00:45:20Z
+**Timestamp:** 2026-10-27T00:45:51Z
 **Branch:** main
-**Latest Commit:** 4cf207f (chore(kilo): checkpoint agent session)
+**Latest Commit:** fa116a7 (chore(kilo): checkpoint agent session)
 
 ## Current State
 - Working tree clean (only __pycache__ artifacts untracked)
@@ -10,11 +10,12 @@
 - Recent sessions all checkpoints from prior agent runs
 
 ## Initial Task for Next Session
-Implement/test the crypto betting-against-beta strategy as needed. Focus on:
-1. Understand the codebase structure - review existing strategy code, data sources, backtesting logic
-2. Identify what needs to be built/fixed/tested
-3. Run any relevant tests to understand current state
-4. Continue implementation based on findings
+Verify workflow/test stability after latest checkpoint (no active feature work). Focus on:
+1. Confirm test environment (`python3 -m pytest --version`) and run targeted tests
+2. Run full suite if time permits
+3. Validate workflow integration (`scripts/controller_progress.py` + `.github/workflows/main.yml`)
+4. Triage diagnostics in `research_state/workflow_run_diagnostics.jsonl`
+5. Clean up __pycache__ artifacts (optional)
 
 ## Quick Start
 ```bash
