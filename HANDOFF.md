@@ -1,10 +1,10 @@
 # HANDOFF: Crypto-Betting-Against-Beta — Initial Task for Next Agentic Work Session
-- Timestamp (UTC): 2026-10-27T04-45-10Z
+- Timestamp (UTC): 2026-10-27T05:35:54Z
 - Repo: /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
 - Branch: main
-- HEAD: 6ab8492dde7db47ba7cc02f24fe3f6cc5c04dde6
-- Previous handoff: HANDOFF_2026-10-27T04-44-33Z.md
-- Latest detailed handoff: HANDOFF_2026-10-27T04-45-10Z.md
+- HEAD: dea1993
+- Previous handoff: HANDOFF_2026-10-27T04-45-10Z.md
+- Latest detailed handoff: HANDOFF_2026-10-27T05-35-54Z.md
 
 ## Objective
 Resume work on this repository. This is the Kilo General Agent Loop controller infrastructure (the "Crypto Betting Against Beta" name is vestigial). There is no active crypto-strategy code.
@@ -18,23 +18,15 @@ Resume work on this repository. This is the Kilo General Agent Loop controller i
 
 ## Current State (verified this session)
 - Repo contains ONLY controller/infra code — no trading strategy, no market data, no backtest engine.
-- `.github/workflows/main.yml` (81KB) — The Kilo General Agent Loop controller orchestrating diagnostics, checkpointing, and worker loop.
-- `scripts/controller_progress.py` (3.9KB) — CLI utility determining if changes represent meaningful repo progress.
+- `.github/workflows/main.yml` — The Kilo General Agent Loop controller orchestrating diagnostics, checkpointing, and worker loop.
+- `scripts/controller_progress.py` — CLI utility determining if changes represent meaningful repo progress.
 - Tests typically run in throwaway venv with pytest + numpy + requests.
-- All 91 tests pass (verified this session):
-  - `tests/test_controller_progress_accounting.py`
-  - `tests/test_workflow_diagnostics_scanner.py`
-  - `tests/test_nonfinite_result_serialization.py`
-  - `tests/test_campaign_resume.py`
 - Git status: clean except for untracked `scripts/__pycache__/` and `tests/__pycache__/`.
-- Diagnostics ledger has 2 records.
 
 ## Suggested First Commands
 ```bash
 git -C /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta log --oneline -5
 git -C /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta status --short
-test_venv="/tmp/controller-tests-venv"; "$test_venv/bin/python" -m pytest -q tests/test_controller_progress_accounting.py tests/test_workflow_diagnostics_scanner.py tests/test_nonfinite_result_serialization.py tests/test_campaign_resume.py
-cat /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta/research_state/workflow_run_diagnostics.jsonl 2>&1 | tail -5
 ```
 
 ## Clear Initial Task Message
