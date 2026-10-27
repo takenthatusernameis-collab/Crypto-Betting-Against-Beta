@@ -1,7 +1,7 @@
-# HANDOFF - 2026-10-27T19:21:09Z
+# HANDOFF - 2026-10-27T19:22:00Z
 
 ## Timestamp
-2026-10-27T19:21:09Z (this session's handoff)
+2026-10-27T19:22:00Z (this session's handoff)
 
 ## Purpose
 Durable handoff for the next agentic work session. Start here.
@@ -31,20 +31,22 @@ Durable handoff for the next agentic work session. Start here.
    - Keep changes minimal, follow existing patterns, update/add tests if behavior changes.
 
 ## What Was Done This Session
+- **Fixed a real test failure**: `tests/test_controller_progress_accounting.py::TestStageSafeChangesPatternSync` (2 failing tests) — the workflow's `stage_safe_changes()` bash case-pattern list in `.github/workflows/main.yml` (line 1163) was missing the `*/.github/workflows/*` nested pattern that exists in Python's `EXCLUDE_PATTERNS` (`scripts/controller_progress.py:28`). Added the missing pattern. This is the regression the test comment references ("commit 7dac063").
+- Verified test suite: **124 passed** after the fix (was 2 failed, 122 passed).
 - Left a fresh timestamped durable handoff with a clear initial task message for the next agentic work session.
 - Updated canonical `HANDOFF.md` and repointed `HANDOFF_NEXT_SESSION.md` symlink to this newest handoff.
-- No code changes made this session; repo state otherwise unchanged.
+- No other code changes made this session; repo state otherwise unchanged.
 
 ## Current Repo State
 - Location: `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
 - Git repo: yes; branch `main`, up to date with `origin/main`
-- HEAD: `a222368` - chore(kilo): checkpoint agent session
+- HEAD: `8b221da` - chore(kilo): checkpoint agent session
 - Untracked: `scripts/__pycache__/`, `tests/__pycache__/`
-- Uncommitted changes: none
-- Test baseline: **re-verify before declaring baseline** (prior handoffs have made stale claims).
+- Uncommitted changes: **one** — `.github/workflows/main.yml` (the `*/.github/workflows/*` pattern addition on line 1163). Not yet committed.
+- Test baseline: **verified passing** — 124 passed, 0 failed.
 
 ## Key Files
-- `.github/workflows/main.yml` — Kilo agent-loop controller workflow. `stage_safe_changes()` at line 1154; exclusion list at line 1163.
+- `.github/workflows/main.yml` — Kilo agent-loop controller workflow. `stage_safe_changes()` at line 1154; exclusion list at line 1163 (now includes `*/.github/workflows/*`).
 - `scripts/controller_progress.py` — core controller progress accounting; `EXCLUDE_PATTERNS` at line 26.
 - `tests/test_controller_progress_accounting.py` — `TestStageSafeChangesPatternSync` (lines 187–230) enforces Python↔workflow pattern sync.
 
