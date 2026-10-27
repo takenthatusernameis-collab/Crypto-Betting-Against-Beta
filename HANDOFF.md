@@ -1,11 +1,11 @@
 # HANDOFF: Crypto-Betting-Against-Beta — Initial Task for Next Agentic Work Session
 
-- Timestamp (UTC): 2026-10-27T13-31-37Z
+- Timestamp (UTC): 2026-10-27T13-32-00Z
 - Repo: /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
 - Branch: main
-- HEAD: 67d05bb `chore(kilo): checkpoint agent session`
-- Previous handoff: HANDOFF_2026-10-27T13-30-21Z.md
-- Pointer file: HANDOFF_NEXT_SESSION.md -> HANDOFF_2026-10-27T13-31-37Z.md
+- HEAD: 5b7d8bc `chore(kilo): checkpoint agent session` (2026-10-27 13:31:40 +0000)
+- Previous handoff: HANDOFF_2026-10-27T13-31-37Z.md (stale: referenced 67d05bb, superseded by 5b7d8bc)
+- Pointer file: HANDOFF_NEXT_SESSION.md -> HANDOFF_2026-10-27T13-32-00Z.md
 
 ## Objective
 Resume work on this controller-only repo. This is the Kilo General Agent Loop controller infrastructure (the "Crypto Betting Against Beta" name is vestigial). There is no active crypto-strategy code. Leave a clean, actionable starting point for the next agentic work session.
@@ -21,7 +21,8 @@ Resume work on this controller-only repo. This is the Kilo General Agent Loop co
 5. Propose/execute next step — identify the clearest next actionable task within controller/observability scope.
 
 ## Completed Work This Session
-- Created this timestamped durable handoff (`HANDOFF_2026-10-27T13-31-37Z.md`).
+- Verified the previous handoff (HANDOFF_2026-10-27T13-31-37Z.md) was stale by one commit: it referenced HEAD 67d05bb, but the actual HEAD is 5b7d8bc (committed 2026-10-27 13:31:40 +0000, 3s after the handoff was written).
+- Created this refreshed timestamped durable handoff (`HANDOFF_2026-10-27T13-32-00Z.md`) with the corrected HEAD/pointer metadata.
 - Updated `HANDOFF.md` copy and `HANDOFF_NEXT_SESSION.md` symlink to point to the new handoff.
 - No code changes made; no commits (per standing instruction).
 
@@ -31,7 +32,7 @@ Resume work on this controller-only repo. This is the Kilo General Agent Loop co
 - `scripts/controller_progress.py` — CLI utility determining if changes represent meaningful repo progress.
 - Tests run in throwaway venv with pytest + numpy + requests.
 - Git status: clean except for untracked `scripts/__pycache__/` and `tests/__pycache__/`.
-- HEAD: 67d05bb `chore(kilo): checkpoint agent session`.
+- HEAD: 5b7d8bc `chore(kilo): checkpoint agent session`.
 
 ## Suggested First Commands
 ```bash
