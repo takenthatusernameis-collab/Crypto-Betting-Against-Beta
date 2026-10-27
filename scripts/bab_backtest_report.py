@@ -28,6 +28,12 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help="Path to a CSV/JSON returns file, or 'synthetic' (default).",
     )
+    parser.add_argument(
+        "--returns-csv",
+        default=None,
+        dest="returns_csv",
+        help="Alias for --data-source pointing at a CSV returns file.",
+    )
     parser.add_argument("--benchmark", default="BTC", help="Benchmark asset column name.")
     parser.add_argument("--beta-window", type=int, default=90)
     parser.add_argument("--min-observations", type=int, default=60)
@@ -41,7 +47,10 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
 
-    data_source = None if (args.data_source in (None, "", "synthetic")) else args.data_source
+    # --returns-csv is an explicit alias for the CSV data path; it wins over
+    # --data-source so callers can pass either flag interchangeably.
+    data_source = args.returns_csv or args.data_source
+    data_source = None if data_source in (None, "", "synthetic") else data_source
     cfg = BABConfig(
         benchmark=args.benchmark,
         beta_window=args.beta_window,
