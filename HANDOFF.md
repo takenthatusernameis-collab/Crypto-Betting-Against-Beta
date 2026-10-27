@@ -1,7 +1,7 @@
-# HANDOFF - 2026-10-27T18-22-25Z
+# HANDOFF - 2026-10-27T18-23-17Z
 
 ## Timestamp
-2026-10-27T18:22:25Z (this session's handoff)
+2026-10-27T18:23:17Z (this session's handoff)
 
 ## Purpose
 Durable handoff for the next agentic work session. Start here.
@@ -39,10 +39,10 @@ Durable handoff for the next agentic work session. Start here.
 ## Current Repo State
 - Location: `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
 - Git repo: yes; branch `main`, up to date with `origin/main`
-- HEAD: `578ea72` - chore(kilo): checkpoint agent session
+- HEAD: `585cb55` - chore(kilo): checkpoint agent session
 - Untracked: `scripts/__pycache__/`, `tests/__pycache__/`
 - Uncommitted changes: none
-- Test baseline: **124 passed, 0 failed** (per prior session at 18:19:30Z; re-verify before declaring baseline).
+- Test baseline: **re-verify before declaring baseline** (prior claim was 124 passed, 0 failed at 18:19:30Z).
 
 ## Key Files
 - `.github/workflows/main.yml` — Kilo agent-loop controller workflow. `stage_safe_changes()` at line 1154; exclusion list at line 1163.
