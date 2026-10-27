@@ -1,7 +1,7 @@
-# HANDOFF - 2026-10-27T22:07:09Z
+# HANDOFF - 2026-10-27T22:20:05Z
 
 ## Timestamp
-2026-10-27T22:07:09Z (canonical handoff for next session)
+2026-10-27T22:20:05Z
 
 ## Purpose
 Durable single handoff. Start here. Ignore older handoffs unless explicitly needed for context.
@@ -11,80 +11,68 @@ Repository: **Crypto-Betting-Against-Beta**. The product is the "Betting Against
 
 ## Current State
 - Location: `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
-- Branch: `main` @ `a80c50a` (chore(kilo): checkpoint agent session)
-- Uncommitted: none (working tree clean after this session's changes)
-- Tests: **143 passed, 0 failed** (`python3 -m pytest -q`)
-  - 124 controller/infra tests (progress accounting, diagnostics scanner, nonfinite serialization, campaign resume)
-  - 19 new BAB strategy tests (beta, rolling beta, signals, portfolio, backtest)
-- `strategies/betting_against_beta/` module: complete MVP — `__init__.py`, `config.py`, `data.py`, `beta.py`, `signals.py`, `portfolio.py`, `backtest.py`, `strategy.py`
-- Entrypoint: `from strategies.betting_against_beta import BABStrategy` (or `strategies.betting_against_beta.strategy`)
-- `README.md`: created with "Betting Against Beta (Crypto)" section (approach, assumptions, how to run)
-- All acceptance criteria met: rolling beta vs benchmark, long/short ranking, dollar-neutral weights, end-to-end backtest on synthetic data, unit tests, importable entrypoint, README
+- Branch: `main` @ `a80c50a`
+- Uncommitted: changes present (requirements.txt, metrics module, tests, report script, workflow fix)
+- Tests: **151 passed, 0 failed** (`python3 -m pytest -q`)
+  - Controller/infra tests passing (workflow exclude pattern synced)
+  - BAB strategy tests (19) passing
+  - BAB metrics tests (6) passing
+- BAB MVP complete + performance analytics added
+- `strategies/betting_against_beta/metrics.py` with sharpe, max drawdown, volatility, turnover, strategy beta, summary
+- `tests/test_betting_against_beta_metrics.py` added
+- `scripts/bab_backtest_report.py` runs end-to-end producing metrics report
+- `requirements.txt` added (numpy, pandas, pytest)
+- `.github/workflows/main.yml` synced for nested workflow excludes
 
 ## Bottlenecks Removed (This Session)
-- **Infra test drift fixed**: `.github/workflows/main.yml` `stage_safe_changes` exclude list was missing `*/.github/workflows/*`, causing 2 controller tests to fail. Added it — Python `EXCLUDE_PATTERNS` and bash list are now in lock-step; all 143 tests pass.
-- **Dependencies installed**: `numpy`, `pandas`, `pytest` (no `requirements.txt` yet — see next session task).
-- **Ambiguity killed**: BAB MVP is built and verified end-to-end on synthetic data. No more "strategy does not exist" starting point.
+- **Performance measurement gap closed**: Added metrics module + tests + report script. Strategy now measurable (Sharpe, drawdown, turnover, beta).
+- **Dependencies pinned**: `requirements.txt` created.
+- **Infra test drift fixed**: Workflow exclude list now includes `*/.github/workflows/*`.
 
 ## INITIAL TASK FOR NEXT SESSION (Do This First)
 
-### Focus Campaign: BAB Strategy Performance Analytics + Real Backtest Report
-The MVP works. The next heavy work is to (1) pin dependencies, (2) add a performance-metrics module, and (3) produce a verifiable end-to-end backtest report with Sharpe ratio, max drawdown, turnover, and strategy beta. Do not scope-creep into live trading or real data APIs — stay with synthetic/dataframe inputs, testable and offline.
+### Focus Campaign: Real Data Integration + Robustness
+MVP + metrics done. Next heavy work is (1) add real data loader interface (CSV/JSON/DataFrame) with validation, (2) add config for data source, (3) make metrics more robust to edge cases, (4) add integration tests with fixtures. Stay offline/testable.
 
 ### 1) Reconnaissance (5 min)
 ```bash
 cd /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
-python3 -m pytest -q 2>&1 | tail -2
+PYTHONPATH=/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta python3 -m pytest -q 2>&1 | tail -2
 git status --short
 ```
 
-### 2) Create `requirements.txt`
-Pin runtime/test deps: `numpy`, `pandas`, `pytest`. Keep it minimal.
+### 2) Data loading
+Create `strategies/betting_against_beta/data_loader.py` with `load_returns_from_csv`, `validate_returns_dataframe` (checks datetime index, numeric, no duplicate columns, etc.). Add tests.
 
-### 3) Create `strategies/betting_against_beta/metrics.py` (TDD)
-Pure functions on a returns Series/DataFrame:
-- `sharpe_ratio(returns, risk_free=0.0, periods_per_year=252)`
-- `max_drawdown(cumulative_or_returns)`
-- `annualized_volatility(returns, periods_per_year=252)`
-- `turnover(weights_df)` — mean of `weights.diff().abs().sum(axis=1)`
-- `strategy_beta(strategy_returns, benchmark_returns, periods...)` — OLS beta of strategy vs benchmark
-- `summary(returns, weights_df, benchmark_returns)` — dict of all metrics (NaN-safe: use "NaN"/"Infinity" sentinels consistent with `tests/test_nonfinite_result_serialization.py`)
+### 3) Strategy integration
+Allow `BABStrategy.run(returns_df=...)` to use real data; add validation and clear errors.
 
-Add `tests/test_betting_against_beta_metrics.py` — write failing tests first (e.g. Sharpe of constant returns = 0 or NaN; drawdown of a known drawdown path; turnover of constant weights = 0).
-
-### 4) Create `scripts/bab_backtest_report.py` (or a `notebook`-free script)
-CLI script that:
-- Builds `BABStrategy` with default config on synthetic data
-- Runs pipeline, computes metrics via `metrics.summary`
-- Prints a short report (Sharpe, vol, max drawdown, turnover, final cumulative, n_rebalances)
-- Exits 0 on success
+### 4) Report script enhancements
+Update `scripts/bab_backtest_report.py` to accept `--returns-csv` option.
 
 ### 5) Verify & Handoff
-- `python3 -m pytest -q` — all tests pass (143 + new metrics tests)
-- `python3 scripts/bab_backtest_report.py` runs and prints a report
-- Update `HANDOFF.md` with progress, create a new timestamped handoff (`HANDOFF_YYYY-MM-DDTHH-MM-SSZ.md`), repoint `HANDOFF_NEXT_SESSION.md` symlink.
+- All tests pass
+- Script works with synthetic and CSV
+- Update handoffs
 
-## ACCEPTANCE CRITERIA (Next Campaign, Definition of Done)
-- [ ] `requirements.txt` exists and pins numpy/pandas/pytest
-- [ ] `strategies/betting_against_beta/metrics.py` exists with Sharpe, max drawdown, volatility, turnover, strategy beta
-- [ ] `tests/test_betting_against_beta_metrics.py` added and passing (TDD: failing tests written first)
-- [ ] Backtest report script runs end-to-end and prints metrics without errors
-- [ ] All tests pass (`python3 -m pytest -q`)
-- [ ] `HANDOFF.md` updated, new timestamped handoff created, symlink repointed
+## ACCEPTANCE CRITERIA
+- [ ] Data loader module + tests
+- [ ] Real data path tested
+- [ ] Report script supports CSV input
+- [ ] All tests pass
+- [ ] Handoffs updated
 
 ## CONSTRAINTS & RULES
-- **Product-first**: Do not refactor the agent-loop/workflow unless a test explicitly fails because of them.
-- **TDD**: Tests first where logic is non-obvious (metrics especially).
-- **Start simple**: Synthetic data/dataframe inputs only. No live APIs, no exchange keys, no scope creep into execution.
-- **Keep it testable**: Pure functions where possible; metrics must be NaN-safe.
-- **Handoff discipline**: Before ending, update `HANDOFF.md`, create a new timestamped handoff, and repoint `HANDOFF_NEXT_SESSION.md`.
+- Product-first (BAB strategy)
+- TDD for non-obvious logic
+- Offline/testable only
+- Handoff discipline
 
-## Suggested First Commands (Copy/Paste)
+## Suggested First Commands
 ```bash
 cd /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
-python3 -m pytest -q 2>&1 | tail -2
-git status --short
+PYTHONPATH=/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta python3 scripts/bab_backtest_report.py 2>&1 | tail -5
 ```
 
 ## Notes
-This session completed the BAB MVP (research → skeleton → TDD → implementation → verification). The next campaign is performance analytics + report. Do heavy work. The scaffolding is done; the strategy exists; now measure it.
+Metrics and reporting added. Next: real data integration.
