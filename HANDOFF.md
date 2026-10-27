@@ -1,11 +1,11 @@
 # HANDOFF: Crypto-Betting-Against-Beta — Initial Task for Next Agentic Work Session
 
-- Timestamp (UTC): 2026-10-27T16:19:26Z
+- Timestamp (UTC): 2026-10-27T16:20:25Z
 - Repo: /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
 - Branch: main
-- HEAD: c7af77b `chore(kilo): checkpoint agent session` (2026-10-27)
-- Previous handoff: HANDOFF_2026-10-27T16-18-43Z.md
-- Pointer file: HANDOFF_NEXT_SESSION.md -> HANDOFF_2026-10-27T16-19-26Z.md
+- HEAD: 1ba70c4 `chore(kilo): checkpoint agent session` (2026-10-27)
+- Previous handoff: HANDOFF_2026-10-27T16-19-26Z.md
+- Pointer file: HANDOFF_NEXT_SESSION.md -> HANDOFF_2026-10-27T16-20-25Z.md
 
 ## Objective
 Resume work on this controller-only repo. There is no active crypto-strategy code. Leave a clean, actionable starting point for the next agentic work session.
@@ -26,7 +26,7 @@ Resume work on this controller-only repo. There is no active crypto-strategy cod
 - `scripts/controller_progress.py` — CLI utility determining if changes represent meaningful repo progress.
 - Tests run in a throwaway venv with pytest + numpy + requests. Recipe: `python3 -m venv /tmp/test-venv && /tmp/test-venv/bin/pip install -q pytest numpy requests && /tmp/test-venv/bin/python -m pytest -q`.
 - Git status: clean except for untracked `scripts/__pycache__/` and `tests/__pycache__/`.
-- HEAD advanced to d874ebf (`chore(kilo): checkpoint agent session`) since the previous handoff; no working-tree changes were committed.
+- HEAD advanced to 1ba70c4 (`chore(kilo): checkpoint agent session`) since the previous handoff; no working-tree changes were committed.
 
 ## Suggested First Commands
 ```bash
