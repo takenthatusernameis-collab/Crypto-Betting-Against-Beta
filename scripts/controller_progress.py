@@ -116,25 +116,28 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    meaningful = list_meaningful_changes(args.base_sha, args.head_sha)
+    # Delegate the progress decision to has_meaningful_changes so callers can
+    # stub the predicate; the file list is only materialized for JSON output.
+    has_progress = has_meaningful_changes(args.base_sha, args.head_sha)
     remote_ok = True
     if args.verified_remote_sha is not None:
         remote_ok = verify_remote_sha(args.head_sha, args.verified_remote_sha)
 
     if args.json:
+        meaningful = list_meaningful_changes(args.base_sha, args.head_sha)
         payload = {
             "base_sha": args.base_sha,
             "head_sha": args.head_sha,
             "meaningful_changes": meaningful,
-            "has_meaningful_changes": bool(meaningful),
+            "has_meaningful_changes": has_progress,
             "verified_remote_sha": args.verified_remote_sha,
             "remote_sha_verified": remote_ok,
-            "exit_code": 0 if (bool(meaningful) and remote_ok) else 1,
+            "exit_code": 0 if (has_progress and remote_ok) else 1,
         }
         print(json.dumps(payload, sort_keys=True, separators=(",", ":")))
         return payload["exit_code"]
 
-    if not meaningful:
+    if not has_progress:
         return 1
 
     if args.verified_remote_sha is not None and not remote_ok:
