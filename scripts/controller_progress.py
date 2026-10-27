@@ -25,6 +25,7 @@ from pathlib import Path
 # buried deeper in the tree (e.g. "subdir/.venv/x.py") are excluded too.
 EXCLUDE_PATTERNS = [
     ".github/workflows/*",
+    "*/.github/workflows/*",
     ".venv/*",
     "*/.venv/*",
     "venv/*",

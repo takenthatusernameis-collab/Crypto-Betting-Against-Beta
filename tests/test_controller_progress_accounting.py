@@ -61,6 +61,11 @@ class TestIsExcluded:
             ("subdir/.mypy_cache/info.json", True),
             ("subdir/.ruff_cache/lock.txt", True),
             ("subdir/.tox/py312/bin/python", True),
+            # Nested workflow files must be excluded too; fnmatch does not cross
+            # directory separators, so the nested-variant pattern is required.
+            ("subdir/.github/workflows/main.yml", True),
+            ("subdir/.github/workflows/nested/file.yml", True),
+            ("a/b/c/.github/workflows/ci.yml", True),
             # Nested variants for env, coverage, and SQLite WAL/SHM files.
             ("subdir/.env", True),
             ("subdir/.env.local", True),
