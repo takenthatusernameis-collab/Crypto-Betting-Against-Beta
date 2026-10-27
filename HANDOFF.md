@@ -1,46 +1,29 @@
-# Handoff - Crypto Betting Against Beta
+# HANDOFF: Crypto-Betting-Against-Beta — Initial Task for Next Agentic Work Session
+- Timestamp (UTC): 2026-10-27T02-49-57Z
+- Repo: /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
+- Branch: main
+- HEAD: da2cf89 chore(kilo): checkpoint agent session
+- Previous handoff: HANDOFF_2026-10-27T02-48-56Z.md
 
-**Timestamp:** 2026-10-27T02:48:56Z
-**Branch:** main
-**Latest Commit:** 47c49c9 (chore(kilo): checkpoint agent session)
-**Latest Handoff File:** HANDOFF_2026-10-27T02-48-56Z.md
+## Objective
+Pick up where the last session left off and make concrete progress on Crypto-Betting-Against-Beta. Treat this file as the starting brief for the next agentic session.
 
-## Initial Task for Next Session
+## Immediate Priority (Start Here)
+1. **Read context** - Review  and the most recent timestamped  to understand current state, decisions, blockers, and any in-flight work.
+2. **Map the codebase** - Get oriented with source files, strategy logic, data/pipelines, backtests, execution, config, and tests. Focus on entry points and core modules.
+3. **Understand tests** - Inspect  to see expected behavior and validation patterns.
+4. **Assess health** - Check if tests/lint/typecheck exist (package.json/pyproject/setup/Makefile) and note how to run them.
+5. **Propose/execute next step** - Based on findings, identify the clearest next actionable task (fix/blocker or incremental feature) and proceed methodically.
 
-Resume work on this repository. This is the Kilo General Agent Loop controller infrastructure (the "Crypto Betting Against Beta" name is vestigial). There is no active crypto-strategy code.
-
-1. **Verify baseline** - Confirm the test suite is green:
-   ```bash
-   cd /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
-   python3 -m pytest -v
-   ```
-   Known baseline as of this handoff: 91 passed in 0.05s.
-
-2. **Review repo state** - `git log --oneline -5`, `ls -la`, and inspect:
-   - `scripts/controller_progress.py` — progress accounting CLI
-   - `.github/workflows/main.yml` — Kilo General Agent Loop workflow
-   - `research_state/workflow_run_diagnostics.jsonl` — diagnostics ledger
-
-3. **Triage diagnostics** - Check the diagnostics ledger for the recorded run (40367326154) that concluded `failure` with a `file or directory not found: tests/test_controller_progress_accounting.py` signal. **Determined: stale artifact.** The file exists in the working tree (`tests/test_controller_progress_accounting.py`), and the workflow at `.github/workflows/main.yml:62` explicitly invokes it. The 2026-10-26T17:18 run failed because the test file did not yet exist; subsequent runs pass. No action needed unless the ledger itself needs pruning.
-
-4. **Identify concrete next action** - Based on test results and diagnostics, determine the next focused task. Keep changes minimal and targeted.
-
-## Current State
-
-- Working tree clean (only `scripts/__pycache__/` and `tests/__pycache__/` untracked).
-- Test suite: 91 passed in 0.05s (`tests/test_controller_progress_accounting.py`, `tests/test_campaign_resume.py`, `tests/test_nonfinite_result_serialization.py`, `tests/test_workflow_diagnostics_scanner.py`).
-- Source: `scripts/controller_progress.py`, `.github/workflows/main.yml`, `research_state/workflow_run_diagnostics.jsonl`.
-- Recent git history is all `chore(kilo): checkpoint agent session` commits from prior agent runs.
-
-## Quick Start
-
+## Suggested First Commands
 ```bash
-cd /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
-git log --oneline -3
-python3 -m pytest -v 2>&1 | tail -10
+git -C /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta log --oneline -5
+git -C /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta status --short
+find /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta -maxdepth 4 -type f \( -name "*.py" -o -name "*.ts" -o -name "*.js" -o -name "*.json" -o -name "*.yaml" -o -name "*.yml" -o -name "*.md" -o -name "pyproject.toml" -o -name "package.json" -o -name "Makefile" \) | head -40
+cat /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta/HANDOFF.md | head -80
 ```
 
-## Notes
-
-- Keep changes minimal and focused; update tests if behavior changes.
-- Do not commit unless explicitly asked.
+## Handoff Notes
+- This is a durable, timestamped handoff created for the next agentic work session.
+- Update this handoff (or create a new timestamped one) as you make progress, note blockers, and record decisions.
+- Follow existing patterns and conventions in the codebase. Run tests/checks before committing if changes are made.
