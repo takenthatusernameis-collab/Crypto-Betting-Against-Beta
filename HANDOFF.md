@@ -1,17 +1,17 @@
 # HANDOFF: Crypto-Betting-Against-Beta — Initial Task for Next Agentic Work Session
 
-- Timestamp (UTC): 2026-10-27T06-39-37Z
+- Timestamp (UTC): 2026-10-27T06-41-09Z
 - Repo: /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
 - Branch: main
 - HEAD: 32c9d19
-- Previous handoff: HANDOFF_2026-10-27T06-38-04Z.md
+- Previous handoff: HANDOFF.md
 - Latest pointer: HANDOFF.md (updated to this session)
 
 ## Objective
 Resume work on this repository. This is the Kilo General Agent Loop controller infrastructure (the "Crypto Betting Against Beta" name is vestigial). There is no active crypto-strategy code.
 
 ## Immediate Priority (Start Here)
-1. **Read context** - Review this handoff and the previous one (HANDOFF_2026-10-27T06-38-04Z.md) to understand current state, decisions, blockers, and any in-flight work.
+1. **Read context** - Review this handoff and recent HANDOFF_*.md files to understand current state, decisions, blockers, and any in-flight work.
 2. **Map the codebase** - Get oriented with source files (`scripts/`, `tests/`, `.github/workflows/`, `research_state/`). Focus on entry points and core modules.
 3. **Understand tests** - Inspect `tests/` to see expected behavior and validation patterns.
 4. **Assess health** - Run the controller tests to verify current state.
@@ -40,5 +40,3 @@ git -C /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
 - Follow existing patterns and conventions in the codebase. Run tests/checks before committing if changes are made.
 - Do not commit unless explicitly asked.
 - The repo is intentionally infra-only. Any new work should fit the controller/observability scope.
-
-(End of file)
