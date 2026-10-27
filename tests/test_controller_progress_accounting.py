@@ -182,3 +182,49 @@ class TestMain:
         ]
         with mock.patch.object(controller_progress, "has_meaningful_changes", return_value=True):
             assert controller_progress.main() == 1
+
+
+class TestStageSafeChangesPatternSync:
+    """Regression tests ensuring the workflow's bash stage_safe_changes exclusion
+    list stays in lock-step with the Python EXCLUDE_PATTERNS list.
+
+    The two lists live in different files (`.github/workflows/main.yml` and
+    `scripts/controller_progress.py`) and are maintained by hand. Drift means
+    a path that the controller refuses to credit as progress gets staged into a
+    checkpoint commit (or vice versa), silently corrupting progress accounting.
+    """
+
+    WORKFLOW_PATH = Path(__file__).resolve().parent.parent / ".github" / "workflows" / "main.yml"
+
+    @classmethod
+    def _workflow_patterns(cls) -> set[str]:
+        text = cls.WORKFLOW_PATH.read_text(encoding="utf-8")
+        start = text.index('case "$changed_path" in')
+        header = text[start : text.index(")", start)]
+        body = header.split('case "$changed_path" in', 1)[1].strip()
+        return {token.strip() for token in body.split("|") if token.strip()}
+
+    def test_python_patterns_are_subset_of_workflow(self) -> None:
+        workflow = self._workflow_patterns()
+        missing = set(controller_progress.EXCLUDE_PATTERNS) - workflow
+        assert not missing, (
+            "Python EXCLUDE_PATTERNS has patterns missing from the workflow's "
+            f"stage_safe_changes list: {sorted(missing)}"
+        )
+
+    def test_workflow_patterns_are_subset_of_python(self) -> None:
+        python = set(controller_progress.EXCLUDE_PATTERNS)
+        extra = self._workflow_patterns() - python
+        assert not extra, (
+            "The workflow's stage_safe_changes list has patterns missing from "
+            f"Python EXCLUDE_PATTERNS: {sorted(extra)}"
+        )
+
+    def test_nested_workflow_pattern_is_present_in_workflow(self) -> None:
+        # Regression for commit 7dac063: the nested-variant pattern was added to
+        # Python but not to the bash list, so a vendored workflow file under a
+        # subdirectory was staged as meaningful progress.
+        assert "*/.github/workflows/*" in self._workflow_patterns()
+
+    def test_nested_kilo_progress_log_pattern_is_present_in_workflow(self) -> None:
+        assert "*/kilo-progress-*.log" in self._workflow_patterns()
