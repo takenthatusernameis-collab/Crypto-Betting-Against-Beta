@@ -1,7 +1,7 @@
-# HANDOFF - 2026-10-27T18-15-17Z
+# HANDOFF - 2026-10-27T18-17-06Z
 
 ## Timestamp
-2026-10-27T18-15-17Z (message time)
+2026-10-27T18:17:06Z (message time)
 
 ## Purpose
 Durable handoff for the next agentic work session. Start here.
@@ -31,18 +31,20 @@ Durable handoff for the next agentic work session. Start here.
    - Keep changes minimal, follow existing patterns, and update/add tests if behavior changes.
 
 ## What Was Done This Session
-- Created a fresh timestamped handoff (`HANDOFF_2026-10-27T18-15-17Z.md`) with a clear initial task sequence for the next agentic session.
-- Updated the canonical `HANDOFF.md` to point to the latest state and provide the same actionable starting instructions.
+- **Fixed a real test failure**: `TestStageSafeChangesPatternSync` (2 tests) was failing because the bash exclusion list in `.github/workflows/main.yml:1163` was missing the `*/.github/workflows/*` nested-variant pattern that exists in `scripts/controller_progress.py:27`. Added the pattern so vendored workflow files under subdirectories are no longer staged as meaningful progress. All 124 tests now pass.
+- **Created fresh timestamped handoff** (`HANDOFF_2026-10-27T18-17-06Z.md`) with a clear initial task sequence for the next agentic session.
+- **Updated the canonical `HANDOFF.md`** and **repointed `HANDOFF_NEXT_SESSION.md`** symlink to this handoff.
 
 ## Current Repo State
 - Location: `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
 - Git repo: yes; branch `main`, up to date with `origin/main`
-- HEAD: `d7f6d2b` - chore(kilo): checkpoint agent session
+- HEAD: `a1614fe` - chore(kilo): checkpoint agent session
 - Untracked: `scripts/__pycache__/`, `tests/__pycache__/`
-- Uncommitted change: none (clean working tree aside from pycache)
+- Uncommitted change: `.github/workflows/main.yml` (+1/-1) — added `*/.github/workflows/*` to the `stage_safe_changes()` bash exclusion list at line 1163. **Not committed** (commit only on explicit request).
+- Test baseline: **124 passed, 0 failed** (verified with the CI venv setup above).
 
 ## Key Files
-- `.github/workflows/main.yml` — the Kilo agent-loop controller workflow. `stage_safe_changes()` at line 1154; `collect` diagnostics step at line 69; `kilo` worker loop at line 720.
+- `.github/workflows/main.yml` — the Kilo agent-loop controller workflow. `stage_safe_changes()` exclusion list at line 1163; `collect` diagnostics step at line 69; `kilo` worker loop at line 720.
 - `scripts/controller_progress.py` — core controller progress accounting; `EXCLUDE_PATTERNS` at line 26.
 - `tests/test_controller_progress_accounting.py` — includes `TestStageSafeChangesPatternSync` guarding against drift between the Python and bash exclusion lists.
 - `tests/test_campaign_resume.py`, `tests/test_nonfinite_result_serialization.py`, `tests/test_workflow_diagnostics_scanner.py`
@@ -66,6 +68,3 @@ test_venv="/tmp/controller-tests-venv"; rm -rf "$test_venv"; python3 -m venv "$t
 "$test_venv/bin/python" -m pip install --disable-pip-version-check --no-input pytest numpy requests
 "$test_venv/bin/python" -m pytest -q tests/test_controller_progress_accounting.py tests/test_workflow_diagnostics_scanner.py tests/test_nonfinite_result_serialization.py tests/test_campaign_resume.py
 ```
-" \
-filePath">
-/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta/HANDOFF_2026-10-27T18-15-17Z.md
