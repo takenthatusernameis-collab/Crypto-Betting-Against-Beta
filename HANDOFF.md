@@ -1,10 +1,9 @@
 # HANDOFF: Crypto-Betting-Against-Beta — Initial Task for Next Agentic Work Session
 
-- Timestamp (UTC): 2026-10-27T07-44-28Z
+- Timestamp (UTC): 2026-10-27T07-44-48Z
 - Repo: /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
 - Branch: main
-- HEAD: $(git -C /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta rev-parse --short HEAD 2>&1)
-- Previous handoff: $(ls -1t /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta/HANDOFF_*.md 2>&1 | head -2 | tail -1 | xargs basename)
+- HEAD: $(git rev-parse --short HEAD)
 - Pointer file: HANDOFF.md (to be updated)
 
 ## Objective
@@ -22,9 +21,8 @@ Resume work on this repository. This is the Kilo General Agent Loop controller i
 
 ## Handoff Notes
 - This is a durable, timestamped handoff for the next agentic work session.
-- Timestamp: 2026-10-27T07-44-28Z
+- Timestamp: 2026-10-27T07-44-48Z
 - Update/create a new timestamped handoff as you make progress, note blockers, and record decisions.
 - Follow existing conventions. Run tests/checks before committing if changes made.
 - Do not commit unless explicitly asked.
 - Repo is intentionally infra-only — keep changes in controller/observability scope.
-- Git status: clean except for untracked `scripts/__pycache__/` and `tests/__pycache__/`.
