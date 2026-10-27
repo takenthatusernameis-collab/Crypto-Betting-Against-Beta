@@ -1,103 +1,90 @@
-# HANDOFF - 2026-10-27T21:12:05Z
+# HANDOFF - 2026-10-27T22:07:09Z
 
 ## Timestamp
-2026-10-27T21:12:05Z (canonical handoff for next session)
+2026-10-27T22:07:09Z (canonical handoff for next session)
 
 ## Purpose
 Durable single handoff. Start here. Ignore older handoffs unless explicitly needed for context.
 
-## PRIMARY OBJECTIVE (Non-Negotiable)
-**Implement a working "Betting Against Beta" (BAB) strategy for crypto.**
-
-The repository name says it. The infrastructure (GitHub Actions agent loop, controller accounting, diagnostics) exists purely to support agents building this strategy. **There is no strategy implementation yet. That is the product.**
-
-## Bottlenecks Removed
-- **Focus clarified**: Treat `.github/workflows/` and agent-loop plumbing as read-only scaffolding unless a test explicitly fails because of them.
-- **Ambiguity killed**: "Build the strategy" is now concrete with acceptance criteria below.
-- **Drift prevented**: Future agents cannot avoid heavy work because the task is specified end-to-end with files to create and verifiable milestones.
+## Project Name Priority
+Repository: **Crypto-Betting-Against-Beta**. The product is the "Betting Against Beta" (BAB) strategy for crypto. Everything else (GitHub Actions agent loop, controller accounting, diagnostics) is scaffolding that exists to support building this strategy.
 
 ## Current State
 - Location: `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
-- Branch: `main` @ `c06ee5b` (chore(kilo): checkpoint agent session)
-- Uncommitted: `.github/workflows/main.yml` (pattern-sync fix staged from prior session)
-- Tests: **124 passed, 0 failed** (all infrastructure-only tests)
-- Core strategy: **Does not exist**
+- Branch: `main` @ `a80c50a` (chore(kilo): checkpoint agent session)
+- Uncommitted: none (working tree clean after this session's changes)
+- Tests: **143 passed, 0 failed** (`python3 -m pytest -q`)
+  - 124 controller/infra tests (progress accounting, diagnostics scanner, nonfinite serialization, campaign resume)
+  - 19 new BAB strategy tests (beta, rolling beta, signals, portfolio, backtest)
+- `strategies/betting_against_beta/` module: complete MVP — `__init__.py`, `config.py`, `data.py`, `beta.py`, `signals.py`, `portfolio.py`, `backtest.py`, `strategy.py`
+- Entrypoint: `from strategies.betting_against_beta import BABStrategy` (or `strategies.betting_against_beta.strategy`)
+- `README.md`: created with "Betting Against Beta (Crypto)" section (approach, assumptions, how to run)
+- All acceptance criteria met: rolling beta vs benchmark, long/short ranking, dollar-neutral weights, end-to-end backtest on synthetic data, unit tests, importable entrypoint, README
+
+## Bottlenecks Removed (This Session)
+- **Infra test drift fixed**: `.github/workflows/main.yml` `stage_safe_changes` exclude list was missing `*/.github/workflows/*`, causing 2 controller tests to fail. Added it — Python `EXCLUDE_PATTERNS` and bash list are now in lock-step; all 143 tests pass.
+- **Dependencies installed**: `numpy`, `pandas`, `pytest` (no `requirements.txt` yet — see next session task).
+- **Ambiguity killed**: BAB MVP is built and verified end-to-end on synthetic data. No more "strategy does not exist" starting point.
 
 ## INITIAL TASK FOR NEXT SESSION (Do This First)
 
-### 1) Reconnaissance (5-10 min)
+### Focus Campaign: BAB Strategy Performance Analytics + Real Backtest Report
+The MVP works. The next heavy work is to (1) pin dependencies, (2) add a performance-metrics module, and (3) produce a verifiable end-to-end backtest report with Sharpe ratio, max drawdown, turnover, and strategy beta. Do not scope-creep into live trading or real data APIs — stay with synthetic/dataframe inputs, testable and offline.
+
+### 1) Reconnaissance (5 min)
 ```bash
 cd /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
-git log --oneline -5
-git status
-grep -rn "beta\|BAB\|betting.*beta\|CAPM\|low.*beta.*high" . 2>&1 | head -40
-find . -name "*.py" -not -path "*/tests/*" -not -path "*/scripts/*" -not -path "*/__pycache__/*" | head -30
-ls -la
+python3 -m pytest -q 2>&1 | tail -2
+git status --short
 ```
 
-### 2) Design The Strategy (Research + Decide)
-Standard "Betting Against Beta" (Frazzini-Pedersen style): construct a portfolio that is long low-beta assets and short high-beta assets (or rank and go long bottom quantile / short top quantile) with beta measured vs a market benchmark. For crypto:
-- **Universe**: Start with liquid top coins by market cap (e.g. BTC, ETH, SOL, BNB, XRP, etc.). Be explicit about how you define it.
-- **Benchmark**: Likely BTC or equal-weight crypto market index. Justify in code/comments only if necessary, but make it configurable.
-- **Beta estimation**: Rolling window (e.g. 60-90 days) of daily returns, OLS vs benchmark. Handle NaN/missing data.
-- **Signal**: Beta per asset. Sort ascending/descending.
-- **Portfolio construction**: Long low-beta decile/quintile, short high-beta decile/quintile. Equal-weight or risk-adjusted. Keep it simple first.
-- **Rebalance**: Define frequency (daily/weekly). Start with daily on close.
-- **Constraints**: Leverage? Probably market-neutral or dollar-neutral. Start simple and testable.
+### 2) Create `requirements.txt`
+Pin runtime/test deps: `numpy`, `pandas`, `pytest`. Keep it minimal.
 
-### 3) Create Implementation (TDD)
-Create a minimal, testable module structure. Suggested layout:
+### 3) Create `strategies/betting_against_beta/metrics.py` (TDD)
+Pure functions on a returns Series/DataFrame:
+- `sharpe_ratio(returns, risk_free=0.0, periods_per_year=252)`
+- `max_drawdown(cumulative_or_returns)`
+- `annualized_volatility(returns, periods_per_year=252)`
+- `turnover(weights_df)` — mean of `weights.diff().abs().sum(axis=1)`
+- `strategy_beta(strategy_returns, benchmark_returns, periods...)` — OLS beta of strategy vs benchmark
+- `summary(returns, weights_df, benchmark_returns)` — dict of all metrics (NaN-safe: use "NaN"/"Infinity" sentinels consistent with `tests/test_nonfinite_result_serialization.py`)
 
-```
-strategies/
-  __init__.py
-  betting_against_beta/
-    __init__.py
-    config.py      # Universe, benchmark, windows, weights
-    data.py        # Data loading/normalization (can start with synthetic for tests)
-    beta.py        # Rolling beta calculation
-    signals.py     # Ranking + position generation
-    portfolio.py   # Portfolio construction / weights
-    backtest.py    # Minimal backtest loop
-    strategy.py    # High-level Strategy class / entrypoint
-```
+Add `tests/test_betting_against_beta_metrics.py` — write failing tests first (e.g. Sharpe of constant returns = 0 or NaN; drawdown of a known drawdown path; turnover of constant weights = 0).
 
-Also add `tests/test_betting_against_beta_*.py` as you go.
+### 4) Create `scripts/bab_backtest_report.py` (or a `notebook`-free script)
+CLI script that:
+- Builds `BABStrategy` with default config on synthetic data
+- Runs pipeline, computes metrics via `metrics.summary`
+- Prints a short report (Sharpe, vol, max drawdown, turnover, final cumulative, n_rebalances)
+- Exits 0 on success
 
-### 4) Implement Incrementally & Verify
-- Write a failing test for beta calculation first (use synthetic returns).
-- Implement `beta.py` to pass it.
-- Add signals/portfolio tests.
-- Add minimal backtest that runs on synthetic data.
-- Run tests frequently: `python -m pytest -q` (or discover tests). All existing tests must remain passing.
+### 5) Verify & Handoff
+- `python3 -m pytest -q` — all tests pass (143 + new metrics tests)
+- `python3 scripts/bab_backtest_report.py` runs and prints a report
+- Update `HANDOFF.md` with progress, create a new timestamped handoff (`HANDOFF_YYYY-MM-DDTHH-MM-SSZ.md`), repoint `HANDOFF_NEXT_SESSION.md` symlink.
 
-## ACCEPTANCE CRITERIA (Definition of Done)
-- [ ] `strategies/betting_against_beta/` module exists with core files
-- [ ] Can compute rolling beta for assets vs benchmark on synthetic data
-- [ ] Can rank assets by beta and generate long/short positions
-- [ ] Portfolio construction produces weights (dollar-neutral or explicitly stated)
-- [ ] Minimal backtest runs end-to-end on synthetic data without errors
-- [ ] Unit tests added for core logic (beta, signals, portfolio) and pass
-- [ ] All existing 124 tests still pass
-- [ ] Strategy is importable and has a clear entrypoint (`strategy.py` or `__init__.py`)
-- [ ] `README.md` updated with a short "Betting Against Beta (Crypto)" section describing approach, assumptions, and how to run
+## ACCEPTANCE CRITERIA (Next Campaign, Definition of Done)
+- [ ] `requirements.txt` exists and pins numpy/pandas/pytest
+- [ ] `strategies/betting_against_beta/metrics.py` exists with Sharpe, max drawdown, volatility, turnover, strategy beta
+- [ ] `tests/test_betting_against_beta_metrics.py` added and passing (TDD: failing tests written first)
+- [ ] Backtest report script runs end-to-end and prints metrics without errors
+- [ ] All tests pass (`python3 -m pytest -q`)
+- [ ] `HANDOFF.md` updated, new timestamped handoff created, symlink repointed
 
 ## CONSTRAINTS & RULES
-- **Product-first**: Do not refactor the agent-loop/workflow unless absolutely necessary to make tests pass.
-- **TDD**: Tests first where logic is non-obvious.
-- **Start simple**: Synthetic data first. Don't get blocked on real data APIs.
-- **Keep it testable**: Pure functions where possible.
-- **No scope creep**: Focus on the strategy only.
-- **Handoff discipline**: Before ending, update `HANDOFF.md` with progress, create a new timestamped handoff (e.g. `HANDOFF_YYYY-MM-DDTHH-MM-SSZ.md`), and update `HANDOFF_NEXT_SESSION.md` symlink if present.
+- **Product-first**: Do not refactor the agent-loop/workflow unless a test explicitly fails because of them.
+- **TDD**: Tests first where logic is non-obvious (metrics especially).
+- **Start simple**: Synthetic data/dataframe inputs only. No live APIs, no exchange keys, no scope creep into execution.
+- **Keep it testable**: Pure functions where possible; metrics must be NaN-safe.
+- **Handoff discipline**: Before ending, update `HANDOFF.md`, create a new timestamped handoff, and repoint `HANDOFF_NEXT_SESSION.md`.
 
 ## Suggested First Commands (Copy/Paste)
 ```bash
 cd /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
-git log --oneline -3
-grep -rn "beta" . 2>&1 | head -20
-find . -type f -name "README*" -o -name "*.md" | xargs grep -l "strategy\|beta" 2>&1 | head -10
-python -m pytest -q 2>&1 | tail -2
+python3 -m pytest -q 2>&1 | tail -2
+git status --short
 ```
 
 ## Notes
-This is a clean campaign: research → skeleton → TDD → implementation → verification. Do heavy work. The scaffolding is done. The strategy is missing. Build it.
+This session completed the BAB MVP (research → skeleton → TDD → implementation → verification). The next campaign is performance analytics + report. Do heavy work. The scaffolding is done; the strategy exists; now measure it.
