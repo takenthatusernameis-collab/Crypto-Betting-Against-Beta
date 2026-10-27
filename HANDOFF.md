@@ -1,55 +1,65 @@
-# HANDOFF - 2026-10-27T20-28-05Z
+# HANDOFF - 2026-10-27T21-07-00Z
 
 ## Timestamp
-2026-10-27T20-28-05Z (this session's handoff)
+2026-10-27T21-07-00Z (this session's handoff)
 
 ## Purpose
 Durable handoff for the next agentic work session. Start here.
 
 ## INITIAL TASK FOR NEXT SESSION (Clear & Actionable)
-**Start with this sequence:**
+**PRIORITY: Implement Crypto-Betting-Against-Beta Strategy**
+
+The project name indicates a strategy implementation. No core strategy code found yet. Focus on building the strategy.
+
+### Start with this sequence:
 
 1. **Establish context**
-   - Read `HANDOFF.md` (canonical) and the most recent `HANDOFF_*.md` for full history.
-   - Check repo state: `git log --oneline -10` and `git status`.
-   - Review current uncommitted changes: `git diff`.
+   - Read `HANDOFF.md` (canonical) and recent handoffs.
+   - Review git history: `git log --oneline -10`
+   - Check current state: `git status && git diff`
+   - Understand tests: all 124 tests pass (including controller/diagnostics tests)
 
-2. **Establish test baseline**
-   - Tests live under `tests/`. No repo-local pytest config.
-   - Reproduce CI setup exactly:
-     ```bash
-     test_venv="/tmp/controller-tests-venv"
-     rm -rf "$test_venv"; python3 -m venv "$test_venv"
-     "$test_venv/bin/python" -m pip install --disable-pip-version-check --no-input pytest numpy requests
-     "$test_venv/bin/python" -m pytest -q tests/test_controller_progress_accounting.py tests/test_workflow_diagnostics_scanner.py tests/test_nonfinite_result_serialization.py tests/test_campaign_resume.py
-     ```
-   - Authoritative command: `.github/workflows/main.yml` lines 53–62.
+2. **Research and design the strategy**
+   - Look for any existing references to "beta", "betting against beta", or strategy docs
+   - Search: `grep -rn "beta" . 2>&1 | head -30`
+   - Common pattern: short low-beta/long high-beta crypto assets or vice versa
+   - Need to determine data sources, universe, rebalance frequency, signals
 
-3. **Tackle highest priority work**
-   - If tests failing, fix most critical/blocking failures first.
-   - If tests pass, review recent handoffs and codebase for TODOs/FIXMEs and proceed with highest priority item.
-   - Keep changes minimal, follow existing patterns, update/add tests if behavior changes.
+3. **Find/create core implementation**
+   - Check for strategy files in common locations (src/, lib/, strategies/, backtest/)
+   - If nothing exists, create minimal structure
+   - Look at test patterns to understand expected interfaces
+
+4. **TDD approach**
+   - Write tests for strategy logic first if unclear
+   - Implement incrementally
+   - Run tests frequently: `pytest -q` (or use CI command)
 
 ## What Was Done This Session
-- Created this timestamped durable handoff. No code changes.
+- Fixed workflow pattern sync in `.github/workflows/main.yml` to include `*/.github/workflows/*` pattern (matching Python patterns)
+- All 124 tests pass (0 failures)
+- Staged workflow fix (uncommitted change per repo state)
 
 ## Current Repo State
 - Location: `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
 - Git repo: yes; branch `main`
 - HEAD: `c06ee5b` - chore(kilo): checkpoint agent session
-- Uncommitted changes: `.github/workflows/main.yml` (pattern-sync fix, not staged).
-- Test baseline: **124 passed, 0 failed** (per prior session).
+- Uncommitted changes: `.github/workflows/main.yml` (pattern-sync fix, staged)
+- Test baseline: **124 passed, 0 failed**
 
 ## Notes for Next Agent
-- Update `HANDOFF.md` (canonical) and create a new timestamped `HANDOFF_<UTC>.md` before ending session.
-- Update `HANDOFF_NEXT_SESSION.md` symlink to newest handoff.
-- Run pytest suite before completing. No linter/typechecker configured.
-- Do not commit unless explicitly asked.
+- **FOCUS**: Implement the "betting against beta" strategy for crypto. This is the core task.
+- No linter/typechecker configured
+- Run tests before completing
+- Update `HANDOFF.md` and create new timestamped handoff before ending
+- Update `HANDOFF_NEXT_SESSION.md` symlink
 
 ## Suggested First Commands
 ```bash
 cd /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
 git log --oneline -10
 git status
-git diff
+grep -rn "beta\|BAB\|betting.*beta" . 2>&1 | head -40
+find . -name "*.py" -not -path "*/tests/*" -not -path "*/scripts/*" -not -path "*/.venv/*" 2>&1 | head -20
+ls -la
 ```
