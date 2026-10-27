@@ -1,7 +1,7 @@
-# HANDOFF - 2026-10-27T17-27-15Z
+# HANDOFF - 2026-10-27T17-29-03Z
 
 ## Timestamp
-2026-10-27T17-27-15Z (message time)
+2026-10-27T17-29-03Z (message time)
 
 ## Purpose
 Durable handoff for the next agentic work session. Start here.
@@ -12,7 +12,7 @@ Durable handoff for the next agentic work session. Start here.
 1. **Establish context**
    - Read `HANDOFF.md` (this canonical file) and the most recent `HANDOFF_*.md` for full history
    - Check repo state: `git log --oneline -10` and `git status`
-   - Review the uncommitted change to `.github/workflows/main.yml` (added `*/.github/workflows/*` to `stage_safe_changes()` exclusion pattern at line 1163)
+   - Review current uncommitted changes: `git diff`
 
 2. **Establish test baseline**
    - Tests live under `tests/`. No repo-local pytest config (no `pytest.ini`, `pyproject.toml`, `setup.cfg`, `tox.ini`, `Makefile`).
@@ -31,24 +31,22 @@ Durable handoff for the next agentic work session. Start here.
    - Keep changes minimal, follow existing patterns, and update/add tests if behavior changes.
 
 ## What Was Done This Session
-- **Fixed a real test failure the previous handoff mischaracterized**: The prior handoff claimed an uncommitted change adding `*/.github/workflows/*` to the workflow's `stage_safe_changes()` bash exclusion list. `git diff` was actually empty — the change had never been made. The Python `EXCLUDE_PATTERNS` in `scripts/controller_progress.py:28` already contained `*/.github/workflows/*`, but the bash list at `.github/workflows/main.yml:1163` was missing it. This caused `TestStageSafeChangesPatternSync` to fail (2 failures: `test_python_patterns_are_subset_of_workflow` and `test_nested_workflow_pattern_is_present_in_workflow`).
-- **Applied the fix**: Added `*/.github/workflows/*` to the bash `case` pattern in `stage_safe_changes()`, immediately after `.github/workflows/*`.
-- **Verified**: All 124 tests pass (was 122 passed / 2 failed).
-- **Maintained handoff protocol**: Updated canonical `HANDOFF.md` and created new timestamped `HANDOFF_<UTC>.md`.
+- Created a fresh timestamped handoff (`HANDOFF_2026-10-27T17-29-03Z.md`) with a clear initial task sequence for the next agentic session.
+- Updated the canonical `HANDOFF.md` to point to the latest state and provide the same actionable starting instructions.
 
 ## Current Repo State
 - Location: `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
 - Git repo: yes; branch `main`, up to date with `origin/main`
-- HEAD: `67f4a22 chore(kilo): checkpoint agent session`
+- HEAD: `10b67af` - chore(kilo): checkpoint agent session
 - Untracked: `scripts/__pycache__/`, `tests/__pycache__/`
-- Uncommitted change: `.github/workflows/main.yml` (+1/-1) — the `*/.github/workflows/*` pattern addition. **Not committed** (commit only on explicit request).
+- Uncommitted change: Check with `git diff` (may include previous session changes)
 
 ## Key Files
 - `.github/workflows/main.yml` — the Kilo agent-loop controller workflow. `stage_safe_changes()` at line 1154; `collect` diagnostics step at line 69; `kilo` worker loop at line 720.
 - `scripts/controller_progress.py` — core controller progress accounting; `EXCLUDE_PATTERNS` at line 26.
 - `tests/test_controller_progress_accounting.py` — includes `TestStageSafeChangesPatternSync` guarding against drift between the Python and bash exclusion lists.
 - `tests/test_campaign_resume.py`, `tests/test_nonfinite_result_serialization.py`, `tests/test_workflow_diagnostics_scanner.py`
-- `research_state/workflow_run_diagnostics.jsonl` — 4-line diagnostics ledger (runs 40367326154 failure, 40406488474 success, 40429129165 success, 40457982116 success).
+- `research_state/workflow_run_diagnostics.jsonl` — diagnostics ledger
 
 ## Notes for Next Agent
 - Update `HANDOFF.md` (canonical) and create a new timestamped `HANDOFF_<UTC>.md` before ending your session.
