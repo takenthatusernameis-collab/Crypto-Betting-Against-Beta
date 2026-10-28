@@ -167,3 +167,139 @@ class TestReportOnDegenerateData:
         ])
         assert result.returncode == 0, result.stderr
         assert "BAB STRATEGY BACKTEST REPORT" in result.stdout
+
+
+class TestReportRealDataSmoke:
+    """End-to-end smoke on the messy real-data fixture.
+
+    The emitted JSON must be valid, finite, and carry the expected config keys
+    (universe, benchmark, beta_window, long/short quantile, transaction_costs,
+    data_source) with a non-empty tradable universe.
+    """
+
+    def test_json_is_valid_finite_with_expected_config_keys(self):
+        result = _run([
+            "--data-source", str(MESSY_FIXTURE),
+            "--benchmark", "BTC",
+            "--beta-window", "3",
+            "--min-observations", "2",
+            "--json",
+        ])
+        assert result.returncode == 0, result.stderr
+        payload = json.loads(result.stdout)
+
+        # Expected config keys present.
+        for key in (
+            "universe", "benchmark", "beta_window",
+            "long_quantile", "short_quantile",
+            "transaction_costs", "data_source",
+        ):
+            assert key in payload["config"], f"missing config key: {key}"
+
+        # Non-empty tradable universe after intersecting with data columns.
+        assert isinstance(payload["config"]["universe"], list)
+        assert len(payload["config"]["universe"]) > 0
+
+        # Every metric is a finite JSON-safe scalar.
+        for key, value in payload["metrics"].items():
+            assert isinstance(value, (int, float)), f"{key} not numeric: {value!r}"
+            assert value == value, f"{key} is NaN"
+            assert value not in (float("inf"), float("-inf")), f"{key} is infinite"
+
+        # Rebalances must be a positive integer on real data.
+        assert isinstance(payload["rebalances"], int)
+        assert payload["rebalances"] > 0
+
+
+class TestTransactionCostsPath:
+    """Transaction costs must reduce the cumulative path and be reflected in
+    turnover on the same data source."""
+
+    FIXTURE = MESSY_FIXTURE
+
+    def _metrics(self, costs: float) -> dict:
+        result = _run([
+            "--data-source", str(self.FIXTURE),
+            "--benchmark", "BTC",
+            "--beta-window", "3",
+            "--min-observations", "2",
+            "--transaction-costs", str(costs),
+            "--json",
+        ])
+        assert result.returncode == 0, result.stderr
+        return json.loads(result.stdout)["metrics"]
+
+    def test_turnover_positive_with_costs(self):
+        metrics = self._metrics(0.001)
+        assert metrics["turnover"] > 0
+
+    def test_cumulative_with_costs_le_cumulative_without_costs(self):
+        with_costs = self._metrics(0.001)["final_cumulative"]
+        without_costs = self._metrics(0.0)["final_cumulative"]
+        assert with_costs <= without_costs + 1e-12, (
+            f"costs path {with_costs} exceeds no-cost path {without_costs}"
+        )
+
+    def test_costs_reflected_in_config(self):
+        result = _run([
+            "--data-source", str(self.FIXTURE),
+            "--benchmark", "BTC",
+            "--beta-window", "3",
+            "--min-observations", "2",
+            "--transaction-costs", "0.001",
+            "--json",
+        ])
+        assert result.returncode == 0, result.stderr
+        payload = json.loads(result.stdout)
+        assert payload["config"]["transaction_costs"] == 0.001
+
+
+class TestNonBtcBenchmark:
+    """A non-BTC benchmark (ETH) must run end-to-end, estimate beta vs ETH, and
+    produce finite weights."""
+
+    def test_eth_benchmark_runs_with_finite_weights(self):
+        result = _run([
+            "--data-source", str(MESSY_FIXTURE),
+            "--benchmark", "ETH",
+            "--beta-window", "3",
+            "--min-observations", "2",
+            "--json",
+        ])
+        assert result.returncode == 0, result.stderr
+        payload = json.loads(result.stdout)
+        assert payload["config"]["benchmark"] == "ETH"
+        # Beta is estimated against ETH, not BTC.
+        assert "strategy_beta" in payload["metrics"]
+        assert payload["metrics"]["strategy_beta"] == payload["metrics"]["strategy_beta"]
+        assert payload["metrics"]["strategy_beta"] not in (float("inf"), float("-inf"))
+        # Weights must be finite (no NaN/inf in the report metrics).
+        for key, value in payload["metrics"].items():
+            assert value == value, f"{key} is NaN"
+            assert value not in (float("inf"), float("-inf")), f"{key} is infinite"
+
+
+class TestReportDeterminism:
+    """Running the report twice on the same source must produce byte-identical
+    metrics payloads (except any captured_at field, which this report does not
+    emit)."""
+
+    FIXTURE = MESSY_FIXTURE
+
+    def _payload(self) -> dict:
+        result = _run([
+            "--data-source", str(self.FIXTURE),
+            "--benchmark", "BTC",
+            "--beta-window", "3",
+            "--min-observations", "2",
+            "--json",
+        ])
+        assert result.returncode == 0, result.stderr
+        return json.loads(result.stdout)
+
+    def test_two_runs_produce_identical_metrics(self):
+        first = self._payload()
+        second = self._payload()
+        assert first["metrics"] == second["metrics"]
+        assert first["config"] == second["config"]
+        assert first["rebalances"] == second["rebalances"]

@@ -12,6 +12,7 @@ from strategies.betting_against_beta.config import BABConfig
 from strategies.betting_against_beta.data import generate_synthetic_returns
 from strategies.betting_against_beta.portfolio import construct_portfolio
 from strategies.betting_against_beta.signals import generate_bab_signals
+from strategies.betting_against_beta.strategy import BABStrategy
 
 
 class TestCalculateBeta:
@@ -386,3 +387,43 @@ class TestRunBacktestEdgeCases:
         weights = pd.DataFrame({"A": [1.0] * 10}, index=idx)
         results = run_backtest(returns, weights)
         assert np.isfinite(results["cumulative"].values).all()
+
+
+class TestMinRowsEnforcement:
+    """BABStrategy.run() must raise BABDataError when real data has fewer rows
+    than config.min_rows. The synthetic default path must be unaffected."""
+
+    def test_short_real_data_raises_bab_data_error(self):
+        from strategies.betting_against_beta.data_loader import BABDataError
+
+        short = pd.DataFrame(
+            {"BTC": [0.01, 0.005], "ETH": [0.02, 0.01]},
+            index=pd.to_datetime(["2023-01-01", "2023-01-02"]),
+        )
+        cfg = BABConfig(benchmark="BTC", min_rows=10)
+        strategy = BABStrategy(cfg)
+        with pytest.raises(BABDataError):
+            strategy.run(short)
+
+    def test_short_data_via_data_source_raises(self, tmp_path):
+        from strategies.betting_against_beta.data_loader import BABDataError
+
+        csv = tmp_path / "short.csv"
+        short = pd.DataFrame(
+            {"BTC": [0.01, 0.005], "ETH": [0.02, 0.01]},
+            index=pd.to_datetime(["2023-01-01", "2023-01-02"]),
+        )
+        short.to_csv(csv)
+        cfg = BABConfig(benchmark="BTC", min_rows=10, data_source=str(csv))
+        strategy = BABStrategy(cfg)
+        with pytest.raises(BABDataError):
+            strategy.run()
+
+    def test_synthetic_default_unaffected_by_min_rows(self):
+        # Synthetic data is generated with 252 days by default, well above any
+        # reasonable min_rows, so the default path must run without raising.
+        cfg = BABConfig(min_rows=10)
+        strategy = BABStrategy(cfg)
+        result = strategy.run()
+        assert len(result.returns) >= 10
+        assert np.isfinite(result.weights.values).all()
