@@ -1,7 +1,7 @@
-# HANDOFF - 2026-10-28T13:43:29Z
+# HANDOFF - 2026-10-28T14:43:46Z
 
 ## Timestamp
-2026-10-28T13:43:29Z
+2026-10-28T14:43:46Z
 
 ## Purpose
 **SINGLE DURABLE HANDOFF. START HERE.** Ignore all other `HANDOFF*.md` files unless you need historical context. This file is the source of truth for the next agentic work session.
@@ -12,7 +12,7 @@ Repository: **Crypto-Betting-Against-Beta**. Product is the **Betting Against Be
 
 ## Current State (Ground Truth)
 - Branch: `main` @ `7c855cc` (HEAD; origin/main in sync)
-- Tests: **302 passed, 0 failed** (`python3 -m pytest -q`)
+- Tests: **324 passed, 0 failed** (`python3 -m pytest -q`)
 - Working tree: clean (only untracked `__pycache__/` dirs)
 - Bottlenecks: **NONE CRITICAL**
 
