@@ -1,7 +1,7 @@
-# HANDOFF - 2026-10-28T03:14:03Z
+# HANDOFF - 2026-10-28T03:14:22Z
 
 ## Timestamp
-2026-10-28T03:14:03Z
+2026-10-28T03:14:22Z
 
 ## Purpose
 Durable single handoff. Start here. Ignore older handoffs unless explicitly needed for context.
@@ -10,16 +10,15 @@ Durable single handoff. Start here. Ignore older handoffs unless explicitly need
 Repository: **Crypto-Betting-Against-Beta**. Product is the "Betting Against Beta" (BAB) crypto strategy — market-neutral, long low-beta / short high-beta crypto assets vs a benchmark (default BTC), dollar-neutral equal weights, rolling OLS beta, one-day-lagged backtest. Scaffolding (agent loop, accounting, diagnostics) supports building it. Everything below is ranked by that product name: BAB comes first, infra second.
 
 ## Current State
-- Branch main @ HEAD. Working tree: **intentional uncommitted changes** (see below). Tests: **249 passed, 0 failed** (was 247; +2 after unblocking).
-- Environment unblocked this session: `pytest`, `pandas`, `numpy` were not installed, so `python3 -m pytest -q` was a hard blocker. Installed via `pip install -r requirements.txt`. The test suite now runs locally.
-- Bottleneck removed this session:
-  - `.github/workflows/main.yml` `stage_safe_changes()` case list was missing the nested variant `*/.github/workflows/*` that `scripts/controller_progress.py:28` `EXCLUDE_PATTERNS` requires. Drift meant a vendored workflow file under a subdirectory could be staged as meaningful progress, silently corrupting controller progress accounting. Restored lock-step; `TestStageSafeChangesPatternSync` (4/4) now passes and `python3 -m pytest -q` is green (249 passed, 0 failed).
-- Prior HANDOFF claims (lock-step restored, messy-data tests, delisted-asset dropping, beta robustness, report sanitizer) are reflected in the tree and now verified green.
+- Branch main @ HEAD. Working tree: **intentional uncommitted changes** (see below).
+- Environment unblocked: `pytest`, `pandas`, `numpy` installed via `pip install -r requirements.txt`; `python3 -m pytest -q` runs locally.
+- Bottleneck removed this session: `.github/workflows/main.yml` `stage_safe_changes()` case list was missing the nested variant `*/.github/workflows/*` that `scripts/controller_progress.py:28` `EXCLUDE_PATTERNS` requires. Added it; lock-step restored; `TestStageSafeChangesPatternSync` (4/4) now passes.
+- Suite: **249 passed, 0 failed** (`python3 -m pytest -q` green).
 
 ## INITIAL TASK FOR NEXT SESSION (Do This First)
 
 ### Focus Campaign: BAB Production Readiness — Real-Data Path, Transaction Costs & Report Observability (HEAVY - do all of it)
-The core BAB pipeline (synthetic data, beta, signals, portfolio, backtest, metrics) is implemented and tested. Now harden for production-like crypto data and make the end-to-end report/CLI path observable and trustworthy without breaking tests.
+The core BAB pipeline (synthetic data, beta, signals, portfolio, backtest, metrics) is implemented and tested. The report CLI (`scripts/bab_backtest_report.py`) exists and emits JSON, but production-like hardening on real/messy crypto data is NOT yet covered by tests. Do every item below; every new behavior must have a test.
 
 Recon (fast): `python3 -m pytest -q`, `git status`, `git diff --stat`.
 
@@ -49,4 +48,4 @@ Recon (fast): `python3 -m pytest -q`, `git status`, `git diff --stat`.
 - No NaN/inf weights/signals/metrics on any tested input; consistent `BABDataError` for data issues.
 
 ## UNCOMMITTED WORKING CHANGES (review before committing)
-- `.github/workflows/main.yml` — added `*/.github/workflows/*` to the `stage_safe_changes()` case list to restore lock-step with `scripts/controller_progress.py` EXCLUDE_PATTERNS (bottleneck removal; 2 previously-failing pattern-sync tests now pass).
+- `.github/workflows/main.yml` — added `*/.github/workflows/*` to the `stage_safe_changes()` case list to restore lock-step with `scripts/controller_progress.py` EXCLUDE_PATTERNS (bottleneck removal; 2 previously-failing pattern-sync tests now pass; suite 249 passed, 0 failed).
