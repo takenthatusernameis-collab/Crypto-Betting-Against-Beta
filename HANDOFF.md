@@ -1,7 +1,7 @@
-# HANDOFF - 2026-10-28T16:03:18Z
+# HANDOFF - 2026-10-28T17:05:10Z
 
 ## Timestamp
-2026-10-28T16:03:18Z
+2026-10-28T17:05:10Z
 
 ## Purpose
 **SINGLE DURABLE HANDOFF. START HERE.** Ignore all other `HANDOFF*.md` files unless you need historical context. This file is the sole source of truth for the next agentic work session.
@@ -11,25 +11,28 @@ Repository: **Crypto-Betting-Against-Beta**. Product is the **Betting Against Be
 **BAB ALWAYS COMES FIRST. Touch infra ONLY if it directly blocks BAB execution or tests.**
 
 ## Current State (Ground Truth)
-- Branch: `main` @ `7c855cc` (HEAD; origin/main in sync)
-- Tests: **324 passed, 0 failed** (`python3 -m pytest -q`)
-- Working tree: clean (only untracked `__pycache__/` dirs)
-- Bottlenecks: **NONE CRITICAL**
+- Branch: `main` @ `0076ad5` (HEAD; origin/main in sync)
+- Tests: **328 passed, 0 failed** (`python3 -m pytest -q`) — was 2 failed until this session's bottleneck fix.
+- Working tree: **intentional uncommitted change** (see below) + untracked `__pycache__/` dirs only.
+- Bottlenecks: **NONE CRITICAL** — the CI pattern-sync drift that failed 2 tests is resolved.
 
 ## Bottlenecks Removed (HISTORICAL)
-- **CI pattern-sync drift** — `.github/workflows/main.yml` `stage_safe_changes()` now matches `scripts/controller_progress.py:28` `EXCLUDE_PATTERNS` (added `*/.github/workflows/*`).
+- **CI pattern-sync drift** — `.github/workflows/main.yml` `stage_safe_changes()` now matches `scripts/controller_progress.py:28` `EXCLUDE_PATTERNS` (added `*/.github/workflows/*` at line 1163). `TestStageSafeChangesPatternSync` (both sync tests) now pass; suite went from 2 failed/326 passed to **328 passed, 0 failed**.
 - **Delisted/all-NaN columns** — `_drop_all_nan_columns()` added to `data_loader.py`.
 - **Silent broad excepts** — removed from `signals.py` and `portfolio.py` with explicit finiteness guards.
 - **Beta NaN propagation** — `calculate_rolling_beta` fails loudly on all-NaN benchmark via `BABDataError`.
 - **Report sanitization** — `scripts/bab_backtest_report.py` coerces NaN/inf to 0.0.
 
+## Bottlenecks Removed (THIS SESSION, 2026-10-28T17:05:10Z)
+- **CI pattern-sync drift (recurrent)** — `.github/workflows/main.yml` `stage_safe_changes()` case list was missing the nested workflow pattern `*/.github/workflows/*` while `scripts/controller_progress.py` had it, failing `test_python_patterns_are_subset_of_workflow` and `test_nested_workflow_pattern_is_present_in_workflow`. Added `*/.github/workflows/*` to the workflow case list. All 328 tests now pass. Keep the two lists in lock-step going forward.
+
 ## INITIAL TASK MESSAGE FOR NEXT AGENTIC WORK SESSION (MUST START HERE)
 
 **FOCUS CAMPAIGN: BAB HARDENING, ROBUSTNESS & PERFORMANCE (FORCE HEAVY CONTINUOUS PROGRESS)**
 
-Strategy is green at 324 passed. Make it bulletproof for real, messy crypto data and faster at scale. Do not coast. Every phase must produce tests and measurable hardening.
+Strategy is green at 328 passed. Make it bulletproof for real, messy crypto data and faster at scale. Do not coast. Every phase must produce tests and measurable hardening. No phase may be skipped or hand-waved.
 
-### MANDATORY RECON (DO FIRST)
+### MANDATORY RECON (DO FIRST — DO NOT SKIP)
 ```bash
 cd /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
 python3 -m pytest -q
@@ -40,9 +43,9 @@ git log --oneline -5
 
 Read: `strategies/betting_against_beta/strategy.py`, `data_loader.py`, `data.py`, `beta.py`, `signals.py`, `portfolio.py`, `backtest.py`, `metrics.py`, `config.py`, `errors.py`, `scripts/bab_backtest_report.py`
 
-### HEAVY CAMPAIGN
+### HEAVY CAMPAIGN (ALL PHASES MANDATORY)
 
-#### PHASE 1: PERFORMANCE & SCALABILITY
+#### PHASE 1: PERFORMANCE & SCALABILITY (START HERE AFTER RECON)
 - [ ] Profile `calculate_rolling_beta` on synthetic 150x2500 universe with cProfile/timeit (before/after).
 - [ ] Optimize hotspots (groupby/apply/rolling/copies/dtypes). Preserve NaN semantics and numerical results within tolerance.
 - [ ] Add guards for degenerate windows/conditioning.
@@ -83,11 +86,14 @@ Read: `strategies/betting_against_beta/strategy.py`, `data_loader.py`, `data.py`
 - [ ] All new edge cases tested and passing
 - [ ] No NaN/inf in weights/signals/metrics
 - [ ] Consistent `BABDataError` with actionable messages
-- [ ] `python3 -m pytest -q` >= 324 passed, 0 failed
+- [ ] `python3 -m pytest -q` >= 328 passed, 0 failed
 - [ ] |sum(weights)| < 1e-12 in all new tests
 - [ ] Handoff clean and actionable
 
 ## NEXT ACTION
-**IMMEDIATELY**: Run recon, read core BAB files, start Phase 1 (profile `calculate_rolling_beta`). Find and fix at least one concrete issue OR add heavy stress coverage before Phase 2. Do not stop.
+**IMMEDIATELY**: Run recon, read core BAB files, start Phase 1 (profile `calculate_rolling_beta`). Find and fix at least one concrete issue OR add heavy stress coverage before Phase 2. Do not stop. Update this handoff with a new timestamp when the session ends.
+
+## UNCOMMITTED WORKING CHANGES (review before committing)
+- `.github/workflows/main.yml` — added `*/.github/workflows/*` to the `stage_safe_changes` case list (1 token) to clear the recurrent pattern-sync drift bottleneck.
 
 (End of file)
