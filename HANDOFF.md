@@ -1,7 +1,7 @@
-# HANDOFF - 2026-10-28T03:14:22Z
+# HANDOFF - 2026-10-28T03:16:22Z
 
 ## Timestamp
-2026-10-28T03:14:22Z
+2026-10-28T03:16:22Z
 
 ## Purpose
 Durable single handoff. Start here. Ignore older handoffs unless explicitly needed for context.
@@ -12,8 +12,7 @@ Repository: **Crypto-Betting-Against-Beta**. Product is the "Betting Against Bet
 ## Current State
 - Branch main @ HEAD. Working tree: **intentional uncommitted changes** (see below).
 - Environment unblocked: `pytest`, `pandas`, `numpy` installed via `pip install -r requirements.txt`; `python3 -m pytest -q` runs locally.
-- Bottleneck removed this session: `.github/workflows/main.yml` `stage_safe_changes()` case list was missing the nested variant `*/.github/workflows/*` that `scripts/controller_progress.py:28` `EXCLUDE_PATTERNS` requires. Added it; lock-step restored; `TestStageSafeChangesPatternSync` (4/4) now passes.
-- Suite: **249 passed, 0 failed** (`python3 -m pytest -q` green).
+- Bottleneck removed this session: `.github/workflows/main.yml` `stage_safe_changes()` case list was missing the nested variant `*/.github/workflows/*` that `scripts/controller_progress.py:28` `EXCLUDE_PATTERNS` requires. Added it; lock-step restored; `TestStageSafeChangesPatternSync` (4/4) now passes; suite **249 passed, 0 failed**.
 
 ## INITIAL TASK FOR NEXT SESSION (Do This First)
 
