@@ -89,16 +89,27 @@ def calculate_rolling_beta(returns_df, benchmark_name, window=90, min_obs=60):
     n = len(returns_df)
     betas_dict = {}
 
+    # Pre-convert every column to a numpy array ONCE. The previous path sliced
+    # pandas Series per window (O(N*W) pandas overhead plus O(N) index
+    # bookkeeping per window), which dominated runtime on large universes.
+    # Slicing raw ndarrays is dramatically cheaper while producing identical
+    # values because calculate_beta_fast already operates on numpy arrays.
+    bench_arr = benchmark_returns.to_numpy(dtype=float)
+    asset_arrays = {
+        col: returns_df[col].to_numpy(dtype=float)
+        for col in returns_df.columns
+        if col != benchmark_name
+    }
+
     for asset in returns_df.columns:
         if asset == benchmark_name:
             betas_dict[asset] = np.ones(n, dtype=float)
             continue
 
-        asset_series = returns_df[asset]
+        a_arr = asset_arrays[asset]
         rolling_betas_arr = np.empty(n, dtype=float)
         rolling_betas_arr[:] = np.nan
 
-        # Use a more efficient approach
         for i in range(n):
             if i < min_obs:
                 rolling_betas_arr[i] = np.nan
@@ -110,8 +121,8 @@ def calculate_rolling_beta(returns_df, benchmark_name, window=90, min_obs=60):
                 rolling_betas_arr[i] = np.nan
                 continue
             try:
-                window_asset = asset_series.iloc[start_idx:end_idx].to_numpy(dtype=float)
-                window_bench = benchmark_returns.iloc[start_idx:end_idx].to_numpy(dtype=float)
+                window_asset = a_arr[start_idx:end_idx]
+                window_bench = bench_arr[start_idx:end_idx]
                 beta = calculate_beta_fast(window_asset, window_bench, min_obs=min_obs)
                 if beta is None or not np.isfinite(beta):
                     rolling_betas_arr[i] = np.nan
