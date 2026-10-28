@@ -1,7 +1,7 @@
-# HANDOFF - 2026-10-28T12:27:30Z
+# HANDOFF - 2026-10-28T12:35:00Z
 
 ## Timestamp
-2026-10-28T12:27:30Z
+2026-10-28T12:35:00Z
 
 ## Purpose
 **SINGLE DURABLE HANDOFF. START HERE.** Ignore all other `HANDOFF*.md` files unless you need historical context. This file is the source of truth for the next agentic work session.
@@ -11,19 +11,19 @@ Repository: **Crypto-Betting-Against-Beta**. Product is the **Betting Against Be
 **BAB ALWAYS COMES FIRST. Infra only if it blocks BAB.**
 
 ## Current State (Ground Truth)
-- Branch: `main` @ `9eba5e2`
-- Tests: **295 passed, 0 failed** (`python3 -m pytest -q`) — bottleneck removed, suite green.
-- Working tree: clean except `__pycache__/` directories
-- Bottlenecks: **NONE CRITICAL** — CI pattern-sync drift already fixed this session
+- Branch: `main` @ `7a29016` (latest checkpoint)
+- Tests: **295 passed, 0 failed** (`python3 -m pytest -q`)
+- Working tree: clean except `__pycache__/` (and the handoff update)
+- Bottlenecks: **NONE CRITICAL** — CI pattern-sync drift fixed in this session.
 
 ## Bottlenecks Removed (THIS SESSION)
-- **CI pattern-sync drift (FIXED)** — `.github/workflows/main.yml` `stage_safe_changes()` and `checkpoint_has_project_changes()` now include `*/.github/workflows/*` to match `scripts/controller_progress.py:28` `EXCLUDE_PATTERNS`. Tests `test_python_patterns_are_subset_of_workflow` and `test_nested_workflow_pattern_is_present_in_workflow` pass. Suite: 293→295 passed, 0 failures.
+- **CI pattern-sync drift (FIXED)** — `.github/workflows/main.yml` `stage_safe_changes()` now includes `*/.github/workflows/*` (matching `scripts/controller_progress.py:28`). Controller progress tests green; full suite restored to 295 passed.
 
 ## INITIAL TASK MESSAGE FOR NEXT AGENTIC WORK SESSION (MUST START HERE)
 
 **FOCUS CAMPAIGN: BAB HARDENING, ROBUSTNESS & PERFORMANCE (FORCE HEAVY CONTINUOUS PROGRESS)**
 
-The strategy is green. The goal is to make it bulletproof for messy real crypto data, faster at scale, and impossible to silently fail. Do not coast — stress test everything.
+Strategy is green. Make it bulletproof for messy real crypto data, faster at scale, and impossible to silently fail. Do not coast — stress test everything.
 
 ### Recon (MANDATORY FIRST STEP)
 ```bash
@@ -34,7 +34,7 @@ git diff --stat
 git log --oneline -5
 ```
 
-Read core BAB files to internalize behavior:
+Read core BAB files:
 - `strategies/betting_against_beta/strategy.py`
 - `strategies/betting_against_beta/data_loader.py`
 - `strategies/betting_against_beta/data.py`
@@ -56,7 +56,7 @@ Read core BAB files to internalize behavior:
 
 #### PHASE 2: DATA LOADING & MESSY DATA (HEAVY)
 - [ ] **Robust coercion** — mixed dtypes, strings, NaN/inf, object columns. Coerce to numeric safely.
-- [ ] **All-NaN/delisted** — ensure `_drop_all_nan_columns` behaves correctly in all paths (data_loader). Cover partial/all-NaN cases.
+- [ ] **All-NaN/delisted** — ensure `_drop_all_nan_columns` behaves correctly in all paths. Cover partial/all-NaN cases.
 - [ ] **Missing data patterns** — forward/backward fills, partial histories, leading/trailing NaNs. Define correct behavior or fail loudly.
 - [ ] **Clear errors** — every invalid case must raise `BABDataError` with actionable message. No silent coercion to zero.
 - [ ] **Stress tests** — create fixtures for messy CSV/JSON (duplicates, mixed tz/index, non-numeric, inf). Extend `tests/test_betting_against_beta_data_loader.py` and `tests/test_bab_messy_data.py`.
@@ -97,8 +97,8 @@ Read core BAB files to internalize behavior:
 - [ ] No NaN/inf in weights/signals/metrics on any tested input
 - [ ] `BABDataError` used consistently for invalid data
 - [ ] `python3 -m pytest -q` = **>= 295 passed, 0 failed** (grow coverage, never regress)
-- [ ] Performance improved where measured without behavior change (document in commit/notes if asked, but no commit unless asked)
+- [ ] Performance improved where measured without behavior change (document findings)
 - [ ] Handoff remains clean and actionable
 
 ## NEXT ACTION
-**IMMEDIATELY**: Run recon, read all core BAB files, start **Phase 1** (performance profiling). Find and address at least one concrete performance issue OR add meaningful stress coverage before moving to next phase. Do not stop. Keep going heavy.
+**IMMEDIATELY**: Run recon, read all core BAB files, start **Phase 1** (performance profiling of `calculate_rolling_beta`). Find and address at least one concrete performance issue OR add meaningful stress coverage before moving to next phase. Do not stop. Keep going heavy.
