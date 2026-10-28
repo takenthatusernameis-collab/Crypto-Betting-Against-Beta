@@ -43,6 +43,30 @@ def _sanitize_metrics(summary: dict) -> dict:
     return sanitized
 
 
+def _dumps_json(payload: dict) -> str:
+    """Serialize payload to a strict JSON string with no NaN/inf tokens.
+
+    ``json.dumps`` with the default ``allow_nan=True`` emits bare ``NaN`` /
+    ``Infinity`` / ``-Infinity`` tokens, which are not valid JSON per RFC 8259
+    and are rejected by strict parsers (Go, Rust, browsers' JSON.parse in
+    some modes). We sanitize the payload first and then disallow NaN so the
+    output is always machine-parseable.
+    """
+    import math
+
+    def _clean(obj):
+        if isinstance(obj, dict):
+            return {str(k): _clean(v) for k, v in obj.items()}
+        if isinstance(obj, (list, tuple)):
+            return [_clean(v) for v in obj]
+        if isinstance(obj, float) and (math.isnan(obj) or math.isinf(obj)):
+            return 0.0
+        return obj
+
+    cleaned = _clean(payload)
+    return json.dumps(cleaned, indent=2, default=str, allow_nan=False)
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="BAB backtest report")
     parser.add_argument(
@@ -110,7 +134,7 @@ def main(argv: list[str] | None = None) -> int:
             "rebalances": int(len(weights.dropna(how="all"))),
             "metrics": _sanitize_metrics(summary),
         }
-        print(json.dumps(payload, indent=2, default=str))
+        print(_dumps_json(payload))
         return 0
 
     print("=" * 60)

@@ -6,6 +6,10 @@ from dataclasses import dataclass, field
 from typing import List, Optional
 
 
+class BABConfigError(ValueError):
+    """Raised when BABConfig fields are out of their valid ranges."""
+
+
 @dataclass
 class BABConfig:
     """Configuration for BAB strategy."""
@@ -43,6 +47,72 @@ class BABConfig:
     def __post_init__(self):
         if self.universe is None:
             self.universe = ["BTC", "ETH", "SOL", "BNB", "XRP", "ADA", "AVAX", "DOT"]
+        self._validate_ranges()
+
+    def _validate_ranges(self) -> None:
+        """Validate numeric ranges with helpful errors; never silently coerce."""
+        errors: list[str] = []
+
+        if not isinstance(self.beta_window, int) or isinstance(self.beta_window, bool):
+            errors.append(f"beta_window must be an int, got {type(self.beta_window).__name__}")
+        elif self.beta_window < 1:
+            errors.append(f"beta_window must be >= 1, got {self.beta_window}")
+
+        if not isinstance(self.min_observations, int) or isinstance(self.min_observations, bool):
+            errors.append(
+                f"min_observations must be an int, got {type(self.min_observations).__name__}"
+            )
+        elif self.min_observations < 1:
+            errors.append(f"min_observations must be >= 1, got {self.min_observations}")
+
+        if not isinstance(self.min_rows, int) or isinstance(self.min_rows, bool):
+            errors.append(f"min_rows must be an int, got {type(self.min_rows).__name__}")
+        elif self.min_rows < 1:
+            errors.append(f"min_rows must be >= 1, got {self.min_rows}")
+
+        if not isinstance(self.synthetic_n_days, int) or isinstance(self.synthetic_n_days, bool):
+            errors.append(
+                f"synthetic_n_days must be an int, got {type(self.synthetic_n_days).__name__}"
+            )
+        elif self.synthetic_n_days < 2:
+            errors.append(f"synthetic_n_days must be >= 2, got {self.synthetic_n_days}")
+
+        if not isinstance(self.synthetic_seed, int) or isinstance(self.synthetic_seed, bool):
+            errors.append(
+                f"synthetic_seed must be an int, got {type(self.synthetic_seed).__name__}"
+            )
+
+        for name in ("long_quantile", "short_quantile"):
+            value = getattr(self, name)
+            if not isinstance(value, (int, float)) or isinstance(value, bool):
+                errors.append(f"{name} must be numeric, got {type(value).__name__}")
+            elif not (0.0 < value < 1.0):
+                errors.append(f"{name} must be in (0, 1), got {value}")
+
+        for name in ("transaction_costs", "slippage"):
+            value = getattr(self, name)
+            if not isinstance(value, (int, float)) or isinstance(value, bool):
+                errors.append(f"{name} must be numeric, got {type(value).__name__}")
+            elif value < 0:
+                errors.append(f"{name} must be >= 0, got {value}")
+
+        for name in ("max_turnover", "max_position_size", "max_total_turnover", "rolling_min_window"):
+            value = getattr(self, name)
+            if value is None:
+                continue
+            if not isinstance(value, (int, float)) or isinstance(value, bool):
+                errors.append(f"{name} must be numeric or None, got {type(value).__name__}")
+            elif value <= 0:
+                errors.append(f"{name} must be > 0 when set, got {value}")
+
+        if not isinstance(self.rebalance_freq, str) or not self.rebalance_freq.strip():
+            errors.append("rebalance_freq must be a non-empty string")
+
+        if self.benchmark is None or not isinstance(self.benchmark, str) or not self.benchmark.strip():
+            errors.append("benchmark must be a non-empty string")
+
+        if errors:
+            raise BABConfigError("; ".join(errors))
 
     def resolved_universe(self, returns_columns: list[str] | None = None) -> List[str]:
         """Return the effective universe.
