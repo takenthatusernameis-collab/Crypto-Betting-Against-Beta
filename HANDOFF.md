@@ -1,25 +1,30 @@
-# HANDOFF - 2026-10-28T23:01:31Z (SINGLE DURABLE HANDOFF)
+# HANDOFF - 2026-10-28T23-04-04Z (SINGLE DURABLE HANDOFF)
 
 ## TIMESTAMP
-2026-10-28T23:01:31Z
+2026-10-28T23-04-04Z
 
 ## IMMEDIATE FIRST TASK (DO THIS NOW)
-**Priority: P0 - Continue heavy work on the BAB strategy (Priority 2, item 3)**
 
-1. **Verify baseline** (30 seconds):
+**0. Confirm bottleneck removed + baseline green (do first):**
 ```bash
 cd /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
-python3 -m pytest -q  # Must show 387 passed, 0 failed (6 skipped)
+python3 -m pytest -q  # Must show 387 passed, 0 failed, 6 skipped
 ```
+The workflow pattern-sync bottleneck (`.github/workflows/main.yml` `stage_safe_changes()` missing `*/.github/workflows/*` vs `scripts/controller_progress.py:28`) is FIXED. Previously caused 2 failing `TestStageSafeChangesPatternSync` tests; suite now green.
 
-2. **Execute the next concrete task below (TDD, heavy work, multi-file):**
-   - **Item: Shorting constraints** (Priority 2, Strategy & Risk Management)
-   - Add `shorting.py` with borrow cost modeling (annualized), borrow availability flags/limits per asset, and hard caps on short exposure/notional; integrate into portfolio construction/backtest or via strategy/config (e.g. `config.shorting_constraints`, per-asset borrow rates/limits). Enforce constraints by scaling/reducing shorts or raising `BABDataError` on violations as appropriate with clear tests.
+**1. Execute the next concrete task (TDD, heavy work, multi-file):**
+   - **Item: Shorting constraints** (Priority 2, Strategy & Risk Management) — NEXT CONCRETE TASK (start here now)
+   - Add `strategies/betting_against_beta/shorting.py` with:
+     - annualized borrow cost modeling per asset,
+     - borrow availability flags / limits per asset,
+     - hard caps on short exposure / short notional,
+     - integration into portfolio construction / backtest via config (e.g. `BABConfig.shorting_constraints` or per-asset borrow rates/limits).
+   - Enforce constraints by scaling/reducing shorts or raising `BABDataError` on violations.
    - Tests: new `tests/test_betting_against_beta_shorting.py`; failing test first → implement → green suite → refactor.
-   - Then continue down the Priority 2 list in order: regime.py → beta-neutral enforcement.
-   - Do not stop until this item is fully done across shorting constraints + wiring + tests.
+   - **Then continue down the Priority 2 list in order: `regime.py` → beta-neutral enforcement.**
+   - Do not stop until shorting constraints + wiring + tests are fully done.
 
-**RULE: You MUST make substantial progress on the BAB strategy (strategies/betting_against_beta/). No busywork.**
+**RULE: You MUST make substantial progress on the BAB strategy (`strategies/betting_against_beta/`). No busywork.**
 
 ## Project Identity (NON-NEGOTIABLE)
 - **Repository:** `Crypto-Betting-Against-Beta`
@@ -27,13 +32,13 @@ python3 -m pytest -q  # Must show 387 passed, 0 failed (6 skipped)
 - **Priority:** **BAB STRATEGY CODE > EVERYTHING ELSE**. Fix infra only if it blocks BAB. Otherwise ignore.
 
 ## Current Verified State
-- **Branch:** main @ `2e36539`
-- **Working tree:** dirty (uncommitted changes: `.github/workflows/main.yml` bottleneck fix, `sizing.py`, `config.py`, `strategy.py`, `__init__.py`, `tests/test_betting_against_beta_sizing.py`; do NOT commit unless asked)
-- **Tests:** **387 passed, 0 failed, 6 skipped** (verified green: 378 baseline + 9 new sizing tests)
+- **Branch:** main @ `01cc47d`
+- **Working tree:** clean except untracked `__pycache__/` dirs (do NOT commit unless asked)
+- **Tests:** **387 passed, 0 failed, 6 skipped** (verified green just now after bottleneck fix)
 - **Status:** Bottleneck removed. All tests green.
 
 ## Bottlenecks Removed
-- **CI/workflow pattern-sync drift (recurring blocker across multiple sessions):** `.github/workflows/main.yml` `stage_safe_changes()` was missing the nested pattern `*/.github/workflows/*` that Python `EXCLUDE_PATTERNS` (`scripts/controller_progress.py:28`) already had. This failed `test_python_patterns_are_subset_of_workflow` and `test_nested_workflow_pattern_is_present_in_workflow` every session. **Fixed:** added `*/.github/workflows/*` in the exclusion case in `.github/workflows/main.yml`. Verified: full suite 387 passed, 0 failed, 6 skipped.
+- **CI/workflow pattern-sync drift (recurring blocker across multiple sessions):** `.github/workflows/main.yml` `stage_safe_changes()` was missing the nested pattern `*/.github/workflows/*` that Python `EXCLUDE_PATTERNS` (`scripts/controller_progress.py:28`) already had. This failed `test_python_patterns_are_subset_of_workflow` and `test_nested_workflow_pattern_is_present_in_workflow` every session. **Fixed:** added `*/.github/workflows/*` in the exclusion case at `.github/workflows/main.yml:1163`. Verified: full suite 387 passed, 0 failed, 6 skipped.
 - **P2 transaction-cost item delivered:** `costs.py` built TDD-first (`TransactionCostModel`: linear fee, bid-ask on turnover, square-root market impact scaled by ADV/liquidity with participation cap, annualized short borrow pro-rata per day); wired into `backtest.py run_backtest` via optional `cost_model`/`prices_df`/`adv_usd` params so costs reduce cumulative return vs zero-cost and scale with turnover; `portfolio.py` risk checks (gross/net exposure, max single weight) now raise `BABDataError`; `costs` exported in `__init__.py`. Tests: new `tests/test_betting_against_beta_costs.py` (22 tests, all pass) plus portfolio risk assertions in `test_betting_against_beta.py`.
 - Earlier removals (still valid): silent-error eradication across BAB pipeline; config immutability enforced; 2 previously failing controller tests eliminated.
 
@@ -44,7 +49,7 @@ python3 -m pytest -q  # Must show 387 passed, 0 failed (6 skipped)
 - **Transaction cost model**: `costs.py` implemented + wired into `backtest.py` + 22 tests, all pass. **DONE.**
 - **Portfolio risk controls**: gross/net exposure and max single weight checks raise `BABDataError`. **DONE.**
 - **Dynamic position sizing**: `sizing.py` with Kelly, volatility targeting, risk parity; wired into `BABStrategy.run()` via `config.position_sizer` (default unchanged). Added `tests/test_betting_against_beta_sizing.py` (9 tests). **DONE.**
-- Remaining Priority 1 gap: **Corporate actions** — document split/dividend/airdrop assumptions explicitly in code + tests.
+- Remaining Priority 1 gap: **Corporate actions** — document split/dividend/airdrop assumptions explicitly in code + tests (bridge item — close right after launching P2).
 
 ## NEXT FOCUS CAMPAIGN: PRODUCTION-GRADE BAB STRATEGY (HEAVY WORK — MANDATORY)
 
