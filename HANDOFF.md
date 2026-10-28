@@ -1,14 +1,14 @@
-# HANDOFF - 2026-10-28T14:43:46Z
+# HANDOFF - 2026-10-28T14:48:18Z
 
 ## Timestamp
-2026-10-28T14:43:46Z
+2026-10-28T14:48:18Z
 
 ## Purpose
-**SINGLE DURABLE HANDOFF. START HERE.** Ignore all other `HANDOFF*.md` files unless you need historical context. This file is the source of truth for the next agentic work session.
+**SINGLE DURABLE HANDOFF. START HERE.** Ignore all other `HANDOFF*.md` files unless you need historical context. This file is the sole source of truth for the next agentic work session.
 
 ## Project Name Priority
 Repository: **Crypto-Betting-Against-Beta**. Product is the **Betting Against Beta (BAB)** crypto strategy — market-neutral, long low-beta / short high-beta crypto assets vs benchmark (default BTC), dollar-neutral equal weights, rolling OLS beta, one-day-lagged backtest.
-**BAB ALWAYS COMES FIRST. Infra only if it blocks BAB.**
+**BAB ALWAYS COMES FIRST. Touch infra ONLY if it directly blocks BAB execution or tests.**
 
 ## Current State (Ground Truth)
 - Branch: `main` @ `7c855cc` (HEAD; origin/main in sync)
@@ -16,16 +16,20 @@ Repository: **Crypto-Betting-Against-Beta**. Product is the **Betting Against Be
 - Working tree: clean (only untracked `__pycache__/` dirs)
 - Bottlenecks: **NONE CRITICAL**
 
-## Bottlenecks Removed (THIS SESSION)
-- **CI pattern-sync drift (FIXED for real)** — `.github/workflows/main.yml` `stage_safe_changes()` case list (line 1163) was missing `*/.github/workflows/*` that Python's `scripts/controller_progress.py:28` `EXCLUDE_PATTERNS` already had, causing 2 `TestStageSafeChangesPatternSync` failures (300 passed, 2 failed). Added `*/.github/workflows/*` immediately after `.github/workflows/*`. Suite restored to **302 passed, 0 failed**.
+## Bottlenecks Removed (HISTORICAL)
+- **CI pattern-sync drift** — `.github/workflows/main.yml` `stage_safe_changes()` now matches `scripts/controller_progress.py:28` `EXCLUDE_PATTERNS` (added `*/.github/workflows/*`).
+- **Delisted/all-NaN columns** — `_drop_all_nan_columns()` added to `data_loader.py`.
+- **Silent broad excepts** — removed from `signals.py` and `portfolio.py` with explicit finiteness guards.
+- **Beta NaN propagation** — `calculate_rolling_beta` fails loudly on all-NaN benchmark via `BABDataError`.
+- **Report sanitization** — `scripts/bab_backtest_report.py` coerces NaN/inf to 0.0.
 
 ## INITIAL TASK MESSAGE FOR NEXT AGENTIC WORK SESSION (MUST START HERE)
 
 **FOCUS CAMPAIGN: BAB HARDENING, ROBUSTNESS & PERFORMANCE (FORCE HEAVY CONTINUOUS PROGRESS)**
 
-Strategy is green (302 passed). Make it bulletproof for messy real crypto data, faster at scale, and impossible to silently fail. Do not coast — stress test everything. Heavy work required.
+Strategy is green at 324 passed. Make it bulletproof for real, messy crypto data and faster at scale. Do not coast. Every phase must produce tests and measurable hardening.
 
-### Recon (MANDATORY FIRST STEP)
+### MANDATORY RECON (DO FIRST)
 ```bash
 cd /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
 python3 -m pytest -q
@@ -34,71 +38,56 @@ git diff --stat
 git log --oneline -5
 ```
 
-Read core BAB files:
-- `strategies/betting_against_beta/strategy.py`
-- `strategies/betting_against_beta/data_loader.py`
-- `strategies/betting_against_beta/data.py`
-- `strategies/betting_against_beta/beta.py`
-- `strategies/betting_against_beta/signals.py`
-- `strategies/betting_against_beta/portfolio.py`
-- `strategies/betting_against_beta/backtest.py`
-- `strategies/betting_against_beta/metrics.py`
-- `strategies/betting_against_beta/config.py`
-- `strategies/betting_against_beta/errors.py`
+Read: `strategies/betting_against_beta/strategy.py`, `data_loader.py`, `data.py`, `beta.py`, `signals.py`, `portfolio.py`, `backtest.py`, `metrics.py`, `config.py`, `errors.py`, `scripts/bab_backtest_report.py`
 
-### Heavy Campaign (Execute in strict order, TDD mandatory)
+### HEAVY CAMPAIGN
 
-#### PHASE 1: PERFORMANCE & SCALABILITY (IMMEDIATE - HEAVY)
-- [ ] **Profile** rolling beta on large universes (100+ assets, 2000+ days). Identify hotspots in `beta.py` (loops/copies/groupby/apply). Capture timings before/after.
-- [ ] **Optimize** without changing behavior (vectorize where safe, avoid unnecessary copies, reduce allocations). Preserve dtype/NaN semantics.
-- [ ] **Numerical stability** — check conditioning (collinearity, near-constant series), overflow/underflow. Add guards where needed.
-- [ ] **Regression tests** — add performance-oriented tests that catch regressions (shape/dtype/values unchanged). Must not slow suite meaningfully without justification.
+#### PHASE 1: PERFORMANCE & SCALABILITY
+- [ ] Profile `calculate_rolling_beta` on synthetic 150x2500 universe with cProfile/timeit (before/after).
+- [ ] Optimize hotspots (groupby/apply/rolling/copies/dtypes). Preserve NaN semantics and numerical results within tolerance.
+- [ ] Add guards for degenerate windows/conditioning.
+- [ ] Add regression tests (shape/dtype/index/values). No suite slowdown without justification.
 
-#### PHASE 2: DATA LOADING & MESSY DATA (HEAVY)
-- [ ] **Robust coercion** — mixed dtypes, strings, NaN/inf, object columns. Coerce to numeric safely.
-- [ ] **All-NaN/delisted** — ensure `_drop_all_nan_columns` behaves correctly in all paths. Cover partial/all-NaN cases.
-- [ ] **Missing data patterns** — forward/backward fills, partial histories, leading/trailing NaNs. Define correct behavior or fail loudly.
-- [ ] **Clear errors** — every invalid case must raise `BABDataError` with actionable message. No silent coercion to zero.
-- [ ] **Stress tests** — create fixtures for messy CSV/JSON (duplicates, mixed tz/index, non-numeric, inf). Extend `tests/test_betting_against_beta_data_loader.py` and `tests/test_bab_messy_data.py`.
+#### PHASE 2: DATA LOADING & MESSY DATA
+- [ ] Harden coercion for mixed dtypes/strings (N/A, commas). Fail loudly with `BABDataError` if unparseable; no silent zeroing.
+- [ ] Expand `_drop_all_nan_columns` coverage (partial/all-NaN, benchmark-all-NaN).
+- [ ] Handle leading/trailing NaNs, sparse histories, duplicates (dates/cols). Test behavior.
+- [ ] Actionable `BABDataError` messages (names/counts/shapes).
+- [ ] Stress fixtures (duplicates, mixed tz/index, non-numeric, inf). Extend loader/messy tests; use `tests/fixtures/real_data_defects.csv`.
 
-#### PHASE 3: BETA, SIGNALS, PORTFOLIO ROBUSTNESS (HEAVY)
-- [ ] **Beta edge cases** — all-NaN benchmark, constant benchmark, single asset, constant series, insufficient observations. Return finite/defined values or raise `BABDataError` as appropriate.
-- [ ] **Signals** — all-zero betas, quantile ties, overlapping quantiles, single asset rows, empty universe. Deterministic tie-breaking or explicit policy + tests.
-- [ ] **Portfolio** — guarantee finite weights, dollar-neutrality holds strictly (sum to 0 within float tolerance), no NaN/inf propagation.
-- [ ] **No silent failures** — eliminate broad excepts, add finiteness guards everywhere. Fail loudly with `BABDataError` where contract violated.
-- [ ] **Tests** — cover every edge case discovered. No "pass by zeroing everything".
+#### PHASE 3: BETA, SIGNALS, PORTFOLIO
+- [ ] Beta edges: all-NaN benchmark, constant benchmark, single asset, constant series, insufficient obs. Raise only when contract violated.
+- [ ] Signals: all-zero betas, ties, overlaps, single-asset/empty. Deterministic tie-breaking/policy; shrink short set on overlap.
+- [ ] Portfolio: finite weights, strict dollar-neutrality (|sum| < 1e-12), no NaN/inf; add finiteness audit.
+- [ ] Eliminate remaining broad excepts; add tests for all classes.
 
-#### PHASE 4: BACKTEST, METRICS & REPORTING (HEAVY)
-- [ ] **Degenerate cases** — zero variance, all same returns, single period, no tradable periods.
-- [ ] **Metrics** — Sharpe, drawdown, turnover must be finite and correct. Define behavior for zero-vol; never return NaN/inf.
-- [ ] **Sanitization** — JSON reports must never emit NaN/inf (check `scripts/bab_backtest_report.py` and serialization paths).
-- [ ] **Long-only mode** — all edge cases covered.
-- [ ] **Transaction costs/slippage** — interactions must be correct, no lookahead, weights lagged correctly.
+#### PHASE 4: BACKTEST, METRICS & REPORTING
+- [ ] Degenerate: zero variance, all same, single period, no tradable periods.
+- [ ] Metrics finite; zero-vol must not produce NaN/inf.
+- [ ] JSON sanitizer must hold for all cases (extend tests).
+- [ ] Costs/slippage/no-lookahead/lagged weights correct.
+- [ ] Long-only edge cases covered.
 
-#### PHASE 5: INTEGRATION & REAL-WORLD STRESS (HEAVY)
-- [ ] **Realistic distributions** — fat tails, skew, regime changes, high vol, gaps, correlated shocks.
-- [ ] **Full pipeline** — data_loader → beta → signals → portfolio → backtest → metrics. End-to-end stress.
-- [ ] **Dollar-neutrality** — verify strictly across all scenarios (assert |sum weights| < eps).
-- [ ] **No NaN/inf propagation** — assert finiteness at every stage (add assertions/tests).
-- [ ] **Regression suite** — add tests for any bugs found. Keep all existing tests green.
+#### PHASE 5: INTEGRATION & REAL-WORLD STRESS
+- [ ] Fat tails/skew/regime changes/high vol/gaps/correlated shocks.
+- [ ] Full pipeline end-to-end assertions.
+- [ ] Strict dollar-neutrality across all scenarios.
+- [ ] Finiteness audits at every stage.
+- [ ] Add tests for every bug found; keep all green.
 
-### Execution Rules (NON-NEGOTIABLE)
-1. **START HERE** - Recon first. Do not skip.
-2. **TDD MANDATORY** - Write failing test → understand root cause → minimal fix → green. Never "fix" without a test.
-3. **BAB FIRST** - Product over infra. Only touch infra if it blocks BAB.
-4. **NO COMMIT** unless explicitly asked by user.
-5. **HEAVY WORK REQUIRED** - Trivial fixes are not enough. Stress, profile, harden.
-6. **VERIFY CONSTANTLY** - Run `python3 -m pytest -q` after each meaningful change/phase.
-7. **FAIL LOUDLY** - Use `BABDataError` for data/constraint violations. No silent failures or NaN propagation.
-8. **MINIMAL DIFFS** - Follow existing style, don't refactor unrelated code.
+### RULES (NON-NEGOTIABLE)
+1. Start with recon. 2. TDD mandatory. 3. BAB first. 4. No commit unless explicitly asked. 5. Heavy work required. 6. Verify with `python3 -m pytest -q` after each phase/change. 7. Fail loudly with `BABDataError`. No silent NaN/inf. 8. Minimal diffs. 9. Exhaustive testing.
 
-### Acceptance Criteria
-- [ ] All new edge cases have tests and pass
-- [ ] No NaN/inf in weights/signals/metrics on any tested input
-- [ ] `BABDataError` used consistently for invalid data
-- [ ] `python3 -m pytest -q` = **>= 302 passed, 0 failed** (grow coverage, never regress)
-- [ ] Performance improved where measured without behavior change (document findings)
-- [ ] Handoff remains clean and actionable
+### ACCEPTANCE CRITERIA
+- [ ] >=1 concrete perf improvement in `beta.py` with timings OR major stress coverage added
+- [ ] All new edge cases tested and passing
+- [ ] No NaN/inf in weights/signals/metrics
+- [ ] Consistent `BABDataError` with actionable messages
+- [ ] `python3 -m pytest -q` >= 324 passed, 0 failed
+- [ ] |sum(weights)| < 1e-12 in all new tests
+- [ ] Handoff clean and actionable
 
 ## NEXT ACTION
-**IMMEDIATELY**: Run recon, read all core BAB files, start **Phase 1** (performance profiling of `calculate_rolling_beta`). Find and address at least one concrete performance issue OR add meaningful stress coverage before moving to next phase. Do not stop. Keep going heavy.
+**IMMEDIATELY**: Run recon, read core BAB files, start Phase 1 (profile `calculate_rolling_beta`). Find and fix at least one concrete issue OR add heavy stress coverage before Phase 2. Do not stop.
+
+(End of file)
