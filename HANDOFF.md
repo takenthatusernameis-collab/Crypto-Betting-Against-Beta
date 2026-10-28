@@ -1,7 +1,7 @@
-# HANDOFF - 2026-10-28T12:23:22Z
+# HANDOFF - 2026-10-28T12:24:12Z
 
 ## Timestamp
-2026-10-28T12:23:22Z
+2026-10-28T12:24:12Z
 
 ## Purpose
 **SINGLE DURABLE HANDOFF. START HERE.** Ignore all other `HANDOFF*.md` files unless you need historical context. This file is the source of truth for the next agentic work session.
@@ -37,6 +37,7 @@ git log --oneline -5
 Read core BAB files to internalize behavior:
 - `strategies/betting_against_beta/strategy.py`
 - `strategies/betting_against_beta/data_loader.py`
+- `strategies/betting_against_beta/data.py`
 - `strategies/betting_against_beta/beta.py`
 - `strategies/betting_against_beta/signals.py`
 - `strategies/betting_against_beta/portfolio.py`
@@ -48,38 +49,38 @@ Read core BAB files to internalize behavior:
 ### Heavy Campaign (Execute in strict order, TDD mandatory)
 
 #### PHASE 1: PERFORMANCE & SCALABILITY (IMMEDIATE - HEAVY)
-- [ ] **Profile** rolling beta on large universes (100+ assets, 2000+ days). Identify hotspots.
-- [ ] **Optimize** without changing behavior (vectorize where safe, avoid unnecessary copies).
-- [ ] **Numerical stability** — check for overflow/underflow, conditioning issues.
-- [ ] **Regression tests** — add performance-oriented tests that catch regressions.
+- [ ] **Profile** rolling beta on large universes (100+ assets, 2000+ days). Identify hotspots in `beta.py` (loops/copies/groupby/apply). Capture timings before/after.
+- [ ] **Optimize** without changing behavior (vectorize where safe, avoid unnecessary copies, reduce allocations). Preserve dtype/NaN semantics.
+- [ ] **Numerical stability** — check conditioning (collinearity, near-constant series), overflow/underflow. Add guards where needed.
+- [ ] **Regression tests** — add performance-oriented tests that catch regressions (shape/dtype/values unchanged). Must not slow suite meaningfully without justification.
 
 #### PHASE 2: DATA LOADING & MESSY DATA (HEAVY)
-- [ ] **Robust coercion** — mixed dtypes, strings, NaN/inf, object columns
-- [ ] **All-NaN/delisted** — ensure `_drop_all_nan_columns` behaves correctly in all paths
-- [ ] **Missing data patterns** — forward/backward fills, partial histories, leading/trailing NaNs
-- [ ] **Clear errors** — every invalid case must raise `BABDataError` with actionable message
-- [ ] **Stress tests** — use/create fixtures for messy CSV/JSON
+- [ ] **Robust coercion** — mixed dtypes, strings, NaN/inf, object columns. Coerce to numeric safely.
+- [ ] **All-NaN/delisted** — ensure `_drop_all_nan_columns` behaves correctly in all paths (data_loader). Cover partial/all-NaN cases.
+- [ ] **Missing data patterns** — forward/backward fills, partial histories, leading/trailing NaNs. Define correct behavior or fail loudly.
+- [ ] **Clear errors** — every invalid case must raise `BABDataError` with actionable message. No silent coercion to zero.
+- [ ] **Stress tests** — create fixtures for messy CSV/JSON (duplicates, mixed tz/index, non-numeric, inf). Extend `tests/test_betting_against_beta_data_loader.py` and `tests/test_bab_messy_data.py`.
 
 #### PHASE 3: BETA, SIGNALS, PORTFOLIO ROBUSTNESS (HEAVY)
-- [ ] **Beta edge cases** — all-NaN benchmark, constant benchmark, single asset, constant series
-- [ ] **Signals** — all-zero betas, quantile ties, overlapping quantiles, single asset rows
-- [ ] **Portfolio** — guarantee finite weights, dollar-neutrality holds strictly
-- [ ] **No silent failures** — eliminate broad excepts, add finiteness guards everywhere
-- [ ] **Tests** — cover every edge case discovered
+- [ ] **Beta edge cases** — all-NaN benchmark, constant benchmark, single asset, constant series, insufficient observations. Return finite/defined values or raise `BABDataError` as appropriate.
+- [ ] **Signals** — all-zero betas, quantile ties, overlapping quantiles, single asset rows, empty universe. Deterministic tie-breaking or explicit policy + tests.
+- [ ] **Portfolio** — guarantee finite weights, dollar-neutrality holds strictly (sum to 0 within float tolerance), no NaN/inf propagation.
+- [ ] **No silent failures** — eliminate broad excepts, add finiteness guards everywhere. Fail loudly with `BABDataError` where contract violated.
+- [ ] **Tests** — cover every edge case discovered. No "pass by zeroing everything".
 
 #### PHASE 4: BACKTEST, METRICS & REPORTING (HEAVY)
-- [ ] **Degenerate cases** — zero variance, all same returns, single period
-- [ ] **Metrics** — Sharpe, drawdown, turnover must be finite and correct
-- [ ] **Sanitization** — JSON reports must never emit NaN/inf
-- [ ] **Long-only mode** — all edge cases
-- [ ] **Transaction costs/slippage** — interactions must be correct
+- [ ] **Degenerate cases** — zero variance, all same returns, single period, no tradable periods.
+- [ ] **Metrics** — Sharpe, drawdown, turnover must be finite and correct. Define behavior for zero-vol; never return NaN/inf.
+- [ ] **Sanitization** — JSON reports must never emit NaN/inf (check `scripts/bab_backtest_report.py` and serialization paths).
+- [ ] **Long-only mode** — all edge cases covered.
+- [ ] **Transaction costs/slippage** — interactions must be correct, no lookahead, weights lagged correctly.
 
 #### PHASE 5: INTEGRATION & REAL-WORLD STRESS (HEAVY)
-- [ ] **Realistic distributions** — fat tails, skew, regime changes, high vol
-- [ ] **Full pipeline** — data_loader → beta → signals → portfolio → backtest → metrics
-- [ ] **Dollar-neutrality** — verify strictly across all scenarios
-- [ ] **No NaN/inf propagation** — assert finiteness at every stage
-- [ ] **Regression suite** — add tests for any bugs found
+- [ ] **Realistic distributions** — fat tails, skew, regime changes, high vol, gaps, correlated shocks.
+- [ ] **Full pipeline** — data_loader → beta → signals → portfolio → backtest → metrics. End-to-end stress.
+- [ ] **Dollar-neutrality** — verify strictly across all scenarios (assert |sum weights| < eps).
+- [ ] **No NaN/inf propagation** — assert finiteness at every stage (add assertions/tests).
+- [ ] **Regression suite** — add tests for any bugs found. Keep all existing tests green.
 
 ### Execution Rules (NON-NEGOTIABLE)
 1. **START HERE** - Recon first. Do not skip.
@@ -95,9 +96,9 @@ Read core BAB files to internalize behavior:
 - [ ] All new edge cases have tests and pass
 - [ ] No NaN/inf in weights/signals/metrics on any tested input
 - [ ] `BABDataError` used consistently for invalid data
-- [ ] `python3 -m pytest -q` = **295 passed, 0 failed** (or higher with new tests)
-- [ ] Performance improved where measured without behavior change
+- [ ] `python3 -m pytest -q` = **>= 295 passed, 0 failed** (grow coverage, never regress)
+- [ ] Performance improved where measured without behavior change (document in commit/notes if asked, but no commit unless asked)
 - [ ] Handoff remains clean and actionable
 
 ## NEXT ACTION
-**IMMEDIATELY**: Run recon, read all core BAB files, start **Phase 1** (performance profiling). Do not stop until you've found and addressed at least one concrete performance issue or added meaningful coverage. Keep going heavy.
+**IMMEDIATELY**: Run recon, read all core BAB files, start **Phase 1** (performance profiling). Find and address at least one concrete performance issue OR add meaningful stress coverage before moving to next phase. Do not stop. Keep going heavy.
