@@ -67,7 +67,10 @@ class TestCalculateRollingBeta:
         df = generate_synthetic_returns(n_days=100, n_assets=4, seed=2)
         betas = calculate_rolling_beta(df, "BTC", window=60, min_obs=60)
         # Benchmark column is 1.0 by design; check the asset columns only.
-        assert betas.iloc[:60].drop(columns=["BTC"]).isna().all().all()
+        # With min_obs=60 the first finite row is row 59 (60 observations),
+        # so rows 0..58 are NaN and row 59 is finite.
+        assert betas.iloc[:59].drop(columns=["BTC"]).isna().all().all()
+        assert np.isfinite(betas.iloc[59].drop(columns=["BTC"]).to_numpy()).all()
 
     def test_lower_beta_asset_has_lower_rolling_beta(self) -> None:
         df = generate_synthetic_returns(n_days=200, n_assets=4, seed=5)
@@ -899,3 +902,110 @@ class TestLiquidityGuards:
         w = construct_portfolio(signals, dollar_neutral=True, max_position_size=0.5)
         assert abs(w.sum(axis=1).iloc[0]) < 1e-10
         assert np.all(w.abs().sum(axis=1) > 0) or True  # valid structure
+
+
+class TestCalculateRollingBetaPerformance:
+    """Regression tests for the vectorized rolling-beta fast path.
+
+    Commit 2026-10-28: the fast path assigned into a read-only ``to_numpy()``
+    view, which raised on every all-finite asset and silently fell back to the
+    O(n^2) safe path (224k ``lstsq`` calls on a 150x2500 universe). The
+    regression tests below pin both the correctness and the speed-up.
+    """
+
+    @staticmethod
+    def _slow_reference(returns_df, benchmark_name, window=90, min_obs=60):
+        """Literal O(n^2) reference implementation used as ground truth."""
+        from strategies.betting_against_beta.beta import calculate_beta_fast
+
+        n = len(returns_df)
+        betas_dict = {}
+        bench_arr = returns_df[benchmark_name].to_numpy(dtype=float)
+        for asset in returns_df.columns:
+            if asset == benchmark_name:
+                betas_dict[asset] = np.ones(n, dtype=float)
+                continue
+            a_arr = returns_df[asset].to_numpy(dtype=float)
+            rolling_betas_arr = np.empty(n, dtype=float)
+            rolling_betas_arr[:] = np.nan
+            for i in range(n):
+                start_idx = max(0, i - window + 1)
+                end_idx = i + 1
+                if end_idx - start_idx < min_obs:
+                    continue
+                beta = calculate_beta_fast(
+                    a_arr[start_idx:end_idx],
+                    bench_arr[start_idx:end_idx],
+                    min_obs=min_obs,
+                )
+                if beta is None or not np.isfinite(beta):
+                    rolling_betas_arr[i] = np.nan
+                else:
+                    rolling_betas_arr[i] = float(beta)
+            betas_dict[asset] = rolling_betas_arr
+        return pd.DataFrame(betas_dict, index=returns_df.index)
+
+    def test_matches_slow_reference_on_all_finite_universe(self) -> None:
+        rng = np.random.default_rng(42)
+        df = pd.DataFrame(
+            rng.normal(0, 0.01, (150, 2500)),
+            columns=["BTC"] + [f"ASSET_{i}" for i in range(2499)],
+            index=pd.date_range("2020-01-01", periods=150),
+        )
+        fast = calculate_rolling_beta(df, "BTC", window=90, min_obs=60)
+        slow = self._slow_reference(df, "BTC", window=90, min_obs=60)
+        v, s = fast.to_numpy(), slow.to_numpy()
+        assert np.array_equal(np.isnan(v), np.isnan(s)), (
+            "NaN masks must match the slow reference exactly"
+        )
+        both_finite = np.isfinite(v) & np.isfinite(s)
+        assert both_finite.all() or np.allclose(
+            v[both_finite], s[both_finite], atol=1e-10
+        )
+
+    def test_warmup_row_at_min_obs_boundary_is_finite(self) -> None:
+        # Regression: the safe path rejected row i = min_obs - 1 even though its
+        # window already held min_obs observations, because it gated on
+        # ``i < min_obs`` instead of the actual window length.
+        rng = np.random.default_rng(7)
+        df = pd.DataFrame(
+            rng.normal(0, 0.01, (100, 4)),
+            columns=["BTC", "A", "B", "C"],
+            index=pd.date_range("2020-01-01", periods=100),
+        )
+        betas = calculate_rolling_beta(df, "BTC", window=90, min_obs=60)
+        # Row 59 (0-indexed) has a 60-observation window -> must be finite.
+        assert np.isfinite(betas["A"].iloc[59])
+        assert np.isfinite(betas["B"].iloc[59])
+        # Rows before the boundary stay NaN.
+        assert betas["A"].iloc[:59].isna().all()
+
+    def test_fast_path_is_subsecond_on_large_universe(self) -> None:
+        import time
+
+        rng = np.random.default_rng(42)
+        df = pd.DataFrame(
+            rng.normal(0, 0.01, (150, 2500)),
+            columns=["BTC"] + [f"ASSET_{i}" for i in range(2499)],
+            index=pd.date_range("2020-01-01", periods=150),
+        )
+        t0 = time.perf_counter()
+        calculate_rolling_beta(df, "BTC", window=90, min_obs=60)
+        elapsed = time.perf_counter() - t0
+        # The all-finite fast path must run in well under the 21s baseline.
+        assert elapsed < 8.0, f"rolling beta took {elapsed:.2f}s; expected < 8s"
+
+    def test_fast_path_handles_nan_inf_arrays(self) -> None:
+        rng = np.random.default_rng(11)
+        data = rng.normal(0, 0.01, (120, 5))
+        data[5, 0] = np.nan
+        data[10, 1] = np.inf
+        data[20, 2] = -np.inf
+        df = pd.DataFrame(
+            data, columns=["BTC", "A", "B", "C", "D"], index=pd.date_range("2020-01-01", periods=120)
+        )
+        betas = calculate_rolling_beta(df, "BTC", window=90, min_obs=60)
+        # No NaN/inf may leak from the fast path into the result frame.
+        assert not np.isinf(betas.to_numpy()).any()
+        # The benchmark column stays 1.0 by design.
+        assert (betas["BTC"].dropna() == 1.0).all()

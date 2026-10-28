@@ -25,7 +25,7 @@ def _time_it(func, *args, **kwargs):
 
 def _reference_rolling_beta(returns_df, benchmark_name, window=90, min_obs=60):
     """Naive per-window O(N*W) implementation used only as a value oracle."""
-    from strategies.betting_against_beta.beta import calculate_beta
+    from strategies.betting_against_beta.beta import calculate_beta_fast
 
     n = len(returns_df)
     out = {}
@@ -36,15 +36,13 @@ def _reference_rolling_beta(returns_df, benchmark_name, window=90, min_obs=60):
         arr = np.empty(n, dtype=float)
         arr[:] = np.nan
         for i in range(n):
-            if i < min_obs:
-                continue
             start = max(0, i - window + 1)
             end = i + 1
             if end - start < min_obs:
                 continue
             a = returns_df[asset].iloc[start:end].to_numpy(dtype=float)
             b = returns_df[benchmark_name].iloc[start:end].to_numpy(dtype=float)
-            beta = calculate_beta(a, b, min_obs=min_obs)
+            beta = calculate_beta_fast(a, b, min_obs=min_obs)
             arr[i] = beta if beta is not None and np.isfinite(beta) else np.nan
         out[asset] = arr
     return pd.DataFrame(out, index=returns_df.index)

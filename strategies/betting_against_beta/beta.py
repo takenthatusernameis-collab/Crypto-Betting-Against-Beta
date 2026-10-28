@@ -145,9 +145,10 @@ def calculate_rolling_beta(returns_df, benchmark_name, window=90, min_obs=60):
             b_has_bad = not np.all(np.isfinite(bench_arr))
             if a_has_bad or b_has_bad:
                 for i in range(n):
-                    if i < min_obs:
-                        rolling_betas_arr[i] = np.nan
-                        continue
+                    # The min_obs boundary is decided by the actual window
+                    # length (i+1 for the warm-up region), not by the row index.
+                    # ``i < min_obs`` wrongly rejected the i = min_obs-1 row,
+                    # whose window already holds min_obs observations.
                     start_idx = max(0, i - window + 1)
                     end_idx = i + 1
                     window_len = end_idx - start_idx
@@ -181,21 +182,34 @@ def calculate_rolling_beta(returns_df, benchmark_name, window=90, min_obs=60):
             xy_sum = (x_s * y_s).rolling(window=window, min_periods=min_obs).sum()
             xx_sum = (x_s * x_s).rolling(window=window, min_periods=min_obs).sum()
 
-            # Number of observations
-            cnt = x_s.rolling(window=window, min_periods=min_obs).apply(lambda v: len(v), raw=True)
-            # Easier way: use count of non-NaN which is window size if no NaN
-            cnt = pd.Series(np.ones(n))
-            cnt = cnt.rolling(window=window, min_periods=min_obs).sum()
+            # Number of observations per window. A rolling sum of a constant-1
+            # series is exactly the window length (clipped at the warm-up edge),
+            # which is the true observation count. ``min_periods`` on the rolling
+            # sums above already emits NaN for warm-up rows, but the count must
+            # be derived from the actual window length so the min_obs boundary
+            # matches the safe path (which gates on window_len, not row index).
+            ones = pd.Series(np.ones(n, dtype=float))
+            cnt = ones.rolling(window=window, min_periods=min_obs).sum()
+            cnt_f = cnt.to_numpy(dtype=float)
 
             denom = cnt * xx_sum - x_sum * x_sum
             num = cnt * xy_sum - x_sum * y_sum
             beta = num / denom
-            # Also need to handle case where denom is zero or very small
-            beta_arr = beta.to_numpy(dtype=float)
-            # Set NaN where cnt < min_obs or denom <= 0 (or very small)
-            beta_arr[cnt.to_numpy(dtype=float) < min_obs] = np.nan
-            beta_arr[~np.isfinite(denom.to_numpy(dtype=float))] = np.nan
-            beta_arr[np.abs(denom.to_numpy(dtype=float)) < 1e-18] = np.nan
+            # Copy so the masked assignments below are writeable. A bare
+            # to_numpy() view of a Series result is read-only and would raise,
+            # silently falling back to the O(n^2) safe path for every asset.
+            beta_arr = beta.to_numpy(dtype=float).copy()
+            # Step 1: degenerate benchmark windows (constant / near-constant)
+            # get a finite 0.0, matching calculate_beta_fast's contract.
+            denom_f = denom.to_numpy(dtype=float)
+            degenerate = (~np.isfinite(denom_f)) | (np.abs(denom_f) < 1e-18)
+            beta_arr[degenerate] = 0.0
+            # Step 2: clamp any inf from tiny non-zero denominators to 0.0.
+            beta_arr[~np.isfinite(beta_arr) & ~np.isnan(beta_arr)] = 0.0
+            # Step 3: apply the warm-up mask LAST so it is never overwritten by
+            # the rules above. (cnt_f is NaN for warm-up rows, so the explicit
+            # isnan check is required: ``NaN < min_obs`` is False.)
+            beta_arr[(cnt_f < min_obs) | np.isnan(cnt_f)] = np.nan
             betas_dict[asset] = beta_arr
 
         return pd.DataFrame(betas_dict, index=returns_df.index)
@@ -212,9 +226,8 @@ def calculate_rolling_beta(returns_df, benchmark_name, window=90, min_obs=60):
             rolling_betas_arr[:] = np.nan
 
             for i in range(n):
-                if i < min_obs:
-                    rolling_betas_arr[i] = np.nan
-                    continue
+                # The min_obs boundary is decided by the actual window
+                # length (i+1 for the warm-up region), not by the row index.
                 start_idx = max(0, i - window + 1)
                 end_idx = i + 1
                 window_len = end_idx - start_idx
