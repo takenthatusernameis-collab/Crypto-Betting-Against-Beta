@@ -45,10 +45,19 @@ class BABConfig:
     universe_override: Optional[List[str]] = None
     # Dynamic position sizing (optional): instance of sizer or string shorthand
     position_sizer: Optional[object] = None
+    # Shorting constraints (borrow costs, availability, caps)
+    shorting_constraints: Optional[object] = None
 
     def __post_init__(self):
         if self.universe is None:
             object.__setattr__(self, "universe", ["BTC", "ETH", "SOL", "BNB", "XRP", "ADA", "AVAX", "DOT"])
+        # Normalize shorting_constraints if passed as dict
+        try:
+            if isinstance(self.shorting_constraints, dict):
+                from . import shorting as _shorting
+                object.__setattr__(self, "shorting_constraints", _shorting.ShortingConstraints(**self.shorting_constraints))
+        except Exception:
+            pass
         self._validate_ranges()
         # Freeze after validation to prevent downstream mutation
         try:

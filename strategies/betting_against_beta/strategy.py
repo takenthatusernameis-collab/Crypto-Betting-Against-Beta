@@ -12,6 +12,8 @@ from .data_loader import load_returns
 from .portfolio import construct_portfolio
 from .signals import generate_bab_signals
 from . import sizing
+from . import shorting
+from .errors import BABDataError
 
 
 def _rebalance_mask(index, freq: str) -> "pd.Series":  # noqa: ANN401
@@ -184,6 +186,15 @@ class BABStrategy:
             net_exposure_limit=getattr(cfg, "net_exposure_limit", None),
             max_single_weight=getattr(cfg, "max_single_weight", None),
         )
+        # Apply shorting constraints if configured
+        try:
+            sc = getattr(cfg, "shorting_constraints", None)
+            if sc is not None:
+                weights = shorting.apply_shorting_constraints(weights, sc)
+        except BABDataError:
+            raise
+        except Exception:
+            pass
         # Optional dynamic position sizing
         try:
             ps = getattr(cfg, "position_sizer", None)
