@@ -9,51 +9,56 @@ from .data_loader import BABDataError
 def calculate_beta(asset_returns, benchmark_returns, min_obs=None):
     """Calculate beta of asset vs benchmark using OLS regression."""
     try:
-        # Convert to Series if arrays/lists
-        if isinstance(asset_returns, np.ndarray):
-            asset_returns = pd.Series(asset_returns)
-        elif isinstance(asset_returns, list):
-            asset_returns = pd.Series(asset_returns)
-        if isinstance(benchmark_returns, np.ndarray):
-            benchmark_returns = pd.Series(benchmark_returns)
-        elif isinstance(benchmark_returns, list):
-            benchmark_returns = pd.Series(benchmark_returns)
-
-        # Align and drop NaN
-        try:
-            aligned = pd.concat([asset_returns, benchmark_returns], axis=1).dropna()
-        except Exception:
-            # Fallback
-            a = pd.Series(asset_returns).reset_index(drop=True)
-            b = pd.Series(benchmark_returns).reset_index(drop=True)
-            aligned = pd.concat([a, b], axis=1).dropna()
-        if len(aligned) == 0:
-            return np.nan
-        if min_obs is not None and len(aligned) < min_obs:
-            return np.nan
-
-        y = aligned.iloc[:, 0].values.astype(float)
-        x = aligned.iloc[:, 1].values.astype(float)
+        # Fast path with numpy
+        a = np.asarray(asset_returns, dtype=float).ravel()
+        b = np.asarray(benchmark_returns, dtype=float).ravel()
+        if len(a) != len(b):
+            # Try to align as Series if different lengths
+            if isinstance(asset_returns, (pd.Series,)) or isinstance(benchmark_returns, (pd.Series,)):
+                try:
+                    if isinstance(asset_returns, np.ndarray):
+                        asset_returns = pd.Series(asset_returns)
+                    if isinstance(benchmark_returns, np.ndarray):
+                        benchmark_returns = pd.Series(benchmark_returns)
+                    if isinstance(asset_returns, list):
+                        asset_returns = pd.Series(asset_returns)
+                    if isinstance(benchmark_returns, list):
+                        benchmark_returns = pd.Series(benchmark_returns)
+                    aligned = pd.concat([asset_returns, benchmark_returns], axis=1).dropna()
+                    if len(aligned) == 0:
+                        return np.nan
+                    if min_obs is not None and len(aligned) < min_obs:
+                        return np.nan
+                    y = aligned.iloc[:, 0].to_numpy(dtype=float)
+                    x = aligned.iloc[:, 1].to_numpy(dtype=float)
+                except Exception:
+                    return np.nan
+            else:
+                # Truncate to common length
+                n = min(len(a), len(b))
+                a = a[:n]
+                b = b[:n]
+        else:
+            y = a
+            x = b
 
         # Check for finite values
-        if not (np.all(np.isfinite(y)) and np.all(np.isfinite(x))):
-            # Drop non-finite
-            mask = np.isfinite(y) & np.isfinite(x)
-            if not mask.any():
-                return np.nan
+        mask = np.isfinite(y) & np.isfinite(x)
+        if not np.any(mask):
+            return np.nan
+        if not np.all(mask):
             y = y[mask]
             x = x[mask]
-            if min_obs is not None and len(y) < min_obs:
-                return np.nan
+        if len(y) == 0:
+            return np.nan
+        if min_obs is not None and len(y) < min_obs:
+            return np.nan
 
-        # Add intercept
-        X = np.column_stack([np.ones(len(x)), x])
+        # Add intercept and solve via lstsq (efficient)
+        X = np.column_stack([np.ones(len(x), dtype=float), x.astype(float)])
         try:
-            coeffs = np.linalg.lstsq(X, y, rcond=None)[0]
+            coeffs, _, _, _ = np.linalg.lstsq(X, y.astype(float), rcond=None)
             beta = coeffs[1]
-            if beta is None or (isinstance(beta, float) and (np.isnan(beta) or np.isinf(beta))):
-                return np.nan
-            # Check for numerical issues
             if not np.isfinite(beta):
                 return np.nan
             return float(beta)
@@ -74,36 +79,72 @@ def calculate_rolling_beta(returns_df, benchmark_name, window=90, min_obs=60):
 
     benchmark_returns = returns_df[benchmark_name]
     # An all-NaN benchmark makes beta estimation impossible; refuse loudly.
-    if not np.isfinite(benchmark_returns.to_numpy()).any():
+    bench_vals = benchmark_returns.to_numpy(dtype=float)
+    if not np.isfinite(bench_vals).any():
         raise BABDataError(
             f"Benchmark '{benchmark_name}' has no finite return values; "
             "cannot estimate betas against it"
         )
 
-    betas = {}
+    n = len(returns_df)
+    betas_dict = {}
 
     for asset in returns_df.columns:
         if asset == benchmark_name:
-            betas[asset] = 1.0  # beta of benchmark vs itself
+            betas_dict[asset] = np.ones(n, dtype=float)
             continue
-        rolling_betas = []
-        for i in range(len(returns_df)):
+
+        asset_series = returns_df[asset]
+        rolling_betas_arr = np.empty(n, dtype=float)
+        rolling_betas_arr[:] = np.nan
+
+        # Use a more efficient approach
+        for i in range(n):
             if i < min_obs:
-                rolling_betas.append(np.nan)
+                rolling_betas_arr[i] = np.nan
                 continue
             start_idx = max(0, i - window + 1)
             end_idx = i + 1
+            window_len = end_idx - start_idx
+            if window_len < min_obs:
+                rolling_betas_arr[i] = np.nan
+                continue
             try:
-                window_asset = returns_df[asset].iloc[start_idx:end_idx]
-                window_bench = benchmark_returns.iloc[start_idx:end_idx]
-                beta = calculate_beta(window_asset, window_bench, min_obs=min_obs)
-                # Degenerate cases -> NaN cleanly
-                if beta is None or (isinstance(beta, float) and (np.isnan(beta) or np.isinf(beta))):
-                    rolling_betas.append(np.nan)
+                window_asset = asset_series.iloc[start_idx:end_idx].to_numpy(dtype=float)
+                window_bench = benchmark_returns.iloc[start_idx:end_idx].to_numpy(dtype=float)
+                beta = calculate_beta_fast(window_asset, window_bench, min_obs=min_obs)
+                if beta is None or not np.isfinite(beta):
+                    rolling_betas_arr[i] = np.nan
                 else:
-                    rolling_betas.append(beta)
+                    rolling_betas_arr[i] = float(beta)
             except Exception:
-                rolling_betas.append(np.nan)
-        betas[asset] = rolling_betas
+                rolling_betas_arr[i] = np.nan
+        betas_dict[asset] = rolling_betas_arr
 
-    return pd.DataFrame(betas, index=returns_df.index)
+    return pd.DataFrame(betas_dict, index=returns_df.index)
+
+
+def calculate_beta_fast(a, b, min_obs=None):
+    """Fast beta calculation with pre-converted arrays."""
+    mask = np.isfinite(a) & np.isfinite(b)
+    if not np.any(mask):
+        return np.nan
+    if not np.all(mask):
+        a_m = a[mask]
+        b_m = b[mask]
+    else:
+        a_m = a
+        b_m = b
+    if len(a_m) == 0:
+        return np.nan
+    if min_obs is not None and len(a_m) < min_obs:
+        return np.nan
+    X = np.column_stack([np.ones(len(b_m), dtype=float), b_m.astype(float)])
+    try:
+        coeffs, _, _, _ = np.linalg.lstsq(X, a_m.astype(float), rcond=None)
+        beta = coeffs[1]
+        if not np.isfinite(beta):
+            return np.nan
+        return float(beta)
+    except Exception:
+        return np.nan
