@@ -17,6 +17,7 @@ import pandas as pd
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SCRIPT = REPO_ROOT / "scripts" / "bab_backtest_report.py"
+MESSY_FIXTURE = REPO_ROOT / "tests" / "fixtures" / "real_data_defects.csv"
 
 
 def _make_returns(rows: int = 300, path: Path | None = None) -> pd.DataFrame:
@@ -102,3 +103,34 @@ class TestReportCli:
         payload = json.loads(result.stdout)
         assert isinstance(payload["rebalances"], int)
         assert isinstance(payload["metrics"], dict)
+
+
+class TestReportOnMessyData:
+    """The report CLI must never emit NaN/inf in its JSON metrics, even when
+    fed a deliberately messy real-data fixture (missing dates, NaN blocks,
+    duplicate timestamps, delisted asset columns)."""
+
+    def test_json_report_is_finite_on_messy_fixture(self):
+        result = _run([
+            "--data-source", str(MESSY_FIXTURE),
+            "--benchmark", "BTC",
+            "--beta-window", "3",
+            "--min-observations", "2",
+            "--json",
+        ])
+        assert result.returncode == 0, result.stderr
+        payload = json.loads(result.stdout)
+        for key, value in payload["metrics"].items():
+            assert isinstance(value, (int, float)), f"{key} is not numeric: {value!r}"
+            assert value == value, f"{key} is NaN"
+            assert value not in (float("inf"), float("-inf")), f"{key} is infinite"
+
+    def test_human_readable_report_runs_on_messy_fixture(self):
+        result = _run([
+            "--data-source", str(MESSY_FIXTURE),
+            "--benchmark", "BTC",
+            "--beta-window", "3",
+            "--min-observations", "2",
+        ])
+        assert result.returncode == 0, result.stderr
+        assert "BAB STRATEGY BACKTEST REPORT" in result.stdout

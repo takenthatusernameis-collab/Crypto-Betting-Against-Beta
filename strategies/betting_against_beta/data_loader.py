@@ -94,6 +94,30 @@ def _normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+def _drop_all_nan_columns(df: pd.DataFrame) -> pd.DataFrame:
+    """Drop columns that are entirely NaN (delisted or untradable assets).
+
+    A column with no finite values contributes nothing to beta estimation or
+    ranking, and keeping it would let NaNs propagate into signals/weights.
+    """
+    if df.empty:
+        return df
+    keep = []
+    for col in df.columns:
+        try:
+            numeric = pd.to_numeric(df[col], errors="coerce")
+        except (ValueError, TypeError):
+            keep.append(col)
+            continue
+        if np.isfinite(numeric.to_numpy()).any():
+            keep.append(col)
+    if len(keep) == len(df.columns):
+        return df
+    if not keep:
+        raise BABDataError("All columns are entirely NaN; no tradable assets remain")
+    return df[keep]
+
+
 def _coerce_numeric(df: pd.DataFrame) -> pd.DataFrame:
     """Coerce every cell to float, raising on non-numeric garbage."""
     try:
@@ -141,6 +165,10 @@ def validate_returns_dataframe(
         )
 
     cleaned = _coerce_numeric(cleaned)
+
+    # Drop columns that are entirely NaN (delisted/untradable assets) before
+    # the inf check so they cannot propagate NaNs into beta estimation.
+    cleaned = _drop_all_nan_columns(cleaned)
 
     if np.isinf(cleaned.to_numpy()).any():
         raise BABDataError("Returns DataFrame contains infinite values")

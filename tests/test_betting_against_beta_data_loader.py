@@ -209,3 +209,43 @@ class TestIntegrationWithStrategy:
         strategy = BABStrategy(cfg)
         with pytest.raises(BABDataError):
             strategy.run(returns_df=bad)
+
+
+class TestAllNanColumnDropping:
+    """Delisted/untradable assets (all-NaN columns) must be dropped
+    deterministically rather than letting NaNs propagate into betas."""
+
+    def test_all_nan_column_is_dropped(self):
+        idx = pd.date_range("2023-01-01", periods=10, freq="D")
+        df = pd.DataFrame(
+            {
+                "BTC": np.random.default_rng(1).normal(0, 0.01, 10),
+                "ETH": np.random.default_rng(2).normal(0, 0.01, 10),
+                "DEL": [np.nan] * 10,
+            },
+            index=idx,
+        )
+        out = validate_returns_dataframe(df, benchmark="BTC")
+        assert "DEL" not in out.columns
+        assert "BTC" in out.columns
+        assert "ETH" in out.columns
+
+    def test_all_columns_nan_raises(self):
+        idx = pd.date_range("2023-01-01", periods=10, freq="D")
+        df = pd.DataFrame(
+            {"BTC": [np.nan] * 10, "ETH": [np.nan] * 10}, index=idx
+        )
+        with pytest.raises(BABDataError):
+            validate_returns_dataframe(df, benchmark="BTC")
+
+    def test_mixed_nan_and_finite_kept(self):
+        idx = pd.date_range("2023-01-01", periods=10, freq="D")
+        df = pd.DataFrame(
+            {
+                "BTC": np.random.default_rng(1).normal(0, 0.01, 10),
+                "ETH": [np.nan] * 5 + list(np.random.default_rng(2).normal(0, 0.01, 5)),
+            },
+            index=idx,
+        )
+        out = validate_returns_dataframe(df, benchmark="BTC")
+        assert "ETH" in out.columns  # partially-NaN column is not all-NaN

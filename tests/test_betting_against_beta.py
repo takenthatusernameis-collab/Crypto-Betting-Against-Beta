@@ -76,6 +76,43 @@ class TestCalculateRollingBeta:
         # Synthetic data assigns asset i beta 0.5 + 0.5*i in generation order.
         assert last["ASSET0"] < last["ASSET3"]
 
+    def test_all_nan_asset_column_does_not_crash(self) -> None:
+        idx = pd.date_range("2023-01-01", periods=30, freq="D")
+        df = pd.DataFrame(
+            {
+                "BTC": np.random.default_rng(1).normal(0, 0.01, 30),
+                "ETH": np.random.default_rng(2).normal(0, 0.01, 30),
+                "DEL": [np.nan] * 30,
+            },
+            index=idx,
+        )
+        betas = calculate_rolling_beta(df, "BTC", window=5, min_obs=3)
+        assert "DEL" in betas.columns
+        # The all-NaN asset should produce NaN betas, not raise.
+        assert betas["DEL"].isna().all()
+
+    def test_constant_series_does_not_crash(self) -> None:
+        idx = pd.date_range("2023-01-01", periods=30, freq="D")
+        df = pd.DataFrame(
+            {
+                "BTC": np.random.default_rng(1).normal(0, 0.01, 30),
+                "ETH": [0.0] * 30,  # constant zero returns -> zero variance
+            },
+            index=idx,
+        )
+        betas = calculate_rolling_beta(df, "BTC", window=5, min_obs=3)
+        assert betas.shape == (30, 2)
+        # Beta of a constant series is 0 (covariance with benchmark is 0).
+        assert np.allclose(betas["ETH"].dropna(), 0.0, atol=1e-9)
+
+    def test_missing_benchmark_raises(self) -> None:
+        idx = pd.date_range("2023-01-01", periods=30, freq="D")
+        df = pd.DataFrame(
+            {"ETH": np.random.default_rng(1).normal(0, 0.01, 30)}, index=idx
+        )
+        with pytest.raises(Exception):
+            calculate_rolling_beta(df, "BTC", window=5, min_obs=3)
+
 
 class TestGenerateBabSignals:
     """Tests for long/short signal generation."""
@@ -184,3 +221,31 @@ class TestRunBacktest:
         free = run_backtest(returns, weights, transaction_costs=0.0)
         costly = run_backtest(returns, weights, transaction_costs=0.01)
         assert costly["returns"].iloc[1] < free["returns"].iloc[1]
+
+
+class TestResolvedUniverse:
+    """Tests for BABConfig.resolved_universe edge cases."""
+
+    def test_empty_intersection_falls_back_to_available(self):
+        cfg = BABConfig(universe=["AAA", "BBB"], benchmark="BTC")
+        resolved = cfg.resolved_universe(["BTC", "ETH", "SOL"])
+        # No overlap with the configured universe -> fall back to all
+        # available columns except the benchmark.
+        assert resolved == ["ETH", "SOL"]
+
+    def test_partial_intersection_keeps_overlap(self):
+        cfg = BABConfig(universe=["BTC", "ETH", "ZZZ"], benchmark="BTC")
+        resolved = cfg.resolved_universe(["BTC", "ETH", "SOL"])
+        # The benchmark is part of the configured universe and is kept.
+        assert resolved == ["BTC", "ETH"]
+
+    def test_override_wins_over_universe(self):
+        cfg = BABConfig(universe=["BTC", "ETH"], universe_override=["SOL"], benchmark="BTC")
+        resolved = cfg.resolved_universe(["BTC", "ETH", "SOL"])
+        assert resolved == ["SOL"]
+
+    def test_override_empty_intersection_falls_back(self):
+        cfg = BABConfig(universe_override=["ZZZ"], benchmark="BTC")
+        resolved = cfg.resolved_universe(["BTC", "ETH", "SOL"])
+        # Override has no overlap -> fall back to all available columns.
+        assert resolved == ["BTC", "ETH", "SOL"]
