@@ -1,7 +1,7 @@
-# HANDOFF - 2026-10-28T07:22:08Z
+# HANDOFF - 2026-10-28T08:13:55Z
 
 ## Timestamp
-2026-10-28T07:22:08Z
+2026-10-28T08:13:55Z
 
 ## Purpose
 Durable single handoff. Start here. Ignore older HANDOFF_*.md files unless explicitly needed for context. HANDOFF_NEXT_SESSION.md is a symlink to this file.
@@ -12,7 +12,9 @@ Repository: **Crypto-Betting-Against-Beta**. Product is the "Betting Against Bet
 ## INITIAL TASK MESSAGE FOR NEXT AGENTIC WORK SESSION (MUST START HERE)
 **FOCUS CAMPAIGN: HARDEN BAB FOR TRADEABLE REALISM**
 
-Bottleneck removed: CI pattern sync (`*/.github/workflows/*` added to `.github/workflows/main.yml` `stage_safe_changes`). Suite was red at 266 passed / 2 failed (workflow `stage_safe_changes` was missing the nested `*/.github/workflows/*` pattern that Python `EXCLUDE_PATTERNS` requires). Now **268 passed, 0 failed**. Next agent MUST advance BAB robustness without breaking behavior. Do not re-open the pattern-sync issue; it is closed.
+Bottleneck removed: CI pattern sync. `.github/workflows/main.yml` `stage_safe_changes` case list was missing the nested `*/.github/workflows/*` pattern that Python `EXCLUDE_PATTERNS` requires. Pattern added. Suite was red at 266 passed / 2 failed; now **268 passed, 0 failed**. Do not re-open the pattern-sync issue; it is closed.
+
+Next agent MUST advance BAB robustness without breaking behavior. Start at campaign item 1 and work down in order. Every item is gated: failing test first → implement → green suite. Do not skip.
 
 ### Campaign items (gated: failing test first → implement → green suite — do not skip)
 1. **Fees/Slippage & Turnover Correctness (IMMEDIATE)**: Verify `run_backtest` computes turnover once symmetrically; ensure `tc`/`slippage_cost` aliases work and are applied correctly. Add tests for zero/negative turnover, NaN/inf weights.
@@ -35,7 +37,7 @@ Bottleneck removed: CI pattern sync (`*/.github/workflows/*` added to `.github/w
 ## Current State
 - Branch: main @ HEAD (up to date with origin/main)
 - Tests: **268 passed, 0 failed** (all green)
-- CI pattern sync fixed in `.github/workflows/main.yml` (added `*/.github/workflows/*` to `stage_safe_changes`)
+- CI pattern sync fixed in `.github/workflows/main.yml` (added `*/.github/workflows/*` to `stage_safe_changes` case list)
 
 ## Bottlenecks Removed
 - Workflow/Python exclude pattern drift (added `*/.github/workflows/*` to workflow `stage_safe_changes` case list; suite was red at 266 passed / 2 failed, now 268 passed / 0 failed)
@@ -49,4 +51,4 @@ Bottleneck removed: CI pattern sync (`*/.github/workflows/*` added to `.github/w
 - No fabricated market data
 
 ## UNCOMMITTED WORKING CHANGES
-- `.github/workflows/main.yml` - pattern sync fix (added `*/.github/workflows/*` to `stage_safe_changes`)
+- `.github/workflows/main.yml` - pattern sync fix (added `*/.github/workflows/*` to `stage_safe_changes` case list)
