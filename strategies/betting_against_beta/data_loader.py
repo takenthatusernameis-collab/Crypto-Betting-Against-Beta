@@ -97,12 +97,15 @@ def _drop_all_nan_columns(df: pd.DataFrame) -> pd.DataFrame:
     keep = []
     for col in df.columns:
         try:
+            # Convert to numeric to be safe
             numeric = pd.to_numeric(df[col], errors="coerce")
+            arr = numeric.to_numpy(dtype=float)
+            if np.isfinite(arr).any():
+                keep.append(col)
+            # else drop if all NaN/inf
         except (ValueError, TypeError):
             keep.append(col)
             continue
-        if np.isfinite(numeric.to_numpy()).any():
-            keep.append(col)
     if len(keep) == len(df.columns):
         return df
     if not keep:
@@ -113,10 +116,54 @@ def _drop_all_nan_columns(df: pd.DataFrame) -> pd.DataFrame:
 def _coerce_numeric(df: pd.DataFrame) -> pd.DataFrame:
     """Coerce every cell to float, raising on non-numeric garbage."""
     try:
-        df = df.astype("float64")
+        # First pass: try direct astype for efficiency
+        try:
+            df = df.astype("float64")
+            return df
+        except (ValueError, TypeError):
+            pass
+        # Second pass: coerce with to_numeric to catch things like commas, but fail loudly if unparseable
+        df_clean = df.copy()
+        for col in df_clean.columns:
+            series = df_clean[col]
+            # If it's object dtype, look for string patterns
+            if series.dtype == object or pd.api.types.is_string_dtype(series):
+                # Replace commas if they appear as thousand separators (simple heuristic)
+                def clean_val(x):
+                    if isinstance(x, str):
+                        cleaned = x.strip()
+                        # Check for explicit NA markers
+                        lower = cleaned.lower()
+                        if lower in {'na', 'n/a', 'nan', 'none', 'null', '#n/a', '#na', 'missing'}:
+                            return np.nan
+                        # Handle cases like "1,000.50"
+                        if ',' in cleaned and '.' in cleaned:
+                            cleaned = cleaned.replace(',', '')
+                        elif ',' in cleaned and cleaned.count(',') == 1 and len(cleaned.split(',')[-1]) <= 3:
+                            # Could be decimal or thousand sep - if ends with 2-3 digits maybe decimal in some locales? But less common for returns
+                            # Try decimal comma first if it's European style - but safer to also try removing if it causes issues?
+                            # Default: remove commas (thousand sep)
+                            cleaned = cleaned.replace(',', '')
+                        elif ',' in cleaned:
+                            cleaned = cleaned.replace(',', '')
+                        return cleaned
+                    return x
+                try:
+                    cleaned_series = series.apply(clean_val)
+                    converted = pd.to_numeric(cleaned_series, errors='raise')
+                    df_clean[col] = converted.astype('float64')
+                except Exception as exc:
+                    raise BABDataError(f"Non-numeric values present in returns data: {exc}") from exc
+            else:
+                try:
+                    df_clean[col] = pd.to_numeric(series, errors='raise').astype('float64')
+                except Exception as exc:
+                    raise BABDataError(f"Non-numeric values present in returns data: {exc}") from exc
+        return df_clean
+    except BABDataError:
+        raise
     except (ValueError, TypeError) as exc:
         raise BABDataError(f"Non-numeric values present in returns data: {exc}") from exc
-    return df
 
 
 def validate_returns_dataframe(
