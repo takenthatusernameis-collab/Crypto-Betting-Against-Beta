@@ -150,6 +150,14 @@ def validate_returns_dataframe(
             raise BABDataError(
                 f"Benchmark '{benchmark}' not found in columns: {list(cleaned.columns)}"
             )
+        # An all-NaN benchmark makes beta estimation impossible; refuse loudly
+        # instead of letting NaNs propagate silently into betas and weights.
+        bench_series = cleaned[benchmark]
+        if not np.isfinite(bench_series.to_numpy()).any():
+            raise BABDataError(
+                f"Benchmark '{benchmark}' has no finite return values; "
+                "cannot estimate betas against it"
+            )
         non_benchmark = [c for c in cleaned.columns if c != benchmark]
         if not non_benchmark:
             raise BABDataError(
