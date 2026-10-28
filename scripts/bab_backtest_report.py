@@ -21,6 +21,28 @@ from strategies.betting_against_beta import BABConfig, BABStrategy
 from strategies.betting_against_beta import metrics
 
 
+def _sanitize_metrics(summary: dict) -> dict:
+    """Coerce every metric to a finite JSON-safe scalar.
+
+    NaN / inf values are replaced with 0.0 so the machine-readable report
+    never emits a non-finite number, even on degenerate or messy inputs.
+    """
+    import math
+
+    sanitized: dict = {}
+    for key, value in summary.items():
+        if isinstance(value, (int, float)):
+            if isinstance(value, float) and (math.isnan(value) or math.isinf(value)):
+                sanitized[key] = 0.0
+            else:
+                sanitized[key] = value
+        elif isinstance(value, bool):
+            sanitized[key] = bool(value)
+        else:
+            sanitized[key] = 0.0
+    return sanitized
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="BAB backtest report")
     parser.add_argument(
@@ -86,7 +108,7 @@ def main(argv: list[str] | None = None) -> int:
                 "data_source": strategy.config.data_source,
             },
             "rebalances": int(len(weights.dropna(how="all"))),
-            "metrics": summary,
+            "metrics": _sanitize_metrics(summary),
         }
         print(json.dumps(payload, indent=2, default=str))
         return 0

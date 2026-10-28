@@ -113,6 +113,43 @@ class TestCalculateRollingBeta:
         with pytest.raises(Exception):
             calculate_rolling_beta(df, "BTC", window=5, min_obs=3)
 
+    def test_all_nan_benchmark_raises(self) -> None:
+        idx = pd.date_range("2023-01-01", periods=30, freq="D")
+        df = pd.DataFrame(
+            {
+                "BTC": [np.nan] * 30,
+                "ETH": np.random.default_rng(1).normal(0, 0.01, 30),
+            },
+            index=idx,
+        )
+        with pytest.raises(Exception):
+            calculate_rolling_beta(df, "BTC", window=5, min_obs=3)
+
+    def test_single_asset_does_not_raise(self) -> None:
+        idx = pd.date_range("2023-01-01", periods=30, freq="D")
+        df = pd.DataFrame(
+            {
+                "BTC": np.random.default_rng(1).normal(0, 0.01, 30),
+                "ETH": np.random.default_rng(2).normal(0, 0.01, 30),
+            },
+            index=idx,
+        )
+        betas = calculate_rolling_beta(df, "BTC", window=5, min_obs=3)
+        assert betas.shape == (30, 2)
+        assert not betas["ETH"].isna().all()
+
+    def test_constant_benchmark_does_not_raise(self) -> None:
+        idx = pd.date_range("2023-01-01", periods=30, freq="D")
+        df = pd.DataFrame(
+            {
+                "BTC": [0.0] * 30,  # zero-variance benchmark
+                "ETH": np.random.default_rng(1).normal(0, 0.01, 30),
+            },
+            index=idx,
+        )
+        betas = calculate_rolling_beta(df, "BTC", window=5, min_obs=3)
+        assert betas.shape == (30, 2)
+
 
 class TestGenerateBabSignals:
     """Tests for long/short signal generation."""
@@ -249,3 +286,103 @@ class TestResolvedUniverse:
         resolved = cfg.resolved_universe(["BTC", "ETH", "SOL"])
         # Override has no overlap -> fall back to all available columns.
         assert resolved == ["BTC", "ETH", "SOL"]
+
+
+class TestGenerateBabSignalsEdgeCases:
+    """Robustness tests for signal generation on degenerate inputs."""
+
+    def test_none_returns_empty(self):
+        signals = generate_bab_signals(None)
+        assert signals.empty
+
+    def test_empty_dataframe_returns_empty(self):
+        signals = generate_bab_signals(pd.DataFrame())
+        assert signals.empty
+
+    def test_all_nan_row_is_flat(self):
+        idx = pd.date_range("2023-01-01", periods=2, freq="D")
+        betas = pd.DataFrame(
+            {"A": [np.nan, np.nan], "B": [np.nan, np.nan]}, index=idx
+        )
+        signals = generate_bab_signals(betas)
+        assert (signals == 0).all().all()
+        assert not signals.isna().any().any()
+
+    def test_single_asset_row_is_flat(self):
+        idx = pd.date_range("2023-01-01", periods=1, freq="D")
+        betas = pd.DataFrame({"A": [1.5]}, index=idx)
+        signals = generate_bab_signals(betas)
+        assert (signals == 0).all().all()
+
+    def test_non_finite_values_are_dropped(self):
+        idx = pd.date_range("2023-01-01", periods=1, freq="D")
+        betas = pd.DataFrame(
+            {"A": [np.inf], "B": [-np.inf], "C": [1.0], "D": [2.0]}, index=idx
+        )
+        signals = generate_bab_signals(betas)
+        assert not signals.isna().any().any()
+        assert np.isfinite(signals.values).all()
+
+    def test_quantiles_never_overlap(self):
+        # When long+short quantiles would exceed the asset count, the short
+        # quantile must shrink so no asset is both long and short.
+        idx = pd.date_range("2023-01-01", periods=1, freq="D")
+        betas = pd.DataFrame(
+            {"A": [1.0], "B": [2.0], "C": [3.0]}, index=idx
+        )
+        signals = generate_bab_signals(
+            betas, long_quantile=0.5, short_quantile=0.5
+        )
+        row = signals.iloc[0]
+        assert not ((row == 1) & (row == -1)).any()
+
+
+class TestConstructPortfolioEdgeCases:
+    """Robustness tests for portfolio construction on degenerate inputs."""
+
+    def test_none_returns_empty(self):
+        weights = construct_portfolio(None)
+        assert weights.empty
+
+    def test_empty_dataframe_returns_empty(self):
+        weights = construct_portfolio(pd.DataFrame())
+        assert weights.empty
+
+    def test_all_zero_signals_remain_zero(self):
+        idx = pd.date_range("2023-01-01", periods=3, freq="D")
+        signals = pd.DataFrame({"A": [0, 0, 0], "B": [0, 0, 0]}, index=idx)
+        weights = construct_portfolio(signals)
+        assert (weights == 0.0).all().all()
+
+    def test_non_numeric_signal_values_safe(self):
+        idx = pd.date_range("2023-01-01", periods=1, freq="D")
+        signals = pd.DataFrame(
+            {"A": ["x"], "B": [None], "C": [1], "D": [-1]}, index=idx
+        )
+        weights = construct_portfolio(signals)
+        assert np.isfinite(weights.values).all()
+        assert weights.loc[idx[0], "C"] > 0
+        assert weights.loc[idx[0], "D"] < 0
+
+    def test_weights_always_finite(self):
+        idx = pd.date_range("2023-01-01", periods=5, freq="D")
+        signals = pd.DataFrame(
+            {"A": [1, -1, 0, 1, -1], "B": [-1, 1, 0, -1, 1]}, index=idx
+        )
+        weights = construct_portfolio(signals)
+        assert np.isfinite(weights.values).all()
+
+
+class TestRunBacktestEdgeCases:
+    def test_empty_inputs_do_not_raise(self):
+        results = run_backtest(pd.DataFrame(), pd.DataFrame())
+        assert "returns" in results.columns
+
+    def test_cumulative_is_finite(self):
+        idx = pd.date_range("2023-01-01", periods=10, freq="D")
+        returns = pd.DataFrame(
+            {"A": np.random.default_rng(1).normal(0, 0.01, 10)}, index=idx
+        )
+        weights = pd.DataFrame({"A": [1.0] * 10}, index=idx)
+        results = run_backtest(returns, weights)
+        assert np.isfinite(results["cumulative"].values).all()

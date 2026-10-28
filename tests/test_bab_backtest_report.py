@@ -134,3 +134,36 @@ class TestReportOnMessyData:
         ])
         assert result.returncode == 0, result.stderr
         assert "BAB STRATEGY BACKTEST REPORT" in result.stdout
+
+
+class TestReportOnDegenerateData:
+    """When every return is zero (zero-variance benchmark and assets), the
+    metrics path would normally produce inf / NaN values (infinite Sharpe,
+    NaN beta). The report must coerce those to finite JSON-safe scalars."""
+
+    DEGENERATE = REPO_ROOT / "tests" / "fixtures" / "degenerate_metrics.csv"
+
+    def test_json_report_is_finite_on_degenerate_fixture(self):
+        result = _run([
+            "--data-source", str(self.DEGENERATE),
+            "--benchmark", "BTC",
+            "--beta-window", "3",
+            "--min-observations", "2",
+            "--json",
+        ])
+        assert result.returncode == 0, result.stderr
+        payload = json.loads(result.stdout)
+        for key, value in payload["metrics"].items():
+            assert isinstance(value, (int, float)), f"{key} is not numeric: {value!r}"
+            assert value == value, f"{key} is NaN"
+            assert value not in (float("inf"), float("-inf")), f"{key} is infinite"
+
+    def test_human_readable_report_runs_on_degenerate_fixture(self):
+        result = _run([
+            "--data-source", str(self.DEGENERATE),
+            "--benchmark", "BTC",
+            "--beta-window", "3",
+            "--min-observations", "2",
+        ])
+        assert result.returncode == 0, result.stderr
+        assert "BAB STRATEGY BACKTEST REPORT" in result.stdout

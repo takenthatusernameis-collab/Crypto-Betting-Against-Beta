@@ -43,6 +43,13 @@ def calculate_rolling_beta(returns_df, benchmark_name, window=90, min_obs=60):
         raise BABDataError(f"Benchmark {benchmark_name} not found in returns")
 
     benchmark_returns = returns_df[benchmark_name]
+    # An all-NaN benchmark makes beta estimation impossible; refuse loudly.
+    if not np.isfinite(benchmark_returns.to_numpy()).any():
+        raise BABDataError(
+            f"Benchmark '{benchmark_name}' has no finite return values; "
+            "cannot estimate betas against it"
+        )
+
     betas = {}
 
     for asset in returns_df.columns:
