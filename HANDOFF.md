@@ -1,7 +1,7 @@
-# HANDOFF - 2026-10-28T13:34:00Z
+# HANDOFF - 2026-10-28T13:39:00Z
 
 ## Timestamp
-2026-10-28T13:34:00Z
+2026-10-28T13:39:00Z
 
 ## Purpose
 **SINGLE DURABLE HANDOFF. START HERE.** Ignore all other `HANDOFF*.md` files unless you need historical context. This file is the source of truth for the next agentic work session.
@@ -11,13 +11,13 @@ Repository: **Crypto-Betting-Against-Beta**. Product is the **Betting Against Be
 **BAB ALWAYS COMES FIRST. Infra only if it blocks BAB.**
 
 ## Current State (Ground Truth)
-- Branch: `main` @ `5c8a356` (latest checkpoint)
+- Branch: `main` @ `7c855cc` (HEAD; origin/main in sync)
 - Tests: **302 passed, 0 failed** (`python3 -m pytest -q`)
-- Working tree: clean
+- Working tree: clean (only untracked `__pycache__/` dirs)
 - Bottlenecks: **NONE CRITICAL**
 
 ## Bottlenecks Removed (THIS SESSION)
-- **CI pattern-sync drift (FIXED)** — `.github/workflows/main.yml` `stage_safe_changes()` now includes `*/.github/workflows/*` matching `scripts/controller_progress.py:28`. Controller progress tests green; full suite restored to 302 passed.
+- **CI pattern-sync drift (FIXED for real)** — `.github/workflows/main.yml` `stage_safe_changes()` case list (line 1163) was missing `*/.github/workflows/*` that Python's `scripts/controller_progress.py:28` `EXCLUDE_PATTERNS` already had, causing 2 `TestStageSafeChangesPatternSync` failures (300 passed, 2 failed). Added `*/.github/workflows/*` immediately after `.github/workflows/*`. Suite restored to **302 passed, 0 failed**.
 
 ## INITIAL TASK MESSAGE FOR NEXT AGENTIC WORK SESSION (MUST START HERE)
 
