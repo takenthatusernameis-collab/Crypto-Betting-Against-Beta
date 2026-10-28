@@ -7,6 +7,7 @@ machine-readable --json output contract.
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -32,7 +33,8 @@ def _make_returns(rows: int = 300, path: Path | None = None) -> pd.DataFrame:
 
 
 def _run(args: list[str]) -> subprocess.CompletedProcess:
-    env = {"PYTHONPATH": str(REPO_ROOT)}
+    env = dict(os.environ)
+    env["PYTHONPATH"] = str(REPO_ROOT)
     return subprocess.run(
         [sys.executable, str(SCRIPT), *args],
         capture_output=True,
