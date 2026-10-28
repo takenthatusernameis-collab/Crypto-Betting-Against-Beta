@@ -3,10 +3,28 @@
 import numpy as np
 import pandas as pd
 
+from .costs import TransactionCostModel, compute_transaction_costs
+
 
 def run_backtest(returns_df, weights_df, transaction_costs=0.0, slippage=0.0,
-                 tc=None, slippage_cost=None):
-    """Run simple backtest."""
+                 tc=None, slippage_cost=None, cost_model=None,
+                 prices_df=None, adv_usd=None):
+    """Run simple backtest.
+
+    Parameters
+    ----------
+    cost_model : TransactionCostModel, optional
+        When provided, per-period transaction costs (linear fee, bid-ask,
+        square-root market impact scaled by ADV, and short borrow) are computed
+        via :func:`compute_transaction_costs` and subtracted from portfolio
+        returns each period. ``prices_df`` (and optionally ``adv_usd``) are
+        required for the square-root impact term; without them only the
+        turnover-based terms apply.
+    prices_df : DataFrame, optional
+        Asset prices aligned to ``weights_df``; used for notional-based impact.
+    adv_usd : dict/Series/DataFrame, optional
+        Average daily volume in dollars per asset; used for impact scaling.
+    """
     # Allow alternative parameter names for flexibility
     if tc is not None and transaction_costs == 0.0:
         transaction_costs = tc
@@ -69,6 +87,17 @@ def run_backtest(returns_df, weights_df, transaction_costs=0.0, slippage=0.0,
         if slip_val > 0:
             slippage_costs = weight_changes * slip_val
             portfolio_returns = portfolio_returns - slippage_costs
+
+    # Apply modeled transaction costs (sqrt impact, bid-ask, short borrow) if any
+    if cost_model is not None:
+        if not isinstance(cost_model, TransactionCostModel):
+            raise TypeError("cost_model must be a TransactionCostModel instance")
+        weights_prev = weights.shift(1).fillna(0.0)
+        period_costs = compute_transaction_costs(
+            weights, weights_prev, prices_df, cost_model, adv_usd=adv_usd
+        )
+        period_costs = period_costs.reindex(portfolio_returns.index).fillna(0.0)
+        portfolio_returns = portfolio_returns - period_costs.astype(float)
 
     # Calculate cumulative returns in log space to avoid overflow/underflow
     portfolio_returns_filled = portfolio_returns.fillna(0).clip(lower=-1.0 + 1e-12)

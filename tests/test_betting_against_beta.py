@@ -404,9 +404,9 @@ class TestPortfolioRiskChecks:
             max_single_weight=1.0,
         )
         # Tighter limit must raise.
-        from strategies.betting_against_beta.portfolio import BABPortfolioError
+        from strategies.betting_against_beta.errors import BABDataError
 
-        with pytest.raises(BABPortfolioError):
+        with pytest.raises(BABDataError):
             construct_portfolio(
                 signals,
                 enforce_risk_checks=True,
@@ -417,9 +417,9 @@ class TestPortfolioRiskChecks:
         idx = pd.date_range("2023-01-01", periods=1, freq="D")
         # Long-only book: net exposure is 1.0, not dollar-neutral.
         signals = pd.DataFrame({"A": [1], "B": [1], "C": [1]}, index=idx)
-        from strategies.betting_against_beta.portfolio import BABPortfolioError
+        from strategies.betting_against_beta.errors import BABDataError
 
-        with pytest.raises(BABPortfolioError):
+        with pytest.raises(BABDataError):
             construct_portfolio(
                 signals,
                 dollar_neutral=False,
@@ -434,9 +434,9 @@ class TestPortfolioRiskChecks:
             {"A": [1], "B": [1], "C": [1], "D": [1], "E": [-1], "F": [-1], "G": [-1], "H": [-1]},
             index=idx,
         )
-        from strategies.betting_against_beta.portfolio import BABPortfolioError
+        from strategies.betting_against_beta.errors import BABDataError
 
-        with pytest.raises(BABPortfolioError):
+        with pytest.raises(BABDataError):
             construct_portfolio(
                 signals,
                 enforce_risk_checks=True,

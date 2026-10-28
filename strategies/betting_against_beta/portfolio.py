@@ -5,10 +5,11 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
+from .errors import BABDataError
 
-class BABPortfolioError(ValueError):
-    """Raised when portfolio constraints are violated."""
-    pass
+
+class BABPortfolioError(BABDataError):
+    """Raised when portfolio constraints are violated (is-a BABDataError)."""
 
 
 def _clean_signal_value(val):
@@ -40,8 +41,9 @@ def construct_portfolio(signals_df, dollar_neutral=True, gross_exposure_limit=No
       * Dollar-neutral rows sum to zero when both longs and shorts exist.
       * Long-only (dollar_neutral=False) rows weight only longs.
       * All-zero signal rows remain all-zero.
+      * When risk checks are requested, gross/net exposure and max single
+        asset weight violations raise ``BABDataError``.
     """
-    from .errors import BABDataError
     import pandas as _pd
 
     if signals_df is None:
@@ -160,13 +162,13 @@ def construct_portfolio(signals_df, dollar_neutral=True, gross_exposure_limit=No
             # Max single asset weight
             abs_w = row_w.abs()
             if abs_w.max() > max_w + 1e-12:
-                raise BABPortfolioError("Single asset weight exceeds limit")
+                raise BABDataError("Single asset weight exceeds limit")
             gross = float(abs_w.sum())
             if gross > gross_limit + 1e-12:
-                raise BABPortfolioError("Gross exposure exceeds limit")
+                raise BABDataError("Gross exposure exceeds limit")
             net = float(row_w.sum())
             if abs(net) > net_limit + 1e-12:
-                raise BABPortfolioError("Net exposure exceeds dollar-neutral limit")
+                raise BABDataError("Net exposure exceeds dollar-neutral limit")
 
     return weights
 
