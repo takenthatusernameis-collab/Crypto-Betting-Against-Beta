@@ -31,6 +31,9 @@ def _normalize_index(df: pd.DataFrame) -> pd.DataFrame:
     df = df.sort_index()
     if not isinstance(df.index, pd.DatetimeIndex):
         raise BABDataError("Index is not a DatetimeIndex after normalization")
+    # Remove duplicate timestamps to avoid ambiguous alignment
+    if df.index.has_duplicates:
+        df = df[~df.index.duplicated(keep="first")]
     return df
 
 

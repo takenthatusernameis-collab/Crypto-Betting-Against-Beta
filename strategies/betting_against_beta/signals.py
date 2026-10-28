@@ -12,6 +12,10 @@ def generate_bab_signals(betas_df, long_quantile=0.3, short_quantile=0.3):
         betas = betas_df.loc[idx].dropna()
         if len(betas) == 0:
             continue
+        # betas is a Series after dropna from a row; sort_values() on Series takes no 'by'
+        if isinstance(betas, pd.DataFrame):
+            # should not happen, but just in case
+            continue
 
         # Sort by beta ascending (low beta first)
         sorted_betas = betas.sort_values()
