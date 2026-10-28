@@ -1,7 +1,7 @@
-# HANDOFF - 2026-10-28T20:55:08Z (SINGLE DURABLE HANDOFF)
+# HANDOFF - 2026-10-28T21:04:24Z (SINGLE DURABLE HANDOFF)
 
 ## TIMESTAMP
-2026-10-28T20:55:08Z
+2026-10-28T21:04:24Z
 
 ## IMMEDIATE FIRST TASK (DO THIS NOW)
 **Priority: P0 - Start heavy work immediately on the BAB strategy**
@@ -14,8 +14,9 @@ python3 -m pytest -q  # Must show 349 passed, 0 failed
 
 2. **Execute the clear initial task below (TDD, heavy work, multi-file):**
    - **Item: Multi-format loaders** (Priority 1, Data Infrastructure Hardening)
-   - Extend `strategies/betting_against_beta/data_loader.py` to support Parquet, HDF5, and pandas pickle loaders with schema validation.
-   - Write failing tests first in `tests/test_betting_against_beta_data_loader.py`, then implement, then green suite, then refactor.
+   - `data_loader.py` already implements `load_returns_from_parquet`, `load_returns_from_hdf5`, `load_returns_from_pickle` plus `load_returns` dispatch — but `tests/test_betting_against_beta_data_loader.py` has **zero** parquet/hdf5/pickle tests.
+   - Write failing tests first in `tests/test_betting_against_beta_data_loader.py` covering all three loaders (happy path, missing file, bad schema -> BABDataError, validation passthrough), then implement/extend, then green suite, then refactor.
+   - `pyarrow`/`tables`/`fastparquet` are NOT installed: parquet/hdf5 tests must `pytest.mark.skipif` on missing engine (do not hard-fail the suite); pickle is directly testable.
    - Do not stop until this item is fully done across loader + tests + validation.
 
 **RULE: You MUST make substantial progress on the BAB strategy (strategies/betting_against_beta/). No busywork.**
@@ -27,12 +28,12 @@ python3 -m pytest -q  # Must show 349 passed, 0 failed
 
 ## Current Verified State
 - **Branch:** main @ `0b5d132`
-- **Working tree:** dirty (uncommitted bottleneck fix — see below; do NOT commit unless asked)
+- **Working tree:** dirty (uncommitted bottleneck fix — `.github/workflows/main.yml:1163`; do NOT commit unless asked)
 - **Tests:** **349 passed, 0 failed** (verified)
-- **Status:** Bottleneck removed. Pattern-sync drift eliminated. All tests green.
+- **Status:** Bottleneck removed. All tests green.
 
 ## Bottlenecks Removed
-- **CI/workflow pattern-sync drift (recurring blocker across multiple sessions):** `.github/workflows/main.yml` `stage_safe_changes()` bash case list was missing the nested pattern `*/.github/workflows/*` that Python `EXCLUDE_PATTERNS` (`scripts/controller_progress.py:28`) already had. This caused `test_python_patterns_are_subset_of_workflow` and `test_nested_workflow_pattern_is_present_in_workflow` to fail on every session. **Fixed:** added `*/.github/workflows/*` immediately after `.github/workflows/*` in the case pattern at `.github/workflows/main.yml:1163`. Verified: both tests pass; full suite 349 passed, 0 failed.
+- **CI/workflow pattern-sync drift (recurring blocker across multiple sessions):** `.github/workflows/main.yml` `stage_safe_changes()` bash case list was missing the nested pattern `*/.github/workflows/*` that Python `EXCLUDE_PATTERNS` (`scripts/controller_progress.py:28`) already had. This caused `test_python_patterns_are_subset_of_workflow` and `test_nested_workflow_pattern_is_present_in_workflow` to fail on every session (347 passed, 2 failed). **Fixed:** added `*/.github/workflows/*` immediately after `.github/workflows/*` at `.github/workflows/main.yml:1163`. Verified: full suite 349 passed, 0 failed.
 - Earlier removals (still valid): silent-error eradication across BAB pipeline; config immutability enforced; 2 previously failing controller tests eliminated.
 
 ## NEXT FOCUS CAMPAIGN: PRODUCTION-GRADE BAB STRATEGY (HEAVY WORK — MANDATORY)
@@ -40,7 +41,7 @@ python3 -m pytest -q  # Must show 349 passed, 0 failed
 Agents must work down this campaign in order. No item may be skipped or deferred without a documented blocker in this handoff. Each item requires TDD: failing test → implement → pass → refactor, across multiple files.
 
 ### Priority 1: Data Infrastructure Hardening (CRITICAL) - START HERE
-- [ ] **Multi-format loaders**: Extend `data_loader.py` to support Parquet, HDF5, pandas pickle with schema validation  <-- NEXT CONCRETE TASK (start here now)
+- [ ] **Multi-format loaders**: Parquet/HDF5/pickle exist in `data_loader.py` but lack tests in `test_betting_against_beta_data_loader.py`  <-- NEXT CONCRETE TASK (start here now)
 - [ ] **Data quality checks**: Expand `quality.py` - gaps, outliers (z-score/IQR), stale data, volume anomalies, duplicate timestamps
 - [ ] **Corporate actions**: Handle splits/dividends/airdrops or document assumptions explicitly in code + tests
 - [ ] **Time alignment**: Robust tz-aware handling, missing bars, non-trading days, DST
