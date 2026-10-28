@@ -1,10 +1,10 @@
-# HANDOFF - 2026-10-28T20:25:22Z (SINGLE DURABLE HANDOFF)
+# HANDOFF - 2026-10-28T20:25:34Z (SINGLE DURABLE HANDOFF)
 
 ## TIMESTAMP
-2026-10-28T20:25:22Z
+2026-10-28T20:25:34Z
 
 ## IMMEDIATE FIRST TASK (DO THIS NOW)
-**Priority: P0 - Start heavy work immediately on BAB strategy**
+**Priority: P0 - Start heavy work immediately on the BAB strategy**
 
 1. **Verify baseline** (30 seconds):
 ```bash
@@ -22,20 +22,22 @@ python3 -m pytest -q  # Must show 349 passed, 0 failed
 - **Priority:** **BAB STRATEGY CODE > EVERYTHING ELSE**. Fix infra only if it blocks BAB. Otherwise ignore.
 
 ## Current Verified State
-- **Branch:** main @ `e1618b2`
+- **Branch:** main @ `5ab3043`
 - **Working tree:** clean
 - **Tests:** **349 passed, 0 failed** (verified)
-- **Status:** Silent-error eradication complete. Workflow pattern sync fixed (`*/.github/workflows/*` added to stage_safe_changes). All tests green.
+- **Status:** Bottlenecks removed. Pattern-sync drift eliminated. All tests green.
 
 ## Bottlenecks Removed
-- CI/workflow pattern sync drift fixed (controller pattern-sync tests pass)
-- Silent failures eliminated across BAB pipeline
-- Config immutability enforced
-- Pattern sync bottleneck fixed: added `*/.github/workflows/*` to `.github/workflows/main.yml` stage_safe_changes bash case; 2 failing controller tests now pass (349/349 green)
+- CI/workflow pattern-sync drift fixed: added `*/.github/workflows/*` to `.github/workflows/main.yml` `stage_safe_changes` bash case, matching `scripts/controller_progress.py` `EXCLUDE_PATTERNS`. `test_python_patterns_are_subset_of_workflow` and `test_nested_workflow_pattern_is_present_in_workflow` now pass.
+- 2 failing controller tests eliminated; full suite is 349 passed, 0 failed.
+- Silent-error eradication complete across BAB pipeline.
+- Config immutability enforced.
 
-## NEXT FOCUS CAMPAIGN: PRODUCTION-GRADE BAB STRATEGY (HEAVY WORK)
+## NEXT FOCUS CAMPAIGN: PRODUCTION-GRADE BAB STRATEGY (HEAVY WORK — MANDATORY)
 
-### Priority 1: Data Infrastructure Hardening (CRITICAL) - START HERE IF UNSURE
+Agents must work down this campaign in order. No item may be skipped or deferred without a documented blocker in this handoff. Each item requires TDD: failing test → implement → pass → refactor, across multiple files.
+
+### Priority 1: Data Infrastructure Hardening (CRITICAL) - START HERE
 - [ ] **Multi-format loaders**: Extend `data_loader.py` to support Parquet, HDF5, pandas pickle with schema validation
 - [ ] **Data quality checks**: Expand `quality.py` - gaps, outliers (z-score/IQR), stale data, volume anomalies, duplicate timestamps
 - [ ] **Corporate actions**: Handle splits/dividends/airdrops or document assumptions explicitly in code + tests
@@ -90,7 +92,7 @@ python3 -m pytest -q  # Must show 349 passed, 0 failed
 - **DETERMINISTIC:** No randomness without explicit seeds
 - **OFFLINE:** No network in tests/core
 - **ALL TESTS GREEN:** Run full suite frequently. Never regress.
-- **SINGLE HANDOFF:** Update THIS file (`HANDOFF_NEXT_SESSION.md`) after significant progress with new timestamp + concrete next steps
+- **SINGLE HANDOFF:** Update THIS file (`HANDOFF.md`) after significant progress with new timestamp + concrete next steps
 - **NO COMMITS UNLESS ASKED:** Uncommitted for review
 
 ## EXECUTION LOOP
