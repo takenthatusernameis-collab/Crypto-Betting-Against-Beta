@@ -26,6 +26,10 @@ class BABConfig:
     transaction_costs: float = 0.0
     # Slippage as a fraction of turnover (applied in backtest).
     slippage: float = 0.0
+    # Liquidity/participation constraints (lightweight guards; no-op if data absent)
+    max_turnover: Optional[float] = None  # max daily turnover (sum of |Δw|/2 or total turnover) if enforced
+    max_position_size: Optional[float] = None  # max |weight| per asset
+    max_total_turnover: Optional[float] = None  # alias for max_turnover
     # Rolling beta parameters.
     rolling_min_window: int = 60
     # Seed for synthetic data generation.

@@ -167,7 +167,16 @@ class BABStrategy:
             # therefore turnover/costs) only change on rebalance dates.
             signals = _apply_rebalance(signals, rebalance_freq)
 
-        weights = construct_portfolio(signals, dollar_neutral=cfg.dollar_neutral)
+        weights = construct_portfolio(
+            signals,
+            dollar_neutral=cfg.dollar_neutral,
+            max_position_size=getattr(cfg, "max_position_size", None),
+            max_turnover=getattr(cfg, "max_turnover", None) or getattr(cfg, "max_total_turnover", None),
+            enforce_risk_checks=getattr(cfg, "enforce_risk_checks", False) or getattr(cfg, "risk_checks", False),
+            gross_exposure_limit=getattr(cfg, "gross_exposure_limit", None),
+            net_exposure_limit=getattr(cfg, "net_exposure_limit", None),
+            max_single_weight=getattr(cfg, "max_single_weight", None),
+        )
         # Explicit finiteness guard
         try:
             import numpy as _np

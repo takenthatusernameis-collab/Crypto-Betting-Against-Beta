@@ -29,7 +29,9 @@ def _clean_signal_value(val):
 
 def construct_portfolio(signals_df, dollar_neutral=True, gross_exposure_limit=None,
                         max_single_weight=None, net_exposure_limit=None,
-                        enforce_risk_checks=False):
+                        enforce_risk_checks=False,
+                        max_position_size=None, max_turnover=None,
+                        weights_df_prev=None, rebalance_mask=None):
     """Construct portfolio weights from signals.
 
     Robustness guarantees:
@@ -39,22 +41,25 @@ def construct_portfolio(signals_df, dollar_neutral=True, gross_exposure_limit=No
       * Long-only (dollar_neutral=False) rows weight only longs.
       * All-zero signal rows remain all-zero.
     """
-    if signals_df is None:
-        return pd.DataFrame()
-    if not isinstance(signals_df, pd.DataFrame) or signals_df.empty:
-        return pd.DataFrame()
+    from .errors import BABDataError
+    import pandas as _pd
 
-    weights = pd.DataFrame(0.0, index=signals_df.index, columns=signals_df.columns)
+    if signals_df is None:
+        return _pd.DataFrame()
+    if not isinstance(signals_df, _pd.DataFrame) or signals_df.empty:
+        return _pd.DataFrame()
+
+    weights = _pd.DataFrame(0.0, index=signals_df.index, columns=signals_df.columns)
 
     for idx in signals_df.index:
         row = signals_df.loc[idx]
-        if isinstance(row, pd.DataFrame):
+        if isinstance(row, _pd.DataFrame):
             if row.shape[0] != 1:
                 continue
             row = row.iloc[0]
-        if not isinstance(row, pd.Series):
+        if not isinstance(row, _pd.Series):
             try:
-                row = pd.Series(row, index=signals_df.columns)
+                row = _pd.Series(row, index=signals_df.columns)
             except Exception:
                 continue
 
@@ -84,6 +89,52 @@ def construct_portfolio(signals_df, dollar_neutral=True, gross_exposure_limit=No
 
     # Final finiteness guard: coerce any stray non-finite to 0.0.
     weights = weights.replace([np.inf, -np.inf], np.nan).fillna(0.0)
+
+    # Optional position size limit (no-op if data absent)
+    try:
+        mps = max_position_size if max_position_size is not None else getattr(weights_df_prev, 'max_position_size', None)
+        if mps is not None:
+            mps_f = float(mps)
+            if mps_f <= 0:
+                raise BABDataError("max_position_size must be positive")
+            # Enforce absolute weight limit
+            wabs = weights.abs()
+            if (wabs > mps_f + 1e-12).any().any():
+                raise BABDataError("Position size exceeds max_position_size")
+    except BABDataError:
+        raise
+    except Exception:
+        pass
+
+    # Optional turnover limit (lightweight guard, no-op when no previous weights)
+    try:
+        mt = max_turnover if max_turnover is not None else getattr(weights_df_prev, 'max_turnover', None)
+        if mt is not None and weights_df_prev is not None:
+            mt_f = float(mt)
+            if mt_f <= 0:
+                raise BABDataError("max_turnover must be positive")
+            try:
+                wprev = weights_df_prev
+                if isinstance(wprev, _pd.DataFrame):
+                    # align
+                    common = weights.index.intersection(wprev.index)
+                    if len(common) > 0:
+                        for idx in common:
+                            cur = weights.loc[idx]
+                            prev = wprev.loc[idx].reindex(cur.index).fillna(0.0)
+                            # turnover = 0.5*sum |Δw| or sum |Δw| depending on convention; use sum |Δw|/2 as two-sided? Or just sum |Δw|; be conservative
+                            turnover = float((cur - prev).abs().sum() * 0.5)  # roundtrip convention common
+                            # also allow sum |Δw| if that's how caller thinks; but enforce stated limit
+                            if turnover > mt_f + 1e-12:
+                                raise BABDataError("Turnover exceeds max_turnover")
+            except BABDataError:
+                raise
+            except Exception:
+                pass
+    except BABDataError:
+        raise
+    except Exception:
+        pass
 
     if enforce_risk_checks or gross_exposure_limit is not None or max_single_weight is not None or net_exposure_limit is not None:
         try:
