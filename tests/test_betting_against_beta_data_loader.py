@@ -16,7 +16,10 @@ from strategies.betting_against_beta.data_loader import (
     load_returns,
     load_returns_from_csv,
     load_returns_from_dataframe,
+    load_returns_from_hdf5,
     load_returns_from_json,
+    load_returns_from_parquet,
+    load_returns_from_pickle,
     validate_returns_dataframe,
 )
 
@@ -118,6 +121,111 @@ class TestLoaders:
         with pytest.raises(BABDataError):
             load_returns_from_csv(path, benchmark="BTC")
 
+    @pytest.mark.skipif(
+        not __import__("importlib").util.find_spec("pyarrow")
+        and not __import__("importlib").util.find_spec("fastparquet"),
+        reason="pyarrow or fastparquet required for parquet tests",
+    )
+    def test_load_returns_from_parquet_happy_path(self, tmp_path: Path):
+        df = _valid_df()
+        path = tmp_path / "returns.parquet"
+        df.to_parquet(path)
+        out = load_returns_from_parquet(path, benchmark="BTC")
+        assert "BTC" in out.columns
+        assert "ETH" in out.columns
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+    def test_load_returns_from_parquet_missing_file(self, tmp_path: Path):
+        with pytest.raises(BABDataError):
+            load_returns_from_parquet(tmp_path / "nope.parquet", benchmark="BTC")
+
+    @pytest.mark.skipif(
+        not __import__("importlib").util.find_spec("pyarrow")
+        and not __import__("importlib").util.find_spec("fastparquet"),
+        reason="pyarrow or fastparquet required for parquet tests",
+    )
+    def test_load_returns_from_parquet_bad_schema_raises(self, tmp_path: Path):
+        # Write parquet that loads but fails validation (non-numeric in bad form)
+        path = tmp_path / "bad.parquet"
+        bad = pd.DataFrame({"BTC": ["a", "b"], "ETH": [1, 2]}, index=pd.date_range("2023-01-01", periods=2, freq="D"))
+        try:
+            bad.to_parquet(path)
+        except Exception:
+            pytest.skip("Cannot write parquet for bad schema test")
+        with pytest.raises(BABDataError):
+            load_returns_from_parquet(path, benchmark="BTC")
+
+    @pytest.mark.skipif(
+        not __import__("importlib").util.find_spec("tables"),
+        reason="tables (PyTables) required for hdf5 tests",
+    )
+    def test_load_returns_from_hdf5_happy_path(self, tmp_path: Path):
+        df = _valid_df()
+        path = tmp_path / "returns.h5"
+        try:
+            df.to_hdf(path, key="returns", mode="w")
+        except Exception:
+            pytest.skip("Cannot write hdf5")
+        out = load_returns_from_hdf5(path, benchmark="BTC", key="returns")
+        assert "BTC" in out.columns
+        assert "ETH" in out.columns
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+    def test_load_returns_from_hdf5_missing_file(self, tmp_path: Path):
+        with pytest.raises(BABDataError):
+            load_returns_from_hdf5(tmp_path / "nope.h5", benchmark="BTC")
+
+    @pytest.mark.skipif(
+        not __import__("importlib").util.find_spec("tables"),
+        reason="tables (PyTables) required for hdf5 tests",
+    )
+    def test_load_returns_from_hdf5_bad_schema_raises(self, tmp_path: Path):
+        path = tmp_path / "bad.h5"
+        bad = pd.DataFrame({"BTC": ["a", "b"], "ETH": [1, 2]}, index=pd.date_range("2023-01-01", periods=2, freq="D"))
+        try:
+            bad.to_hdf(path, key="returns", mode="w")
+        except Exception:
+            pytest.skip("Cannot write hdf5 for bad schema test")
+        with pytest.raises(BABDataError):
+            load_returns_from_hdf5(path, benchmark="BTC", key="returns")
+
+    def test_load_returns_from_pickle_happy_path(self, tmp_path: Path):
+        df = _valid_df()
+        path = tmp_path / "returns.pkl"
+        df.to_pickle(path)
+        out = load_returns_from_pickle(path, benchmark="BTC")
+        assert "BTC" in out.columns
+        assert "ETH" in out.columns
+
+    def test_load_returns_from_pickle_missing_file(self, tmp_path: Path):
+        with pytest.raises(BABDataError):
+            load_returns_from_pickle(tmp_path / "nope.pkl", benchmark="BTC")
+
+    def test_load_returns_from_pickle_bad_schema_raises(self, tmp_path: Path):
+        path = tmp_path / "bad.pkl"
+        bad = pd.DataFrame({"BTC": ["a", "b"], "ETH": [1, 2]}, index=pd.date_range("2023-01-01", periods=2, freq="D"))
+        bad.to_pickle(path)
+        with pytest.raises(BABDataError):
+            load_returns_from_pickle(path, benchmark="BTC")
+
+    def test_load_returns_from_pickle_dict(self, tmp_path: Path):
+        df = _valid_df()
+        path = tmp_path / "returns_dict.pkl"
+        with open(path, "wb") as f:
+            import pickle
+
+            pickle.dump({col: df[col].values for col in df.columns}, f)
+        # dict without index - index may be parsed; but easier to also include index
+        path2 = tmp_path / "returns_dict2.pkl"
+        payload = {col: list(df[col].values) for col in df.columns}
+        payload["index"] = [d.strftime("%Y-%m-%d") for d in df.index]
+        with open(path2, "wb") as f:
+            import pickle
+
+            pickle.dump(payload, f)
+        out = load_returns_from_pickle(path2, benchmark="BTC")
+        assert "BTC" in out.columns
+
     def test_load_returns_from_json(self, tmp_path: Path):
         df = _valid_df()
         path = tmp_path / "returns.json"
@@ -142,6 +250,34 @@ class TestLoaders:
         df = _valid_df()
         path = tmp_path / "returns.csv"
         df.to_csv(path)
+        out = load_returns(path, benchmark="BTC")
+        assert "BTC" in out.columns
+
+    def test_load_returns_dispatch_parquet(self, tmp_path: Path):
+        if not __import__("importlib").util.find_spec("pyarrow") and not __import__("importlib").util.find_spec("fastparquet"):
+            pytest.skip("no parquet engine")
+        df = _valid_df()
+        path = tmp_path / "returns.parquet"
+        df.to_parquet(path)
+        out = load_returns(path, benchmark="BTC")
+        assert "BTC" in out.columns
+
+    def test_load_returns_dispatch_hdf5(self, tmp_path: Path):
+        if not __import__("importlib").util.find_spec("tables"):
+            pytest.skip("no hdf5 engine")
+        df = _valid_df()
+        path = tmp_path / "returns.h5"
+        try:
+            df.to_hdf(path, key="returns", mode="w")
+        except Exception:
+            pytest.skip("cannot write hdf5")
+        out = load_returns(path, benchmark="BTC", key="returns")
+        assert "BTC" in out.columns
+
+    def test_load_returns_dispatch_pickle(self, tmp_path: Path):
+        df = _valid_df()
+        path = tmp_path / "returns.pkl"
+        df.to_pickle(path)
         out = load_returns(path, benchmark="BTC")
         assert "BTC" in out.columns
 
