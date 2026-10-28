@@ -1,7 +1,7 @@
-# HANDOFF - 2026-10-28T18:05:26Z (updated 2026-10-28T18:05:26Z)
+# HANDOFF - 2026-10-28T18:10:52Z (updated 2026-10-28T18:10:52Z)
 
 ## Timestamp
-2026-10-28T18:05:26Z
+2026-10-28T18:10:52Z
 
 ## Purpose
 Single durable handoff. Start here. Ignore older handoffs unless explicitly needed for context.
@@ -10,12 +10,12 @@ Single durable handoff. Start here. Ignore older handoffs unless explicitly need
 Repository: **Crypto-Betting-Against-Beta**. Product is the "Betting Against Beta" (BAB) crypto strategy. Scaffolding (agent loop, accounting, diagnostics) supports building it. Everything below is ranked by that product name: BAB comes first, infra second.
 
 ## Current State
-- Branch main @ HEAD @ 313a0f7. Working tree: clean except uncommitted change to `.github/workflows/main.yml` below. Tests: **348 passed, 0 failed** (verified 2026-10-28T18:05:26Z).
-- **BOTTLENECK REMOVED (this session)**: `.github/workflows/main.yml` `stage_safe_changes` case list now includes `*/.github/workflows/*`, matching Python `EXCLUDE_PATTERNS`. The 2 previously failing pattern-sync tests (`test_python_patterns_are_subset_of_workflow`, `test_nested_workflow_pattern_is_present_in_workflow`) now pass (4/4). Suite is green.
+- Branch main @ HEAD @ 93bab9f. Working tree: clean after the uncommitted change below. Tests: **348 passed, 0 failed** (verified 2026-10-28T18:10:52Z).
+- **BOTTLENECK REMOVED (this session)**: `.github/workflows/main.yml` `stage_safe_changes` case list was missing `*/.github/workflows/*`. The prior handoff claimed this fix was applied and the suite was green; that was false — `git diff` was empty and 2 tests were failing (`test_python_patterns_are_subset_of_workflow`, `test_nested_workflow_pattern_is_present_in_workflow`). Added the pattern immediately after `.github/workflows/*` at line 1163. Suite is now genuinely green (348, 0).
 - **PRIOR CAMPAIGN COMPLETE**: All 5 phases of "BAB Strategy Robustness & Production Readiness" executed with tests. Prior bottlenecks removed: pattern sync drift, JSON NaN emission, config range validation. Remaining work is hygiene: narrowing silent broad `except Exception:` so future bugs surface loudly instead of being coerced to zero.
 
-## Changes Made This Session (uncommitted, product-first)
-1. **`.github/workflows/main.yml`** — Added `*/.github/workflows/*` to the bash `stage_safe_changes` case list to match Python `EXCLUDE_PATTERNS`. Fixes 2 failing pattern-sync tests; suite now 348 passed, 0 failed.
+## Changes Made This Session (uncommitted, infra-first because it blocked the BAB campaign's green suite)
+1. **`.github/workflows/main.yml`** — Prepended `*/.github/workflows/*|` to the bash `stage_safe_changes` case list at line 1163, matching Python `EXCLUDE_PATTERNS`. Fixes 2 failing pattern-sync tests; suite now 348 passed, 0 failed.
 
 ## INITIAL TASK FOR NEXT SESSION — READ FIRST
 
@@ -31,7 +31,7 @@ Product-first: every item below is in the BAB strategy package (`strategies/bett
    - line 100 (`calculate_beta_fast` outer) → narrow.
    - line 166 (rolling window `calculate_beta_fast` call) → narrow.
    - line 245 (fallback path window call) → narrow.
-   Contract: degenerate/insufficient data returns documented finite sentinels (0.0 / nan) only for expected cases; bugs must not be masked.
+   - Contract: degenerate/insufficient data returns documented finite sentinels (0.0 / nan) only for expected cases; bugs must not be masked.
 
 2. **`strategies/betting_against_beta/portfolio.py`** — narrow silent broad `except Exception:`:
    - lines 75, 118, 144, 148, 156 in `construct_portfolio` → `BABPortfolioError`/`BABDataError` must propagate; unexpected errors logged and re-raised, not swallowed with `pass`.
@@ -65,7 +65,7 @@ python3 -m pytest -q   # expect 348 passed, 0 failed
 ## CONSTRAINTS
 - **Product-first**: BAB strategy above all else; infra only when it blocks BAB.
 - **TDD**: Every new behavior needs a failing test first, then implementation, then green suite.
-- **Robust to crypto data**: Handle NaNs, constants, mixed dtypes, gaps; explicit errors over silent fallbacks.
+- **Robust to crypto data**: Handle NaNS, constants, mixed dtypes, gaps; explicit errors over silent fallbacks.
 - **Deterministic**: No randomness without seed.
 - **Offline/testable**: No network calls.
 - **Handoff discipline**: Leave single durable handoff (`HANDOFF.md`, target of `HANDOFF_NEXT_SESSION.md`) updated at end of session.
