@@ -374,6 +374,73 @@ class TestConstructPortfolioEdgeCases:
         assert np.isfinite(weights.values).all()
 
 
+class TestPortfolioRiskChecks:
+    """Tests for gross/net/max-single-asset exposure enforcement."""
+
+    def test_compliant_portfolio_passes(self):
+        idx = pd.date_range("2023-01-01", periods=1, freq="D")
+        signals = pd.DataFrame({"A": [1], "B": [1], "C": [-1], "D": [-1]}, index=idx)
+        weights = construct_portfolio(
+            signals,
+            enforce_risk_checks=True,
+            gross_exposure_limit=2.0,
+            net_exposure_limit=1e-6,
+            max_single_weight=1.0,
+        )
+        assert np.isfinite(weights.values).all()
+        assert abs(weights.sum(axis=1).iloc[0]) <= 1e-9
+        assert weights.abs().sum(axis=1).iloc[0] <= 2.0 + 1e-12
+
+    def test_overweight_single_asset_raises(self):
+        idx = pd.date_range("2023-01-01", periods=1, freq="D")
+        # One long, one short -> each weight is 1.0, which is at the limit.
+        signals = pd.DataFrame({"A": [1], "B": [-1]}, index=idx)
+        construct_portfolio(
+            signals,
+            enforce_risk_checks=True,
+            max_single_weight=1.0,
+        )
+        # Tighter limit must raise.
+        from strategies.betting_against_beta.portfolio import BABPortfolioError
+
+        with pytest.raises(BABPortfolioError):
+            construct_portfolio(
+                signals,
+                enforce_risk_checks=True,
+                max_single_weight=0.5,
+            )
+
+    def test_non_neutral_mix_raises(self):
+        idx = pd.date_range("2023-01-01", periods=1, freq="D")
+        # Long-only book: net exposure is 1.0, not dollar-neutral.
+        signals = pd.DataFrame({"A": [1], "B": [1], "C": [1]}, index=idx)
+        from strategies.betting_against_beta.portfolio import BABPortfolioError
+
+        with pytest.raises(BABPortfolioError):
+            construct_portfolio(
+                signals,
+                dollar_neutral=False,
+                enforce_risk_checks=True,
+                net_exposure_limit=1e-6,
+            )
+
+    def test_gross_exposure_limit_raises(self):
+        idx = pd.date_range("2023-01-01", periods=1, freq="D")
+        # 4 longs + 4 shorts -> gross exposure of 2.0; tighten to raise.
+        signals = pd.DataFrame(
+            {"A": [1], "B": [1], "C": [1], "D": [1], "E": [-1], "F": [-1], "G": [-1], "H": [-1]},
+            index=idx,
+        )
+        from strategies.betting_against_beta.portfolio import BABPortfolioError
+
+        with pytest.raises(BABPortfolioError):
+            construct_portfolio(
+                signals,
+                enforce_risk_checks=True,
+                gross_exposure_limit=1.5,
+            )
+
+
 class TestRunBacktestEdgeCases:
     def test_empty_inputs_do_not_raise(self):
         results = run_backtest(pd.DataFrame(), pd.DataFrame())
@@ -455,43 +522,93 @@ class TestSlippageModel:
 
 
 class TestMultiDayRebalance:
+    @staticmethod
+    def _varying_beta_returns(n_days: int = 120, seed: int = 0):
+        """Build a returns frame whose beta rankings shift over time.
+
+        Uses the full 8-asset universe with noisy, time-varying betas so the
+        daily strategy produces a frequently changing weight matrix. This makes
+        rebalance frequency observable in the weight-change counts: weekly
+        rebalance must produce strictly fewer weight-change events than daily.
+        """
+        import numpy as np
+        import pandas as pd
+
+        rng = np.random.default_rng(seed)
+        idx = pd.date_range("2023-01-01", periods=n_days, freq="D")
+        bench = rng.normal(0.001, 0.02, n_days)
+        assets = ["BTC", "ETH", "SOL", "BNB", "XRP", "ADA", "AVAX", "DOT"]
+        # Base betas spread across the universe; drift them sinusoidally so the
+        # ranking of low/high beta assets changes every few days.
+        t = np.arange(n_days)
+        data = {"BTC": bench}
+        for i, name in enumerate([a for a in assets if a != "BTC"]):
+            base = 0.4 + i * 0.6
+            beta = base + 0.6 * np.sin(t / 8.0 + i)
+            data[name] = beta * bench + rng.normal(0, 0.012, n_days)
+        return pd.DataFrame(data, index=idx)
+
     def test_weekly_rebalance_fewer_events_than_daily(self):
+        import pandas as pd
         from strategies.betting_against_beta.config import BABConfig
         from strategies.betting_against_beta.strategy import BABStrategy
-        cfg = BABConfig(rebalance_freq="daily", synthetic_n_days=80, synthetic_seed=7)
+
+        df = self._varying_beta_returns(n_days=120, seed=7)
+        cfg = BABConfig(rebalance_freq="daily", beta_window=20, min_observations=10)
         s = BABStrategy(cfg)
-        res = run_strategy_counts(s, "daily")
-        cfg_w = BABConfig(rebalance_freq="weekly", synthetic_n_days=80, synthetic_seed=7)
+        res = s.run(df)
+
+        cfg_w = BABConfig(rebalance_freq="weekly", beta_window=20, min_observations=10)
         s_w = BABStrategy(cfg_w)
-        res_w = run_strategy_counts(s_w, "weekly")
-        # count rebalance events (weight changes)
-        assert res_w['rebalance_events'] < res['rebalance_events']
+        res_w = s_w.run(df)
+
+        def count_events(weights):
+            diffs = weights.diff().abs().sum(axis=1)
+            return int((diffs > 1e-18).sum())
+
+        daily_events = count_events(res.weights)
+        weekly_events = count_events(res_w.weights)
+        assert weekly_events < daily_events, (
+            f"weekly rebalance ({weekly_events}) must produce fewer weight-change "
+            f"events than daily ({daily_events})"
+        )
 
     def test_weights_constant_within_rebalance_window_weekly(self):
         import pandas as pd
-        import numpy as np
         from strategies.betting_against_beta.config import BABConfig
         from strategies.betting_against_beta.strategy import BABStrategy
-        cfg = BABConfig(rebalance_freq="weekly", synthetic_n_days=50, synthetic_seed=123)
+
+        df = self._varying_beta_returns(n_days=120, seed=123)
+        cfg = BABConfig(rebalance_freq="weekly", beta_window=20, min_observations=10)
         s = BABStrategy(cfg)
         res = s.run()
         w = res.weights
-        if isinstance(w.index, pd.DatetimeIndex):
-            # check that within same week weights don't change? or just that changes happen less often
-            # easier: count distinct weight rows
-            pass
-        # weights constant within window - at least not changing every day
+
         diffs = w.diff().abs().sum(axis=1)
-        # non-zero changes should be fewer
+        # Non-zero changes should be far fewer than daily (which would change on
+        # almost every row once betas are observable).
         assert (diffs > 1e-18).sum() < len(w) * 0.5
-
-
-def run_strategy_counts(strategy, freq):
-    res = strategy.run()
-    w = res.weights
-    diffs = w.diff().abs().sum(axis=1)
-    rebalance_events = int((diffs > 1e-18).sum())
-    return {'rebalance_events': rebalance_events}
+        # Within a rebalance window, consecutive rows must be identical. Each window
+        # spans [change_idx[i], change_idx[i+1]); the next change point itself
+        # is excluded because weights legitimately change there.
+        change_idx = list(w.index[(diffs > 1e-18)])
+        for i in range(len(change_idx) - 1):
+            start = change_idx[i]
+            end = change_idx[i + 1]
+            if start == end:
+                continue
+            between = w.loc[start:end].iloc[:-1]
+            if len(between) <= 1:
+                continue
+            first = between.iloc[0].to_numpy()
+            same = np.allclose(
+                between.to_numpy(),
+                np.tile(first, (len(between), 1)),
+                atol=1e-12,
+            )
+            assert same, (
+                f"weights changed between rebalance dates {start} and {end}"
+            )
 
 
 class TestRealPriceIngestion:

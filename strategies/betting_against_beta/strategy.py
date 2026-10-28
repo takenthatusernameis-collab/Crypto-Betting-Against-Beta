@@ -13,6 +13,68 @@ from .portfolio import construct_portfolio
 from .signals import generate_bab_signals
 
 
+def _rebalance_mask(index, freq: str) -> "pd.Series":  # noqa: ANN401
+    """Return a boolean Series (aligned to ``index``) marking rebalance dates.
+
+    The first date is always a rebalance date. For ``daily`` every date is a
+    rebalance date. For ``weekly``/``monthly`` only the first date within each
+    calendar week/month is marked, so weights are held constant between
+    rebalance dates.
+    """
+    import pandas as pd  # local import keeps module import light
+
+    freq = (freq or "daily").lower()
+    mask = pd.Series(False, index=index)
+    if len(index) == 0:
+        return mask
+    mask.iloc[0] = True
+    if freq == "daily":
+        mask[:] = True
+        return mask
+
+    if isinstance(index, pd.DatetimeIndex):
+        if freq.startswith("week"):
+            period = index.to_period("W")
+        elif freq.startswith("month"):
+            period = index.to_period("M")
+        else:
+            mask[:] = True
+            return mask
+        mask = pd.Series(~pd.Series(period).duplicated(keep="first").to_numpy(), index=index)
+        mask.iloc[0] = True
+        return mask
+
+    # Non-datetime index: fall back to a fixed step between rebalance dates.
+    step = 7 if freq.startswith("week") else 21
+    for i in range(0, len(index), step):
+        mask.iloc[i] = True
+    return mask
+
+
+def _apply_rebalance(signals, freq: str):
+    """Hold signals constant between rebalance dates.
+
+    Returns the rebalanced signals frame. On the first rebalance date of each
+    window the freshly computed signal is used; between rebalance dates the
+    signal from the most recent rebalance date is forward-filled so that
+    weights (and therefore turnover) only change on rebalance dates.
+    """
+    import pandas as pd  # local import keeps module import light
+
+    if signals is None or len(signals) == 0:
+        return signals
+    freq = (freq or "daily").lower()
+    if freq == "daily":
+        return signals
+    mask = _rebalance_mask(signals.index, freq)
+    # Wherever the mask is True, keep the freshly computed signal. Where it is
+    # False, carry forward the last rebalanced signal. Rows before the first
+    # rebalance date remain as computed (typically all-zero while betas are NaN).
+    held = signals.where(mask).ffill()
+    # Any rows still NaN after ffill (pre-first-rebalance) stay flat at zero.
+    return held.fillna(0)
+
+
 @dataclass
 class BABResult:
     """Output of running the BAB strategy."""
@@ -101,62 +163,9 @@ class BABStrategy:
         rebalance_freq = getattr(cfg, "rebalance_freq", "daily") or "daily"
         rebalance_freq = str(rebalance_freq).lower()
         if rebalance_freq != "daily" and len(signals) > 0:
-            try:
-                if rebalance_freq == "weekly":
-                    # Rebalance at start of each week (Monday) or on week change
-                    freq_code = "W"
-                elif rebalance_freq == "monthly":
-                    freq_code = "M"
-                else:
-                    freq_code = "W" if rebalance_freq.startswith("week") else ("M" if rebalance_freq.startswith("month") else None)
-                if freq_code is not None:
-                    # Get rebalance dates
-                    if isinstance(signals.index, pd.DatetimeIndex):
-                        # Create groups by period
-                        grouper = signals.index.to_period(freq_code[0] if freq_code != "M" else "M") if False else None  # fallback
-                    # Simpler approach: group by resampled period
-                    if isinstance(signals.index, pd.DatetimeIndex):
-                        if freq_code == "W":
-                            # Group by week
-                            periods = signals.index.isocalendar().week.values  # rough
-                            # Better: use to_period
-                            try:
-                                p = signals.index.to_period('W')
-                                # Get first index in each period
-                                rebalance_mask = ~p.duplicated(keep='first')
-                            except Exception:
-                                rebalance_mask = pd.Series([True] * len(signals), index=signals.index)
-                                # every 7 days approx
-                                for i in range(1, len(signals)):
-                                    if (signals.index[i] - signals.index[rebalance_mask[rebalance_mask].index[-1]]).days >= 7:
-                                        rebalance_mask.iloc[i] = True
-                                    else:
-                                        rebalance_mask.iloc[i] = False
-                        elif freq_code == "M":
-                            try:
-                                p = signals.index.to_period('M')
-                                rebalance_mask = ~p.duplicated(keep='first')
-                            except Exception:
-                                rebalance_mask = pd.Series([True] * len(signals), index=signals.index)
-                                for i in range(1, len(signals)):
-                                    if (signals.index[i].month != signals.index[rebalance_mask[rebalance_mask].index[-1]].month or
-                                        signals.index[i].year != signals.index[rebalance_mask[rebalance_mask].index[-1]].year):
-                                        rebalance_mask.iloc[i] = True
-                                    else:
-                                        rebalance_mask.iloc[i] = False
-                        else:
-                            rebalance_mask = pd.Series([True] * len(signals), index=signals.index)
-                    else:
-                        rebalance_mask = pd.Series([True] * len(signals), index=signals.index)
-                        step = 7 if rebalance_freq == "weekly" else 21
-                        rebalance_mask[:] = False
-                        rebalance_mask.iloc[::step] = True
-                        if len(rebalance_mask) > 0:
-                            rebalance_mask.iloc[0] = True
-                    # Forward fill signals to rebalance dates
-                    signals = signals.where(rebalance_mask).ffill().fillna(0)
-            except Exception:
-                pass  # fallback to daily
+            # Hold signals constant between rebalance dates so weights (and
+            # therefore turnover/costs) only change on rebalance dates.
+            signals = _apply_rebalance(signals, rebalance_freq)
 
         weights = construct_portfolio(signals, dollar_neutral=cfg.dollar_neutral)
         # Explicit finiteness guard

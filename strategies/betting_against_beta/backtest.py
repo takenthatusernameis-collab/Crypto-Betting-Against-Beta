@@ -44,9 +44,14 @@ def run_backtest(returns_df, weights_df, transaction_costs=0.0, slippage=0.0):
         slippage_costs = weight_changes * float(slippage)
         portfolio_returns = portfolio_returns - slippage_costs
 
-    # Calculate cumulative returns
-    portfolio_returns_filled = portfolio_returns.fillna(0)
-    cumulative_returns = (1 + portfolio_returns_filled).cumprod()
+    # Calculate cumulative returns in log space to avoid overflow/underflow
+    # on real-market data with large multi-day moves. exp(cumsum(log(1+r)))
+    # is mathematically identical to cumprod(1+r) but numerically stable.
+    # Clip at -1 + epsilon so log1p cannot hit its singularity (a -100%
+    # single-day return wipes the portfolio to zero; that is the floor).
+    portfolio_returns_filled = portfolio_returns.fillna(0).clip(lower=-1.0 + 1e-12)
+    log_returns = np.log1p(portfolio_returns_filled)
+    cumulative_returns = np.exp(np.cumsum(log_returns.to_numpy()))
 
     results = pd.DataFrame({
         'returns': portfolio_returns,
