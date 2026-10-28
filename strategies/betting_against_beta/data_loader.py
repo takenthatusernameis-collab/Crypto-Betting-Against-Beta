@@ -274,6 +274,56 @@ def load_returns(
     raise BABDataError(f"Unsupported data source extension: {suffix!r} for {path}")
 
 
+def _prices_to_returns(df: pd.DataFrame) -> pd.DataFrame:
+    """Convert a price DataFrame to simple returns.
+
+    The first row is dropped (no prior price to compare against). Returns are
+    finite by construction: any inf produced by a zero-price day is coerced to
+    NaN and any all-NaN columns are dropped later by validation.
+    """
+    if df.shape[0] < 2:
+        raise BABDataError(
+            f"Price series too short for return computation: {df.shape[0]} rows, need >= 2"
+        )
+    ret = df.pct_change().iloc[1:]
+    ret = ret.replace([np.inf, -np.inf], np.nan)
+    return ret
+
+
+def load_prices(
+    source: str | Path | pd.DataFrame,
+    benchmark: str | None = None,
+    min_rows: int = 2,
+    **kwargs,
+) -> pd.DataFrame:
+    """Load a price CSV/JSON/DataFrame and convert it to a returns DataFrame.
+
+    Prices are accepted as-is (a date column promoted to the index, numeric
+    columns per asset/benchmark). The loader computes ``pct_change`` to produce
+    returns, then validates the result through :func:`validate_returns_dataframe`.
+
+    A price fixture with date gaps and an all-NaN (delisted) column is handled:
+    gaps become NaN returns that beta estimation tolerates, and the delisted
+    column is dropped by validation.
+    """
+    if isinstance(source, pd.DataFrame):
+        prices = load_returns_from_dataframe(
+            source, benchmark=None, min_rows=min_rows
+        )
+    else:
+        path = Path(source)
+        suffix = path.suffix.lower()
+        if suffix == ".csv":
+            prices = load_returns_from_csv(path, benchmark=None, min_rows=min_rows, **kwargs)
+        elif suffix in (".json", ".jsonl"):
+            prices = load_returns_from_json(path, benchmark=None, min_rows=min_rows, **kwargs)
+        else:
+            raise BABDataError(f"Unsupported price source extension: {suffix!r} for {path}")
+
+    returns = _prices_to_returns(prices)
+    return validate_returns_dataframe(returns, benchmark=benchmark, min_rows=min_rows)
+
+
 def list_columns(df: pd.DataFrame) -> list[str]:
     """Return sorted column names (helper for diagnostics)."""
     return sorted(str(c) for c in df.columns)
