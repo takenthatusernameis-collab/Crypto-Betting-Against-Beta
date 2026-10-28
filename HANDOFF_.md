@@ -1,18 +1,30 @@
 # HANDOFF: Crypto-Betting-Against-Beta — Initial Task for Next Agentic Work Session
 
-- Timestamp (UTC): 2026-10-28T03:22:00Z
+- Timestamp (UTC): 2026-10-28T03:24:06Z
 - Repo: /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
-- Branch: main
-- Pointer file: HANDOFF_NEXT_SESSION.md -> this file
+- Branch: main @ HEAD (f0ff50b chore(kilo): checkpoint agent session)
+- Pointer file: HANDOFF_NEXT_SESSION.md -> HANDOFF.md (this durable handoff)
 
 ## Objective
 Resume work on the "Betting Against Beta" (BAB) crypto strategy. Scaffolding supports building it. BAB comes first, infra second.
 
-## Status: CAMPAIGN COMPLETE
-The "BAB Production Readiness — Real-Data Path, Transaction Costs & Report Observability" campaign is DONE. All 7 items completed, 9 new tests added, suite 258 passed, 0 failed.
+## Status: PRIOR CAMPAIGN COMPLETE; BOTTLECK REMOVED
+The "BAB Production Readiness — Real-Data Path, Transaction Costs & Report Observability" campaign is DONE (7 items, suite green). One blocker remained: the prior handoff claimed the CI pattern-sync fix was applied, but `*/.github/workflows/*` was missing from `.github/workflows/main.yml`, leaving the suite red (256 passed, 2 failed). That bottleneck is now removed — suite is 258 passed, 0 failed — with an intentional uncommitted change to `.github/workflows/main.yml` awaiting review/commit.
 
 ## Clear Initial Task Message (for the next agent)
-**TASK:** No heavy campaign is pending. The next focus is to review the uncommitted working changes below, decide whether to commit them, and then either (a) extend BAB production readiness (e.g. slippage model, multi-day rebalance, real price CSV ingestion with date parsing, universe override via config, portfolio-level risk checks, live-data fixture expansion), or (b) pick up a new product-first BAB item from the backlog. Recon: `python3 -m pytest -q`, `git status`, `git diff --stat`. Do not commit unless explicitly asked.
+**TASK:** Begin the inferred next focus campaign **BAB Execution Realism & Real-Market Backtesting**, product-first and TDD:
+
+1. Slippage model priced on turnover in `backtest.py` (test first: slippage reduces cumulative vs zero-slippage, scales with turnover).
+2. Multi-day rebalance honoring `config.rebalance_freq` (daily/weekly/monthly) (test first: weekly < daily rebalance events, weights constant in window).
+3. Real price ingestion (price CSV/JSON with date column → returns, DatetimeIndex, gap handling; bad dates raise `BABDataError`).
+4. Portfolio-level risk checks in `portfolio.py` (gross/net exposure, max single weight; raise on violation).
+5. Expanded real-market fixture (8 crypto + BTC, ~400 rows, delisted all-NaN column, date gap) reused by 1–4.
+6. Verify: `python3 -m pytest -q` all pass; re-timestamp HANDOFF.md and this file.
+
+Do not skip items; each is gated by a failing test written first, then implementation, then green suite. Do not commit unless explicitly asked.
+
+## Recon commands (run first)
+`python3 -m pytest -q` (expect 258 passed), `git status`, `git diff --stat`, `git log --oneline -5`.
 
 ## Constraints
 - Product-first (BAB), TDD, offline/testable, handoff discipline.
@@ -20,10 +32,7 @@ The "BAB Production Readiness — Real-Data Path, Transaction Costs & Report Obs
 - Working changes intentionally uncommitted for review.
 
 ## Bottlenecks Removed
-- `.github/workflows/main.yml` `stage_safe_changes()` now includes `*/.github/workflows/*`, restoring lock-step with `scripts/controller_progress.py` EXCLUDE_PATTERNS; 4 pattern-sync tests pass.
-- All 7 campaign items completed: real-data smoke, transaction costs path, non-BTC benchmark, min_rows enforcement, report determinism, CI pattern sync, verify + handoff.
+- `.github/workflows/main.yml` `stage_safe_changes()` now includes `*/.github/workflows/*`, restoring lock-step with `scripts/controller_progress.py` EXCLUDE_PATTERNS; all 4 pattern-sync tests pass; suite 258 passed, 0 failed.
 
 ## Uncommitted Working Changes (review before committing)
 - `.github/workflows/main.yml` — added `*/.github/workflows/*` to stage_safe_changes case list.
-- `tests/test_bab_backtest_report.py` — added TestReportRealDataSmoke, TestTransactionCostsPath, TestNonBtcBenchmark, TestReportDeterminism.
-- `tests/test_betting_against_beta.py` — added TestMinRowsEnforcement (3 tests) + BABStrategy import.

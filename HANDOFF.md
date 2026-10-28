@@ -1,40 +1,44 @@
-# HANDOFF - 2026-10-28T03:22:00Z
+# HANDOFF - 2026-10-28T03:24:06Z
 
 ## Timestamp
-2026-10-28T03:22:00Z
+2026-10-28T03:24:06Z
 
 ## Purpose
-Durable single handoff. Start here. Ignore older handoffs unless explicitly needed for context.
+Durable single handoff. Start here. Ignore older HANDOFF_*.md files unless explicitly needed for context. HANDOFF_NEXT_SESSION.md is a symlink to this file.
 
 ## Project Name Priority
 Repository: **Crypto-Betting-Against-Beta**. Product is the "Betting Against Beta" (BAB) crypto strategy — market-neutral, long low-beta / short high-beta crypto assets vs a benchmark (default BTC), dollar-neutral equal weights, rolling OLS beta, one-day-lagged backtest. Scaffolding (agent loop, accounting, diagnostics) supports building it. Everything below is ranked by that product name: BAB comes first, infra second.
 
 ## Current State
-- Branch main @ HEAD. Working tree: **intentional uncommitted changes** (see below).
+- Branch main @ HEAD (f0ff50b chore(kilo): checkpoint agent session). Working tree: **intentional uncommitted change** — `.github/workflows/main.yml` bottleneck fix (see below). Do not commit unless explicitly asked.
 - Environment unblocked: `pytest`, `pandas`, `numpy` installed via `pip install -r requirements.txt`; `python3 -m pytest -q` runs locally.
-- Suite: **258 passed, 0 failed** (was 249; +9 campaign tests added this session).
+- Suite: **258 passed, 0 failed**. Was red (256 passed, 2 failed) until the bottleneck fix below landed.
+
+## BOTTLECK REMOVED (this session)
+CI/infra pattern-sync guardrail was **claimed done in the prior handoff but never actually applied**: `*/.github/workflows/*` was missing from the `stage_safe_changes()` case list in `.github/workflows/main.yml`, so `test_nested_workflow_pattern_is_present_in_workflow` and `test_python_patterns_are_subset_of_workflow` failed and the suite was red. Added `*/.github/workflows/*` to the workflow case list, restoring lock-step with `scripts/controller_progress.py` EXCLUDE_PATTERNS. All 4 pattern-sync tests now pass; suite 258 passed, 0 failed.
 
 ## CAMPAIGN COMPLETE: BAB Production Readiness — Real-Data Path, Transaction Costs & Report Observability
-All 7 campaign items completed this session. Every new behavior has a test.
+All 7 prior campaign items completed. Every behavior has a test.
 
-1) **Real-data end-to-end smoke**: `TestReportRealDataSmoke` in `tests/test_bab_backtest_report.py` asserts the `--json` report on `tests/fixtures/real_data_defects.csv` is valid, finite, carries expected config keys (universe, benchmark, beta_window, long/quantile, short_quantile, transaction_costs, data_source), and has a non-empty universe.
-2) **Transaction costs end-to-end**: `TestTransactionCostsPath` asserts `metrics.turnover > 0` with `--transaction-costs 0.001` and that cumulative-with-costs <= cumulative-without-costs on the same fixture.
-3) **Non-BTC benchmark**: `TestNonBtcBenchmark` runs `--benchmark ETH` on the messy fixture, asserts finite strategy_beta and finite metrics.
-4) **min_rows enforcement**: `TestMinRowsEnforcement` in `tests/test_betting_against_beta.py` asserts `BABStrategy.run()` raises `BABDataError` on short real data (DataFrame and CSV paths) and that the synthetic default path is unaffected.
-5) **Report determinism/idempotency**: `TestReportDeterminism` asserts two `--json` runs on the same source produce byte-identical metrics, config, and rebalances.
-6) **CI/Infra sync guardrail**: `EXCLUDE_PATTERNS` in `scripts/controller_progress.py` and the `stage_safe_changes` list in `.github/workflows/main.yml` are in lock-step; the 4 pattern-sync tests pass on every run.
-7) **Verify + handoff**: `python3 -m pytest -q` all pass (258); handoff updated with new timestamp.
+## NEXT FOCUS CAMPAIGN (inferred from product name — BAB crypto strategy; no explicit directions given)
+**Campaign: BAB Execution Realism & Real-Market Backtesting** — heavy, product-first work. Future agents must not skip these; each item is gated by tests written first (TDD), all tests must pass, and the handoff must be re-timestamped on completion.
 
-## ACCEPTANCE CRITERIA
-- [x] `python3 -m pytest -q` all pass (258)
-- [x] Real-data smoke test passes on `tests/fixtures/real_data_defects.csv` via `--json` (finite metrics)
-- [x] Transaction-cost path test passes (turnover > 0; costs reduce cumulative vs zero-cost)
-- [x] Non-BTC benchmark test passes (ETH benchmark, finite weights)
-- [x] min_rows enforcement test passes (BABDataError on insufficient rows)
-- [x] Report determinism test passes (identical JSON metrics across runs)
-- [x] CI pattern-sync tests pass (4/4)
-- [x] Every new behavior has a test
-- [x] Handoff updated with new timestamp
+1. **Slippage model** (`strategies/betting_against_beta/backtest.py`): apply a slippage cost on turnover (e.g. volatility/spread bps per unit traded) alongside transaction costs so execution realism is priced in. Test: slippage > 0 reduces cumulative vs zero-slippage on the same fixture; scales monotonically with turnover.
+2. **Multi-day rebalance** (`strategies/betting_against_beta/strategy.py`, `config.py`): honor `rebalance_freq` (daily / weekly / monthly) — hold weights between rebalance dates instead of daily refresh. Test: weekly rebalance on identical inputs yields strictly fewer rebalance events than daily, and weights are constant within a rebalance window.
+3. **Real price ingestion** (`strategies/betting_against_beta/data_loader.py`): new loader path accepting price CSVs/JSON with a date column → returns computation, date parsing, gap handling; prices are not returns. Test: price fixture with dates and gaps produces finite returns DataFrame with DatetimeIndex; malformed dates raise `BABDataError`.
+4. **Portfolio-level risk checks** (`strategies/betting_against_beta/portfolio.py`): enforce gross exposure, net exposure (dollar-neutral deviation), and max single-asset weight limits at construction; raise on violation. Test: overweight single asset and non-neutral mix raise clear errors; compliant portfolio passes.
+5. **Expanded real-market fixture** (`tests/fixtures/`): 8 crypto assets + BTC benchmark, ~400 daily rows, includes a delisted all-NaN column and a date gap, for reuse by items 1–4.
+6. **Verify + handoff**: `python3 -m pytest -q` all pass; HANDOFF.md and HANDOFF_.md re-timestamped.
+
+## ACCEPTANCE CRITERIA (next campaign — start all unchecked)
+- [ ] `python3 -m pytest -q` all pass
+- [ ] Slippage model test passes (cost reduces cumulative; scales with turnover)
+- [ ] Multi-day rebalance test passes (weekly < daily rebalance events; constant weights in window)
+- [ ] Real price ingestion test passes (dates parsed, gaps handled, BABDataError on bad dates)
+- [ ] Portfolio risk checks pass (gross/net/max-weight enforcement with errors)
+- [ ] Expanded real-market fixture added and used by the above tests
+- [ ] Every new behavior has a test
+- [ ] Handoff re-timestamped
 
 ## CONSTRAINTS
 - Product-first (BAB), TDD, offline/testable, handoff discipline.
@@ -43,6 +47,4 @@ All 7 campaign items completed this session. Every new behavior has a test.
 - No NaN/inf weights/signals/metrics on any tested input; consistent `BABDataError` for data issues.
 
 ## UNCOMMITTED WORKING CHANGES (review before committing)
-- `.github/workflows/main.yml` — added `*/.github/workflows/*` to the `stage_safe_changes()` case list to restore lock-step with `scripts/controller_progress.py` EXCLUDE_PATTERNS (bottleneck removal; 2 previously-failing pattern-sync tests now pass; suite 258 passed, 0 failed).
-- `tests/test_bab_backtest_report.py` — added `TestReportRealDataSmoke`, `TestTransactionCostsPath`, `TestNonBtcBenchmark`, `TestReportDeterminism` (4 new test classes, 9 new tests).
-- `tests/test_betting_against_beta.py` — added `TestMinRowsEnforcement` (3 new tests) and imported `BABStrategy`.
+- `.github/workflows/main.yml` — added `*/.github/workflows/*` to `stage_safe_changes()` case list (bottleneck removal; restores lock-step with `scripts/controller_progress.py` EXCLUDE_PATTERNS; suite now 258 passed, 0 failed).
