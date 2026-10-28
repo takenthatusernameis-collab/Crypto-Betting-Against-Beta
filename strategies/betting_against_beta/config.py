@@ -43,6 +43,8 @@ class BABConfig:
     # Optional fixed universe override when loading from a data source.
     # When None, the universe is derived from the data columns.
     universe_override: Optional[List[str]] = None
+    # Dynamic position sizing (optional): instance of sizer or string shorthand
+    position_sizer: Optional[object] = None
 
     def __post_init__(self):
         if self.universe is None:

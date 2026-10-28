@@ -2,6 +2,6 @@
 
 from .config import BABConfig
 from .strategy import BABStrategy, BABResult
-from . import data_loader, beta, signals, portfolio, backtest, metrics, quality, costs
+from . import data_loader, beta, signals, portfolio, backtest, metrics, quality, costs, sizing
 
-__all__ = ["BABConfig", "BABStrategy", "BABResult", "data_loader", "beta", "signals", "portfolio", "backtest", "costs", "metrics", "quality"]
+__all__ = ["BABConfig", "BABStrategy", "BABResult", "data_loader", "beta", "signals", "portfolio", "backtest", "costs", "metrics", "quality", "sizing"]

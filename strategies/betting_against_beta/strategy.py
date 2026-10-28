@@ -11,6 +11,7 @@ from .data import generate_synthetic_returns
 from .data_loader import load_returns
 from .portfolio import construct_portfolio
 from .signals import generate_bab_signals
+from . import sizing
 
 
 def _rebalance_mask(index, freq: str) -> "pd.Series":  # noqa: ANN401
@@ -183,6 +184,14 @@ class BABStrategy:
             net_exposure_limit=getattr(cfg, "net_exposure_limit", None),
             max_single_weight=getattr(cfg, "max_single_weight", None),
         )
+        # Optional dynamic position sizing
+        try:
+            ps = getattr(cfg, "position_sizer", None)
+            if ps is not None:
+                weights = sizing.apply_position_sizing(signals, returns=returns, betas=betas, sizer=ps)
+        except Exception:
+            # Do not break default behavior on sizing errors; fall back to weights
+            pass
         # Explicit finiteness guard
         try:
             import numpy as _np
