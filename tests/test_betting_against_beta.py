@@ -875,8 +875,12 @@ class TestLiquidityGuards:
         signals = pd.DataFrame({"A": [1], "B": [-1]}, index=idx)
         weights_prev = construct_portfolio(signals.iloc[[0]])
         signals2 = pd.DataFrame({"A": [-1], "B": [1]}, index=idx)
+        # Both parameter names should produce identical error behavior
         with pytest.raises(BABDataError):
             construct_portfolio(signals2, max_turnover=0.1, weights_df_prev=weights_prev)
+        weights_prev2 = construct_portfolio(signals.iloc[[0]])
+        with pytest.raises(BABDataError):
+            construct_portfolio(signals2, max_total_turnover=0.1, weights_df_prev=weights_prev2)
 
     def test_negative_or_zero_limits_raise_babdataerror(self):
         from strategies.betting_against_beta.errors import BABDataError

@@ -31,7 +31,7 @@ def construct_portfolio(signals_df, dollar_neutral=True, gross_exposure_limit=No
                         max_single_weight=None, net_exposure_limit=None,
                         enforce_risk_checks=False,
                         max_position_size=None, max_turnover=None,
-                        weights_df_prev=None, rebalance_mask=None):
+                        weights_df_prev=None, rebalance_mask=None, **kwargs):
     """Construct portfolio weights from signals.
 
     Robustness guarantees:
@@ -48,6 +48,18 @@ def construct_portfolio(signals_df, dollar_neutral=True, gross_exposure_limit=No
         return _pd.DataFrame()
     if not isinstance(signals_df, _pd.DataFrame) or signals_df.empty:
         return _pd.DataFrame()
+
+    # Accept aliases for turnover/position limits
+    if max_turnover is None:
+        for key in ("max_total_turnover", "max_total_turnover_limit", "turnover_limit", "max_turnover_limit"):
+            if key in kwargs:
+                max_turnover = kwargs.pop(key)
+                break
+    if max_position_size is None:
+        for key in ("max_pos_size", "position_limit", "max_single_position", "max_weight", "max_individual_position"):
+            if key in kwargs:
+                max_position_size = kwargs.pop(key)
+                break
 
     weights = _pd.DataFrame(0.0, index=signals_df.index, columns=signals_df.columns)
 
