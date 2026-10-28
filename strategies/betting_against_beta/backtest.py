@@ -44,6 +44,12 @@ def run_backtest(returns_df, weights_df, transaction_costs=0.0, slippage=0.0,
         returns = returns[common_cols]
         weights = weights[common_cols]
 
+    # Clean weights of NaN/inf
+    try:
+        weights = weights.replace([np.inf, -np.inf], np.nan).fillna(0.0)
+    except Exception:
+        pass
+
     # Calculate portfolio returns (shift weights by 1 day for no lookahead)
     portfolio_returns = (weights.shift(1) * returns).sum(axis=1)
 
