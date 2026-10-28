@@ -1,10 +1,10 @@
-# HANDOFF - 2026-10-28T08:19:22Z
+# HANDOFF - 2026-10-28T08:27:52Z
 
 ## Timestamp
-2026-10-28T08:19:22Z
+2026-10-28T08:27:52Z
 
 ## Purpose
-**SINGLE DURABLE HANDOFF. START HERE.** Ignore all other `HANDOFF*.md` files unless you need historical context. `HANDOFF_NEXT_SESSION.md` is the source of truth.
+**SINGLE DURABLE HANDOFF. START HERE.** Ignore all other `HANDOFF*.md` files unless you need historical context. `HANDOFF.md` (this file) is the source of truth for the next session.
 
 ## Project Name Priority
 Repository: **Crypto-Betting-Against-Beta**. Product is the **Betting Against Beta (BAB)** crypto strategy — market-neutral, long low-beta / short high-beta crypto assets vs benchmark (default BTC), dollar-neutral equal weights, rolling OLS beta, one-day-lagged backtest. **BAB ALWAYS COMES FIRST. Infra only if it blocks BAB.**
@@ -13,18 +13,19 @@ Repository: **Crypto-Betting-Against-Beta**. Product is the **Betting Against Be
 
 **FOCUS CAMPAIGN: CLOSE BAB GUARD & COST TEST COVERAGE WITH HEAVY TDD (NO SHORTCUTS)**
 
+The suite is green. The remaining gap is behavioral test coverage of the BAB product itself. Your job is to make the suite PROVE guard/cost/tz/pipeline robustness — not to re-implement.
+
 ### Ground Truth (DO NOT RE-IMPLEMENT)
 - Guards exist: `max_position_size`, `max_turnover`/`max_total_turnover` raise `BABDataError` on violations and no-op when `None` (`strategies/betting_against_beta/portfolio.py:94-137`, wired in `strategy.py:173-174`).
 - Cost aliases exist: `tc`/`slippage_cost` resolve in `run_backtest` (`strategies/betting_against_beta/backtest.py:7-77`).
-- CI pattern sync is **CLOSED**: `.github/workflows/main.yml` now includes `*/.github/workflows/*` in `stage_safe_changes`. Suite is green.
+- CI pattern sync is **CLOSED**: `.github/workflows/main.yml` `stage_safe_changes()` now includes `*/.github/workflows/*` in lock-step with Python `EXCLUDE_PATTERNS`. Suite green (295 passed).
 
-**BOTTLENECK = ZERO TEST COVERAGE. Your job is to PROVE these behaviors with tests.**
+**BOTTLENECK REMOVED.** The recurring CI drift that dropped `*/.github/workflows/*` from the bash exclusion list on every checkpoint reset is fixed in the working tree. Do not re-litigate it unless a future checkpoint discards it again.
 
 ### Heavy Campaign (Execute in order, TDD strictly)
 
 #### PHASE 1: LIQUIDITY/PARTICIPATION GUARDS (IMMEDIATE - HEAVY)
 Create `TestLiquidityGuards` in `tests/test_betting_against_beta.py`. You MUST write failing tests first:
-
 - [ ] `max_position_size` violation raises `BABDataError` (assert exception type, not generic Exception)
 - [ ] `max_turnover` violation raises `BABDataError`
 - [ ] `max_total_turnover` violation raises `BABDataError`
@@ -35,7 +36,6 @@ Create `TestLiquidityGuards` in `tests/test_betting_against_beta.py`. You MUST w
 
 #### PHASE 2: TURNOVER/COST CORRECTNESS (HEAVY)
 Add tests for `run_backtest` covering:
-
 - [ ] Zero turnover day produces no transaction/slippage costs
 - [ ] Negative turnover handled correctly (|turnover| or sign handling - verify actual behavior)
 - [ ] NaN/inf weights coerced safely (no crashes, no NaN in outputs)
@@ -45,7 +45,6 @@ Add tests for `run_backtest` covering:
 
 #### PHASE 3: COST MONOTONICITY (HEAVY)
 Prove robustness with monotonicity tests:
-
 - [ ] Higher `transaction_costs` → strictly worse final cumulative return: `costly.cumulative.iloc[-1] < free.cumulative.iloc[-1]` on rebalancing path
 - [ ] Higher `slippage` → strictly worse final cumulative return (extend existing pattern from line ~511)
 - [ ] Monotonicity holds across multiple cost levels (e.g., 0, 0.001, 0.005)
@@ -53,7 +52,6 @@ Prove robustness with monotonicity tests:
 
 #### PHASE 4: DATA INTEGRITY - TIMEZONE HANDLING (HEAVY)
 Expand `data_loader` coverage:
-
 - [ ] tz-aware `DatetimeIndex` accepted and normalized consistently
 - [ ] tz-naive `DatetimeIndex` still accepted (existing behavior preserved)
 - [ ] Mixed timezone scenarios don't crash
@@ -63,7 +61,6 @@ Expand `data_loader` coverage:
 
 #### PHASE 5: PIPELINE SAFETY REGRESSION (HEAVY)
 Assert end-to-end cleanliness:
-
 - [ ] `BABStrategy.run()` on default synthetic path produces no NaN/inf in weights/signals/betas/returns
 - [ ] Same assertion on `tests/fixtures/real_market_prices_expanded.csv`
 - [ ] Dollar-neutral property holds (weights sum to ~0) on both paths
@@ -77,18 +74,18 @@ Assert end-to-end cleanliness:
 4. **NO COMMIT** unless explicitly asked.
 5. **HEAVY WORK REQUIRED** - Do not stop at 1-2 tests. Complete phases systematically. Each phase should add multiple tests.
 6. **VERIFY CONSTANTLY** - Run `python3 -m pytest -q` after each phase. Never leave suite broken.
-7. **RECON FIRST** - Before writing code: `python3 -m pytest -q` (expect 268 passed), `git status`, `git diff --stat`, `git log --oneline -5`.
+7. **RECON FIRST** - Before writing code: `python3 -m pytest -q` (expect 295 passed), `git status`, `git diff --stat`, `git log --oneline -5`.
 
 **GOAL**: Close ALL gaps above. Make the suite PROVE guard/cost/tz robustness. Don't just "run tests" - write comprehensive tests that would catch regressions.
 
 ## Current State
 - Branch: main @ HEAD (up to date with origin/main)
-- Tests: **268 passed, 0 failed** (all green)
+- Tests: **295 passed, 0 failed** (all green)
 - CI: Pattern sync fixed in `.github/workflows/main.yml`
-- Uncommitted: `.github/workflows/main.yml` (pattern sync fix)
+- Uncommitted: `.github/workflows/main.yml` (pattern sync fix) + `__pycache__/` dirs
 
 ## Bottlenecks Removed
-1. **Workflow/Python exclude pattern drift** - Added `*/.github/workflows/*` to `stage_safe_changes` case list. Was causing 2 failures, now fixed.
+1. **Workflow/Python exclude pattern drift** - Added `*/.github/workflows/*` to `stage_safe_changes()` bash case list at `.github/workflows/main.yml:1163`, matching Python `EXCLUDE_PATTERNS` (scripts/controller_progress.py:28). Was causing `TestStageSafeChangesPatternSync` (2 failures) and blocking green suite; now fixed and verified (295 passed).
 
 ## Remaining Bottlenecks (TO REMOVE BY TESTS)
 - **Test coverage gap** - Guards, cost aliases, monotonicity, tz handling, pipeline safety all lack tests despite existing implementation.
@@ -103,4 +100,4 @@ Assert end-to-end cleanliness:
 - Minimal diffs, follow existing code style
 
 ## NEXT ACTION
-**IMMEDIATELY**: Run recon commands, read the 5 core BAB files, start Phase 1 with failing tests in `TestLiquidityGuards`. Do NOT explore unrelated code until BAB coverage is closed.
+**IMMEDIATELY**: Run recon commands (`python3 -m pytest -q`, `git status`, `git diff --stat`, `git log --oneline -5`), read the core BAB files, start Phase 1 with failing tests in `TestLiquidityGuards`. Do NOT explore unrelated code until BAB coverage is closed.
