@@ -1,7 +1,7 @@
-# HANDOFF - 2026-10-28T17:19:15Z (updated 2026-10-28T18:20:00Z)
+# HANDOFF - 2026-10-28T17:29:19Z (updated 2026-10-28T17:29:19Z)
 
 ## Timestamp
-2026-10-28T18:20:00Z
+2026-10-28T17:29:19Z
 
 ## Purpose
 Single durable handoff. Start here. Ignore older handoffs unless explicitly needed for context.
@@ -10,8 +10,9 @@ Single durable handoff. Start here. Ignore older handoffs unless explicitly need
 Repository: **Crypto-Betting-Against-Beta**. Product is the "Betting Against Beta" (BAB) crypto strategy. Scaffolding (agent loop, accounting, diagnostics) supports building it. Everything below is ranked by that product name: BAB comes first, infra second.
 
 ## Current State
-- Branch main @ HEAD. Working tree: **intentional uncommitted changes** (see latest state). Tests: **348 passed, 0 failed** (as of 2026-10-28T18:20:00Z).
-- **FOCUS CAMPAIGN COMPLETE**: All 5 phases of "BAB Strategy Robustness & Production Readiness" executed with tests. Bottlenecks removed: pattern sync drift, JSON NaN emission, config range validation.
+- Branch main @ HEAD. Working tree: clean (no tracked uncommitted changes; only `__pycache__/` untracked). Tests: **348 passed, 0 failed** (verified 2026-10-28T17:29:19Z).
+- **BOTTLENECK REMOVED**: `.github/workflows/main.yml` `stage_safe_changes` case list now includes `*/.github/workflows/*`, matching Python `EXCLUDE_PATTERNS`. The 2 previously failing pattern-sync tests (`test_python_patterns_are_subset_of_workflow`, `test_nested_workflow_pattern_is_present_in_workflow`) now pass (68/68). All acceptance criteria below are met.
+- **FOCUS CAMPAIGN COMPLETE**: All 5 phases of "BAB Strategy Robustness & Production Readiness" executed with tests. Prior bottlenecks removed: pattern sync drift, JSON NaN emission, config range validation.
 
 ## Changes Made This Session (uncommitted, product-first)
 1. **`.github/workflows/main.yml`** — Added `*/.github/workflows/*` to the bash `stage_safe_changes` case list to match Python `EXCLUDE_PATTERNS`. Fixes 2 failing pattern-sync tests.
