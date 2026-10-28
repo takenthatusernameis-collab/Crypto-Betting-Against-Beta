@@ -1,7 +1,7 @@
-# HANDOFF - 2026-10-28T20:30:29Z (SINGLE DURABLE HANDOFF)
+# HANDOFF - 2026-10-28T20:55:08Z (SINGLE DURABLE HANDOFF)
 
 ## TIMESTAMP
-2026-10-28T20:30:29Z
+2026-10-28T20:55:08Z
 
 ## IMMEDIATE FIRST TASK (DO THIS NOW)
 **Priority: P0 - Start heavy work immediately on the BAB strategy**
@@ -12,7 +12,11 @@ cd /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
 python3 -m pytest -q  # Must show 349 passed, 0 failed
 ```
 
-2. **Pick ONE high-impact item from Priority 1 below and execute it fully** - write tests first, implement, test, refactor. Don't do trivial fixes.
+2. **Execute the clear initial task below (TDD, heavy work, multi-file):**
+   - **Item: Multi-format loaders** (Priority 1, Data Infrastructure Hardening)
+   - Extend `strategies/betting_against_beta/data_loader.py` to support Parquet, HDF5, and pandas pickle loaders with schema validation.
+   - Write failing tests first in `tests/test_betting_against_beta_data_loader.py`, then implement, then green suite, then refactor.
+   - Do not stop until this item is fully done across loader + tests + validation.
 
 **RULE: You MUST make substantial progress on the BAB strategy (strategies/betting_against_beta/). No busywork.**
 
@@ -22,23 +26,21 @@ python3 -m pytest -q  # Must show 349 passed, 0 failed
 - **Priority:** **BAB STRATEGY CODE > EVERYTHING ELSE**. Fix infra only if it blocks BAB. Otherwise ignore.
 
 ## Current Verified State
-- **Branch:** main @ `5ab3043`
-- **Working tree:** clean
+- **Branch:** main @ `0b5d132`
+- **Working tree:** dirty (uncommitted bottleneck fix — see below; do NOT commit unless asked)
 - **Tests:** **349 passed, 0 failed** (verified)
-- **Status:** Bottlenecks removed. Pattern-sync drift eliminated. All tests green.
+- **Status:** Bottleneck removed. Pattern-sync drift eliminated. All tests green.
 
 ## Bottlenecks Removed
-- CI/workflow pattern-sync drift fixed: added `*/.github/workflows/*` to `.github/workflows/main.yml` `stage_safe_changes` bash case, matching `scripts/controller_progress.py` `EXCLUDE_PATTERNS`. `test_python_patterns_are_subset_of_workflow` and `test_nested_workflow_pattern_is_present_in_workflow` now pass.
-- 2 failing controller tests eliminated; full suite is 349 passed, 0 failed.
-- Silent-error eradication complete across BAB pipeline.
-- Config immutability enforced.
+- **CI/workflow pattern-sync drift (recurring blocker across multiple sessions):** `.github/workflows/main.yml` `stage_safe_changes()` bash case list was missing the nested pattern `*/.github/workflows/*` that Python `EXCLUDE_PATTERNS` (`scripts/controller_progress.py:28`) already had. This caused `test_python_patterns_are_subset_of_workflow` and `test_nested_workflow_pattern_is_present_in_workflow` to fail on every session. **Fixed:** added `*/.github/workflows/*` immediately after `.github/workflows/*` in the case pattern at `.github/workflows/main.yml:1163`. Verified: both tests pass; full suite 349 passed, 0 failed.
+- Earlier removals (still valid): silent-error eradication across BAB pipeline; config immutability enforced; 2 previously failing controller tests eliminated.
 
 ## NEXT FOCUS CAMPAIGN: PRODUCTION-GRADE BAB STRATEGY (HEAVY WORK — MANDATORY)
 
 Agents must work down this campaign in order. No item may be skipped or deferred without a documented blocker in this handoff. Each item requires TDD: failing test → implement → pass → refactor, across multiple files.
 
 ### Priority 1: Data Infrastructure Hardening (CRITICAL) - START HERE
-- [ ] **Multi-format loaders**: Extend `data_loader.py` to support Parquet, HDF5, pandas pickle with schema validation
+- [ ] **Multi-format loaders**: Extend `data_loader.py` to support Parquet, HDF5, pandas pickle with schema validation  <-- NEXT CONCRETE TASK (start here now)
 - [ ] **Data quality checks**: Expand `quality.py` - gaps, outliers (z-score/IQR), stale data, volume anomalies, duplicate timestamps
 - [ ] **Corporate actions**: Handle splits/dividends/airdrops or document assumptions explicitly in code + tests
 - [ ] **Time alignment**: Robust tz-aware handling, missing bars, non-trading days, DST
