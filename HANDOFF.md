@@ -1,7 +1,7 @@
-# HANDOFF - 2026-10-28T13:21:27Z
+# HANDOFF - 2026-10-28T13:22:30Z
 
 ## Timestamp
-2026-10-28T13:21:27Z
+2026-10-28T13:22:30Z
 
 ## Purpose
 **SINGLE DURABLE HANDOFF. START HERE.** Ignore all other `HANDOFF*.md` files unless you need historical context. This file is the source of truth for the next agentic work session.
@@ -13,17 +13,17 @@ Repository: **Crypto-Betting-Against-Beta**. Product is the **Betting Against Be
 ## Current State (Ground Truth)
 - Branch: `main` @ `7a29016` (latest checkpoint)
 - Tests: **295 passed, 0 failed** (`python3 -m pytest -q`)
-- Working tree: clean except `__pycache__/` (and the handoff update)
-- Bottlenecks: **NONE CRITICAL** — CI pattern-sync drift re-fixed in this session; tests 295 passed.
+- Working tree: clean (CI pattern-sync drift fixed in this session)
+- Bottlenecks: **NONE CRITICAL**
 
 ## Bottlenecks Removed (THIS SESSION)
-- **CI pattern-sync drift (FIXED)** — `.github/workflows/main.yml` `stage_safe_changes()` now includes `*/.github/workflows/*` (matching `scripts/controller_progress.py:28`). Controller progress tests green; full suite restored to 295 passed.
+- **CI pattern-sync drift (FIXED)** — `.github/workflows/main.yml` `stage_safe_changes()` now includes `*/.github/workflows/*` matching `scripts/controller_progress.py:28`. Controller progress tests green; full suite restored to 295 passed.
 
 ## INITIAL TASK MESSAGE FOR NEXT AGENTIC WORK SESSION (MUST START HERE)
 
 **FOCUS CAMPAIGN: BAB HARDENING, ROBUSTNESS & PERFORMANCE (FORCE HEAVY CONTINUOUS PROGRESS)**
 
-Strategy is green. Make it bulletproof for messy real crypto data, faster at scale, and impossible to silently fail. Do not coast — stress test everything.
+Strategy is green (295 passed). Make it bulletproof for messy real crypto data, faster at scale, and impossible to silently fail. Do not coast — stress test everything. Heavy work required.
 
 ### Recon (MANDATORY FIRST STEP)
 ```bash
