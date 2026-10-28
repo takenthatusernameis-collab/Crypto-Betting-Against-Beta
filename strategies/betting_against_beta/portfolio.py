@@ -6,6 +6,11 @@ import numpy as np
 import pandas as pd
 
 
+class BABPortfolioError(ValueError):
+    """Raised when portfolio constraints are violated."""
+    pass
+
+
 def _clean_signal_value(val):
     """Return 1, -1, or 0 for a signal value, never raising."""
     try:
@@ -22,7 +27,9 @@ def _clean_signal_value(val):
         return 0
 
 
-def construct_portfolio(signals_df, dollar_neutral=True):
+def construct_portfolio(signals_df, dollar_neutral=True, gross_exposure_limit=None,
+                        max_single_weight=None, net_exposure_limit=None,
+                        enforce_risk_checks=False):
     """Construct portfolio weights from signals.
 
     Robustness guarantees:
@@ -77,4 +84,29 @@ def construct_portfolio(signals_df, dollar_neutral=True):
 
     # Final finiteness guard: coerce any stray non-finite to 0.0.
     weights = weights.replace([np.inf, -np.inf], np.nan).fillna(0.0)
+
+    if enforce_risk_checks or gross_exposure_limit is not None or max_single_weight is not None or net_exposure_limit is not None:
+        try:
+            gross_limit = float(gross_exposure_limit) if gross_exposure_limit is not None else 2.0
+            net_limit = float(net_exposure_limit) if net_exposure_limit is not None else 1e-6
+            max_w = float(max_single_weight) if max_single_weight is not None else 1.0
+        except Exception:
+            gross_limit, net_limit, max_w = 2.0, 1e-6, 1.0
+        for idx in weights.index:
+            row_w = weights.loc[idx]
+            # Max single asset weight
+            abs_w = row_w.abs()
+            if abs_w.max() > max_w + 1e-12:
+                raise BABPortfolioError("Single asset weight exceeds limit")
+            gross = float(abs_w.sum())
+            if gross > gross_limit + 1e-12:
+                raise BABPortfolioError("Gross exposure exceeds limit")
+            net = float(row_w.sum())
+            if abs(net) > net_limit + 1e-12:
+                raise BABPortfolioError("Net exposure exceeds dollar-neutral limit")
+
     return weights
+
+
+# Alias
+check_portfolio_risk = construct_portfolio

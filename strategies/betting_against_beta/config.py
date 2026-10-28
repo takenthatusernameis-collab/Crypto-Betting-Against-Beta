@@ -24,6 +24,8 @@ class BABConfig:
     min_rows: int = 2
     # Transaction costs as a fraction of turnover (applied in backtest).
     transaction_costs: float = 0.0
+    # Slippage as a fraction of turnover (applied in backtest).
+    slippage: float = 0.0
     # Rolling beta parameters.
     rolling_min_window: int = 60
     # Seed for synthetic data generation.

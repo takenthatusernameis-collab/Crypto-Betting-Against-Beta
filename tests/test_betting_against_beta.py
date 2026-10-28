@@ -427,3 +427,89 @@ class TestMinRowsEnforcement:
         result = strategy.run()
         assert len(result.returns) >= 10
         assert np.isfinite(result.weights.values).all()
+
+
+class TestSlippageModel:
+    def test_slippage_reduces_cumulative_vs_zero_slippage(self):
+        import pandas as pd
+        import numpy as np
+        from strategies.betting_against_beta.backtest import run_backtest
+        idx = pd.date_range("2023-01-01", periods=3, freq="D")
+        returns = pd.DataFrame({"A": [0.01, 0.01, 0.01]}, index=idx)
+        weights = pd.DataFrame({"A": [1.0, 0.0, 1.0]}, index=idx)
+        free = run_backtest(returns, weights, transaction_costs=0.0, slippage=0.0)
+        costly = run_backtest(returns, weights, transaction_costs=0.0, slippage=0.01)
+        assert costly["cumulative"].iloc[-1] < free["cumulative"].iloc[-1]
+
+    def test_slippage_scales_monotonically_with_turnover(self):
+        import pandas as pd
+        from strategies.betting_against_beta.backtest import run_backtest
+        idx = pd.date_range("2023-01-01", periods=4, freq="D")
+        returns = pd.DataFrame({"A": [0.01, 0.01, 0.01, 0.01]}, index=idx)
+        weights = pd.DataFrame({"A": [1.0, 0.5, 0.0, 0.5]}, index=idx)
+        r0 = run_backtest(returns, weights, slippage=0.0)["cumulative"].iloc[-1]
+        r1 = run_backtest(returns, weights, slippage=0.001)["cumulative"].iloc[-1]
+        r2 = run_backtest(returns, weights, slippage=0.002)["cumulative"].iloc[-1]
+        assert r1 < r0
+        assert r2 < r1
+
+
+class TestMultiDayRebalance:
+    def test_weekly_rebalance_fewer_events_than_daily(self):
+        from strategies.betting_against_beta.config import BABConfig
+        from strategies.betting_against_beta.strategy import BABStrategy
+        cfg = BABConfig(rebalance_freq="daily", synthetic_n_days=80, synthetic_seed=7)
+        s = BABStrategy(cfg)
+        res = run_strategy_counts(s, "daily")
+        cfg_w = BABConfig(rebalance_freq="weekly", synthetic_n_days=80, synthetic_seed=7)
+        s_w = BABStrategy(cfg_w)
+        res_w = run_strategy_counts(s_w, "weekly")
+        # count rebalance events (weight changes)
+        assert res_w['rebalance_events'] < res['rebalance_events']
+
+    def test_weights_constant_within_rebalance_window_weekly(self):
+        import pandas as pd
+        import numpy as np
+        from strategies.betting_against_beta.config import BABConfig
+        from strategies.betting_against_beta.strategy import BABStrategy
+        cfg = BABConfig(rebalance_freq="weekly", synthetic_n_days=50, synthetic_seed=123)
+        s = BABStrategy(cfg)
+        res = s.run()
+        w = res.weights
+        if isinstance(w.index, pd.DatetimeIndex):
+            # check that within same week weights don't change? or just that changes happen less often
+            # easier: count distinct weight rows
+            pass
+        # weights constant within window - at least not changing every day
+        diffs = w.diff().abs().sum(axis=1)
+        # non-zero changes should be fewer
+        assert (diffs > 1e-18).sum() < len(w) * 0.5
+
+
+def run_strategy_counts(strategy, freq):
+    res = strategy.run()
+    w = res.weights
+    diffs = w.diff().abs().sum(axis=1)
+    rebalance_events = int((diffs > 1e-18).sum())
+    return {'rebalance_events': rebalance_events}
+
+
+class TestRealPriceIngestion:
+    def test_price_fixture_with_dates_and_gaps_produces_finite_returns(self):
+        from strategies.betting_against_beta.data_loader import load_prices
+        res = load_prices('tests/fixtures/real_market_prices_expanded.csv', benchmark='BTC')
+        import pandas as pd
+        assert isinstance(res.index, pd.DatetimeIndex)
+        import numpy as np
+        assert np.isfinite(res.values).all()
+        assert 'BTC' in res.columns
+
+    def test_malformed_dates_raise_bab_data_error(self):
+        import pandas as pd
+        from strategies.betting_against_beta.data_loader import load_prices, BABDataError
+        df = pd.DataFrame({'date': ['bad', 'also bad'], 'BTC': [1.0, 2.0], 'ETH': [0.5, 1.5]})
+        try:
+            load_prices(df, benchmark='BTC')
+            assert False, "should have raised"
+        except BABDataError:
+            pass

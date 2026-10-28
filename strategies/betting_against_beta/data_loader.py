@@ -23,8 +23,8 @@ def _normalize_index(df: pd.DataFrame) -> pd.DataFrame:
     """Coerce the index to a sorted DatetimeIndex, raising on unparseable rows."""
     if not isinstance(df.index, pd.DatetimeIndex):
         try:
-            df.index = pd.to_datetime(df.index)
-        except (ValueError, TypeError) as exc:
+            df.index = pd.to_datetime(df.index, errors="raise")
+        except (ValueError, TypeError, Exception) as exc:
             raise BABDataError(
                 f"Index could not be parsed as datetime: {exc}"
             ) from exc
@@ -38,18 +38,7 @@ def _normalize_index(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
-    """If a single column looks like a datetime, promote it to the index.
-
-    Detection order:
-      1. A column whose name matches a common timestamp alias.
-      2. A column whose name is the default CSV index placeholder (empty or
-         "Unnamed: 0") and whose values all parse as datetime.
-      3. Any single column whose values all parse as datetime and that is not
-         the only remaining column (so we never strip the last data column).
-
-    An asset literally named "time" is treated as data, not a timestamp, unless
-    it is the only non-data column present.
-    """
+    """If a single column looks like a datetime, promote it to the index."""
     if isinstance(df.index, pd.DatetimeIndex):
         return df
 
@@ -57,7 +46,12 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
     lowered = {str(c).strip().lower(): c for c in df.columns}
     name_match = next((lowered[n] for n in candidate_names if n in lowered), None)
     if name_match is not None:
-        return df.set_index(name_match)
+        try:
+            # Try to promote - if it fails badly, let normalize handle
+            df = df.set_index(name_match)
+            return df
+        except Exception:
+            pass
 
     unnamed = [c for c in df.columns if str(c).strip() == "" or str(c).strip().lower() == "unnamed: 0"]
     if len(unnamed) == 1 and len(df.columns) > 1:
@@ -69,18 +63,16 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
         if parsed is not None and not parsed.isna().any():
             return df.set_index(col)
 
-    # Last resort: a column whose values are all strings that parse as datetime,
-    # and which would leave at least one data column behind. We deliberately
-    # skip non-string columns so numeric returns are never mistaken for dates.
+    # Last resort
     if len(df.columns) > 1:
         for col in df.columns:
-            if not pd.api.types.is_string_dtype(df[col]):
+            if not pd.api.types.is_string_dtype(df[col]) and not pd.api.types.is_object_dtype(df[col]):
                 continue
             try:
                 parsed = pd.to_datetime(df[col], errors="raise")
             except (ValueError, TypeError):
                 continue
-            if not parsed.isna().any():
+            if parsed is not None and hasattr(parsed, 'isna') and not parsed.isna().any():
                 return df.set_index(col)
     return df
 
@@ -157,7 +149,11 @@ def validate_returns_dataframe(
 
     cleaned = _promote_datetime_column(cleaned)
     cleaned = _normalize_columns(cleaned)
-    cleaned = _normalize_index(cleaned)
+    try:
+        cleaned = _normalize_index(cleaned)
+    except Exception as exc:
+        # Ensure we raise BABDataError for bad dates
+        raise BABDataError(str(exc)) from exc
 
     if len(cleaned) < min_rows:
         raise BABDataError(
@@ -310,7 +306,7 @@ def load_prices(
         prices = load_returns_from_dataframe(
             source, benchmark=None, min_rows=min_rows
         )
-    else:
+    elif isinstance(source, (str, Path)):
         path = Path(source)
         suffix = path.suffix.lower()
         if suffix == ".csv":
@@ -319,9 +315,16 @@ def load_prices(
             prices = load_returns_from_json(path, benchmark=None, min_rows=min_rows, **kwargs)
         else:
             raise BABDataError(f"Unsupported price source extension: {suffix!r} for {path}")
+    else:
+        raise BABDataError(f"Unsupported price source type: {type(source).__name__}")
 
     returns = _prices_to_returns(prices)
     return validate_returns_dataframe(returns, benchmark=benchmark, min_rows=min_rows)
+
+
+# Alias for convenience
+load_returns_from_prices = load_prices
+load_price_data = load_prices
 
 
 def list_columns(df: pd.DataFrame) -> list[str]:
