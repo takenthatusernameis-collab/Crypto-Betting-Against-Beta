@@ -1,7 +1,7 @@
-# HANDOFF - 2026-10-28T07:21:55Z
+# HANDOFF - 2026-10-28T07:22:08Z
 
 ## Timestamp
-2026-10-28T07:21:55Z
+2026-10-28T07:22:08Z
 
 ## Purpose
 Durable single handoff. Start here. Ignore older HANDOFF_*.md files unless explicitly needed for context. HANDOFF_NEXT_SESSION.md is a symlink to this file.
@@ -12,7 +12,7 @@ Repository: **Crypto-Betting-Against-Beta**. Product is the "Betting Against Bet
 ## INITIAL TASK MESSAGE FOR NEXT AGENTIC WORK SESSION (MUST START HERE)
 **FOCUS CAMPAIGN: HARDEN BAB FOR TRADEABLE REALISM**
 
-All tests green (268 passed, 0 failed). Bottleneck removed (CI pattern sync: `*/.github/workflows/*` added to `.github/workflows/main.yml` stage_safe_changes). Next agent MUST advance BAB robustness without breaking behavior.
+Bottleneck removed: CI pattern sync (`*/.github/workflows/*` added to `.github/workflows/main.yml` `stage_safe_changes`). Suite was red at 266 passed / 2 failed (workflow `stage_safe_changes` was missing the nested `*/.github/workflows/*` pattern that Python `EXCLUDE_PATTERNS` requires). Now **268 passed, 0 failed**. Next agent MUST advance BAB robustness without breaking behavior. Do not re-open the pattern-sync issue; it is closed.
 
 ### Campaign items (gated: failing test first → implement → green suite — do not skip)
 1. **Fees/Slippage & Turnover Correctness (IMMEDIATE)**: Verify `run_backtest` computes turnover once symmetrically; ensure `tc`/`slippage_cost` aliases work and are applied correctly. Add tests for zero/negative turnover, NaN/inf weights.
@@ -25,19 +25,20 @@ All tests green (268 passed, 0 failed). Bottleneck removed (CI pattern sync: `*/
 ### Execution Rules
 1. **START HERE** - Read `strategies/betting_against_beta/{backtest,portfolio,strategy,config,data_loader,beta,signals,metrics}.py` before changes.
 2. **TDD MANDATORY** - Failing test → implement → pass. No new behavior without a test.
-3. **BAB FIRST** - Product focus over infra.
+3. **BAB FIRST** - Product focus over infra. No drift into controller/infra refactors unless they block BAB.
 4. **NO COMMIT** unless explicitly asked.
 5. **HANDOFF DISCIPLINE** - Update this file when significant progress is made or blocked.
+6. **RECON FIRST** - `python3 -m pytest -q` (expect 268 passed), `git status`, `git diff --stat`, `git log --oneline -5`.
 
 **GOAL**: Take BAB from functional to tradeable-realism hardened with tests proving robustness.
 
 ## Current State
-- Branch: main @ HEAD
+- Branch: main @ HEAD (up to date with origin/main)
 - Tests: **268 passed, 0 failed** (all green)
-- CI pattern sync fixed in `.github/workflows/main.yml` (added `*/.github/workflows/*`)
+- CI pattern sync fixed in `.github/workflows/main.yml` (added `*/.github/workflows/*` to `stage_safe_changes`)
 
 ## Bottlenecks Removed
-- Workflow/Python exclude pattern drift (added `*/.github/workflows/*` to workflow stage_safe_changes list; suite was red at 266 passed / 2 failed, now 268 passed / 0 failed)
+- Workflow/Python exclude pattern drift (added `*/.github/workflows/*` to workflow `stage_safe_changes` case list; suite was red at 266 passed / 2 failed, now 268 passed / 0 failed)
 
 ## CONSTRAINTS
 - Product-first (BAB), TDD, offline/testable
@@ -48,4 +49,4 @@ All tests green (268 passed, 0 failed). Bottleneck removed (CI pattern sync: `*/
 - No fabricated market data
 
 ## UNCOMMITTED WORKING CHANGES
-- `.github/workflows/main.yml` - pattern sync fix (`*/.github/workflows/*`)
+- `.github/workflows/main.yml` - pattern sync fix (added `*/.github/workflows/*` to `stage_safe_changes`)
