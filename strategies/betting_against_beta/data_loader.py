@@ -8,6 +8,7 @@ ensures the consumed DataFrame matches the shape the strategy pipeline expects
 from __future__ import annotations
 
 import json
+import pickle
 from pathlib import Path
 from typing import Iterable
 
@@ -267,6 +268,86 @@ def load_returns_from_csv(
     return validate_returns_dataframe(df, benchmark=benchmark, min_rows=min_rows)
 
 
+def load_returns_from_parquet(
+    path: str | Path,
+    benchmark: str | None = None,
+    min_rows: int = 1,
+    **kwargs,
+) -> pd.DataFrame:
+    """Load returns from a Parquet file and validate it."""
+    pq_path = Path(path)
+    if not pq_path.exists():
+        raise BABDataError(f"Parquet file not found: {pq_path}")
+    try:
+        try:
+            df = pd.read_parquet(pq_path, **kwargs)
+        except Exception as exc:
+            raise BABDataError(
+                f"Failed to read Parquet {pq_path}: {exc}. "
+                "Install 'pyarrow' or 'fastparquet' to enable parquet support."
+            ) from exc
+    except BABDataError:
+        raise
+    except (OSError, ValueError) as exc:
+        raise BABDataError(f"Failed to read Parquet {pq_path}: {exc}") from exc
+    return validate_returns_dataframe(df, benchmark=benchmark, min_rows=min_rows)
+
+
+def load_returns_from_hdf5(
+    path: str | Path,
+    benchmark: str | None = None,
+    min_rows: int = 1,
+    key: str | None = None,
+    **kwargs,
+) -> pd.DataFrame:
+    """Load returns from an HDF5 file and validate it."""
+    h5_path = Path(path)
+    if not h5_path.exists():
+        raise BABDataError(f"HDF5 file not found: {h5_path}")
+    try:
+        try:
+            if key is not None:
+                df = pd.read_hdf(h5_path, key=key, **kwargs)
+            else:
+                df = pd.read_hdf(h5_path, **kwargs)
+        except Exception as exc:
+            raise BABDataError(
+                f"Failed to read HDF5 {h5_path}: {exc}. "
+                "Install 'tables' to enable hdf5 support."
+            ) from exc
+    except BABDataError:
+        raise
+    except (OSError, ValueError) as exc:
+        raise BABDataError(f"Failed to read HDF5 {h5_path}: {exc}") from exc
+    return validate_returns_dataframe(df, benchmark=benchmark, min_rows=min_rows)
+
+
+def load_returns_from_pickle(
+    path: str | Path,
+    benchmark: str | None = None,
+    min_rows: int = 1,
+    **kwargs,
+) -> pd.DataFrame:
+    """Load returns from a pickle file and validate it."""
+    pkl_path = Path(path)
+    if not pkl_path.exists():
+        raise BABDataError(f"Pickle file not found: {pkl_path}")
+    try:
+        with pkl_path.open("rb") as handle:
+            obj = pickle.load(handle)
+        if isinstance(obj, pd.DataFrame):
+            df = obj
+        elif isinstance(obj, dict):
+            df = pd.DataFrame(obj)
+        else:
+            raise BABDataError(f"Unsupported pickle object type: {type(obj).__name__}")
+    except BABDataError:
+        raise
+    except (OSError, pickle.UnpicklingError, ValueError, TypeError) as exc:
+        raise BABDataError(f"Failed to read pickle {pkl_path}: {exc}") from exc
+    return validate_returns_dataframe(df, benchmark=benchmark, min_rows=min_rows)
+
+
 def load_returns_from_json(
     path: str | Path,
     benchmark: str | None = None,
@@ -309,7 +390,10 @@ def load_returns(
     """Dispatch to the appropriate loader based on the type of ``source``.
 
     - ``str``/``Path`` ending in ``.csv`` -> CSV loader
-    - ``str``/``Path`` ending in ``.json`` -> JSON loader
+    - ``str``/``Path`` ending in ``.json``/.jsonl -> JSON loader
+    - ``str``/``Path`` ending in ``.parquet``/.pq -> Parquet loader
+    - ``str``/``Path`` ending in ``.h5``/.hdf5/.hdf -> HDF5 loader
+    - ``str``/``Path`` ending in ``.pkl``/.pickle -> Pickle loader
     - ``pd.DataFrame`` -> DataFrame loader
     """
     if isinstance(source, pd.DataFrame):
@@ -321,6 +405,13 @@ def load_returns(
         return load_returns_from_csv(path, benchmark=benchmark, min_rows=min_rows, **kwargs)
     if suffix in (".json", ".jsonl"):
         return load_returns_from_json(path, benchmark=benchmark, min_rows=min_rows, **kwargs)
+    if suffix in (".parquet", ".pq"):
+        return load_returns_from_parquet(path, benchmark=benchmark, min_rows=min_rows, **kwargs)
+    if suffix in (".h5", ".hdf5", ".hdf"):
+        key = kwargs.pop("key", None)
+        return load_returns_from_hdf5(path, benchmark=benchmark, min_rows=min_rows, key=key, **kwargs)
+    if suffix in (".pkl", ".pickle"):
+        return load_returns_from_pickle(path, benchmark=benchmark, min_rows=min_rows, **kwargs)
     raise BABDataError(f"Unsupported data source extension: {suffix!r} for {path}")
 
 
