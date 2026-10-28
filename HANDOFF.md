@@ -1,53 +1,106 @@
-# HANDOFF - 2026-10-28T08:20:00Z
+# HANDOFF - 2026-10-28T08:19:22Z
 
 ## Timestamp
-2026-10-28T08:20:00Z
+2026-10-28T08:19:22Z
 
 ## Purpose
-Durable single handoff. Start here. Ignore older HANDOFF_*.md files unless explicitly needed for context. HANDOFF_NEXT_SESSION.md is a symlink to this file.
+**SINGLE DURABLE HANDOFF. START HERE.** Ignore all other `HANDOFF*.md` files unless you need historical context. `HANDOFF_NEXT_SESSION.md` is the source of truth.
 
 ## Project Name Priority
-Repository: **Crypto-Betting-Against-Beta**. Product is the "Betting Against Beta" (BAB) crypto strategy — market-neutral, long low-beta / short high-beta crypto assets vs a benchmark (default BTC), dollar-neutral equal weights, rolling OLS beta, one-day-lagged backtest. Everything below is ranked by that product name: BAB comes first, infra second.
+Repository: **Crypto-Betting-Against-Beta**. Product is the **Betting Against Beta (BAB)** crypto strategy — market-neutral, long low-beta / short high-beta crypto assets vs benchmark (default BTC), dollar-neutral equal weights, rolling OLS beta, one-day-lagged backtest. **BAB ALWAYS COMES FIRST. Infra only if it blocks BAB.**
 
 ## INITIAL TASK MESSAGE FOR NEXT AGENTIC WORK SESSION (MUST START HERE)
-**FOCUS CAMPAIGN: CLOSE BAB GUARD & COST TEST COVERAGE (TDD)**
 
-Bottleneck removed: CI pattern sync. `.github/workflows/main.yml` `stage_safe_changes` case list was missing the nested `*/.github/workflows/*` pattern that Python `EXCLUDE_PATTERNS` requires. Pattern added. Suite was red at 266 passed / 2 failed; now **268 passed, 0 failed**. Do not re-open the pattern-sync issue; it is closed.
+**FOCUS CAMPAIGN: CLOSE BAB GUARD & COST TEST COVERAGE WITH HEAVY TDD (NO SHORTCUTS)**
 
-Verified ground truth (do not re-verify unless something changes): the guard/cost behavior the prior campaign listed already EXISTS in code — `max_position_size`, `max_turnover`/`max_total_turnover` all raise `BABDataError` on violations and no-op when None; `tc`/`slippage_cost` aliases resolve in `run_backtest`. **The bottleneck is not implementation, it is zero test coverage.** The next agent's heavy work is writing the missing tests (TDD: failing test first → implement if needed → green suite). Do not re-implement what works.
+### Ground Truth (DO NOT RE-IMPLEMENT)
+- Guards exist: `max_position_size`, `max_turnover`/`max_total_turnover` raise `BABDataError` on violations and no-op when `None` (`strategies/betting_against_beta/portfolio.py:94-137`, wired in `strategy.py:173-174`).
+- Cost aliases exist: `tc`/`slippage_cost` resolve in `run_backtest` (`strategies/betting_against_beta/backtest.py:7-77`).
+- CI pattern sync is **CLOSED**: `.github/workflows/main.yml` now includes `*/.github/workflows/*` in `stage_safe_changes`. Suite is green.
 
-### Campaign items (gated: failing test first → implement → green suite — do not skip)
-1. **Liquidity/Participation Guards — TEST COVERAGE (IMMEDIATE)**: No test references `max_position_size`, `max_turnover`, or `max_total_turnover`. Add tests in `tests/test_betting_against_beta.py` (new class `TestLiquidityGuards`): violation raises `BABDataError` (not generic), no-op when absent/None, `max_total_turnover` alias routes to `max_turnover`, negative/zero limit raises `BABDataError`. Behavior is in `strategies/betting_against_beta/portfolio.py:94-137` and wired in `strategy.py:173-174`.
-2. **Turnover/Cost Correctness — TEST COVERAGE**: Add tests for `run_backtest` (`strategies/betting_against_beta/backtest.py:7-77`): zero turnover day produces no cost, negative turnover handled, NaN/inf weights coerced, `tc` and `slippage_cost` aliases produce identical results to `transaction_costs`/`slippage`.
-3. **Cost Monotonicity — TEST COVERAGE**: No test proves higher `transaction_costs` -> strictly worse cumulative. Add: `costly.cumulative.iloc[-1] < free.cumulative.iloc[-1]` for increasing cost levels on a rebalancing weight path (slippage monotonicity already exists at `test_betting_against_beta.py:511` — extend the same idea to `transaction_costs`).
-4. **Data Integrity — Timezone Handling**: `data_loader.py` tests cover string-index normalization but not tz-aware vs tz-naive `DatetimeIndex`. Add tests: tz-aware index is accepted/normalized consistently, tz-naive accepted, malformed dates still raise `BABDataError`, benchmark with no finite values raises.
-5. **Pipeline Safety Regression**: Add a test asserting `BABStrategy.run()` output weights/signals/betas contain no NaN/inf on the synthetic default path and on the expanded real fixture (`tests/fixtures/real_market_prices_expanded.csv`).
+**BOTTLENECK = ZERO TEST COVERAGE. Your job is to PROVE these behaviors with tests.**
 
-### Execution Rules
-1. **START HERE** - Read `strategies/betting_against_beta/{backtest,portfolio,strategy,config,data_loader,beta,signals,metrics}.py` before changes.
-2. **TDD MANDATORY** - Failing test → implement → pass. No new behavior without a test.
-3. **BAB FIRST** - Product focus over infra. No drift into controller/infra refactors unless they block BAB.
+### Heavy Campaign (Execute in order, TDD strictly)
+
+#### PHASE 1: LIQUIDITY/PARTICIPATION GUARDS (IMMEDIATE - HEAVY)
+Create `TestLiquidityGuards` in `tests/test_betting_against_beta.py`. You MUST write failing tests first:
+
+- [ ] `max_position_size` violation raises `BABDataError` (assert exception type, not generic Exception)
+- [ ] `max_turnover` violation raises `BABDataError`
+- [ ] `max_total_turnover` violation raises `BABDataError`
+- [ ] Guards no-op when `None`/absent (default behavior unchanged)
+- [ ] `max_total_turnover` is an alias that routes to `max_turnover` (test both paths produce identical error)
+- [ ] Negative/zero limits raise `BABDataError`
+- [ ] Guard interactions with equal-weight dollar-neutral construction don't break existing behavior
+
+#### PHASE 2: TURNOVER/COST CORRECTNESS (HEAVY)
+Add tests for `run_backtest` covering:
+
+- [ ] Zero turnover day produces no transaction/slippage costs
+- [ ] Negative turnover handled correctly (|turnover| or sign handling - verify actual behavior)
+- [ ] NaN/inf weights coerced safely (no crashes, no NaN in outputs)
+- [ ] `tc` alias == `transaction_costs` results (byte-for-byte equivalent on same inputs)
+- [ ] `slippage_cost` alias == `slippage` results (byte-for-byte equivalent on same inputs)
+- [ ] Both aliases work together without conflict
+
+#### PHASE 3: COST MONOTONICITY (HEAVY)
+Prove robustness with monotonicity tests:
+
+- [ ] Higher `transaction_costs` → strictly worse final cumulative return: `costly.cumulative.iloc[-1] < free.cumulative.iloc[-1]` on rebalancing path
+- [ ] Higher `slippage` → strictly worse final cumulative return (extend existing pattern from line ~511)
+- [ ] Monotonicity holds across multiple cost levels (e.g., 0, 0.001, 0.005)
+- [ ] Cost monotonicity doesn't introduce NaN/inf
+
+#### PHASE 4: DATA INTEGRITY - TIMEZONE HANDLING (HEAVY)
+Expand `data_loader` coverage:
+
+- [ ] tz-aware `DatetimeIndex` accepted and normalized consistently
+- [ ] tz-naive `DatetimeIndex` still accepted (existing behavior preserved)
+- [ ] Mixed timezone scenarios don't crash
+- [ ] Malformed dates still raise `BABDataError`
+- [ ] Benchmark with no finite values raises `BABDataError`
+- [ ] Index alignment with tz-aware/tz-naive doesn't break beta calculation
+
+#### PHASE 5: PIPELINE SAFETY REGRESSION (HEAVY)
+Assert end-to-end cleanliness:
+
+- [ ] `BABStrategy.run()` on default synthetic path produces no NaN/inf in weights/signals/betas/returns
+- [ ] Same assertion on `tests/fixtures/real_market_prices_expanded.csv`
+- [ ] Dollar-neutral property holds (weights sum to ~0) on both paths
+- [ ] Long/short counts match quantile expectations
+- [ ] No lookahead: verify lagged weights behavior
+
+### Execution Rules (NON-NEGOTIABLE)
+1. **START HERE** - Read `strategies/betting_against_beta/{backtest,portfolio,strategy,config,data_loader,beta,signals,metrics}.py` before making ANY changes.
+2. **TDD MANDATORY** - Write failing test → understand failure → minimal fix if implementation is broken → green. If implementation is correct (as stated), tests will just fail due to missing coverage and you need to write them to pass against existing correct behavior.
+3. **BAB FIRST** - Product focus over infra. NO controller/infra refactors unless they directly block BAB tests.
 4. **NO COMMIT** unless explicitly asked.
-5. **HANDOFF DISCIPLINE** - Update this file when significant progress is made or blocked.
-6. **RECON FIRST** - `python3 -m pytest -q` (expect 268 passed), `git status`, `git diff --stat`, `git log --oneline -5`.
+5. **HEAVY WORK REQUIRED** - Do not stop at 1-2 tests. Complete phases systematically. Each phase should add multiple tests.
+6. **VERIFY CONSTANTLY** - Run `python3 -m pytest -q` after each phase. Never leave suite broken.
+7. **RECON FIRST** - Before writing code: `python3 -m pytest -q` (expect 268 passed), `git status`, `git diff --stat`, `git log --oneline -5`.
 
-**GOAL**: Close the BAB guard/cost/tz test-coverage gap with TDD so the suite proves robustness, not just runs.
+**GOAL**: Close ALL gaps above. Make the suite PROVE guard/cost/tz robustness. Don't just "run tests" - write comprehensive tests that would catch regressions.
 
 ## Current State
 - Branch: main @ HEAD (up to date with origin/main)
 - Tests: **268 passed, 0 failed** (all green)
-- CI pattern sync fixed in `.github/workflows/main.yml` (added `*/.github/workflows/*` to `stage_safe_changes` case list)
+- CI: Pattern sync fixed in `.github/workflows/main.yml`
+- Uncommitted: `.github/workflows/main.yml` (pattern sync fix)
 
 ## Bottlenecks Removed
-- Workflow/Python exclude pattern drift (added `*/.github/workflows/*` to workflow `stage_safe_changes` case list; suite was red at 266 passed / 2 failed, now 268 passed / 0 failed)
+1. **Workflow/Python exclude pattern drift** - Added `*/.github/workflows/*` to `stage_safe_changes` case list. Was causing 2 failures, now fixed.
+
+## Remaining Bottlenecks (TO REMOVE BY TESTS)
+- **Test coverage gap** - Guards, cost aliases, monotonicity, tz handling, pipeline safety all lack tests despite existing implementation.
 
 ## CONSTRAINTS
 - Product-first (BAB), TDD, offline/testable
 - No commit unless explicitly asked
-- Every new behavior needs a test
+- Every new behavior needs a test (coverage of existing behavior counts as closing gaps)
 - No NaN/inf in weights/signals/metrics on tested inputs
 - Consistent `BABDataError` for data issues
 - No fabricated market data
+- Minimal diffs, follow existing code style
 
-## UNCOMMITTED WORKING CHANGES
-- `.github/workflows/main.yml` - pattern sync fix (added `*/.github/workflows/*` to stage_safe_changes case list)
+## NEXT ACTION
+**IMMEDIATELY**: Run recon commands, read the 5 core BAB files, start Phase 1 with failing tests in `TestLiquidityGuards`. Do NOT explore unrelated code until BAB coverage is closed.
