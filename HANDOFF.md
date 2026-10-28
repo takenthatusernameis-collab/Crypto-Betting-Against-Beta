@@ -1,64 +1,70 @@
-# HANDOFF - 2026-10-28T07:12:32Z
+# HANDOFF - 2026-10-28T07:14:30Z
 
 ## Timestamp
-2026-10-28T07:12:32Z
+2026-10-28T07:14:30Z
 
 ## Purpose
 Durable single handoff. Start here. Ignore older HANDOFF_*.md files unless explicitly needed for context. HANDOFF_NEXT_SESSION.md is a symlink to this file.
 
 ## Project Name Priority
-Repository: **Crypto-Betting-Against-Beta**. Product is the "Betting Against Beta" (BAB) crypto strategy — market-neutral, long low-beta / short high-beta crypto assets vs a benchmark (default BTC), dollar-neutral equal weights, rolling OLS beta, one-day-lagged backtest. Scaffolding (agent loop, accounting, diagnostics) supports building it. Everything below is ranked by that product name: BAB comes first, infra second.
+Repository: **Crypto-Betting-Against-Beta**. Product is the "Betting Against Beta" (BAB) crypto strategy — market-neutral, long low-beta / short high-beta crypto assets vs a benchmark (default BTC), dollar-neutral equal weights, rolling OLS beta, one-day-lagged backtest. Everything below is ranked by that product name: BAB comes first, infra second.
 
 ## INITIAL TASK MESSAGE FOR NEXT AGENTIC WORK SESSION (MUST START HERE)
-**FOCUS CAMPAIGN: ADVANCE BAB REALISM TO TRADEABLE READINESS**
+**FOCUS CAMPAIGN: HARDEN BAB FOR TRADEABLE REALISM**
 
-The codebase is in clean, test-green state (268 passed, 0 failed). Bottlenecks removed. Next: push BAB toward tradeable realism with stricter guards/tests where missing, without breaking behavior.
+All tests green (268 passed, 0 failed). Bottlenecks removed (CI pattern sync fixed). Next agent MUST advance BAB robustness without breaking behavior.
 
-### Priority 1: Execution Realism (hard constraints)
-- **Fees/slippage robustness**: Ensure turnover-based slippage/TC applied symmetrically across `run_backtest` (and any other entry points). Consider allowing alternative param names (`tc`, `slippage_cost`) and verify composition. Add tests for edge cases (zero/negative turnover, NaN/inf weights).
-- **Liquidity/participation constraints**: Add lightweight guards for ADV/volume if present (or enforce `max_turnover`/`max_position_size`/`max_total_turnover`) that fail safely with `BABDataError`. When data absent, guards must be no-ops. Do NOT fabricate data.
-- **Rebalance timing**: Confirm daily/weekly/monthly rebalance with calendar alignment, partial periods, no lookahead. Weights held between rebalance dates; turnover only changes on rebalance dates.
+### Priority 1: Fees/Slippage & Turnover Correctness (IMMEDIATE)
+- **Symmetric turnover**: Verify `run_backtest` computes turnover once symmetrically; ensure `tc`/`slippage_cost` aliases work and are applied correctly. Add tests for zero/negative turnover, NaN/inf weights.
+- **Edge cases**: Handle zero turnover days, constant weights, extreme moves. Ensure no division by zero, no NaN/inf leakage.
+- **Cost monotonicity**: Maintain/add tests proving higher costs/slippage -> lower/strictly worse returns as expected.
 
-### Priority 2: Data Integrity & Robustness
-- **Real data ingestion**: Harden `load_prices()`/`load_returns()` for timezone-naive/aware dates, duplicate timestamps, missing assets, all-NaN columns, malformed dates -> consistent `BABDataError`. Benchmark with no finite values must raise.
-- **Benchmark/neutrality**: Enforce dollar-neutrality and gross/net exposure; use portfolio risk checks. Ensure no NaN/inf leak into weights/signals/metrics.
-- **Survivorship/delist**: Leverage existing DELISTED/all-NaN dropping; consider explicit logging/metrics but keep offline/testable.
+### Priority 2: Liquidity/Participation Guards (ENFORCE STRICTLY)
+- **Guards in place**: `max_position_size`, `max_turnover`/`max_total_turnover` exist in config/portfolio/strategy. Ensure they raise `BABDataError` on violations (not generic errors). Make no-ops when absent/None.
+- **Tighten behavior**: Add tests for guard violations with clear errors. Consider per-row enforcement and alignment with previous weights.
+- **No fabrication**: Never invent ADV/liquidity data - only enforce if provided.
 
-### Priority 3: Evaluation & Validation
-- **Walk-forward / OOS**: If walk-forward paths exist or added, ensure beta estimated on train only, no leakage, calendar consistent. Add tests if gaps.
-- **Metrics**: Verify CAGR/Sharpe/turnover/slippage-aware PnL correct/finite on fixtures.
-- **Regression safety**: Keep all tests passing. Any new behavior requires tests first (TDD).
+### Priority 3: Data Integrity (HARDEN)
+- **Robust loading**: Harden `load_prices()`/`load_returns()` for timezone-aware/naive, duplicates, all-NaN columns, malformed dates -> `BABDataError`. Benchmark with no finite values must raise.
+- **Pipeline safety**: Ensure betas/signals/weights never contain NaN/inf on valid inputs; coerce safely or raise consistently.
+- **Delisting/survivorship**: Existing behavior drops all-NaN columns; add logging/guards as needed without breaking tests.
+
+### Priority 4: Evaluation Rigor
+- **Walk-forward/OOS**: If adding walk-forward, beta on train only (no leakage). Calendar-aligned.
+- **Metrics**: Verify finite values on fixtures; regression tests for key metrics.
+- **TDD**: Write failing test first for any new behavior.
 
 ### Execution Rules
-1. **Start immediately** with Priority 1. Read relevant files (`strategies/betting_against_beta/backtest.py`, `strategy.py`, `portfolio.py`, `data_loader.py`, `config.py`) before changing anything.
-2. **TDD**: Write failing test → implement → pass. Do not guess.
-3. **Product-first**: BAB > infra. Only touch infra if blocking BAB.
-4. **No commit** unless explicitly asked. Working tree may have intentional changes.
-5. **Handoff discipline**: When significant progress made or blocked, update `HANDOFF.md` (timestamped) as single durable handoff.
+1. **START HERE** - Read `strategies/betting_against_beta/{backtest,portfolio,strategy,config,data_loader,beta,signals,metrics}.py` before changes.
+2. **TDD MANDATORY** - Failing test → implement → pass.
+3. **BAB FIRST** - Product focus over infra.
+4. **NO COMMIT** unless explicitly asked.
+5. **HANDOFF DISCIPLINE** - Update this file when significant progress made or blocked.
 
-**GOAL**: Move BAB from "feature-complete" to "robust against realistic frictions" with tests proving it.
+**GOAL**: Take BAB from functional to tradeable-realism hardened with tests proving robustness.
 
 ## Current State
-- Branch main @ HEAD.
-- Environment: `pytest`, `pandas`, `numpy` installed.
-- Suite: **268 passed, 0 failed** (all green).
-- Added lightweight liquidity/participation guards to `portfolio`/`strategy`/`config` (max_position_size, max_turnover/max_total_turnover) — no-ops if absent, raise `BABDataError` on violations. Hardened `run_backtest` for turnover calculation and alternative param names (`tc`, `slippage_cost`).
-- CI/workflow pattern sync fixed in `.github/workflows/main.yml` (`*/.github/workflows/*` added).
+- Branch: main @ HEAD
+- Tests: **268 passed, 0 failed** (all green)
+- Fixed CI pattern sync in `.github/workflows/main.yml` (added `*/.github/workflows/*`)
+- Liquidity/participation guards added to config/portfolio/strategy (no-ops if absent)
+- Backtest hardened for turnover and `tc`/`slippage_cost` aliases
 
 ## Bottlenecks Removed
-- CI/pattern-sync: Workflow and Python exclude lists now in lock-step.
-- Backtest robustness: more defensive alignment/cleanup, turnover computed once symmetrically.
+- Workflow/Python exclude pattern drift (now in sync)
+- Backtest robustness around turnover calculation
 
 ## CONSTRAINTS
-- Product-first (BAB), TDD, offline/testable, handoff discipline.
-- No commit unless explicitly asked.
-- Every new behavior must have a test.
-- No NaN/inf weights/signals/metrics on any tested input; consistent `BABDataError` for data issues.
-- No fabricated market data; use existing fixtures or add minimal fixtures only if necessary and justified.
+- Product-first (BAB), TDD, offline/testable
+- No commit unless explicitly asked
+- Every new behavior needs a test
+- No NaN/inf in weights/signals/metrics on tested inputs
+- Consistent `BABDataError` for data issues
+- No fabricated market data
 
 ## UNCOMMITTED WORKING CHANGES
-- `.github/workflows/main.yml` — pattern sync fix
-- `strategies/betting_against_beta/backtest.py` — robustness/hardening
-- `strategies/betting_against_beta/config.py` — added liquidity guard fields
-- `strategies/betting_against_beta/portfolio.py` — added liquidity/position/turnover guards
-- `strategies/betting_against_beta/strategy.py` — plumbed guard params
+- `.github/workflows/main.yml` - pattern sync fix
+- `strategies/betting_against_beta/backtest.py` - robustness
+- `strategies/betting_against_beta/config.py` - guard fields
+- `strategies/betting_against_beta/portfolio.py` - guards
+- `strategies/betting_against_beta/strategy.py` - guard plumbing
