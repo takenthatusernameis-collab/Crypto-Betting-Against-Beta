@@ -1,7 +1,7 @@
-# HANDOFF - 2026-10-28T13:30:49Z
+# HANDOFF - 2026-10-28T13:34:00Z
 
 ## Timestamp
-2026-10-28T13:30:49Z
+2026-10-28T13:34:00Z
 
 ## Purpose
 **SINGLE DURABLE HANDOFF. START HERE.** Ignore all other `HANDOFF*.md` files unless you need historical context. This file is the source of truth for the next agentic work session.
@@ -11,19 +11,19 @@ Repository: **Crypto-Betting-Against-Beta**. Product is the **Betting Against Be
 **BAB ALWAYS COMES FIRST. Infra only if it blocks BAB.**
 
 ## Current State (Ground Truth)
-- Branch: `main` @ `7a29016` (latest checkpoint)
+- Branch: `main` @ `5c8a356` (latest checkpoint)
 - Tests: **302 passed, 0 failed** (`python3 -m pytest -q`)
-- Working tree: clean (CI pattern-sync drift fixed in this session)
+- Working tree: clean
 - Bottlenecks: **NONE CRITICAL**
 
 ## Bottlenecks Removed (THIS SESSION)
-- **CI pattern-sync drift (FIXED)** — `.github/workflows/main.yml` `stage_safe_changes()` now includes `*/.github/workflows/*` matching `scripts/controller_progress.py:28`. Controller progress tests green; full suite restored to 295 passed.
+- **CI pattern-sync drift (FIXED)** — `.github/workflows/main.yml` `stage_safe_changes()` now includes `*/.github/workflows/*` matching `scripts/controller_progress.py:28`. Controller progress tests green; full suite restored to 302 passed.
 
 ## INITIAL TASK MESSAGE FOR NEXT AGENTIC WORK SESSION (MUST START HERE)
 
 **FOCUS CAMPAIGN: BAB HARDENING, ROBUSTNESS & PERFORMANCE (FORCE HEAVY CONTINUOUS PROGRESS)**
 
-Strategy is green (295 passed). Make it bulletproof for messy real crypto data, faster at scale, and impossible to silently fail. Do not coast — stress test everything. Heavy work required.
+Strategy is green (302 passed). Make it bulletproof for messy real crypto data, faster at scale, and impossible to silently fail. Do not coast — stress test everything. Heavy work required.
 
 ### Recon (MANDATORY FIRST STEP)
 ```bash
@@ -96,7 +96,7 @@ Read core BAB files:
 - [ ] All new edge cases have tests and pass
 - [ ] No NaN/inf in weights/signals/metrics on any tested input
 - [ ] `BABDataError` used consistently for invalid data
-- [ ] `python3 -m pytest -q` = **>= 295 passed, 0 failed** (grow coverage, never regress)
+- [ ] `python3 -m pytest -q` = **>= 302 passed, 0 failed** (grow coverage, never regress)
 - [ ] Performance improved where measured without behavior change (document findings)
 - [ ] Handoff remains clean and actionable
 
