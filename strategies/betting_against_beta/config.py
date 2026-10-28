@@ -10,7 +10,7 @@ class BABConfigError(ValueError):
     """Raised when BABConfig fields are out of their valid ranges."""
 
 
-@dataclass
+@dataclass(frozen=False)
 class BABConfig:
     """Configuration for BAB strategy."""
     universe: Optional[List[str]] = None
@@ -46,8 +46,18 @@ class BABConfig:
 
     def __post_init__(self):
         if self.universe is None:
-            self.universe = ["BTC", "ETH", "SOL", "BNB", "XRP", "ADA", "AVAX", "DOT"]
+            object.__setattr__(self, "universe", ["BTC", "ETH", "SOL", "BNB", "XRP", "ADA", "AVAX", "DOT"])
         self._validate_ranges()
+        # Freeze after validation to prevent downstream mutation
+        try:
+            object.__setattr__(self, "_frozen", True)
+        except Exception:
+            pass
+
+    def __setattr__(self, name, value):
+        if getattr(self, "_frozen", False) and name != "_frozen":
+            raise AttributeError(f"Cannot mutate frozen BABConfig attribute '{name}'")
+        object.__setattr__(self, name, value)
 
     def _validate_ranges(self) -> None:
         """Validate numeric ranges with helpful errors; never silently coerce."""

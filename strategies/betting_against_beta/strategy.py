@@ -148,7 +148,13 @@ class BABStrategy:
                 "No tradable assets remain after intersecting the configured "
                 f"universe {cfg.universe} with data columns {list(returns.columns)}"
             )
-        cfg.universe = effective_universe
+        try:
+            object.__setattr__(cfg, "universe", effective_universe)
+            object.__setattr__(cfg, "_frozen", False)
+            object.__setattr__(cfg, "universe", effective_universe)
+            object.__setattr__(cfg, "_frozen", True)
+        except Exception:
+            cfg.universe = effective_universe
 
         betas = calculate_rolling_beta(
             returns,
@@ -186,7 +192,7 @@ class BABStrategy:
                 weights_arr = weights.values
                 weights_arr[~_np.isfinite(weights_arr)] = 0.0
                 weights = type(weights)(weights_arr, index=weights.index, columns=weights.columns)
-        except Exception:
+        except (TypeError, ValueError, AttributeError):
             pass
         backtest = run_backtest(returns, weights, transaction_costs=cfg.transaction_costs, slippage=getattr(cfg, "slippage", 0.0))
 

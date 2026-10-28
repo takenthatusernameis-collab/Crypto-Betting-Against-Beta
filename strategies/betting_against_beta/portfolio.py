@@ -72,7 +72,7 @@ def construct_portfolio(signals_df, dollar_neutral=True, gross_exposure_limit=No
         if not isinstance(row, _pd.Series):
             try:
                 row = _pd.Series(row, index=signals_df.columns)
-            except Exception:
+            except (TypeError, ValueError):
                 continue
 
         cleaned = row.map(_clean_signal_value)
@@ -115,7 +115,7 @@ def construct_portfolio(signals_df, dollar_neutral=True, gross_exposure_limit=No
                 raise BABDataError("Position size exceeds max_position_size")
     except BABDataError:
         raise
-    except Exception:
+    except (TypeError, ValueError):
         pass
 
     # Optional turnover limit (lightweight guard, no-op when no previous weights)
@@ -141,11 +141,11 @@ def construct_portfolio(signals_df, dollar_neutral=True, gross_exposure_limit=No
                                 raise BABDataError("Turnover exceeds max_turnover")
             except BABDataError:
                 raise
-            except Exception:
+            except (TypeError, ValueError):
                 pass
     except BABDataError:
         raise
-    except Exception:
+    except (TypeError, ValueError):
         pass
 
     if enforce_risk_checks or gross_exposure_limit is not None or max_single_weight is not None or net_exposure_limit is not None:
@@ -153,7 +153,7 @@ def construct_portfolio(signals_df, dollar_neutral=True, gross_exposure_limit=No
             gross_limit = float(gross_exposure_limit) if gross_exposure_limit is not None else 2.0
             net_limit = float(net_exposure_limit) if net_exposure_limit is not None else 1e-6
             max_w = float(max_single_weight) if max_single_weight is not None else 1.0
-        except Exception:
+        except (TypeError, ValueError):
             gross_limit, net_limit, max_w = 2.0, 1e-6, 1.0
         for idx in weights.index:
             row_w = weights.loc[idx]

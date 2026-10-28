@@ -85,3 +85,17 @@ class TestMessyDataRobustness:
         strat = BABStrategy(cfg)
         res = strat.run(returns_df=df)
         assert not res.weights.isna().any().any()
+
+    def test_tz_aware_index_normalized(self):
+        dates = pd.date_range("2023-01-01", periods=15, tz="UTC")
+        df = pd.DataFrame(index=dates)
+        df["BTC"] = np.random.randn(15) * 0.01
+        df["ETH"] = np.random.randn(15) * 0.01
+        cfg = BABConfig(benchmark="BTC", beta_window=5, min_observations=3)
+        strat = BABStrategy(cfg)
+        res = strat.run(returns_df=df)
+        assert isinstance(res.returns.index, pd.DatetimeIndex)
+        assert res.returns.index.tz is None
+        weights = res.weights
+        assert not weights.isna().any().any()
+        assert np.isfinite(weights.values).all()

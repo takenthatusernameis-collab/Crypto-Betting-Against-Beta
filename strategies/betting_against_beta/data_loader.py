@@ -24,10 +24,16 @@ def _normalize_index(df: pd.DataFrame) -> pd.DataFrame:
     if not isinstance(df.index, pd.DatetimeIndex):
         try:
             df.index = pd.to_datetime(df.index, errors="raise")
-        except (ValueError, TypeError, Exception) as exc:
+        except (ValueError, TypeError) as exc:
             raise BABDataError(
                 f"Index could not be parsed as datetime: {exc}"
             ) from exc
+    # Handle timezone-aware indexes
+    try:
+        if isinstance(df.index, pd.DatetimeIndex) and getattr(df.index, "tz", None) is not None:
+            df.index = df.index.tz_convert(None)
+    except (TypeError, AttributeError):
+        pass
     df = df.sort_index()
     if not isinstance(df.index, pd.DatetimeIndex):
         raise BABDataError("Index is not a DatetimeIndex after normalization")
@@ -198,8 +204,9 @@ def validate_returns_dataframe(
     cleaned = _normalize_columns(cleaned)
     try:
         cleaned = _normalize_index(cleaned)
-    except Exception as exc:
-        # Ensure we raise BABDataError for bad dates
+    except BABDataError:
+        raise
+    except (ValueError, TypeError) as exc:
         raise BABDataError(str(exc)) from exc
 
     if len(cleaned) < min_rows:

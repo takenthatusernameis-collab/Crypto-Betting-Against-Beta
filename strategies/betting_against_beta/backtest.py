@@ -19,11 +19,11 @@ def run_backtest(returns_df, weights_df, transaction_costs=0.0, slippage=0.0,
     if not isinstance(returns_df, pd.DataFrame) or not isinstance(weights_df, pd.DataFrame):
         try:
             returns_df = pd.DataFrame(returns_df)
-        except Exception:
+        except (TypeError, ValueError):
             pass
         try:
             weights_df = pd.DataFrame(weights_df)
-        except Exception:
+        except (TypeError, ValueError):
             pass
 
     if returns_df.empty or weights_df.empty:
@@ -47,7 +47,7 @@ def run_backtest(returns_df, weights_df, transaction_costs=0.0, slippage=0.0,
     # Clean weights of NaN/inf
     try:
         weights = weights.replace([np.inf, -np.inf], np.nan).fillna(0.0)
-    except Exception:
+    except (TypeError, ValueError):
         pass
 
     # Calculate portfolio returns (shift weights by 1 day for no lookahead)

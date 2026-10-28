@@ -31,7 +31,7 @@ def calculate_beta(asset_returns, benchmark_returns, min_obs=None):
                         return np.nan
                     y = aligned.iloc[:, 0].to_numpy(dtype=float)
                     x = aligned.iloc[:, 1].to_numpy(dtype=float)
-                except Exception:
+                except (TypeError, ValueError, AttributeError):
                     return np.nan
             else:
                 # Truncate to common length
@@ -62,10 +62,12 @@ def calculate_beta(asset_returns, benchmark_returns, min_obs=None):
             if not np.isfinite(beta):
                 return np.nan
             return float(beta)
-        except Exception:
+        except np.linalg.LinAlgError:
             return np.nan
-    except Exception:
+    except (TypeError, ValueError, AttributeError):
         return np.nan
+    except BABDataError:
+        raise
 
 
 def calculate_beta_fast(a, b, min_obs=None):
@@ -96,7 +98,9 @@ def calculate_beta_fast(a, b, min_obs=None):
         if not np.isfinite(beta):
             return 0.0  # return finite
         return float(beta)
-    except Exception:
+    except np.linalg.LinAlgError:
+        return 0.0
+    except (TypeError, ValueError, AttributeError):
         return 0.0
 
 
@@ -163,7 +167,7 @@ def calculate_rolling_beta(returns_df, benchmark_name, window=90, min_obs=60):
                             rolling_betas_arr[i] = np.nan
                         else:
                             rolling_betas_arr[i] = float(beta)
-                    except Exception:
+                    except (TypeError, ValueError, AttributeError):
                         rolling_betas_arr[i] = np.nan
                 betas_dict[asset] = rolling_betas_arr
                 continue
@@ -213,7 +217,9 @@ def calculate_rolling_beta(returns_df, benchmark_name, window=90, min_obs=60):
             betas_dict[asset] = beta_arr
 
         return pd.DataFrame(betas_dict, index=returns_df.index)
-    except Exception:
+    except BABDataError:
+        raise
+    except (TypeError, ValueError, AttributeError):
         # Fallback to original safe implementation
         betas_dict = {}
         for asset in returns_df.columns:
@@ -242,7 +248,7 @@ def calculate_rolling_beta(returns_df, benchmark_name, window=90, min_obs=60):
                         rolling_betas_arr[i] = np.nan
                     else:
                         rolling_betas_arr[i] = float(beta)
-                except Exception:
+                except (TypeError, ValueError, AttributeError):
                     rolling_betas_arr[i] = np.nan
             betas_dict[asset] = rolling_betas_arr
         return pd.DataFrame(betas_dict, index=returns_df.index)
