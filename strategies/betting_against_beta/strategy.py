@@ -96,6 +96,17 @@ class BABStrategy:
             betas, long_quantile=cfg.long_quantile, short_quantile=cfg.short_quantile
         )
         weights = construct_portfolio(signals, dollar_neutral=cfg.dollar_neutral)
+        # Explicit finiteness guard
+        try:
+            import numpy as _np
+            weights = weights.replace([_np.inf, -_np.inf], _np.nan).fillna(0.0)
+            if hasattr(weights, 'values') and not _np.isfinite(weights.values).all():
+                # coerce
+                weights_arr = weights.values
+                weights_arr[~_np.isfinite(weights_arr)] = 0.0
+                weights = type(weights)(weights_arr, index=weights.index, columns=weights.columns)
+        except Exception:
+            pass
         backtest = run_backtest(returns, weights, transaction_costs=cfg.transaction_costs)
 
         return BABResult(
