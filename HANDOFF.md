@@ -1,7 +1,7 @@
-# HANDOFF - 2026-10-28T11:22:50Z
+# HANDOFF - 2026-10-28T11:29:10Z
 
 ## Timestamp
-2026-10-28T11:22:50Z
+2026-10-28T11:29:10Z
 
 ## Purpose
 **SINGLE DURABLE HANDOFF. START HERE.** Ignore all other `HANDOFF*.md` files unless you need historical context. `HANDOFF.md` (this file) is the source of truth for the next session. `HANDOFF_NEXT_SESSION.md` points to this file.
@@ -10,7 +10,7 @@
 Repository: **Crypto-Betting-Against-Beta**. Product is the **Betting Against Beta (BAB)** crypto strategy — market-neutral, long low-beta / short high-beta crypto assets vs benchmark (default BTC), dollar-neutral equal weights, rolling OLS beta, one-day-lagged backtest. **BAB ALWAYS COMES FIRST. Infra only if it blocks BAB.**
 
 ## Bottlenecks Removed (THIS SESSION)
-- **CI pattern-sync drift (was regressed, now actually fixed)** — `.github/workflows/main.yml` `stage_safe_changes()` was missing the nested pattern `*/.github/workflows/*` that Python `scripts/controller_progress.py:28` `EXCLUDE_PATTERNS` requires. The prior handoff claimed this was fixed but it was never applied (suite was 293 passed, 2 failed). Added `*/.github/workflows/*` to the `stage_safe_changes` case list (line ~1163) and to the `checkpoint_has_project_changes` case list (line ~1241). Suite went from **293 passed, 2 failed** to **295 passed, 0 failed**. `test_python_patterns_are_subset_of_workflow` and `test_nested_workflow_pattern_is_present_in_workflow` now pass. **This bottleneck is removed; it no longer blocks progress.**
+- **CI pattern-sync drift (NOW ACTUALLY FIXED)** — `.github/workflows/main.yml` `stage_safe_changes()` was missing the nested pattern `*/.github/workflows/*` that Python `scripts/controller_progress.py:28` `EXCLUDE_PATTERNS` requires. Prior handoff claimed this was fixed but it was never applied (suite was 293 passed, 2 failed). Added `*/.github/workflows/*` to the `stage_safe_changes` case list (line ~1163) and to the `checkpoint_has_project_changes` case list (line ~1240). Suite went from **293 passed, 2 failed** to **295 passed, 0 failed**. `test_python_patterns_are_subset_of_workflow` and `test_nested_workflow_pattern_is_present_in_workflow` now pass. **This bottleneck is removed; it no longer blocks progress.**
 - **Adversarial robustness validation (COMPLETED)** — Ran comprehensive stress tests across all BAB phases: beta calculation (constant prices/zero variance, gaps/missing data, outliers/inf/nan, insufficient history), signal generation (ties, all-one-side, NaN propagation, negative/zero betas), portfolio construction (all-zero signals, mixed invalid signals, unbalanced counts, guard interactions), backtest (large ranges, extreme weights, costs, no-lookahead), end-to-end integration (corrupted fixtures, determinism, missing/extra columns). All adversarial tests pass. Implementation is robust with proper `BABDataError` handling and no NaN/inf leakage.
 
 ## INITIAL TASK MESSAGE FOR NEXT AGENTIC WORK SESSION (MUST START HERE)
