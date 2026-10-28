@@ -1,23 +1,26 @@
-# HANDOFF - 2026-10-28T09:14:00Z
+# HANDOFF - 2026-10-28T09:20:08Z
 
 ## Timestamp
-2026-10-28T09:14:00Z
+2026-10-28T09:20:08Z
 
 ## Purpose
-**SINGLE DURABLE HANDOFF. START HERE.** Ignore all other `HANDOFF*.md` files unless you need historical context. `HANDOFF.md` (this file) is the source of truth for the next session.
+**SINGLE DURABLE HANDOFF. START HERE.** Ignore all other `HANDOFF*.md` files unless you need historical context. `HANDOFF.md` (this file) is the source of truth for the next session. `HANDOFF_NEXT_SESSION.md` points to this file.
 
 ## Project Name Priority
 Repository: **Crypto-Betting-Against-Beta**. Product is the **Betting Against Beta (BAB)** crypto strategy — market-neutral, long low-beta / short high-beta crypto assets vs benchmark (default BTC), dollar-neutral equal weights, rolling OLS beta, one-day-lagged backtest. **BAB ALWAYS COMES FIRST. Infra only if it blocks BAB.**
+
+## Bottlenecks Removed (THIS SESSION)
+- **CI pattern-sync drift** — `.github/workflows/main.yml` `stage_safe_changes()` was missing the nested pattern `*/.github/workflows/*` that Python `scripts/controller_progress.py:28` `EXCLUDE_PATTERNS` requires. Added it next to `.github/workflows/*`. Suite went from **293 passed, 2 failed** to **295 passed, 0 failed**. `test_python_patterns_are_subset_of_workflow` and `test_nested_workflow_pattern_is_present_in_workflow` now pass. This bottleneck is removed; it no longer blocks progress.
 
 ## INITIAL TASK MESSAGE FOR NEXT AGENTIC WORK SESSION (MUST START HERE)
 
 **FOCUS CAMPAIGN: HARDEN BAB END-TO-END WITH STRESS TESTS & IMPLEMENTATION ROBUSTNESS (NO SHORTCUTS)**
 
-The guard/cost/tz/pipeline coverage is complete and passing (295 passed). Your mission: stress-test the BAB implementation under adversarial conditions, harden edge cases, and make failures loud with `BABDataError`. Prove correctness with heavy TDD - if something breaks under stress, fix it minimally and add regression tests.
+Guard/cost/tz/pipeline coverage is complete and passing (295 passed, 0 failed). Your mission: stress-test the BAB implementation under adversarial conditions, harden edge cases, and make failures loud with `BABDataError`. Prove correctness with heavy TDD — if something breaks under stress, fix it minimally and add regression tests.
 
 ### Ground Truth (DO NOT RE-IMPLEMENT)
 - Pipeline: `strategies/betting_against_beta/strategy.py`, `data_loader.py`, `beta.py`, `signals.py`, `portfolio.py`, `backtest.py`, `metrics.py`, `config.py`, `errors.py`
-- Guards/cost aliases already wired. All current tests green.
+- Guards/cost aliases already wired. All current tests green (295 passed, 0 failed).
 
 ### Heavy Campaign (Execute in order, TDD strictly)
 
@@ -76,15 +79,11 @@ Full pipeline under stress:
 ## Current State
 - Branch: main @ HEAD
 - Tests: **295 passed, 0 failed**
-- CI: Pattern sync fixed
-- Uncommitted: `.github/workflows/main.yml` (pattern sync fix) + `__pycache__/` dirs
-
-## Bottlenecks Removed
-1. **Workflow/Python exclude pattern drift** - Fixed
-2. **Guard/cost/tz/pipeline test coverage** - Complete
+- CI: Pattern sync fixed (suite green)
+- Uncommitted: `__pycache__/` dirs only
 
 ## Remaining Bottlenecks (TO REMOVE)
-- **Adversarial robustness gaps** - Need stress testing and hardening
+- **Adversarial robustness gaps** - Need stress testing and hardening (PHASES 1-5 above)
 
 ## CONSTRAINTS
 - Product-first (BAB), TDD, offline/testable
