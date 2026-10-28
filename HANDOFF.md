@@ -1,7 +1,7 @@
-# HANDOFF - 2026-10-28T20:21:53Z (SINGLE DURABLE HANDOFF)
+# HANDOFF - 2026-10-28T20:23:00Z (SINGLE DURABLE HANDOFF)
 
 ## TIMESTAMP
-2026-10-28T20:21:53Z
+2026-10-28T20:23:00Z
 
 ## IMMEDIATE FIRST TASK (DO THIS NOW)
 **Priority: P0 - Start heavy work immediately on BAB strategy**
@@ -25,12 +25,13 @@ python3 -m pytest -q  # Must show 349 passed, 0 failed
 - **Branch:** main @ `e1618b2`
 - **Working tree:** clean
 - **Tests:** **349 passed, 0 failed** (verified)
-- **Status:** Silent-error eradication complete. All broad `except Exception:` narrowed. Config frozen. Pattern sync fixed.
+- **Status:** Silent-error eradication complete. Workflow pattern sync fixed (`*/.github/workflows/*` added to stage_safe_changes). All tests green.
 
 ## Bottlenecks Removed
 - CI/workflow pattern sync drift fixed (controller pattern-sync tests pass)
 - Silent failures eliminated across BAB pipeline
 - Config immutability enforced
+- Pattern sync bottleneck fixed: added `*/.github/workflows/*` to `.github/workflows/main.yml` stage_safe_changes bash case; 2 failing controller tests now pass (349/349 green)
 
 ## NEXT FOCUS CAMPAIGN: PRODUCTION-GRADE BAB STRATEGY (HEAVY WORK)
 
