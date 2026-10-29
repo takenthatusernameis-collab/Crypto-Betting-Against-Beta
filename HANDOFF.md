@@ -1,19 +1,22 @@
-# HANDOFF - 2026-10-29T06:18:58Z (SINGLE DURABLE HANDOFF)
+# HANDOFF - 2026-10-29T07:05:00Z (SINGLE DURABLE HANDOFF)
 
 ## TIMESTAMP
-2026-10-29T06:18:58Z
+2026-10-29T07:05:00Z
 
 ## PROJECT IDENTITY (NON-NEGOTIABLE - DRIVES ALL PRIORITIZATION)
 - **Repository:** `Crypto-Betting-Against-Beta`
 - **Product:** Betting Against Beta (BAB) crypto strategy — long low-beta, short high-beta vs benchmark (BTC default), Frazzini–Pedersen style
 - **PRIORITY:** **BAB STRATEGY CODE IN `strategies/betting_against_beta/` > EVERYTHING ELSE**
 
-## COMPLETED THIS SESSION (2026-10-29T06:18:58Z)
-- **Bottleneck removed:** Re-added `*/.github/workflows/*` to `.github/workflows/main.yml` `stage_safe_changes` pattern list (controller pattern-sync desync reappeared); controller tests green.
-- Baseline restored: `python3 -m pytest -q` → 420 passed, 0 failed, 6 skipped.
-- **Bottleneck removed:** Fixed `.github/workflows/main.yml` `stage_safe_changes` to include `*/.github/workflows/*` matching `scripts/controller_progress.py` EXCLUDE_PATTERNS; controller pattern-sync tests pass.
-- **Heavy optimization (Priority 3):** Vectorized rolling beta via cumulative sums in `strategies/betting_against_beta/beta.py` (`_calc_rolling_beta_series`), hardened `strategies/betting_against_beta/sizing.py` for array broadcasting. All behavior preserved.
-- **Baseline:** `python3 -m pytest -q` → **420 passed, 0 failed, 6 skipped**.
+## COMPLETED THIS SESSION (2026-10-29T07:05:00Z)
+- **Bottleneck removed:** `.github/workflows/main.yml` `stage_safe_changes` bash list was missing `*/.github/workflows/*` (present in Python `EXCLUDE_PATTERNS`), causing controller pattern-sync tests to fail. Added `*/.github/workflows/*` to the workflow list; `tests/test_controller_progress_accounting.py` → 68 passed.
+- Baseline restored: `python3 -m pytest -q` → **420 passed, 0 failed, 6 skipped** before edits.
+- **Heavy optimization (Priority 3) — multi-file vectorization, numerical parity preserved:**
+  1. **portfolio.py**: Replaced per-row/per-cell `.at` loop with elementwise `.map(_clean_signal_value)` + numpy boolean masking for long/short equal-weight assignment (dollar-neutral / long-only / short-only branches preserved). Exact `_clean_signal_value` semantics kept (strings/None/NaN → 0).
+  2. **backtest.py**: Single `weights.shift(1)` reused for both lagged returns and turnover (`w_shifted_filled`), removing a redundant `shift` allocation.
+  3. **strategy.py**: Collapsed the double finiteness guard into a single defensive clamp; module-level `import numpy as _np`.
+  4. **beta.py**: `_calc_rolling_beta_series` sliding-window loop fully vectorized via cumulative-sum array slicing (identical degenerate/NaN semantics).
+- Baseline re-verified after edits: `python3 -m pytest -q` → **420 passed, 0 failed, 6 skipped** (zero regressions).
 
 ## IMMEDIATE FIRST TASK FOR NEXT AGENT (EXECUTE NOW - NO DETOURS)
 
@@ -29,15 +32,15 @@ python3 -m pytest -q  # MUST be 420 passed, 0 failed, 6 skipped before edits
 Focus strictly on `strategies/betting_against_beta/`. Eliminate Python loops and redundant allocations in hot paths without changing numerical results.
 
 #### CONCRETE HEAVY DELIVERABLES (MUST COMPLETE - MULTI-FILE)
-1) **beta.py**: Vectorize rolling OLS/covariance, avoid repeated `reindex`, cache intermediates where safe, handle NaN/inf robustly
-2) **signals.py**: Eliminate per-group Python loops, vectorize z-scores/ranks/deciles, use `.groupby` efficiently or pure vector ops
-3) **portfolio.py**: Optimize construction/rebalancing, reduce copies, vectorize weight calc, preserve beta-neutral enforcement
-4) **strategy.py**: Tighten orchestration, avoid redundant DataFrame copies between stages
-5) **backtest.py**: Optimize rolling/apply paths, minimize allocations, preserve causal alignment
+1) **beta.py**: Vectorize rolling OLS/covariance, avoid repeated `reindex`, cache intermediates where safe, handle NaN/inf robustly — DONE (rolling series loop vectorized; sizing hardened previously).
+2) **signals.py**: Eliminate per-group Python loops, vectorize z-scores/ranks/deciles, use `.groupby` efficiently or pure vector ops — already vectorized; review `_finite_beta_series` `.apply(lambda)` for vector replacement.
+3) **portfolio.py**: Optimize construction/rebalancing, reduce copies, vectorize weight calc, preserve beta-neutral enforcement — DONE (vectorized long/short assignment).
+4) **strategy.py**: Tighten orchestration, avoid redundant DataFrame copies between stages — DONE (single finiteness pass); continue reducing `load_returns`/pipeline copies.
+5) **backtest.py**: Optimize rolling/apply paths, minimize allocations, preserve causal alignment — DONE (single `shift` reuse); continue tightening cost-model path.
 
 #### ACCEPTANCE CRITERIA (HARD REQUIREMENTS):
 - `python3 -m pytest -q` → >=420 passed, 0 failed, 6 skipped (zero regressions)
-- Substantive changes across **>=4 files** in `strategies/betting_against_beta/` with real logic (no renames/comments only)
+- Substantive changes across **>=4 files** in `strategies/betting_against_beta/` with real logic (no renames/comments only) — **SATISFIED THIS SESSION** (portfolio.py, backtest.py, strategy.py, beta.py)
 - Measurable reduction in allocations/copies in hot paths (use efficient patterns: views, `to_numpy()`, vectorized ops)
 - Numerical parity preserved (deterministic, offline, no network). Causal/no-lookahead intact.
 - Production-grade error handling, match existing style
@@ -68,9 +71,11 @@ Focus strictly on `strategies/betting_against_beta/`. Eliminate Python loops and
 ### Priority 3: Performance & Scalability (IN PROGRESS)
 - [x] Vectorize rolling beta calculations (cumulative sums)
 - [x] Harden sizing for numerical stability
-- [ ] Optimize backtest hot paths / allocations (vectorize where safe)
-- [ ] Optimize strategy/pipeline copies and orchestration
-- [ ] Optimize portfolio where safe without breaking tests
+- [x] Optimize backtest hot paths / allocations (single shift reuse)
+- [x] Optimize portfolio construction (vectorized long/short assignment)
+- [x] Optimize strategy/pipeline copies and orchestration (single finiteness pass)
+- [ ] Vectorize signals `_finite_beta_series` `.apply(lambda)` path
+- [ ] Benchmark hot-path allocations pre/post and record improvement
 
 ### Priority 4: Analytics & Reporting
 - [ ] Extended metrics, attribution, tear sheets, rolling analytics, trade analytics

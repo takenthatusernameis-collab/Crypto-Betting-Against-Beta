@@ -58,18 +58,20 @@ def run_backtest(returns_df, weights_df, transaction_costs=0.0, slippage=0.0,
     except (TypeError, ValueError):
         pass
 
-    # Calculate portfolio returns (shift weights by 1 day for no lookahead) - vectorized
+    # Shift once and reuse: lagged weights (no lookahead) for both returns and
+    # turnover, avoiding a second ``shift`` allocation.
     w_shifted = weights.shift(1)
-    # Use numpy for efficiency
+    w_shifted_filled = w_shifted.fillna(0.0)
+    # Calculate portfolio returns (shift weights by 1 day for no lookahead)
     try:
         port_ret = (w_shifted.to_numpy(dtype=float) * returns.to_numpy(dtype=float)).sum(axis=1)
         portfolio_returns = pd.Series(port_ret, index=common_idx)
     except Exception:
         portfolio_returns = (w_shifted * returns).sum(axis=1)
 
-    # Compute turnover symmetrically once - vectorized
+    # Compute turnover symmetrically once - vectorized, reusing the shifted weights
     try:
-        wdiff = weights.to_numpy(dtype=float) - weights.shift(1).fillna(0.0).to_numpy(dtype=float)
+        wdiff = weights.to_numpy(dtype=float) - w_shifted_filled.to_numpy(dtype=float)
         weight_changes = np.abs(wdiff).sum(axis=1)
         weight_changes_s = pd.Series(weight_changes, index=common_idx).fillna(0.0)
     except Exception:
@@ -89,7 +91,7 @@ def run_backtest(returns_df, weights_df, transaction_costs=0.0, slippage=0.0,
     if cost_model is not None:
         if not isinstance(cost_model, TransactionCostModel):
             raise TypeError("cost_model must be a TransactionCostModel instance")
-        weights_prev = weights.shift(1).fillna(0.0)
+        weights_prev = w_shifted_filled
         period_costs = compute_transaction_costs(
             weights, weights_prev, prices_df, cost_model, adv_usd=adv_usd
         )

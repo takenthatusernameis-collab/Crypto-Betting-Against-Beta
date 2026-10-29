@@ -105,48 +105,53 @@ def calculate_beta_fast(a, b, min_obs=None):
 
 
 def _calc_rolling_beta_series(bench_arr, a_arr, window, min_obs):
-    """Compute rolling beta series for a single asset (vectorized)."""
+    """Compute rolling beta series for a single asset (fully vectorized).
+
+    Same numerics as the previous per-row loop: OLS slope per window derived
+    from cumulative sums, with degenerate windows -> 0.0 and insufficient /
+    non-finite windows -> NaN.
+    """
     n = len(bench_arr)
     rolling_betas_arr = np.empty(n, dtype=float)
     rolling_betas_arr[:] = np.nan
     if n == 0:
         return rolling_betas_arr
-    # Use sliding window approach with efficient computation
-    # Build cumulative sums for fast window sums
     bench_arr_f = np.asarray(bench_arr, dtype=float)
     a_arr_f = np.asarray(a_arr, dtype=float)
     # Precompute products
     xy = a_arr_f * bench_arr_f
     xx = bench_arr_f * bench_arr_f
     ones = np.ones(n, dtype=float)
-    # Cumulative sums
+    # Cumulative sums (NaN propagates, matching the legacy per-row semantics)
     csum1 = np.concatenate(([0.0], np.cumsum(ones)))
     csumx = np.concatenate(([0.0], np.cumsum(bench_arr_f)))
     csumy = np.concatenate(([0.0], np.cumsum(a_arr_f)))
     csumxy = np.concatenate(([0.0], np.cumsum(xy)))
     csumxx = np.concatenate(([0.0], np.cumsum(xx)))
-    for i in range(n):
-        start_idx = max(0, i - window + 1)
-        end_idx = i + 1
-        window_len = end_idx - start_idx
-        if window_len < min_obs:
-            rolling_betas_arr[i] = np.nan
-            continue
-        cnt = csum1[end_idx] - csum1[start_idx]
-        x_sum = csumx[end_idx] - csumx[start_idx]
-        y_sum = csumy[end_idx] - csumy[start_idx]
-        xy_sum = csumxy[end_idx] - csumxy[start_idx]
-        xx_sum = csumxx[end_idx] - csumxx[start_idx]
+
+    idx = np.arange(n)
+    starts = np.maximum(0, idx - window + 1)
+    ends = idx + 1
+    window_len = ends - starts
+
+    cnt = csum1[ends] - csum1[starts]
+    x_sum = csumx[ends] - csumx[starts]
+    y_sum = csumy[ends] - csumy[starts]
+    xy_sum = csumxy[ends] - csumxy[starts]
+    xx_sum = csumxx[ends] - csumxx[starts]
+
+    with np.errstate(invalid="ignore", divide="ignore"):
         denom = cnt * xx_sum - x_sum * x_sum
-        if denom <= 1e-18 or not np.isfinite(denom):
-            rolling_betas_arr[i] = 0.0
-            continue
         num = cnt * xy_sum - x_sum * y_sum
-        beta = num / denom
-        if not np.isfinite(beta):
-            rolling_betas_arr[i] = np.nan
-        else:
-            rolling_betas_arr[i] = float(beta)
+        beta = np.divide(num, denom)
+
+    degenerate = (~np.isfinite(denom)) | (np.abs(denom) < 1e-18)
+    enough = window_len >= min_obs
+
+    rolling_betas_arr[:] = np.nan
+    rolling_betas_arr[enough & degenerate] = 0.0
+    valid = enough & ~degenerate & np.isfinite(beta)
+    rolling_betas_arr[valid] = beta[valid]
     return rolling_betas_arr
 
 

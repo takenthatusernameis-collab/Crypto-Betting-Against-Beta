@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+import numpy as _np
+
 from .backtest import run_backtest
 from .beta import calculate_rolling_beta
 from .config import BABConfig
@@ -259,17 +261,13 @@ class BABStrategy:
         except Exception:
             pass
 
-        # Explicit finiteness guard
-        try:
-            import numpy as _np
-            weights = weights.replace([_np.inf, -_np.inf], _np.nan).fillna(0.0)
-            if hasattr(weights, 'values') and not _np.isfinite(weights.values).all():
-                # coerce
-                weights_arr = weights.values
-                weights_arr[~_np.isfinite(weights_arr)] = 0.0
-                weights = type(weights)(weights_arr, index=weights.index, columns=weights.columns)
-        except (TypeError, ValueError, AttributeError):
-            pass
+        # Explicit finiteness guard (single pass; construct_portfolio already
+        # returns finite weights, this is a defensive final clamp).
+        weights = weights.replace([_np.inf, -_np.inf], _np.nan).fillna(0.0)
+        if not _np.isfinite(weights.to_numpy(dtype=float)).all():
+            weights_arr = weights.to_numpy(dtype=float)
+            weights_arr[~_np.isfinite(weights_arr)] = 0.0
+            weights = type(weights)(weights_arr, index=weights.index, columns=weights.columns)
         backtest = run_backtest(returns, weights, transaction_costs=cfg.transaction_costs, slippage=getattr(cfg, "slippage", 0.0))
 
         return BABResult(

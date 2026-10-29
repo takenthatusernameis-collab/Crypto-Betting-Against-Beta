@@ -45,7 +45,12 @@ def construct_portfolio(signals_df, dollar_neutral=True, gross_exposure_limit=No
                         enforce_risk_checks=False,
                         max_position_size=None, max_turnover=None,
                         weights_df_prev=None, rebalance_mask=None, **kwargs):
-    """Construct portfolio weights from signals."""
+    """Construct portfolio weights from signals.
+
+    Vectorized: signal cleaning is applied elementwise across the whole frame
+    and the long/short equal-weight assignment uses boolean masking instead of
+    per-cell ``.at`` assignments. The public contract is unchanged.
+    """
     import pandas as _pd
 
     if signals_df is None:
@@ -65,50 +70,45 @@ def construct_portfolio(signals_df, dollar_neutral=True, gross_exposure_limit=No
                 max_position_size = kwargs.pop(key)
                 break
 
-    # Clean signals row by row to be safe/compatible (preserve original behavior)
-    weights = _pd.DataFrame(0.0, index=signals_df.index, columns=signals_df.columns)
+    dn = bool(dollar_neutral)
 
-    for idx in signals_df.index:
-        row = signals_df.loc[idx]
-        if isinstance(row, _pd.DataFrame):
-            if row.shape[0] != 1:
-                continue
-            row = row.iloc[0]
-        if not isinstance(row, _pd.Series):
-            try:
-                row = _pd.Series(row, index=signals_df.columns)
-            except (TypeError, ValueError):
-                continue
+    # Clean signals elementwise (exact per-value semantics preserved), then work
+    # with numpy arrays for the hot weight-assignment path.
+    cleaned = signals_df.map(_clean_signal_value)
+    n_rows, n_cols = cleaned.shape
+    index = cleaned.index
+    columns = cleaned.columns
 
-        cleaned = row.map(_clean_signal_value)
-        n_long = int((cleaned == 1).sum())
-        n_short = int((cleaned == -1).sum())
+    clean_arr = cleaned.to_numpy(dtype=np.int64, copy=False)
+    long_mask = clean_arr == 1
+    short_mask = clean_arr == -1
 
-        if n_long > 0 and n_short > 0 and bool(dollar_neutral):
-            long_w = 1.0 / n_long
-            short_w = -1.0 / n_short
-            for c in signals_df.columns:
-                v = cleaned[c]
-                if v == 1:
-                    weights.at[idx, c] = long_w
-                elif v == -1:
-                    weights.at[idx, c] = short_w
-        elif n_long > 0 and (not bool(dollar_neutral) or n_short == 0):
-            if not bool(dollar_neutral):
-                long_w = 1.0 / n_long
-                for c in signals_df.columns:
-                    if cleaned[c] == 1:
-                        weights.at[idx, c] = long_w
-            elif n_short == 0:
-                long_w = 1.0 / n_long
-                for c in signals_df.columns:
-                    if cleaned[c] == 1:
-                        weights.at[idx, c] = long_w
-        elif n_short > 0:
-            short_w = -1.0 / n_short
-            for c in signals_df.columns:
-                if cleaned[c] == -1:
-                    weights.at[idx, c] = short_w
+    n_long = long_mask.sum(axis=1).astype(np.int64)
+    n_short = short_mask.sum(axis=1).astype(np.int64)
+
+    w_arr = np.zeros((n_rows, n_cols), dtype=float)
+
+    # Long weight is always 1/n_long whenever longs exist:
+    #   - dollar_neutral + both sides: long_w = 1/n_long
+    #   - dollar_neutral + longs only: long_w = 1/n_long
+    #   - non-dollar-neutral + longs: long_w = 1/n_long
+    long_rows = n_long > 0
+    if np.any(long_rows):
+        long_w = np.zeros(n_rows, dtype=float)
+        np.divide(1.0, n_long, out=long_w, where=long_rows)
+        long_cell = long_mask & long_rows[:, None]
+        w_arr[long_cell] = np.repeat(long_w[long_rows], long_mask[long_rows].sum(axis=1))
+
+    # Shorts are applied only when shorts exist and we are not in the
+    # non-dollar-neutral + longs case (which takes precedence and ignores shorts).
+    short_rows = (n_short > 0) & (dn | (n_long == 0))
+    if np.any(short_rows):
+        short_w = np.zeros(n_rows, dtype=float)
+        np.divide(-1.0, n_short, out=short_w, where=short_rows)
+        short_cell = short_mask & short_rows[:, None]
+        w_arr[short_cell] = np.repeat(short_w[short_rows], short_mask[short_rows].sum(axis=1))
+
+    weights = _pd.DataFrame(w_arr, index=index, columns=columns)
 
     # Final finiteness guard
     weights = weights.replace([np.inf, -np.inf], np.nan).fillna(0.0)
@@ -140,12 +140,11 @@ def construct_portfolio(signals_df, dollar_neutral=True, gross_exposure_limit=No
                 if isinstance(wprev, _pd.DataFrame):
                     common = weights.index.intersection(wprev.index)
                     if len(common) > 0:
-                        for idx in common:
-                            cur = weights.loc[idx]
-                            prev = wprev.loc[idx].reindex(cur.index).fillna(0.0)
-                            turnover = float((cur - prev).abs().sum() * 0.5)
-                            if turnover > mt_f + 1e-12:
-                                raise BABDataError("Turnover exceeds max_turnover")
+                        cur = weights.loc[common]
+                        prev = wprev.loc[common].reindex(columns=cur.columns).fillna(0.0)
+                        turnover = (cur - prev).abs().sum(axis=1) * 0.5
+                        if (turnover > mt_f + 1e-12).any():
+                            raise BABDataError("Turnover exceeds max_turnover")
             except BABDataError:
                 raise
             except (TypeError, ValueError):
