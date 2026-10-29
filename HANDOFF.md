@@ -1,4 +1,4 @@
-# HANDOFF - 2026-10-29T16:30:01Z (SINGLE DURABLE HANDOFF)
+# HANDOFF - 2026-10-29T16:37:46Z (SINGLE DURABLE HANDOFF)
 
 ## TIMESTAMP
 2026-10-29T16:30:01Z
@@ -104,3 +104,7 @@ python3 -m pytest -q  # MUST be >=602 passed, 0 failed, 8 skipped before edits
   5) Validate: `python3 -m pytest -q` >= 602 passed, 0 failed, 8 skipped; coverage across `strategies/betting_against_beta/` pushed to **>=95%**; no regressions.
   6) Update THIS FILE (`HANDOFF.md`) with timestamp, completed work, bottlenecks removed, next concrete heavy task. ONLY `HANDOFF.md` MATTERS.
 - **HEAVY WORK IS MANDATORY. NO EXPLORATION DETOURS, NO DOCS-ONLY CHANGES. DO NOT DEFER.**
+
+## SESSION UPDATE - 2026-10-29T16:37:46Z (BOTTLENECK REMOVED)
+- **Bottleneck removed (REAL):** `.github/workflows/main.yml:1163` `stage_safe_changes` bash case list was missing the nested pattern `*/.github/workflows/*` (the earlier checkpoint had only added `.github/workflows/*/*`). Added `*/.github/workflows/*` now, matching `scripts/controller_progress.py` `EXCLUDE_PATTERNS`. `tests/test_controller_progress_accounting.py` → **68 passed** (was 2 failed). Baseline restored toward green.
+- **Next heavy task (UNAVOIDABLE):** Coverage crusade to >=95% across `strategies/betting_against_beta/` (currently 66%). Start with `metrics.py` (12%). Touch >=4 files with real logic/tests. Validate full suite >=602 passed, 0 failed, 8 skipped.
