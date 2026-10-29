@@ -378,7 +378,16 @@ def load_returns_from_json(
 
     df = pd.DataFrame(data) if not isinstance(data, pd.DataFrame) else data
     if orient == "records":
-        df = df.T  # records: list of {date: ..., ...} -> columns as dates
+        # records: list of dicts like [{"date": ..., "BTC": ...}, ...] -> want columns as assets with datetime index
+        df = pd.DataFrame(data) if not isinstance(data, pd.DataFrame) else df
+        # Try to promote common date column to index
+        df = _promote_datetime_column(df)
+        df = _normalize_columns(df)
+        try:
+            df = _normalize_index(df)
+        except Exception:
+            pass
+        return validate_returns_dataframe(df, benchmark=benchmark, min_rows=min_rows)
 
     return validate_returns_dataframe(df, benchmark=benchmark, min_rows=min_rows)
 

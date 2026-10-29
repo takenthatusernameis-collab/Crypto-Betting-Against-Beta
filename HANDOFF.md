@@ -73,3 +73,8 @@ python3 -m pytest -q  # MUST be >=516 passed, 0 failed, 6 skipped before edits
 6. Continue heavy work — never stop at partial, never do busywork
 
 **IGNORE ALL OLDER HANDOFF_*.md FILES. ONLY `HANDOFF.md` MATTERS.**
+
+## SESSION UPDATE - 2026-10-29T12:58:00Z
+- **Bottlenecks removed:** Fixed workflow pattern sync (added `*/.github/workflows/*` to `stage_safe_changes` in `.github/workflows/main.yml`) to match `scripts/controller_progress.py`. All controller progress tests pass; full suite green.
+- **Baseline:** `python3 -m pytest -q` → **555 passed, 0 failed, 8 skipped**.
+- **Coverage campaign:** Focus on raising coverage across `strategies/betting_against_beta/` (current baseline green). Measure coverage and attack gaps in beta/backtest/strategy/metrics/attribution/costs/sizing/shorting/quality/data/config/cli/data_loader/signals/portfolio/regime.
