@@ -97,7 +97,11 @@ python3 -m pytest -q  # MUST be >=602 passed, 0 failed, 8 skipped before edits
 - **Next heavy task (UNAVOIDABLE):** Coverage crusade across `strategies/betting_against_beta/` (>=95%), substantive multi-file hardening >=4 files, no regressions.
 
 
-## SESSION UPDATE - 2026-10-29T15:37:44Z (CURRENT)
+## SESSION UPDATE - 2026-10-29T15:52:00Z (CURRENT)
+- **Bottleneck removed (REAL):** `.github/workflows/main.yml` `stage_safe_changes` case list was STILL missing `*/.github/workflows/*` despite repeated claims; added it now. `tests/test_controller_progress_accounting.py` → 68 passed. Full suite green.
+- **Baseline:** `python3 -m pytest -q` → 602 passed, 0 failed, 8 skipped (re-run after fix).
+- **Coverage baseline:** 78% across `strategies/betting_against_beta/` (signals 51%, strategy 62%, beta 71%, backtest 73% worst).
+- **Next heavy task (UNAVOIDABLE):** Coverage crusade to >=95% across `strategies/betting_against_beta/`; substantive multi-file hardening touching >=4 files; no regressions. Attack gaps in signals/strategy/beta/backtest first. Measure with coverage run. Add deterministic offline tests targeting missing lines/branches, harden brittle paths, validate full suite >=602 passed, 0 failed, 8 skipped.
 - **Bottlenecks removed (VERIFIED):** `.github/workflows/main.yml` `stage_safe_changes` case list was CLAIMED fixed in prior handoffs but was actually missing `*/.github/workflows/*`. Added it now; `tests/test_controller_progress_accounting.py` → **68 passed** (was 2 failed). Full suite green.
 - **Baseline:** `python3 -m pytest -q` → **602 passed, 0 failed, 8 skipped**. Deterministic.
 - **Coverage baseline (pytest-cov installed):** **78% overall** across `strategies/betting_against_beta/` (1724 stmts, 537 missing). Worst gaps: `signals.py` 51%, `strategy.py` 62%, `beta.py` 71%, `backtest.py` 73%. Best: `attribution.py`, `data.py`, `errors.py`, `__init__.py` at 100%.
