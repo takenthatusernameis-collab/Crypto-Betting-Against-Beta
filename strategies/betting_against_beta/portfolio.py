@@ -114,20 +114,20 @@ def construct_portfolio(signals_df, dollar_neutral=True, gross_exposure_limit=No
         short_cell = short_mask & short_rows[:, None]
         w_arr[short_cell] = np.repeat(short_w[short_rows], short_mask[short_rows].sum(axis=1))
 
+    # Final finiteness guard in-place on the working array (no DataFrame copy).
+    w_arr[~np.isfinite(w_arr)] = 0.0
+
     weights = _pd.DataFrame(w_arr, index=index, columns=columns)
 
-    # Final finiteness guard
-    weights = weights.replace([np.inf, -np.inf], np.nan).fillna(0.0)
-
-    # Optional position size limit
+    # Optional position size limit (reuse the numpy working array).
     try:
         mps = max_position_size
         if mps is not None:
             mps_f = float(mps)
             if mps_f <= 0:
                 raise BABDataError("max_position_size must be positive")
-            wabs = weights.abs()
-            if (wabs > mps_f + 1e-12).any().any():
+            wabs = np.abs(w_arr)
+            if (wabs > mps_f + 1e-12).any():
                 raise BABDataError("Position size exceeds max_position_size")
     except BABDataError:
         raise
@@ -167,7 +167,8 @@ def construct_portfolio(signals_df, dollar_neutral=True, gross_exposure_limit=No
             max_w = float(max_single_weight) if max_single_weight is not None else 1.0
         except (TypeError, ValueError):
             gross_limit, net_limit, max_w = 2.0, 1e-6, 1.0
-        wv = weights.to_numpy(dtype=float)
+        # Reuse the working array; avoids a DataFrame -> ndarray conversion.
+        wv = w_arr
         abs_wv = np.abs(wv)
         if np.any(abs_wv > max_w + 1e-12):
             raise BABDataError("Single asset weight exceeds limit")

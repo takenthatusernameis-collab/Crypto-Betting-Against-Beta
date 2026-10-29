@@ -73,7 +73,7 @@ def run_backtest(returns_df, weights_df, transaction_costs=0.0, slippage=0.0,
     try:
         wdiff = weights.to_numpy(dtype=float) - w_shifted_filled.to_numpy(dtype=float)
         weight_changes = np.abs(wdiff).sum(axis=1)
-        weight_changes_s = pd.Series(weight_changes, index=common_idx).fillna(0.0)
+        weight_changes_s = pd.Series(weight_changes, index=common_idx)
     except Exception:
         weight_changes_s = weights.diff().abs().sum(axis=1).fillna(0.0)
 

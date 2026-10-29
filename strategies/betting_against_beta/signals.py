@@ -37,12 +37,10 @@ def _finite_beta_series(betas) -> pd.Series | None:
         numeric = numeric.astype("float64")
     arr = numeric.to_numpy(dtype=float, copy=False)
     if betas.dtype == object:
-        # Vectorized string detection without Python loop over elements
-        str_mask = np.zeros(len(betas), dtype=bool)
         betas_np = betas.to_numpy()
-        # Use vectorized approach where possible
-        for i, v in enumerate(betas_np):
-            str_mask[i] = isinstance(v, str)
+        # Detect original string entries (to_numeric would silently coerce
+        # numeric-looking strings such as "1.5", which the oracle must reject).
+        str_mask = np.array([isinstance(v, str) for v in betas_np], dtype=bool)
         arr[str_mask] = np.nan
     finite = np.isfinite(arr)
     clean = numeric[finite].astype("float64")

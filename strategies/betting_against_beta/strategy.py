@@ -260,12 +260,14 @@ class BABStrategy:
             pass
 
         # Explicit finiteness guard (single pass; construct_portfolio already
-        # returns finite weights, this is a defensive final clamp).
-        weights = weights.replace([_np.inf, -_np.inf], _np.nan).fillna(0.0)
-        if not _np.isfinite(weights.to_numpy(dtype=float)).all():
-            weights_arr = weights.to_numpy(dtype=float)
-            weights_arr[~_np.isfinite(weights_arr)] = 0.0
-            weights = type(weights)(weights_arr, index=weights.index, columns=weights.columns)
+        # returns finite weights, this is a defensive final clamp). Operate
+        # in-place on the existing DataFrame to avoid an extra allocation.
+        wa = weights.to_numpy(dtype=float)
+        if not _np.isfinite(wa).all():
+            if not wa.flags.writeable:
+                wa = wa.copy()
+            wa[~_np.isfinite(wa)] = 0.0
+            weights.iloc[:] = wa
         backtest = run_backtest(returns, weights, transaction_costs=cfg.transaction_costs, slippage=getattr(cfg, "slippage", 0.0))
 
         return BABResult(

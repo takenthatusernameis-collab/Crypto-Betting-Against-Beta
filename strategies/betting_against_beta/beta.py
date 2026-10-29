@@ -176,16 +176,10 @@ def calculate_rolling_beta(returns_df, benchmark_name, window=90, min_obs=60):
     betas_dict = {}
 
     bench_arr = benchmark_returns.to_numpy(dtype=float, copy=False)
-    asset_arrays = {
-        col: returns_df[col].to_numpy(dtype=float, copy=False)
-        for col in returns_df.columns
-        if col != benchmark_name
-    }
+    b_has_bad = not np.all(np.isfinite(bench_arr))
 
-    # Benchmark rolling sums are asset-independent; hoist them out of the
-    # per-asset loop so each asset pays for 2 rolling calls (its own y_sum and
-    # xy_sum) instead of 5. Numerics are bit-identical to computing all five
-    # per asset.
+    # Benchmark rolling sums are asset-independent; hoist them out so every
+    # asset reuses the same cnt / x_sum / xx_sum instead of recomputing them.
     ones_s = pd.Series(np.ones(n, dtype=float))
     x_s = pd.Series(bench_arr)
     xx_s = x_s * x_s
@@ -193,42 +187,60 @@ def calculate_rolling_beta(returns_df, benchmark_name, window=90, min_obs=60):
     x_sum_s = x_s.rolling(window=window, min_periods=min_obs).sum()
     xx_sum_s = xx_s.rolling(window=window, min_periods=min_obs).sum()
 
+    cnt_f = cnt_s.to_numpy(dtype=float, copy=False)
+    x_sum_f = x_sum_s.to_numpy(dtype=float, copy=False)
+    xx_sum_f = xx_sum_s.to_numpy(dtype=float, copy=False)
+    # Shared denominator component across all assets: cnt*xx - x^2, shape (n, 1).
+    denom_shared = cnt_f[:, None] * xx_sum_f[:, None] - x_sum_f[:, None] * x_sum_f[:, None]
+    obs_short = (cnt_f < min_obs) | np.isnan(cnt_f)  # shape (n,)
+
+    def _finalize_betas(beta_arr):
+        """Apply degenerate / insufficient-observation masks to a (n,) beta array."""
+        beta_arr = np.asarray(beta_arr, dtype=float)
+        degenerate = (~np.isfinite(denom_shared)) | (np.abs(denom_shared) < 1e-18)
+        beta_arr = np.where(degenerate, 0.0, beta_arr)
+        beta_arr = np.where(~np.isfinite(beta_arr) & ~np.isnan(beta_arr), 0.0, beta_arr)
+        beta_arr = np.where(obs_short[:, None], np.nan, beta_arr)
+        return beta_arr
+
+    asset_cols = [c for c in returns_df.columns if c != benchmark_name]
+
     try:
-        for asset in returns_df.columns:
-            if asset == benchmark_name:
-                betas_dict[asset] = np.ones(n, dtype=float)
-                continue
+        # Fast path: all-finite assets are computed at once with DataFrame
+        # rolling (vectorized across columns) plus numpy broadcasting. This
+        # removes the per-asset Python loop over rolling calls. Assets that
+        # contain any non-finite value fall back to the per-series safe path.
+        finite_cols = []
+        bad_cols = []
+        for c in asset_cols:
+            a_arr = returns_df[c].to_numpy(dtype=float, copy=False)
+            (finite_cols if np.all(np.isfinite(a_arr)) else bad_cols).append(c)
 
-            a_arr = asset_arrays[asset]
+        asset_betas = {}
 
-            a_has_bad = not np.all(np.isfinite(a_arr))
-            b_has_bad = not np.all(np.isfinite(bench_arr))
-            if a_has_bad or b_has_bad:
-                betas_dict[asset] = _calc_rolling_beta_series(bench_arr, a_arr, window, min_obs)
-                continue
+        if finite_cols:
+            y_df = returns_df[finite_cols]
+            xy_df = y_df.mul(bench_arr[:, None], axis=0)
+            y_sum_f = y_df.rolling(window=window, min_periods=min_obs).sum().to_numpy(dtype=float)
+            xy_sum_f = xy_df.rolling(window=window, min_periods=min_obs).sum().to_numpy(dtype=float)
+            num = cnt_f[:, None] * xy_sum_f - x_sum_f[:, None] * y_sum_f
+            with np.errstate(invalid="ignore", divide="ignore"):
+                beta = _finalize_betas(num / denom_shared)
+            for j, c in enumerate(finite_cols):
+                asset_betas[c] = beta[:, j]
 
-            y_s = pd.Series(a_arr)
-            xy_s = x_s * y_s
-            y_sum_s = y_s.rolling(window=window, min_periods=min_obs).sum()
-            xy_sum_s = xy_s.rolling(window=window, min_periods=min_obs).sum()
+        for c in bad_cols:
+            a_arr = returns_df[c].to_numpy(dtype=float, copy=False)
+            asset_betas[c] = _calc_rolling_beta_series(bench_arr, a_arr, window, min_obs)
 
-            cnt_f = cnt_s.to_numpy(dtype=float, copy=False)
-            x_sum_f = x_sum_s.to_numpy(dtype=float, copy=False)
-            y_sum_f = y_sum_s.to_numpy(dtype=float, copy=False)
-            xy_sum_f = xy_sum_s.to_numpy(dtype=float, copy=False)
-            xx_sum_f = xx_sum_s.to_numpy(dtype=float, copy=False)
-
-            denom = cnt_s * xx_sum_s - x_sum_s * x_sum_s
-            num = cnt_s * xy_sum_s - x_sum_s * y_sum_s
-            beta = num / denom
-            beta_arr = beta.to_numpy(dtype=float).copy()
-            denom_f = denom.to_numpy(dtype=float, copy=False)
-            degenerate = (~np.isfinite(denom_f)) | (np.abs(denom_f) < 1e-18)
-            beta_arr[degenerate] = 0.0
-            beta_arr[~np.isfinite(beta_arr) & ~np.isnan(beta_arr)] = 0.0
-            beta_arr[(cnt_f < min_obs) | np.isnan(cnt_f)] = np.nan
-            betas_dict[asset] = beta_arr
-
+        # Re-emit columns in the original frame order (benchmark keeps its
+        # position) so positional comparisons against the slow reference line up.
+        betas_dict = {}
+        for c in returns_df.columns:
+            if c == benchmark_name:
+                betas_dict[c] = np.ones(n, dtype=float)
+            else:
+                betas_dict[c] = asset_betas[c]
         return pd.DataFrame(betas_dict, index=returns_df.index)
     except BABDataError:
         raise
@@ -238,5 +250,5 @@ def calculate_rolling_beta(returns_df, benchmark_name, window=90, min_obs=60):
             if asset == benchmark_name:
                 betas_dict[asset] = np.ones(n, dtype=float)
                 continue
-            betas_dict[asset] = _calc_rolling_beta_series(bench_arr, asset_arrays[asset], window, min_obs)
+            betas_dict[asset] = _calc_rolling_beta_series(bench_arr, returns_df[asset].to_numpy(dtype=float, copy=False), window, min_obs)
         return pd.DataFrame(betas_dict, index=returns_df.index)
