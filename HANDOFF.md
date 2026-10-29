@@ -1,7 +1,7 @@
-# HANDOFF - 2026-10-29T21:19:14Z (SINGLE DURABLE HANDOFF)
+# HANDOFF - 2026-10-29T21:35:00Z (SINGLE DURABLE HANDOFF)
 
 ## TIMESTAMP
-2026-10-29T21:19:14Z
+2026-10-29T21:35:00Z
 
 ## PROJECT IDENTITY (NON-NEGOTIABLE - DRIVES ALL PRIORITIZATION)
 - **Repository:** `Crypto-Betting-Against-Beta`
@@ -9,17 +9,16 @@
 - **PRIORITY:** **BAB STRATEGY CODE IN `strategies/betting_against_beta/` > EVERYTHING ELSE**
 
 ## BOTTLENECKS REMOVED (VERIFIED)
-- **Workflow/controller pattern sync FIXED AND VERIFIED:** Added `*/.github/workflows/*` to `.github/workflows/main.yml` `stage_safe_changes` case (line ~1163). Tests related to pattern sync pass.
-- **Baseline restored GREEN:** `python3 -m pytest -q` → **756 passed, 0 failed, 8 skipped** (verified).
+- **Workflow/controller pattern sync FIXED AND VERIFIED:** Added `*/.github/workflows/*` to `.github/workflows/main.yml` `stage_safe_changes` case (line ~1163) so it stays in lock-step with `scripts/controller_progress.py` `EXCLUDE_PATTERNS`. Nested workflow files under subdirs are now excluded both in Python and in the bash list.
+- **Baseline restored GREEN:** `python3 -m pytest -q` → **804 passed, 0 failed, 8 skipped** (verified). No regressions.
 
 ## COVERAGE (CURRENT, measured)
 **Overall across `strategies/betting_against_beta/`: improved via added tests.**
 Target >=95% across all `strategies/betting_against_beta/` modules.
 
 ## COMPLETED THIS SESSION
-- Fixed workflow pattern sync for nested `*/.github/workflows/*` to restore green baseline.
-- Added heavy TDD coverage tests for `data_loader.py` (CSV/JSON/parquet/HDF5/pickle dispatch, price→returns, validation paths, tz/duplicates/promotions, numeric coercion, NaN/inf/benchmark cases).
-- Suite remains fully green.
+- Removed bottleneck: fixed workflow/controller pattern drift (`*/.github/workflows/*` missing from bash `stage_safe_changes` list) that was failing 2 tests in `TestStageSafeChangesPatternSync`.
+- Suite back to fully green: 804 passed, 0 failed, 8 skipped.
 
 ## IMMEDIATE HEAVY TASK (NEXT AGENT)
 **Campaign: push ALL strategy modules to >=95% coverage.**
@@ -46,7 +45,7 @@ python3 -m pytest -q  # MUST be green
 ## CLEAR INITIAL TASK MESSAGE FOR NEXT AGENTIC SESSION (COPY/PASTE THIS FIRST)
 ```
 PRIORITY: BAB strategy in strategies/betting_against_beta/ > everything else.
-GATE: python3 -m pytest -q must be green (currently 756 passed, 0 failed, 8 skipped). If not, fix workflow/controller pattern drift before any other work.
+GATE: python3 -m pytest -q must be green (currently 804 passed, 0 failed, 8 skipped). If not, fix workflow/controller pattern drift before any other work.
 CAMPAIGN: Coverage crusade to >=95% across ALL strategies/betting_against_beta/ modules.
 START: TDD on sizing.py and quality.py FIRST (largest gaps). Cover edge cases, bounds, NaN/inf, shapes. Then signals.py, data_sources.py, costs.py, regime.py, shorting.py.
 REQUIREMENTS: touch >=4 files with real logic/tests per session; no bare except:; deterministic/offline/seeded; enforce finiteness; preserve behavior.
