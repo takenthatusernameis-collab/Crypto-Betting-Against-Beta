@@ -1,15 +1,16 @@
-# HANDOFF - 2026-10-29T10:02:00Z (SINGLE DURABLE HANDOFF)
+# HANDOFF - 2026-10-29T10:08:00Z (SINGLE DURABLE HANDOFF)
 
 ## TIMESTAMP
-2026-10-29T10:02:00Z
+2026-10-29T10:08:00Z
 
 ## PROJECT IDENTITY (NON-NEGOTIABLE - DRIVES ALL PRIORITIZATION)
 - **Repository:** `Crypto-Betting-Against-Beta`
 - **Product:** Betting Against Beta (BAB) crypto strategy — long low-beta, short high-beta vs benchmark (BTC default), Frazzini–Pedersen style
 - **PRIORITY:** **BAB STRATEGY CODE IN `strategies/betting_against_beta/` > EVERYTHING ELSE**
 
-## COMPLETED THIS SESSION (2026-10-29T10:02:00Z)
+## COMPLETED THIS SESSION (2026-10-29T10:08:00Z)
 - **Bottleneck removed (VERIFIED):** `.github/workflows/main.yml` `stage_safe_changes` case list was missing the nested pattern `*/.github/workflows/*` while `scripts/controller_progress.py` `EXCLUDE_PATTERNS` required it; added `*/.github/workflows/*` to the workflow (line ~1163). Controller progress accounting tests all pass (68/68). Full suite restored to green: **486 passed, 0 failed, 6 skipped** (was 2 failed).
+- **Bottleneck removed (VERIFIED):** `.github/workflows/main.yml` case list missing `*/.github/workflows/*`; added. Controller progress accounting tests 68/68 pass.
 - **Priority 5 — Heavy work completed (expanded):**
   - `tests/test_bab_signals_portfolio_edgecases.py` (NEW): empty/NaN betas, all-equal betas (ties), single-asset universe, extreme quantiles (0/1 boundaries), portfolio dollar-neutrality/ties/long-only; asserts finiteness, no crashes.
   - `tests/test_bab_data_loader_robust.py` (NEW): malformed CSVs (mixed types), bad dates, duplicate timestamps, partial/all-NaN columns, timezone-naive/aware, large gaps, all-NaN benchmark rejection; safe behavior verified.
