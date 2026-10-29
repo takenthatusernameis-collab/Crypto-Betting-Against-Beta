@@ -47,6 +47,15 @@ class BABConfig:
     position_sizer: Optional[object] = None
     # Shorting constraints (borrow costs, availability, caps)
     shorting_constraints: Optional[object] = None
+    # Regime detection parameters
+    regime_filter: bool = False
+    regime_method: str = "volatility"
+    vol_window: int = 20
+    vol_threshold_low: float = 0.01
+    vol_threshold_high: float = 0.02
+    trend_window: int = 50
+    regime_scale_high_vol: float = 0.5
+    regime_scale_low_vol: float = 1.0
 
     def __post_init__(self):
         if self.universe is None:
@@ -103,7 +112,18 @@ class BABConfig:
                 f"synthetic_seed must be an int, got {type(self.synthetic_seed).__name__}"
             )
 
-        for name in ("long_quantile", "short_quantile"):
+        if not isinstance(self.vol_window, int) or isinstance(self.vol_window, bool):
+            errors.append(f"vol_window must be an int, got {type(self.vol_window).__name__}")
+        elif self.vol_window < 10:
+            errors.append(f"vol_window must be >= 10, got {self.vol_window}")
+
+        if not isinstance(self.trend_window, int) or isinstance(self.trend_window, bool):
+            errors.append(f"trend_window must be an int, got {type(self.trend_window).__name__}")
+        elif self.trend_window < 1:
+            errors.append(f"trend_window must be >= 1, got {self.trend_window}")
+
+        if not isinstance(self.regime_filter, bool):
+            errors.append(f"regime_filter must be a bool, got {type(self.regime_filter).__name__}")
             value = getattr(self, name)
             if not isinstance(value, (int, float)) or isinstance(value, bool):
                 errors.append(f"{name} must be numeric, got {type(value).__name__}")
