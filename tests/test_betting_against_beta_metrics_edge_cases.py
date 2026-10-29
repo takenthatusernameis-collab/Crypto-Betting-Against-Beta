@@ -118,3 +118,69 @@ class TestSummaryEdgeCases:
         s = metrics.summary(r)
         assert abs(s["total_return"] - ((1.1 * 1.1) - 1.0)) < 1e-9
         assert abs(s["final_cumulative"] - 1.21) < 1e-9
+
+
+class TestToSeriesCoverage:
+    def test_multi_column_dataframe_yields_single_nan(self):
+        s = metrics._to_series(pd.DataFrame({"a": [1.0, 2.0], "b": [3.0, 4.0]}))
+        assert len(s) == 1
+        assert np.isnan(s.iloc[0])
+
+
+class TestSharpeCoverage:
+    def test_near_zero_mean_low_vol_returns_nan(self):
+        r = pd.Series([1e-20] * 60)
+        assert np.isnan(metrics.sharpe_ratio(r))
+
+
+class TestMaxDrawdownCoverage:
+    def test_drawdown_known_cumulative_path(self):
+        cum = pd.Series([1.0, 1.1, 0.99])
+        assert abs(metrics.max_drawdown(cum) - (-0.1)) < 1e-6
+
+
+class TestStrategyBetaCoverage:
+    def test_inf_inside_strategy_yields_nan_beta(self):
+        assert np.isnan(metrics.strategy_beta(pd.Series([1.0, np.inf, 2.0]), pd.Series([1.0, 2.0, 3.0])))
+
+
+class TestSortinoCoverage:
+    def test_sortino_normal_case_finite(self):
+        rng = np.random.default_rng(11)
+        r = pd.Series(rng.normal(0.001, 0.01, 200))
+        s = metrics.sortino_ratio(r)
+        assert np.isfinite(s)
+
+    def test_sortino_no_downside_positive_mean_inf(self):
+        assert metrics.sortino_ratio(pd.Series([0.001] * 50)) == np.inf
+
+    def test_sortino_no_downside_nonpositive_mean_nan(self):
+        assert np.isnan(metrics.sortino_ratio(pd.Series([-0.001] * 50)))
+
+    def test_sortino_downside_dev_below_eps_inf(self):
+        r = pd.Series([-1e-20] * 10 + [0.01] * 10)
+        assert metrics.sortino_ratio(r) == np.inf
+
+    def test_sortino_single_observation_nan(self):
+        assert np.isnan(metrics.sortino_ratio(pd.Series([0.01])))
+
+
+class TestWinRateCoverage:
+    def test_win_rate_empty_returns_nan(self):
+        assert np.isnan(metrics.win_rate(pd.Series([], dtype="float64")))
+
+
+class TestTurnoverSeriesCoverage:
+    def test_turnover_series_none_returns_empty(self):
+        assert len(metrics.turnover_series(None)) == 0
+
+    def test_turnover_series_empty_dataframe_returns_empty(self):
+        assert len(metrics.turnover_series(pd.DataFrame())) == 0
+
+
+class TestTotalReturnFinalCumulativeCoverage:
+    def test_total_return_inf_then_zero_nan(self):
+        assert np.isnan(metrics.total_return(pd.Series([np.inf, -1.0])))
+
+    def test_final_cumulative_inf_then_zero_nan(self):
+        assert np.isnan(metrics.final_cumulative(pd.Series([np.inf, -1.0])))

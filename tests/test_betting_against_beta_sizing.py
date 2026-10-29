@@ -127,3 +127,91 @@ class TestStrategyWiring:
         res = strat.run()
         # basic sanity
         assert res.weights is not None
+
+
+class TestSizerValidationMore:
+    def test_kelly_max_leverage_and_fraction(self):
+        with pytest.raises(BABSizingError):
+            KellySizer(max_leverage=0.0)
+        with pytest.raises(BABSizingError):
+            KellySizer(max_leverage=-1.0)
+        with pytest.raises(BABSizingError):
+            KellySizer(fraction=-0.5)
+
+    def test_vol_target_annualize_and_leverage(self):
+        with pytest.raises(BABSizingError):
+            VolatilityTargetSizer(annualize=0)
+        with pytest.raises(BABSizingError):
+            VolatilityTargetSizer(max_leverage=0.0)
+        with pytest.raises(BABSizingError):
+            VolatilityTargetSizer(max_leverage=-2.0)
+
+    def test_risk_parity_leverage_target_vol_annualize(self):
+        with pytest.raises(BABSizingError):
+            RiskParitySizer(max_leverage=0.0)
+        with pytest.raises(BABSizingError):
+            RiskParitySizer(target_vol=0.0)
+        with pytest.raises(BABSizingError):
+            RiskParitySizer(annualize=0)
+
+
+def _make_sizing_inputs(periods=70):
+    idx = pd.date_range("2023-01-01", periods=periods, freq="D")
+    rng = np.random.default_rng(3)
+    returns = pd.DataFrame({
+        "A": rng.normal(0.0005, 0.01, periods),
+        "B": rng.normal(0.0008, 0.015, periods),
+    }, index=idx)
+    signals = pd.DataFrame({"A": [1] * (periods // 2) + [-1] * (periods // 2),
+                            "B": [-1] * (periods // 2) + [1] * (periods // 2)}, index=idx)
+    return signals, returns
+
+
+class TestApplyPositionSizingCoverage:
+    def test_string_shorthands(self):
+        signals, returns = _make_sizing_inputs()
+        for shorthand in ("kelly", "kelly_fraction", "vol_target", "volatility_target",
+                          "voltarget", "risk_parity", "riskparity", "rp"):
+            w = apply_position_sizing(signals, returns, sizer=shorthand)
+            assert w.shape == signals.shape
+            assert np.isfinite(w.values).all()
+
+    def test_unknown_string_sizer_raises(self):
+        signals, returns = _make_sizing_inputs()
+        with pytest.raises(BABSizingError):
+            apply_position_sizing(signals, returns, sizer="nope")
+
+    def test_no_common_index_returns_clamped_base(self):
+        signals, returns = _make_sizing_inputs()
+        returns = returns.set_index(pd.date_range("2024-01-01", periods=len(returns), freq="D"))
+        w = apply_position_sizing(signals, returns, sizer=KellySizer(lookback=10))
+        assert np.isfinite(w.values).all()
+
+    def test_returns_missing_columns_filled_zero(self):
+        signals, returns = _make_sizing_inputs()
+        returns = returns[["A"]]
+        w = apply_position_sizing(signals, returns, sizer=KellySizer(lookback=10))
+        assert "B" in w.columns
+        assert np.isfinite(w.values).all()
+
+    def test_kelly_zero_variance_history_k_zero(self):
+        signals, returns = _make_sizing_inputs()
+        returns = pd.DataFrame({"A": [0.001] * 70, "B": [0.001] * 70}, index=signals.index)
+        w = apply_position_sizing(signals, returns, sizer=KellySizer(lookback=10))
+        assert np.isfinite(w.values).all()
+
+    def test_vol_target_zero_variance_scale_zero(self):
+        signals, returns = _make_sizing_inputs()
+        returns = pd.DataFrame({"A": [0.001] * 70, "B": [0.001] * 70}, index=signals.index)
+        w = apply_position_sizing(signals, returns, sizer=VolatilityTargetSizer(lookback=10))
+        assert np.isfinite(w.values).all()
+
+    def test_risk_parity_default_target_vol_none_scale_one(self):
+        signals, returns = _make_sizing_inputs()
+        w = apply_position_sizing(signals, returns, sizer=RiskParitySizer(lookback=10))
+        assert np.isfinite(w.values).all()
+
+    def test_risk_parity_with_target_vol_scale_computed(self):
+        signals, returns = _make_sizing_inputs()
+        w = apply_position_sizing(signals, returns, sizer=RiskParitySizer(lookback=10, target_vol=0.1))
+        assert np.isfinite(w.values).all()

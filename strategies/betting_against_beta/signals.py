@@ -41,7 +41,9 @@ def _finite_beta_series(betas) -> pd.Series | None:
         # Detect original string entries (to_numeric would silently coerce
         # numeric-looking strings such as "1.5", which the oracle must reject).
         str_mask = np.array([isinstance(v, str) for v in betas_np], dtype=bool)
-        arr[str_mask] = np.nan
+        if np.any(str_mask):
+            arr = arr.copy()
+            arr[str_mask] = np.nan
     finite = np.isfinite(arr)
     clean = numeric[finite].astype("float64")
     if len(clean) == 0:

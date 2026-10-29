@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
+import pytest
 
-from strategies.betting_against_beta.portfolio import construct_portfolio
+from strategies.betting_against_beta.portfolio import construct_portfolio, _clean_signal_value, enforce_beta_neutrality
 from strategies.betting_against_beta.signals import generate_bab_signals
 
 
@@ -132,3 +133,117 @@ def test_portfolio_dollar_neutral_exact_when_both_sides():
         row = w.iloc[i].to_numpy(dtype=float)
         assert np.allclose(row[row > 0].sum(), 1.0, atol=1e-12)
         assert np.allclose(row[row < 0].sum(), -1.0, atol=1e-12)
+
+
+class TestCleanSignalValue:
+    def test_none_and_nan(self):
+        assert _clean_signal_value(None) == 0
+        assert _clean_signal_value(float("nan")) == 0
+
+    def test_string_parsing(self):
+        assert _clean_signal_value("1") == 1
+        assert _clean_signal_value("-1") == -1
+        assert _clean_signal_value("garbage") == 0
+        assert _clean_signal_value("1.5") == 1
+
+    def test_numeric(self):
+        assert _clean_signal_value(1) == 1
+        assert _clean_signal_value(-1) == -1
+        assert _clean_signal_value(2) == 0
+        assert _clean_signal_value(1.0) == 1
+        assert _clean_signal_value(np.int64(-1)) == -1
+
+    def test_type_error(self):
+        assert _clean_signal_value([1, 2]) == 0
+
+
+class TestConstructPortfolioBranches:
+    def test_max_position_size_kw_alias(self):
+        dates = pd.date_range("2023-01-01", periods=2)
+        sig = pd.DataFrame({"A": [1, -1], "B": [-1, 1]}, index=dates)
+        w = construct_portfolio(sig, max_pos_size=1.0)
+        assert np.isfinite(w.values).all()
+
+    def test_max_position_size_limit_raises(self):
+        dates = pd.date_range("2023-01-01", periods=2)
+        sig = pd.DataFrame({"A": [1, -1], "B": [-1, 1]}, index=dates)
+        from strategies.betting_against_beta.errors import BABDataError
+        with pytest.raises(BABDataError):
+            construct_portfolio(sig, max_pos_size=0.4)
+
+    def test_max_position_size_bad_type_ignored(self):
+        dates = pd.date_range("2023-01-01", periods=2)
+        sig = pd.DataFrame({"A": [1, -1], "B": [-1, 1]}, index=dates)
+        w = construct_portfolio(sig, max_position_size="not-a-number")
+        assert np.isfinite(w.values).all()
+
+    def test_max_turnover_bad_type_ignored(self):
+        dates = pd.date_range("2023-01-01", periods=2)
+        sig = pd.DataFrame({"A": [1, -1], "B": [-1, 1]}, index=dates)
+        prev = pd.DataFrame({"A": [0.0, 0.0], "B": [0.0, 0.0]}, index=dates)
+        w = construct_portfolio(sig, max_turnover="not-a-number", weights_df_prev=prev)
+        assert np.isfinite(w.values).all()
+
+    def test_risk_checks_bad_gross_limit_uses_defaults(self):
+        dates = pd.date_range("2023-01-01", periods=2)
+        sig = pd.DataFrame({"A": [1, -1], "B": [-1, 1]}, index=dates)
+        w = construct_portfolio(sig, enforce_risk_checks=True, gross_exposure_limit="not-a-number")
+        assert np.isfinite(w.values).all()
+
+
+class TestEnforceBetaNeutralityBranches:
+    def _w_b(self):
+        dates = pd.date_range("2023-01-01", periods=2)
+        w = pd.DataFrame({"A": [0.5, -0.5], "B": [-0.5, 0.5]}, index=dates)
+        b = pd.DataFrame({"A": [1.0, 1.0], "B": [1.2, 1.2]}, index=dates)
+        return w, b
+
+    def test_weights_empty_returned(self):
+        w, b = self._w_b()
+        out = enforce_beta_neutrality(pd.DataFrame(), b)
+        assert out.equals(pd.DataFrame())
+
+    def test_betas_empty_returned(self):
+        w, b = self._w_b()
+        out = enforce_beta_neutrality(w, pd.DataFrame())
+        assert out.equals(w)
+
+    def test_no_common_columns_returned(self):
+        w, b = self._w_b()
+        b2 = pd.DataFrame({"C": [1.0, 1.0]}, index=w.index)
+        out = enforce_beta_neutrality(w, b2)
+        assert out.equals(w)
+
+    def test_invalid_tolerance_and_drift_default(self):
+        w, b = self._w_b()
+        out = enforce_beta_neutrality(w, b, tolerance=float("nan"), max_drift=-1.0)
+        assert np.isfinite(out.values).all()
+
+    def test_non_finite_target_beta(self):
+        w, b = self._w_b()
+        out = enforce_beta_neutrality(w, b, target_beta=float("nan"))
+        assert np.isfinite(out.values).all()
+
+    def test_row_no_finite_betas_skipped(self):
+        w, b = self._w_b()
+        b2 = b.copy()
+        b2.loc[:, :] = np.nan
+        out = enforce_beta_neutrality(w, b2)
+        assert np.isfinite(out.values).all()
+
+    def test_zero_weight_denom_skipped(self):
+        w, b = self._w_b()
+        w2 = pd.DataFrame({"A": [0.0, 0.0], "B": [0.0, 0.0]}, index=w.index)
+        out = enforce_beta_neutrality(w2, b)
+        assert np.isfinite(out.values).all()
+
+    def test_correction_false_returns_input(self):
+        w, b = self._w_b()
+        out = enforce_beta_neutrality(w, b, target_beta=99.0, correction=False)
+        assert out.equals(w)
+
+    def test_equal_betas_skipped(self):
+        w, b = self._w_b()
+        b2 = pd.DataFrame({"A": [1.0, 1.0], "B": [1.0, 1.0]}, index=w.index)
+        out = enforce_beta_neutrality(w, b2, target_beta=99.0)
+        assert np.isfinite(out.values).all()
