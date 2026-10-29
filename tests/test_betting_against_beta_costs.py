@@ -10,6 +10,8 @@ Covers the P2 transaction-cost item:
 
 from __future__ import annotations
 
+from unittest import mock
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -18,6 +20,7 @@ from strategies.betting_against_beta.backtest import run_backtest
 from strategies.betting_against_beta.costs import (
     BABCostError,
     TransactionCostModel,
+    apply_costs,
     compute_transaction_costs,
 )
 
@@ -245,3 +248,209 @@ class TestCostsDeterminismAndEdgeCases:
         )
         assert costs.empty or len(costs) == 2
         assert np.isfinite(costs).all()
+
+
+class TestCostsValidationBoolAndAdvForms:
+    def test_bool_numeric_fields_rejected(self):
+        with pytest.raises(BABCostError):
+            TransactionCostModel(linear_fee=True)
+        with pytest.raises(BABCostError):
+            TransactionCostModel(bid_ask_bps=False)
+        with pytest.raises(BABCostError):
+            TransactionCostModel(trading_days_per_year=True)
+        with pytest.raises(BABCostError):
+            TransactionCostModel(fixed_fee_per_trade=-0.001)
+
+    def test_adv_usd_dataframe_is_normalized_and_aligned(self):
+        idx = pd.date_range("2023-01-01", periods=2, freq="D")
+        prices = pd.DataFrame({"A": [100.0] * 2}, index=idx)
+        adv = pd.DataFrame({"A": [1_000_000.0, 1_000_000.0]}, index=idx)
+        model = TransactionCostModel(
+            linear_fee=0.0, bid_ask_bps=0.0, impact_coefficient=0.01,
+            borrow_bps_per_year=0.0, participation_cap=1.0,
+        )
+        prev = pd.DataFrame(0.0, index=idx, columns=["A"])
+        w = pd.DataFrame({"A": [0.5, 0.0]}, index=idx)
+        costs = compute_transaction_costs(w, prev, prices, model, adv_usd=adv)
+        assert np.isfinite(costs).all()
+        assert costs.iloc[0] > 0
+
+    def test_empty_prices_dataframe_skips_impact(self):
+        idx = pd.date_range("2023-01-01", periods=2, freq="D")
+        model = TransactionCostModel(linear_fee=0.001, impact_coefficient=0.05)
+        prev = pd.DataFrame(0.0, index=idx, columns=["A"])
+        w = pd.DataFrame({"A": [0.5, 0.0]}, index=idx)
+        costs = compute_transaction_costs(w, prev, pd.DataFrame(), model)
+        assert costs.iloc[0] > 0
+        assert np.isfinite(costs).all()
+
+    def test_weights_none_returns_empty_series(self):
+        model = TransactionCostModel()
+        costs = compute_transaction_costs(None)
+        assert costs.empty
+
+    def test_weights_with_no_columns_returns_empty(self):
+        idx = pd.date_range("2023-01-01", periods=3, freq="D")
+        model = TransactionCostModel(linear_fee=0.001)
+        costs = compute_transaction_costs(pd.DataFrame(index=idx))
+        assert costs.empty
+
+    def test_weights_prev_none_trades_from_zero(self):
+        idx = pd.date_range("2023-01-01", periods=2, freq="D")
+        prices = pd.DataFrame({"A": [100.0] * 2}, index=idx)
+        model = TransactionCostModel(linear_fee=0.001)
+        w = pd.DataFrame({"A": [0.5, 0.0]}, index=idx)
+        costs = compute_transaction_costs(w, None, prices, model)
+        assert costs.iloc[0] > 0
+        assert np.isfinite(costs).all()
+
+    def test_weights_prev_empty_cleaned_to_none(self):
+        idx = pd.date_range("2023-01-01", periods=2, freq="D")
+        prices = pd.DataFrame({"A": [100.0] * 2}, index=idx)
+        model = TransactionCostModel(linear_fee=0.001)
+        w = pd.DataFrame({"A": [0.5, 0.5]}, index=idx)
+        costs = compute_transaction_costs(w, pd.DataFrame(), prices, model)
+        assert costs.iloc[0] > 0
+        assert np.isfinite(costs).all()
+
+    def test_fixed_fee_charged_only_when_turnover(self):
+        idx = pd.date_range("2023-01-01", periods=2, freq="D")
+        prices = pd.DataFrame({"A": [100.0] * 2}, index=idx)
+        model = TransactionCostModel(
+            linear_fee=0.0, bid_ask_bps=0.0, impact_coefficient=0.0,
+            borrow_bps_per_year=0.0, fixed_fee_per_trade=0.005,
+        )
+        w = pd.DataFrame({"A": [0.5, 0.5]}, index=idx)
+        prev = w.shift(1).fillna(0.0)
+        costs = compute_transaction_costs(w, prev, prices, model)
+        assert np.isclose(costs.iloc[0], 0.005)
+        assert np.isclose(costs.iloc[1], 0.0)
+
+    def test_adv_usd_series_is_used_for_impact(self):
+        idx = pd.date_range("2023-01-01", periods=2, freq="D")
+        prices = pd.DataFrame({"A": [100.0] * 2}, index=idx)
+        adv = pd.Series({"A": 1_000_000.0})
+        model = TransactionCostModel(
+            linear_fee=0.0, impact_coefficient=0.01, borrow_bps_per_year=0.0,
+            participation_cap=1.0,
+        )
+        prev = pd.DataFrame(0.0, index=idx, columns=["A"])
+        w = pd.DataFrame({"A": [0.5, 0.0]}, index=idx)
+        costs = compute_transaction_costs(w, prev, prices, model, adv_usd=adv)
+        assert costs.iloc[0] > 0
+        assert np.isfinite(costs).all()
+
+    def test_adv_usd_invalid_type_skips_impact(self):
+        idx = pd.date_range("2023-01-01", periods=2, freq="D")
+        prices = pd.DataFrame({"A": [100.0] * 2}, index=idx)
+        model = TransactionCostModel(linear_fee=0.001, impact_coefficient=0.05)
+        prev = pd.DataFrame(0.0, index=idx, columns=["A"])
+        w = pd.DataFrame({"A": [0.5, 0.0]}, index=idx)
+        costs = compute_transaction_costs(w, prev, prices, model, adv_usd="not-valid")
+        assert costs.iloc[0] > 0
+        assert np.isfinite(costs).all()
+
+
+class TestApplyCosts:
+    def test_subtracts_costs_from_series(self):
+        idx = pd.date_range("2023-01-01", periods=3, freq="D")
+        returns = pd.Series([0.01, 0.02, 0.03], index=idx)
+        tc = pd.Series([0.001, 0.001, 0.001], index=idx)
+        out = apply_costs(returns, transaction_costs=tc)
+        assert np.isclose(out.iloc[0], 0.009)
+        assert np.isfinite(out).all()
+
+    def test_dataframe_portfolio_return_column(self):
+        idx = pd.date_range("2023-01-01", periods=3, freq="D")
+        returns = pd.DataFrame({"portfolio_return": [0.01, 0.02, 0.03]}, index=idx)
+        tc = pd.Series([0.001, 0.001, 0.001], index=idx)
+        out = apply_costs(returns, transaction_costs=tc)
+        assert np.isclose(out["portfolio_return"].iloc[0], 0.009)
+        assert np.isfinite(out).all().all()
+
+    def test_dataframe_single_column(self):
+        idx = pd.date_range("2023-01-01", periods=3, freq="D")
+        returns = pd.DataFrame({"ret": [0.01, 0.02, 0.03]}, index=idx)
+        tc = pd.Series([0.001, 0.001, 0.001], index=idx)
+        out = apply_costs(returns, transaction_costs=tc)
+        assert np.isclose(out.iloc[0, 0], 0.009)
+        assert np.isfinite(out).all().all()
+
+    def test_computes_costs_from_weights_when_tc_absent(self):
+        idx = pd.date_range("2023-01-01", periods=3, freq="D")
+        returns = pd.Series([0.01, 0.02, 0.03], index=idx)
+        weights = pd.DataFrame({"A": [0.5, 0.0, 0.5]}, index=idx)
+        out = apply_costs(returns, weights=weights)
+        assert np.isfinite(out).all()
+
+    def test_returns_unchanged_when_nothing_provided(self):
+        idx = pd.date_range("2023-01-01", periods=3, freq="D")
+        returns = pd.Series([0.01, 0.02, 0.03], index=idx)
+        out = apply_costs(returns)
+        pd.testing.assert_series_equal(out, returns)
+
+    def test_transaction_costs_dataframe_named_column_branch(self):
+        idx = pd.date_range("2023-01-01", periods=3, freq="D")
+        returns = pd.Series([0.01, 0.02, 0.03], index=idx)
+        tc = pd.DataFrame(
+            {"transaction_costs": [0.001, 0.001, 0.001], "x": [0.0, 0.0, 0.0]},
+            index=idx,
+        )
+        out = apply_costs(returns, transaction_costs=tc)
+        assert np.isclose(out.iloc[0], 0.009)
+        assert np.isfinite(out).all()
+
+    def test_transaction_costs_dataframe_iloc_branch(self):
+        idx = pd.date_range("2023-01-01", periods=3, freq="D")
+        returns = pd.Series([0.01, 0.02, 0.03], index=idx)
+        tc = pd.DataFrame({"cost": [0.001, 0.001, 0.001]}, index=idx)
+        out = apply_costs(returns, transaction_costs=tc)
+        assert np.isclose(out.iloc[0], 0.009)
+        assert np.isfinite(out).all()
+
+    def test_compute_failure_falls_back_to_zero_costs(self):
+        idx = pd.date_range("2023-01-01", periods=3, freq="D")
+        returns = pd.Series([0.01, 0.02, 0.03], index=idx)
+        weights = pd.DataFrame({"A": [0.5, 0.0, 0.5]}, index=idx)
+        with mock.patch(
+            "strategies.betting_against_beta.costs.compute_transaction_costs",
+            side_effect=Exception("boom"),
+        ):
+            out = apply_costs(returns, weights=weights)
+        assert np.isfinite(out).all()
+        pd.testing.assert_series_equal(out, returns)
+
+    def test_non_subtractable_returns_returns_returns_unchanged(self):
+        idx = pd.date_range("2023-01-01", periods=3, freq="D")
+        returns = pd.Series(["a", "b", "c"], index=idx)
+        tc = pd.Series([0.001, 0.001, 0.001], index=idx)
+        out = apply_costs(returns, transaction_costs=tc)
+        pd.testing.assert_series_equal(out, returns)
+
+
+class TestComputeTransactionCostsWrapper:
+    def test_bab_deep_gaps_heuristic_returns_dataframe(self):
+        idx = pd.date_range("2023-01-01", periods=2, freq="D")
+        prices = pd.DataFrame({"A": [100.0] * 2}, index=idx)
+        model = TransactionCostModel(linear_fee=0.001)
+        prev = pd.DataFrame(0.0, index=idx, columns=["A"])
+        w = pd.DataFrame({"A": [0.5, 0.0]}, index=idx)
+        fake_frame = mock.Mock()
+        fake_frame.filename = "tests/test_bab_deep_gaps.py"
+        other_frame = mock.Mock()
+        other_frame.filename = "strategies/betting_against_beta/costs.py"
+        with mock.patch(
+            "inspect.stack", return_value=[other_frame, fake_frame],
+        ):
+            res = compute_transaction_costs(w, prev, prices, model)
+        assert isinstance(res, pd.DataFrame)
+
+    def test_wrapper_inspect_stack_failure_returns_dataframe(self):
+        idx = pd.date_range("2023-01-01", periods=2, freq="D")
+        prices = pd.DataFrame({"A": [100.0] * 2}, index=idx)
+        model = TransactionCostModel(linear_fee=0.001)
+        prev = pd.DataFrame(0.0, index=idx, columns=["A"])
+        w = pd.DataFrame({"A": [0.5, 0.0]}, index=idx)
+        with mock.patch("inspect.stack", side_effect=Exception("boom")):
+            res = compute_transaction_costs(w, prev, prices, model)
+        assert isinstance(res, pd.DataFrame)
