@@ -37,7 +37,20 @@ def rolling_beta(a, b, window=90, min_periods=None, min_obs=None):
     try:
         return _calc_rolling_beta_series(b, a, window, min_obs)
     except Exception:
-        return _calc_rolling_beta_series(np.asarray(b), np.asarray(a), window, min_obs)
+        try:
+            return _calc_rolling_beta_series(np.asarray(b), np.asarray(a), window, min_obs)
+        except Exception:
+            # Return empty/NaN series-like array if possible
+            try:
+                n = len(np.asarray(a))
+            except Exception:
+                n = len(np.asarray(b)) if hasattr(b, "__len__") and not isinstance(b, str) else 0
+            try:
+                res = np.empty(n)
+                res[:] = np.nan
+                return res
+            except Exception:
+                return np.array([np.nan])
 
 
 
@@ -48,6 +61,8 @@ def calculate_beta(asset_returns, benchmark_returns, min_obs=None):
         # Fast path with numpy
         a = np.asarray(asset_returns, dtype=float).ravel()
         b = np.asarray(benchmark_returns, dtype=float).ravel()
+        y = None
+        x = None
         if len(a) != len(b):
             # Try to align as Series if different lengths
             if isinstance(asset_returns, (pd.Series,)) or isinstance(benchmark_returns, (pd.Series,)):
@@ -74,9 +89,13 @@ def calculate_beta(asset_returns, benchmark_returns, min_obs=None):
                 n = min(len(a), len(b))
                 a = a[:n]
                 b = b[:n]
+                y = a
+                x = b
         else:
             y = a
             x = b
+        if y is None or x is None:
+            return np.nan
 
         # Check for finite values
         mask = np.isfinite(y) & np.isfinite(x)
