@@ -1,7 +1,7 @@
-# HANDOFF - 2026-10-29T12:43:19Z (SINGLE DURABLE HANDOFF)
+# HANDOFF - 2026-10-29T13:47:34Z (SINGLE DURABLE HANDOFF)
 
 ## TIMESTAMP
-2026-10-29T12:43:19Z
+2026-10-29T13:47:34Z
 
 ## PROJECT IDENTITY (NON-NEGOTIABLE - DRIVES ALL PRIORITIZATION)
 - **Repository:** `Crypto-Betting-Against-Beta`
@@ -83,3 +83,8 @@ python3 -m pytest -q  # MUST be >=516 passed, 0 failed, 6 skipped before edits
 - **Bottlenecks removed:** Restored workflow/controller pattern parity by adding `*/.github/workflows/*` to `stage_safe_changes` case list in `.github/workflows/main.yml`; `TestStageSafeChangesPatternSync` now 68/68 green.
 - **Baseline:** targeted accounting tests 68/68 green; full suite re-run pending.
 - **Next heavy task:** Coverage crusade across `strategies/betting_against_beta/` (>=95%), substantive multi-file hardening >=4 files, no regressions.
+
+## SESSION UPDATE - 2026-10-29T13:47:34Z
+- **Bottlenecks removed:** Added `*/.github/workflows/*` to `stage_safe_changes` case list in `.github/workflows/main.yml` to match Python EXCLUDE_PATTERNS; `TestStageSafeChangesPatternSync` now 68/68 green.
+- **Baseline:** `python3 -m pytest tests/test_controller_progress_accounting.py -q` → 68 passed. Full suite running.
+- **Next heavy task (UNAVOIDABLE):** Coverage crusade across `strategies/betting_against_beta/` (>=95%), substantive multi-file hardening >=4 files, no regressions. Measure coverage, attack gaps, harden brittle paths, validate full suite >=516 passed.
