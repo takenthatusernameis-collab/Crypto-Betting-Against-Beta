@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, field
 from typing import List, Optional
 
 
@@ -22,7 +22,7 @@ class BABConfigError(ValueError):
 @dataclass(frozen=False)
 class BABConfig:
     """Configuration for BAB strategy."""
-    universe: Optional[List[str]] = None
+    universe: Optional[List[str]] = field(default_factory=lambda: ["BTC", "ETH", "SOL", "BNB", "XRP", "ADA", "AVAX", "DOT"])
     benchmark: str = "BTC"
     beta_window: int = 90  # days for rolling beta calculation
     rebalance_freq: str = "daily"
@@ -62,7 +62,7 @@ class BABConfig:
     vol_window: int = 20
     vol_use_ewma: bool = False
     vol_thresholds: Optional[tuple[float, ...]] = None  # fixed vol band edges (low, high)
-    vol_percentiles: Optional[tuple[float, float]] = (0.33, 0.66)  # percentile band edges
+    vol_percentiles: Optional[tuple[float, float]] = None  # percentile band edges (None => (0.33, 0.66) effective)
     vol_hysteresis: float = 0.0  # regime-change hysteresis margin in [0, 1]
     trend_ma_window: int = 50
     trend_z_window: Optional[int] = None  # z-score window for trend regime (None => moving average)
@@ -81,8 +81,6 @@ class BABConfig:
     beta_neutral_adjustment: bool = True
 
     def __post_init__(self):
-        if self.universe is None:
-            object.__setattr__(self, "universe", ["BTC", "ETH", "SOL", "BNB", "XRP", "ADA", "AVAX", "DOT"])
         # Normalize shorting_constraints if passed as dict
         try:
             if isinstance(self.shorting_constraints, dict):
@@ -237,6 +235,8 @@ class BABConfig:
             value = getattr(self, name)
             if not isinstance(value, (int, float)) or isinstance(value, bool):
                 errors.append(f"{name} must be numeric, got {type(value).__name__}")
+            elif not _is_finite_number(value):
+                errors.append(f"{name} must be finite, got {value}")
             elif value < 0:
                 errors.append(f"{name} must be >= 0, got {value}")
 

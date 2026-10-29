@@ -1,7 +1,7 @@
-# HANDOFF - 2026-10-29T22:22:25Z (SINGLE DURABLE HANDOFF)
+# HANDOFF - 2026-10-29T23:45:00Z (SINGLE DURABLE HANDOFF)
 
 ## TIMESTAMP
-2026-10-29T22:22:25Z
+2026-10-29T23:45:00Z
 
 ## PROJECT IDENTITY (NON-NEGOTIABLE - DRIVES ALL PRIORITIZATION)
 - **Repository:** `Crypto-Betting-Against-Beta`
@@ -9,8 +9,13 @@
 - **PRIORITY:** **BAB STRATEGY CODE IN `strategies/betting_against_beta/` > EVERYTHING ELSE**
 
 ## BOTTLENECKS REMOVED (VERIFIED)
-- **Workflow/controller pattern sync FIXED AND VERIFIED:** Added `*/.github/workflows/*` to `.github/workflows/main.yml` `stage_safe_changes` case (line ~1160). Nested workflow files under subdirs now excluded both in Python (`scripts/controller_progress.py` has `*/.github/workflows/*`) and in bash workflow. All `TestStageSafeChangesPatternSync` tests pass.
-- **Baseline restored GREEN:** `python3 -m pytest -q` → **804 passed, 8 skipped, 0 failed** (verified). No regressions.
+- **Workflow/controller pattern sync FIXED AND VERIFIED:** Added `*/.github/workflows/*` to `.github/workflows/main.yml` `stage_safe_changes` case (line ~1163). Nested workflow files under subdirs now excluded both in Python (`scripts/controller_progress.py` has `*/.github/workflows/*`) and in bash workflow. All `TestStageSafeChangesPatternSync` tests pass.
+- **Config bugs FIXED AND VERIFIED:**
+  - `vol_percentiles` default changed to `None` (effective `(0.33, 0.66)` in `regime.py`) so `BABConfig(vol_thresholds=(0.2, 0.8))` no longer falsely trips the mutual-exclusivity rule; explicit both still raises.
+  - `transaction_costs`/`slippage` now reject non-finite values (was accepting `inf`).
+  - `resolved_universe`: `universe=None` now derives tradable set from data columns minus benchmark; default/universe-list configs still intersect with columns (factory default preserves prior behavior).
+  - `BABConfig` field default now uses `default_factory` so `BABConfig(universe=None)` stays distinguishable from `BABConfig()`.
+- **Baseline restored GREEN:** `python3 -m pytest -q` → **916 passed, 8 skipped, 0 failed** (verified). No regressions.
 
 ## COVERAGE (CURRENT - all BAB tests + existing coverage tests)
 **Overall across `strategies/betting_against_beta/`: ~57% with current test set** (many modules partially tested). Target >=95% across ALL modules.
@@ -22,7 +27,8 @@ Current gaps (priority order):
 
 ## COMPLETED THIS SESSION
 - Fixed workflow/controller pattern drift: added `*/.github/workflows/*` to `.github/workflows/main.yml` stage_safe_changes case. Verified all pattern sync tests pass.
-- Restored full suite to green (804 passed, 8 skipped).
+- Fixed config bugs: vol_percentiles default None + mutual-exclusivity semantics, transaction_costs/slippage finiteness, resolved_universe None-vs-default distinction.
+- Restored full suite to green (916 passed, 8 skipped).
 
 ## IMMEDIATE HEAVY TASK (NEXT AGENT)
 **Campaign: push ALL strategy modules to >=95% coverage. Start from highest-impact/core modules.**
@@ -46,14 +52,14 @@ Priority order (biggest gaps / highest impact):
 ## MANDATORY SESSION START (IN ORDER):
 ```bash
 cd /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
-python3 -m pytest -q  # MUST be green (804 passed, 8 skipped)
+python3 -m pytest -q  # MUST be green (916 passed, 8 skipped)
 ```
 **IF GREEN → START HEAVY WORK IMMEDIATELY. NO EXPLORATION, NO DOCS-ONLY CHANGES.**
 
 ## CLEAR INITIAL TASK MESSAGE FOR NEXT AGENTIC SESSION (COPY/PASTE THIS FIRST)
 ```
 PRIORITY: BAB strategy in strategies/betting_against_beta/ > everything else.
-GATE: python3 -m pytest -q must be green (currently 804 passed, 8 skipped). If not, fix workflow/controller pattern drift (`*/.github/workflows/*` missing from `.github/workflows/main.yml` `stage_safe_changes` case) before any other work.
+GATE: python3 -m pytest -q must be green (currently 916 passed, 8 skipped). If not, fix workflow/controller pattern drift (`*/.github/workflows/*` missing from `.github/workflows/main.yml` `stage_safe_changes` case) or config validation regressions before any other work.
 CAMPAIGN: Coverage crusade to >=95% across ALL strategies/betting_against_beta/ modules.
 START: TDD on costs.py (17%) FIRST - this is the biggest gap. Then shorting.py, data_sources.py, data_loader.py. Cover edge cases, bounds, NaN/inf, shapes.
 REQUIREMENTS: touch >=4 files with real logic/tests per session; no bare except:; deterministic/offline/seeded; enforce finiteness; preserve behavior.
