@@ -65,7 +65,7 @@ def construct_portfolio(signals_df, dollar_neutral=True, gross_exposure_limit=No
                 max_position_size = kwargs.pop(key)
                 break
 
-    # Clean signals row by row to be safe/compatible
+    # Clean signals row by row to be safe/compatible (preserve original behavior)
     weights = _pd.DataFrame(0.0, index=signals_df.index, columns=signals_df.columns)
 
     for idx in signals_df.index:
@@ -162,17 +162,16 @@ def construct_portfolio(signals_df, dollar_neutral=True, gross_exposure_limit=No
             max_w = float(max_single_weight) if max_single_weight is not None else 1.0
         except (TypeError, ValueError):
             gross_limit, net_limit, max_w = 2.0, 1e-6, 1.0
-        for idx in weights.index:
-            row_w = weights.loc[idx]
-            abs_w = row_w.abs()
-            if abs_w.max() > max_w + 1e-12:
-                raise BABDataError("Single asset weight exceeds limit")
-            gross = float(abs_w.sum())
-            if gross > gross_limit + 1e-12:
-                raise BABDataError("Gross exposure exceeds limit")
-            net = float(row_w.sum())
-            if abs(net) > net_limit + 1e-12:
-                raise BABDataError("Net exposure exceeds dollar-neutral limit")
+        wv = weights.to_numpy(dtype=float)
+        abs_wv = np.abs(wv)
+        if np.any(abs_wv > max_w + 1e-12):
+            raise BABDataError("Single asset weight exceeds limit")
+        gross = abs_wv.sum(axis=1)
+        if np.any(gross > gross_limit + 1e-12):
+            raise BABDataError("Gross exposure exceeds limit")
+        net = wv.sum(axis=1)
+        if np.any(np.abs(net) > net_limit + 1e-12):
+            raise BABDataError("Net exposure exceeds dollar-neutral limit")
 
     return weights
 
