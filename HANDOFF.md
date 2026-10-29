@@ -1,7 +1,7 @@
-# HANDOFF - 2026-10-29T17:47:00Z (SINGLE DURABLE HANDOFF)
+# HANDOFF - 2026-10-29T17:52:07Z (SINGLE DURABLE HANDOFF)
 
 ## TIMESTAMP
-2026-10-29T17:47:00Z
+2026-10-29T17:52:07Z
 
 ## PROJECT IDENTITY (NON-NEGOTIABLE - DRIVES ALL PRIORITIZATION)
 - **Repository:** `Crypto-Betting-Against-Beta`
@@ -9,7 +9,7 @@
 - **PRIORITY:** **BAB STRATEGY CODE IN `strategies/betting_against_beta/` > EVERYTHING ELSE**
 
 ## BOTTLENECKS REMOVED (VERIFIED)
-- **Workflow/controller pattern sync FIXED FOR REAL:** `.github/workflows/main.yml` `stage_safe_changes` case list now includes `*/.github/workflows/*` (matches `scripts/controller_progress.py` EXCLUDE_PATTERNS). `tests/test_controller_progress_accounting.py` → **68 passed**. Controller accounting failures eliminated.
+- **Workflow/controller pattern sync FIXED AND VERIFIED:** Added `*/.github/workflows/*` to `.github/workflows/main.yml` `stage_safe_changes` case list (line 1163 and the `.github/workflows/*) ;;` match block) so it matches `scripts/controller_progress.py` EXCLUDE_PATTERNS. `tests/test_controller_progress_accounting.py` → **68 passed**. Controller accounting failures eliminated (was 2 failed).
 - **Baseline restored GREEN:** `python3 -m pytest -q` → **664 passed, 0 failed, 8 skipped** (verified after fix).
 
 ## COVERAGE BASELINE (CURRENT)
