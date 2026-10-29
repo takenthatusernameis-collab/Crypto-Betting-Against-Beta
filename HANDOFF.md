@@ -1,14 +1,14 @@
-# HANDOFF - 2026-10-29T11:22:00Z (SINGLE DURABLE HANDOFF)
+# HANDOFF - 2026-10-29T11:42:30Z (SINGLE DURABLE HANDOFF)
 
 ## TIMESTAMP
-2026-10-29T11:22:00Z
+2026-10-29T11:42:30Z
 
 ## PROJECT IDENTITY (NON-NEGOTIABLE - DRIVES ALL PRIORITIZATION)
 - **Repository:** `Crypto-Betting-Against-Beta`
 - **Product:** Betting Against Beta (BAB) crypto strategy — long low-beta, short high-beta vs benchmark (BTC default), Frazzini–Pedersen style
 - **PRIORITY:** **BAB STRATEGY CODE IN `strategies/betting_against_beta/` > EVERYTHING ELSE**
 
-## COMPLETED THIS SESSION (2026-10-29T11:06:00Z)
+- **Bottleneck removed (VERIFIED):** `.github/workflows/main.yml` stage_safe_changes list missing nested `*/.github/workflows/*` while `scripts/controller_progress.py` EXCLUDE_PATTERNS required it; added `*/.github/workflows/*` to workflow line 1163. `TestStageSafeChangesPatternSync` now green (68 passed).
 - **Bottleneck removed (VERIFIED):** `.github/workflows/main.yml` `stage_safe_changes` list was missing the nested pattern `*/.github/workflows/*` while `scripts/controller_progress.py` `EXCLUDE_PATTERNS` already required it; added `*/.github/workflows/*` to the workflow (line ~1163). The two `TestStageSafeChangesPatternSync` tests now pass.
 - **Bottleneck removed (VERIFIED):** `tests/test_bab_beta_neutrality.py::test_enforce_beta_neutrality_preserves_when_within_tolerance` had a false premise (random seed-7 betas give portfolio beta up to ±0.4, outside the 1e-3 tolerance, so the implementation correctly corrected and the "preserve unchanged" assertion could never hold). Rewrote it to use all-equal betas (portfolio beta exactly 0, within tolerance) so it deterministically verifies preservation. Implementation was correct; test was the bug.
 - **Full suite restored green:** `python3 -m pytest -q` → **513 passed, 0 failed, 6 skipped** (was 3 failed, 504 passed). Baseline for edits is now 513 passed / 0 failed / 6 skipped.
