@@ -1,16 +1,16 @@
-# HANDOFF - 2026-10-29T05:10:24Z (SINGLE DURABLE HANDOFF)
+# HANDOFF - 2026-10-29T05:10:37Z (SINGLE DURABLE HANDOFF)
 
 ## TIMESTAMP
-2026-10-29T05:10:24Z
+2026-10-29T05:10:37Z
 
 ## PROJECT IDENTITY (NON-NEGOTIABLE - DRIVES ALL PRIORITIZATION)
 - **Repository:** `Crypto-Betting-Against-Beta`
 - **Product:** Betting Against Beta (BAB) crypto strategy — long low-beta, short high-beta vs benchmark (BTC default), Frazzini–Pedersen style
 - **PRIORITY:** **BAB STRATEGY CODE IN `strategies/betting_against_beta/` > EVERYTHING ELSE**
 
-## COMPLETED THIS SESSION (2026-10-29T05:10:24Z)
-- **Handoff refreshed:** Single durable handoff updated with unambiguous timestamped initial task forcing heavy multi-file optimization work. No blocking bottlenecks detected.
-- **Baseline verified:** `python3 -m pytest -q` → **420 passed, 0 failed, 6 skipped** (GREEN)
+## COMPLETED THIS SESSION (2026-10-29T05:10:37Z)
+- **Bottleneck removed:** `.github/workflows/main.yml` `stage_safe_changes` case list was missing `*/.github/workflows/*` which Python `EXCLUDE_PATTERNS` (scripts/controller_progress.py:28) already had — desync broke 2 controller tests (`test_python_patterns_are_subset_of_workflow`, `test_nested_workflow_pattern_is_present_in_workflow`). Added the nested workflow pattern to the workflow case list so both lists stay in lock-step.
+- **Baseline restored green:** `python3 -m pytest -q` → **420 passed, 0 failed, 6 skipped** after the bottleneck fix. Ready for heavy edits.
 
 ## IMMEDIATE FIRST TASK FOR NEXT AGENT (EXECUTE NOW - NO DETOURS)
 
@@ -44,7 +44,7 @@ Focus strictly on `strategies/betting_against_beta/`. Eliminate Python loops and
 - **Branch:** main (HEAD)
 - **Working tree:** clean of blocking changes (untracked `__pycache__/` ok)
 - **Tests:** **420 passed, 0 failed, 6 skipped** (GREEN)
-- **Bottlenecks:** **NONE**
+- **Bottlenecks:** **NONE** (controller pattern-sync desync fixed)
 
 ## FOCUS CAMPAIGN (HEAVY WORK MANDATORY SEQUENCE)
 ### Priority 1: Data Infrastructure Hardening
