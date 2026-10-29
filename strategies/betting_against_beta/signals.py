@@ -102,6 +102,28 @@ def generate_bab_signals(betas_df, long_quantile=0.3, short_quantile=0.3):
     if not isinstance(betas_df, pd.DataFrame) or betas_df.empty:
         return pd.DataFrame()
 
+    # Clamp quantiles safely
+    try:
+        lq = float(long_quantile)
+    except (TypeError, ValueError):
+        lq = 0.3
+    try:
+        sq = float(short_quantile)
+    except (TypeError, ValueError):
+        sq = 0.3
+    if not np.isfinite(lq):
+        lq = 0.3
+    if not np.isfinite(sq):
+        sq = 0.3
+    if lq <= 0.0:
+        lq = 0.0
+    if sq <= 0.0:
+        sq = 0.0
+    if lq >= 1.0:
+        lq = 1.0
+    if sq >= 1.0:
+        sq = 1.0
+
     beta_arr = betas_df.to_numpy(dtype=float)
     finite = np.isfinite(beta_arr)
     counts = finite.sum(axis=1)
@@ -120,11 +142,21 @@ def generate_bab_signals(betas_df, long_quantile=0.3, short_quantile=0.3):
     rank = np.argsort(np.argsort(beta_arr, axis=1, kind="stable"), axis=1, kind="stable")
 
     cnt_valid = counts[valid]
-    n_long = np.maximum(1, np.floor(cnt_valid * long_quantile).astype(np.int64))
-    n_short = np.maximum(1, np.floor(cnt_valid * short_quantile).astype(np.int64))
+    if lq == 0.0:
+        n_long = np.zeros_like(cnt_valid, dtype=np.int64)
+    else:
+        n_long = np.floor(cnt_valid * lq).astype(np.int64)
+        n_long = np.maximum(1, n_long)  # keep at least 1 when taking a positive quantile fraction
+    if sq == 0.0:
+        n_short = np.zeros_like(cnt_valid, dtype=np.int64)
+    else:
+        n_short = np.floor(cnt_valid * sq).astype(np.int64)
+        n_short = np.maximum(1, n_short)
     # Shrink the short set when the two quantiles would overlap.
     overlap = n_long + n_short > cnt_valid
     n_short[overlap] = np.maximum(0, cnt_valid[overlap] - n_long[overlap])
+    # If long takes everything or would leave nothing for short in degenerate case, ensure disjoint
+    n_short = np.where(n_long >= cnt_valid, 0, n_short)
 
     n_long_full = np.zeros(n_rows, dtype=np.int64)
     n_short_full = np.zeros(n_rows, dtype=np.int64)
@@ -134,6 +166,10 @@ def generate_bab_signals(betas_df, long_quantile=0.3, short_quantile=0.3):
     cnt_col = counts.astype(np.int64)[:, None]
     long_mask = finite & (rank < n_long_full[:, None])
     short_mask = finite & (rank >= (cnt_col - n_short_full[:, None]))
+    # Ensure disjoint sets
+    short_mask = short_mask & ~long_mask
     signals_arr = long_mask.astype(np.int64) - short_mask.astype(np.int64)
 
+    # Final finiteness guard
+    signals_arr = np.where(np.isfinite(signals_arr), signals_arr, 0)
     return pd.DataFrame(signals_arr, index=betas_df.index, columns=betas_df.columns)

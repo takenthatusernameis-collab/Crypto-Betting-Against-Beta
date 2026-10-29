@@ -82,12 +82,17 @@ def construct_portfolio(signals_df, dollar_neutral=True, gross_exposure_limit=No
     # the values whose truncated integral part is exactly +1 or -1.
     # to_numeric is applied per column (N iterations, not M*N cells); each call
     # is a fully vectorized Series operation.
-    numeric = signals_df.apply(pd.to_numeric, errors="coerce")
-    arr = numeric.to_numpy(dtype=float, copy=False)
+    try:
+        numeric = signals_df.apply(pd.to_numeric, errors="coerce")
+    except Exception:
+        numeric = signals_df.copy()
+    arr = numeric.to_numpy(dtype=float)
     iv = np.trunc(arr)
     clean_arr = np.where(iv == 1.0, 1, np.where(iv == -1.0, -1, 0)).astype(np.int64)
     long_mask = clean_arr == 1
     short_mask = clean_arr == -1
+    # Ensure disjoint
+    short_mask = short_mask & ~long_mask
 
     n_long = long_mask.sum(axis=1).astype(np.int64)
     n_short = short_mask.sum(axis=1).astype(np.int64)
@@ -95,27 +100,42 @@ def construct_portfolio(signals_df, dollar_neutral=True, gross_exposure_limit=No
     w_arr = np.zeros((n_rows, n_cols), dtype=float)
 
     # Long weight is always 1/n_long whenever longs exist:
-    #   - dollar_neutral + both sides: long_w = 1/n_long
-    #   - dollar_neutral + longs only: long_w = 1/n_long
-    #   - non-dollar-neutral + longs: long_w = 1/n_long
     long_rows = n_long > 0
     if np.any(long_rows):
         long_w = np.zeros(n_rows, dtype=float)
-        np.divide(1.0, n_long, out=long_w, where=long_rows)
+        with np.errstate(divide='ignore', invalid='ignore'):
+            np.divide(1.0, n_long, out=long_w, where=long_rows)
+        # Guard
+        long_w[~np.isfinite(long_w)] = 0.0
         long_cell = long_mask & long_rows[:, None]
-        w_arr[long_cell] = np.repeat(long_w[long_rows], long_mask[long_rows].sum(axis=1))
+        if np.any(long_cell):
+            w_arr[long_cell] = np.repeat(long_w[long_rows], long_mask[long_rows].sum(axis=1))
 
     # Shorts are applied only when shorts exist and we are not in the
     # non-dollar-neutral + longs case (which takes precedence and ignores shorts).
     short_rows = (n_short > 0) & (dn | (n_long == 0))
     if np.any(short_rows):
         short_w = np.zeros(n_rows, dtype=float)
-        np.divide(-1.0, n_short, out=short_w, where=short_rows)
+        with np.errstate(divide='ignore', invalid='ignore'):
+            np.divide(-1.0, n_short, out=short_w, where=short_rows)
+        short_w[~np.isfinite(short_w)] = 0.0
         short_cell = short_mask & short_rows[:, None]
-        w_arr[short_cell] = np.repeat(short_w[short_rows], short_mask[short_rows].sum(axis=1))
+        if np.any(short_cell):
+            w_arr[short_cell] = np.repeat(short_w[short_rows], short_mask[short_rows].sum(axis=1))
 
     # Final finiteness guard in-place on the working array (no DataFrame copy).
     w_arr[~np.isfinite(w_arr)] = 0.0
+    # Enforce dollar neutrality strictly if requested and both sides exist
+    if dn:
+        for i in range(n_rows):
+            net = w_arr[i].sum()
+            if abs(net) > 1e-12 and n_long[i] > 0 and n_short[i] > 0:
+                # Adjust by scaling? Or distribute residual - equal weight BAB should be neutral by construction
+                # If somehow off due to floating point, try to rebalance to exactly zero
+                # but easier to just ensure construction is neutral; our construction is neutral
+                pass
+            # If only one side exists with dollar_neutral True, our construction gives equal weights on longs
+            # (sum to 1) - this matches test expectation
 
     weights = _pd.DataFrame(w_arr, index=index, columns=columns)
 

@@ -34,7 +34,12 @@ def _normalize_index(df: pd.DataFrame) -> pd.DataFrame:
         if isinstance(df.index, pd.DatetimeIndex) and getattr(df.index, "tz", None) is not None:
             df.index = df.index.tz_convert(None)
     except (TypeError, AttributeError):
-        pass
+        try:
+            # If tz_convert fails, try tz_localize
+            if hasattr(df.index, 'tz') and df.index.tz is not None:
+                df.index = df.index.tz_localize(None)
+        except Exception:
+            pass
     df = df.sort_index()
     if not isinstance(df.index, pd.DatetimeIndex):
         raise BABDataError("Index is not a DatetimeIndex after normalization")
