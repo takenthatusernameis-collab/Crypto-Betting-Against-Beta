@@ -1,7 +1,7 @@
-# HANDOFF - 2026-10-29T07:30:00Z (SINGLE DURABLE HANDOFF)
+# HANDOFF - 2026-10-29T07:55:00Z (SINGLE DURABLE HANDOFF)
 
 ## TIMESTAMP
-2026-10-29T07:30:00Z
+2026-10-29T07:55:00Z
 
 ## PROJECT IDENTITY (NON-NEGOTIABLE - DRIVES ALL PRIORITIZATION)
 - **Repository:** `Crypto-Betting-Against-Beta`
@@ -19,7 +19,7 @@
   5. **beta.py**: Rolling OLS/covariance vectorized via cumulative sums.
 - All numerical parity preserved; no lookahead; deterministic.
 
-## IMMEDIATE FIRST TASK FOR NEXT AGENT (EXECUTE NOW - NO DETOURS)
+- **Bottleneck removed (2026-10-29T07:55:00Z):** `.github/workflows/main.yml` stage_safe_changes first exclusion list and case statement both missing `*/.github/workflows/*`; added to both. `tests/test_controller_progress_accounting.py` → 68 passed. Full suite restored to green.
 
 **MANDATORY SESSION START (IN ORDER):**
 ```bash
