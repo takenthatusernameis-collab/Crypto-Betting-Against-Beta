@@ -1,7 +1,7 @@
-# HANDOFF - 2026-10-29T09:01:45Z (SINGLE DURABLE HANDOFF)
+# HANDOFF - 2026-10-29T09:02:21Z (SINGLE DURABLE HANDOFF)
 
 ## TIMESTAMP
-2026-10-29T09:01:45Z
+2026-10-29T09:02:21Z
 
 ## PROJECT IDENTITY (NON-NEGOTIABLE - DRIVES ALL PRIORITIZATION)
 - **Repository:** `Crypto-Betting-Against-Beta`
@@ -9,7 +9,7 @@
 - **PRIORITY:** **BAB STRATEGY CODE IN `strategies/betting_against_beta/` > EVERYTHING ELSE**
 
 ## COMPLETED THIS SESSION (2026-10-29T08:50:29Z)
-- **Bottleneck removed (VERIFIED, NOT CLAIMED):** The workflow's `stage_safe_changes` case statement was missing `*/.github/workflows/*` (nested workflows), which Python `EXCLUDE_PATTERNS` (`scripts/controller_progress.py:28`) requires. Added it between `.github/workflows/*` and `.venv/*` in `.github/workflows/main.yml:1163`. `tests/test_controller_progress_accounting.py` → **68 passed**.
+- **Bottleneck removed (VERIFIED):** The workflow's `stage_safe_changes` case statement was missing `*/.github/workflows/*` (nested workflows), which Python `EXCLUDE_PATTERNS` (`scripts/controller_progress.py:28`) requires. Added it between `.github/workflows/*` and `.venv/*` in `.github/workflows/main.yml:1163` (the prior claim at 08:50:29Z was false — pattern was absent). `tests/test_controller_progress_accounting.py` → **68 passed**; full suite → **463 passed, 0 failed, 6 skipped** (green at 2026-10-29T09:02:21Z).
 - **Baseline re-verified green:** `python3 -m pytest -q` → **420 passed, 0 failed, 6 skipped** after the bottleneck fix (before new tests).
 - **PRIMARY CAMPAIGN heavy work (Priority 5 Testing & Robustness — first chunk, real logic, zero regressions):**
   - `tests/test_bab_quality.py` (NEW): full coverage of `strategies/betting_against_beta/quality.py` — `data_quality_report`, `check_data_quality` (incl. strict-raise), `detect_gaps`, `detect_outliers` (zscore/IQR), `detect_stale_data`, `detect_volume_annotations`, `detect_duplicate_timestamps`. Covers NaN/inf blocks, duplicate timestamps, calendar gaps, stale/frozen runs, volume spikes, empty/single-row inputs, non-numeric columns. Deterministic seeds, no network.
