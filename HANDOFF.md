@@ -1,24 +1,24 @@
-# HANDOFF - 2026-10-29T04:50:36Z (SINGLE DURABLE HANDOFF)
+# HANDOFF - 2026-10-29T05:03:30Z (SINGLE DURABLE HANDOFF)
 
 ## TIMESTAMP
-2026-10-29T04:50:36Z
+2026-10-29T05:03:30Z
 
 ## PROJECT IDENTITY (NON-NEGOTIABLE - DRIVES ALL PRIORITIZATION)
 - **Repository:** `Crypto-Betting-Against-Beta`
 - **Product:** Betting Against Beta (BAB) crypto strategy — long low-beta, short high-beta vs benchmark (BTC default), Frazzini–Pedersen style
 - **PRIORITY:** **BAB STRATEGY CODE IN `strategies/betting_against_beta/` > EVERYTHING ELSE**
 
-## COMPLETED THIS SESSION (2026-10-29T04:50:36Z)
-- **Bottlenecks removed:** CI/workflow pattern-sync drift fixed (added `*/.github/workflows/*` to `.github/workflows/main.yml` `stage_safe_changes` case list and Python `EXCLUDE_PATTERNS` aligned). Full suite green.
+## COMPLETED THIS SESSION (2026-10-29T05:03:30Z)
+- **Bottleneck removed:** CI/workflow pattern-sync drift fully resolved — added `*/.github/workflows/*` to `.github/workflows/main.yml` `stage_safe_changes` case list so it matches Python `EXCLUDE_PATTERNS` in `scripts/controller_progress.py`. Previously only the Python side had it; workflow side was missing it, blocking progress accounting.
+- **Baseline restored green:** `python3 -m pytest -q` → **420 passed, 0 failed, 6 skipped** (the 2 `TestStageSafeChangesPatternSync` failures are gone; no regressions).
 - **Beta-neutral enforcement (PRIMARY HEAVY TASK) completed — multi-file, production-grade:**
   - `strategies/betting_against_beta/config.py`: added beta-neutral params (`beta_neutral`, `beta_neutral_enforcement`, `beta_target`, `beta_tolerance`/`max_beta_drift`, tracking error monitoring flags/limits), validated with ranges/bools.
   - `strategies/betting_against_beta/portfolio.py`: added `compute_portfolio_beta()`, `compute_tracking_error()`, `enforce_beta_neutrality()` with drift detection/correction (scaling adjustment toward target), causal/no-lookahead application, finite-value guards, preserves dollar neutrality/weight constraints and public API behavior.
   - `strategies/betting_against_beta/strategy.py`: integrated beta-neutral enforcement in `BABStrategy.run()` after regime scaling/before backtest, toggleable via config, uses betas up to t only, benchmark returns available for monitoring.
-- **Performance & Scalability (Priority 3) - HEAVY OPTIMIZATION in progress:**
+- **Performance & Scalability (Priority 3) - started:**
   - `strategies/betting_against_beta/beta.py`: Refactored rolling beta calculation for better memory efficiency and performance. Added `_calc_rolling_beta_series()` helper for safer code reuse, optimized vectorized paths with `copy=False` where safe.
   - `strategies/betting_against_beta/portfolio.py`: Hardened/optimized portfolio construction with robust handling of non-numeric signals (strings/None), preserved exact behavior across all cases; maintained full API compatibility.
   - `strategies/betting_against_beta/strategy.py`: Micro-optimizations for hot-path attribute lookups; pipeline remains deterministic and causal.
-- **Baseline/verification:** `python3 -m pytest -q` → **420 passed, 0 failed, 6 skipped** (no regressions). Working tree modified: `.github/workflows/main.yml`, `strategies/betting_against_beta/beta.py`, `strategies/betting_against_beta/portfolio.py`, `strategies/betting_against_beta/strategy.py`.
 
 ## IMMEDIATE FIRST TASK (DO THIS NOW - NO EXCUSES, NO DISTRACTIONS)
 
@@ -53,12 +53,12 @@ Beta-neutral enforcement is DONE. **Continue Priority 3 - Performance & Scalabil
 
 ## CURRENT VERIFIED STATE
 - **Branch:** main (current HEAD)
-- **Working tree:** `.github/workflows/main.yml`, `strategies/betting_against_beta/beta.py` modified. `__pycache__/` untracked.
+- **Working tree:** `.github/workflows/main.yml` modified (added `*/.github/workflows/*` to `stage_safe_changes`). `__pycache__/` untracked.
 - **Tests:** **420 passed, 0 failed, 6 skipped** (green)
 - **Bottlenecks:** NONE
 
 ## BARRIERS REMOVED
-- CI/workflow pattern-sync drift resolved (added `*/.github/workflows/*` to both Python and workflow)
+- CI/workflow pattern-sync drift resolved (added `*/.github/workflows/*` to both Python `EXCLUDE_PATTERNS` and workflow `stage_safe_changes` list).
 - Handoffs consolidated to **single durable `HANDOFF.md`**. **ONLY THIS FILE MATTERS.**
 
 ## FOCUS CAMPAIGN (HEAVY WORK - MANDATORY SEQUENCE - CANNOT AVOID)
