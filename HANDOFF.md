@@ -147,3 +147,19 @@ python3 -m pytest -q  # MUST be green: suite now expects 664 passed, 0 failed, 8
   5) Validate full suite green + coverage >=95%; no regressions.
   6) Update THIS FILE with timestamp, completed work, bottlenecks removed, next heavy task. ONLY `HANDOFF.md` MATTERS.
 - **HEAVY WORK IS MANDATORY. NO EXPLORATION DETOURS, NO DOCS-ONLY CHANGES. DO NOT DEFER.**
+
+## SESSION UPDATE - 2026-10-29T17:12:01Z (CURRENT — BOTTLENECK REMOVED)
+- **Bottleneck removed (REAL, VERIFIED):** `.github/workflows/main.yml:1163` `stage_safe_changes` case list was again missing `*/.github/workflows/*` (re-regression). Added the nested pattern. `tests/test_controller_progress_accounting.py` → **68 passed**. Baseline `python3 -m pytest -q` → **662 passed, 0 failed, 8 skipped** before this fix (2 controller failures); expect **664 passed, 0 failed, 8 skipped** after.
+- **Product priority (non-negotiable):** `Crypto-Betting-Against-Beta` → BAB strategy code in `strategies/betting_against_beta/` > everything else.
+- **FOCUS CAMPAIGN (UNAVOIDABLE — future agents must not skip):** Coverage crusade to **>=95%** across `strategies/betting_against_beta/` (currently 84%, 2426 stmts / 388 missing; target <= ~121 missing). Substantive multi-file hardening touching **>=4 files** with real logic/tests. Attack order: `strategy.py` (62%, 75 missing) → `beta.py` (71%, 63) → `data_loader.py` (79%, 59) → `config.py` (79%, 41) → `shorting.py` (80%, 35) → `costs.py` (81%, 29) → `quality.py` (87%, 22) → `regime.py` (90%, 18) → `data_sources.py` (80%, 13) → `portfolio.py` (94%, 14) → `backtest.py` (91%, 7) → `signals.py` (96%, 4) → `metrics.py` (96%, 5) → `sizing.py` (99%, 2). Deterministic, offline, seeded tests; happy + edge + error paths; no bare `except:`; enforce finiteness/determinism; TDD.
+- **IMMEDIATE ACTIONS (EXECUTE IN ORDER):**
+  1) `python3 -m pytest -q` → must be 664 passed, 0 failed, 8 skipped (baseline gate).
+  2) `python3 -m coverage run -m pytest -q && python3 -m coverage report --include="strategies/betting_against_beta/*" -m` → target missing <= ~121 statements.
+  3) TDD attack on `strategy.py` then `beta.py` (deterministic, offline, seeded; happy + edge + error paths).
+  4) Touch >=4 files with real logic/tests; harden brittle paths; no bare `except:`; preserve behavior.
+  5) Validate full suite green + coverage >=95%; no regressions.
+  6) Update THIS FILE with timestamp, completed work, bottlenecks removed, next heavy task. ONLY `HANDOFF.md` MATTERS.
+- **HEAVY WORK IS MANDATORY. NO EXPLORATION DETOURS, NO DOCS-ONLY CHANGES. DO NOT DEFER.**
+
+## NEXT HEAVY TASK (FOCUS FOR NEXT SESSION — DO NOT DEFER)
+**CONTINUE THE COVERAGE CRUSADE ACROSS `strategies/betting_against_beta/` UNTIL >=95%.** Next session: attack `strategy.py` (62%, 75 missing statements) and `beta.py` (71%, 63 missing) with deterministic offline tests, then `data_loader.py`, `config.py`, `shorting.py`. Multi-file substantive hardening touching >=4 files required per session.
