@@ -81,7 +81,10 @@ class DataCache:
                 pass
             self._order.append(key)
             # return a copy to avoid external mutation
-            return self._cache[key].copy()
+            cached = self._cache[key]
+            if isinstance(cached, pd.DataFrame):
+                return cached.copy()
+            return cached
         return None
 
     def set(self, key: str, df: pd.DataFrame) -> None:
