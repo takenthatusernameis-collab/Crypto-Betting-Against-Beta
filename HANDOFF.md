@@ -1,14 +1,16 @@
-# HANDOFF - 2026-10-29T05:59:00Z (SINGLE DURABLE HANDOFF)
+# HANDOFF - 2026-10-29T06:18:58Z (SINGLE DURABLE HANDOFF)
 
 ## TIMESTAMP
-2026-10-29T05:59:00Z
+2026-10-29T06:18:58Z
 
 ## PROJECT IDENTITY (NON-NEGOTIABLE - DRIVES ALL PRIORITIZATION)
 - **Repository:** `Crypto-Betting-Against-Beta`
 - **Product:** Betting Against Beta (BAB) crypto strategy — long low-beta, short high-beta vs benchmark (BTC default), Frazzini–Pedersen style
 - **PRIORITY:** **BAB STRATEGY CODE IN `strategies/betting_against_beta/` > EVERYTHING ELSE**
 
-## COMPLETED THIS SESSION (2026-10-29T05:59:00Z)
+## COMPLETED THIS SESSION (2026-10-29T06:18:58Z)
+- **Bottleneck removed:** Re-added `*/.github/workflows/*` to `.github/workflows/main.yml` `stage_safe_changes` pattern list (controller pattern-sync desync reappeared); controller tests green.
+- Baseline restored: `python3 -m pytest -q` → 420 passed, 0 failed, 6 skipped.
 - **Bottleneck removed:** Fixed `.github/workflows/main.yml` `stage_safe_changes` to include `*/.github/workflows/*` matching `scripts/controller_progress.py` EXCLUDE_PATTERNS; controller pattern-sync tests pass.
 - **Heavy optimization (Priority 3):** Vectorized rolling beta via cumulative sums in `strategies/betting_against_beta/beta.py` (`_calc_rolling_beta_series`), hardened `strategies/betting_against_beta/sizing.py` for array broadcasting. All behavior preserved.
 - **Baseline:** `python3 -m pytest -q` → **420 passed, 0 failed, 6 skipped**.
