@@ -116,7 +116,7 @@ def _clean_frame(df: Optional[pd.DataFrame]) -> Optional[pd.DataFrame]:
 
 def compute_transaction_costs(
     weights,
-    weights_prev,
+    weights_prev=None,
     prices: Optional[pd.DataFrame] = None,
     model: Optional[TransactionCostModel] = None,
     adv_usd: Optional[Union[dict, pd.Series, pd.DataFrame]] = None,

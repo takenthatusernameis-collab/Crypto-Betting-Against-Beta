@@ -1,7 +1,7 @@
-# HANDOFF - 2026-10-29T13:47:34Z (SINGLE DURABLE HANDOFF)
+# HANDOFF - 2026-10-29T15:28:54Z (SINGLE DURABLE HANDOFF)
 
 ## TIMESTAMP
-2026-10-29T13:47:34Z
+2026-10-29T15:28:54Z
 
 ## PROJECT IDENTITY (NON-NEGOTIABLE - DRIVES ALL PRIORITIZATION)
 - **Repository:** `Crypto-Betting-Against-Beta`
@@ -88,3 +88,9 @@ python3 -m pytest -q  # MUST be >=516 passed, 0 failed, 6 skipped before edits
 - **Bottlenecks removed:** Added `*/.github/workflows/*` to `stage_safe_changes` case list in `.github/workflows/main.yml` to match Python EXCLUDE_PATTERNS; `TestStageSafeChangesPatternSync` now 68/68 green.
 - **Baseline:** `python3 -m pytest tests/test_controller_progress_accounting.py -q` → 68 passed. Full suite running.
 - **Next heavy task (UNAVOIDABLE):** Coverage crusade across `strategies/betting_against_beta/` (>=95%), substantive multi-file hardening >=4 files, no regressions. Measure coverage, attack gaps, harden brittle paths, validate full suite >=516 passed.
+
+
+## SESSION UPDATE - 2026-10-29T15:28:54Z
+- **Bottlenecks removed:** Added missing `*/.github/workflows/*` to `.github/workflows/main.yml` `stage_safe_changes` (was absent despite prior claim); made `costs.compute_transaction_costs(weights_prev=...)` optional default None to unblock `test_shorting_costs`. Full suite green.
+- **Baseline:** `python3 -m pytest -q` → **602 passed, 0 failed, 8 skipped**.
+- **Next heavy task (UNAVOIDABLE):** Coverage crusade across `strategies/betting_against_beta/` (>=95%), substantive multi-file hardening >=4 files, no regressions.
