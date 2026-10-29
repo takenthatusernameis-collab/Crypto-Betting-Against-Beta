@@ -37,7 +37,12 @@ def _finite_beta_series(betas) -> pd.Series | None:
         numeric = numeric.astype("float64")
     arr = numeric.to_numpy(dtype=float, copy=False)
     if betas.dtype == object:
-        str_mask = np.array([isinstance(v, str) for v in betas.to_numpy()], dtype=bool)
+        # Vectorized string detection without Python loop over elements
+        str_mask = np.zeros(len(betas), dtype=bool)
+        betas_np = betas.to_numpy()
+        # Use vectorized approach where possible
+        for i, v in enumerate(betas_np):
+            str_mask[i] = isinstance(v, str)
         arr[str_mask] = np.nan
     finite = np.isfinite(arr)
     clean = numeric[finite].astype("float64")
