@@ -124,6 +124,8 @@ class BABConfig:
 
         if not isinstance(self.regime_filter, bool):
             errors.append(f"regime_filter must be a bool, got {type(self.regime_filter).__name__}")
+
+        for name in ("long_quantile", "short_quantile"):
             value = getattr(self, name)
             if not isinstance(value, (int, float)) or isinstance(value, bool):
                 errors.append(f"{name} must be numeric, got {type(value).__name__}")
