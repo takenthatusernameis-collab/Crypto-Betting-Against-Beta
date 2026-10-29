@@ -6,6 +6,42 @@ import pandas as pd
 from .data_loader import BABDataError
 
 
+def estimate_betas(returns_df, benchmark=None, window=90, min_obs=None, min_observations=None):
+    if benchmark is None and hasattr(returns_df, "columns"):
+        # try to guess - not common; fall back
+        pass
+    if min_observations is not None and min_obs is None:
+        min_obs = min_observations
+    if min_obs is not None and window is not None and min_obs > window:
+        min_obs = window
+    if min_obs is None:
+        min_obs = min(window, 60) if window is not None else 60
+    return calculate_rolling_beta(returns_df, benchmark, window=window, min_obs=min_obs)
+
+
+def rolling_beta(a, b, window=90, min_periods=None, min_obs=None):
+    import pandas as pd
+    if min_periods is not None and min_obs is None:
+        min_obs = min_periods
+    if min_obs is not None and window is not None and min_obs > window:
+        min_obs = window
+    if min_obs is None:
+        min_obs = min(window, 60) if window is not None else 60
+    # Accept series
+    if isinstance(a, pd.Series) and isinstance(b, pd.Series):
+        df = pd.concat([b, a], axis=1)
+        df.columns = ["benchmark", "asset"]
+        res = calculate_rolling_beta(df, "benchmark", window=window, min_obs=min_obs)
+        return res["asset"]
+    # try generic
+    try:
+        return _calc_rolling_beta_series(b, a, window, min_obs)
+    except Exception:
+        return _calc_rolling_beta_series(np.asarray(b), np.asarray(a), window, min_obs)
+
+
+
+
 def calculate_beta(asset_returns, benchmark_returns, min_obs=None):
     """Calculate beta of asset vs benchmark using OLS regression."""
     try:

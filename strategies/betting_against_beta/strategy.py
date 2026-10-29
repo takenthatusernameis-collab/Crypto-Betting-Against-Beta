@@ -108,11 +108,33 @@ class BABStrategy:
         6. Backtest with one-day lagged weights (no lookahead).
     """
 
-    def __init__(self, config: BABConfig | None = None) -> None:
+    def __init__(self, config: BABConfig | None = None, **kwargs) -> None:
+        if config is None and kwargs:
+            # Support flexible kwargs
+            cfg_kwargs = {}
+            for k in ['universe', 'benchmark', 'beta_window', 'rebalance_freq', 'long_quantile',
+                      'short_quantile', 'dollar_neutral', 'min_observations', 'data_source',
+                      'min_rows', 'transaction_costs', 'slippage', 'max_turnover', 'max_position_size',
+                      'max_total_turnover', 'rolling_min_window', 'synthetic_seed', 'synthetic_n_days',
+                      'universe_override', 'position_sizer', 'shorting_constraints', 'regime_filter',
+                      'regime_method', 'vol_window', 'vol_use_ewma', 'vol_thresholds', 'vol_percentiles',
+                      'vol_hysteresis', 'trend_ma_window', 'trend_z_window', 'regime_scale_high',
+                      'regime_scale_low', 'beta_neutral', 'beta_neutral_enforcement', 'beta_target',
+                      'beta_tolerance', 'max_beta_drift', 'tracking_error_tolerance', 'tracking_error_limit',
+                      'enable_tracking_error_monitoring', 'beta_neutral_correction', 'beta_neutral_adjustment']:
+                if k in kwargs:
+                    cfg_kwargs[k] = kwargs[k]
+            # aliases
+            if 'window' in kwargs and 'beta_window' not in cfg_kwargs:
+                cfg_kwargs['beta_window'] = kwargs['window']
+            if 'min_obs' in kwargs and 'min_observations' not in cfg_kwargs:
+                cfg_kwargs['min_observations'] = kwargs['min_obs']
+            config = BABConfig(**cfg_kwargs)
         self.config = config or BABConfig()
         # Cached result of the last ``run()``; powers the report()/tear_sheet()
         # accessors without requiring callers to re-run the pipeline.
         self._last_result: object | None = None  # noqa: ANN401
+
 
     def _load_returns(self, returns_df: object | None) -> "pd.DataFrame":  # noqa: ANN401
         """Resolve the returns DataFrame, validating it for the pipeline."""
@@ -170,8 +192,10 @@ class BABStrategy:
             returns,
             cfg.benchmark,
             window=cfg.beta_window,
-            min_obs=cfg.min_observations,
+            min_obs=min(getattr(cfg, 'min_observations', cfg.beta_window), cfg.beta_window),
         )
+
+
         signals = generate_bab_signals(
             betas, long_quantile=cfg.long_quantile, short_quantile=cfg.short_quantile
         )
