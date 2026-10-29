@@ -92,8 +92,18 @@ class TestRegimeState:
 
 class TestRegimeConfigIntegration:
     def test_babconfig_accepts_regime_params(self):
-        cfg = BABConfig(regime_filter=True, vol_window=30, vol_threshold_low=0.01)
+        cfg = BABConfig(
+            regime_filter=True,
+            regime_method="vol",
+            vol_window=30,
+            vol_percentiles=(0.33, 0.66),
+            vol_hysteresis=0.1,
+            regime_scale_high=0.5,
+            regime_scale_low=1.0,
+        )
         assert cfg.regime_filter is True
+        assert cfg.regime_method == "vol"
+        assert cfg.vol_percentiles == (0.33, 0.66)
 
     def test_babconfig_regime_validation(self):
         try:
@@ -101,6 +111,141 @@ class TestRegimeConfigIntegration:
             assert False, "Should have raised"
         except Exception:
             pass
+
+    def test_babconfig_rejects_bad_regime_method(self):
+        try:
+            BABConfig(regime_method="volatility")  # retired value
+            assert False, "Should have raised"
+        except Exception:
+            pass
+
+    def test_babconfig_rejects_bad_hysteresis(self):
+        try:
+            BABConfig(vol_hysteresis=1.5)  # outside [0, 1]
+            assert False, "Should have raised"
+        except Exception:
+            pass
+
+    def test_babconfig_rejects_contradictory_vol_bands(self):
+        try:
+            BABConfig(vol_thresholds=(0.01, 0.02), vol_percentiles=(0.33, 0.66))
+            assert False, "Should have raised"
+        except Exception:
+            pass
+
+    def test_babconfig_rejects_non_positive_scale(self):
+        try:
+            BABConfig(regime_scale_high=0.0)
+            assert False, "Should have raised"
+        except Exception:
+            pass
+
+    def test_babconfig_defaults_are_valid(self):
+        cfg = BABConfig()
+        assert cfg.regime_filter is False
+        assert cfg.regime_method in ("vol", "trend", "combined")
+        assert 0.0 <= cfg.vol_hysteresis <= 1.0
+        assert cfg.regime_scale_high > 0 and cfg.regime_scale_low > 0
+
+
+class TestRegimeStrategyIntegration:
+    def test_strategy_with_regime_filter(self):
+        cfg = BABConfig(regime_filter=True, synthetic_n_days=150)
+        strat = BABStrategy(cfg)
+        result = strat.run()
+        assert result is not None
+        assert hasattr(result, "backtest")
+
+    def test_regime_filter_is_deterministic(self):
+        cfg = BABConfig(regime_filter=True, synthetic_n_days=150, regime_method="combined")
+        first = BABStrategy(cfg).run().backtest["cumulative"]
+        second = BABStrategy(cfg).run().backtest["cumulative"]
+        pd.testing.assert_series_equal(first, second)
+
+    def test_regime_filter_changes_weights(self):
+        cfg_off = BABConfig(regime_filter=False, synthetic_n_days=150)
+        cfg_on = BABConfig(regime_filter=True, synthetic_n_days=150, regime_scale_high=0.5)
+        w_off = BABStrategy(cfg_off).run().weights
+        w_on = BABStrategy(cfg_on).run().weights
+        assert w_off.shape == w_on.shape
+        assert (w_off != w_on).any().any(), "regime_filter should alter weights"
+
+    def test_regime_filter_preserves_dollar_neutrality(self):
+        cfg = BABConfig(regime_filter=True, synthetic_n_days=150, dollar_neutral=True)
+        weights = BABStrategy(cfg).run().weights
+        row_sums = weights.sum(axis=1)
+        assert np.allclose(row_sums, 0.0, atol=1e-9), row_sums
+
+    def test_regime_scale_factors_index_aligned_and_causal(self):
+        dates = pd.date_range("2023-01-01", periods=120)
+        np.random.seed(4)
+        returns = pd.DataFrame(
+            {
+                "BTC": np.random.normal(0, 0.01, 120),
+                "ETH": np.random.normal(0, 0.012, 120),
+                "SOL": np.random.normal(0, 0.025, 120),
+            },
+            index=dates,
+        )
+        cfg = BABConfig(regime_method="vol", vol_window=20, vol_percentiles=(0.33, 0.66))
+        factors = regime.regime_scale_factors(returns, cfg)
+        assert factors.index.equals(returns.index)
+        assert "BTC" not in factors.columns  # benchmark excluded from scaling
+        assert set(factors.columns) == {"ETH", "SOL"}
+        assert np.isfinite(factors.values).all()
+        assert (factors > 0).all().all()  # scaling must remain positive
+
+
+class TestRegimeEdgeCases:
+    def test_constant_series_low_risk_scale(self):
+        dates = pd.date_range("2023-01-01", periods=100)
+        returns = pd.DataFrame(
+            {"BTC": np.ones(100) * 0.001, "ETH": np.ones(100) * 0.001},
+            index=dates,
+        )
+        cfg = BABConfig(regime_method="vol", vol_window=20, vol_percentiles=(0.33, 0.66))
+        factors = regime.regime_scale_factors(returns, cfg)
+        # Zero vol => lowest-risk regime => scale_low (1.0 by default)
+        assert np.allclose(factors.values, 1.0)
+
+    def test_all_nan_window_stays_neutral(self):
+        dates = pd.date_range("2023-01-01", periods=20)
+        returns = pd.DataFrame(
+            {"BTC": np.full(20, np.nan), "ETH": np.full(20, np.nan)},
+            index=dates,
+        )
+        cfg = BABConfig(regime_method="vol", vol_window=10)
+        factors = regime.regime_scale_factors(returns, cfg)
+        assert np.isfinite(factors.values).all()
+        assert np.allclose(factors.values, 1.0)
+
+    def test_single_tradable_asset_runs(self):
+        dates = pd.date_range("2023-01-01", periods=100)
+        np.random.seed(6)
+        returns = pd.DataFrame(
+            {"BTC": np.random.normal(0, 0.01, 100), "ETH": np.random.normal(0, 0.012, 100)},
+            index=dates,
+        )
+        cfg = BABConfig(
+            regime_filter=True,
+            synthetic_n_days=10,
+            benchmark="BTC",
+            universe_override=["ETH"],
+        )
+        result = BABStrategy(cfg).run(returns_df=returns)
+        assert result is not None
+        assert np.isfinite(result.weights.values).all()
+
+    def test_benchmark_excluded_from_regime_scaling(self):
+        dates = pd.date_range("2023-01-01", periods=100)
+        np.random.seed(8)
+        returns = pd.DataFrame(
+            {"BTC": np.random.normal(0, 0.01, 100), "ETH": np.random.normal(0, 0.012, 100)},
+            index=dates,
+        )
+        cfg = BABConfig(regime_method="vol", vol_window=20)
+        factors = regime.regime_scale_factors(returns, cfg)
+        assert "BTC" not in factors.columns
 
 
 class TestRegimeStrategyIntegration:

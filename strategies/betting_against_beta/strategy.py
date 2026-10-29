@@ -203,6 +203,25 @@ class BABStrategy:
         except Exception:
             # Do not break default behavior on sizing errors; fall back to weights
             pass
+
+        # Optional regime-based position scaling.  Regime at date t is computed
+        # from returns up to t (causal, no lookahead); the backtest shifts
+        # weights by one day, so weights at t are applied to returns at t+1.
+        # Scaling every weight by a positive factor preserves dollar neutrality,
+        # so the public portfolio API contract is unchanged.
+        try:
+            if bool(getattr(cfg, "regime_filter", False)):
+                from . import regime as _regime
+                scale_factors = _regime.regime_scale_factors(returns, cfg)
+                if scale_factors is not None and not scale_factors.empty:
+                    scale_factors = scale_factors.reindex(
+                        index=weights.index, columns=weights.columns
+                    ).fillna(1.0)
+                    weights = weights * scale_factors
+        except Exception:
+            # Do not break default behavior on regime errors; fall back to unscaled weights
+            pass
+
         # Explicit finiteness guard
         try:
             import numpy as _np

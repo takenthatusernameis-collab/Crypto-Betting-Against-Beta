@@ -2,8 +2,17 @@
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, field
 from typing import List, Optional
+
+
+def _is_finite_number(value) -> bool:
+    """Return True if ``value`` converts to a finite float, never raising."""
+    try:
+        return math.isfinite(float(value))
+    except (TypeError, ValueError):
+        return False
 
 
 class BABConfigError(ValueError):
@@ -49,13 +58,16 @@ class BABConfig:
     shorting_constraints: Optional[object] = None
     # Regime detection parameters
     regime_filter: bool = False
-    regime_method: str = "volatility"
+    regime_method: str = "vol"  # "vol" | "trend" | "combined"
     vol_window: int = 20
-    vol_threshold_low: float = 0.01
-    vol_threshold_high: float = 0.02
-    trend_window: int = 50
-    regime_scale_high_vol: float = 0.5
-    regime_scale_low_vol: float = 1.0
+    vol_use_ewma: bool = False
+    vol_thresholds: Optional[tuple[float, ...]] = None  # fixed vol band edges (low, high)
+    vol_percentiles: Optional[tuple[float, float]] = (0.33, 0.66)  # percentile band edges
+    vol_hysteresis: float = 0.0  # regime-change hysteresis margin in [0, 1]
+    trend_ma_window: int = 50
+    trend_z_window: Optional[int] = None  # z-score window for trend regime (None => moving average)
+    regime_scale_high: float = 0.5  # scale applied in high-risk regime
+    regime_scale_low: float = 1.0   # scale applied in low-risk regime
 
     def __post_init__(self):
         if self.universe is None:
@@ -117,13 +129,69 @@ class BABConfig:
         elif self.vol_window < 10:
             errors.append(f"vol_window must be >= 10, got {self.vol_window}")
 
-        if not isinstance(self.trend_window, int) or isinstance(self.trend_window, bool):
-            errors.append(f"trend_window must be an int, got {type(self.trend_window).__name__}")
-        elif self.trend_window < 1:
-            errors.append(f"trend_window must be >= 1, got {self.trend_window}")
+        if not isinstance(self.trend_ma_window, int) or isinstance(self.trend_ma_window, bool):
+            errors.append(f"trend_ma_window must be an int, got {type(self.trend_ma_window).__name__}")
+        elif self.trend_ma_window < 1:
+            errors.append(f"trend_ma_window must be >= 1, got {self.trend_ma_window}")
+
+        if self.trend_z_window is not None:
+            if not isinstance(self.trend_z_window, int) or isinstance(self.trend_z_window, bool):
+                errors.append(f"trend_z_window must be an int or None, got {type(self.trend_z_window).__name__}")
+            elif self.trend_z_window < 1:
+                errors.append(f"trend_z_window must be >= 1 when set, got {self.trend_z_window}")
 
         if not isinstance(self.regime_filter, bool):
             errors.append(f"regime_filter must be a bool, got {type(self.regime_filter).__name__}")
+
+        if self.regime_method not in ("vol", "trend", "combined"):
+            errors.append(f"regime_method must be one of 'vol', 'trend', 'combined', got {self.regime_method!r}")
+
+        if not isinstance(self.vol_use_ewma, bool):
+            errors.append(f"vol_use_ewma must be a bool, got {type(self.vol_use_ewma).__name__}")
+
+        # Volatility thresholds: positive band edges, sorted when two are given.
+        if self.vol_thresholds is not None:
+            if not isinstance(self.vol_thresholds, (tuple, list)) or len(self.vol_thresholds) == 0:
+                errors.append("vol_thresholds must be a non-empty tuple/list of positive floats")
+            else:
+                for i, v in enumerate(self.vol_thresholds):
+                    if not isinstance(v, (int, float)) or isinstance(v, bool) or not _is_finite_number(v):
+                        errors.append(f"vol_thresholds[{i}] must be a positive finite float, got {v!r}")
+                    elif float(v) <= 0:
+                        errors.append(f"vol_thresholds[{i}] must be > 0, got {v}")
+                if len(self.vol_thresholds) >= 2 and not all(
+                    float(self.vol_thresholds[i]) < float(self.vol_thresholds[i + 1])
+                    for i in range(len(self.vol_thresholds) - 1)
+                ):
+                    errors.append("vol_thresholds must be strictly increasing")
+
+        # Volatility percentiles: two values in (0, 1), ascending.
+        if self.vol_percentiles is not None:
+            if not isinstance(self.vol_percentiles, (tuple, list)) or len(self.vol_percentiles) != 2:
+                errors.append("vol_percentiles must be a tuple/list of two floats in (0, 1)")
+            else:
+                for i, v in enumerate(self.vol_percentiles):
+                    if not isinstance(v, (int, float)) or isinstance(v, bool) or not (0.0 < float(v) < 1.0):
+                        errors.append(f"vol_percentiles[{i}] must be in (0, 1), got {v!r}")
+                if float(self.vol_percentiles[0]) >= float(self.vol_percentiles[1]):
+                    errors.append("vol_percentiles must be ascending (p_low < p_high)")
+
+        if not isinstance(self.vol_hysteresis, (int, float)) or isinstance(self.vol_hysteresis, bool):
+            errors.append(f"vol_hysteresis must be numeric, got {type(self.vol_hysteresis).__name__}")
+        elif not (0.0 <= float(self.vol_hysteresis) <= 1.0):
+            errors.append(f"vol_hysteresis must be in [0, 1], got {self.vol_hysteresis}")
+
+        for name in ("regime_scale_high", "regime_scale_low"):
+            value = getattr(self, name)
+            if not isinstance(value, (int, float)) or isinstance(value, bool):
+                errors.append(f"{name} must be numeric, got {type(value).__name__}")
+            elif not _is_finite_number(value) or float(value) <= 0:
+                errors.append(f"{name} must be a positive finite number, got {value}")
+
+        # Invalid combinations: fixed thresholds and percentiles should not both
+        # be forced when they contradict; require at least one vol band source.
+        if self.vol_thresholds is not None and self.vol_percentiles is not None:
+            errors.append("set only one of vol_thresholds or vol_percentiles, not both")
 
         for name in ("long_quantile", "short_quantile"):
             value = getattr(self, name)
