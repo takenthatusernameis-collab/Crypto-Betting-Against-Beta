@@ -176,12 +176,14 @@ class BABStrategy:
             # therefore turnover/costs) only change on rebalance dates.
             signals = _apply_rebalance(signals, rebalance_freq)
 
+        _max_turnover = getattr(cfg, "max_turnover", None) or getattr(cfg, "max_total_turnover", None)
+        _enforce_risk = bool(getattr(cfg, "enforce_risk_checks", False) or getattr(cfg, "risk_checks", False))
         weights = construct_portfolio(
             signals,
             dollar_neutral=cfg.dollar_neutral,
             max_position_size=getattr(cfg, "max_position_size", None),
-            max_turnover=getattr(cfg, "max_turnover", None) or getattr(cfg, "max_total_turnover", None),
-            enforce_risk_checks=getattr(cfg, "enforce_risk_checks", False) or getattr(cfg, "risk_checks", False),
+            max_turnover=_max_turnover,
+            enforce_risk_checks=_enforce_risk,
             gross_exposure_limit=getattr(cfg, "gross_exposure_limit", None),
             net_exposure_limit=getattr(cfg, "net_exposure_limit", None),
             max_single_weight=getattr(cfg, "max_single_weight", None),

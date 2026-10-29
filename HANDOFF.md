@@ -1,22 +1,24 @@
-# HANDOFF - 2026-10-29T04:15:00Z (SINGLE DURABLE HANDOFF)
+# HANDOFF - 2026-10-29T04:50:36Z (SINGLE DURABLE HANDOFF)
 
 ## TIMESTAMP
-2026-10-29T04:15:00Z
+2026-10-29T04:50:36Z
 
 ## PROJECT IDENTITY (NON-NEGOTIABLE - DRIVES ALL PRIORITIZATION)
 - **Repository:** `Crypto-Betting-Against-Beta`
 - **Product:** Betting Against Beta (BAB) crypto strategy — long low-beta, short high-beta vs benchmark (BTC default), Frazzini–Pedersen style
 - **PRIORITY:** **BAB STRATEGY CODE IN `strategies/betting_against_beta/` > EVERYTHING ELSE**
 
-## COMPLETED THIS SESSION (2026-10-29T04:15:00Z)
-- **Bottlenecks removed:** CI/workflow pattern-sync drift fixed (added `*/.github/workflows/*` to `.github/workflows/main.yml` `stage_safe_changes` case list; matches Python `EXCLUDE_PATTERNS` in `scripts/controller_progress.py`). Full suite green.
+## COMPLETED THIS SESSION (2026-10-29T04:50:36Z)
+- **Bottlenecks removed:** CI/workflow pattern-sync drift fixed (added `*/.github/workflows/*` to `.github/workflows/main.yml` `stage_safe_changes` case list and Python `EXCLUDE_PATTERNS` aligned). Full suite green.
 - **Beta-neutral enforcement (PRIMARY HEAVY TASK) completed — multi-file, production-grade:**
   - `strategies/betting_against_beta/config.py`: added beta-neutral params (`beta_neutral`, `beta_neutral_enforcement`, `beta_target`, `beta_tolerance`/`max_beta_drift`, tracking error monitoring flags/limits), validated with ranges/bools.
   - `strategies/betting_against_beta/portfolio.py`: added `compute_portfolio_beta()`, `compute_tracking_error()`, `enforce_beta_neutrality()` with drift detection/correction (scaling adjustment toward target), causal/no-lookahead application, finite-value guards, preserves dollar neutrality/weight constraints and public API behavior.
   - `strategies/betting_against_beta/strategy.py`: integrated beta-neutral enforcement in `BABStrategy.run()` after regime scaling/before backtest, toggleable via config, uses betas up to t only, benchmark returns available for monitoring.
-- **Performance & Scalability (Priority 3) in progress — beta optimization:**
-  - `strategies/betting_against_beta/beta.py`: Refactored rolling beta calculation for better memory efficiency and performance. Added `_calc_rolling_beta_series()` helper for safer code reuse, optimized vectorized paths with `copy=False` where safe, reduced unnecessary allocations/casts. Preserved exact numerical behavior and all regression tests pass.
-- **Baseline/verification:** `python3 -m pytest -q` → **420 passed, 0 failed, 6 skipped** (no regressions). Working tree modified: `.github/workflows/main.yml`, `strategies/betting_against_beta/beta.py`.
+- **Performance & Scalability (Priority 3) - HEAVY OPTIMIZATION in progress:**
+  - `strategies/betting_against_beta/beta.py`: Refactored rolling beta calculation for better memory efficiency and performance. Added `_calc_rolling_beta_series()` helper for safer code reuse, optimized vectorized paths with `copy=False` where safe.
+  - `strategies/betting_against_beta/portfolio.py`: Hardened/optimized portfolio construction with robust handling of non-numeric signals (strings/None), preserved exact behavior across all cases; maintained full API compatibility.
+  - `strategies/betting_against_beta/strategy.py`: Micro-optimizations for hot-path attribute lookups; pipeline remains deterministic and causal.
+- **Baseline/verification:** `python3 -m pytest -q` → **420 passed, 0 failed, 6 skipped** (no regressions). Working tree modified: `.github/workflows/main.yml`, `strategies/betting_against_beta/beta.py`, `strategies/betting_against_beta/portfolio.py`, `strategies/betting_against_beta/strategy.py`.
 
 ## IMMEDIATE FIRST TASK (DO THIS NOW - NO EXCUSES, NO DISTRACTIONS)
 
@@ -30,20 +32,22 @@ python3 -m pytest -q
 **IF BASELINE IS GREEN → START HEAVY WORK IMMEDIATELY (MANDATORY):**
 
 ### PRIMARY HEAVY TASK: Performance & Scalability (vectorize/optimize, multi-file, production-grade)
-Beta-neutral enforcement is DONE. **Continue Priority 3 - Performance & Scalability.** Beta calculation optimized for memory/allocations. Next: optimize other hot paths in strategy/pipeline (avoid repeated reindex/copies), consider efficient windowed computations, add safe parallelization where appropriate for large universes, add benchmarks. Touch multiple files with real logic and tests. Do NOT do docs-only/trivial refactors.
+Beta-neutral enforcement is DONE. **Continue Priority 3 - Performance & Scalability.** Beta and portfolio hot paths have been optimized; continue with deeper optimizations across the pipeline for large universes without changing numerical results.
 
-#### Required deliverables
-1) **`strategies/betting_against_beta/strategy.py` / `signals.py` / `portfolio.py`** (integration/efficiency)
-   - Optimize pipeline hot paths where safe (avoid repeated reindex/copies in loops), ensure causal/no-lookahead unchanged, better memory usage for large DataFrames.
-   - Look for opportunities to vectorize further where pandas/numpy can be used efficiently.
-
-2) **Tests (TDD)**
-   - Add/extend tests covering large-universe performance/correctness and edge cases. Ensure all existing tests still pass.
+#### Required deliverables (MUST DO - HEAVY)
+1) **`strategies/betting_against_beta/strategy.py` / `backtest.py` / `signals.py` / `data_loader.py`** (integration/efficiency)
+   - Profile/optimize repeated reindex/copies in hot paths (especially in `run()`, rebalance, beta/portfolio application). Prefer in-place/view operations where safe.
+   - Optimize windowed computations and DataFrame construction to reduce allocations for large universes.
+   - Ensure causal/no-lookahead is strictly preserved; all changes deterministic.
+2) **Robustness/Correctness**
+   - Add/extend unit tests for large-universe edge cases and performance-sensitive paths; keep parity with existing behavior.
+3) **Benchmarks/verification**
+   - Run full suite repeatedly; target zero regressions (>=420 passed).
 
 **ACCEPTANCE CRITERIA (MUST MEET):**
 - `python3 -m pytest -q` → >=420 passed, 0 failed (regressions forbidden)
 - Meaningful performance improvement on hot paths without changing numerical results
-- Multi-file changes with substantive logic
+- Multi-file changes with substantive logic (>=3 files)
 - Deterministic, no network calls, robust NaN/inf/zero handling
 - Follows existing code style/patterns
 
