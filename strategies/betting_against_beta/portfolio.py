@@ -132,6 +132,21 @@ def construct_portfolio(signals_df, dollar_neutral=True, gross_exposure_limit=No
     # sides are present, and clamp the result to finite values.  When only one
     # side is present we leave it as-is (long-only semantics).
     if dn:
+        # Re-normalize each side exactly so the book is dollar-neutral to
+        # machine precision: longs sum to +1.0, shorts to -1.0.  Equal-weight
+        # within each side is preserved (every long scaled by the same factor).
+        both = (n_long > 0) & (n_short > 0)
+        if np.any(both):
+            for i in np.nonzero(both)[0]:
+                row = w_arr[i]
+                long_sum = float(row[row > 0].sum())
+                short_sum = float(row[row < 0].sum())
+                if long_sum > 0:
+                    row[row > 0] = row[row > 0] / long_sum
+                if short_sum < 0:
+                    row[row < 0] = row[row < 0] / (-short_sum)
+                w_arr[i] = row
+        # Mop up any residual drift so net exposure is exactly zero.
         net = w_arr.sum(axis=1)
         both = (n_long > 0) & (n_short > 0)
         if np.any(both & (np.abs(net) > 1e-12)):
@@ -139,7 +154,7 @@ def construct_portfolio(signals_df, dollar_neutral=True, gross_exposure_limit=No
             # long book still sums to 1.0 after the adjustment.
             for i in np.nonzero(both & (np.abs(net) > 1e-12))[0]:
                 row = w_arr[i]
-                long_sum = row[row > 0].sum()
+                long_sum = float(row[row > 0].sum())
                 if long_sum > 1e-18:
                     row[row > 0] = row[row > 0] * (1.0 - net[i]) / long_sum
                 w_arr[i] = row

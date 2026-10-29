@@ -91,3 +91,44 @@ def test_portfolio_extreme_weights_finiteness():
     w = construct_portfolio(sig)
     assert np.isfinite(w.values).all()
     assert np.allclose(w.sum(axis=1).values, 0.0, atol=1e-10)
+
+
+def test_signals_mixed_type_beta_columns_no_crash():
+    dates = pd.date_range("2023-01-01", periods=4)
+    betas = pd.DataFrame({
+        "A": [0.5, "0.6", None, 0.8],
+        "B": ["garbage", 0.4, 0.9, "1.2"],
+    }, index=dates)
+    sig = generate_bab_signals(betas)
+    assert sig.shape == betas.shape
+    assert np.isfinite(sig.values).all()
+    assert sig.dtypes.apply(lambda x: np.issubdtype(x, np.integer)).all()
+
+
+def test_signals_quantile_clamp_extremes():
+    dates = pd.date_range("2023-01-01", periods=6)
+    betas = pd.DataFrame({
+        "A": [0.1, 0.2, 0.3, 0.4, 0.5, 0.6],
+        "B": [0.6, 0.5, 0.4, 0.3, 0.2, 0.1],
+        "C": [0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
+    }, index=dates)
+    for lq, sq in ((0.0, 0.0), (0.0, 1.0), (1.0, 0.0), (1.0, 1.0), (-0.5, 2.5)):
+        sig = generate_bab_signals(betas, long_quantile=lq, short_quantile=sq)
+        assert sig.shape == betas.shape
+        assert np.isfinite(sig.values).all()
+        assert sig.dtypes.apply(lambda x: np.issubdtype(x, np.integer)).all()
+
+
+def test_portfolio_dollar_neutral_exact_when_both_sides():
+    dates = pd.date_range("2023-01-01", periods=3)
+    # Odd counts so equal weights do not sum to exactly 1.0 in floating point.
+    sig = pd.DataFrame({"A": [1]*3, "B": [1]*3, "C": [1]*3, "D": [-1]*3, "E": [-1]*3}, index=dates)
+    w = construct_portfolio(sig, dollar_neutral=True)
+    assert np.isfinite(w.values).all()
+    net = w.sum(axis=1).values
+    assert np.allclose(net, 0.0, atol=1e-12)
+    # Longs sum to +1.0, shorts to -1.0 within each row.
+    for i in range(len(dates)):
+        row = w.iloc[i].to_numpy(dtype=float)
+        assert np.allclose(row[row > 0].sum(), 1.0, atol=1e-12)
+        assert np.allclose(row[row < 0].sum(), -1.0, atol=1e-12)

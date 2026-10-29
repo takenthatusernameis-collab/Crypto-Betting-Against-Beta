@@ -90,3 +90,39 @@ def test_validate_rejects_all_nan_benchmark():
         assert False, "Should have raised"
     except Exception as e:
         assert isinstance(e, (BABDataError, ValueError))
+
+
+def test_loader_timezone_aware_normalized_to_naive_utc(tmp_path):
+    dates = pd.date_range("2023-01-01", periods=5, tz="US/Eastern")
+    df = pd.DataFrame({"BTC": [0.01, -0.01, 0.02, 0.0, 0.01]}, index=dates)
+    p = tmp_path / "tz.csv"
+    df.to_csv(p)
+    res = data_loader.load_returns_from_csv(p)
+    assert res.index.tz is None
+    assert isinstance(res.index, pd.DatetimeIndex)
+    assert len(res) == 5
+    assert res.index.is_monotonic_increasing
+
+
+def test_loader_mixed_type_strings_commas_percent(tmp_path):
+    dates = pd.date_range("2023-01-01", periods=5)
+    df = pd.DataFrame({
+        "BTC": ["0.01", "0,02", "1.5%", -0.03, 0.01],
+        "ETH": [0.0, "nan", 0.01, 0.02, "null"],
+    }, index=dates)
+    p = tmp_path / "mixed2.csv"
+    df.to_csv(p)
+    res = data_loader.load_returns_from_csv(p)
+    assert isinstance(res, pd.DataFrame)
+    assert np.isfinite(res["BTC"].values).all()
+
+
+def test_loader_unparseable_dates_raise_bab_data_error(tmp_path):
+    df = pd.DataFrame({"date": ["not-a-date", "also bad"], "BTC": [0.01, 0.02]})
+    p = tmp_path / "bad_dates.csv"
+    df.to_csv(p)
+    try:
+        data_loader.load_returns_from_csv(p)
+        assert False, "should have raised BABDataError"
+    except Exception as e:
+        assert isinstance(e, (BABDataError, ValueError))

@@ -37,8 +37,13 @@ def test_enforce_beta_neutrality_no_overlap():
 
 
 def test_enforce_beta_neutrality_preserves_when_within_tolerance():
-    betas = _make_betas()
-    # Build a dollar-neutral portfolio whose beta is near zero.
+    # All betas equal -> any dollar-neutral portfolio has portfolio beta exactly 0,
+    # which is within any positive tolerance, so weights must be preserved unchanged.
+    dates = pd.date_range("2023-01-01", periods=4)
+    betas = pd.DataFrame(
+        {"BTC": [0.5] * 4, "ETH": [0.5] * 4, "SOL": [0.5] * 4, "BNB": [0.5] * 4},
+        index=dates,
+    )
     n = betas.shape[1]
     w = np.zeros(n)
     w[0] = 0.5

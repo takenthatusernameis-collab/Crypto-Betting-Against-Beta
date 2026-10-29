@@ -124,7 +124,8 @@ def generate_bab_signals(betas_df, long_quantile=0.3, short_quantile=0.3):
     if sq >= 1.0:
         sq = 1.0
 
-    beta_arr = betas_df.to_numpy(dtype=float)
+    beta_df = betas_df.apply(pd.to_numeric, errors="coerce")
+    beta_arr = beta_df.to_numpy(dtype=float)
     finite = np.isfinite(beta_arr)
     counts = finite.sum(axis=1)
     n_rows, n_cols = beta_arr.shape

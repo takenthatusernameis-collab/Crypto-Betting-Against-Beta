@@ -29,25 +29,16 @@ def _normalize_index(df: pd.DataFrame) -> pd.DataFrame:
             raise BABDataError(
                 f"Index could not be parsed as datetime: {exc}"
             ) from exc
-    # Handle timezone-aware indexes: strip the tz so downstream code sees a
-    # consistent naive UTC representation.
-    try:
-        if isinstance(df.index, pd.DatetimeIndex) and getattr(df.index, "tz", None) is not None:
-            # tz_convert(None) converts to UTC and strips tz; tz_localize(None)
-            # just drops tz without shifting, which is wrong for non-UTC tz.
-            try:
-                df.index = df.index.tz_convert(None)
-            except (TypeError, AttributeError):
-                # If the tz is already UTC, tz_localize(None) is the right move.
-                df.index = df.index.tz_localize(None)
-    except (TypeError, AttributeError, Exception):
-        # Last resort: if we cannot normalize the tz, drop it so validation
-        # still sees a usable DatetimeIndex.
+    # Handle timezone-aware indexes deterministically: convert to UTC, then
+    # strip the tz so downstream code sees a consistent naive UTC representation.
+    if isinstance(df.index, pd.DatetimeIndex) and getattr(df.index, "tz", None) is not None:
         try:
-            if hasattr(df.index, "tz") and df.index.tz is not None:
+            df.index = df.index.tz_convert("UTC").tz_localize(None)
+        except (TypeError, AttributeError, ValueError):
+            try:
                 df.index = df.index.tz_localize(None)
-        except Exception:
-            pass
+            except (TypeError, AttributeError, ValueError):
+                pass
     df = df.sort_index()
     if not isinstance(df.index, pd.DatetimeIndex):
         raise BABDataError("Index is not a DatetimeIndex after normalization")
