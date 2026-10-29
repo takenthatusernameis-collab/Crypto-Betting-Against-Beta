@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import json
+import math
 from dataclasses import dataclass
 
 import numpy as _np
@@ -275,7 +277,7 @@ class BABStrategy:
             weights.iloc[:] = wa
         backtest = run_backtest(returns, weights, transaction_costs=cfg.transaction_costs, slippage=getattr(cfg, "slippage", 0.0))
 
-        return BABResult(
+        result = BABResult(
             config=cfg,
             returns=returns,
             betas=betas,
@@ -283,3 +285,104 @@ class BABStrategy:
             weights=weights,
             backtest=backtest,
         )
+        # Cache so report()/tear_sheet() can be called without re-running.
+        self._last_result = result
+        return result
+
+    def report(self, result: "BABResult | None" = None) -> dict:
+        """Return a structured performance report for the last (or given) run.
+
+        The report bundles the scalar summary metrics, the per-period
+        trade-attribution frame, and the attribution totals so callers can
+        consume a single object without re-running the pipeline.  All metrics
+        are causal (no lookahead) and deterministic for a fixed input.
+
+        Raises ``RuntimeError`` if no result has been run and ``result`` is
+        ``None``.
+        """
+        res = result if result is not None else self._last_result
+        if res is None:
+            raise RuntimeError(
+                "BABStrategy.report() called before run(). Call run() first "
+                "or pass an explicit BABResult."
+            )
+
+        returns = res.backtest["returns"]
+        benchmark_returns = res.returns[str(res.config.benchmark)] if res.config.benchmark in res.returns.columns else None
+        summary = metrics.summary(
+            returns,
+            weights_df=res.weights,
+            benchmark_returns=benchmark_returns,
+        )
+        attribution = trade_attribution(res.backtest)
+        totals = attribution_totals(attribution)
+
+        return {
+            "config": {
+                "universe": list(res.config.universe),
+                "benchmark": res.config.benchmark,
+                "beta_window": res.config.beta_window,
+                "min_observations": res.config.min_observations,
+                "long_quantile": res.config.long_quantile,
+                "short_quantile": res.config.short_quantile,
+                "transaction_costs": res.config.transaction_costs,
+                "data_source": res.config.data_source,
+            },
+            "rebalances": int(len(res.weights.dropna(how="all"))),
+            "metrics": summary,
+            "attribution": attribution,
+            "attribution_totals": totals,
+        }
+
+    def tear_sheet(self, result: "BABResult | None" = None) -> str:
+        """Return a human-readable tear-sheet string for the last (or given) run.
+
+        Combines the summary metrics and trade-attribution breakdown into a
+        single printable block suitable for console output or persistence.
+        """
+        rep = self.report(result)
+        lines: list[str] = []
+        lines.append("=" * 60)
+        lines.append("BAB STRATEGY TEAR SHEET")
+        lines.append("=" * 60)
+        lines.append(f"Universe: {', '.join(rep['config']['universe'])}")
+        lines.append(f"Benchmark: {rep['config']['benchmark']}")
+        lines.append(f"Beta window: {rep['config']['beta_window']} days (min {rep['config']['min_observations']} obs)")
+        lines.append(f"Long/Short quantiles: {rep['config']['long_quantile']}/{rep['config']['short_quantile']}")
+        lines.append(f"Rebalances: {rep['rebalances']}")
+        lines.append("-" * 60)
+        lines.append(f"Final Cumulative: {rep['metrics']['final_cumulative']:.4f}x ({rep['metrics']['total_return']:.2%})")
+        lines.append(f"Sharpe Ratio (ann.): {rep['metrics']['sharpe_ratio']:.4f}")
+        lines.append(f"Annualized Volatility: {rep['metrics']['annualized_volatility']:.2%}")
+        lines.append(f"Max Drawdown: {rep['metrics']['max_drawdown']:.2%}")
+        lines.append(f"Turnover (avg): {rep['metrics']['turnover']:.4f}")
+        lines.append(f"Strategy Beta vs {rep['config']['benchmark']}: {rep['metrics']['strategy_beta']:.4f}")
+        lines.append(f"Observations: {rep['metrics']['n_observations']}")
+        lines.append("-" * 60)
+        lines.append("Trade Attribution (cumulative):")
+        lines.append(f"  Gross Return:   {rep['attribution_totals']['gross_return']:.6f}")
+        lines.append(f"  Cost Drag:      {rep['attribution_totals']['cost_drag']:.6f}")
+        lines.append(f"  Slippage Drag:  {rep['attribution_totals']['slippage_drag']:.6f}")
+        lines.append(f"  Net Return:     {rep['attribution_totals']['net_return']:.6f}")
+        lines.append(f"  Cost Share:     {rep['attribution_totals']['cost_share']:.2%}")
+        lines.append(f"  Slippage Share: {rep['attribution_totals']['slippage_share']:.2%}")
+        lines.append("=" * 60)
+        return "\n".join(lines)
+
+    @staticmethod
+    def report_to_json(report: dict) -> str:
+        """Serialize a report dict to a strict, JSON-safe string.
+
+        NaN/inf tokens are coerced to 0.0 so the output is always valid JSON
+        per RFC 8259 (strict parsers such as Go/Rust reject bare NaN/Infinity).
+        """
+        def _clean(obj):
+            if isinstance(obj, dict):
+                return {str(k): _clean(v) for k, v in obj.items()}
+            if isinstance(obj, (list, tuple)):
+                return [_clean(v) for v in obj]
+            if isinstance(obj, float) and (math.isnan(obj) or math.isinf(obj)):
+                return 0.0
+            return obj
+
+        return json.dumps(_clean(report), indent=2, default=str, allow_nan=False)
