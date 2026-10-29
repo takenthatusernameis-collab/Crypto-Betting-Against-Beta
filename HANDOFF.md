@@ -1,12 +1,17 @@
-# HANDOFF - 2026-10-29T01:05:27Z (SINGLE DURABLE HANDOFF)
+# HANDOFF - 2026-10-29T02:11:47Z (SINGLE DURABLE HANDOFF)
 
 ## TIMESTAMP
-2026-10-29T01:05:27Z
+2026-10-29T02:11:47Z
 
 ## PROJECT IDENTITY (NON-NEGOTIABLE - DRIVES ALL PRIORITIZATION)
 - **Repository:** `Crypto-Betting-Against-Beta`
 - **Product:** Betting Against Beta (BAB) crypto strategy — long low-beta, short high-beta vs benchmark (BTC default), Frazzini–Pedersen style
 - **PRIORITY:** **BAB STRATEGY CODE IN `strategies/betting_against_beta/` > EVERYTHING ELSE**
+
+## COMPLETED THIS SESSION (2026-10-29T02:11:47Z)
+- **Bottleneck removed:** CI/workflow pattern-sync drift fixed — added `*/.github/workflows/*` to `.github/workflows/main.yml` `stage_safe_changes` case list so it stays in lock-step with Python `EXCLUDE_PATTERNS` in `scripts/controller_progress.py`.
+- **Baseline green:** `python3 -m pytest -q` → **411 passed, 0 failed, 6 skipped** (was 2 failed before the fix).
+- Branch: main @ `573fe2f`. Working tree: `.github/workflows/main.yml` modified. `__pycache__/` untracked.
 
 ## IMMEDIATE FIRST TASK (DO THIS NOW - NO EXCUSES, NO DISTRACTIONS)
 
@@ -20,46 +25,37 @@ python3 -m pytest -q
 
 **IF BASELINE IS GREEN → START HEAVY WORK IMMEDIATELY (MANDATORY):**
 
-### PRIMARY HEAVY TASK: Regime Detection (TDD, multi-file, production-grade)
-Create and integrate regime detection for the BAB strategy. Do **NOT** do docs-only, comment-only, rename-only, or trivial refactors. This must touch multiple files with real logic and tests.
+### PRIMARY HEAVY TASK: Regime Detection Integration (multi-file, production-grade)
+`strategies/betting_against_beta/regime.py` already exists with working vol/trend regime detection and `tests/test_betting_against_beta_regime.py` passes. **Remaining heavy work is integration + config extension + integration tests.** Do NOT do docs-only, comment-only, rename-only, or trivial refactors. This must touch multiple files with real logic and tests.
 
 #### Required deliverables
-1) **`strategies/betting_against_beta/regime.py`** (new)
-   - `calculate_realized_vol(returns: pd.Series, window: int, method: str = "std"|"ewma", ...) -> pd.Series` with NaN-safe handling
-   - `classify_vol_regime(vol: pd.Series, thresholds: tuple|dict|percentiles: tuple, hysteresis: float = 0.0, ...) -> pd.Series` returning regime labels (e.g., `low|medium|high`) aligned to index, with min-history NaN
-   - `classify_trend_regime(prices_or_returns: pd.Series, ma_window: int, z_window: int|None = None, ...) -> pd.Series` (MA cross/z-score/price-vs-MA) with NaN-safe
-   - `compute_regime_state(...) -> pd.DataFrame` with columns for regime labels/states aligned to `returns_df.index`, handling insufficient history as flat/NaN-permitted per design
-   - `apply_regime_scaling(signals_or_weights: pd.DataFrame, regime: pd.DataFrame, config: ...) -> pd.DataFrame` returning no-lookahead, index-aligned weights/signals (deterministic)
-
-2) **`strategies/betting_against_beta/config.py`** (extend)
-   - Add regime fields with sensible defaults and validation: `regime_filter: bool = False`, `regime_method: str = "vol"|"trend"|"combined"`, `vol_window: int`, `vol_use_ewma: bool`, `vol_thresholds: tuple|None`, `vol_percentiles: tuple|None` (e.g., (0.33,0.66)), `vol_hysteresis: float`, `trend_ma_window: int`, `trend_z_window: int|None`, `regime_scale_high: float`, `regime_scale_low: float` (and any needed for combined)
+1) **`strategies/betting_against_beta/config.py`** (extend regime fields)
+   - Add/align regime fields: `regime_filter: bool = False`, `regime_method: str = "vol"|"trend"|"combined"`, `vol_window: int`, `vol_use_ewma: bool`, `vol_thresholds: tuple|None`, `vol_percentiles: tuple|None` (e.g. (0.33,0.66)), `vol_hysteresis: float`, `trend_ma_window: int`, `trend_z_window: int|None`, `regime_scale_high: float`, `regime_scale_low: float`
    - Extend `_validate_ranges()` to enforce positive windows, valid ranges, hysteresis in [0,1], scale factors reasonable, and prevent invalid combinations
    - Preserve frozen-config safety
 
-3) **Integration**
-   - `strategies/betting_against_beta/strategy.py`: integrate regime logic in `BABStrategy.run()` after generating signals/before or during portfolio construction with **no lookahead**. Must be toggleable via `BABConfig.regime_filter`.
-   - `strategies/betting_against_beta/portfolio.py`: support regime scaling cleanly if needed (or keep in strategy) without changing public API contract in a breaking way; ensure dollar-neutral/weight constraints remain intact
+2) **Integration — `strategies/betting_against_beta/strategy.py`**
+   - Integrate regime logic in `BABStrategy.run()` **after generating signals / before or during portfolio construction with NO LOOKAHEAD**. Toggleable via `BABConfig.regime_filter`.
+   - Apply regime scaling to weights/signals deterministically, index-aligned, shifted appropriately (weights applied after signal generation as designed).
+   - `strategies/betting_against_beta/portfolio.py`: support regime scaling cleanly if needed without breaking the public API contract; ensure dollar-neutral/weight constraints remain intact.
 
-4) **Tests (TDD)**
-   - Create `tests/test_betting_against_beta_regime.py` **FIRST** with failing tests covering:
-     - Volatility regimes: std/EWMA, thresholds and percentiles, hysteresis prevents whipsaw, alignment to index
-     - Trend/mean-revert: MA cross, z-score, price-vs-MA, NaN/insufficient history
-     - `compute_regime_state` alignment and NaN handling
-     - Config integration + validation (bad values rejected)
-     - Strategy integration with `regime_filter=True` producing deterministic, index-aligned results; no lookahead (weights shifted appropriately / applied after signal generation as designed)
+3) **Tests (TDD)**
+   - Extend `tests/test_betting_against_beta_regime.py` **FIRST** with failing integration tests covering:
+     - Strategy integration with `regime_filter=True` producing deterministic, index-aligned results; no lookahead
+     - Config integration + validation (bad regime values rejected)
      - Edge cases: constant series, all-NaN window, single asset, benchmark behavior
    - Implement until **ALL** new regime tests pass and **full suite remains green**.
 
 **ACCEPTANCE CRITERIA (MUST MEET):**
 - `python3 -m pytest -q` → >=411 passed, 0 failed (regressions forbidden)
-- New regime tests all pass
-- Multi-file changes (>=3 files: regime.py, config.py, strategy.py, tests/…) with substantive logic
+- New regime integration tests all pass
+- Multi-file changes (>=3 files: config.py, strategy.py, tests/…) with substantive logic
 - No network calls, deterministic (no unseeded randomness), robust NaN/inf/zero handling
 - No lookahead in regime application
 - Follows existing code style/patterns
 
 **NEXT AFTER REGIME (IMMEDIATE FOLLOW-ON, DO NOT SKIP):**
-Once regime detection is solid and fully tested, move to **Beta-neutral enforcement**: strengthen beta targeting (tracking error monitoring, drift detection/correction), add tests, integrate into portfolio/strategy without lookahead. Keep heavy multi-file work going.
+Once regime detection integration is solid and fully tested, move to **Beta-neutral enforcement**: strengthen beta targeting (tracking error monitoring, drift detection/correction), add tests, integrate into portfolio/strategy without lookahead. Keep heavy multi-file work going.
 
 ## CURRENT VERIFIED STATE
 - **Branch:** main @ `573fe2f`
