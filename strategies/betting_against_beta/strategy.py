@@ -155,8 +155,6 @@ class BABStrategy:
             )
         try:
             object.__setattr__(cfg, "universe", effective_universe)
-            object.__setattr__(cfg, "_frozen", False)
-            object.__setattr__(cfg, "universe", effective_universe)
             object.__setattr__(cfg, "_frozen", True)
         except Exception:
             cfg.universe = effective_universe

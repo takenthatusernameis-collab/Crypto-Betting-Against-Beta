@@ -28,11 +28,19 @@ def _finite_beta_series(betas) -> pd.Series | None:
         betas = betas.iloc[0]
     if not isinstance(betas, pd.Series):
         return None
-    finite = betas.apply(
-        lambda x: isinstance(x, (int, float, np.integer, np.floating))
-        and np.isfinite(float(x))
-    )
-    clean = betas[finite].astype("float64")
+    # Vectorized: coerce to numeric (non-numeric strings -> NaN) and keep only
+    # finite values. Explicitly reject original string entries, because
+    # to_numeric would otherwise convert numeric-looking strings ("1.5"),
+    # which the isinstance-based oracle rejects.
+    numeric = pd.to_numeric(betas, errors="coerce")
+    if numeric.dtype == object:
+        numeric = numeric.astype("float64")
+    arr = numeric.to_numpy(dtype=float, copy=False)
+    if betas.dtype == object:
+        str_mask = np.array([isinstance(v, str) for v in betas.to_numpy()], dtype=bool)
+        arr[str_mask] = np.nan
+    finite = np.isfinite(arr)
+    clean = numeric[finite].astype("float64")
     if len(clean) == 0:
         return None
     return clean

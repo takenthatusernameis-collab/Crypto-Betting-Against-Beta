@@ -182,6 +182,17 @@ def calculate_rolling_beta(returns_df, benchmark_name, window=90, min_obs=60):
         if col != benchmark_name
     }
 
+    # Benchmark rolling sums are asset-independent; hoist them out of the
+    # per-asset loop so each asset pays for 2 rolling calls (its own y_sum and
+    # xy_sum) instead of 5. Numerics are bit-identical to computing all five
+    # per asset.
+    ones_s = pd.Series(np.ones(n, dtype=float))
+    x_s = pd.Series(bench_arr)
+    xx_s = x_s * x_s
+    cnt_s = ones_s.rolling(window=window, min_periods=min_obs).sum()
+    x_sum_s = x_s.rolling(window=window, min_periods=min_obs).sum()
+    xx_sum_s = xx_s.rolling(window=window, min_periods=min_obs).sum()
+
     try:
         for asset in returns_df.columns:
             if asset == benchmark_name:
@@ -196,21 +207,19 @@ def calculate_rolling_beta(returns_df, benchmark_name, window=90, min_obs=60):
                 betas_dict[asset] = _calc_rolling_beta_series(bench_arr, a_arr, window, min_obs)
                 continue
 
-            x_s = pd.Series(bench_arr)
             y_s = pd.Series(a_arr)
             xy_s = x_s * y_s
-            xx_s = x_s * x_s
-            ones_s = pd.Series(np.ones(n, dtype=float))
+            y_sum_s = y_s.rolling(window=window, min_periods=min_obs).sum()
+            xy_sum_s = xy_s.rolling(window=window, min_periods=min_obs).sum()
 
-            cnt = ones_s.rolling(window=window, min_periods=min_obs).sum()
-            x_sum = x_s.rolling(window=window, min_periods=min_obs).sum()
-            y_sum = y_s.rolling(window=window, min_periods=min_obs).sum()
-            xy_sum = xy_s.rolling(window=window, min_periods=min_obs).sum()
-            xx_sum = xx_s.rolling(window=window, min_periods=min_obs).sum()
+            cnt_f = cnt_s.to_numpy(dtype=float, copy=False)
+            x_sum_f = x_sum_s.to_numpy(dtype=float, copy=False)
+            y_sum_f = y_sum_s.to_numpy(dtype=float, copy=False)
+            xy_sum_f = xy_sum_s.to_numpy(dtype=float, copy=False)
+            xx_sum_f = xx_sum_s.to_numpy(dtype=float, copy=False)
 
-            cnt_f = cnt.to_numpy(dtype=float, copy=False)
-            denom = cnt * xx_sum - x_sum * x_sum
-            num = cnt * xy_sum - x_sum * y_sum
+            denom = cnt_s * xx_sum_s - x_sum_s * x_sum_s
+            num = cnt_s * xy_sum_s - x_sum_s * y_sum_s
             beta = num / denom
             beta_arr = beta.to_numpy(dtype=float).copy()
             denom_f = denom.to_numpy(dtype=float, copy=False)

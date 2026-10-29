@@ -72,14 +72,20 @@ def construct_portfolio(signals_df, dollar_neutral=True, gross_exposure_limit=No
 
     dn = bool(dollar_neutral)
 
-    # Clean signals elementwise (exact per-value semantics preserved), then work
-    # with numpy arrays for the hot weight-assignment path.
-    cleaned = signals_df.map(_clean_signal_value)
-    n_rows, n_cols = cleaned.shape
-    index = cleaned.index
-    columns = cleaned.columns
+    index = signals_df.index
+    columns = signals_df.columns
+    n_rows, n_cols = signals_df.shape
 
-    clean_arr = cleaned.to_numpy(dtype=np.int64, copy=False)
+    # Clean signals elementwise. Vectorized equivalent of the per-value
+    # _clean_signal_value semantics: coerce to numeric (numeric strings such
+    # as "1.5" parse, garbage becomes NaN), truncate toward zero, and keep only
+    # the values whose truncated integral part is exactly +1 or -1.
+    # to_numeric is applied per column (N iterations, not M*N cells); each call
+    # is a fully vectorized Series operation.
+    numeric = signals_df.apply(pd.to_numeric, errors="coerce")
+    arr = numeric.to_numpy(dtype=float, copy=False)
+    iv = np.trunc(arr)
+    clean_arr = np.where(iv == 1.0, 1, np.where(iv == -1.0, -1, 0)).astype(np.int64)
     long_mask = clean_arr == 1
     short_mask = clean_arr == -1
 
