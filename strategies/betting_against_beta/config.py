@@ -68,6 +68,17 @@ class BABConfig:
     trend_z_window: Optional[int] = None  # z-score window for trend regime (None => moving average)
     regime_scale_high: float = 0.5  # scale applied in high-risk regime
     regime_scale_low: float = 1.0   # scale applied in low-risk regime
+    # Beta-neutral enforcement parameters
+    beta_neutral: bool = False
+    beta_neutral_enforcement: bool = False
+    beta_target: float = 0.0
+    beta_tolerance: float = 1e-4
+    max_beta_drift: float = 1e-4
+    tracking_error_tolerance: Optional[float] = None
+    tracking_error_limit: Optional[float] = None
+    enable_tracking_error_monitoring: bool = False
+    beta_neutral_correction: bool = True
+    beta_neutral_adjustment: bool = True
 
     def __post_init__(self):
         if self.universe is None:
@@ -188,7 +199,29 @@ class BABConfig:
             elif not _is_finite_number(value) or float(value) <= 0:
                 errors.append(f"{name} must be a positive finite number, got {value}")
 
-        # Invalid combinations: fixed thresholds and percentiles should not both
+        # Beta-neutral params
+        for name in ("beta_neutral", "beta_neutral_enforcement", "beta_neutral_correction", "beta_neutral_adjustment", "enable_tracking_error_monitoring"):
+            value = getattr(self, name)
+            if not isinstance(value, bool):
+                errors.append(f"{name} must be a bool, got {type(value).__name__}")
+
+        for name in ("beta_target", "beta_tolerance", "max_beta_drift"):
+            value = getattr(self, name)
+            if not isinstance(value, (int, float)) or isinstance(value, bool):
+                errors.append(f"{name} must be numeric, got {type(value).__name__}")
+            elif not _is_finite_number(value):
+                errors.append(f"{name} must be finite, got {value}")
+            elif float(value) < 0:
+                errors.append(f"{name} must be >= 0, got {value}")
+
+        for name in ("tracking_error_tolerance", "tracking_error_limit"):
+            value = getattr(self, name)
+            if value is None:
+                continue
+            if not isinstance(value, (int, float)) or isinstance(value, bool):
+                errors.append(f"{name} must be numeric or None, got {type(value).__name__}")
+            elif not _is_finite_number(value) or float(value) < 0:
+                errors.append(f"{name} must be a non-negative finite number when set, got {value}")
         # be forced when they contradict; require at least one vol band source.
         if self.vol_thresholds is not None and self.vol_percentiles is not None:
             errors.append("set only one of vol_thresholds or vol_percentiles, not both")

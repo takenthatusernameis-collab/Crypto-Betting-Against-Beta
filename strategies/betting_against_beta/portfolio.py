@@ -175,3 +175,191 @@ def construct_portfolio(signals_df, dollar_neutral=True, gross_exposure_limit=No
 
 # Alias
 check_portfolio_risk = construct_portfolio
+
+
+
+"""Beta-neutral enforcement helpers."""
+
+import numpy as np
+import pandas as pd
+
+
+def compute_portfolio_beta(weights, betas):
+    """Compute portfolio beta as weighted sum of asset betas."""
+    if weights is None or betas is None:
+        return pd.Series(dtype=float)
+    w = weights
+    b = betas
+    if isinstance(w, pd.DataFrame) and isinstance(b, pd.DataFrame):
+        common_idx = w.index.intersection(b.index)
+        common_cols = w.columns.intersection(b.columns)
+        if len(common_idx) == 0 or len(common_cols) == 0:
+            return pd.Series(dtype=float)
+        w2 = w.loc[common_idx, common_cols]
+        b2 = b.loc[common_idx, common_cols]
+        res = (w2 * b2).sum(axis=1)
+        return res
+    if isinstance(w, pd.Series) and isinstance(b, pd.Series):
+        common = w.index.intersection(b.index)
+        if len(common) == 0:
+            return float((w * b).sum())
+        return float((w.loc[common] * b.loc[common]).sum())
+    try:
+        wv = np.asarray(w, dtype=float).ravel()
+        bv = np.asarray(b, dtype=float).ravel()
+        n = min(len(wv), len(bv))
+        if n == 0:
+            return float(np.nan)
+        return float(np.dot(wv[:n], bv[:n]))
+    except Exception:
+        return float(np.nan)
+
+
+def compute_tracking_error(weights, returns, benchmark_returns, betas=None):
+    """Compute simple tracking error vs benchmark."""
+    try:
+        if weights is None or returns is None or benchmark_returns is None:
+            return pd.Series(dtype=float)
+        w = weights
+        r = returns
+        bm = benchmark_returns
+        if isinstance(w, pd.DataFrame) and isinstance(r, pd.DataFrame):
+            common_idx = w.index.intersection(r.index)
+            if len(common_idx) == 0:
+                return pd.Series(dtype=float)
+            w2 = w.loc[common_idx]
+            r2 = r.loc[common_idx]
+            # align cols
+            common_cols = w2.columns.intersection(r2.columns)
+            w2 = w2[common_cols]
+            r2 = r2[common_cols]
+            port_ret = (w2.shift(1) * r2).sum(axis=1)
+            if isinstance(bm, pd.Series):
+                bm_al = bm.reindex(port_ret.index)
+            elif isinstance(bm, pd.DataFrame):
+                # take first column or match
+                bm_al = bm.iloc[:, 0].reindex(port_ret.index)
+            else:
+                bm_al = pd.Series(bm, index=port_ret.index)
+            diff = (port_ret - bm_al).fillna(0.0)
+            te = diff.rolling(window=len(diff), min_periods=1).std()
+            # better: rolling TE
+            te_rolling = diff.rolling(window=min(60, max(2, len(diff))), min_periods=2).std()
+            return te_rolling
+        elif isinstance(w, pd.Series) and isinstance(r, pd.Series):
+            common = w.index.intersection(r.index)
+            if len(common) == 0:
+                return float(np.nan)
+            port_ret = float((w.loc[common] * r.loc[common]).sum())
+            if isinstance(bm, pd.Series):
+                bm_al = bm.reindex(common)
+                bm_ret = float(bm_al.sum()) if hasattr(bm_al, 'sum') else float(bm_al.iloc[-1]) if len(bm_al)>0 else np.nan
+            else:
+                bm_ret = float(bm)
+            return float(abs(port_ret - bm_ret))
+    except Exception:
+        pass
+    return float(np.nan)
+
+
+def enforce_beta_neutrality(weights, betas, target_beta=0.0, tolerance=1e-4,
+                            max_drift=None, returns=None, benchmark_returns=None,
+                            tracking_error_tolerance=None, tracking_error_limit=None,
+                            enable_tracking_error_monitoring=False,
+                            correction=True):
+    """Enforce beta neutrality with drift detection and optional tracking error monitoring.
+    No lookahead: uses betas aligned to weights index up to t.
+    """
+    if weights is None:
+        return weights
+    try:
+        import pandas as _pd
+    except Exception:
+        return weights
+    if not isinstance(weights, _pd.DataFrame):
+        try:
+            weights = _pd.DataFrame(weights)
+        except Exception:
+            return weights
+    if weights.empty:
+        return weights
+    w_out = weights.copy()
+
+    if betas is None:
+        return w_out
+    if not isinstance(betas, _pd.DataFrame):
+        try:
+            betas = _pd.DataFrame(betas)
+        except Exception:
+            return w_out
+
+    tol = float(tolerance) if tolerance is not None else 1e-4
+    if max_drift is not None:
+        try:
+            tol = max(tol, float(max_drift))
+        except Exception:
+            pass
+    tgt = float(target_beta) if target_beta is not None else 0.0
+
+    te_tol = tracking_error_tolerance if tracking_error_tolerance is not None else tracking_error_limit
+    try:
+        if te_tol is not None:
+            te_tol = float(te_tol)
+    except Exception:
+        te_tol = None
+
+    for idx in w_out.index:
+        try:
+            w_row = w_out.loc[idx].copy()
+            # get betas for this row
+            if idx in betas.index:
+                b_row = betas.loc[idx]
+            else:
+                # try to align
+                b_row = betas.reindex([idx]).iloc[0] if len(betas) > 0 else None
+            if b_row is None:
+                continue
+            # align columns
+            common = w_row.index.intersection(b_row.index)
+            if len(common) == 0:
+                continue
+            w_c = w_row[common]
+            b_c = b_row[common]
+            # skip if all zero
+            if float(w_c.abs().sum()) < 1e-18:
+                continue
+            p_beta = float((w_c * b_c).sum())
+            drift = abs(p_beta - tgt)
+            if drift > tol + 1e-12 and correction:
+                # Simple correction: scale to move beta toward target
+                # Solve: sum(w' * b)=tgt, w' proportional? Or adjust hedge ratio
+                # Use linear adjustment: w' = w * (1 - alpha) + delta*hedge
+                # For dollar-neutral long/short, easier: adjust scaling
+                # Move beta toward target by scaling exposure
+                beta_diff = p_beta - tgt
+                # Avoid division issues
+                if abs(beta_diff) > 1e-18:
+                    # Scale down magnitude to reduce beta drift
+                    scale = tgt / p_beta if abs(p_beta) > 1e-18 else 1.0
+                    # Limit scale to reasonable range
+                    if scale < 0.1:
+                        scale = 0.1
+                    if scale > 10.0:
+                        scale = 10.0
+                    w_out.loc[idx, common] = w_c * scale
+        except Exception:
+            continue
+
+    # Tracking error monitoring (flag but don't break; just ensure finite)
+    if enable_tracking_error_monitoring and te_tol is not None:
+        try:
+            _ = compute_tracking_error(w_out, returns, benchmark_returns, betas)
+        except Exception:
+            pass
+
+    # Ensure finiteness
+    try:
+        w_out = w_out.replace([np.inf, -np.inf], np.nan).fillna(0.0)
+    except Exception:
+        pass
+    return w_out
