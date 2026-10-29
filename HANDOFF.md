@@ -1,91 +1,93 @@
-# HANDOFF - 2026-10-28T23:59:18Z (SINGLE DURABLE HANDOFF)
+# HANDOFF - 2026-10-29T00:04:26Z (SINGLE DURABLE HANDOFF)
 
 ## TIMESTAMP
-2026-10-28T23:59:18Z
+2026-10-29T00:04:26Z
 
-## IMMEDIATE FIRST TASK (DO THIS NOW)
+## IMMEDIATE FIRST TASK (DO THIS NOW - NO EXCUSES)
 
-**0. Confirm baseline green (do first):**
+**0) Verify baseline is green (must pass before any changes):**
 ```bash
 cd /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
-python3 -m pytest -q  # Must show 400 passed, 0 failed, 6 skipped
+python3 -m pytest -q
+# Expected: 400 passed, 0 failed, 6 skipped
 ```
-**Bottleneck removed:** `.github/workflows/main.yml` `stage_safe_changes()` now includes `*/.github/workflows/*`, matching `scripts/controller_progress.py:28`. Pattern-sync tests pass. Suite is green (400 passed, 0 failed, 6 skipped). Uncommitted change to `main.yml` remains for review (do NOT commit unless asked).
 
-**1. Execute the next concrete task (TDD, heavy work, multi-file):**
-   - **Item: Regime detection** (Priority 2, Strategy & Risk Management) — NEXT CONCRETE TASK (start here now)
-   - Add `strategies/betting_against_beta/regime.py` with:
-     - volatility regime classification (realized vol thresholds / percentile regimes),
-     - trend/mean-revert filters,
-     - regime state per period (and regime-conditional signals/position sizing).
-   - Integrate into strategy/config (e.g. `BABConfig.regime_filter` / regime model) so regimes can filter or scale exposures.
-   - Tests: new `tests/test_betting_against_beta_regime.py`; failing test first → implement → green suite → refactor.
-   - **Then continue: `beta-neutral enforcement` (strengthen tracking error / drift monitoring).**
+**1) START HEAVY WORK - Regime Detection (TDD, multi-file, production-grade):**
+This is the highest ROI unblocked item. Do NOT do trivial refactors or docs-only changes.
 
-**RULE: You MUST make substantial progress on the BAB strategy (`strategies/betting_against_beta/`). No busywork.**
+- Create `strategies/betting_against_beta/regime.py` implementing:
+  - Volatility regime classification (realized vol thresholds and percentile-based regimes). Support configurable windows/thresholds/percentiles.
+  - Trend/mean-revert filters (e.g. moving averages, z-scores) to classify regimes/states.
+  - Per-period regime state output (DataFrame aligned to returns index) with clear API.
+  - Regime-conditional logic hooks (signals/position sizing/scaling) that can be consumed by strategy/portfolio.
+- Extend `BABConfig` with regime-related fields (e.g. `regime_filter`/`regime_model`/regime params) with validation.
+- Integrate regime filtering/scaling into `BABStrategy.run()` (and ensure deterministic behavior, no lookahead).
+- Write `tests/test_betting_against_beta_regime.py` FIRST with failing tests covering volatility regimes, trend/mean-revert, state alignment, config integration, and strategy integration. Implement until green.
+- After regime detection is solid, move to **Beta-neutral enforcement** (strengthen beta targeting with tracking error / drift monitoring).
 
-## Project Identity (NON-NEGOTIABLE)
+**RULE:** You MUST make substantial progress on `strategies/betting_against_beta/`. Infra only if it blocks BAB. No busywork.
+
+## PROJECT IDENTITY (NON-NEGOTIABLE)
 - **Repository:** `Crypto-Betting-Against-Beta`
-- **Product:** Betting Against Beta (BAB) crypto strategy — long low-beta, short high-beta vs benchmark (BTC default)
-- **Priority:** **BAB STRATEGY CODE > EVERYTHING ELSE**. Fix infra only if it blocks BAB. Otherwise ignore.
+- **Product:** Betting Against Beta (BAB) crypto strategy — long low-beta, short high-beta vs benchmark (BTC default), Frazzini–Pedersen style
+- **PRIORITY:** **BAB STRATEGY CODE > EVERYTHING ELSE**
 
-## Current Verified State
-- **Branch:** main @ `41b5311`
-- **Working tree:** `main.yml` modified (pattern-sync bottleneck fix, uncommitted for review); `__pycache__/` dirs untracked (do NOT commit unless asked)
-- **Tests:** **400 passed, 0 failed, 6 skipped** (verified green)
-- **Status:** Bottleneck removed. All tests green. Ready for regime detection.
+## CURRENT VERIFIED STATE
+- **Branch:** main @ `573fe2f`
+- **Working tree:** `.github/workflows/main.yml` modified (pattern-sync fix, uncommitted for review). `__pycache__/` untracked.
+- **Tests:** **400 passed, 0 failed, 6 skipped** (green)
+- **Bottlenecks:** Pattern-sync between workflow `stage_safe_changes()` and `scripts/controller_progress.py` EXCLUDE_PATTERNS fixed.
 
-## Bottlenecks Removed (this session)
-- **CI/workflow pattern-sync drift:** Added `*/.github/workflows/*` to `.github/workflows/main.yml` `stage_safe_changes()` case list to match `scripts/controller_progress.py` EXCLUDE_PATTERNS. All 4 controller pattern-sync tests pass. Suite now 400 passed, 0 failed, 6 skipped.
-- **Handoff clutter:** Removed ~300 stale `HANDOFF_*.md` files. Single durable handoff is `HANDOFF.md` (pointer `HANDOFF_NEXT_SESSION.md -> HANDOFF.md`).
+## BARRIERS REMOVED
+- CI/workflow pattern-sync drift resolved (added `*/.github/workflows/*`).
+- Handoff consolidated to single durable `HANDOFF.md` (symlink `HANDOFF_NEXT_SESSION.md -> HANDOFF.md`).
 
-## NEXT FOCUS CAMPAIGN: PRODUCTION-GRADE BAB STRATEGY (HEAVY WORK — MANDATORY)
+## FOCUS CAMPAIGN (HEAVY WORK - MANDATORY SEQUENCE)
 
 ### Priority 1: Data Infrastructure Hardening
-- [x] Multi-format loaders (tests)
-- [ ] Data quality checks tests for `quality.py`
-- [ ] Corporate actions: document splits/dividends/airdrops assumptions explicitly in code + tests
-- [x] Pluggable data sources implemented; add tests + ensure exported (done in __init__)
-- [x] Efficient caching (`DataCache`) implemented; add tests
+- [x] Multi-format loaders
+- [ ] Data quality checks tests for `quality.py` (expand coverage)
+- [ ] Corporate actions: document splits/dividends/airdrops assumptions explicitly + tests
+- [x] Pluggable data sources exported
+- [x] Efficient caching (`DataCache`)
 
-### Priority 2: Strategy & Risk Management (IN PROGRESS — START HERE)
+### Priority 2: Strategy & Risk Management (IN PROGRESS - START NOW)
 - [x] Transaction costs
 - [x] Portfolio risk controls
 - [x] Dynamic position sizing
 - [x] Shorting constraints
-- [ ] **Regime detection**: `regime.py` - volatility regimes, trend/mean-revert filters (**NEXT — start now**)
-- [ ] Beta-neutral enforcement: strengthen beta targeting with tracking error, drift monitoring
+- [ ] **Regime detection** - `regime.py` (vol regimes, trend/mean-revert, regime states, integration) **← START HERE**
+- [ ] **Beta-neutral enforcement** - strengthen beta targeting, tracking error, drift monitoring
 
 ### Priority 3: Performance & Scalability
-- [ ] Vectorize beta, Numba acceleration, memory efficiency, parallelization, benchmarks
+- [ ] Vectorize beta calculations, Numba paths, memory efficiency, parallelization, benchmarks
 
 ### Priority 4: Analytics & Reporting
 - [ ] Extended metrics, attribution, tear sheets, rolling analytics, trade analytics
 
 ### Priority 5: Testing & Robustness
-- [ ] Property-based, stress, integration, regression, fuzz, coverage >95%
+- [ ] Property-based tests, stress tests, integration, regression, fuzzing, coverage >95%
 
 ### Priority 6: Developer Experience
-- [ ] CLI, config YAML/JSON, API polish, examples, types, docs
+- [ ] CLI polish, YAML/JSON config, API polish, examples, typing, docs
 
-## MANDATORY RULES
-- **PRODUCT-FIRST:** `strategies/betting_against_beta/` absolute priority
-- **HEAVY WORK:** Substantial features/fixes across multiple files with tests. No trivial tweaks.
-- **TDD:** Failing test first → implement → pass → refactor
-- **NO SILENT FAILURES:** No bare `except:` or `except Exception:` without specific handling + logging/re-raise
-- **CRYPTO-ROBUST:** Handle NaN/inf/zeros/gaps/delistings/extremes/timezones
+## MANDATORY EXECUTION RULES
+- **PRODUCT-FIRST:** Absolute priority on `strategies/betting_against_beta/`
+- **HEAVY WORK REQUIRED:** Multi-file features with tests. No trivial-only changes.
+- **TDD:** Failing test → understand → minimal implementation → green → refactor
+- **ROBUSTNESS:** No bare `except:`; handle NaN/inf/zeros/gaps/timezones/delistings; validate inputs
 - **DETERMINISTIC:** No randomness without explicit seeds
-- **OFFLINE:** No network in tests/core
-- **ALL TESTS GREEN:** Run full suite frequently. Never regress.
+- **OFFLINE:** No network calls in tests/core
+- **ALWAYS GREEN:** Run full suite often; never regress (target >=400 passed, 0 failed)
 - **SINGLE HANDOFF:** Update THIS file (`HANDOFF.md`) after significant progress with new timestamp + concrete next steps
-- **NO COMMITS UNLESS ASKED:** Uncommitted for review
+- **NO COMMITS UNLESS ASKED:** Leave uncommitted changes for review
 
-## EXECUTION LOOP
-1. Verify baseline (tests green)
-2. Pick highest-impact unblocked item from Priority 1-6
-3. Design → TDD tests → implement → test → refactor
-4. Validate full suite, check coverage/regressions
-5. Update this handoff with timestamp, what done, blockers removed, next concrete task
-6. Repeat - build momentum with heavy work
+## EXECUTION LOOP (REPEAT)
+1. Verify baseline green
+2. Pick highest-impact unblocked item from P1-6 (currently P2 regime detection)
+3. TDD: write failing tests → implement → pass → refactor
+4. Validate full suite, check for regressions
+5. Update handoff with timestamp, completed work, blockers removed, next concrete task
+6. Continue with heavy work - never stop at partial
 
-**DO NOT STOP UNTIL SIGNIFICANT, SUBSTANTIAL PROGRESS IS MADE ON THE BAB STRATEGY. IGNORE OLDER HANDOFF_*.md FILES.**
+**IGNORE ALL OLDER HANDOFF_*.md FILES. ONLY `HANDOFF.md` MATTERS.**
