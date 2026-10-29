@@ -1,7 +1,7 @@
-# HANDOFF - 2026-10-28T23-14-58Z (SINGLE DURABLE HANDOFF)
+# HANDOFF - 2026-10-28T23:59:18Z (SINGLE DURABLE HANDOFF)
 
 ## TIMESTAMP
-2026-10-28T23:14:58Z
+2026-10-28T23:59:18Z
 
 ## IMMEDIATE FIRST TASK (DO THIS NOW)
 
@@ -10,14 +10,14 @@
 cd /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
 python3 -m pytest -q  # Must show 400 passed, 0 failed, 6 skipped
 ```
-Bottleneck removed earlier; all tests green. **Shorting constraints** module added and wired.
+**Bottleneck removed:** `.github/workflows/main.yml` `stage_safe_changes()` now includes `*/.github/workflows/*`, matching `scripts/controller_progress.py:28`. Pattern-sync tests pass. Suite is green (400 passed, 0 failed, 6 skipped). Uncommitted change to `main.yml` remains for review (do NOT commit unless asked).
 
 **1. Execute the next concrete task (TDD, heavy work, multi-file):**
    - **Item: Regime detection** (Priority 2, Strategy & Risk Management) — NEXT CONCRETE TASK (start here now)
    - Add `strategies/betting_against_beta/regime.py` with:
-     - volatility regime classification (e.g. realized vol thresholds / percentile regimes),
+     - volatility regime classification (realized vol thresholds / percentile regimes),
      - trend/mean-revert filters,
-     - regime state per period (and possibly regime-conditional signals/position sizing).
+     - regime state per period (and regime-conditional signals/position sizing).
    - Integrate into strategy/config (e.g. `BABConfig.regime_filter` / regime model) so regimes can filter or scale exposures.
    - Tests: new `tests/test_betting_against_beta_regime.py`; failing test first → implement → green suite → refactor.
    - **Then continue: `beta-neutral enforcement` (strengthen tracking error / drift monitoring).**
@@ -30,40 +30,30 @@ Bottleneck removed earlier; all tests green. **Shorting constraints** module add
 - **Priority:** **BAB STRATEGY CODE > EVERYTHING ELSE**. Fix infra only if it blocks BAB. Otherwise ignore.
 
 ## Current Verified State
-- **Branch:** main @ `01cc47d`
-- **Working tree:** clean except untracked `__pycache__/` dirs (do NOT commit unless asked)
-- **Tests:** **400 passed, 0 failed, 6 skipped** (verified green after adding shorting constraints)
-- **Status:** Bottleneck removed. All tests green.
+- **Branch:** main @ `41b5311`
+- **Working tree:** `main.yml` modified (pattern-sync bottleneck fix, uncommitted for review); `__pycache__/` dirs untracked (do NOT commit unless asked)
+- **Tests:** **400 passed, 0 failed, 6 skipped** (verified green)
+- **Status:** Bottleneck removed. All tests green. Ready for regime detection.
 
-## Bottlenecks Removed
-- **CI/workflow pattern-sync drift:** Fixed `.github/workflows/main.yml` `stage_safe_changes()` to include `*/.github/workflows/*` matching `scripts/controller_progress.py:28`. All controller pattern-sync tests pass.
-- **Shorting constraints (delivered):** Added `strategies/betting_against_beta/shorting.py` (borrow costs per asset, availability flags, hard caps on short exposure/notional per asset, strict/non-strict modes, signal->weights conversion). Wired into `BABConfig` (normalize dict) and `BABStrategy.run()` to apply constraints after portfolio construction. Exported in `__init__.py`. Added `tests/test_betting_against_beta_shorting.py` (13 tests, all pass).
-
-## Progress So Far (this campaign)
-- **Multi-format loaders**: tested (parquet/hdf5 skip without engine, pickle). **DONE.**
-- **Data quality checks**: `quality.py` implemented; tests still to add (P1 gap).
-- **Pluggable data sources + caching**: `data_sources.py` implemented + exported; add tests.
-- **Transaction cost model**: `costs.py` wired into `backtest.py` with 22 tests. **DONE.**
-- **Portfolio risk controls**: gross/net/max-single-weight checks raise `BABDataError`. **DONE.**
-- **Dynamic position sizing**: Kelly/vol targeting/risk parity wired via config, 9 tests. **DONE.**
-- **Shorting constraints**: borrow costs, availability, hard caps + wiring + tests. **DONE.**
-- Remaining P1: **Corporate actions** (document splits/dividends/airdrops assumptions + tests). **Data quality tests**. **Data sources tests**.
+## Bottlenecks Removed (this session)
+- **CI/workflow pattern-sync drift:** Added `*/.github/workflows/*` to `.github/workflows/main.yml` `stage_safe_changes()` case list to match `scripts/controller_progress.py` EXCLUDE_PATTERNS. All 4 controller pattern-sync tests pass. Suite now 400 passed, 0 failed, 6 skipped.
+- **Handoff clutter:** Removed ~300 stale `HANDOFF_*.md` files. Single durable handoff is `HANDOFF.md` (pointer `HANDOFF_NEXT_SESSION.md -> HANDOFF.md`).
 
 ## NEXT FOCUS CAMPAIGN: PRODUCTION-GRADE BAB STRATEGY (HEAVY WORK — MANDATORY)
 
 ### Priority 1: Data Infrastructure Hardening
 - [x] Multi-format loaders (tests)
 - [ ] Data quality checks tests for `quality.py`
-- [ ] Corporate actions: document assumptions explicitly in code + tests
+- [ ] Corporate actions: document splits/dividends/airdrops assumptions explicitly in code + tests
 - [x] Pluggable data sources implemented; add tests + ensure exported (done in __init__)
 - [x] Efficient caching (`DataCache`) implemented; add tests
 
-### Priority 2: Strategy & Risk Management (IN PROGRESS)
+### Priority 2: Strategy & Risk Management (IN PROGRESS — START HERE)
 - [x] Transaction costs
 - [x] Portfolio risk controls
 - [x] Dynamic position sizing
 - [x] Shorting constraints
-- [ ] **Regime detection**: `regime.py` - volatility regimes, trend/mean-revert filters (NEXT)
+- [ ] **Regime detection**: `regime.py` - volatility regimes, trend/mean-revert filters (**NEXT — start now**)
 - [ ] Beta-neutral enforcement: strengthen beta targeting with tracking error, drift monitoring
 
 ### Priority 3: Performance & Scalability
