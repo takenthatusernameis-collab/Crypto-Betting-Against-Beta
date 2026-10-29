@@ -1,7 +1,7 @@
-# HANDOFF - 2026-10-29T21:37:30Z (SINGLE DURABLE HANDOFF)
+# HANDOFF - 2026-10-29T22:19:19Z (SINGLE DURABLE HANDOFF)
 
 ## TIMESTAMP
-2026-10-29T21:37:30Z
+2026-10-29T22:19:19Z
 
 ## PROJECT IDENTITY (NON-NEGOTIABLE - DRIVES ALL PRIORITIZATION)
 - **Repository:** `Crypto-Betting-Against-Beta`
@@ -19,7 +19,7 @@ Current gaps: `data_sources.py` ~79%, `data_loader.py` ~80%, `shorting.py` ~80%,
 Target >=95% across all `strategies/betting_against_beta/` modules.
 
 ## COMPLETED THIS SESSION
-- Fixed workflow/controller pattern drift blocking tests (`*/.github/workflows/*` added to workflow exclusion list). Tests back to green (804 passed, 0 failed, 8 skipped).
+- Removed workflow/controller pattern drift bottleneck: added `*/.github/workflows/*` to `.github/workflows/main.yml` `stage_safe_changes` case (line ~1163) so it stays in lock-step with `scripts/controller_progress.py` `EXCLUDE_PATTERNS`. Nested workflow files under subdirs excluded both in Python and bash. Baseline restored GREEN: `python3 -m pytest -q` → **804 passed, 0 failed, 8 skipped**. All `TestStageSafeChangesPatternSync` tests pass. No regressions.
 
 ## IMMEDIATE HEAVY TASK (NEXT AGENT)
 **Campaign: push ALL strategy modules to >=95% coverage.**
@@ -50,7 +50,7 @@ python3 -m pytest -q  # MUST be green (804 passed, 0 failed, 8 skipped)
 ## CLEAR INITIAL TASK MESSAGE FOR NEXT AGENTIC SESSION (COPY/PASTE THIS FIRST)
 ```
 PRIORITY: BAB strategy in strategies/betting_against_beta/ > everything else.
-GATE: python3 -m pytest -q must be green (currently 804 passed, 0 failed, 8 skipped). If not, fix workflow/controller pattern drift before any other work.
+GATE: python3 -m pytest -q must be green (currently 804 passed, 0 failed, 8 skipped). If not, fix workflow/controller pattern drift (`*/.github/workflows/*` missing from `.github/workflows/main.yml` `stage_safe_changes` case line ~1163) before any other work.
 CAMPAIGN: Coverage crusade to >=95% across ALL strategies/betting_against_beta/ modules.
 START: TDD on data_sources.py and data_loader.py FIRST (biggest gaps). Cover edge cases, bounds, NaN/inf, shapes. Then shorting.py, costs.py, config.py, beta.py.
 REQUIREMENTS: touch >=4 files with real logic/tests per session; no bare except:; deterministic/offline/seeded; enforce finiteness; preserve behavior.
