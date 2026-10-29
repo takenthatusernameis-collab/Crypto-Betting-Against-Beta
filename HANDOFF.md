@@ -1,7 +1,7 @@
-# HANDOFF - 2026-10-29T15:28:54Z (SINGLE DURABLE HANDOFF)
+# HANDOFF - 2026-10-29T15:37:44Z (SINGLE DURABLE HANDOFF)
 
 ## TIMESTAMP
-2026-10-29T15:28:54Z
+2026-10-29T15:37:44Z
 
 ## PROJECT IDENTITY (NON-NEGOTIABLE - DRIVES ALL PRIORITIZATION)
 - **Repository:** `Crypto-Betting-Against-Beta`
@@ -9,16 +9,17 @@
 - **PRIORITY:** **BAB STRATEGY CODE IN `strategies/betting_against_beta/` > EVERYTHING ELSE**
 
 ## BOTTLENECKS REMOVED (VERIFIED)
-- **Workflow/controller pattern sync:** `.github/workflows/main.yml` `stage_safe_changes` now includes `*/.github/workflows/*` (parity with `scripts/controller_progress.py` EXCLUDE_PATTERNS). All `TestStageSafeChangesPatternSync` tests pass (68/68).
-- **Baseline restored GREEN:** `python3 -m pytest -q` → **516 passed, 0 failed, 6 skipped**. Deterministic baseline confirmed.
+- **Workflow/controller pattern sync FIXED FOR REAL:** `.github/workflows/main.yml` `stage_safe_changes` case list was CLAIMED fixed in prior handoffs but was actually missing `*/.github/workflows/*`. Added it now (parity with `scripts/controller_progress.py` EXCLUDE_PATTERNS). `tests/test_controller_progress_accounting.py` → **68 passed** (was 2 failed: `test_python_patterns_are_subset_of_workflow`, `test_nested_workflow_pattern_is_present_in_workflow`).
+- **Baseline restored GREEN:** `python3 -m pytest -q` → **602 passed, 0 failed, 8 skipped**. Deterministic baseline confirmed.
 
 ## HEAVY WORK COMPLETED THIS SESSION
-- **Controller/workflow parity fix:** Added nested `*/.github/workflows/*` to workflow exclusion pattern to match Python EXCLUDE_PATTERNS; verified all controller progress tests pass.
+- **Controller/workflow parity fix:** Added missing `*/.github/workflows/*` to `.github/workflows/main.yml` `stage_safe_changes` case list; all 68 controller progress tests pass; full suite green (602 passed, 0 failed, 8 skipped).
+- **Coverage baseline measured** across `strategies/betting_against_beta/` (pytest-cov installed): **78% overall** (1724 stmts, 537 missing). Worst gaps: `signals.py` 51%, `strategy.py` 62%, `beta.py` 71%, `backtest.py` 73%, `config.py` 79%, `data_loader.py` 79%, `metrics.py` 77%, `portfolio.py` 78%, `costs.py` 81%, `shorting.py` 80%, `sizing.py` 83%.
 
 ## MANDATORY SESSION START (IN ORDER):
 ```bash
 cd /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
-python3 -m pytest -q  # MUST be >=516 passed, 0 failed, 6 skipped before edits
+python3 -m pytest -q  # MUST be >=602 passed, 0 failed, 8 skipped before edits
 ```
 
 **IF GREEN → START HEAVY WORK IMMEDIATELY. NO EXPLORATION, NO DOCS-ONLY CHANGES.**
@@ -26,7 +27,7 @@ python3 -m pytest -q  # MUST be >=516 passed, 0 failed, 6 skipped before edits
 ## STATUS NOTE (REALITY CHECK)
 - **Priority 4 (Analytics & Reporting):** metrics/attribution/backtest columns, strategy report/tear_sheet/report_to_json, strict-JSON CLI implemented.
 - **Priority 3 (Performance & Scalability):** vectorized rolling beta, vectorized signals, guards/copies optimized; parity preserved.
-- **Priority 5 (Testing & Robustness):** Expanded with fuzz harness. Baseline 516 passed.
+- **Priority 5 (Testing & Robustness):** Expanded with fuzz harness. Baseline 602 passed. **Coverage crusade is now PRIMARY: >=95% across `strategies/betting_against_beta/` (currently 78%).**
 
 ## FOCUS CAMPAIGN (UNAVOIDABLE)
 ### Priority 5: Testing & Robustness — IN PROGRESS (HEAVY)
@@ -42,14 +43,14 @@ python3 -m pytest -q  # MUST be >=516 passed, 0 failed, 6 skipped before edits
 - [ ] CLI polish, YAML/JSON config, API polish, examples, typing, docs
 
 ## NEXT HEAVY TASK (FOCUS FOR NEXT SESSION — DO NOT DEFER)
-**CRUSH COVERAGE GAPS ACROSS `strategies/betting_against_beta/` WITH SUBSTANTIVE MULTI-FILE HARDENING.**
+**CRUSH COVERAGE GAPS ACROSS `strategies/betting_against_beta/` WITH SUBSTANTIVE MULTI-FILE HARDENING. Target: >=95% coverage (currently 78%).**
 
 **IMMEDIATE ACTIONS (EXECUTE IN ORDER):**
-1) **Measure ruthlessly:** Run coverage focused on BAB module to identify untested branches/lines in `beta.py`, `backtest.py`, `strategy.py`, `metrics.py`, `attribution.py`, `costs.py`, `sizing.py`, `shorting.py`, `quality.py`, `data.py`, `config.py`, `cli.py`, `data_loader.py`, `signals.py`, `portfolio.py`, `regime.py`.
+1) **Measure ruthlessly:** `python3 -m coverage run -m pytest -q && python3 -m coverage report --include="strategies/betting_against_beta/*" -m`. Identify untested branches/lines in `signals.py`, `strategy.py`, `beta.py`, `backtest.py`, `config.py`, `data_loader.py`, `metrics.py`, `portfolio.py`, `costs.py`, `shorting.py`, `sizing.py`, `quality.py`, `regime.py`, `data_sources.py`, `cli.py`.
 2) **Attack gaps with tests:** Add deterministic, offline tests targeting missing lines/branches. Prefer property-style/fuzz-style where appropriate. Every new test must be meaningful and catch real failure modes.
 3) **Harden brittle paths:** Fix any uncovered brittle code (no bare `except:`, preserve behavior, enforce finiteness/determinism). Add guards only if they match existing conventions.
 4) **Touch >=4 files** with real logic/tests.
-5) **Validate:** `python3 -m pytest -q` >= 516 passed, 0 failed, 6 skipped; push coverage to **>=95%** across `strategies/betting_against_beta/`. No regressions.
+5) **Validate:** `python3 -m pytest -q` >= 602 passed, 0 failed, 8 skipped; push coverage to **>=95%** across `strategies/betting_against_beta/`. No regressions.
 
 **THIS IS NOT OPTIONAL. HEAVY WORK IS MANDATORY.**
 
@@ -60,7 +61,7 @@ python3 -m pytest -q  # MUST be >=516 passed, 0 failed, 6 skipped before edits
 - **ROBUSTNESS:** no bare `except:`; handle NaN/inf/zeros/gaps/timezones/delistings; validate inputs
 - **DETERMINISTIC:** no randomness without explicit seeds
 - **OFFLINE:** no network calls in tests/core
-- **ALWAYS GREEN:** maintain >=516 passed, 0 failed, 6 skipped
+- **ALWAYS GREEN:** maintain >=602 passed, 0 failed, 8 skipped
 - **SINGLE HANDOFF:** Update THIS FILE after significant progress. ONLY `HANDOFF.md` MATTERS.
 - **NO COMMITS UNLESS ASKED**
 
@@ -94,3 +95,10 @@ python3 -m pytest -q  # MUST be >=516 passed, 0 failed, 6 skipped before edits
 - **Bottlenecks removed:** Added missing `*/.github/workflows/*` to `.github/workflows/main.yml` `stage_safe_changes` (was absent despite prior claim); made `costs.compute_transaction_costs(weights_prev=...)` optional default None to unblock `test_shorting_costs`. Full suite green.
 - **Baseline:** `python3 -m pytest -q` → **602 passed, 0 failed, 8 skipped**.
 - **Next heavy task (UNAVOIDABLE):** Coverage crusade across `strategies/betting_against_beta/` (>=95%), substantive multi-file hardening >=4 files, no regressions.
+
+
+## SESSION UPDATE - 2026-10-29T15:37:44Z (CURRENT)
+- **Bottlenecks removed (VERIFIED):** `.github/workflows/main.yml` `stage_safe_changes` case list was CLAIMED fixed in prior handoffs but was actually missing `*/.github/workflows/*`. Added it now; `tests/test_controller_progress_accounting.py` → **68 passed** (was 2 failed). Full suite green.
+- **Baseline:** `python3 -m pytest -q` → **602 passed, 0 failed, 8 skipped**. Deterministic.
+- **Coverage baseline (pytest-cov installed):** **78% overall** across `strategies/betting_against_beta/` (1724 stmts, 537 missing). Worst gaps: `signals.py` 51%, `strategy.py` 62%, `beta.py` 71%, `backtest.py` 73%. Best: `attribution.py`, `data.py`, `errors.py`, `__init__.py` at 100%.
+- **Next heavy task (UNAVOIDABLE):** Coverage crusade to **>=95%** across `strategies/betting_against_beta/`; substantive multi-file hardening touching >=4 files; no regressions; keep suite >=602 passed, 0 failed, 8 skipped. Attack gaps in signals/strategy/beta/backtest first (largest gaps).
