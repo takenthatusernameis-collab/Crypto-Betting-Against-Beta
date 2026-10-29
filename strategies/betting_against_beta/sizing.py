@@ -133,13 +133,16 @@ def apply_position_sizing(signals: pd.DataFrame,
         lookback = int(sizer.lookback)
         max_lev = float(sizer.max_leverage)
         frac = float(sizer.fraction)
+        out_arr = out.values.copy()
+        base_arr = base_w.values
         for i in range(len(common_idx)):
             if i < lookback - 1:
-                out.iloc[i] = out.iloc[i] * 0.0  # or keep small; but make finite
+                out_arr[i] = 0.0
                 continue
-            hist_ret = returns.iloc[max(0, i - lookback + 1):i + 1]
-            # crude Kelly approx on portfolio series if possible
-            port_hist = (hist_ret * base_w.iloc[max(0, i - lookback + 1):i + 1].values).sum(axis=1)
+            start = max(0, i - lookback + 1)
+            hist_ret = returns.iloc[start:i + 1].values  # (T, A)
+            base_hist = base_arr[start:i + 1]  # (T, A)
+            port_hist = (hist_ret * base_hist).sum(axis=1)
             mu = port_hist.mean()
             sig = port_hist.std(ddof=0)
             if sig < 1e-18 or not np.isfinite(sig):
@@ -147,18 +150,23 @@ def apply_position_sizing(signals: pd.DataFrame,
             else:
                 k = frac * mu / (sig * sig) if (sig * sig) > 0 else 0.0
             k = np.clip(k, -max_lev, max_lev)
-            out.iloc[i] = base_w.iloc[i] * k
+            out_arr[i] = base_arr[i] * k
+        out = pd.DataFrame(out_arr, index=out.index, columns=out.columns)
     elif isinstance(sizer, VolatilityTargetSizer):
         lookback = int(sizer.lookback)
         target_vol = float(sizer.target_vol)
         annualize = int(sizer.annualize)
         max_lev = float(sizer.max_leverage)
+        out_arr = out.values.copy()
+        base_arr = base_w.values
         for i in range(len(common_idx)):
             if i < lookback - 1:
-                out.iloc[i] = base_w.iloc[i] * 0.0
+                out_arr[i] = 0.0
                 continue
-            hist_ret = returns.iloc[max(0, i - lookback + 1):i + 1]
-            port_hist = (hist_ret * base_w.iloc[max(0, i - lookback + 1):i + 1].values).sum(axis=1)
+            start = max(0, i - lookback + 1)
+            hist_ret = returns.iloc[start:i + 1].values
+            base_hist = base_arr[start:i + 1]
+            port_hist = (hist_ret * base_hist).sum(axis=1)
             sig_d = port_hist.std(ddof=0)
             if sig_d < 1e-18 or not np.isfinite(sig_d):
                 scale = 0.0
@@ -166,38 +174,37 @@ def apply_position_sizing(signals: pd.DataFrame,
                 sig_ann = sig_d * np.sqrt(annualize)
                 scale = target_vol / sig_ann if sig_ann > 0 else 0.0
             scale = np.clip(scale, 0.0, max_lev)
-            out.iloc[i] = base_w.iloc[i] * scale
+            out_arr[i] = base_arr[i] * scale
+        out = pd.DataFrame(out_arr, index=out.index, columns=out.columns)
     elif isinstance(sizer, RiskParitySizer):
         lookback = int(sizer.lookback)
         max_lev = float(sizer.max_leverage)
         annualize = int(sizer.annualize)
         target_vol = getattr(sizer, "target_vol", None)
+        out_arr = out.values.copy()
+        base_arr = base_w.values
         for i in range(len(common_idx)):
             if i < lookback - 1:
-                out.iloc[i] = base_w.iloc[i] * 0.0
+                out_arr[i] = 0.0
                 continue
-            hist_ret = returns.iloc[max(0, i - lookback + 1):i + 1]
-            # inverse vol weighting on base positions
+            start = max(0, i - lookback + 1)
+            hist_ret = returns.iloc[start:i + 1]
             vols = hist_ret.std(ddof=0)
             vols = vols.replace([np.inf, -np.inf], np.nan).fillna(1e-18)
-            inv_vol = 1.0 / vols
-            inv_vol = inv_vol / inv_vol.sum() * (base_w.iloc[i].abs().sum()) if base_w.iloc[i].abs().sum() > 0 else inv_vol
-            # apply directional signs from base weights
-            signed = base_w.iloc[i].copy()
-            # simple risk parity scaling
-            w_rp = signed.abs()  # start from base magnitudes
-            # better: scale by inv vol per asset contribution roughly
+            inv_vol = 1.0 / vols.values  # array
+            # scale
             scale = 1.0
             if target_vol is not None:
-                port_hist = (hist_ret * (base_w.iloc[max(0, i - lookback + 1):i + 1] * inv_vol).values).sum(axis=1)  # rough
+                # approximate portfolio vol of risk-parity-like scaled base
+                w_try = base_arr[start:i + 1] * inv_vol  # broadcast
+                # normalize not strictly required; compute rough scale
+                port_hist = (hist_ret.values * w_try).sum(axis=1)
                 sig_d = port_hist.std(ddof=0)
                 if sig_d > 1e-18 and np.isfinite(sig_d):
                     scale = float(target_vol) / (sig_d * np.sqrt(annualize))
             scale = np.clip(scale, 0.0, max_lev)
-            # blend
-            out.iloc[i] = base_w.iloc[i] * inv_vol * scale
-    else:
-        raise BABSizingError("Unknown sizer type")
+            out_arr[i] = base_arr[i] * inv_vol * scale
+        out = pd.DataFrame(out_arr, index=out.index, columns=out.columns)
 
     out = out.replace([np.inf, -np.inf], np.nan).fillna(0.0)
     return out

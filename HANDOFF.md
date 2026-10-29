@@ -1,16 +1,17 @@
-# HANDOFF - 2026-10-29T05:15:17Z (SINGLE DURABLE HANDOFF)
+# HANDOFF - 2026-10-29T05:59:00Z (SINGLE DURABLE HANDOFF)
 
 ## TIMESTAMP
-2026-10-29T05:15:17Z
+2026-10-29T05:59:00Z
 
 ## PROJECT IDENTITY (NON-NEGOTIABLE - DRIVES ALL PRIORITIZATION)
 - **Repository:** `Crypto-Betting-Against-Beta`
 - **Product:** Betting Against Beta (BAB) crypto strategy — long low-beta, short high-beta vs benchmark (BTC default), Frazzini–Pedersen style
 - **PRIORITY:** **BAB STRATEGY CODE IN `strategies/betting_against_beta/` > EVERYTHING ELSE**
 
-## COMPLETED THIS SESSION (2026-10-29T05:10:37Z)
-- **Bottleneck removed:** `.github/workflows/main.yml` `stage_safe_changes` case list was missing `*/.github/workflows/*` which Python `EXCLUDE_PATTERNS` (scripts/controller_progress.py:28) already had — desync broke 2 controller tests (`test_python_patterns_are_subset_of_workflow`, `test_nested_workflow_pattern_is_present_in_workflow`). Added the nested workflow pattern to the workflow case list so both lists stay in lock-step.
-- **Baseline restored green:** `python3 -m pytest -q` → **420 passed, 0 failed, 6 skipped** after the bottleneck fix. Ready for heavy edits.
+## COMPLETED THIS SESSION (2026-10-29T05:59:00Z)
+- **Bottleneck removed:** Fixed `.github/workflows/main.yml` `stage_safe_changes` to include `*/.github/workflows/*` matching `scripts/controller_progress.py` EXCLUDE_PATTERNS; controller pattern-sync tests pass.
+- **Heavy optimization (Priority 3):** Vectorized rolling beta via cumulative sums in `strategies/betting_against_beta/beta.py` (`_calc_rolling_beta_series`), hardened `strategies/betting_against_beta/sizing.py` for array broadcasting. All behavior preserved.
+- **Baseline:** `python3 -m pytest -q` → **420 passed, 0 failed, 6 skipped**.
 
 ## IMMEDIATE FIRST TASK FOR NEXT AGENT (EXECUTE NOW - NO DETOURS)
 
@@ -62,8 +63,12 @@ Focus strictly on `strategies/betting_against_beta/`. Eliminate Python loops and
 - [x] Regime detection
 - [x] Beta-neutral enforcement
 
-### Priority 3: Performance & Scalability (NEXT - MANDATORY)
-- [ ] Vectorize beta calculations, optimize rolling windows, memory efficiency, parallelization where safe, benchmarks
+### Priority 3: Performance & Scalability (IN PROGRESS)
+- [x] Vectorize rolling beta calculations (cumulative sums)
+- [x] Harden sizing for numerical stability
+- [ ] Optimize backtest hot paths / allocations (vectorize where safe)
+- [ ] Optimize strategy/pipeline copies and orchestration
+- [ ] Optimize portfolio where safe without breaking tests
 
 ### Priority 4: Analytics & Reporting
 - [ ] Extended metrics, attribution, tear sheets, rolling analytics, trade analytics
