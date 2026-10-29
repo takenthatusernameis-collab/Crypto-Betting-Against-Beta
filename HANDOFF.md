@@ -1,7 +1,7 @@
-# HANDOFF - 2026-10-29T15:53:26Z (SINGLE DURABLE HANDOFF)
+# HANDOFF - 2026-10-29T16:30:01Z (SINGLE DURABLE HANDOFF)
 
 ## TIMESTAMP
-2026-10-29T15:53:26Z
+2026-10-29T16:30:01Z
 
 ## PROJECT IDENTITY (NON-NEGOTIABLE - DRIVES ALL PRIORITIZATION)
 - **Repository:** `Crypto-Betting-Against-Beta`
@@ -90,3 +90,17 @@ python3 -m pytest -q  # MUST be >=602 passed, 0 failed, 8 skipped before edits
 - **Baseline:** `python3 -m pytest -q` → **602 passed, 0 failed, 8 skipped** (restored to green).
 - **Coverage measured:** **66% overall** across `strategies/betting_against_beta/` (2424 stmts, 818 missing). Critical gaps: `metrics.py` 12%, `sizing.py` 50%, `signals.py` 51%, `portfolio.py` 59%, `backtest.py` 59%, `beta.py` 61%, `strategy.py` 62%.
 - **Next heavy task (UNAVOIDABLE):** Coverage crusade to **>=95%** across `strategies/betting_against_beta/`; substantive multi-file hardening touching >=4 files; no regressions. **Start with metrics.py (12%)** - add comprehensive deterministic tests. Then attack signals/strategy/beta/backtest/portfolio/sizing/costs/shorting. Validate full suite >=602 passed, 0 failed, 8 skipped.
+
+## SESSION UPDATE - 2026-10-29T16:30:01Z (NEXT SESSION START POINT)
+- **Bottleneck REMOVED and VERIFIED:** `.github/workflows/main.yml:1163` `stage_safe_changes` bash case list now includes `*/.github/workflows/*`, matching `scripts/controller_progress.py` `EXCLUDE_PATTERNS`. `tests/test_controller_progress_accounting.py` → **68 passed**.
+- **Baseline GREEN:** `python3 -m pytest -q` → **602 passed, 0 failed, 8 skipped**. Deterministic baseline confirmed before edits.
+- **Product priority (non-negotiable):** `Crypto-Betting-Against-Beta` → BAB strategy code in `strategies/betting_against_beta/` > everything else.
+- **FOCUS CAMPAIGN (UNAVOIDABLE — future agents must not skip):** Coverage crusade to **>=95%** across `strategies/betting_against_beta/` (currently 66%, 2424 stmts / 818 missing). Substantive multi-file hardening touching **>=4 files** with real logic/tests. Attack order: `metrics.py` (12%) → `signals.py` (51%) → `sizing.py` (50%) → `portfolio.py` (59%) → `backtest.py` (59%) → `beta.py` (61%) → `strategy.py` (62%) → `costs.py` (65%) → `shorting.py` (65%). Deterministic, offline, seeded tests; happy + edge + error paths; no bare `except:`; enforce finiteness/determinism; TDD (failing test → minimal impl → green → refactor).
+- **IMMEDIATE ACTIONS (EXECUTE IN ORDER):**
+  1) `python3 -m pytest -q` → must be >=602 passed, 0 failed, 8 skipped (baseline gate).
+  2) `python3 -m coverage run -m pytest -q && python3 -m coverage report --include="strategies/betting_against_beta/*" -m` → identify untested branches/lines.
+  3) Add deterministic offline tests for `metrics.py` first (12% — almost entirely untested), then the remaining modules above.
+  4) Touch >=4 files with real logic/tests; harden brittle paths found; preserve behavior.
+  5) Validate: `python3 -m pytest -q` >= 602 passed, 0 failed, 8 skipped; coverage across `strategies/betting_against_beta/` pushed to **>=95%**; no regressions.
+  6) Update THIS FILE (`HANDOFF.md`) with timestamp, completed work, bottlenecks removed, next concrete heavy task. ONLY `HANDOFF.md` MATTERS.
+- **HEAVY WORK IS MANDATORY. NO EXPLORATION DETOURS, NO DOCS-ONLY CHANGES. DO NOT DEFER.**
