@@ -1,7 +1,7 @@
-# HANDOFF - 2026-10-29T23:41:03Z (SINGLE DURABLE HANDOFF)
+# HANDOFF - 2026-10-29T23:42:00Z (SINGLE DURABLE HANDOFF)
 
 ## TIMESTAMP
-2026-10-29T23:41:03Z
+2026-10-29T23:42:00Z
 
 ## IMMEDIATE ACTION FOR NEXT AGENT (COPY/PASTE AS FIRST MESSAGE)
 ```
@@ -31,6 +31,7 @@ RULES:
 
 ## BOTTLENECKS REMOVED
 - **Workflow/controller pattern sync:** Added `*/.github/workflows/*` to `.github/workflows/main.yml` stage_safe_changes/exclusion + meaningful-progress detection to stay in lock-step with `scripts/controller_progress.py` EXCLUDE_PATTERNS.
+- **Suite gate restored:** 2 failing controller-progress tests fixed; `python3 -m pytest -q` = 916 passed, 8 skipped.
 - **Baseline restored:** `python3 -m pytest -q` = 916 passed, 8 skipped.
 - **Config robustness:** `vol_percentiles` default None semantics, finiteness checks, `resolved_universe` None handling corrected.
 
