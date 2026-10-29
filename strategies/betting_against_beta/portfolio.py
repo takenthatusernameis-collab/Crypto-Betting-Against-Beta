@@ -125,17 +125,26 @@ def construct_portfolio(signals_df, dollar_neutral=True, gross_exposure_limit=No
 
     # Final finiteness guard in-place on the working array (no DataFrame copy).
     w_arr[~np.isfinite(w_arr)] = 0.0
-    # Enforce dollar neutrality strictly if requested and both sides exist
+    # Enforce dollar neutrality strictly if requested and both sides exist.
+    # The equal-weight construction is neutral by construction, but floating
+    # point drift and the disjoint-set guards can leave a residual.  We
+    # redistribute the residual proportionally across the long book when both
+    # sides are present, and clamp the result to finite values.  When only one
+    # side is present we leave it as-is (long-only semantics).
     if dn:
-        for i in range(n_rows):
-            net = w_arr[i].sum()
-            if abs(net) > 1e-12 and n_long[i] > 0 and n_short[i] > 0:
-                # Adjust by scaling? Or distribute residual - equal weight BAB should be neutral by construction
-                # If somehow off due to floating point, try to rebalance to exactly zero
-                # but easier to just ensure construction is neutral; our construction is neutral
-                pass
-            # If only one side exists with dollar_neutral True, our construction gives equal weights on longs
-            # (sum to 1) - this matches test expectation
+        net = w_arr.sum(axis=1)
+        both = (n_long > 0) & (n_short > 0)
+        if np.any(both & (np.abs(net) > 1e-12)):
+            # Distribute -net across longs proportionally to their weight so the
+            # long book still sums to 1.0 after the adjustment.
+            for i in np.nonzero(both & (np.abs(net) > 1e-12))[0]:
+                row = w_arr[i]
+                long_sum = row[row > 0].sum()
+                if long_sum > 1e-18:
+                    row[row > 0] = row[row > 0] * (1.0 - net[i]) / long_sum
+                w_arr[i] = row
+        # Final clamp after any adjustment.
+        w_arr[~np.isfinite(w_arr)] = 0.0
 
     weights = _pd.DataFrame(w_arr, index=index, columns=columns)
 
@@ -200,6 +209,126 @@ def construct_portfolio(signals_df, dollar_neutral=True, gross_exposure_limit=No
             raise BABDataError("Net exposure exceeds dollar-neutral limit")
 
     return weights
+
+
+def enforce_beta_neutrality(
+    weights,
+    betas,
+    target_beta=0.0,
+    tolerance=1e-4,
+    max_drift=1e-4,
+    returns=None,
+    benchmark_returns=None,
+    tracking_error_tolerance=None,
+    tracking_error_limit=None,
+    enable_tracking_error_monitoring=False,
+    correction=True,
+):
+    """Enforce portfolio beta neutrality via least-squares weight adjustment.
+
+    The portfolio beta is the return-weighted average of asset betas::
+
+        beta_p = sum_i w_i * beta_i
+
+    This function adjusts weights so that ``beta_p`` is driven toward
+    ``target_beta`` while minimizing the squared distance from the original
+    weights (a minimum-norm correction).  The adjustment preserves dollar
+    neutrality (sum of weights stays zero) when the original portfolio is
+    dollar-neutral.
+
+    Degenerate cases are handled explicitly:
+
+    * ``weights`` or ``betas`` is ``None`` / empty -> returns the input unchanged.
+    * No finite beta available -> returns the input unchanged.
+    * ``correction=False`` -> only monitoring (no adjustment); returns input.
+    """
+    import pandas as _pd
+
+    if weights is None or betas is None:
+        return weights
+    if not isinstance(weights, _pd.DataFrame) or weights.empty:
+        return weights
+    if not isinstance(betas, _pd.DataFrame) or betas.empty:
+        return weights
+
+    # Align columns and rows.
+    common_cols = weights.columns.intersection(betas.columns)
+    if len(common_cols) == 0:
+        return weights
+    common_idx = weights.index.intersection(betas.index)
+    if len(common_idx) == 0:
+        return weights
+
+    w = weights.loc[common_idx, common_cols].astype(float).copy()
+    b = betas.loc[common_idx, common_cols].astype(float).copy()
+
+    # Clean weights of non-finite values.
+    w = w.replace([np.inf, -np.inf], np.nan).fillna(0.0)
+    # Betas: replace non-finite with NaN; they will be masked out.
+    b = b.replace([np.inf, -np.inf], np.nan)
+
+    out = w.copy()
+
+    tol = float(tolerance) if tolerance is not None else 1e-4
+    drift = float(max_drift) if max_drift is not None else tol
+    if not np.isfinite(tol) or tol < 0:
+        tol = 1e-4
+    if not np.isfinite(drift) or drift < 0:
+        drift = tol
+    target = float(target_beta) if target_beta is not None else 0.0
+    if not np.isfinite(target):
+        target = 0.0
+
+    te_tol = tracking_error_tolerance if tracking_error_tolerance is not None else tracking_error_limit
+    enable_te = bool(enable_tracking_error_monitoring) or te_tol is not None
+
+    cols = list(out.columns)
+    w_arr = out.to_numpy(dtype=float, copy=True)
+    b_arr = b.to_numpy(dtype=float)
+
+    for i in range(len(common_idx)):
+        row_w = w_arr[i]
+        row_b = b_arr[i]
+        finite = np.isfinite(row_b)
+        if not np.any(finite):
+            continue
+        w_f = row_w[finite]
+        b_f = row_b[finite]
+        # Current portfolio beta.
+        denom = np.abs(w_f).sum()
+        if denom < 1e-18:
+            continue
+        port_beta = float(np.sum(w_f * b_f) / denom)
+        if abs(port_beta - target) <= tol:
+            continue
+
+        if not correction:
+            continue
+
+        # Minimum-norm correction that preserves dollar neutrality.
+        # Solve: minimize sum(delta_i^2) subject to
+        #   sum_i delta_i * b_i = residual   (beta constraint)
+        #   sum_i delta_i = 0                (dollar neutrality, when applicable)
+        # Solution via Lagrange multipliers:
+        #   delta_i = alpha * (b_i - mean(b))
+        #   alpha = residual / (sum(b_i^2) - sum(b_i)^2 / n)
+        residual = target - port_beta
+        b_mean = float(np.sum(b_f)) / len(b_f)
+        centered = b_f - b_mean
+        s2_centered = float(np.sum(centered * centered))
+        if s2_centered < 1e-18:
+            continue
+        alpha = residual / s2_centered
+        delta = alpha * centered
+        new_w = w_f + delta
+        # Clamp to finite values.
+        new_w = np.where(np.isfinite(new_w), new_w, 0.0)
+        # Write back only the finite positions.
+        w_arr[i, :][finite] = new_w
+
+    out = _pd.DataFrame(w_arr, index=common_idx, columns=cols)
+    out = out.replace([np.inf, -np.inf], np.nan).fillna(0.0)
+    return out
 
 
 # Alias

@@ -29,14 +29,22 @@ def _normalize_index(df: pd.DataFrame) -> pd.DataFrame:
             raise BABDataError(
                 f"Index could not be parsed as datetime: {exc}"
             ) from exc
-    # Handle timezone-aware indexes
+    # Handle timezone-aware indexes: strip the tz so downstream code sees a
+    # consistent naive UTC representation.
     try:
         if isinstance(df.index, pd.DatetimeIndex) and getattr(df.index, "tz", None) is not None:
-            df.index = df.index.tz_convert(None)
-    except (TypeError, AttributeError):
+            # tz_convert(None) converts to UTC and strips tz; tz_localize(None)
+            # just drops tz without shifting, which is wrong for non-UTC tz.
+            try:
+                df.index = df.index.tz_convert(None)
+            except (TypeError, AttributeError):
+                # If the tz is already UTC, tz_localize(None) is the right move.
+                df.index = df.index.tz_localize(None)
+    except (TypeError, AttributeError, Exception):
+        # Last resort: if we cannot normalize the tz, drop it so validation
+        # still sees a usable DatetimeIndex.
         try:
-            # If tz_convert fails, try tz_localize
-            if hasattr(df.index, 'tz') and df.index.tz is not None:
+            if hasattr(df.index, "tz") and df.index.tz is not None:
                 df.index = df.index.tz_localize(None)
         except Exception:
             pass
@@ -62,7 +70,7 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
             # Try to promote - if it fails badly, let normalize handle
             df = df.set_index(name_match)
             return df
-        except Exception:
+        except (ValueError, TypeError, KeyError):
             pass
 
     unnamed = [c for c in df.columns if str(c).strip() == "" or str(c).strip().lower() == "unnamed: 0"]
@@ -158,6 +166,13 @@ def _coerce_numeric(df: pd.DataFrame) -> pd.DataFrame:
                             cleaned = cleaned.replace(',', '')
                         elif ',' in cleaned:
                             cleaned = cleaned.replace(',', '')
+                        # Handle percent signs: "1.5%" -> 0.015, "150%" -> 1.5
+                        if cleaned.endswith('%'):
+                            try:
+                                num = float(cleaned[:-1].strip()) / 100.0
+                                return num
+                            except (ValueError, TypeError):
+                                return np.nan
                         return cleaned
                     return x
                 try:

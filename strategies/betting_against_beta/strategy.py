@@ -232,39 +232,32 @@ class BABStrategy:
             pass
 
         # Beta-neutral enforcement / drift detection (multi-file, no lookahead)
-        try:
-            beta_neutral_flag = (
-                bool(getattr(cfg, "beta_neutral", False))
-                or bool(getattr(cfg, "beta_neutral_enforcement", False))
-                or bool(getattr(cfg, "beta_neutral_correction", False))
-                or bool(getattr(cfg, "beta_neutral_adjustment", False))
+        beta_neutral_enabled = bool(getattr(cfg, "beta_neutral", False)) or bool(
+            getattr(cfg, "beta_neutral_enforcement", False)
+        )
+        if beta_neutral_enabled:
+            from . import portfolio as _portfolio
+            target_beta = getattr(cfg, "beta_target", 0.0)
+            tol = getattr(cfg, "beta_tolerance", getattr(cfg, "max_beta_drift", 1e-4))
+            max_drift = getattr(cfg, "max_beta_drift", tol)
+            te_tol = getattr(cfg, "tracking_error_tolerance", None) or getattr(cfg, "tracking_error_limit", None)
+            enable_te = bool(getattr(cfg, "enable_tracking_error_monitoring", False)) or te_tol is not None
+            correction = bool(getattr(cfg, "beta_neutral_correction", True))
+            # Use betas up to t only (causal) - betas are already computed causally
+            benchmark_ret = returns[cfg.benchmark] if cfg.benchmark in returns.columns else None
+            weights = _portfolio.enforce_beta_neutrality(
+                weights,
+                betas,
+                target_beta=target_beta,
+                tolerance=tol,
+                max_drift=max_drift,
+                returns=returns,
+                benchmark_returns=benchmark_ret,
+                tracking_error_tolerance=te_tol,
+                tracking_error_limit=te_tol,
+                enable_tracking_error_monitoring=enable_te,
+                correction=correction,
             )
-            if beta_neutral_flag:
-                from . import portfolio as _portfolio
-                target_beta = getattr(cfg, "beta_target", 0.0)
-                tol = getattr(cfg, "beta_tolerance", getattr(cfg, "max_beta_drift", 1e-4))
-                max_drift = getattr(cfg, "max_beta_drift", tol)
-                te_tol = getattr(cfg, "tracking_error_tolerance", None) or getattr(cfg, "tracking_error_limit", None)
-                enable_te = bool(getattr(cfg, "enable_tracking_error_monitoring", False)) or te_tol is not None
-                # Use betas up to t only (causal) - betas are already computed causally
-                benchmark_ret = returns[cfg.benchmark] if cfg.benchmark in returns.columns else None
-                weights = _portfolio.enforce_beta_neutrality(
-                    weights,
-                    betas,
-                    target_beta=target_beta,
-                    tolerance=tol,
-                    max_drift=max_drift,
-                    returns=returns,
-                    benchmark_returns=benchmark_ret,
-                    tracking_error_tolerance=te_tol,
-                    tracking_error_limit=te_tol,
-                    enable_tracking_error_monitoring=enable_te,
-                    correction=True,
-                )
-        except BABDataError:
-            raise
-        except Exception:
-            pass
 
         # Explicit finiteness guard (single pass; construct_portfolio already
         # returns finite weights, this is a defensive final clamp). Operate
