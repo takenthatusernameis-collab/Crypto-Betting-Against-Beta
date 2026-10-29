@@ -1,7 +1,16 @@
-# HANDOFF - 2026-10-29T23:45:00Z (SINGLE DURABLE HANDOFF)
+# HANDOFF - 2026-10-29T23:30:15Z (SINGLE DURABLE HANDOFF)
 
 ## TIMESTAMP
-2026-10-29T23:45:00Z
+2026-10-29T23:30:15Z
+
+## IMMEDIATE ACTION FOR NEXT AGENT (COPY/PASTE AS FIRST MESSAGE)
+```
+PRIORITY: BAB strategy in strategies/betting_against_beta/ > everything else.
+GATE: python3 -m pytest -q must be green (currently 916 passed, 8 skipped). If not, fix workflow/controller pattern drift (`*/.github/workflows/*` missing from `.github/workflows/main.yml` `stage_safe_changes` case) or config validation regressions before any other work.
+CAMPAIGN: Coverage crusade to >=95% across ALL strategies/betting_against_beta/ modules. START WITH costs.py (17%) - highest impact gap.
+HEAVY WORK: Touch >=4 files with real logic/tests. TDD: failing test → understand → minimal impl → green. No bare except:, enforce finiteness, deterministic/offline/seeded.
+VALIDATE: coverage for strategies/betting_against_beta/*, full suite green. Update THIS HANDOFF.md only. NO COMMITS unless asked.
+```
 
 ## PROJECT IDENTITY (NON-NEGOTIABLE - DRIVES ALL PRIORITIZATION)
 - **Repository:** `Crypto-Betting-Against-Beta`
