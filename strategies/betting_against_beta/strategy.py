@@ -13,8 +13,10 @@ from .data import generate_synthetic_returns
 from .data_loader import load_returns
 from .portfolio import construct_portfolio
 from .signals import generate_bab_signals
+from . import metrics
 from . import sizing
 from . import shorting
+from .attribution import trade_attribution, attribution_totals
 from .errors import BABDataError
 
 
@@ -106,6 +108,9 @@ class BABStrategy:
 
     def __init__(self, config: BABConfig | None = None) -> None:
         self.config = config or BABConfig()
+        # Cached result of the last ``run()``; powers the report()/tear_sheet()
+        # accessors without requiring callers to re-run the pipeline.
+        self._last_result: object | None = None  # noqa: ANN401
 
     def _load_returns(self, returns_df: object | None) -> "pd.DataFrame":  # noqa: ANN401
         """Resolve the returns DataFrame, validating it for the pipeline."""

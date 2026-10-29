@@ -139,6 +139,55 @@ def final_cumulative(returns):
     return float(val)
 
 
+def sortino_ratio(returns, risk_free: float = 0.0, periods_per_year: int = 252, target_return: float = 0.0):
+    """Calculate annualized Sortino ratio (downside deviation only).
+
+    Uses returns below ``target_return`` as the downside set; periods with no
+    downside deviation yield ``inf`` when mean excess is positive, ``nan``
+    otherwise. Defensive on empty/degenerate inputs.
+    """
+    r = _to_series(returns)
+    if len(r) < 2:
+        return np.nan
+    periods = max(int(periods_per_year), 1)
+    rf_per_period = risk_free / periods
+    excess = r - rf_per_period
+    mean_excess = excess.mean()
+    downside = excess[excess < 0.0]
+    if len(downside) == 0:
+        return float(np.inf) if mean_excess > 0 else np.nan
+    downside_dev = downside.std(ddof=1)
+    if downside_dev is None or np.isnan(downside_dev) or downside_dev < EPS:
+        return float(np.inf) if mean_excess > 0 else np.nan
+    return float((mean_excess / downside_dev) * np.sqrt(periods))
+
+
+def win_rate(returns):
+    """Fraction of periods with strictly positive returns.
+
+    Defensive on empty/None inputs (returns ``np.nan``). NaN returns are
+    excluded from the denominator.
+    """
+    r = _to_series(returns)
+    if len(r) == 0:
+        return np.nan
+    return float((r > 0.0).mean())
+
+
+def turnover_series(weights_df):
+    """Per-period one-way turnover (sum of absolute weight changes per period).
+
+    Returns a float64 Series aligned to ``weights_df.index``; the first period
+    is 0.0 (no prior weights). Defensive on None/empty inputs.
+    """
+    if weights_df is None:
+        return pd.Series(dtype="float64")
+    if not isinstance(weights_df, pd.DataFrame) or weights_df.empty:
+        return pd.Series(dtype="float64")
+    w = weights_df.astype("float64").copy()
+    return w.diff().abs().sum(axis=1).fillna(0.0)
+
+
 def summary(returns, weights_df=None, benchmark_returns=None, risk_free: float = 0.0, periods_per_year: int = 252):
     """Generate summary of all metrics."""
     result: dict = {}

@@ -65,9 +65,9 @@ def run_backtest(returns_df, weights_df, transaction_costs=0.0, slippage=0.0,
     # Calculate portfolio returns (shift weights by 1 day for no lookahead)
     try:
         port_ret = (w_shifted.to_numpy(dtype=float) * returns.to_numpy(dtype=float)).sum(axis=1)
-        portfolio_returns = pd.Series(port_ret, index=common_idx)
+        gross_returns = pd.Series(port_ret, index=common_idx)
     except Exception:
-        portfolio_returns = (w_shifted * returns).sum(axis=1)
+        gross_returns = (w_shifted * returns).sum(axis=1)
 
     # Compute turnover symmetrically once - vectorized, reusing the shifted weights
     try:
@@ -77,15 +77,24 @@ def run_backtest(returns_df, weights_df, transaction_costs=0.0, slippage=0.0,
     except Exception:
         weight_changes_s = weights.diff().abs().sum(axis=1).fillna(0.0)
 
-    # Apply transaction costs if any
+    # Trade-attribution drag components, computed per period before they are
+    # subtracted from the gross return. Kept as separate columns so the caller
+    # can attribute performance to gross alpha vs cost vs slippage.
     tc_val = float(transaction_costs) if transaction_costs is not None else 0.0
+    cost_drag = weight_changes_s * tc_val
+
+    slip_val = float(slippage) if slippage is not None else 0.0
+    slippage_drag = weight_changes_s * slip_val
+
+    # Apply transaction costs if any
     if tc_val > 0:
-        portfolio_returns = portfolio_returns - weight_changes_s * tc_val
+        portfolio_returns = gross_returns - cost_drag
+    else:
+        portfolio_returns = gross_returns.copy()
 
     # Apply slippage cost on turnover if any
-    slip_val = float(slippage) if slippage is not None else 0.0
     if slip_val > 0:
-        portfolio_returns = portfolio_returns - weight_changes_s * slip_val
+        portfolio_returns = portfolio_returns - slippage_drag
 
     # Apply modeled transaction costs if any
     if cost_model is not None:
@@ -106,6 +115,9 @@ def run_backtest(returns_df, weights_df, transaction_costs=0.0, slippage=0.0,
 
     results = pd.DataFrame({
         'returns': portfolio_returns,
+        'gross_return': gross_returns.fillna(0.0),
+        'cost_drag': cost_drag.fillna(0.0),
+        'slippage_drag': slippage_drag.fillna(0.0),
         'cumulative': cumulative_returns
     }, index=common_idx)
 
