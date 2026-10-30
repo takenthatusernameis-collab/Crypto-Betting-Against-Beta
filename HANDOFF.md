@@ -1,7 +1,7 @@
-# HANDOFF - 2026-10-30T10:37:03Z (SINGLE DURABLE HANDOFF)
+# HANDOFF - 2026-10-30T11:18:18Z (SINGLE DURABLE HANDOFF)
 
 ## TIMESTAMP
-2026-10-30T10:37:03Z
+2026-10-30T11:18:18Z
 
 ## IMMEDIATE ACTION FOR NEXT AGENT (COPY/PASTE AS FIRST MESSAGE)
 ```
@@ -39,6 +39,7 @@ STRICT RULES:
 - TDD discipline. Real assertions. >=3 files touched with real work.
 - Remove blockers before expanding scope.
 - ONLY update THIS HANDOFF.md if state materially changes. NO COMMITS unless explicitly asked.
+- HEAVY WORK: Do not stop at trivial edits. Build the next focus campaign by attacking uncovered branches aggressively.
 ```
 
 ## PROJECT IDENTITY (DRIVES PRIORITIZATION)
@@ -51,7 +52,7 @@ STRICT RULES:
 - Full Suite: 1109 passed, 11 skipped (GREEN)
 - BAB tests (test_betting_against_beta*.py + test_bab_*.py): 937 passed, 11 skipped (GREEN)
 - BAB coverage (all BAB tests): 94% total (2474 stmts / 141 miss). TARGET >= 95%
-- Bottlenecks: NONE
+- Bottlenecks: NONE (gates verified green)
 - Handoff: Single durable handoff enforced. Only this file is authoritative.
 
 ## COVERAGE SNAPSHOT (BAB modules)
@@ -86,3 +87,4 @@ STRICT RULES:
 - Deterministic/offline/seeded only. No network calls.
 - Blocker removal: fix gate/infrastructure blockers first if they appear, verify gates green, resume campaign.
 - Coverage target: >=95% total for BAB strategy modules.
+- Next agent must not avoid heavy work - campaign is self-propelling.
