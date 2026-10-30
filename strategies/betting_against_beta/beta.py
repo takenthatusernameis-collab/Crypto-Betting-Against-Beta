@@ -132,34 +132,40 @@ def calculate_beta(asset_returns, benchmark_returns, min_obs=None):
 
 def calculate_beta_fast(a, b, min_obs=None):
     """Fast beta calculation with pre-converted arrays."""
-    a = np.asarray(a, dtype=float)
-    b = np.asarray(b, dtype=float)
-    mask = np.isfinite(a) & np.isfinite(b)
-    if not np.any(mask):
-        return np.nan
-    if not np.all(mask):
-        a_m = a[mask]
-        b_m = b[mask]
-    else:
-        a_m = a
-        b_m = b
-    if len(a_m) == 0:
-        return np.nan
-    if min_obs is not None and len(a_m) < min_obs:
-        return np.nan
-    # Guard against constant/degenerate benchmark
-    b_std = np.std(b_m)
-    if b_std < 1e-18 or not np.isfinite(b_std):
-        return 0.0
-    X = np.column_stack([np.ones(len(b_m), dtype=float), b_m])
     try:
-        coeffs, _, _, _ = np.linalg.lstsq(X, a_m, rcond=None)
-        beta = coeffs[1]
-        if not np.isfinite(beta):
+        try:
+            a = np.asarray(a, dtype=float)
+            b = np.asarray(b, dtype=float)
+        except (TypeError, ValueError, AttributeError):
             return 0.0
-        return float(beta)
-    except np.linalg.LinAlgError:
-        return 0.0
+        mask = np.isfinite(a) & np.isfinite(b)
+        if not np.any(mask):
+            return np.nan
+        if not np.all(mask):
+            a_m = a[mask]
+            b_m = b[mask]
+        else:
+            a_m = a
+            b_m = b
+        if len(a_m) == 0:
+            return np.nan
+        if min_obs is not None and len(a_m) < min_obs:
+            return np.nan
+        # Guard against constant/degenerate benchmark
+        b_std = np.std(b_m)
+        if b_std < 1e-18 or not np.isfinite(b_std):
+            return 0.0
+        X = np.column_stack([np.ones(len(b_m), dtype=float), b_m])
+        try:
+            coeffs, _, _, _ = np.linalg.lstsq(X, a_m, rcond=None)
+            beta = coeffs[1]
+            if not np.isfinite(beta):
+                return 0.0
+            return float(beta)
+        except np.linalg.LinAlgError:
+            return 0.0
+        except (TypeError, ValueError, AttributeError):
+            return 0.0
     except (TypeError, ValueError, AttributeError):
         return 0.0
 
@@ -225,7 +231,10 @@ def calculate_rolling_beta(returns_df, benchmark_name, window=90, min_obs=60):
         raise BABDataError(f"Benchmark {benchmark_name} not found in returns")
 
     benchmark_returns = returns_df[benchmark_name]
-    bench_vals = benchmark_returns.to_numpy(dtype=float)
+    try:
+        bench_vals = benchmark_returns.to_numpy(dtype=float)
+    except Exception:
+        bench_vals = np.asarray(benchmark_returns, dtype=float)
     if not np.isfinite(bench_vals).any():
         raise BABDataError(
             f"Benchmark '{benchmark_name}' has no finite return values; "
@@ -235,7 +244,13 @@ def calculate_rolling_beta(returns_df, benchmark_name, window=90, min_obs=60):
     n = len(returns_df)
     betas_dict = {}
 
-    bench_arr = benchmark_returns.to_numpy(dtype=float, copy=False)
+    try:
+        bench_arr = benchmark_returns.to_numpy(dtype=float, copy=False)
+    except Exception:
+        try:
+            bench_arr = np.asarray(benchmark_returns, dtype=float)
+        except Exception as e:
+            raise BABDataError(str(e))
     b_has_bad = not np.all(np.isfinite(bench_arr))
 
     # Benchmark rolling sums are asset-independent; hoist them out so every
@@ -273,7 +288,14 @@ def calculate_rolling_beta(returns_df, benchmark_name, window=90, min_obs=60):
         finite_cols = []
         bad_cols = []
         for c in asset_cols:
-            a_arr = returns_df[c].to_numpy(dtype=float, copy=False)
+            try:
+                a_arr = returns_df[c].to_numpy(dtype=float, copy=False)
+            except Exception:
+                try:
+                    a_arr = np.asarray(returns_df[c], dtype=float)
+                except Exception:
+                    bad_cols.append(c)
+                    continue
             (finite_cols if np.all(np.isfinite(a_arr)) else bad_cols).append(c)
 
         asset_betas = {}
@@ -290,7 +312,13 @@ def calculate_rolling_beta(returns_df, benchmark_name, window=90, min_obs=60):
                 asset_betas[c] = beta[:, j]
 
         for c in bad_cols:
-            a_arr = returns_df[c].to_numpy(dtype=float, copy=False)
+            try:
+                a_arr = returns_df[c].to_numpy(dtype=float, copy=False)
+            except Exception:
+                try:
+                    a_arr = np.asarray(returns_df[c], dtype=float)
+                except Exception as e:
+                    raise BABDataError(str(e))
             asset_betas[c] = _calc_rolling_beta_series(bench_arr, a_arr, window, min_obs)
 
         # Re-emit columns in the original frame order (benchmark keeps its
@@ -310,5 +338,12 @@ def calculate_rolling_beta(returns_df, benchmark_name, window=90, min_obs=60):
             if asset == benchmark_name:
                 betas_dict[asset] = np.ones(n, dtype=float)
                 continue
-            betas_dict[asset] = _calc_rolling_beta_series(bench_arr, returns_df[asset].to_numpy(dtype=float, copy=False), window, min_obs)
+            try:
+                a_arr = returns_df[asset].to_numpy(dtype=float, copy=False)
+            except Exception:
+                try:
+                    a_arr = np.asarray(returns_df[asset], dtype=float)
+                except Exception as e:
+                    raise BABDataError(str(e))
+            betas_dict[asset] = _calc_rolling_beta_series(bench_arr, a_arr, window, min_obs)
         return pd.DataFrame(betas_dict, index=returns_df.index)
