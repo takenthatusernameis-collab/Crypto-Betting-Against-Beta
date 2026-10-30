@@ -12,16 +12,16 @@ Preserve BAB mathematics, lagging, neutrality, finiteness, benchmark/ranking inv
 
 ---
 
-# HANDOFF - 2026-10-30T20:34:42Z (SINGLE DURABLE HANDOFF) - BETA.PY BOTTLENECK CRUSH
+# HANDOFF - 2026-10-30T20:50:57Z (SINGLE DURABLE HANDOFF) - BETA.PY BOTTLENECK CRUSH
 
 ## TIMESTAMP
-2026-10-30T20:32:11Z
+2026-10-30T20:50:57Z
 
 ## INITIAL TASK MESSAGE FOR NEXT AGENT (COPY/PASTE AS FIRST MESSAGE)
 ```
 PRIORITY #1: strategies/betting_against_beta/beta.py | REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE
 ATTACK beta.py UNCOVERED BRANCHES (89%, ~29 MISS). CRUSH HARDEST FIRST.
-TOUCH >= 4 FILES WITH REAL LOGIC/TESTS. NO DOCS-ONLY. NO TRIVIAL-ONLY.
+CHANGE ONLY SMALLEST NEEDED FILES; NO FILE-COUNT METRIC; NO DOCS-ONLY; NO TRIVIAL-ONLY.
 TARGETS: beta.py >= 95% | TOTAL BAB >= 97%.
 FULL SUITE MUST STAY GREEN. BAB SUITE MUST STAY GREEN.
 FOCUS: estimate_betas fallthroughs/aliases, calculate_beta alignment/disjoint/mask/min_obs/linalg, calculate_beta_fast masks/degenerate/nonfinite/LinAlgError, _calc_rolling_beta_series degenerate/insufficient/empty, calculate_rolling_beta bad_cols/bench conversion/outer except/_finalize_betas.
@@ -46,7 +46,7 @@ Push BAB coverage toward >=97% by crushing beta.py (primary bottleneck). Momentu
 1. Run coverage on beta.py: `PYTHONPATH=/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta python3 -m pytest tests/test_betting_against_beta*.py tests/test_bab_*.py -q --cov=strategies.betting_against_beta.beta --cov-report=term-missing`
 2. Add REAL tests hitting remaining uncovered lines in beta.py (focus lines ~44-56,90-130,151,163,165-170,103,113,123,125-126,129-130,249-253,343-347). Put tests in existing test files or new ones with substantive assertions.
 3. If needed, add minimal defensive logic without changing behavior/invariants.
-4. Touch >= 4 files total with real work (tests+logic). Keep gates green. Re-measure.
+4. Change smallest needed files (no file-count metric). Keep gates green. Re-measure.
 
 ## NON-NEGOTIABLE GATES
 ```bash
