@@ -1,7 +1,7 @@
-# HANDOFF - 2026-10-30T17:15:53Z (SINGLE DURABLE HANDOFF)
+# HANDOFF - 2026-10-30T17:19:00Z (SINGLE DURABLE HANDOFF)
 
 ## TIMESTAMP
-2026-10-30T17:15:53Z
+2026-10-30T17:19:00Z
 
 ## IMMEDIATE ACTION FOR NEXT AGENT (COPY/PASTE AS FIRST MESSAGE)
 ```
@@ -52,7 +52,7 @@ CONSTRAINTS (STRICT):
 - Full Suite: 1122 passed, 11 skipped (GREEN)
 - BAB tests (test_betting_against_beta*.py + test_bab_*.py): GREEN
 - BAB coverage (all BAB tests): 94% total (2514 stmts / 144 miss). TARGET >= 95% - ACTION REQUIRED NOW
-- Bottlenecks: NONE (all gates verified green)
+- Bottlenecks: FIXED workflow nested-pattern drift (controller test gate). All gates verified green.
 - Handoff: Single durable handoff enforced. ONLY this file is authoritative.
 
 ## COVERAGE SNAPSHOT (BAB modules)
