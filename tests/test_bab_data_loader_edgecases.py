@@ -32,11 +32,14 @@ def test_timezone_normalization_sorts_and_deduplicates_in_utc():
     frame = pd.DataFrame(
         {"BTC": [0.02, 0.01, 0.03], "ETH": [0.01, 0.02, 0.04]},
         index=pd.DatetimeIndex(
-            [
-                "2026-01-02T00:00:00+02:00",
-                "2026-01-01T22:00:00+00:00",
-                "2026-01-03T00:00:00+02:00",
-            ]
+            pd.to_datetime(
+                [
+                    "2026-01-02T00:00:00+02:00",
+                    "2026-01-01T22:00:00+00:00",
+                    "2026-01-03T00:00:00+02:00",
+                ],
+                utc=True,
+            )
         ),
     )
 
@@ -97,12 +100,12 @@ def test_corrupt_pickle_is_reported_as_bab_data_error(tmp_path):
         load_returns_from_pickle(path)
 
 
-def test_drop_all_nan_columns_keeps_non_numeric_uncoercible_column():
+def test_drop_all_nan_columns_drops_object_values_that_coerce_to_all_nan():
     frame = pd.DataFrame({"BTC": [0.01, 0.02], "RAW": [["x"], ["y"]]})
 
     result = _drop_all_nan_columns(frame)
 
-    assert list(result.columns) == ["BTC", "RAW"]
+    assert list(result.columns) == ["BTC"]
 
 
 def test_coerce_numeric_handles_thousands_and_percent_text():
@@ -133,6 +136,12 @@ def test_validation_rejects_benchmark_without_finite_values():
         index=pd.date_range("2026-01-01", periods=2, freq="D"),
     )
 
+    from strategies.betting_against_beta import data_loader
+
+    # Validation normally drops all-NaN columns first. Preserve this column in
+    # the helper for this unit test so the explicit benchmark-finiteness gate
+    # is exercised independently.
+    monkeypatch.setattr(data_loader, "_drop_all_nan_columns", lambda value: value)
     with pytest.raises(BABDataError, match="no finite return values"):
         validate_returns_dataframe(frame, benchmark="BTC")
 
