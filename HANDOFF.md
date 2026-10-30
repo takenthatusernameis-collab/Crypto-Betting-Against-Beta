@@ -1,7 +1,7 @@
-# HANDOFF - 2026-10-30T20:25:12Z (SINGLE DURABLE HANDOFF) - BETA.PY BOTTLENECK CRUSH
+# HANDOFF - 2026-10-30T20:32:11Z (SINGLE DURABLE HANDOFF) - BETA.PY BOTTLENECK CRUSH
 
 ## TIMESTAMP
-2026-10-30T20:25:12Z
+2026-10-30T20:32:11Z
 
 ## INITIAL TASK MESSAGE FOR NEXT AGENT (COPY/PASTE AS FIRST MESSAGE)
 ```
@@ -39,6 +39,9 @@ Push BAB coverage toward >=97% by crushing beta.py (primary bottleneck). Momentu
 PYTHONPATH=/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta python3 -m pytest -q
 PYTHONPATH=/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta python3 -m pytest tests/test_betting_against_beta*.py tests/test_bab_*.py -q
 ```
+
+## BOTTLENECK ELIMINATED THIS SESSION
+- Fixed workflow stage_safe_changes missing nested `*/.github/workflows/*` pattern (2 controller tests red); gates restored.
 
 ## BOTTLENECK ELIMINATION PROTOCOL
 - BAB-FIRST, heavy work, real assertions, deterministic/offline
