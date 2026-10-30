@@ -50,7 +50,9 @@ def run_backtest(returns_df, weights_df, transaction_costs=0.0, slippage=0.0,
             weights = weights.copy()
             weights.columns = returns.columns
         else:
-            pass
+            # No valid column or positional correspondence exists. Fail closed
+            # rather than broadcasting a single weight over unrelated assets.
+            return pd.DataFrame(columns=["returns", "cumulative"])
 
     # Clean weights of NaN/inf
     try:
