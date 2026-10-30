@@ -1,13 +1,13 @@
-# HANDOFF - 2026-10-30T00:23:02Z (SINGLE DURABLE HANDOFF)
+# HANDOFF - 2026-10-30T00:23:22Z (SINGLE DURABLE HANDOFF)
 
 ## TIMESTAMP
-2026-10-30T00:23:02Z
+2026-10-30T00:23:22Z
 
 ## IMMEDIATE ACTION FOR NEXT AGENT (COPY/PASTE AS FIRST MESSAGE)
 ```
 PRIORITY: strategies/betting_against_beta/ > everything else. Repo identity = Crypto-Betting-Against-Beta (BAB crypto).
 
-GATE: python3 -m pytest -q must stay GREEN (baseline 916 passed, 8 skipped). If red, fix the minimal regression before expanding coverage.
+GATE: python3 -m pytest -q must stay GREEN (916 passed, 8 skipped). If red, fix minimal regression before expanding coverage.
 
 CAMPAIGN: DRIVE BAB TO >=95% COVERAGE WITH HEAVY WORK.
 START: costs.py (17%) FIRST.
@@ -31,7 +31,7 @@ RULES:
 
 ## BOTTLENECKS REMOVED
 - **Workflow/controller pattern sync:** Added `*/.github/workflows/*` to `.github/workflows/main.yml` stage_safe_changes/exclusion + meaningful-progress detection to stay in lock-step with `scripts/controller_progress.py` EXCLUDE_PATTERNS.
-- **Suite gate restored:** 2 failing controller-progress tests fixed; `python3 -m pytest -q` = 916 passed, 8 skipped.
+- **Suite gate restored:** Controller-progress tests fixed; `python3 -m pytest -q` = 916 passed, 8 skipped.
 - **Baseline restored:** `python3 -m pytest -q` = 916 passed, 8 skipped.
 - **Config robustness:** `vol_percentiles` default None semantics, finiteness checks, `resolved_universe` None handling corrected.
 
