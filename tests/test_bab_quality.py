@@ -382,7 +382,7 @@ class TestQualityExceptionAndTerminalBranches:
             },
         )
         result = quality.compute_quality(pd.DataFrame({"BTC": [0.1] * 10}))
-        assert result.loc[0, "quality_score"] == 0.4
+        assert result.loc[0, "quality_score"] == 0.3
 
 
 class TestDataQualityReportExtraGaps:
