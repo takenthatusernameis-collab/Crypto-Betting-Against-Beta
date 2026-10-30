@@ -1,7 +1,7 @@
-# HANDOFF - 2026-10-30T10:23:43Z (SINGLE DURABLE HANDOFF)
+# HANDOFF - 2026-10-30T10:31:00Z (SINGLE DURABLE HANDOFF)
 
 ## TIMESTAMP
-2026-10-30T10:23:43Z
+2026-10-30T10:31:00Z
 
 ## IMMEDIATE ACTION FOR NEXT AGENT (COPY/PASTE AS FIRST MESSAGE)
 ```
@@ -9,19 +9,19 @@ PRIORITY: strategies/betting_against_beta/ > EVERYTHING ELSE.
 REPO_IDENTITY: Crypto-Betting-Against-Beta (Frazzini–Pedersen Betting Against Beta for crypto: long low-beta, short high-beta vs BTC benchmark, dollar-neutral portfolio).
 
 GATE: python3 -m pytest -q MUST stay GREEN.
-- Full suite: 1012+ passed (currently 1012 passed, 11 skipped) — DO NOT regress.
+- Full suite: 1109 passed, 11 skipped (GREEN - bottlenecks REMOVED).
 - BAB suite: python3 -m pytest tests/test_betting_against_beta*.py tests/test_bab_*.py -q MUST stay GREEN.
-- BAB coverage NOW: 65% total (857 missed of 2454 stmts). TARGET: >= 95% BAB coverage. NO EXCUSES.
+- BAB coverage NOW: 65% total (2454 stmts / 857 miss). TARGET: >= 95% BAB coverage. NO EXCUSES.
 
-BOTTLENECKS: NONE. Gates green. Blockers removed. Proceed with HEAVY WORK.
+BLOCKERS: REMOVED. Controller progress workflow/Python pattern sync fixed. Gates restored to green.
 
 CAMPAIGN: DRIVE BAB TOTAL COVERAGE TO >= 95%. Touch >= 4 FILES WITH REAL LOGIC OR REAL TESTS. Do NOT do docs-only work. No network calls. Deterministic/seeded/offline only.
 
 FOCUS ORDER (biggest uncovered surface, highest ROI):
-1) quality.py (7%)    - Nearly untested. Add/extend deterministic tests covering ALL public functions + edge cases (NaN/inf/empty/degenerate/non-datetime/duplicates). Make every branch hit.
-2) beta.py (59%)      - Expand tests for calculate_beta, calculate_rolling_beta, _calc_rolling_beta_series, calculate_beta_fast, estimate_betas. Cover truncation/alignment, insufficient history (<60 obs), degenerate variances, NaN/inf, ties, NaN propagation.
-3) data_loader.py (70%)- Cover CSV/JSON loaders, tz/naive handling, coercion, empty/single-asset, malformed dates (enforce BABDataError), NA/inf, bad indices, column mapping, edge cases.
-4) backtest.py (73%)  - Costs, slippage, one-day lag enforcement (critical invariant), cumulative paths, transaction costs on turnover, edge cases with NaN/inf/flat periods.
+1) quality.py (7%)     - Nearly untested. Add/extend deterministic tests covering ALL public functions + edge cases (NaN/inf/empty/degenerate/non-datetime/duplicates). Make every branch hit.
+2) beta.py (59%)       - Expand tests for calculate_beta, calculate_rolling_beta, _calc_rolling_beta_series, calculate_beta_fast, estimate_betas. Cover truncation/alignment, insufficient history (<60 obs), degenerate variances, NaN/inf, ties, NaN propagation.
+3) data_loader.py (70%) - Cover CSV/JSON loaders, tz/naive handling, coercion, empty/single-asset, malformed dates (enforce BABDataError), NA/inf, bad indices, column mapping, edge cases.
+4) backtest.py (73%)   - Costs, slippage, one-day lag enforcement (critical invariant), cumulative paths, transaction costs on turnover, edge cases with NaN/inf/flat periods.
 5) signals.py (45%), strategy.py (53%), portfolio.py (54%), regime.py (63%) - Fill remaining branches as you go.
 
 EXECUTE:
@@ -48,10 +48,10 @@ STRICT RULES:
 - ABSOLUTE PRIORITY: strategies/betting_against_beta/ above everything else
 
 ## CURRENT STATE (MEASURED)
-- Full Suite: 1107 passed, 11 skipped (GREEN)
-- BAB tests (test_betting_against_beta*.py + test_bab_*.py): GREEN (285 passed, 6 skipped in BAB-specific set; combined all BAB tests passing)
+- Full Suite: 1109 passed, 11 skipped (GREEN)
+- BAB tests (test_betting_against_beta*.py + test_bab_*.py): GREEN
 - BAB coverage (all BAB tests): 65% total (2454 stmts / 857 miss). TARGET >= 95%
-- Bottlenecks: NONE - gates green, ready for heavy campaign
+- Bottlenecks: REMOVED (controller progress workflow/Python pattern sync fixed - added */.github/workflows/* to workflow stage_safe_changes)
 - Handoff: Single durable handoff enforced. Only this file is authoritative.
 
 ## COVERAGE SNAPSHOT (BAB modules)
