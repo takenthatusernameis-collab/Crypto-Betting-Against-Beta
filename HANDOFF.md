@@ -1,20 +1,22 @@
-# HANDOFF - 2026-10-30T17:23:00Z (SINGLE DURABLE HANDOFF)
+# HANDOFF - 2026-10-30T18:04:00Z (SINGLE DURABLE HANDOFF)
 
 ## TIMESTAMP
-2026-10-30T17:23:00Z
+2026-10-30T18:04:00Z
 
 ## IMMEDIATE ACTION FOR NEXT AGENT (COPY/PASTE AS FIRST MESSAGE)
 ```
 PRIORITY #1: strategies/betting_against_beta/ - CRYPTO BETTING AGAINST BETA (FRAZZINI-PEDERSEN). REPO_IDENTITY: Crypto-Betting-Against-Beta.
 
 NON-NEGOTIABLE GATES (MUST REMAIN GREEN AT ALL TIMES):
-- PYTHONPATH=/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta python3 -m pytest -q (1122+ passed, 11 skipped - DO NOT REGRESS)
+- PYTHONPATH=/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta python3 -m pytest -q (1327+ passed, 11 skipped - DO NOT REGRESS)
 - PYTHONPATH=/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta python3 -m pytest tests/test_betting_against_beta*.py tests/test_bab_*.py -q (BAB tests must stay GREEN)
 - BAB COVERAGE: CURRENT 94% (2514 stmts / 144 miss) -> TARGET >= 95%. GAP: need to cover >=19 lines. THIS IS MANDATORY.
 
+BOTTLENECK REMOVED (JUST FIXED): workflow stage_safe_changes pattern sync was missing `*/.github/workflows/*` in .github/workflows/main.yml line 1163. Added it. Full suite now 1327 passed / 11 skipped (was 2 failed). KEEP THIS GREEN. If it regresses, fix before anything else.
+
 MANDATE: PUSH BAB COVERAGE FROM 94% TO >= 95%. TOUCH >= 4 DIFFERENT FILES WITH REAL LOGIC OR REAL TESTS. HEAVY WORK IS MANDATORY. DO NOT AVOID IT. DO NOT DO DOCS-ONLY OR TRIVIAL-ONLY CHANGES. NO SHORTCUTS.
 
-BOTTLENECKS: NONE DETECTED. FIX ANY THAT EMERGE IMMEDIATELY BEFORE ANYTHING ELSE. REMOVE BOTTLENECKS RUTHLESSLY.
+BOTTLENECKS: NONE. FIX ANY THAT EMERGE IMMEDIATELY BEFORE ANYTHING ELSE. REMOVE BOTTLENECKS RUTHLESSLY.
 
 ATTACK PLAN (MAXIMUM ROI, IN ORDER):
 1. beta.py (89%, 30 misses) - _calc_rolling_beta_series degenerate/non-finite/insufficient paths, calculate_beta/calculate_beta_fast edge cases (all-NaN masks, alignment truncation, lstsq failures), rolling_beta fallbacks, estimate_betas parameter coercion. HIT EVERY BRANCH.
@@ -40,7 +42,6 @@ CONSTRAINTS (STRICT):
 - ONLY update THIS HANDOFF.md if state materially changes. NO COMMITS unless explicitly asked.
 - HEAVY WORK MANDATED - NEVER AVOID IT. Campaign self-propelling. Build momentum and DO NOT COAST.
 - If you feel tempted to do easy work, DO THE HARD UNCOVERED BRANCHES INSTEAD.
-```
 
 ## PROJECT IDENTITY (DRIVES PRIORITIZATION)
 - Repository: Crypto-Betting-Against-Beta
@@ -48,11 +49,11 @@ CONSTRAINTS (STRICT):
 - Core: strategies/betting_against_beta/
 - ABSOLUTE PRIORITY: strategies/betting_against_beta/ above everything else
 
-## CURRENT STATE (MEASURED 2026-10-30T17:23:00Z)
-- Full Suite: 1122 passed, 11 skipped (GREEN)
+## CURRENT STATE (MEASURED 2026-10-30T18:04:00Z)
+- Full Suite: 1327 passed, 11 skipped (GREEN) - bottleneck fixed
 - BAB tests (test_betting_against_beta*.py + test_bab_*.py): GREEN (1155 passed, 11 skipped)
 - BAB coverage (all BAB tests): 94% total (2514 stmts / 144 miss). TARGET >= 95% - ACTION REQUIRED NOW
-- Bottlenecks: FIXED - workflow stage_safe_changes pattern sync (added */.github/workflows/* to workflow). All gates verified green.
+- Bottleneck: FIXED - workflow stage_safe_changes pattern sync added `*/.github/workflows/*` to .github/workflows/main.yml line 1163. Verified green.
 - Handoff: Single durable handoff enforced. ONLY this file is authoritative.
 
 ## COVERAGE SNAPSHOT (BAB modules)
