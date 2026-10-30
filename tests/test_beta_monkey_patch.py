@@ -10,7 +10,7 @@ def test_align_except():
     pd.concat = bad_concat
     try:
         a = pd.Series([0.01,0.02,0.03])
-        b = pd.Series([0.005,0.01,0.015], index=[1,2,3])
+        b = pd.Series([0.005,0.01,0.015,0.02], index=[1,2,3,4])
         res = beta.calculate_beta(a,b)
         assert np.isnan(res)
     finally:
