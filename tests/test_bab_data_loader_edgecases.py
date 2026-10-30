@@ -13,6 +13,7 @@ from strategies.betting_against_beta.data_loader import (
     _coerce_numeric,
     _drop_all_nan_columns,
     _normalize_index,
+    _promote_datetime_column,
     load_returns_from_hdf5,
     load_returns_from_parquet,
     load_returns_from_pickle,
@@ -64,6 +65,36 @@ def test_unparseable_index_is_wrapped_as_bab_data_error():
 
     with pytest.raises(BABDataError, match="Index could not be parsed"):
         validate_returns_dataframe(frame)
+
+
+def test_datetime_promotion_keeps_unparseable_unnamed_column_for_validation():
+    frame = pd.DataFrame(
+        {
+            "": ["not-a-date", "still-not-a-date"],
+            "BTC": [0.01, 0.02],
+            "ETH": [0.02, 0.03],
+        }
+    )
+
+    promoted = _promote_datetime_column(frame.copy())
+
+    assert "" in promoted.columns
+    assert not isinstance(promoted.index, pd.DatetimeIndex)
+
+
+def test_numeric_coercion_rejects_unrecognized_text():
+    frame = pd.DataFrame({"BTC": ["0.01", "not-a-return"]})
+
+    with pytest.raises(BABDataError, match="Non-numeric values"):
+        _coerce_numeric(frame)
+
+
+def test_corrupt_pickle_is_reported_as_bab_data_error(tmp_path):
+    path = tmp_path / "corrupt.pkl"
+    path.write_bytes(b"not a pickle payload")
+
+    with pytest.raises(BABDataError, match="Failed to read pickle"):
+        load_returns_from_pickle(path)
 
 
 def test_drop_all_nan_columns_keeps_non_numeric_uncoercible_column():
