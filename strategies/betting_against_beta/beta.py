@@ -44,7 +44,10 @@ def rolling_beta(a, b, window=90, min_periods=None, min_obs=None):
             try:
                 n = len(np.asarray(a))
             except Exception:
-                n = len(np.asarray(b)) if hasattr(b, "__len__") and not isinstance(b, str) else 0
+                try:
+                    n = len(np.asarray(b))
+                except Exception:
+                    n = 0
             try:
                 res = np.empty(n)
                 res[:] = np.nan
@@ -57,6 +60,8 @@ def rolling_beta(a, b, window=90, min_periods=None, min_obs=None):
 
 def calculate_beta(asset_returns, benchmark_returns, min_obs=None):
     """Calculate beta of asset vs benchmark using OLS regression."""
+    if asset_returns is None or benchmark_returns is None:
+        raise BABDataError("asset_returns and benchmark_returns must not be None")
     try:
         # Fast path with numpy
         a = np.asarray(asset_returns, dtype=float).ravel()
