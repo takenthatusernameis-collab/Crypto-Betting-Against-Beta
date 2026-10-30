@@ -18,6 +18,7 @@ from strategies.betting_against_beta.quality import (
     detect_outliers,
     detect_stale_data,
     detect_volume_anomalies,
+    compute_quality,
 )
 
 SEED = 20261029
@@ -299,6 +300,41 @@ class TestDetectDuplicateTimestamps:
         assert result["has_duplicates"] is False
         assert result["count"] == 0
 
+
+
+class TestQualityExceptionAndTerminalBranches:
+    def test_report_handles_unconvertible_object_column(self):
+        df = pd.DataFrame({"RAW": [["x"], ["y"], ["z"]]})
+        report = data_quality_report(df)
+        raw = report["columns"][0]
+        assert raw["missing"] == 3
+        assert raw["min"] is None
+        assert raw["max"] is None
+        assert report["summary"]["all_finite"] is False
+
+    def test_outlier_and_stale_detectors_return_safe_empty_results_for_bad_objects(self):
+        df = pd.DataFrame({"RAW": [["x"], ["y"], ["z"]]})
+        assert detect_outliers(df)["RAW"] == {"outliers": [], "count": 0}
+        assert detect_stale_data(df)["RAW"] == {"stale_runs": [], "count": 0}
+
+    def test_volume_anomaly_detector_handles_uncoercible_volume(self):
+        df = pd.DataFrame({"volume": [["x"], ["y"], ["z"]]})
+        assert detect_volume_anomalies(df)["volume"] == {
+            "anomalies": [],
+            "count": 0,
+        }
+
+    def test_gap_detector_returns_empty_for_zero_median_interval(self):
+        index = pd.to_datetime(
+            ["2026-01-01", "2026-01-01", "2026-01-01", "2026-01-02"]
+        )
+        df = pd.DataFrame({"BTC": [0.1, 0.1, 0.1, 0.2]}, index=index)
+        assert detect_gaps(df) == {"gaps": [], "count": 0}
+
+    def test_compute_quality_returns_empty_frame_for_no_columns(self):
+        df = pd.DataFrame(index=pd.date_range("2026-01-01", periods=3, freq="D"))
+        result = compute_quality(df)
+        assert result.empty
 
 
 class TestDataQualityReportExtraGaps:
