@@ -1,7 +1,7 @@
-# HANDOFF - 2026-10-30T20:01:44Z (SINGLE DURABLE HANDOFF)
+# HANDOFF - 2026-10-30T20:02:04Z (SINGLE DURABLE HANDOFF)
 
 ## TIMESTAMP
-2026-10-30T20:01:44Z
+2026-10-30T20:02:04Z
 
 ## IMMEDIATE ACTION FOR NEXT AGENT (COPY/PASTE AS FIRST MESSAGE)
 ```
@@ -9,18 +9,18 @@ PRIORITY #1: strategies/betting_against_beta/ - CRYPTO BETTING AGAINST BETA (FRA
 ```
 
 ## NON-NEGOTIABLE GATES (MUST REMAIN GREEN AT ALL TIMES)
-- `PYTHONPATH=/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta python3 -m pytest -q` (FULL SUITE GREEN: 1416 passed, 11 skipped, ~118s)
+- `PYTHONPATH=/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta python3 -m pytest -q` (FULL SUITE GREEN: 1416 passed, 11 skipped, ~117s)
 - `PYTHONPATH=/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta python3 -m pytest tests/test_betting_against_beta*.py tests/test_bab_*.py -q` (BAB tests GREEN: 1244 passed, 11 skipped)
-- BAB COVERAGE: CURRENT 96% (2408 stmts / 106 miss) - TARGET >= 95% ACHIEVED, >= 96% DISPLAYED. MAINTAIN OR IMPROVE. DO NOT REGRESS BELOW 95%.
+- BAB COVERAGE: CURRENT 96% (2514 stmts / 106 miss) - TARGET >= 95% ACHIEVED, >= 96% DISPLAYED. MAINTAIN OR IMPROVE. DO NOT REGRESS BELOW 95%.
 
 ## BOTTLENECK STATUS
-- RESOLVED. Full suite was NOT green (2 failures in `tests/test_controller_progress_accounting.py` because `scripts/controller_progress.py` `EXCLUDE_PATTERNS` had `*/.github/workflows/*` but `.github/workflows/main.yml` `stage_safe_changes` case list lacked it). FIXED: added `*/.github/workflows/*` to the workflow case list (`.github/workflows/main.yml:1163`). Full suite now green in ~118s. BAB coverage pushed 95% -> 96% (133 -> 106 misses) by touching 10 test files with real TDD tests across beta.py, data_loader.py, quality.py, backtest.py, cli.py, sizing.py, data_sources.py, metrics.py, signals.py, strategy.py.
+- RESOLVED. Full suite was RED (2 failures in `tests/test_controller_progress_accounting.py` because `scripts/controller_progress.py` `EXCLUDE_PATTERNS` had `*/.github/workflows/*` but `.github/workflows/main.yml` `stage_safe_changes` case list lacked it). FIXED: added `*/.github/workflows/*` to the workflow case list (`.github/workflows/main.yml:1163`). Pattern sync tests now green (4/4). Full suite now green in ~117s (1416 passed, 11 skipped). BAB coverage held at 96% (2514 stmts / 106 miss).
 - REMOVE BOTTLENECKS RUTHLESSLY BEFORE EXPANDING SCOPE. If any gate is red, fix it first.
 
 ## MANDATE: MAINTAIN BAB COVERAGE >= 95% (DISPLAYED 96%). TOUCH >= 4 DIFFERENT FILES WITH REAL LOGIC OR REAL TESTS WHEN WORKING ON STRATEGY MODULES. HEAVY WORK IS MANDATORY. DO NOT AVOID IT. DO NOT DO DOCS-ONLY OR TRIVIAL-ONLY CHANGES. NO SHORTCUTS.
 
 ## ATTACK PLAN (MAXIMUM ROI, IN ORDER)
-PHASE 0 (BLOCKER REMOVAL): Verify all gates green before any new work. If red, fix immediately.
+PHASE 0 (BLOCKER REMOVAL): Verify all gates green before any new work. If red, fix immediately. (DONE - gates green.)
 PHASE 1 (COVERAGE HARDENING - P0): beta.py (89%, 29 miss: 55-56, 90-91, 103, 113, 123, 125-126, 129-130, 151, 163, 165-170, 249-253, 343-347), data_loader.py (94%, 17 miss: 44, 64-65, 117-119, 183-184, 221-222, 247, 302-304, 331-333), quality.py (95%, 10 miss: 47-48, 132, 187-188, 211-212, 245-246, 259), backtest.py (97%, 2 miss: 58-59). Push total above 96%.
 PHASE 2 (REMAINING): portfolio.py (94%, 13 miss), regime.py (94%, 12 miss), data_sources.py (100% now), shorting.py (95%, 9 miss), metrics.py (97%, 4 miss: 71, 97, 187-188), strategy.py (98%, 3 miss: 181, 188-189), signals.py (98%, 2 miss: 37, 75), config.py (98%, 3 miss: 95-96, 113), cli.py (100% now), costs.py (99%, 2 miss: 59-60), sizing.py (100% now).
 PHASE 3 (STRESS & EDGE CASES): property-based tests, adversarial inputs, degenerate market regimes, all-NaN benchmarks, zero-observation windows.
@@ -50,10 +50,10 @@ PHASE 3 (STRESS & EDGE CASES): property-based tests, adversarial inputs, degener
 - Core: strategies/betting_against_beta/
 - ABSOLUTE PRIORITY: strategies/betting_against_beta/ above everything else
 
-## CURRENT STATE (MEASURED 2026-10-30T19:50:38Z)
-- Full Suite: GREEN (1416 passed, 11 skipped) after fixing stage_safe_changes workflow pattern bottleneck.
+## CURRENT STATE (MEASURED 2026-10-30T20:02:04Z)
+- Full Suite: GREEN (1416 passed, 11 skipped) after fixing stage_safe_changes pattern sync bottleneck.
 - BAB tests (test_betting_against_beta*.py + test_bab_*.py): GREEN (1244 passed, 11 skipped).
-- BAB coverage (all BAB tests): 96% (2408 stmts / 106 miss). TARGET >= 95% ACHIEVED, >= 96% DISPLAYED.
+- BAB coverage (all BAB tests): 96% (2514 stmts / 106 miss). TARGET >= 95% ACHIEVED, >= 96% DISPLAYED.
 - Bottleneck: RESOLVED (controller progress pattern sync + full suite green).
 - Handoff: Single durable handoff enforced. ONLY this file is authoritative.
 
