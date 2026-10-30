@@ -19,6 +19,7 @@ from strategies.betting_against_beta.quality import (
     detect_stale_data,
     detect_volume_anomalies,
     compute_quality,
+    compute_quality,
 )
 
 SEED = 20261029
