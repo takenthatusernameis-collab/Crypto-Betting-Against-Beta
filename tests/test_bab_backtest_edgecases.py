@@ -37,7 +37,7 @@ def test_no_common_columns_uses_positional_alignment_when_shapes_match():
     assert result.loc[index[1], "returns"] == 0.02
 
 
-def test_no_common_columns_with_different_shapes_fails_closed_to_zero():
+def test_no_common_columns_with_different_shapes_returns_empty_result():
     index = pd.date_range("2026-01-01", periods=3, freq="D")
     returns = pd.DataFrame(
         {"BTC": [0.01, 0.02, 0.03], "ETH": [0.02, 0.03, 0.04]},
@@ -47,8 +47,7 @@ def test_no_common_columns_with_different_shapes_fails_closed_to_zero():
 
     result = run_backtest(returns, weights)
 
-    assert np.allclose(result["gross_return"], 0.0)
-    assert np.allclose(result["returns"], 0.0)
+    assert result.empty
 
 
 def test_dataframe_numpy_conversion_fallback_preserves_results():
