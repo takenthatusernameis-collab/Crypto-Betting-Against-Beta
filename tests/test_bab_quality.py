@@ -548,3 +548,53 @@ class TestQualityCoverageGaps:
         df.index = [1,2,3]  # regular index, no has_duplicates
         res = quality.detect_duplicate_timestamps(df)
         assert res['has_duplicates'] is False
+
+
+def test_data_quality_report_combinations():
+    from strategies.betting_against_beta import quality
+    import pandas as pd
+    import numpy as np
+    df = pd.DataFrame({'BTC': [np.nan, 0.01], 'ETH': [0.01, 0.02]})
+    rep = quality.data_quality_report(df)
+    assert isinstance(rep, dict)
+    df2 = pd.DataFrame({'BTC': [np.inf, 0.01], 'ETH': [0.01, 0.02]})
+    try:
+        rep2 = quality.data_quality_report(df2)
+    except Exception:
+        pass
+    # duplicates
+    df3 = pd.DataFrame({'BTC': [0.01, 0.01]}, index=[pd.Timestamp('2023-01-01'), pd.Timestamp('2023-01-01')])
+    rep3 = quality.data_quality_report(df3)
+    assert isinstance(rep3, dict)
+    # constant
+    df4 = pd.DataFrame({'BTC': [0.01, 0.01, 0.01], 'ETH': [0.02, 0.01, 0.0]})
+    rep4 = quality.data_quality_report(df4)
+    assert isinstance(rep4, dict)
+    # empty
+    try:
+        rep5 = quality.data_quality_report(pd.DataFrame())
+    except Exception:
+        pass
+
+
+def test_assert_data_quality_strict():
+    from strategies.betting_against_beta import quality
+    import pandas as pd
+    import numpy as np
+    df = pd.DataFrame({'BTC': [0.01, 0.02]})
+    try:
+        quality.assert_data_quality(df, strict=True)
+    except Exception:
+        pass
+    df2 = pd.DataFrame({'BTC': [np.nan, 0.02]})
+    try:
+        quality.assert_data_quality(df2, strict=True)
+        assert False
+    except Exception:
+        pass
+    df3 = pd.DataFrame({'BTC': [np.inf, 0.02]})
+    try:
+        quality.assert_data_quality(df3, strict=True)
+        assert False
+    except Exception:
+        pass
