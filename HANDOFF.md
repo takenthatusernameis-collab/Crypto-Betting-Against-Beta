@@ -1,19 +1,19 @@
-# HANDOFF - 2026-10-30T12:25:48Z (SINGLE DURABLE HANDOFF)
+# HANDOFF - 2026-10-30T12:35:38Z (SINGLE DURABLE HANDOFF)
 
 ## TIMESTAMP
-2026-10-30T12:25:48Z
+2026-10-30T12:35:38Z
 
 ## IMMEDIATE ACTION FOR NEXT AGENT (COPY/PASTE AS FIRST MESSAGE)
 ```
 PRIORITY: strategies/betting_against_beta/ > EVERYTHING ELSE.
 REPO_IDENTITY: Crypto-Betting-Against-Beta (Frazzini–Pedersen Betting Against Beta for crypto: long low-beta, short high-beta vs BTC benchmark, dollar-neutral portfolio).
 
-GATE: python3 -m pytest -q MUST stay GREEN.
+GATE: python3 -m pytest -q MUST stay GREEN at all times.
 - Full suite: 1124 passed, 11 skipped (GREEN - bottlenecks REMOVED).
 - BAB suite: python3 -m pytest tests/test_betting_against_beta*.py tests/test_bab_*.py -q MUST stay GREEN.
 - BAB coverage NOW: 94% total (2474 stmts / 141 miss). TARGET: >= 95%. NO EXCUSES.
 
-BLOCKERS: NONE. Gates restored to green.
+BLOCKERS: NONE. Gates are restored to green. Do NOT create new blockers.
 
 CAMPAIGN: DRIVE BAB TOTAL COVERAGE FROM 94% TO >= 95%. Touch >= 3 FILES WITH REAL LOGIC OR REAL TESTS. Do NOT do docs-only work. No network calls. Deterministic/seeded/offline only. THIS IS MANDATORY HEAVY WORK - DO NOT AVOID IT. DO NOT STOP AT TRIVIAL EDITS.
 
@@ -22,7 +22,7 @@ FOCUS ORDER (smallest gaps remaining, highest ROI to cross >=95%):
 2) data_loader.py (89%) - 31 misses. Attack: tz-aware/naive mixing, malformed dates, coercion of bad values (inf/NaN/strings), column mapping fallbacks, empty/single-asset cases, duplicate indices, missing columns, CSV/JSON edge cases, error raising.
 3) quality.py (91%)     - 16 misses. Attack: check_data_quality strict paths, data_quality_report combinations (inf/nan/mixed), helper branches, edge cases with empty/constant/duplicate data.
 4) backtest.py (91%)    - 7 misses. Enforce one-day lag invariant explicitly, costs/slippage edge cases, cumulative paths, zero-trade/NaN periods.
-5) others (portfolio/regime/signals/metrics/shorting/sizing/costs/config/strategy/data_sources) - fill remaining uncovered branches as needed to reach >=95% if P0 alone insufficient.
+5) others (portfolio/regime/signals/metrics/shorting/sizing/costs/config/strategy/data_sources/cli) - fill remaining uncovered branches as needed to reach >=95% if P0 alone insufficient.
 
 EXECUTE (MANDATORY - NO SHORTCUTS):
 1. MEASURE: PYTHONPATH=/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta python3 -m pytest tests/test_betting_against_beta*.py tests/test_bab_*.py -q --cov=strategies.betting_against_beta --cov-report=term-missing
@@ -32,7 +32,7 @@ EXECUTE (MANDATORY - NO SHORTCUTS):
 5. REPORT: coverage delta per touched module + BAB total before/after. State files touched with real work.
 
 STRICT RULES:
-- BAB-FIRST ALWAYS. Only touch infra if it breaks BAB gate.
+- BAB-FIRST ALWAYS. Only touch infra if it breaks BAB gate. If infra blocks BAB, fix it immediately and get gates green.
 - Deterministic/offline/seeded. NO network.
 - NO bare except:. Enforce finiteness. Raise BAB errors on bad inputs.
 - Preserve invariants: one-day lag, dollar-neutral where applicable, quantile/decile logic, beta window >=60 obs default, ranking logic.
@@ -53,7 +53,7 @@ STRICT RULES:
 - BAB tests (test_betting_against_beta*.py + test_bab_*.py): 937 passed, 11 skipped (GREEN)
 - BAB coverage (all BAB tests): 94% total (2474 stmts / 141 miss). TARGET >= 95%
 - Bottlenecks: NONE (gates verified green)
-- Handoff: Single durable handoff enforced. Only this file is authoritative.
+- Handoff: Single durable handoff enforced. ONLY this file is authoritative.
 
 ## COVERAGE SNAPSHOT (BAB modules)
 | Module | Stmts | Miss | Cover | Priority |
