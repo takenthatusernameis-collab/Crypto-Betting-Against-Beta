@@ -1,25 +1,25 @@
-# HANDOFF - 2026-10-30T17:19:00Z (SINGLE DURABLE HANDOFF)
+# HANDOFF - 2026-10-30T17:23:00Z (SINGLE DURABLE HANDOFF)
 
 ## TIMESTAMP
-2026-10-30T17:19:00Z
+2026-10-30T17:23:00Z
 
 ## IMMEDIATE ACTION FOR NEXT AGENT (COPY/PASTE AS FIRST MESSAGE)
 ```
 PRIORITY #1: strategies/betting_against_beta/ - CRYPTO BETTING AGAINST BETA (FRAZZINI-PEDERSEN). REPO_IDENTITY: Crypto-Betting-Against-Beta.
 
 NON-NEGOTIABLE GATES (MUST REMAIN GREEN AT ALL TIMES):
-- PYTHONPATH=/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta python3 -m pytest -q (1122 passed, 11 skipped baseline - DO NOT REGRESS)
+- PYTHONPATH=/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta python3 -m pytest -q (1122+ passed, 11 skipped - DO NOT REGRESS)
 - PYTHONPATH=/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta python3 -m pytest tests/test_betting_against_beta*.py tests/test_bab_*.py -q (BAB tests must stay GREEN)
 - BAB COVERAGE: CURRENT 94% (2514 stmts / 144 miss) -> TARGET >= 95%. GAP: need to cover >=19 lines. THIS IS MANDATORY.
 
 MANDATE: PUSH BAB COVERAGE FROM 94% TO >= 95%. TOUCH >= 4 DIFFERENT FILES WITH REAL LOGIC OR REAL TESTS. HEAVY WORK IS MANDATORY. DO NOT AVOID IT. DO NOT DO DOCS-ONLY OR TRIVIAL-ONLY CHANGES. NO SHORTCUTS.
 
-BOTTLENECKS: NONE DETECTED. IF ANY GATE FAILS OR BAB BREAKS, FIX IMMEDIATELY BEFORE ANYTHING ELSE. REMOVE BOTTLENECKS RUTHLESSLY AND WITHOUT HESITATION.
+BOTTLENECKS: NONE DETECTED. FIX ANY THAT EMERGE IMMEDIATELY BEFORE ANYTHING ELSE. REMOVE BOTTLENECKS RUTHLESSLY.
 
 ATTACK PLAN (MAXIMUM ROI, IN ORDER):
 1. beta.py (89%, 30 misses) - _calc_rolling_beta_series degenerate/non-finite/insufficient paths, calculate_beta/calculate_beta_fast edge cases (all-NaN masks, alignment truncation, lstsq failures), rolling_beta fallbacks, estimate_betas parameter coercion. HIT EVERY BRANCH.
 2. data_loader.py (89%, 31 misses) - _normalize_index tz/naive/duplicates/unparseable, _promote_datetime_column all candidate paths/unnamed/last-resort, _drop_all_nan_columns all-NaN case raising, _coerce_numeric percent/commas/NA markers/object paths/astype fallback, validate_returns_dataframe benchmark-all-NaN/only-benchmark/inf cases, load_* error paths (parquet/hdf5/pickle/json records/orient), edge coercions.
-3. quality.py (92%, 15 misses) - data_quality_report combinations (with/without report dicts), strict checks, helper paths, NaN/inf/duplicates/outliers/constant/empty cases. Cover all missed lines.
+3. quality.py (92%, 15 misses) - data_quality_report combinations, strict checks, helper paths, NaN/inf/duplicates/outliers/constant/empty cases. Cover all missed lines.
 4. backtest.py (91%, 7 misses) - one-day lag invariant enforcement, costs/slippage paths, cumulative paths, zero-trade/NaN cases.
 5. portfolio.py/regime/signals/metrics/shorting/sizing/costs/config/strategy/data_sources as needed to reach >=95% and to satisfy ">=4 files touched".
 
@@ -48,11 +48,11 @@ CONSTRAINTS (STRICT):
 - Core: strategies/betting_against_beta/
 - ABSOLUTE PRIORITY: strategies/betting_against_beta/ above everything else
 
-## CURRENT STATE (MEASURED 2026-10-30T17:15:53Z)
+## CURRENT STATE (MEASURED 2026-10-30T17:23:00Z)
 - Full Suite: 1122 passed, 11 skipped (GREEN)
-- BAB tests (test_betting_against_beta*.py + test_bab_*.py): GREEN
+- BAB tests (test_betting_against_beta*.py + test_bab_*.py): GREEN (1155 passed, 11 skipped)
 - BAB coverage (all BAB tests): 94% total (2514 stmts / 144 miss). TARGET >= 95% - ACTION REQUIRED NOW
-- Bottlenecks: FIXED workflow nested-pattern drift (controller test gate). All gates verified green.
+- Bottlenecks: FIXED - workflow stage_safe_changes pattern sync (added */.github/workflows/* to workflow). All gates verified green.
 - Handoff: Single durable handoff enforced. ONLY this file is authoritative.
 
 ## COVERAGE SNAPSHOT (BAB modules)
