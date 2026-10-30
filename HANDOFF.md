@@ -1,7 +1,7 @@
-# HANDOFF - 2026-10-30T12:24:42Z (SINGLE DURABLE HANDOFF)
+# HANDOFF - 2026-10-30T12:25:48Z (SINGLE DURABLE HANDOFF)
 
 ## TIMESTAMP
-2026-10-30T12:24:42Z
+2026-10-30T12:25:48Z
 
 ## IMMEDIATE ACTION FOR NEXT AGENT (COPY/PASTE AS FIRST MESSAGE)
 ```
@@ -9,7 +9,7 @@ PRIORITY: strategies/betting_against_beta/ > EVERYTHING ELSE.
 REPO_IDENTITY: Crypto-Betting-Against-Beta (Frazzini–Pedersen Betting Against Beta for crypto: long low-beta, short high-beta vs BTC benchmark, dollar-neutral portfolio).
 
 GATE: python3 -m pytest -q MUST stay GREEN.
-- Full suite: 1109 passed, 11 skipped (GREEN - bottlenecks REMOVED).
+- Full suite: 1124 passed, 11 skipped (GREEN - bottlenecks REMOVED).
 - BAB suite: python3 -m pytest tests/test_betting_against_beta*.py tests/test_bab_*.py -q MUST stay GREEN.
 - BAB coverage NOW: 94% total (2474 stmts / 141 miss). TARGET: >= 95%. NO EXCUSES.
 
@@ -49,7 +49,7 @@ STRICT RULES:
 - ABSOLUTE PRIORITY: strategies/betting_against_beta/ above everything else
 
 ## CURRENT STATE (MEASURED)
-- Full Suite: 1109 passed, 11 skipped (GREEN)
+- Full Suite: 1124 passed, 11 skipped (GREEN)
 - BAB tests (test_betting_against_beta*.py + test_bab_*.py): 937 passed, 11 skipped (GREEN)
 - BAB coverage (all BAB tests): 94% total (2474 stmts / 141 miss). TARGET >= 95%
 - Bottlenecks: NONE (gates verified green)
