@@ -1,7 +1,7 @@
-# HANDOFF - 2026-10-30T12:13:09Z (SINGLE DURABLE HANDOFF)
+# HANDOFF - 2026-10-30T12:15:21Z (SINGLE DURABLE HANDOFF)
 
 ## TIMESTAMP
-2026-10-30T12:13:09Z
+2026-10-30T12:15:21Z
 
 ## IMMEDIATE ACTION FOR NEXT AGENT (COPY/PASTE AS FIRST MESSAGE)
 ```
@@ -15,31 +15,31 @@ GATE: python3 -m pytest -q MUST stay GREEN.
 
 BLOCKERS: NONE. Gates restored to green.
 
-CAMPAIGN: DRIVE BAB TOTAL COVERAGE FROM 94% TO >= 95%. Touch >= 3 FILES WITH REAL LOGIC OR REAL TESTS. Do NOT do docs-only work. No network calls. Deterministic/seeded/offline only.
+CAMPAIGN: DRIVE BAB TOTAL COVERAGE FROM 94% TO >= 95%. Touch >= 3 FILES WITH REAL LOGIC OR REAL TESTS. Do NOT do docs-only work. No network calls. Deterministic/seeded/offline only. This is HEAVY WORK - do not avoid it.
 
 FOCUS ORDER (smallest gaps remaining, highest ROI to cross >=95%):
-1) beta.py (89%)       - 26 misses. Cover remaining branches: _calc_rolling_beta_series edge cases, calculate_beta_fast, NaN/inf handling, insufficient history paths, truncation/alignment, degenerate variances.
-2) data_loader.py (89%) - 31 misses. Cover tz/naive, coercion, malformed dates/errors, NA/inf, bad indices, column mapping, empty/single-asset, CSV/JSON edge cases.
-3) quality.py (91%)     - 16 misses. Cover remaining branches in check_data_quality/data_quality_report and helpers (strict paths, inf/nan combos).
-4) backtest.py (91%)    - 7 misses. Enforce one-day lag invariant, costs/slippage edge cases, cumulative paths.
-5) others (portfolio/regime/signals/metrics/shorting/sizing/costs/config/strategy/data_sources) - fill remaining as needed.
+1) beta.py (89%)       - 26 misses. Attack: _calc_rolling_beta_series edge cases (insufficient windows, all-NaN, constant series, degenerate variances), calculate_beta_fast paths, NaN/inf propagation, truncation/alignment, dtype/coercion, error paths.
+2) data_loader.py (89%) - 31 misses. Attack: tz-aware/naive mixing, malformed dates, coercion of bad values (inf/NaN/strings), column mapping fallbacks, empty/single-asset cases, duplicate indices, missing columns, CSV/JSON edge cases, error raising.
+3) quality.py (91%)     - 16 misses. Attack: check_data_quality strict paths, data_quality_report combinations (inf/nan/mixed), helper branches, edge cases with empty/constant/duplicate data.
+4) backtest.py (91%)    - 7 misses. Enforce one-day lag invariant explicitly, costs/slippage edge cases, cumulative paths, zero-trade/NaN periods.
+5) others (portfolio/regime/signals/metrics/shorting/sizing/costs/config/strategy/data_sources) - fill remaining uncovered branches as needed to reach >=95% if P0 alone insufficient.
 
-EXECUTE:
+EXECUTE (MANDATORY):
 1. MEASURE: PYTHONPATH=/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta python3 -m pytest tests/test_betting_against_beta*.py tests/test_bab_*.py -q --cov=strategies.betting_against_beta --cov-report=term-missing
-2. PICK TOP UNCOVERED LINES IN P0. Write DETERMINISTIC tests with REAL ASSERTIONS (shapes, dtypes, finiteness, invariants). TDD: failing test -> minimal correct fix -> green.
-3. REPEAT until BAB total >= 95% AND you have touched >= 3 files with real logic/tests. Keep gates green the whole time.
+2. PICK TOP UNCOVERED LINES IN P0 (beta.py first). Write DETERMINISTIC tests with REAL ASSERTIONS (shapes, dtypes, finiteness, invariants). TDD: failing test -> minimal correct fix -> green. Touch REAL code/tests.
+3. ROTATE: After improving a P0 module, move to next uncovered P0 until BAB total >= 95%. Must touch >= 3 files with real logic/tests before stopping.
 4. VERIFY: PYTHONPATH=/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta python3 -m pytest tests/test_betting_against_beta*.py tests/test_bab_*.py -q && PYTHONPATH=/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta python3 -m pytest -q
-5. Report: coverage delta per touched module + BAB total before/after.
+5. REPORT: coverage delta per touched module + BAB total before/after. State files touched with real work.
 
 STRICT RULES:
 - BAB-FIRST ALWAYS. Only touch infra if it breaks BAB gate.
 - Deterministic/offline/seeded. NO network.
 - NO bare except:. Enforce finiteness. Raise BAB errors on bad inputs.
 - Preserve invariants: one-day lag, dollar-neutral where applicable, quantile/decile logic, beta window >=60 obs default, ranking logic.
-- TDD discipline. Real assertions. >=3 files touched with real work.
+- TDD discipline. Real assertions. >=3 files touched with real work. NO docs-only.
 - Remove blockers before expanding scope.
 - ONLY update THIS HANDOFF.md if state materially changes. NO COMMITS unless explicitly asked.
-- HEAVY WORK: Do not stop at trivial edits. Build the next focus campaign by attacking uncovered branches aggressively.
+- HEAVY WORK MANDATED: Do not stop at trivial edits. Attack uncovered branches aggressively until >=95% achieved with >=3 files touched.
 ```
 
 ## PROJECT IDENTITY (DRIVES PRIORITIZATION)
