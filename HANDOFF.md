@@ -1,44 +1,44 @@
-# HANDOFF - 2026-10-30T16:01:31Z (SINGLE DURABLE HANDOFF)
+# HANDOFF - 2026-10-30T16:06:32Z (SINGLE DURABLE HANDOFF)
 
 ## TIMESTAMP
-2026-10-30T16:01:31Z
+2026-10-30T16:06:32Z
 
 ## IMMEDIATE ACTION FOR NEXT AGENT (COPY/PASTE AS FIRST MESSAGE)
 ```
-PRIORITY: strategies/betting_against_beta/ > EVERYTHING ELSE. REPO_IDENTITY: Crypto-Betting-Against-Beta (Frazzini–Pedersen Betting Against Beta for crypto: long low-beta, short high-beta vs BTC benchmark, dollar-neutral portfolio).
+PRIORITY #1: strategies/betting_against_beta/ - CRYPTO BETTING AGAINST BETA (FRAZZINI-PEDERSEN). REPO_IDENTITY: Crypto-Betting-Against-Beta.
 
-GATES (MUST STAY GREEN):
-- python3 -m pytest -q MUST stay GREEN at all times (1122 passed, 11 skipped baseline).
-- BAB: python3 -m pytest tests/test_betting_against_beta*.py tests/test_bab_*.py -q MUST stay GREEN.
-- BAB COVERAGE: 94% (2514 stmts / 144 miss) NOW. TARGET: >= 95%. THIS IS NON-NEGOTIABLE.
+NON-NEGOTIABLE GATES (MUST REMAIN GREEN):
+- PYTHONPATH=/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta python3 -m pytest -q (1122 passed, 11 skipped baseline)
+- PYTHONPATH=/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta python3 -m pytest tests/test_betting_against_beta*.py tests/test_bab_*.py -q (BAB tests must stay GREEN)
+- BAB COVERAGE: CURRENT 94% (2514 stmts / 144 miss) -> TARGET >= 95%. GAP: need to cover >=19 lines. NO EXCUSES.
 
-BLOCKERS: NONE DETECTED. If ANY gate fails or infra breaks BAB, FIX IMMEDIATELY before doing anything else. Remove bottlenecks ruthlessly.
+MANDATE: PUSH BAB COVERAGE FROM 94% TO >= 95%. TOUCH >= 4 DIFFERENT FILES WITH REAL LOGIC OR REAL TESTS. HEAVY WORK IS MANDATORY. DO NOT AVOID IT. DO NOT DO DOCS-ONLY OR TRIVIAL-ONLY CHANGES.
 
-MANDATE: DRIVE BAB TOTAL COVERAGE FROM 94% TO >= 95%. TOUCH >= 4 FILES WITH REAL LOGIC OR REAL TESTS. NO DOCS-ONLY. NO TRIVIAL-ONLY. NO NETWORK. DETERMINISTIC/OFFLINE/SEEDED. HEAVY WORK IS REQUIRED - DO NOT AVOID IT.
+BOTTLENECKS: NONE. IF ANY GATE FAILS OR BAB BREAKS, FIX IMMEDIATELY BEFORE ANYTHING ELSE. REMOVE BOTTLENECKS RUTHLESSLY.
 
-FOCUS ORDER (by ROI to cross >=95%):
-1) beta.py (89%, 30 misses) - _calc_rolling_beta_series, calculate_beta_fast paths, NaN/inf/all-NaN/constant/degenerate variance, truncation/alignment, dtype/coercion, error paths
-2) data_loader.py (89%, 31 misses) - tz-aware/naive, malformed dates, coercion of inf/NaN/strings, column mapping fallbacks, empty/single-asset/duplicates/missing, CSV/JSON edge cases, error raising
-3) quality.py (92%, 15 misses) - check_data_quality strict, data_quality_report combos (inf/nan/mixed), helpers, empty/constant/duplicate
-4) backtest.py (91%, 7 misses) - enforce one-day lag invariant, costs/slippage edge cases, cumulative paths, zero-trade/NaN periods
-5) portfolio/regime/signals/metrics/shorting/sizing/costs/config/strategy/data_sources/cli - fill if P0-P1 insufficient
+ATTACK PLAN (MAXIMUM ROI):
+1. beta.py (89%, 30 misses) - _calc_rolling_beta_series, fast paths, NaN/inf/all-NaN/constant/degenerate, truncation/alignment, dtype/coercion, error paths
+2. data_loader.py (89%, 31 misses) - tz-aware/naive, malformed dates, inf/NaN/string coercion, column mapping, empty/single-dup/missing, CSV/JSON edges
+3. quality.py (92%, 15 misses) - strict checks, data_quality_report combos, helpers, edge cases
+4. backtest.py (91%, 7 misses) - one-day lag invariant, costs/slippage, cumulative paths, zero-trade/NaN
+5. portfolio/regime/signals/metrics/shorting/sizing/costs/config/strategy/data_sources/cli as needed
 
-EXECUTE (MANDATORY):
-1. MEASURE: PYTHONPATH=/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta python3 -m pytest tests/test_betting_against_beta*.py tests/test_bab_*.py -q --cov=strategies.betting_against_beta --cov-report=term-missing
-2. ATTACK TOP UNCOVERED IN P0: Write DETERMINISTIC tests with REAL ASSERTIONS (shapes/dtypes/finiteness/invariants). TDD: failing test -> minimal correct fix -> green. Touch REAL code/tests.
-3. ROTATE AGGRESSIVELY: After improving a P0, move to next until >=95%. MUST touch >= 4 files with substantial real work. Do not stop at 1-2 trivial edits.
+EXECUTE EXACTLY:
+1. MEASURE FIRST: PYTHONPATH=/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta python3 -m pytest tests/test_betting_against_beta*.py tests/test_bab_*.py -q --cov=strategies.betting_against_beta --cov-report=term-missing
+2. WRITE DETERMINISTIC TDD TESTS WITH REAL ASSERTIONS (shapes/dtypes/finiteness/invariants). Fix minimally or extend tests to hit missed branches. Touch REAL code or REAL tests.
+3. ROTATE: After each meaningful gain on P0, immediately move to next P0 until >=95%. MUST touch >=4 files with substantial work.
 4. VERIFY: PYTHONPATH=/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta python3 -m pytest tests/test_betting_against_beta*.py tests/test_bab_*.py -q && PYTHONPATH=/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta python3 -m pytest -q
-5. REPORT: coverage delta per touched module + BAB total before/after, files touched with real work.
+5. REPORT: before/after total BAB coverage + delta per touched module + list of files with real work touched.
 
-STRICT RULES:
+CONSTRAINTS:
 - BAB-FIRST. Only touch infra if it breaks BAB gate.
 - Deterministic/offline/seeded. NO network.
 - NO bare except:. Enforce finiteness. Raise BAB errors on bad inputs.
 - Preserve invariants: one-day lag, dollar-neutral where applicable, quantile/decile logic, beta window >=60 obs default, ranking logic.
-- TDD. Real assertions. >=4 files touched with real work. NO docs-only. NO trivial-only.
+- TDD, real assertions, >=4 files with real work. NO docs-only. NO trivial-only.
 - Remove blockers before expanding scope.
 - ONLY update THIS HANDOFF.md if state materially changes. NO COMMITS unless explicitly asked.
-- HEAVY WORK MANDATED: Future agents MUST NOT AVOID HEAVY WORK. Campaign is self-propelling.
+- HEAVY WORK MANDATED - NEVER AVOID IT. Campaign self-propelling.
 ```
 
 ## PROJECT IDENTITY (DRIVES PRIORITIZATION)
@@ -47,14 +47,14 @@ STRICT RULES:
 - Core: strategies/betting_against_beta/
 - ABSOLUTE PRIORITY: strategies/betting_against_beta/ above everything else
 
-## CURRENT STATE (MEASURED 2026-10-30T16:01:31Z)
+## CURRENT STATE (MEASURED 2026-10-30T16:06:32Z)
 - Full Suite: 1122 passed, 11 skipped (GREEN)
-- BAB tests (test_betting_against_beta*.py + test_bab_*.py): GREEN (1155 passed, 11 skipped)
-- BAB coverage (all BAB tests): 94% total (2514 stmts / 144 miss). TARGET >= 95%
-- Bottlenecks: NONE (gates verified green)
+- BAB tests (test_betting_against_beta*.py + test_bab_*.py): GREEN
+- BAB coverage (all BAB tests): 94% total (2514 stmts / 144 miss). TARGET >= 95% - ACTION REQUIRED NOW
+- Bottlenecks: NONE (all gates verified green)
 - Handoff: Single durable handoff enforced. ONLY this file is authoritative.
 
-## COVERAGE SNAPSHOT (BAB modules, measured 2026-10-30T16:01:31Z)
+## COVERAGE SNAPSHOT (BAB modules)
 | Module | Stmts | Miss | Cover | Priority |
 |---|---|---|---|---|
 | beta.py | 275 | 30 | 89% | P0 |
