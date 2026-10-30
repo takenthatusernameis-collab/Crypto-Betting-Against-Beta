@@ -1,14 +1,14 @@
-# HANDOFF - 2026-10-30T02:30:08Z (SINGLE DURABLE HANDOFF)
+# HANDOFF - 2026-10-30T02:35:00Z (SINGLE DURABLE HANDOFF)
 
 ## TIMESTAMP
-2026-10-30T02:30:08Z
+2026-10-30T02:35:00Z
 
 ## IMMEDIATE ACTION FOR NEXT AGENT (COPY/PASTE AS FIRST MESSAGE)
 ```
 PRIORITY: strategies/betting_against_beta/ > everything else.
 REPO_IDENTITY: Crypto-Betting-Against-Beta (Frazzini–Pedersen style Betting Against Beta for crypto markets)
 GATE: python3 -m pytest -q MUST stay GREEN. Current state: 926 passed, 8 skipped. NO REGRESSIONS.
-BOTTLENECKS: ALL REMOVED (attribution finiteness fixed, controller/workflow pattern sync fixed).
+BOTTLENECKS: ALL REMOVED. Pattern-sync drift fixed (`.github/workflows/main.yml` now includes `*/.github/workflows/*`); full suite green.
 
 CAMPAIGN: DRIVE BAB TO >=95% COVERAGE WITH HEAVY WORK (>=4 FILES WITH REAL LOGIC/TESTS THIS SESSION). NO DOCS-ONLY CHANGES.
 
@@ -48,7 +48,7 @@ RULES (MANDATORY):
 ## CURRENT STATE
 - **Full Suite:** 926 passed, 8 skipped (GREEN)
 - **BAB Tests:** all green
-- **Bottlenecks:** All removed (attribution finiteness hardened; workflow/controller pattern sync restored)
+- **Bottlenecks:** All removed. Pattern-sync drift between `scripts/controller_progress.py` (Python `EXCLUDE_PATTERNS`) and `.github/workflows/main.yml` (bash `stage_safe_changes`) was fixed by adding the missing `*/.github/workflows/*` pattern to the workflow. Verified by `tests/test_controller_progress_accounting.py::TestStageSafeChangesPatternSync`.
 
 ## EXECUTION DIRECTIVES
 - **Product-first:** BAB strategy is never deprioritized.
