@@ -1,7 +1,7 @@
-# HANDOFF - 2026-10-30T06:16:18Z (SINGLE DURABLE HANDOFF)
+# HANDOFF - 2026-10-30T06:31:27Z (SINGLE DURABLE HANDOFF)
 
 ## TIMESTAMP
-2026-10-30T06:16:18Z
+2026-10-30T06:31:27Z
 
 ## IMMEDIATE ACTION FOR NEXT AGENT (COPY/PASTE AS FIRST MESSAGE)
 ```
@@ -10,38 +10,30 @@ REPO_IDENTITY: Crypto-Betting-Against-Beta (Frazzini–Pedersen Betting Against 
 
 GATE: python3 -m pytest -q MUST stay GREEN.
 - BAB: 285 passed, 6 skipped (tests/test_betting_against_beta*.py)
-- Full: 1012 passed, 11 skipped (2 controller tests fixed by workflow pattern-sync)
-BOTTLENECKS REMOVED: Added `*/.github/workflows/*` to stage_safe_changes in `.github/workflows/main.yml`. Controller suite 68/68 green.
+- Full: 1012 passed, 11 skipped
 
-CAMPAIGN: DRIVE BAB TO >=95% TOTAL COVERAGE WITH HEAVY WORK (>=4 FILES WITH REAL LOGIC/TESTS THIS SESSION). NO DOCS-ONLY CHANGES.
+CURRENT BOTTLENECKS: NONE VISIBLE. If any infra/test harness blocks BAB, REMOVE IT FIRST (verify gates green) before changing BAB scope.
 
-CURRENT FOCUS: Push uncovered paths in core BAB modules (data_loader, beta, backtest/portfolio/quality/regime/shorting/signals/metrics/costs/config). Add deterministic, offline, seeded tests with real assertions for branches (NaN/inf/zeros/mismatched shapes, tz/dates, coercion/NA markers, edge cases in rolling stats, deciles/quantiles, one-day lag, dollar-neutral). Enforce finiteness; no bare except:.
+MANDATORY CAMPAIGN (HEAVY WORK):
+DRIVE BAB TO >=95% TOTAL COVERAGE. THIS SESSION MUST TOUCH >=4 FILES WITH REAL LOGIC/TESTS.
+FOCUS ORDER (highest ROI): data_loader.py, beta.py, portfolio.py, backtest.py, sizing.py, signals.py, metrics.py, costs.py, quality.py, regime.py, shorting.py, data_sources.py, strategy.py, attribution.py.
 
-KEEP PASSING:
-- tests/test_bab_data_loader_campaign.py
-- tests/test_bab_beta_campaign.py
-- tests/test_bab_strategy_campaign.py
-- tests/test_bab_data_sources_campaign.py
-- tests/test_bab_data_loader_campaign_heavy.py
-- tests/test_bab_data_loader_deep.py
-- tests/test_bab_data_loader_heavy_extra.py
-- tests/test_bab_beta_heavy_extra.py
-- tests/test_bab_backtest_portfolio_heavy_extra.py
+TASKS (DO IN ORDER):
+1. IDENTIFY UNTESTED/LOW-COVERAGE: Run targeted coverage on BAB modules to find lowest coverage (e.g. pytest with coverage) or scan for untested branches. Pick >=2 modules with largest gaps.
+2. HEAVY TDD: For each gap, write DETERMINISTIC/OFFLINE/SEEDED tests with REAL ASSERTIONS covering NaN/inf/zeros/mismatched shapes, tz/dates, coercion/NA, rolling stats edge cases, deciles/quantiles, one-day lag, dollar-neutral, rank/decile logic, beta window constraints. Fix minimal implementation if needed to handle edge cases correctly.
+3. VERIFY: python3 -m pytest tests/test_betting_against_beta*.py -q stays green AND python3 -m pytest -q stays green. Report coverage delta.
+4. HANDOFF DISCIPLINE: ONLY update THIS HANDOFF.md at end if state materially changes. NO COMMITS unless explicitly asked.
 
-MANDATORY RULES:
-- TDD: failing test -> minimal impl/fix -> green. Deterministic/offline/seeded only. No network calls.
-- NO bare except:. Enforce finiteness (no NaN/inf). Handle NaN/inf/zeros/mismatched shapes/dates/non-monotonic cases.
-- Preserve invariants: one-day lag, dollar-neutral where applicable, quantile logic, beta window constraints, rank/decile logic.
-- Validate: `python3 -m pytest tests/test_betting_against_beta*.py -q` stays green AND `python3 -m pytest -q` stays green.
-- ONLY update THIS HANDOFF.md. NO COMMITS unless explicitly asked.
-- Focus BAB strategy. Do not touch infra/workflows unless they break the BAB gate.
-- Add real tests with assertions for uncovered logic. Heavy work required (>=4 files).
-- If blocked, remove the blocker before moving scope. Coverage target >=95% total.
+STRICT RULES:
+- Deterministic/offline/seeded only. No network calls.
+- NO bare except:. Enforce finiteness (no NaN/inf).
+- Preserve invariants: one-day lag, dollar-neutral where applicable, quantile/decile logic, beta window constraints, rank logic.
+- TDD: failing test -> minimal impl/fix -> green.
+- Focus BAB. Only touch infra/workflows if they break BAB gate.
+- Add real tests with assertions; no docs-only changes. Heavy work required (>=4 files).
+- If blocked, remove blocker before moving scope.
 
-IMMEDIATE NEXT TASK (do first):
-1. Run full BAB suite + quick coverage scan (or just run targeted tests) to identify lowest-coverage files among strategies/betting_against_beta/*.py. Pick >=2 highest-value uncovered modules and add >=4 new test functions/files worth of real coverage (or extend existing campaign tests).
-2. Prioritize data_loader and beta (common sources of uncovered branches).
-3. Keep all gates green, report coverage delta, and update ONLY this HANDOFF.md at end if state materially changes.
+START NOW: Identify lowest-coverage BAB modules and begin heavy coverage work.
 ```
 
 ## PROJECT IDENTITY (DRIVES PRIORITIZATION)
@@ -53,7 +45,7 @@ IMMEDIATE NEXT TASK (do first):
 ## CURRENT STATE
 - Full Suite: 1012 passed, 11 skipped (GREEN)
 - BAB Tests: 285 passed, 6 skipped (GREEN)
-- Bottlenecks: Removed - pattern-sync fixed in `.github/workflows/main.yml` (added `*/.github/workflows/*`). Controller tests all pass (68/68).
+- Bottlenecks: None observed. Infrastructure previously fixed (pattern-sync in `.github/workflows/main.yml`).
 - Handoff: Single durable handoff enforced. Only this file is authoritative.
 
 ## EXECUTION DIRECTIVES
@@ -64,3 +56,4 @@ IMMEDIATE NEXT TASK (do first):
 - No scope creep: only touch infra if breaks BAB gate.
 - Deterministic/offline/seeded. No network calls.
 - Blocker removal: fix gate/infrastructure blockers first if they block BAB progress, verify gates green, resume campaign.
+- Coverage target: >=95% total for BAB strategy modules.
