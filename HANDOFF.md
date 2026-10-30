@@ -1,3 +1,17 @@
+# DELAY-ELIMINATION OVERRIDE — 2026-10-30
+
+The existing instruction to “TOUCH >= 4 FILES” is an artificial throughput constraint. It can encourage unrelated edits and increase review/test time without improving BAB correctness. Supersede it as follows:
+
+- Change only the smallest set of production/test files needed to address a demonstrated uncovered branch or defect. File count is not a success metric.
+- Work one coherent branch family at a time. Run focused tests and module coverage immediately; run BAB suite after a related batch; run the full suite once at the milestone/final gate, not after every trivial test addition.
+- Do not chase unreachable or structurally dead branches. Prove why a branch is unreachable under current imports/contracts, record it, and move to the next meaningful gap.
+- If beta.py's remaining misses are not safely testable without weakening invariants, switch to the next highest-leverage module rather than repeatedly re-deriving the same coverage report.
+- Keep one durable next task. Avoid timestamp-only handoff churn and repeated full test/coverage passes when HEAD and relevant files are unchanged.
+
+Preserve BAB mathematics, lagging, neutrality, finiteness, benchmark/ranking invariants, deterministic offline tests, and the final full-suite green gate. This is an efficiency improvement, not a reduction in test rigor.
+
+---
+
 # HANDOFF - 2026-10-30T20:34:42Z (SINGLE DURABLE HANDOFF) - BETA.PY BOTTLENECK CRUSH
 
 ## TIMESTAMP
