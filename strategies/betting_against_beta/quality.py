@@ -257,3 +257,34 @@ def detect_duplicate_timestamps(df: pd.DataFrame) -> dict[str, Any]:
             return {"has_duplicates": True, "count": int(dup_mask.sum()), "duplicates": dup_indices[:100]}  # limit output
         return {"has_duplicates": False, "count": 0}
     return {"has_duplicates": False, "count": 0}
+
+
+def compute_quality(df: pd.DataFrame) -> pd.DataFrame:
+    """Compute quality scores for each column/row. Returns DataFrame for compatibility."""
+    report = data_quality_report(df)
+    if report.get("error"):
+        return pd.DataFrame({"error": [report["error"]]})
+
+    # Build quality metrics DataFrame
+    results = []
+    for col_info in report.get("columns", []):
+        score = 1.0
+        if col_info.get("missing_pct", 0) > 0:
+            score -= col_info["missing_pct"] * 0.5
+        if col_info.get("inf", 0) > 0:
+            score -= min(0.3, col_info["inf"] / len(df) if len(df) > 0 else 0.3)
+        if col_info.get("outliers", {}).get("zscore_outliers", 0) > 0:
+            score -= min(0.2, col_info["outliers"]["zscore_outliers"] / len(df) if len(df) > 0 else 0.2)
+        if col_info.get("stale_consecutive", 0) > len(df) * 0.05:
+            score -= 0.1
+        score = max(0.0, score)
+        results.append({
+            "column": col_info["name"],
+            "quality_score": score,
+            "missing_pct": col_info.get("missing_pct", 0),
+            "completeness": 1.0 - col_info.get("missing_pct", 0),
+        })
+
+    if not results:
+        return pd.DataFrame()
+    return pd.DataFrame(results)
