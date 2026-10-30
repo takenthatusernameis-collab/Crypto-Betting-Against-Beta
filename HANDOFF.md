@@ -1,7 +1,7 @@
-# HANDOFF - 2026-10-30T08:30:38Z (SINGLE DURABLE HANDOFF)
+# HANDOFF - 2026-10-30T08:35:55Z (SINGLE DURABLE HANDOFF)
 
 ## TIMESTAMP
-2026-10-30T08:30:38Z
+2026-10-30T08:35:55Z
 
 ## IMMEDIATE ACTION FOR NEXT AGENT (COPY/PASTE AS FIRST MESSAGE)
 ```
@@ -26,7 +26,7 @@ FOCUS ORDER (by coverage gap + risk):
 6) quality.py (93%+) / attribution.py (100%) / cli.py (97%+) - maintain coverage, add edge cases.
 
 TASKS (DO IN ORDER):
-1. MEASURE: Run targeted coverage on BAB modules to get exact missing lines/branches. (e.g. python3 -m pytest -q --cov=strategies.betting_against_beta --cov-report=term-missing on signals/strategy/portfolio/beta)
+1. MEASURE: Run targeted coverage on BAB modules to get exact missing lines/branches. (e.g. python3 -m pytest -q --cov=strategies.betting_against_beta.signals --cov-report=term-missing per module)
 2. HEAVY TDD: Pick >=2 modules from top of gap list (signals/strategy/portfolio/beta first). For each gap, write DETERMINISTIC/OFFLINE/SEEDED tests with REAL ASSERTIONS covering NaN/inf/zeros/mismatched shapes, tz/dates, coercion/NA, rolling stats edge cases, deciles/quantiles, ties, one-day lag, dollar-neutral, rank/decile logic, beta window constraints. Fix minimal implementation if needed to handle edge cases correctly.
 3. VERIFY: python3 -m pytest tests/test_betting_against_beta*.py -q stays green AND python3 -m pytest -q stays green. Report coverage delta per touched module + total BAB.
 4. HANDOFF DISCIPLINE: ONLY update THIS HANDOFF.md at end if state materially changes. NO COMMITS unless explicitly asked.
