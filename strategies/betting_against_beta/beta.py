@@ -68,35 +68,29 @@ def calculate_beta(asset_returns, benchmark_returns, min_obs=None):
         b = np.asarray(benchmark_returns, dtype=float).ravel()
         y = None
         x = None
-        if len(a) != len(b):
-            # Try to align as Series if different lengths
-            if isinstance(asset_returns, (pd.Series,)) or isinstance(benchmark_returns, (pd.Series,)):
-                try:
-                    if isinstance(asset_returns, np.ndarray):
-                        asset_returns = pd.Series(asset_returns)
-                    if isinstance(benchmark_returns, np.ndarray):
-                        benchmark_returns = pd.Series(benchmark_returns)
-                    if isinstance(asset_returns, list):
-                        asset_returns = pd.Series(asset_returns)
-                    if isinstance(benchmark_returns, list):
-                        benchmark_returns = pd.Series(benchmark_returns)
-                    aligned = pd.concat([asset_returns, benchmark_returns], axis=1).dropna()
-                    if len(aligned) == 0:
-                        return np.nan
-                    if min_obs is not None and len(aligned) < min_obs:
-                        return np.nan
-                    y = aligned.iloc[:, 0].to_numpy(dtype=float, copy=False)
-                    x = aligned.iloc[:, 1].to_numpy(dtype=float, copy=False)
-                except (TypeError, ValueError, AttributeError):
+        if isinstance(asset_returns, pd.Series) or isinstance(benchmark_returns, pd.Series):
+            # Series carry observation identity in their indexes. Always align
+            # by that identity, even when the two series have equal lengths.
+            try:
+                if not isinstance(asset_returns, pd.Series):
+                    asset_returns = pd.Series(np.asarray(asset_returns, dtype=float).ravel())
+                if not isinstance(benchmark_returns, pd.Series):
+                    benchmark_returns = pd.Series(np.asarray(benchmark_returns, dtype=float).ravel())
+                aligned = pd.concat([asset_returns, benchmark_returns], axis=1).dropna()
+                if len(aligned) == 0:
                     return np.nan
-            else:
-                # Truncate to common length
-                n = min(len(a), len(b))
-                a = a[:n]
-                b = b[:n]
-                y = a
-                x = b
+                if min_obs is not None and len(aligned) < min_obs:
+                    return np.nan
+                y = aligned.iloc[:, 0].to_numpy(dtype=float, copy=False)
+                x = aligned.iloc[:, 1].to_numpy(dtype=float, copy=False)
+            except (TypeError, ValueError, AttributeError):
+                return np.nan
         else:
+            # Plain arrays/lists have positional identity; truncate to common
+            # length rather than allowing a broadcasting failure.
+            n = min(len(a), len(b))
+            a = a[:n]
+            b = b[:n]
             y = a
             x = b
         if y is None or x is None:
