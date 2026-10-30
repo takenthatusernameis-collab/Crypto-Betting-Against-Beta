@@ -142,6 +142,9 @@ def test_validation_rejects_benchmark_without_finite_values():
     # the helper for this unit test so the explicit benchmark-finiteness gate
     # is exercised independently.
     monkeypatch.setattr(data_loader, "_drop_all_nan_columns", lambda value: value)
+    from strategies.betting_against_beta import data_loader
+
+    monkeypatch.setattr(data_loader, "_drop_all_nan_columns", lambda value: value)
     with pytest.raises(BABDataError, match="no finite return values"):
         validate_returns_dataframe(frame, benchmark="BTC")
 
