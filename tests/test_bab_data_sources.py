@@ -120,3 +120,79 @@ def test_data_cache_max_entries_non_positive():
     cache = DataCache(max_entries=0)
     cache.set("a", _df(5))
     assert cache.get("a") is None
+
+
+def test_hdf5_datasource_load_no_key_passes_through(tmp_path):
+    pytest.importorskip("tables")
+    p = tmp_path / "r.h5"
+    _df().to_hdf(p, key="data", mode="w")
+    out = HDF5DataSource(p).load(key="data")
+    assert isinstance(out, pd.DataFrame) and not out.empty
+
+
+def test_hdf5_datasource_load_no_key_no_extra_kwargs(tmp_path):
+    pytest.importorskip("tables")
+    p = tmp_path / "r.h5"
+    df = _df()
+    df.to_hdf(p, key="data", mode="w")
+    out = HDF5DataSource(p).load()
+    assert isinstance(out, pd.DataFrame)
+
+
+def test_parquet_pass_through_kwargs(tmp_path):
+    pytest.importorskip("pyarrow")
+    p = tmp_path / "r.parquet"
+    _df().to_parquet(p)
+    out = ParquetDataSource(p).load(benchmark="BTC", min_rows=1)
+    assert isinstance(out, pd.DataFrame)
+
+
+def test_pickle_pass_through_kwargs(tmp_path):
+    p = tmp_path / "r.pkl"
+    _df().to_pickle(p)
+    out = PickleDataSource(p).load(benchmark="BTC")
+    assert isinstance(out, pd.DataFrame)
+
+
+def test_csv_pass_through(tmp_path):
+    p = tmp_path / "r.csv"
+    _df().to_csv(p)
+    out = CSVDataSource(p).load(min_rows=10)
+    assert isinstance(out, pd.DataFrame)
+
+
+def test_dataframe_source_pass_through_kwargs():
+    df = _df()
+    out = DataFrameDataSource(df).load(benchmark="BTC", min_rows=5)
+    assert isinstance(out, pd.DataFrame)
+
+
+def test_data_cache_get_when_cached_not_dataframe():
+    cache = DataCache(max_entries=4)
+    # manually inject non-DataFrame
+    cache._cache["x"] = "notdf"
+    cache._order = ["x"]
+    assert cache.get("x") == "notdf"
+
+
+def test_data_cache_set_when_existing_key_updates_order():
+    cache = DataCache(max_entries=10)
+    cache.set("a", _df(3))
+    cache.set("a", _df(4))  # overwrite existing
+    got = cache.get("a")
+    assert isinstance(got, pd.DataFrame)
+
+
+def test_data_cache_evict_when_order_corrupted_value_error():
+    cache = DataCache(max_entries=1)
+    cache.set("a", _df(3))
+    # corrupt order
+    cache._order = []
+    cache.get("a")  # should handle ValueError on remove
+    cache.set("b", _df(3))  # should still evict properly
+
+
+def test_data_cache_set_non_dataframe_stored_as_is():
+    cache = DataCache(max_entries=3)
+    cache.set("x", "hello")
+    assert cache.get("x") == "hello"
