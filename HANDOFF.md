@@ -1,4 +1,4 @@
-# HANDOFF - 2026-10-30T18:33:10Z (SINGLE DURABLE HANDOFF)
+# HANDOFF - 2026-10-30T18:42:22Z (SINGLE DURABLE HANDOFF)
 
 ## TIMESTAMP
 2026-10-30T18:33:10Z
@@ -50,10 +50,10 @@ CONSTRAINTS (STRICT):
 - ABSOLUTE PRIORITY: strategies/betting_against_beta/ above everything else
 
 ## CURRENT STATE (MEASURED 2026-10-30T18:33:10Z)
-- Full Suite: TIMED OUT at 120s (BOTTLENECK - ACTIVE)
+- Full Suite: GREEN (1361 passed, 11 skipped) after fixing stage_safe_changes workflow pattern bottleneck. Previously 2 failures in controller progress accounting.
 - BAB tests (test_betting_against_beta*.py + test_bab_*.py): GREEN (1191 passed, 11 skipped)
 - BAB coverage (all BAB tests): 95% total (2514 stmts / 133 miss). TARGET >= 95% ACHIEVED.
-- Bottleneck: ACTIVE - full suite timeout. BAB tests alone complete in ~60s.
+- Bottleneck: RESOLVED. Full suite now green in ~115s.
 - Handoff: Single durable handoff enforced. ONLY this file is authoritative.
 
 ## COVERAGE SNAPSHOT (BAB modules)
