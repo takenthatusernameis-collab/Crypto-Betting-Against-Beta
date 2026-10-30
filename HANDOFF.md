@@ -1,7 +1,7 @@
-# HANDOFF - 2026-10-30T08:52:01Z (SINGLE DURABLE HANDOFF)
+# HANDOFF - 2026-10-30T08:54:33Z (SINGLE DURABLE HANDOFF)
 
 ## TIMESTAMP
-2026-10-30T08:52:01Z
+2026-10-30T08:54:33Z
 
 ## IMMEDIATE ACTION FOR NEXT AGENT (COPY/PASTE AS FIRST MESSAGE)
 ```
@@ -59,7 +59,7 @@ START NOW: Open beta.py missing lines and write failing tests for each uncovered
 - Full Suite: 1012 passed, 11 skipped (GREEN)
 - BAB coverage TOTAL: 94% (target >=95%)
 - Biggest gaps: beta.py 88%, data_loader.py 89%, backtest.py 91%, quality.py 92%
-- Bottlenecks: NONE. Controller test drift fixed; gates green.
+- Bottlenecks: NONE. Controller test drift fixed (added */.github/workflows/* to stage_safe_changes case list); gates green (1012 passed, 11 skipped).
 - Handoff: Single durable handoff enforced. Only this file is authoritative.
 
 ## EXECUTION DIRECTIVES
