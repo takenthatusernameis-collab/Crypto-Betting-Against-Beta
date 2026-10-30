@@ -1,13 +1,13 @@
-# HANDOFF - 2026-10-30T01:25:00Z (SINGLE DURABLE HANDOFF)
+# HANDOFF - 2026-10-30T01:28:39Z (SINGLE DURABLE HANDOFF)
 
 ## TIMESTAMP
-2026-10-30T01:25:00Z
+2026-10-30T01:28:39Z
 
 ## IMMEDIATE ACTION FOR NEXT AGENT (COPY/PASTE AS FIRST MESSAGE)
 ```
 PRIORITY: strategies/betting_against_beta/ > everything else. Repo identity = Crypto-Betting-Against-Beta (BAB crypto).
 
-GATE: python3 -m pytest -q must stay GREEN. Current state: 914 passed, 8 skipped (2 infra pattern tests just fixed). Do NOT break the suite.
+GATE: python3 -m pytest -q must stay GREEN. Current state: 916 passed, 8 skipped. Do NOT break the suite.
 
 CAMPAIGN: DRIVE BAB TO >=95% COVERAGE WITH HEAVY WORK (>=4 FILES WITH REAL LOGIC/TESTS PER SESSION). NO DOCS-ONLY.
 
@@ -37,7 +37,7 @@ RULES:
 
 ## BOTTLENECKS REMOVED
 - **Workflow/controller pattern sync:** Fixed `.github/workflows/main.yml` stage_safe_changes to include `*/.github/workflows/*` matching `scripts/controller_progress.py` EXCLUDE_PATTERNS. All pattern sync tests pass.
-- **Suite gate restored:** `python3 -m pytest -q` = 914 passed, 8 skipped (after fixes). Controller-progress tests all pass (68/68).
+- **Suite gate restored:** `python3 -m pytest -q` = 916 passed, 8 skipped. Controller-progress tests all pass (68/68). Nested workflow pattern `*/.github/workflows/*` added to stage_safe_changes; bottleneck removed.
 
 ## ACTIVE COVERAGE TARGETS (EXECUTE IN ORDER)
 1. **costs.py** — cover remaining uncovered lines; strengthen finiteness/edge cases.
