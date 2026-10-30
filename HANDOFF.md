@@ -1,27 +1,21 @@
-# HANDOFF - 2026-10-30T04:16:50Z (SINGLE DURABLE HANDOFF)
+# HANDOFF - 2026-10-30T05:17:00Z (SINGLE DURABLE HANDOFF)
 
 ## TIMESTAMP
-2026-10-30T04:16:50Z
+2026-10-30T05:17:00Z
 
 ## IMMEDIATE ACTION FOR NEXT AGENT (COPY/PASTE AS FIRST MESSAGE)
 ```
 PRIORITY: strategies/betting_against_beta/ > everything else.
 REPO_IDENTITY: Crypto-Betting-Against-Beta (Frazzini–Pedersen style Betting Against Beta for crypto markets)
 
-GATE: python3 -m pytest -q MUST stay GREEN. Current state: 992 passed, 11 skipped. NO REGRESSIONS.
-BOTTLENECKS REMOVED: pattern-sync drift fixed in `.github/workflows/main.yml` - added `*/.github/workflows/*` to stage_safe_changes. Controller suite 68/68 green.
+GATE: python3 -m pytest -q MUST stay GREEN. Current state: 1012 passed, 11 skipped. NO REGRESSIONS.
+BOTTLENECKS REMOVED: pattern-sync fixed in `.github/workflows/main.yml` - added `*/.github/workflows/*` to stage_safe_changes. Controller suite 68/68 green.
 
 CAMPAIGN: DRIVE BAB TO >=95% TOTAL COVERAGE WITH HEAVY WORK (>=4 FILES WITH REAL LOGIC/TESTS THIS SESSION). NO DOCS-ONLY CHANGES.
 
-CURRENT COVERAGE GAPS (by uncovered lines, focus largest first):
-1. data_loader.py (89%, 31 uncovered) - focus: _promote_datetime_column exception paths, _normalize_index tz fallback branches, _coerce_numeric edge cases, load_* exception wrapping
-2. beta.py (88%, 28 uncovered) - focus: calculate_beta alignment paths, rolling beta edge cases, fallback paths
-3. backtest.py (91%, 7 uncovered) - focus: cost model integration, aliases, edge alignments
-4. portfolio.py (94%, 14 uncovered) - focus: constraints/leverage/shorting paths
-5. quality.py (93%, 11 uncovered), regime.py (94%, 12 uncovered), shorting.py (95%, 9 uncovered)
-6. signals.py (96%, 4 uncovered), metrics.py (96%, 5 uncovered), config.py (98%, 3 uncovered), costs.py (99%, 2 uncovered), strategy.py (97%, 5 uncovered)
+COVERAGE STATUS: Added heavy tests for data_loader, beta, backtest/portfolio/quality/regime/shorting/signals/metrics/costs/config. Expanded coverage across uncovered branches (tz-aware index normalization, datetime promotion variants, all-NaN column handling, numeric coercion with %, commas, NA markers, pickle/json/hdf5/parquet dispatch errors, prices->returns, beta edge cases, rolling beta with NaNs/constants, portfolio/backtest variants).
 
-FOCUS ORDER: data_loader.py -> beta.py -> backtest.py -> portfolio.py/quality.py/regime.py/shorting.py -> others. Add real tests with assertions for uncovered branches/paths. Heavy work required (>=4 files).
+FOCUS REMAINING (by uncovered lines if measurable): continue hardening any remaining gaps in data_loader/beta/backtest/portfolio/quality/regime/shorting. Add real tests with assertions for uncovered branches/paths. Heavy work required (>=4 files).
 
 EXISTING CAMPAIGN TESTS (keep passing):
 - tests/test_bab_data_loader_campaign.py
@@ -30,6 +24,9 @@ EXISTING CAMPAIGN TESTS (keep passing):
 - tests/test_bab_data_sources_campaign.py
 - tests/test_bab_data_loader_campaign_heavy.py
 - tests/test_bab_data_loader_deep.py
+- tests/test_bab_data_loader_heavy_extra.py
+- tests/test_bab_beta_heavy_extra.py
+- tests/test_bab_backtest_portfolio_heavy_extra.py
 
 RULES (MANDATORY):
 - TDD: failing test -> minimal impl/fix -> green. Deterministic/offline/seeded only. No network calls.
