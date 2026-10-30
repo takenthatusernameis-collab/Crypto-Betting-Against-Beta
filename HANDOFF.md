@@ -1,7 +1,7 @@
-# HANDOFF - 2026-10-30T10:12:00Z (SINGLE DURABLE HANDOFF)
+# HANDOFF - 2026-10-30T10:16:57Z (SINGLE DURABLE HANDOFF)
 
 ## TIMESTAMP
-2026-10-30T10:12:00Z
+2026-10-30T10:16:57Z
 
 ## IMMEDIATE ACTION FOR NEXT AGENT (COPY/PASTE AS FIRST MESSAGE)
 ```
@@ -48,7 +48,7 @@ STRICT RULES:
 - ABSOLUTE PRIORITY: strategies/betting_against_beta/ above everything else
 
 ## CURRENT STATE (MEASURED)
-- Full Suite: 1012 passed, 11 skipped (GREEN)
+- Full Suite: 1109 passed, 11 skipped (GREEN)
 - BAB tests (test_betting_against_beta*.py + test_bab_*.py): GREEN (285 passed, 6 skipped in BAB-specific set; combined all BAB tests passing)
 - BAB coverage (all BAB tests): 65% total (2454 stmts / 857 miss). TARGET >= 95%
 - Bottlenecks: NONE - gates green, ready for heavy campaign
