@@ -1,46 +1,36 @@
-# HANDOFF - 2026-10-30T09:38:00Z (SINGLE DURABLE HANDOFF)
+# HANDOFF - 2026-10-30T09:40:00Z (SINGLE DURABLE HANDOFF)
 
 ## TIMESTAMP
-2026-10-30T09:38:00Z
+2026-10-30T09:40:00Z
 
 ## IMMEDIATE ACTION FOR NEXT AGENT (COPY/PASTE AS FIRST MESSAGE)
 ```
 PRIORITY: strategies/betting_against_beta/ > everything else.
 REPO_IDENTITY: Crypto-Betting-Against-Beta (Frazzini–Pedersen Betting Against Beta for crypto: long low-beta, short high-beta vs BTC benchmark).
 
-GATE: python3 -m pytest -q MUST stay GREEN. Last verified: 1012 passed, 11 skipped (GREEN). BAB tests (tests/test_betting_against_beta*.py) must pass.
-BOTTLECKS: NONE. Controller/workflow drift fixed (stage_safe_changes synced to include */.github/workflows/*).
+GATE: python3 -m pytest -q MUST stay GREEN. Last verified: 1012 passed, 11 skipped (GREEN). BAB tests (tests/test_betting_against_beta*.py) must pass (last run: 285 passed, 6 skipped).
 
-CURRENT COVERAGE (BAB modules, term-missing) - Coverage via tests/test_betting_against_beta*.py only:
-- TOTAL BAB: 65% (2454 stmts / 857 miss). Need to drive to >=95%.
-- beta.py          59%  (missing: 10-19,23-53,68-93,98,105-106,108,118,120-125,134,136-137,142,144,148,154,156-159,173,216,218,300-309)
-- data_loader.py   70%  (large gaps: 37-41,44,47,64-65,72-73,86-87,107,117-119,149,...,479-484)
-- backtest.py      73%  (20,23-26,28-31,49-53,58-59,69-70,77-78,102)
-- quality.py       7%   (mostly untested)
-- portfolio.py     54%  (17-40,70-71,87-88,155-160,178-179,200-201,204-205,212-213,260-346)
-- regime.py        63%  (14,16,18,31,79,81-85,97,111,130,139-140,157-193,212,217,221,243-246,255,259,269-271,275-282)
-- data_sources.py  42%  (mostly untested)
-- signals 45%, strategy 53%, config 74%, shorting 95%, metrics 96%, sizing 99%, costs 99%, attribution 14%, cli 0%, data 100%, errors/__init__ 100%
+BOTTLECKS: NONE. No infrastructure/workflow blockers detected.
 
-MANDATORY CAMPAIGN (HEAVY WORK): Drive BAB total >=95%. Touch >=4 files with REAL LOGIC/TESTS. Do not do docs-only.
+CAMPAIGN: DRIVE BAB TOTAL COVERAGE >= 95%. Touch >= 4 FILES WITH REAL LOGIC/TESTS. No docs-only work.
 
-FOCUS ORDER:
-1) beta.py (59%) - estimate_betas/rolling_beta branches, calculate_beta alignment/truncation/degenerate, calculate_beta_fast guards, _calc_rolling_beta_series edge cases
-2) data_loader.py (70%) - many paths (CSV/JSON, coercion, tz, empty/single-asset, NA/inf, bad dates)
-3) backtest.py (73%) - costs, cumulative, one-day lag edges
-4) quality.py (7%) - entire module needs tests
+FOCUS ORDER (by impact + uncovered surface):
+1) quality.py (7%)   - Entire module untested. Add deterministic unit tests for all public functions + edge cases (NaN/inf/empty/degenerate). This is the biggest gap.
+2) beta.py (59%)     - Expand tests for calculate_beta, calculate_rolling_beta, _calc_rolling_beta_series, calculate_beta_fast, estimate_betas. Cover truncation/alignment, insufficient history, degenerate variances, NaN/inf, ties.
+3) data_loader.py (70%) - Cover CSV/JSON loaders, tz/naive handling, coercion, empty/single-asset, malformed dates (enforce BABDataError), NA/inf, bad indices.
+4) backtest.py (73%) - Costs, one-day lag enforcement, cumulative paths, transaction costs, edge cases with NaN/inf/flat periods.
 
 EXECUTE IN ORDER:
-1. MEASURE: PYTHONPATH=/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta python3 -m pytest tests/test_betting_against_beta*.py -q --cov=strategies.betting_against_beta --cov-report=term-missing to get exact current gaps/branches.
-2. TDD PER GAP: For each uncovered line/branch in beta.py first, write DETERMINISTIC/OFFLINE/SEEDED tests with REAL ASSERTIONS (NaN/inf/zeros/mismatched shapes, ties, deciles/quantiles, one-day lag, dollar-neutral). Make them fail, fix minimal impl to be correct, go green.
-3. REPEAT for data_loader.py, backtest.py, quality.py as needed to reach >=95% total BAB without regressing >=95% modules.
+1. MEASURE: PYTHONPATH=/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta python3 -m pytest tests/test_betting_against_beta*.py -q --cov=strategies.betting_against_beta --cov-report=term-missing
+2. TDD PER GAP: For each uncovered line/branch, write DETERMINISTIC/OFFLINE/SEEDED tests with REAL ASSERTIONS (shapes, finiteness, invariants). Make them fail, fix minimal impl to be correct, go green.
+3. REPEAT until BAB total >= 95% without regressing >=95% modules. Touch >=4 files.
 4. VERIFY: PYTHONPATH=/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta python3 -m pytest tests/test_betting_against_beta*.py -q && PYTHONPATH=/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta python3 -m pytest -q stay green. Report coverage delta per touched module + BAB total.
 5. HANDOFF: ONLY update THIS HANDOFF.md at end if state materially changes. NO COMMITS unless explicitly asked.
 
 STRICT RULES:
 - Deterministic/offline/seeded only. No network.
-- NO bare except:. Enforce finiteness (no NaN/inf).
-- Preserve invariants: one-day lag, dollar-neutral where applicable, quantile/decile logic, beta window constraints, rank logic.
+- NO bare except:. Enforce finiteness (no NaN/inf). Raise BAB errors on bad inputs.
+- Preserve invariants: one-day lag, dollar-neutral where applicable, quantile/decile logic, beta window constraints (>=60 obs default), rank logic.
 - TDD: failing test -> minimal impl/fix -> green.
 - BAB-first. Only touch infra/workflows if they break BAB gate.
 - Real tests with assertions; >=4 files touched.
@@ -53,11 +43,35 @@ STRICT RULES:
 - Core Modules: strategies/betting_against_beta/
 - ABSOLUTE PRIORITY: `strategies/betting_against_beta/` above everything else
 
-## CURRENT STATE
+## CURRENT STATE (MEASURED)
 - Full Suite: 1012 passed, 11 skipped (GREEN)
-- BAB coverage (tests/test_betting_against_beta*.py): 65% total (target >=95%)
-- Bottlenecks: NONE (workflow/controller drift resolved)
+- BAB tests: 285 passed, 6 skipped (GREEN)
+- BAB coverage (tests/test_betting_against_beta*.py): 65% total (2454 stmts / 857 miss). TARGET: >= 95%
+- Bottlenecks: NONE
 - Handoff: Single durable handoff enforced. Only this file is authoritative.
+
+## COVERAGE SNAPSHOT (BAB modules)
+| Module | Stmts | Miss | Cover | Priority |
+|---|---|---|---|---|
+| quality.py | 163 | 152 | 7% | P0 |
+| attribution.py | 37 | 32 | 14% | P4 |
+| data_sources.py | 67 | 39 | 42% | P4 |
+| portfolio.py | 223 | 103 | 54% | P3 |
+| beta.py | 235 | 96 | 59% | P1 |
+| regime.py | 186 | 69 | 63% | P3 |
+| data_loader.py | 287 | 85 | 70% | P1 |
+| backtest.py | 74 | 20 | 73% | P2 |
+| config.py | 199 | 52 | 74% | P4 |
+| signals.py | 113 | 62 | 45% | P3 |
+| strategy.py | 198 | 93 | 53% | P3 |
+| shorting.py | 172 | 9 | 95% | OK |
+| sizing.py | 163 | 4 | 98% | OK |
+| costs.py | 150 | 2 | 99% | OK |
+| metrics.py | 132 | 5 | 96% | OK |
+| data.py | 15 | 0 | 100% | OK |
+| errors/__init__ | 2 | 0 | 100% | OK |
+| __init__ | 4 | 0 | 100% | OK |
+| cli.py | 34 | 34 | 0% | LOW (only if time after >=95%) |
 
 ## EXECUTION DIRECTIVES
 - Product-first: BAB never deprioritized.
