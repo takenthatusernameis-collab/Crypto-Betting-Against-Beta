@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
+import pytest
 
 from strategies.betting_against_beta.beta import (
     _calc_rolling_beta_series,
@@ -53,7 +54,7 @@ def test_fast_beta_filters_nonfinite_pairs_and_honors_minimum_observations():
     asset = np.array([2.0, np.nan, 6.0, 8.0])
     benchmark = np.array([1.0, 2.0, 3.0, 4.0])
 
-    assert calculate_beta_fast(asset, benchmark, min_obs=3) == 2.0
+    assert calculate_beta_fast(asset, benchmark, min_obs=3) == pytest.approx(2.0)
     assert np.isnan(calculate_beta_fast(asset, benchmark, min_obs=4))
 
 
@@ -71,8 +72,15 @@ def test_fast_beta_returns_zero_for_constant_benchmark():
     assert calculate_beta_fast([1.0, 2.0, 3.0], [5.0, 5.0, 5.0]) == 0.0
 
 
-def test_calculate_beta_returns_nan_when_series_indexes_do_not_overlap():
-    asset = pd.Series([0.1, 0.2], index=["a", "b"])
-    benchmark = pd.Series([0.3, 0.4], index=["c", "d"])
+def test_equal_length_series_preserve_positional_beta_semantics():
+    asset = pd.Series([0.2, 0.4], index=["asset-1", "asset-2"])
+    benchmark = pd.Series([0.1, 0.2], index=["benchmark-1", "benchmark-2"])
+
+    assert calculate_beta(asset, benchmark) == pytest.approx(2.0)
+
+
+def test_mismatched_length_series_align_by_index_and_reject_empty_overlap():
+    asset = pd.Series([0.1, 0.2, 0.3], index=["a", "b", "c"])
+    benchmark = pd.Series([0.3, 0.4], index=["x", "y"])
 
     assert np.isnan(calculate_beta(asset, benchmark))
