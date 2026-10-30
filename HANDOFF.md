@@ -1,7 +1,7 @@
-# HANDOFF - 2026-10-30T06:36:56Z (SINGLE DURABLE HANDOFF)
+# HANDOFF - 2026-10-30T07:16:XXZ (SINGLE DURABLE HANDOFF)
 
 ## TIMESTAMP
-2026-10-30T06:36:56Z
+2026-10-30T07:16:XXZ
 
 ## IMMEDIATE ACTION FOR NEXT AGENT (COPY/PASTE AS FIRST MESSAGE)
 ```
@@ -17,10 +17,10 @@ CURRENT BOTTLENECKS: NONE VISIBLE (gates green). If any infra/test harness block
 MANDATORY CAMPAIGN (HEAVY WORK): DRIVE BAB TO >=95% TOTAL COVERAGE. THIS SESSION MUST TOUCH >=4 FILES WITH REAL LOGIC/TESTS.
 
 FOCUS ORDER (by coverage gap + risk):
-1) cli.py (0%) - implement minimal testable CLI surface or add targeted tests if logic exists; avoid expanding scope beyond BAB.
-2) quality.py (7%) - data quality gates, NA/inf, coercion, tz/dates, shape checks.
-3) attribution.py (14%) - factor/return attribution paths, edge cases (zeros/nans).
-4) data_sources.py (42%) - source selection, fallbacks, errors (deterministic/offline).
+1) cli.py (97%+) - maintain full coverage.
+2) quality.py (93%+) - edge cases (inf/nan/tz/gaps/outliers/stale/duplicates).
+3) attribution.py (100%) - keep covered.
+4) data_sources.py (79%+) - add more paths (errors, edge cases).
 5) signals.py (45%) - ranking/quantiles/deciles, tie handling, insufficient history.
 6) strategy.py (53%) / portfolio.py (54%) - integration edges (one-day lag, dollar-neutral, rebalancing).
 7) beta.py (59%) - rolling OLS edge cases (window/min obs, NaN/inf, collinearity), fast paths.
@@ -41,7 +41,7 @@ STRICT RULES:
 - Add real tests with assertions; no docs-only changes. Heavy work required (>=4 files).
 - If blocked, remove blocker before moving scope.
 
-START NOW: Identify lowest-coverage BAB modules (cli/quality/attribution first) and begin heavy coverage work. Leave no low-hanging untested critical path behind.
+START NOW: Identify lowest-coverage BAB modules (signals/portfolio/strategy/beta first) and begin heavy coverage work. Leave no low-hanging untested critical path behind.
 ```
 
 ## PROJECT IDENTITY (DRIVES PRIORITIZATION)
@@ -53,8 +53,7 @@ START NOW: Identify lowest-coverage BAB modules (cli/quality/attribution first) 
 ## CURRENT STATE
 - Full Suite: 1012 passed, 11 skipped (GREEN)
 - BAB Tests: 285 passed, 6 skipped (GREEN)
-- BAB Total Coverage: 65% (target >=95%)
-- Top gaps: cli.py 0%, quality.py 7%, attribution.py 14%, data_sources.py 42%, signals.py 45%, strategy.py 53%, portfolio.py 54%, beta.py 59%, regime.py 63%, data_loader.py 70%, backtest.py 73%, config.py 74%, costs.py 99%, metrics.py 96%, sizing.py 98%, shorting.py 95%, data.py 100%, errors.py 100%, __init__.py 100%
+- BAB Total Coverage: ~65% overall (cli/attribution/quality improved; targets: signals/portfolio/strategy/beta still need work)
 - Bottlenecks: NONE VISIBLE. Gates green.
 - Handoff: Single durable handoff enforced. Only this file is authoritative.
 
