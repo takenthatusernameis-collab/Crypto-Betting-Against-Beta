@@ -69,17 +69,14 @@ def calculate_beta(asset_returns, benchmark_returns, min_obs=None):
         y = None
         x = None
         if len(a) != len(b):
-            # Try to align as Series if different lengths
-            if isinstance(asset_returns, (pd.Series,)) or isinstance(benchmark_returns, (pd.Series,)):
+            # Preserve the established behavior: only mismatched-length
+            # Series are aligned by index; equal-length inputs remain positional.
+            if isinstance(asset_returns, pd.Series) or isinstance(benchmark_returns, pd.Series):
                 try:
-                    if isinstance(asset_returns, np.ndarray):
-                        asset_returns = pd.Series(asset_returns)
-                    if isinstance(benchmark_returns, np.ndarray):
-                        benchmark_returns = pd.Series(benchmark_returns)
-                    if isinstance(asset_returns, list):
-                        asset_returns = pd.Series(asset_returns)
-                    if isinstance(benchmark_returns, list):
-                        benchmark_returns = pd.Series(benchmark_returns)
+                    if not isinstance(asset_returns, pd.Series):
+                        asset_returns = pd.Series(np.asarray(asset_returns, dtype=float).ravel())
+                    if not isinstance(benchmark_returns, pd.Series):
+                        benchmark_returns = pd.Series(np.asarray(benchmark_returns, dtype=float).ravel())
                     aligned = pd.concat([asset_returns, benchmark_returns], axis=1).dropna()
                     if len(aligned) == 0:
                         return np.nan
@@ -90,7 +87,6 @@ def calculate_beta(asset_returns, benchmark_returns, min_obs=None):
                 except (TypeError, ValueError, AttributeError):
                     return np.nan
             else:
-                # Truncate to common length
                 n = min(len(a), len(b))
                 a = a[:n]
                 b = b[:n]
@@ -99,6 +95,7 @@ def calculate_beta(asset_returns, benchmark_returns, min_obs=None):
         else:
             y = a
             x = b
+
         if y is None or x is None:
             return np.nan
 
@@ -134,30 +131,35 @@ def calculate_beta_fast(a, b, min_obs=None):
     """Fast beta calculation with pre-converted arrays."""
     try:
         try:
-            a = np.asarray(a, dtype=float)
-            b = np.asarray(b, dtype=float)
+            a_arr = np.asarray(a, dtype=float).ravel()
+            b_arr = np.asarray(b, dtype=float).ravel()
         except (TypeError, ValueError, AttributeError):
             return 0.0
-        mask = np.isfinite(a) & np.isfinite(b)
+
+        # Match calculate_beta's positional truncation for array-like inputs
+        # whose lengths differ. The fast path must not fail on broadcasting.
+        common_len = min(len(a_arr), len(b_arr))
+        a_arr = a_arr[:common_len]
+        b_arr = b_arr[:common_len]
+        if common_len == 0:
+            return np.nan
+
+        mask = np.isfinite(a_arr) & np.isfinite(b_arr)
         if not np.any(mask):
             return np.nan
-        if not np.all(mask):
-            a_m = a[mask]
-            b_m = b[mask]
-        else:
-            a_m = a
-            b_m = b
-        if len(a_m) == 0:
+        a_valid = a_arr[mask]
+        b_valid = b_arr[mask]
+        if min_obs is not None and len(a_valid) < min_obs:
             return np.nan
-        if min_obs is not None and len(a_m) < min_obs:
-            return np.nan
-        # Guard against constant/degenerate benchmark
-        b_std = np.std(b_m)
+
+        # Guard against constant/degenerate benchmark.
+        b_std = np.std(b_valid)
         if b_std < 1e-18 or not np.isfinite(b_std):
             return 0.0
-        X = np.column_stack([np.ones(len(b_m), dtype=float), b_m])
+
+        X = np.column_stack([np.ones(len(b_valid), dtype=float), b_valid])
         try:
-            coeffs, _, _, _ = np.linalg.lstsq(X, a_m, rcond=None)
+            coeffs, _, _, _ = np.linalg.lstsq(X, a_valid, rcond=None)
             beta = coeffs[1]
             if not np.isfinite(beta):
                 return 0.0
@@ -171,27 +173,34 @@ def calculate_beta_fast(a, b, min_obs=None):
 
 
 def _calc_rolling_beta_series(bench_arr, a_arr, window, min_obs):
-    """Compute rolling beta series for a single asset (fully vectorized).
+    """Compute rolling beta for a single asset using finite rolling windows.
 
-    Same numerics as the previous per-row loop: OLS slope per window derived
-    from cumulative sums, with degenerate windows -> 0.0 and insufficient /
-    non-finite windows -> NaN.
+    A window containing any non-finite benchmark/asset observation is invalid.
+    Once that observation leaves the window, subsequent windows recover. This
+    matches a per-window OLS calculation while retaining vectorized prefix sums.
     """
-    n = len(bench_arr)
-    rolling_betas_arr = np.empty(n, dtype=float)
-    rolling_betas_arr[:] = np.nan
+    bench = np.asarray(bench_arr, dtype=float).ravel()
+    asset = np.asarray(a_arr, dtype=float).ravel()
+    if len(bench) != len(asset):
+        raise ValueError("benchmark and asset arrays must have equal lengths")
+
+    n = len(bench)
+    result = np.full(n, np.nan, dtype=float)
     if n == 0:
-        return rolling_betas_arr
-    bench_arr_f = np.asarray(bench_arr, dtype=float)
-    a_arr_f = np.asarray(a_arr, dtype=float)
-    # Precompute products
-    xy = a_arr_f * bench_arr_f
-    xx = bench_arr_f * bench_arr_f
-    ones = np.ones(n, dtype=float)
-    # Cumulative sums (NaN propagates, matching the legacy per-row semantics)
-    csum1 = np.concatenate(([0.0], np.cumsum(ones)))
-    csumx = np.concatenate(([0.0], np.cumsum(bench_arr_f)))
-    csumy = np.concatenate(([0.0], np.cumsum(a_arr_f)))
+        return result
+    if window < 1 or min_obs < 1:
+        raise ValueError("window and min_obs must be positive")
+
+    finite = np.isfinite(bench) & np.isfinite(asset)
+    x = np.where(finite, bench, 0.0)
+    y = np.where(finite, asset, 0.0)
+    xy = x * y
+    xx = x * x
+    # Invalid counts allow a bad observation to invalidate only windows that
+    # contain it, rather than poisoning all later prefix-sum results.
+    invalid_count = np.concatenate(([0], np.cumsum(~finite, dtype=np.int64)))
+    csumx = np.concatenate(([0.0], np.cumsum(x)))
+    csumy = np.concatenate(([0.0], np.cumsum(y)))
     csumxy = np.concatenate(([0.0], np.cumsum(xy)))
     csumxx = np.concatenate(([0.0], np.cumsum(xx)))
 
@@ -200,25 +209,24 @@ def _calc_rolling_beta_series(bench_arr, a_arr, window, min_obs):
     ends = idx + 1
     window_len = ends - starts
 
-    cnt = csum1[ends] - csum1[starts]
+    bad_in_window = invalid_count[ends] - invalid_count[starts] > 0
     x_sum = csumx[ends] - csumx[starts]
     y_sum = csumy[ends] - csumy[starts]
     xy_sum = csumxy[ends] - csumxy[starts]
     xx_sum = csumxx[ends] - csumxx[starts]
 
     with np.errstate(invalid="ignore", divide="ignore"):
-        denom = cnt * xx_sum - x_sum * x_sum
-        num = cnt * xy_sum - x_sum * y_sum
-        beta = np.divide(num, denom)
+        denom = window_len * xx_sum - x_sum * x_sum
+        numerator = window_len * xy_sum - x_sum * y_sum
+        beta = np.divide(numerator, denom)
 
-    degenerate = (~np.isfinite(denom)) | (np.abs(denom) < 1e-18)
     enough = window_len >= min_obs
-
-    rolling_betas_arr[:] = np.nan
-    rolling_betas_arr[enough & degenerate] = 0.0
-    valid = enough & ~degenerate & np.isfinite(beta)
-    rolling_betas_arr[valid] = beta[valid]
-    return rolling_betas_arr
+    degenerate = (~np.isfinite(denom)) | (np.abs(denom) < 1e-18)
+    valid_window = enough & ~bad_in_window
+    result[valid_window & degenerate] = 0.0
+    valid = valid_window & ~degenerate & np.isfinite(beta)
+    result[valid] = beta[valid]
+    return result
 
 
 def calculate_rolling_beta(returns_df, benchmark_name, window=90, min_obs=60):

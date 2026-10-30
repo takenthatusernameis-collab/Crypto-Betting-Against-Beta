@@ -18,6 +18,7 @@ from strategies.betting_against_beta.quality import (
     detect_outliers,
     detect_stale_data,
     detect_volume_anomalies,
+    compute_quality,
 )
 
 SEED = 20261029
@@ -299,6 +300,89 @@ class TestDetectDuplicateTimestamps:
         assert result["has_duplicates"] is False
         assert result["count"] == 0
 
+
+
+class TestQualityExceptionAndTerminalBranches:
+    def test_report_handles_unconvertible_object_column(self):
+        df = pd.DataFrame({"RAW": [["x"], ["y"], ["z"]]})
+        report = data_quality_report(df)
+        raw = report["columns"][0]
+        assert raw["missing"] == 3
+        assert raw["min"] is None
+        assert raw["max"] is None
+        assert report["summary"]["all_finite"] is False
+
+    def test_outlier_and_stale_detectors_return_safe_empty_results_for_bad_objects(self):
+        df = pd.DataFrame({"RAW": [["x"], ["y"], ["z"]]})
+        assert detect_outliers(df)["RAW"] == {"outliers": [], "count": 0}
+        assert detect_stale_data(df)["RAW"] == {"stale_runs": [], "count": 0}
+
+    def test_volume_anomaly_detector_handles_uncoercible_volume(self):
+        df = pd.DataFrame({"volume": [["x"], ["y"], ["z"]]})
+        assert detect_volume_anomalies(df)["volume"] == {
+            "anomalies": [],
+            "count": 0,
+        }
+
+    def test_gap_detector_returns_empty_for_zero_median_interval(self):
+        index = pd.to_datetime(
+            ["2026-01-01", "2026-01-01", "2026-01-01"]
+        )
+        df = pd.DataFrame({"BTC": [0.1, 0.1, 0.1]}, index=index)
+        assert detect_gaps(df) == {"gaps": [], "count": 0}
+
+    def test_compute_quality_returns_empty_frame_for_no_columns(self):
+        df = pd.DataFrame(index=pd.date_range("2026-01-01", periods=3, freq="D"))
+        result = compute_quality(df)
+        assert result.empty
+
+    def test_stale_run_at_end_of_series_is_flushed(self):
+        df = pd.DataFrame(
+            {"BTC": [0.01, 0.02, 0.03, 0.04, 0.04, 0.04, 0.04]},
+            index=pd.date_range("2026-01-01", periods=7, freq="D"),
+        )
+        assert detect_stale_data(df, threshold=3)["BTC"]["count"] == 1
+
+    def test_quality_coercion_exception_uses_safe_empty_numeric_array(self, monkeypatch):
+        from strategies.betting_against_beta import quality
+
+        def fail_to_numeric(*_args, **_kwargs):
+            raise TypeError("forced coercion failure")
+
+        monkeypatch.setattr(pd, "to_numeric", fail_to_numeric)
+        df = pd.DataFrame(
+            {"BTC": [0.01, 0.02, 0.03], "ETH": [0.02, 0.03, 0.04]},
+            index=pd.date_range("2026-01-01", periods=3, freq="D"),
+        )
+        report = quality.data_quality_report(df)
+        assert all(column["missing"] == 3 for column in report["columns"])
+
+        assert quality.detect_outliers(df)["BTC"]["count"] == 0
+        assert quality.detect_stale_data(df)["BTC"]["count"] == 0
+        assert quality.detect_volume_anomalies(
+            pd.DataFrame({"volume": [1.0, 2.0, 3.0]})
+        )["volume"]["count"] == 0
+
+    def test_quality_score_penalties_are_bounded_and_combined(self, monkeypatch):
+        from strategies.betting_against_beta import quality
+
+        monkeypatch.setattr(
+            quality,
+            "data_quality_report",
+            lambda _df: {
+                "columns": [
+                    {
+                        "name": "BTC",
+                        "missing_pct": 0.2,
+                        "inf": 10,
+                        "outliers": {"zscore_outliers": 20},
+                        "stale_consecutive": 20,
+                    }
+                ]
+            },
+        )
+        result = quality.compute_quality(pd.DataFrame({"BTC": [0.1] * 10}))
+        assert result.loc[0, "quality_score"] == 0.3
 
 
 class TestDataQualityReportExtraGaps:
