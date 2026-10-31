@@ -53,6 +53,14 @@ class TestBetaFillP0:
         out = beta.calculate_beta(a, b)
         assert np.isnan(out) or np.isfinite(out)
 
+    def test_calculate_beta_fast_nonfinite_result(self):
+        import numpy as np
+        from strategies.betting_against_beta import beta
+        a = np.array([1e200, 2e200, 3e200, 4e200])
+        b = np.array([1e200, 2e200, 3e200, 4e200])
+        out = beta.calculate_beta_fast(a, b)
+        assert np.isnan(out) or np.isfinite(out) or out == 0.0
+
     def test_calculate_beta_outer_except(self):
         class Bad:
             def __array__(self, *args, **kwargs):

@@ -19,6 +19,12 @@ class TestBetaExtraGaps2:
         out = beta.calculate_beta_fast(a, b, min_obs=10)
         assert np.isnan(out)
 
+    def test_calculate_beta_fast_no_mask_branch(self):
+        a = np.array([0.01, 0.02, 0.03, 0.04])
+        b = np.array([0.005, 0.01, 0.015, 0.02])
+        out = beta.calculate_beta_fast(a, b)
+        assert np.isfinite(out)
+
     def test_calculate_beta_fast_nonfinite_beta(self):
         # Try to trigger non-finite coeff
         a = np.array([0.0, 0.0, 0.0])

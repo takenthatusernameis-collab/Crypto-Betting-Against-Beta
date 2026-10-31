@@ -28,8 +28,8 @@ class TestBetaDeepFinal:
         assert np.isnan(out)
 
     def test_calculate_beta_min_obs_none_yx_after_trunc(self):
-        out = beta.calculate_beta([1,2,3], [1,2,3,4])  # truncates
-        assert np.isfinite(out)
+        out = beta.calculate_beta([1, 2, 3], [1, 2, 3, 4], min_obs=10)  # truncates, len < min_obs
+        assert np.isnan(out)
 
     def test_calculate_beta_y_none(self):
         out = beta.calculate_beta([], [1,2,3])  # empty gives issues

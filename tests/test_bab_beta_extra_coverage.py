@@ -56,8 +56,25 @@ def test_calculate_beta_empty_after():
     assert np.isnan(calculate_beta([np.nan], [np.nan]))
 
 
-def test_calculate_beta_min_obs_big():
-    assert np.isnan(calculate_beta([0.01, 0.02], [0.01, 0.02], min_obs=100))
+def test_calculate_beta_fast_linalg_error():
+    from strategies.betting_against_beta import beta
+    import numpy as np
+
+    # try to trigger
+    a = np.array([1.0, 2.0, 3.0])
+    b = np.array([1.0, 1.0, 1.0])  # constant benchmark
+    res = beta.calculate_beta_fast(a, b)
+    assert res == 0.0 or np.isnan(res)
+
+
+def test_calculate_beta_fast_outer_except():
+    from strategies.betting_against_beta import beta
+
+    class Bad:
+        def __array__(self, *args, **kwargs):
+            raise AttributeError
+    res = beta.calculate_beta_fast(Bad(), Bad())
+    assert res == 0.0
 
 
 def test_calculate_beta_none_raises():
