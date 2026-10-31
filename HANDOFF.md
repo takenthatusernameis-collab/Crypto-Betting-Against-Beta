@@ -1,13 +1,13 @@
-# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) — 2026-10-31T23:29:51Z
+# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) — 2026-10-31T23:35:59Z
 
 ## TIMESTAMP
-2026-10-31T23:29:51Z
+2026-10-31T23:35:59Z
 
 ## REPO / PRIORITY
 REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE (repo name = betting_against_beta). ALL WORK MUST PRIORITIZE strategies/betting_against_beta/. NO VANITY. NO FILE-COUNT GOALS. NO DOCS-ONLY CHANGES. NO IDLE TURNS. IF NO BAB WORK IS POSSIBLE, EXPLAIN WHY WITH EVIDENCE BEFORE DOING ANYTHING ELSE.
 
-## VERIFIED STATE (CLEAN MEASUREMENT - 2026-10-31T23:29:51Z)
-- Full suite (BAB tests): 1320 passed, 5 skipped, 0 failed (FULLY GREEN)
+## VERIFIED STATE (CLEAN MEASUREMENT - 2026-10-31T23:35:59Z)
+- Full suite (BAB tests): 1309 passed, 5 skipped, 0 failed (FULLY GREEN)
 - Coverage (BAB package): 98% total, 50 misses
 - beta.py: 94% (16 misses) — 101-102, 124, 138, 140-141, 144-145, 166, 178, 181, 355-359 — HIGHEST LEVERAGE NEXT
 - metrics.py: 96% (6 misses)
@@ -27,8 +27,8 @@ REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE (repo name = betting_again
 
 REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE
 
-VERIFIED STATE (2026-10-31T23:29:51Z):
-- BAB suite: 1320 passed, 5 skipped, 0 failed (FULLY GREEN)
+VERIFIED STATE (2026-10-31T23:35:59Z):
+- BAB suite: 1309 passed, 5 skipped, 0 failed (FULLY GREEN)
 - BAB coverage: 98% | total misses 50
 - beta.py: 94% | 16 misses [101-102, 124, 138, 140-141, 144-145, 166, 178, 181, 355-359] <- ATTACK NOW
 
