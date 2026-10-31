@@ -129,11 +129,17 @@ def _coerce_numeric(df: pd.DataFrame) -> pd.DataFrame:
     try:
         # First pass: try direct astype for efficiency
         try:
+            if not isinstance(df, pd.DataFrame):
+                raise TypeError(f"Expected DataFrame, got {type(df).__name__}")
             df = df.astype("float64")
             return df
+        except BABDataError:
+            raise
         except (ValueError, TypeError):
             pass
         # Second pass: coerce with to_numeric to catch things like commas, but fail loudly if unparseable
+        if not isinstance(df, pd.DataFrame):
+            raise BABDataError(f"Expected DataFrame, got {type(df).__name__}")
         df_clean = df.copy()
         for col in df_clean.columns:
             series = df_clean[col]
@@ -180,7 +186,7 @@ def _coerce_numeric(df: pd.DataFrame) -> pd.DataFrame:
         return df_clean
     except BABDataError:
         raise
-    except (ValueError, TypeError) as exc:
+    except (ValueError, TypeError, AttributeError) as exc:
         raise BABDataError(f"Non-numeric values present in returns data: {exc}") from exc
 
 
