@@ -1,9 +1,12 @@
 """Bottleneck branch coverage for data_loader.py.
 
-Hits reachable uncovered branches left behind by the existing suite: empty
-all-NaN column short-circuit, unnamed-column datetime parse failure, corrupt
-pickle, and unreadable CSV. Real assertions on exception types and output
-only. Unreachable paths left alone per the no-spinning rule.
+Hits reachable uncovered branches left behind by the existing suite: empty-df
+short-circuit, corrupt pickle, unreadable CSV, and unnamed-column datetime parse
+failure. Real assertions on exception types and output only. Unreachable paths
+(44, 120-122, 140, 192-193, 256, 311-313, 340-342) left alone per the
+no-spinning rule: every inner except converts to BABDataError before the outer
+except can fire, and pd.to_numeric coerces rather than raises on the tested
+column types.
 """
 
 import numpy as np
