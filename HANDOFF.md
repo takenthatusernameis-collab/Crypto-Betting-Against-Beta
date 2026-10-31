@@ -118,3 +118,8 @@
 118: - Final BAB-suite green gate required
 119:
 120: (End of file)
+
+## UPDATE - 2026-10-31T16:43:31Z (THIS SESSION)
+- **FOCUS EXECUTED**: sizing.py attacked aggressively (TDD) → **100% coverage** (was 56%, 72 misses). Added comprehensive tests for all sizer classes/validation/paths/shorthands.
+- **GATES**: BAB suite tests/test_bab*.py 1146 passed, 5 skipped, 0 failed. Full suite 1670 passed, 11 skipped, 0 failed (after fixing workflow pattern sync for `*/.github/workflows/*`).
+- **NEXT TARGET**: shorting.py (66%, 58 misses) — highest remaining BAB impact after sizing.
