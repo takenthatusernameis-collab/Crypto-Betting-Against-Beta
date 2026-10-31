@@ -1,15 +1,15 @@
-# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) — 2026-10-31T00:54:00Z
+# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) — 2026-10-31T01:55:46Z
 
 ## TIMESTAMP
-2026-10-31T00:54:00Z
+2026-10-31T01:55:46Z
 
 ## INITIAL TASK MESSAGE FOR NEXT AGENT (COPY/PASTE AS FIRST MESSAGE)
 ```
 PRIORITY #1: strategies/betting_against_beta/beta.py | REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE
-beta.py coverage is 89% (275 stmts, 29 miss). CRUSH remaining UNCOVERED BRANCHES.
+beta.py coverage is 90% (275 stmts, 27 miss). CRUSH remaining UNCOVERED BRANCHES.
 TARGET: beta.py >= 95% | BAB TOTAL >= 97%.
 DO NOT TOUCH FILES FOR VANITY. CHANGE ONLY SMALLEST SET NEEDED FOR REAL UNCOVERED BRANCHES.
-HIT HARD LINES (current missing): estimate_betas fallthrough (55-56); calculate_beta alignment/disjoint/mask/min_obs/linalg/constant_x/None (90-91, 103, 113, 123, 125-126, 129-130); calculate_beta_fast masks/degenerate/nonfinite/LinAlgError/empty/min_obs (151, 163, 165-170); calculate_rolling_beta bench conversion/outer except/_finalize_betas (249-253, 343-347).
+HIT HARD LINES (current missing): estimate_betas fallthrough; calculate_beta alignment/disjoint/mask/min_obs/linalg/constant_x/None (90-91, 103, 113, 123, 125-126, 129-130); calculate_beta_fast masks/degenerate/nonfinite/LinAlgError/empty/min_obs (151, 163, 165-170); calculate_rolling_beta bench conversion/outer except/_finalize_betas (249-253, 343-347).
 PROVE WITH COVERAGE (WORKING METHOD — do NOT use `coverage run -m pytest`; it crashes on numpy double-import in this env):
   cd /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
   python3 - <<'EOF'
@@ -30,12 +30,12 @@ DO HEAVY WORK. NO DELAY.
 ```
 
 ## CAMPAIGN OBJECTIVE
-Maximize BAB coverage to >=97% starting with beta.py (biggest gap). Every turn must produce substantive test/logic changes that cover uncovered branches. No churn.
+Maximize BAB coverage to >=97% starting with beta.py (biggest gap). Every turn must produce substantive test/logic changes that cover uncovered branches. No churn. BAB-first per repo name (betting_against_beta).
 
 ## VERIFIED GATES (CURRENT)
-- Full suite: 1492 passed, 11 skipped, 2 failed (unrelated workflow pattern sync in controller_progress - pre-existing, ALLOWED)
-- BAB suite: 1282 passed, 11 skipped (GREEN)
-- BAB total coverage: ~96% overall; beta.py 89% (29 misses) - PRIMARY BOTTLENECK
+- Full suite: 1566 passed, 11 skipped, 2 failed (unrelated workflow pattern sync in controller_progress - pre-existing, ALLOWED)
+- BAB suite: 1089 passed, 5 skipped (GREEN)
+- BAB total coverage: ~96% overall; beta.py 90% (27 misses) - PRIMARY BOTTLENECK
 
 ## EXACT NEXT STEPS
 1. Run the WORKING coverage driver above on beta.py; capture exact missing lines.
