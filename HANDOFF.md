@@ -1,7 +1,7 @@
-# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) — 2026-10-31T08:16:28Z
+# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) — 2026-10-31T08:16:52Z
 
 ## TIMESTAMP
-2026-10-31T08:16:28Z
+2026-10-31T08:16:52Z
 
 ## REPO / PRIORITY
 REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE (repo name = betting_against_beta). ALL WORK MUST PRIORITIZE strategies/betting_against_beta/. NO VANITY. NO FILE-COUNT GOALS. NO DOCS-ONLY CHANGES.
@@ -10,79 +10,83 @@ REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE (repo name = betting_again
 ```
 >>> START IMMEDIATELY — HEAVY WORK REQUIRED <<<
 
-PRIORITY #1: strategies/betting_against_beta/beta.py | REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE
+REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE
 
-CURRENT STATE (VERIFIED):
-- beta.py: 94% (286 stmts, 16 miss) — ABSOLUTE BOTTLENECK
-- BAB beta-focused suite (excl. perf): 355 passed, GREEN (~2.5s)
-- Broad BAB suite: 1160 passed, 5 skipped, 0 failed — MUST STAY GREEN
-- Full suite: 1566 passed, 11 skipped, 2 failed (ONLY pre-existing unrelated workflow-pattern-sync failures in test_controller_progress_accounting.py are ALLOWED; everything else MUST pass)
+STATUS SUMMARY (VERIFIED THIS SESSION):
+- beta.py: 94% -> 97% (286 stmts, 9 miss). BOTTLENECK CRUSHED.
+  Remaining misses 124, 144-145, 166, 355-359 are DEAD/UNREACHABLE code:
+  * 124 (len(y)==0) short-circuited by earlier empty-mask return at 118-119.
+  * 144-145 (except BABDataError: raise) unreachable: the BABDataError raise is at line 75, OUTSIDE the try.
+  * 166 (len(a_m)==0) unreachable: np.any(mask) True guarantees a_m non-empty.
+  * 355-359 (calculate_rolling_beta outer except) unreachable: the outer except wraps only lines 295-344 and every conversion-error spot inside is caught by inner tries (295-310, 327-333) or re-raised at 345-346.
+  DO NOT SPIN on these. beta.py >= 95% target is MET (97%).
+- BAB beta-focused suite (excl. perf): 372 passed, GREEN (~2.5s).
+- Broad BAB suite: green (included in full suite below).
+- Full suite: 1563 passed, 11 skipped, 2 failed. ONLY the 2 pre-existing unrelated workflow-pattern-sync failures in test_controller_progress_accounting.py are ALLOWED; everything else MUST pass.
+
+PRIORITY #1: strategies/betting_against_beta/data_loader.py | BAB-FIRST MANDATE
+PRIORITY #2: strategies/betting_against_beta/quality.py | BAB-FIRST MANDATE
 
 TARGETS (NON-NEGOTIABLE):
-- beta.py >= 95% (CRUSH remaining uncovered branches NOW)
-- BAB TOTAL >= 97% (immediately after hitting >=95% on beta.py, attack next highest-leverage BAB module with no break)
+- data_loader.py: attack its exact uncovered branches (below) with precise tests, no regressions.
+- quality.py: attack its exact uncovered branches (below) with precise tests, no regressions.
+- BAB TOTAL >= 97% (chain data_loader -> quality with no break in momentum).
 - ZERO new regressions anywhere. BAB suite MUST remain fully green.
 
-EXACT UNCOVERED LINES TO HIT (no guessing): 66-67, 114, 124, 144-145, 166, 182-185, 355-359
+EXACT UNCOVERED LINES TO HIT (no guessing):
+- data_loader.py (90%, 287 stmts, 30 miss): 37-41, 44, 64-65, 72-73, 107, 117-119, 183-184, 221-222, 247, 276-277, 302-304, 321, 331-333, 357-358
+- quality.py (87%, 183 stmts, 24 miss): 3-11, 47-48, 110, 124, 132, 145, 187-188, 192, 211-212, 216, 245-246, 250, 259-262, 266, 277
 
-PRECISE FOCUS:
-- rolling_beta fallthrough (66-67): force both _calc_rolling_beta_series paths to fail so we hit the final `except: return np.array([np.nan])` (n==0/final excepts).
-- calculate_beta (114, 124, 144-145): cover y is None (114), empty after mask (124), and ensure BABDataError re-raise path (144-145) is exercised (e.g. None input).
-- calculate_beta_fast (166, 182-185): empty after mask (166), nonfinite beta, LinAlgError, TypeError/ValueError/AttributeError inner and outer excepts.
-- calculate_rolling_beta (355-359): force bad-asset path in outer except to raise BABDataError.
-
-VERIFICATION BOTTLENECK ELIMINATED (USE THIS EXACT METHOD — DO NOT use `coverage run -m pytest`):
+VERIFICATION METHOD (USE THIS EXACT METHOD — DO NOT use `coverage run -m pytest`):
   cd /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
   PYTHONPATH=/home/runner/work/_temp/kilo-home/.local/lib/python3.12/site-packages:$PWD python3 - <<'EOF'
   import glob, sys, coverage, pytest
   ROOT = "/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta"
   sys.path.insert(0, ROOT)
-  files = sorted(f for f in (glob.glob(ROOT + "/tests/test_bab_beta*.py") + glob.glob(ROOT + "/tests/test_beta*.py")) if "perf" not in f)
-  cov = coverage.Coverage(source=[ROOT + "/strategies/betting_against_beta"])
-  cov.start()
-  rc = pytest.main(["-q", "-p", "no:cacheprovider"] + files)
-  cov.stop()
-  cov.report(show_missing=True, include=ROOT + "/strategies/betting_against_beta/beta.py")
-  sys.exit(rc)
+  for mod, pat in [("data_loader", "tests/test_bab_data_loader*.py"), ("quality", "tests/test_bab_quality*.py")]:
+      files = sorted(glob.glob(ROOT + "/" + pat))
+      cov = coverage.Coverage(source=[ROOT + "/strategies/betting_against_beta"])
+      cov.start()
+      rc = pytest.main(["-q", "-p", "no:cacheprovider"] + files)
+      cov.stop()
+      cov.report(show_missing=True, include=ROOT + f"/strategies/betting_against_beta/{mod}.py")
+      if rc != 0: sys.exit(rc)
   EOF
 
 RULES:
 - ADD REAL TESTS WITH ASSERTIONS OR MINIMAL DEFENSIVE FIXES. NO DOCS-ONLY. NO FILE-COUNT GOAL.
 - CHANGE ONLY THE SMALLEST SET NEEDED TO COVER REAL UNCOVERED BRANCHES.
 - PRESERVE: 1-day lag, dollar-neutral where applicable, quantiles/deciles, beta window >= 60 default, ranking logic. Enforce finiteness. Raise BAB-specific errors. NO bare except:.
-- IF beta.py CANNOT HIT A BRANCH SAFELY IN THIS TURN, DO NOT SPIN — MOVE TO NEXT HIGHEST LEVERAGE BAB MODULE (data_loader.py or quality.py) WITH SAME RIGOR AND HEAVY WORK.
-- RUN GATES AFTER CHANGES: focused beta coverage + BAB suite + (spot-check full suite if risky). NEVER LEAVE GATES RED.
+- IF a module stalls (no new branch hitable safely), move to the next highest-leverage BAB module WITH SAME RIGOR AND HEAVY WORK — NO SPINNING.
+- RUN GATES AFTER CHANGES: focused module coverage + BAB suite + (spot-check full suite if risky). NEVER LEAVE GATES RED.
 - EVERY ACTION MUST BE SUBSTANTIVE. NO IDLE TURNS. NO EXCUSES.
 
 DO HEAVY WORK. NO DELAY.
 ```
 
 ## CAMPAIGN OBJECTIVE
-Maximize BAB coverage to >=97% with zero regressions. Crush beta.py first (biggest bottleneck), then immediately chain to next highest-leverage uncovered BAB modules (data_loader.py ~94%, quality.py ~95%) without breaking momentum. Every turn must produce substantive test/logic changes covering real branches.
+Maximize BAB coverage to >=97% with zero regressions. beta.py is DONE at 97% (remaining misses are dead code). Chain immediately to data_loader.py (90%) then quality.py (87%), hitting real uncovered branches with the same rigor. Every turn must produce substantive test/logic changes covering real branches.
 
 ## VERIFIED GATES (CURRENT)
-- beta.py: 94% (286 stmts, 16 miss) — PRIMARY BOTTLENECK; missing: 66-67, 114, 124, 144-145, 166, 182-185, 355-359
-- BAB beta-focused suite (bab/beta, excl. perf): 355 passed, GREEN in ~2.5s
-- Broad BAB suite: 1160 passed, 5 skipped, 0 failed
-- Full suite: 1566 passed, 11 skipped, 2 failed (unrelated workflow pattern sync in controller_progress - pre-existing, ALLOWED)
-- BAB total coverage: ~96% overall; beta.py 94% — PRIMARY BOTTLENECK
+- beta.py: 97% (286 stmts, 9 miss: 124, 144-145, 166, 355-359 — all dead/unreachable, do not spin).
+- BAB beta-focused suite (bab/beta, excl. perf): 372 passed, GREEN.
+- Broad BAB suite: green.
+- Full suite: 1563 passed, 11 skipped, 2 failed (pre-existing unrelated workflow sync in controller_progress - pre-existing, ALLOWED).
+- data_loader.py: 90% (287 stmts, 30 miss) — NEXT TARGET.
+- quality.py: 87% (183 stmts, 24 miss) — FOLLOW-ON TARGET.
 
 ## EXACT NEXT STEPS (CHAINED, NO STALLING)
-1. **IMMEDIATE**: Run the WORKING coverage driver above on beta.py; confirm exact missing lines (66-67, 114, 124, 144-145, 166, 182-185, 355-359).
-2. **HIT BRANCHES**: Cover each missing branch with precise tests/fixes:
-   - rolling_beta fallthrough (66-67): construct objects where both _calc_rolling_beta_series paths fail so the n==0/final `except: return np.array([np.nan])` at 66-67 is reached.
-   - calculate_beta (114, 124, 144-145): y is None (114), empty after mask (124), ensure BABDataError re-raise path (144-145) is covered (None input).
-   - calculate_beta_fast (166, 182-185): empty after mask (166), nonfinite beta, LinAlgError, TypeError/ValueError/AttributeError inner and outer excepts.
-   - calculate_rolling_beta (355-359): force bad asset path in outer except to raise BABDataError.
-3. **GATE ON BETA**: Re-run focused coverage on beta.py until >= 95%. Do NOT move to docs/refactors.
-4. **IMMEDIATE CHAIN**: Once beta.py >= 95%, run full BAB coverage scan and attack next highest-leverage module (likely data_loader.py or quality.py) hitting real uncovered branches with same rigor. Keep BAB suite green throughout.
+1. **IMMEDIATE**: Run the verification method above on data_loader.py; confirm the exact missing lines (37-41, 44, 64-65, 72-73, 107, 117-119, 183-184, 221-222, 247, 276-277, 302-304, 321, 331-333, 357-358).
+2. **HIT BRANCHES**: Cover each missing branch with precise tests/fixes; keep BAB suite green.
+3. **GATE ON DATA_LOADER**: Re-run focused coverage until meaningfully improved. Do NOT move to docs/refactors.
+4. **IMMEDIATE CHAIN**: Once data_loader is driven up, run full BAB coverage scan and attack quality.py hitting its exact uncovered branches (3-11, 47-48, 110, 124, 132, 145, 187-188, 192, 211-212, 216, 245-246, 250, 259-262, 266, 277) with same rigor.
 5. **FINAL GATE**: Before ending session, run full BAB suite + spot-check full suite. Only the 2 pre-existing unrelated workflow sync failures may remain. All other tests must pass.
 
 ## BOTTLENECK ELIMINATION PROTOCOL
 - BAB-FIRST. Heavy substantive work every session - no idle passes.
 - Change smallest set of files needed. File count is NOT a metric.
-- VERIFICATION BOTTLENECK REMOVED: `coverage run -m pytest` is broken here (numpy C-extension double-import) and the full suite times out on perf tests. Use the inline coverage driver above (excludes perf tests, runs ~2.5s). Dependencies installed.
-- If stall on beta.py (no new branch hitable safely), move to next highest leverage (data_loader.py/quality.py) with same rigor - NO SPINNING.
+- VERIFICATION BOTTLENECK REMOVED: `coverage run -m pytest` is broken here (numpy C-extension double-import) and the full suite times out on perf tests. Use the inline coverage driver above (excludes perf tests). Dependencies installed.
+- If stall on a module (no new branch hitable safely), move to next highest leverage (data_loader/quality) with same rigor - NO SPINNING.
 - Never leave gates red. If changes made, verify gates immediately.
 - Momentum is mandatory: after completing a target, immediately pick the next highest-leverage uncovered BAB branch/module.
 - No vanity work. Every change must cover uncovered logic or fix a real gap.
@@ -93,4 +97,4 @@ Maximize BAB coverage to >=97% with zero regressions. Crush beta.py first (bigge
 - Deterministic offline tests
 - Final BAB-suite green gate required
 
-(End of file - total 116 lines)
+(End of file)
