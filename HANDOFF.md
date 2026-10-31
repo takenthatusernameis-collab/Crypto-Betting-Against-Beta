@@ -1,16 +1,20 @@
-# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) — 2026-10-31T06:05:12Z
+# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) — 2026-10-31T07:01:50Z
 
 ## TIMESTAMP
-2026-10-31T06:05:12Z
+2026-10-31T07:01:50Z
+
+## REPO / PRIORITY
+REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE (repo name = betting_against_beta). All work prioritizes strategies/betting_against_beta/. No vanity. No file-count goals.
 
 ## INITIAL TASK MESSAGE FOR NEXT AGENT (COPY/PASTE AS FIRST MESSAGE)
 ```
 PRIORITY #1: strategies/betting_against_beta/beta.py | REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE
-beta.py coverage is 91% (289 stmts, 27 miss). CRUSH remaining UNCOVERED BRANCHES.
+beta.py coverage is 94% (286 stmts, 16 miss). CRUSH remaining UNCOVERED BRANCHES.
 TARGET: beta.py >= 95% | BAB TOTAL >= 97%.
 DO NOT TOUCH FILES FOR VANITY. CHANGE ONLY SMALLEST SET NEEDED FOR REAL UNCOVERED BRANCHES.
-HIT HARD LINES (current missing): 66-67, 114, 124, 138, 140-141, 144-145, 166, 178, 180-185, 264-268, 358-362.
-FOCUS AREAS: rolling_beta fallthrough paths (n==0/final excepts), calculate_beta y/None/empty/degenerate/LinAlgError/nonfinite beta, calculate_beta_fast empty/min_obs/degenerate/LinAlgError/outer excepts, calculate_rolling_beta bench_arr conversion excepts (264-268), outer except fallback path (358-362).
+HIT HARD LINES (current missing): 66-67, 114, 124, 144-145, 166, 182-185, 355-359.
+FOCUS AREAS: rolling_beta fallthrough paths (66-67, n==0/final excepts), calculate_beta y/None/empty/degenerate/LinAlgError/nonfinite beta (114, 124, 144-145), calculate_beta_fast empty/min_obs/degenerate/LinAlgError/TypeError/ValueError/AttributeError inner/outer excepts (166, 182-185), calculate_rolling_beta bad-asset outer-except BABDataError path (355-359).
+STATUS: gate green. Prior checkpoint fixed an uncaught TypeError at beta.py:252 (np.asarray fallback now raises BABDataError) and removed the unreachable dead double-conversion block (old lines 264-268); bench_arr now reuses bench_vals. Full BAB suite green (1160 passed, 0 failed).
 PROVE WITH COVERAGE (WORKING METHOD — do NOT use `coverage run -m pytest`; it crashes on numpy double-import and the full suite times out on perf tests):
   cd /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
   PYTHONPATH=/home/runner/work/_temp/kilo-home/.local/lib/python3.12/site-packages:$PWD python3 - <<'EOF'
@@ -26,7 +30,7 @@ PROVE WITH COVERAGE (WORKING METHOD — do NOT use `coverage run -m pytest`; it 
   sys.exit(rc)
   EOF
 ADD REAL TESTS WITH ASSERTIONS OR MINIMAL DEFENSIVE FIXES. NO DOCS-ONLY. NO FILE-COUNT GOAL.
-BOTTLENECK STATUS: vanity defensive try/except wrappers added in last checkpoint commit were removed (restored beta.py to 289 stmts / 91% coverage). Deps (numpy/pandas/pytest/coverage) installed in user site-packages; use PYTHONPATH above. Tests added (test_beta_gap_hunt*.py, test_beta_precise_missing.py) to accelerate hitting branches.
+BOTTLENECK STATUS: verification bottleneck REMOVED — `coverage run -m pytest` is broken (numpy C-extension double-import); full suite times out on perf tests. Use the inline coverage driver above (excludes perf tests, runs ~2.5s). Dependencies (numpy/pandas/pytest/coverage) installed in user site-packages; use PYTHONPATH above.
 FULL SUITE MUST STAY GREEN. BAB SUITE MUST STAY GREEN (note: 2 pre-existing unrelated workflow-pattern-sync failures in test_controller_progress_accounting.py are allowed; everything else must pass).
 DO HEAVY WORK. NO DELAY.
 ```
@@ -35,19 +39,21 @@ DO HEAVY WORK. NO DELAY.
 Maximize BAB coverage to >=97% starting with beta.py (biggest gap). Every turn must produce substantive test/logic changes that cover uncovered branches. No churn. BAB-first per repo name (betting_against_beta).
 
 ## VERIFIED GATES (CURRENT)
-- beta.py: 91% (289 stmts, 27 miss) — PRIMARY BOTTLENECK; missing: 66-67, 114, 124, 138, 140-141, 144-145, 166, 178, 180-185, 264-268, 358-362
-- BAB beta-focused suite (bab/beta, excl. perf): 382 passed, GREEN in ~2.7s
+- beta.py: 94% (286 stmts, 16 miss) — PRIMARY BOTTLENECK; missing: 66-67, 114, 124, 144-145, 166, 182-185, 355-359
+- BAB beta-focused suite (bab/beta, excl. perf): 355 passed, GREEN in ~2.5s
+- Broad BAB suite: 1160 passed, 5 skipped, 0 failed
 - Full suite: 1566 passed, 11 skipped, 2 failed (unrelated workflow pattern sync in controller_progress - pre-existing, ALLOWED)
-- BAB total coverage: ~96% overall; beta.py 91% — PRIMARY BOTTLENECK
+- BAB total coverage: ~96% overall; beta.py 94% — PRIMARY BOTTLENECK
 
 ## EXACT NEXT STEPS
-1. Run the WORKING coverage driver above on beta.py; capture exact missing lines.
-2. Hit each missing branch with precise tests. For rolling_beta fallthrough (66-67), construct objects where both _calc_rolling_beta_series paths fail after trying series/DataFrame-like conversions - may need to make np.asarray/len fail in specific order.
-3. For calculate_beta (114, 124, 138, 140-141, 144-145): force y is None (114), empty after mask (124), nonfinite beta from lstsq (138), LinAlgError (140-141), ensure BABDataError re-raise path (144-145) is covered.
-4. For calculate_beta_fast (166, 178, 180-185): cover empty after mask, nonfinite beta, LinAlgError and TypeError/ValueError/AttributeError in inner/outer excepts.
-5. For calculate_rolling_beta (264-268, 358-362): force bench_arr conversion to fail to second except and raise BABDataError (264-268); force bad asset path in outer except to raise BABDataError (358-362).
-6. Re-run focused coverage on beta.py until >= 95%. Then reassess next bottleneck (data_loader.py 94%, quality.py 95%).
-7. Before ending, run full BAB suite + full suite to confirm GREEN (only the 2 unrelated workflow sync failures may remain).
+1. Run the WORKING coverage driver above on beta.py; confirm exact missing lines (66-67, 114, 124, 144-145, 166, 182-185, 355-359).
+2. Hit each missing branch with precise tests:
+   - rolling_beta fallthrough (66-67): construct objects where both _calc_rolling_beta_series paths fail so the n==0/final `except: return np.array([np.nan])` at 66-67 is reached.
+   - calculate_beta (114, 124, 144-145): y is None (114), empty after mask (124), ensure BABDataError re-raise path (144-145) is covered (None input).
+   - calculate_beta_fast (166, 182-185): empty after mask (166), nonfinite beta, LinAlgError, TypeError/ValueError/AttributeError inner and outer excepts.
+   - calculate_rolling_beta (355-359): force bad asset path in outer except to raise BABDataError.
+3. Re-run focused coverage on beta.py until >= 95%. Then reassess next bottleneck (data_loader.py 94%, quality.py 95%).
+4. Before ending, run full BAB suite + full suite to confirm GREEN (only the 2 unrelated workflow sync failures may remain).
 
 ## INVARIANTS (MUST PRESERVE)
 - 1-day lag, dollar-neutral where applicable, quantiles/deciles, beta window >= 60 default, ranking logic

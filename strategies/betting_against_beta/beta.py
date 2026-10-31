@@ -249,7 +249,10 @@ def calculate_rolling_beta(returns_df, benchmark_name, window=90, min_obs=60):
     try:
         bench_vals = benchmark_returns.to_numpy(dtype=float)
     except Exception:
-        bench_vals = np.asarray(benchmark_returns, dtype=float)
+        try:
+            bench_vals = np.asarray(benchmark_returns, dtype=float)
+        except Exception as e:
+            raise BABDataError(str(e))
     if not np.isfinite(bench_vals).any():
         raise BABDataError(
             f"Benchmark '{benchmark_name}' has no finite return values; "
@@ -259,13 +262,7 @@ def calculate_rolling_beta(returns_df, benchmark_name, window=90, min_obs=60):
     n = len(returns_df)
     betas_dict = {}
 
-    try:
-        bench_arr = benchmark_returns.to_numpy(dtype=float, copy=False)
-    except Exception:
-        try:
-            bench_arr = np.asarray(benchmark_returns, dtype=float)
-        except Exception as e:
-            raise BABDataError(str(e))
+    bench_arr = bench_vals
     b_has_bad = not np.all(np.isfinite(bench_arr))
 
     # Benchmark rolling sums are asset-independent; hoist them out so every
