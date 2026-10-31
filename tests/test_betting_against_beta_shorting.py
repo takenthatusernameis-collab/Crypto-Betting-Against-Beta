@@ -124,6 +124,37 @@ class TestShortingConstraintsNormalizationAndQueries:
         sc = shorting.ShortingConstraints(default_borrow_bps_per_year=0.04)
         assert sc.borrow_rate_annual("A") == 0.04
 
+    def test_max_short_leverage_alias_sets_exposure(self):
+        # Exercises shorting.py:43-46 alias path
+        sc = shorting.ShortingConstraints(max_short_leverage=0.5)
+        assert sc.max_short_exposure == 0.5
+        assert sc.max_short_leverage == 0.5
+
+    def test_max_short_weight_alias_sets_per_asset_cap(self):
+        sc = shorting.ShortingConstraints(max_short_weight=0.3)
+        assert sc.max_short_notional_per_asset == 0.3
+        assert sc.max_short_weight == 0.3
+
+    def test_constraints_kwarg_dict_branch_via_none(self):
+        # Exercises the elif "constraints" in kwargs branch (shorting.py:137-143)
+        idx = pd.date_range("2023-01-01", periods=1, freq="D")
+        df = pd.DataFrame({"A": [0.5]}, index=idx)
+        out = shorting.apply_shorting_constraints(df, constraints={"max_short_exposure": 0.5})
+        assert not out.empty
+
+    def test_constraints_kwarg_object_branch_via_none(self):
+        idx = pd.date_range("2023-01-01", periods=1, freq="D")
+        df = pd.DataFrame({"A": [0.5]}, index=idx)
+        sc = shorting.ShortingConstraints(max_short_exposure=0.5)
+        out = shorting.apply_shorting_constraints(df, constraints=sc)
+        assert not out.empty
+
+    def test_constraints_kwarg_invalid_uses_default_via_none(self):
+        idx = pd.date_range("2023-01-01", periods=1, freq="D")
+        df = pd.DataFrame({"A": [0.5]}, index=idx)
+        out = shorting.apply_shorting_constraints(df, constraints="x")
+        assert not out.empty
+
 
 class TestCleanDf:
     def test_clean_df_none_returns_none(self):
@@ -225,3 +256,28 @@ class TestSignalConversion:
         object.__setattr__(sc, "max_short_notional_per_asset", -0.1)
         with pytest.raises(BABDataError):
             shorting.apply_shorting_constraints(df, sc)
+
+    def test_constraints_kwarg_dict_branch(self):
+        # Exercises the elif "constraints" in kwargs branch (shorting.py:137-143)
+        idx = pd.date_range("2023-01-01", periods=1, freq="D")
+        df = pd.DataFrame({"A": [0.5]}, index=idx)
+        out = shorting.apply_shorting_constraints(df, constraints={"max_short_exposure": 0.5})
+        assert not out.empty
+
+    def test_constraints_kwarg_object_branch(self):
+        idx = pd.date_range("2023-01-01", periods=1, freq="D")
+        df = pd.DataFrame({"A": [0.5]}, index=idx)
+        sc = shorting.ShortingConstraints(max_short_exposure=0.5)
+        out = shorting.apply_shorting_constraints(df, constraints=sc)
+        assert not out.empty
+
+    def test_constraints_kwarg_invalid_uses_default(self):
+        idx = pd.date_range("2023-01-01", periods=1, freq="D")
+        df = pd.DataFrame({"A": [0.5]}, index=idx)
+        out = shorting.apply_shorting_constraints(df, constraints="x")
+        assert not out.empty
+
+    def test_borrow_constraints_alias_is_shorting_constraints(self):
+        assert shorting.BorrowConstraints is shorting.ShortingConstraints
+        assert shorting.enforce_shorting_constraints is shorting.apply_shorting_constraints
+        assert shorting.apply_borrow_constraints is shorting.apply_shorting_constraints

@@ -48,10 +48,7 @@ class ShortingConstraints:
         if isinstance(self.borrow_bps_per_year, (int, float)) and not isinstance(self.borrow_bps_per_year, bool):
             object.__setattr__(self, "borrow_bps_per_year", {"*": float(self.borrow_bps_per_year)})
         self._validate()
-        try:
-            object.__setattr__(self, "_frozen", True)
-        except Exception:
-            pass
+        object.__setattr__(self, "_frozen", True)
 
     def __setattr__(self, name: str, value) -> None:
         if getattr(self, "_frozen", False) and name != "_frozen":
@@ -127,25 +124,18 @@ def apply_shorting_constraints(signals_or_weights, constraints: Optional[Shortin
         # check kwargs
         if "shorting_constraints" in kwargs:
             sc = kwargs["shorting_constraints"]
-            if isinstance(sc, dict):
-                constraints = ShortingConstraints(**sc)
-            elif isinstance(sc, ShortingConstraints):
-                constraints = sc
-            else:
-                constraints = ShortingConstraints()
-        elif "constraints" in kwargs:
-            sc = kwargs["constraints"]
-            if isinstance(sc, dict):
-                constraints = ShortingConstraints(**sc)
-            elif isinstance(sc, ShortingConstraints):
-                constraints = sc
-            else:
-                constraints = ShortingConstraints()
         else:
-            # if nothing passed, maybe try to infer from dict
+            sc = None
+        if isinstance(sc, dict):
+            constraints = ShortingConstraints(**sc)
+        elif isinstance(sc, ShortingConstraints):
+            constraints = sc
+        else:
             constraints = ShortingConstraints()
     elif isinstance(constraints, dict):
         constraints = ShortingConstraints(**constraints)
+    elif not isinstance(constraints, ShortingConstraints):
+        constraints = ShortingConstraints()
 
     df = _clean_df(signals_or_weights)
     if df is None or len(df.columns) == 0:
