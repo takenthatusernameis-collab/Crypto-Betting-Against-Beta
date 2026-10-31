@@ -1,15 +1,15 @@
-# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) — 2026-10-31T19:48:49Z
+# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) — 2026-10-31T20:05:00Z
 
 ## TIMESTAMP
-2026-10-31T19:48:49Z
+2026-10-31T20:05:00Z
 
 ## REPO / PRIORITY
 REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE (repo name = betting_against_beta). ALL WORK MUST PRIORITIZE strategies/betting_against_beta/. NO VANITY. NO FILE-COUNT GOALS. NO DOCS-ONLY CHANGES. NO IDLE TURNS. IF NO BAB WORK IS POSSIBLE, EXPLAIN WHY WITH EVIDENCE BEFORE DOING ANYTHING ELSE.
 
-## VERIFIED STATE (CLEAN MEASUREMENT - 2026-10-31T19:48:49Z)
-- Full suite: 1736 passed, 11 skipped, 2 failed. The 2 failures are pre-existing, non-BAB controller/infra tests in tests/test_controller_progress_accounting.py (workflow-file pattern assertions, environmental) — NOT BAB. Do not chase them unless they regress.
-- BAB suite (tests/test_bab*.py + test_betting_against_beta*): 1332 passed, 5 skipped, 0 failed (FULLY GREEN)
-- Coverage (BAB package): 97% total, 69 misses
+## VERIFIED STATE (CLEAN MEASUREMENT - 2026-10-31T20:05:00Z)
+- Full suite: 1744 passed, 11 skipped, 2 failed. The 2 failures are pre-existing, non-BAB controller/infra tests in tests/test_controller_progress_accounting.py (workflow-file pattern assertions, environmental) — NOT BAB. Do not chase them unless they regress.
+- BAB suite (tests/test_bab*.py + test_betting_against_beta*.py): 1340 passed, 5 skipped, 0 failed (FULLY GREEN)
+- Coverage (BAB package): 97% total, 65 misses
 
 Per-module coverage (stmts / miss / cover / missing lines):
 - shorting.py: 164/0/100% — DONE
@@ -20,6 +20,7 @@ Per-module coverage (stmts / miss / cover / missing lines):
 - data_sources.py: 67/0/100% — DONE
 - errors.py: 2/0/100% — DONE
 - cli.py: 34/0/100% — DONE
+- portfolio.py: 228/9/96% — misses 39-40 (dead outer except, fuzz-proven total), 155-160 (dead residual-drift branch, 5000-trial sweep max |net| 4.4e-16 << 1e-12), 284 (disjoint-index early return — TESTED, see note)
 - costs.py: 150/2/99% — misses 59-60 (dead `except Exception: pass` in `__setattr__`; provably unreachable under normal construction — document or leave, do not spin)
 - backtest.py: 74/2/97% — misses 58-59 (except branch in weight cleaning)
 - data_loader.py: 296/10/97% — misses 44, 192-193, 256, 311-313, 340-342
@@ -27,12 +28,13 @@ Per-module coverage (stmts / miss / cover / missing lines):
 - config.py: 199/3/98% — misses 95-96, 113
 - signals.py: 113/2/98% — misses 37, 75
 - strategy.py: 198/3/98% — misses 181, 188-189
-- portfolio.py: 223/13/94% — misses 39-40, 87-88, 155-160, 200-201, 275  <-- IMMEDIATE TARGET (most misses at 94%)
 - regime.py: 186/12/94% — misses 111, 139-140, 175-177, 181-182, 185, 188, 190, 217
 - metrics.py: 134/8/94% — misses 25, 42, 71, 97, 114, 126, 138, 161
 
 ## BOTTLENECKS REMOVED (THIS SESSION)
-- Stale HANDOFF corrected: costs.py was listed as 68%/48 misses but is actually 99%/2 misses. Next agent must not re-attack costs.py; it is effectively done (only a dead except-branch remains).
+- portfolio.py:94% -> 96%. Real branches hit: 87-88 (apply(pd.to_numeric) exception fallback on object columns holding builtin functions/types), 164-169 (per-column fallback to 0.0 when a single column makes to_numeric raise), 200-201 (turnover inner except when weights_df_prev has non-numeric columns so cur-prev raises TypeError), 284 (enforce_beta_neutrality disjoint-index early return). 8 new tests in tests/test_bab_portfolio_uncovered_branches.py.
+- portfolio.py:155-160 PROVEN UNREACHABLE: 5000-trial + k-sweep (k=3..23) both-side equal-weight frames; max |net| on both-side rows = 4.44e-16, far below the 1e-12 guard. Dead code; documented, do not re-attack.
+- portfolio.py:39-40 PROVEN UNREACHABLE: _clean_signal_value is total over a 50k-sample fuzz of mixed types (None, nan, str, int, float, np types, bool, list, dict, object, bytes, complex, pd.NA, pd.NaT, builtin functions/types); every branch returns or is self-wrapped. Dead defensive code; documented, do not re-attack.
 - No blocked sessions. Gates green.
 
 ## INITIAL TASK MESSAGE FOR NEXT AGENTIC SESSION (COPY/PASTE AS FIRST MESSAGE)
