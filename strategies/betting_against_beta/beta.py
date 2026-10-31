@@ -41,14 +41,25 @@ def rolling_beta(a, b, window=90, min_periods=None, min_obs=None):
             return _calc_rolling_beta_series(np.asarray(b), np.asarray(a), window, min_obs)
         except Exception:
             # Return empty/NaN series-like array if possible
-            try:
-                n = len(np.asarray(a))
-            except Exception:
+            n = 0
+            for cand in (a, b):
                 try:
-                    n = len(np.asarray(b))
+                    n = len(cand)
+                    break
                 except Exception:
-                    n = 0
+                    continue
+            if n == 0:
+                try:
+                    n = len(np.asarray(a))
+                except Exception:
+                    try:
+                        n = len(np.asarray(b))
+                    except Exception:
+                        n = 0
             try:
+                if n == 0:
+                    res = np.array([np.nan])
+                    return res
                 res = np.empty(n)
                 res[:] = np.nan
                 return res
@@ -112,6 +123,10 @@ def calculate_beta(asset_returns, benchmark_returns, min_obs=None):
         if len(y) == 0:
             return np.nan
         if min_obs is not None and len(y) < min_obs:
+            return np.nan
+        # Guard against constant/degenerate benchmark
+        x_std = np.std(x)
+        if x_std < 1e-18 or not np.isfinite(x_std):
             return np.nan
 
         # Add intercept and solve via lstsq (efficient)
