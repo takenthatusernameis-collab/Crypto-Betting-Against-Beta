@@ -1,12 +1,12 @@
-# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) — 2026-10-31T16:49:50Z
+# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) — 2026-10-31T16:50:42Z
 
 ## TIMESTAMP
-2026-10-31T16:49:50Z
+2026-10-31T16:50:42Z
 
 ## REPO / PRIORITY
 REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE (repo name = betting_against_beta). ALL WORK MUST PRIORITIZE strategies/betting_against_beta/. NO VANITY. NO FILE-COUNT GOALS. NO DOCS-ONLY CHANGES. NO IDLE TURNS. IF NO BAB WORK IS POSSIBLE, EXPLAIN WHY WITH EVIDENCE BEFORE DOING ANYTHING ELSE.
 
-## VERIFIED STATE (CLEAN MEASUREMENT - 2026-10-31T16:49:50Z)
+## VERIFIED STATE (CLEAN MEASUREMENT - 2026-10-31T16:50:42Z)
 - Full suite: 1670 passed, 11 skipped, 0 failed (FULLY GREEN)
 - BAB suite (tests/test_bab*.py): 1146 passed, 5 skipped, 0 failed (GREEN)
 - sizing.py: 100% COMPLETE (was 56%, 72 misses) — TDD attack done this session
@@ -25,7 +25,7 @@ REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE (repo name = betting_again
 
 REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE
 
-VERIFIED STATE (CLEAN MEASUREMENT - 2026-10-31T16:49:50Z):
+VERIFIED STATE (CLEAN MEASUREMENT - 2026-10-31T16:50:42Z):
 - Full suite: 1670 passed, 11 skipped, 0 failed (FULLY GREEN)
 - BAB suite (tests/test_bab*.py): 1146 passed, 5 skipped, 0 failed (GREEN)
 - sizing.py: 100% COMPLETE
