@@ -206,3 +206,7 @@ def summary(returns, weights_df=None, benchmark_returns=None, risk_free: float =
     result["final_cumulative"] = final_cumulative(r)
     result["n_observations"] = int(len(r))
     return result
+
+def compute_metrics(returns, weights_df=None, benchmark_returns=None, risk_free: float = 0.0, periods_per_year: int = 252):
+    """Compute performance metrics (alias for summary)."""
+    return summary(returns, weights_df=weights_df, benchmark_returns=benchmark_returns, risk_free=risk_free, periods_per_year=periods_per_year)
