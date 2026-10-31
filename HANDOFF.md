@@ -1,7 +1,7 @@
-# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) — 2026-10-31T12:10:28Z
+# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) — 2026-10-31T12:50:19Z
 
 ## TIMESTAMP
-2026-10-31T12:10:28Z
+2026-10-31T12:50:19Z
 
 ## REPO / PRIORITY
 REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE (repo name = betting_against_beta). ALL WORK MUST PRIORITIZE strategies/betting_against_beta/. NO VANITY. NO FILE-COUNT GOALS. NO DOCS-ONLY CHANGES. NO IDLE TURNS. IF NO BAB WORK IS POSSIBLE, EXPLAIN WHY WITH EVIDENCE BEFORE DOING ANYTHING ELSE.
@@ -16,7 +16,7 @@ REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE (repo name = betting_again
 
 REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE
 
-VERIFIED STATE (CLEAN MEASUREMENT - 2026-10-31T12:03:48Z):
+VERIFIED STATE (CLEAN MEASUREMENT - 2026-10-31T12:50:19Z):
 - Full suite: 1635 passed, 11 skipped, 0 failed (FULLY GREEN; bottleneck removed)
 - BAB suite (tests/test_bab*.py): 1109 passed, 5 skipped, GREEN
 - data_loader.py: 95% (296 stmts, 14 miss) — PRIORITY #1 (>=95 -> push to >=97)
@@ -98,7 +98,7 @@ DO HEAVY WORK. NO DELAY.
 ## CAMPAIGN OBJECTIVE
 Maximize BAB coverage to >=97% with zero regressions. Prioritize data_loader.py then quality.py. Hit only real hitable branches. Every turn must produce substantive test/logic changes. Focus on the specific missing lines identified above.
 
-## VERIFIED GATES (CURRENT - 2026-10-31T12:03:48Z)
+## VERIFIED GATES (CURRENT - 2026-10-31T12:50:19Z)
 - data_loader.py: 95% (14 misses: 44, 120-122, 140, 192-193, 256, 311-313, 340-342)
 - quality.py: 89% (21 misses: 3-11, 47-48, 110, 124, 145, 187-188, 192, 211-212, 216, 245-246, 250, 259-262)
 - BAB suite (tests/test_bab*.py): 1109 passed, 5 skipped, GREEN
