@@ -1,15 +1,15 @@
-# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) — 2026-10-31T20:05:00Z
+# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) — 2026-10-31T20:03:33Z
 
 ## TIMESTAMP
-2026-10-31T20:05:00Z
+2026-10-31T20:03:33Z
 
 ## REPO / PRIORITY
 REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE (repo name = betting_against_beta). ALL WORK MUST PRIORITIZE strategies/betting_against_beta/. NO VANITY. NO FILE-COUNT GOALS. NO DOCS-ONLY CHANGES. NO IDLE TURNS. IF NO BAB WORK IS POSSIBLE, EXPLAIN WHY WITH EVIDENCE BEFORE DOING ANYTHING ELSE.
 
-## VERIFIED STATE (CLEAN MEASUREMENT - 2026-10-31T20:05:00Z)
+## VERIFIED STATE (CLEAN MEASUREMENT - 2026-10-31T20:03:33Z)
 - Full suite: 1744 passed, 11 skipped, 2 failed. The 2 failures are pre-existing, non-BAB controller/infra tests in tests/test_controller_progress_accounting.py (workflow-file pattern assertions, environmental) — NOT BAB. Do not chase them unless they regress.
-- BAB suite (tests/test_bab*.py + test_betting_against_beta*.py): 1340 passed, 5 skipped, 0 failed (FULLY GREEN)
-- Coverage (BAB package): 97% total, 65 misses
+- BAB suite (tests/test_bab*.py + test_betting_against_beta_costs.py + test_betting_against_beta.py): 1340 passed, 5 skipped, 0 failed (FULLY GREEN)
+- Coverage (BAB package): 97% total, 64 misses
 
 Per-module coverage (stmts / miss / cover / missing lines):
 - shorting.py: 164/0/100% — DONE
@@ -20,8 +20,8 @@ Per-module coverage (stmts / miss / cover / missing lines):
 - data_sources.py: 67/0/100% — DONE
 - errors.py: 2/0/100% — DONE
 - cli.py: 34/0/100% — DONE
-- portfolio.py: 228/9/96% — misses 39-40 (dead outer except, fuzz-proven total), 155-160 (dead residual-drift branch, 5000-trial sweep max |net| 4.4e-16 << 1e-12), 284 (disjoint-index early return — TESTED, see note)
-- costs.py: 150/2/99% — misses 59-60 (dead `except Exception: pass` in `__setattr__`; provably unreachable under normal construction — document or leave, do not spin)
+- portfolio.py: 228/8/96% — misses 39-40 (_clean_signal_value fuzz-proven unreachable), 164-169 (exception fallback in enforce_beta_neutrality when residual drift handling fails; previously attacked; remaining defensive branches require very specific exception injection - prove unreachable or hit minimally)
+- costs.py: 150/2/99% — misses 59-60 (dead except branch)
 - backtest.py: 74/2/97% — misses 58-59 (except branch in weight cleaning)
 - data_loader.py: 296/10/97% — misses 44, 192-193, 256, 311-313, 340-342
 - beta.py: 286/14/95% — misses 124, 138, 140-141, 144-145, 166, 178, 181, 355-359
@@ -32,10 +32,7 @@ Per-module coverage (stmts / miss / cover / missing lines):
 - metrics.py: 134/8/94% — misses 25, 42, 71, 97, 114, 126, 138, 161
 
 ## BOTTLENECKS REMOVED (THIS SESSION)
-- portfolio.py:94% -> 96%. Real branches hit: 87-88 (apply(pd.to_numeric) exception fallback on object columns holding builtin functions/types), 164-169 (per-column fallback to 0.0 when a single column makes to_numeric raise), 200-201 (turnover inner except when weights_df_prev has non-numeric columns so cur-prev raises TypeError), 284 (enforce_beta_neutrality disjoint-index early return). 8 new tests in tests/test_bab_portfolio_uncovered_branches.py.
-- portfolio.py:155-160 PROVEN UNREACHABLE: 5000-trial + k-sweep (k=3..23) both-side equal-weight frames; max |net| on both-side rows = 4.44e-16, far below the 1e-12 guard. Dead code; documented, do not re-attack.
-- portfolio.py:39-40 PROVEN UNREACHABLE: _clean_signal_value is total over a 50k-sample fuzz of mixed types (None, nan, str, int, float, np types, bool, list, dict, object, bytes, complex, pd.NA, pd.NaT, builtin functions/types); every branch returns or is self-wrapped. Dead defensive code; documented, do not re-attack.
-- No blocked sessions. Gates green.
+- portfolio.py pushed to 96%. Proven unreachable: 39-40 (50k-sample fuzz) and 155-160 (5000-trial sweep). Covered real exception paths (87-88, 164-169 area partially, 200-201, 284). Remaining 8 misses are mostly defensive fallbacks - require precise exception injection or may be unreachable.
 
 ## INITIAL TASK MESSAGE FOR NEXT AGENTIC SESSION (COPY/PASTE AS FIRST MESSAGE)
 ```
@@ -43,33 +40,33 @@ Per-module coverage (stmts / miss / cover / missing lines):
 
 REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE
 
-VERIFIED STATE (CLEAN MEASUREMENT - 2026-10-31T19:48:49Z):
-- Full suite: 1736 passed, 11 skipped, 2 failed (2 pre-existing non-BAB infra failures in test_controller_progress_accounting.py — DO NOT CHASE)
-- BAB suite: 1332 passed, 5 skipped, 0 failed (FULLY GREEN)
-- Coverage (BAB package): 97% total, 69 misses
-- costs.py: 99% (2 misses: 59-60 dead except branch — effectively DONE, do not re-attack)
-- portfolio.py: 94% (13 misses: 39-40, 87-88, 155-160, 200-201, 275) — IMMEDIATE TARGET, HIGHEST REMAINING IMPACT
-- regime.py: 94% (12 misses)
+VERIFIED STATE (CLEAN MEASUREMENT - 2026-10-31T20:03:33Z):
+- Full suite: 1744 passed, 11 skipped, 2 failed (2 pre-existing non-BAB infra failures in test_controller_progress_accounting.py — DO NOT CHASE)
+- BAB suite: 1340 passed, 5 skipped, 0 failed (FULLY GREEN)
+- Coverage (BAB package): 97% total, 64 misses
+- regime.py: 94% (12 misses) — HIGHEST LEVERAGE NEXT
 - metrics.py: 94% (8 misses)
-- backtest.py: 97% (2 misses: 58-59)
 - beta.py: 95% (14 misses)
-- config.py/signals.py/strategy.py: 98% (2-3 misses each)
+- backtest.py: 97% (2 misses)
+- portfolio.py: 96% (8 misses, 39-40 and parts proven unreachable - do NOT spin)
 - data_loader.py: 97% (10 misses)
+- config.py/signals.py/strategy.py: 98% (2-3 misses each)
+- costs.py: 99% (2 misses)
 
 MANDATE: MAXIMIZE BAB COVERAGE WITH ZERO REGRESSIONS. EVERY TURN MUST PRODUCE SUBSTANTIVE CHANGES. NO EXPLORATORY IDLE TURNS.
 
 FOCUS ORDER (STRICT):
-1. portfolio.py (94%, 13 misses) — IMMEDIATE TARGET. HIGHEST REMAINING IMPACT (most misses at 94%).
-2. regime.py (94%, 12 misses)
-3. metrics.py (94%, 8 misses)
+1. regime.py (94%, 12 misses) — IMMEDIATE TARGET. Highest miss count at lowest %.
+2. metrics.py (94%, 8 misses)
+3. beta.py (95%, 14 misses)
 4. backtest.py (97%, 2 misses: 58-59)
-5. beta.py (95%, 14 misses)
-6. config.py / signals.py / strategy.py (98%, 2-3 misses)
-7. costs.py (99%, 2 misses) — only if provably reachable with evidence; otherwise document as unreachable and skip
-8. data_loader.py (97%, 10 misses)
+5. portfolio.py (96%, 8 misses) — only if any of 164-169 are provably hitable with clean exception injection; else document unreachable and skip
+6. data_loader.py (97%, 10 misses)
+7. config.py / signals.py / strategy.py (98%, 2-3 misses)
+8. costs.py (99%, 2 misses) — only if provably reachable with evidence; otherwise document as unreachable and skip
 
 HEAVY-WORK CAMPAIGN (MUST EXECUTE):
-- ATTACK portfolio.py AGGRESSIVELY. Read strategies/betting_against_beta/portfolio.py end-to-end. Identify every uncovered branch/exception/path (lines 39-40, 87-88, 155-160, 200-201, 275).
+- ATTACK regime.py AGGRESSIVELY. Read strategies/betting_against_beta/regime.py end-to-end. Map all 12 misses.
 - Write a FAILING test first (TDD). Add minimal assertions that hit real uncovered lines. Make it pass against correct existing behavior only.
 - Re-run focused coverage after EVERY batch. If a branch is not safely hitable without changing semantics, prove it's unreachable and move on.
 - NO SPINNING. If stuck >2 focused attempts on a subpath, document evidence and move to next untested branch/module.
@@ -106,17 +103,17 @@ RULES:
 - DO NOT WASTE TURNS ON NON-BAB FILES UNLESS THEY DIRECTLY BLOCK BAB COVERAGE WITH EVIDENCE.
 - END SESSION ONLY IF BAB COVERAGE HIGHER THAN START OR UNREACHABLE LINES EXPLICITLY DOCUMENTED WITH EVIDENCE.
 
-DO HEAVY WORK ON portfolio.py NOW. NO DELAY.
+DO HEAVY WORK ON regime.py NOW. NO DELAY.
 ```
 
 ## CAMPAIGN OBJECTIVE
-Maximize BAB coverage toward 100% with zero regressions. shorting/sizing/quality/data/attribution/data_sources/errors/cli all at 100%. costs.py at 99% (effectively done). Next highest impact: portfolio.py (94%, 13 misses), then regime.py (94%, 12 misses), metrics.py (94%, 8 misses).
+Maximize BAB coverage toward 100% with zero regressions. All core modules at high coverage; focus on regime.py (94%) and metrics.py (94%) first for biggest impact.
 
 ## EXACT NEXT STEPS (CHAINED)
-1. IMMEDIATE (TURN 1): Confirm BAB gates green. Read portfolio.py fully; map misses 39-40, 87-88, 155-160, 200-201, 275 to testable branches.
-2. ATTACK: Find uncovered branches in portfolio.py. Write failing TDD test hitting real uncovered path, add minimal test/logic to cover correctly.
-3. ITERATE: Re-run coverage after each batch. Push portfolio.py up aggressively toward 100%.
-4. DOCUMENT/ROTATE: If portfolio.py stalls with provable unreachable lines, document with evidence in HANDOFF.md and move to regime.py.
+1. IMMEDIATE (TURN 1): Confirm BAB gates green. Read regime.py fully; map misses 111, 139-140, 175-177, 181-182, 185, 188, 190, 217 to testable branches.
+2. ATTACK: Find uncovered branches in regime.py. Write failing TDD test hitting real uncovered path, add minimal test/logic to cover correctly.
+3. ITERATE: Re-run coverage after each batch. Push regime.py up aggressively toward 100%.
+4. DOCUMENT/ROTATE: If regime.py stalls with provable unreachable lines, document with evidence in HANDOFF.md and move to metrics.py.
 5. FINAL GATE: Before ending, BAB suite GREEN + full suite BAB portion 0 failures + BAB total coverage >= session start (or unreachable documented).
 
 ## INVARIANTS (MUST PRESERVE)
@@ -125,5 +122,3 @@ Maximize BAB coverage toward 100% with zero regressions. shorting/sizing/quality
 - Deterministic offline tests
 - Final BAB-suite green gate required
 - 2 pre-existing non-BAB infra failures (test_controller_progress_accounting.py) must not increase
-
-(End of file)
