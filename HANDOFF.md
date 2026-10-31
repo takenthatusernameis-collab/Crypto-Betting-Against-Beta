@@ -1,10 +1,10 @@
-# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) — 2026-10-31T09:56:20Z
+# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) — 2026-10-31T09:58:12Z
 
 ## TIMESTAMP
-2026-10-31T09:56:20Z
+2026-10-31T09:58:12Z
 
 ## REPO / PRIORITY
-REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE (repo name = betting_against_beta). ALL WORK MUST PRIORITIZE strategies/betting_against_beta/. NO VANITY. NO FILE-COUNT GOALS. NO DOCS-ONLY CHANGES. NO IDLE TURNS.
+REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE (repo name = betting_against_beta). ALL WORK MUST PRIORITIZE strategies/betting_against_beta/. NO VANITY. NO FILE-COUNT GOALS. NO DOCS-ONLY CHANGES. NO IDLE TURNS. IF NO BAB WORK IS POSSIBLE, EXPLAIN WHY WITH EVIDENCE BEFORE DOING ANYTHING ELSE.
 
 ## INITIAL TASK MESSAGE FOR NEXT AGENTIC SESSION (COPY/PASTE AS FIRST MESSAGE)
 ```
@@ -12,14 +12,14 @@ REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE (repo name = betting_again
 
 REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE
 
-VERIFIED STATE (CLEAN MEASUREMENT - 2026-10-31T09:56:20Z):
+VERIFIED STATE (CLEAN MEASUREMENT - 2026-10-31T09:58:12Z):
 - beta.py: 97% (dead/unreachable misses only — do not spin)
-- data_loader.py: 91% (293 stmts, 26 miss) — focus #1
-- quality.py: 88% (183 stmts, 22 miss) — focus #2
+- data_loader.py: 91% (293 stmts, 26 miss) — PRIORITY #1
+- quality.py: 88% (183 stmts, 22 miss) — PRIORITY #2
 - BAB suite (tests/test_bab*.py): 1058 passed, 5 skipped, GREEN
 - Full suite: 1582 passed, 11 skipped, 2 failed. ONLY the 2 pre-existing unrelated workflow-pattern-sync failures in test_controller_progress_accounting.py are ALLOWED; everything else MUST pass.
 
-MANDATE: MAXIMIZE BAB COVERAGE TO >=97% WITH ZERO REGRESSIONS. EVERY TURN MUST PRODUCE SUBSTANTIVE CHANGES.
+MANDATE: MAXIMIZE BAB COVERAGE TO >=97% WITH ZERO REGRESSIONS. EVERY TURN MUST PRODUCE SUBSTANTIVE CHANGES. NO EXPLORATORY IDLE TURNS.
 
 TARGETS (NON-NEGOTIABLE):
 - data_loader.py >= 95% (attack hitable uncovered branches with precise tests/minimal defensive fixes)
@@ -66,6 +66,7 @@ RULES:
 - IF A MODULE STALLS (NO NEW BRANCH HITABLE SAFELY AFTER FOCUSED ATTEMPTS) -> MOVE TO NEXT HIGHEST-LEVERAGE BAB MODULE WITH SAME RIGOR AND HEAVY WORK. NO SPINNING.
 - RUN GATES AFTER CHANGES. NEVER LEAVE GATES RED.
 - EVERY ACTION MUST BE SUBSTANTIVE. MOMENTUM IS MANDATORY.
+- DO NOT WASTE TURNS ON NON-BAB FILES UNLESS THEY DIRECTLY BLOCK BAB COVERAGE WITH EVIDENCE.
 
 FOCUS ORDER (STRICT):
 1. strategies/betting_against_beta/data_loader.py (biggest immediate lift)
@@ -76,6 +77,7 @@ BOTTLENECKS TO REMOVE:
 - DO NOT run full `coverage run` on entire suite (numpy C-ext issues). USE the inline driver above.
 - DO NOT run expensive full-suite coverage. Only gate with `pytest -q` as specified.
 - AVOID broad refactors. Prefer targeted tests that exercise existing error/edge paths.
+- DO NOT get distracted by controller/infra tests - only the 2 pre-existing failures are allowed.
 
 DO HEAVY WORK. NO DELAY.
 ```
