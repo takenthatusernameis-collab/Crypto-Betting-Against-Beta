@@ -1,7 +1,7 @@
-# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) — 2026-10-31T02:58:00Z
+# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) — 2026-10-31T03:56:00Z
 
 ## TIMESTAMP
-2026-10-31T02:58:00Z
+2026-10-31T03:56:00Z
 
 ## INITIAL TASK MESSAGE FOR NEXT AGENT (COPY/PASTE AS FIRST MESSAGE)
 ```
@@ -26,7 +26,7 @@ PROVE WITH COVERAGE (WORKING METHOD — do NOT use `coverage run -m pytest`; it 
   sys.exit(rc)
   EOF
 ADD REAL TESTS WITH ASSERTIONS OR MINIMAL DEFENSIVE FIXES. NO DOCS-ONLY. NO FILE-COUNT GOAL.
-BOTTLENECKS REMOVED: deps (numpy/pandas/pytest/coverage) installed in user site-packages; use PYTHONPATH above. Tests added (test_beta_gap_hunt*.py, test_beta_precise_missing.py) to accelerate hitting branches.
+BOTTLENECK STATUS: vanity defensive try/except wrappers added in last checkpoint commit were removed (restored beta.py to 289 stmts / 91% coverage). Deps (numpy/pandas/pytest/coverage) installed in user site-packages; use PYTHONPATH above. Tests added (test_beta_gap_hunt*.py, test_beta_precise_missing.py) to accelerate hitting branches.
 FULL SUITE MUST STAY GREEN. BAB SUITE MUST STAY GREEN (note: 2 pre-existing unrelated workflow-pattern-sync failures in test_controller_progress_accounting.py are allowed; everything else must pass).
 DO HEAVY WORK. NO DELAY.
 ```
@@ -36,7 +36,7 @@ Maximize BAB coverage to >=97% starting with beta.py (biggest gap). Every turn m
 
 ## VERIFIED GATES (CURRENT)
 - beta.py: 91% (289 stmts, 27 miss) — PRIMARY BOTTLENECK; missing: 66-67, 114, 124, 138, 140-141, 144-145, 166, 178, 180-185, 264-268, 358-362
-- BAB beta-focused suite (bab/beta, excl. perf): 401 passed, GREEN in ~2.7s
+- BAB beta-focused suite (bab/beta, excl. perf): 382 passed, GREEN in ~2.7s
 - Full suite: 1566 passed, 11 skipped, 2 failed (unrelated workflow pattern sync in controller_progress - pre-existing, ALLOWED)
 - BAB total coverage: ~96% overall; beta.py 91% — PRIMARY BOTTLENECK
 
