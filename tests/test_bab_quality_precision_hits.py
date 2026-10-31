@@ -52,11 +52,11 @@ def test_detect_stale_data_long_run():
     assert res["BTC"]["count"] >= 1
 
 
-def test_detect_anomalies_exception():
+def test_detect_volume_anomalies_exception():
     class Weird:
         pass
     df = pd.DataFrame({"WEIRD": [Weird()] * 5})
-    res = quality.detect_anomalies(df)
+    res = quality.detect_volume_anomalies(df)
     assert isinstance(res, dict)
 
 

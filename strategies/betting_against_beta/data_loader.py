@@ -84,7 +84,10 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
             except (ValueError, TypeError):
                 continue
             if parsed is not None and hasattr(parsed, 'isna') and not parsed.isna().any():
-                return df.set_index(col)
+                try:
+                    return df.set_index(col)
+                except (ValueError, TypeError, KeyError):
+                    continue
     return df
 
 
