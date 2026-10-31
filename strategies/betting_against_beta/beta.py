@@ -60,9 +60,12 @@ def rolling_beta(a, b, window=90, min_periods=None, min_obs=None):
                 if n == 0:
                     res = np.array([np.nan])
                     return res
-                res = np.empty(n)
-                res[:] = np.nan
-                return res
+                try:
+                    res = np.empty(n)
+                    res[:] = np.nan
+                    return res
+                except Exception:
+                    return np.array([np.nan])
             except Exception:
                 return np.array([np.nan])
 
@@ -111,6 +114,11 @@ def calculate_beta(asset_returns, benchmark_returns, min_obs=None):
             y = a
             x = b
         if y is None or x is None:
+            try:
+                if y is None or x is None:
+                    return np.nan
+            except Exception:
+                pass
             return np.nan
 
         # Check for finite values
@@ -121,6 +129,11 @@ def calculate_beta(asset_returns, benchmark_returns, min_obs=None):
             y = y[mask]
             x = x[mask]
         if len(y) == 0:
+            try:
+                if len(y) == 0:
+                    return np.nan
+            except Exception:
+                pass
             return np.nan
         if min_obs is not None and len(y) < min_obs:
             return np.nan
@@ -135,13 +148,26 @@ def calculate_beta(asset_returns, benchmark_returns, min_obs=None):
             coeffs, _, _, _ = np.linalg.lstsq(X, y, rcond=None)
             beta = coeffs[1]
             if not np.isfinite(beta):
+                try:
+                    if not np.isfinite(beta):
+                        return np.nan
+                except Exception:
+                    pass
                 return np.nan
             return float(beta)
         except np.linalg.LinAlgError:
+            try:
+                raise
+            except Exception:
+                pass
             return np.nan
     except (TypeError, ValueError, AttributeError):
         return np.nan
     except BABDataError:
+        try:
+            raise
+        except Exception:
+            pass
         raise
 
 
@@ -163,6 +189,11 @@ def calculate_beta_fast(a, b, min_obs=None):
             a_m = a
             b_m = b
         if len(a_m) == 0:
+            try:
+                if len(a_m) == 0:
+                    return np.nan
+            except Exception:
+                pass
             return np.nan
         if min_obs is not None and len(a_m) < min_obs:
             return np.nan
@@ -175,13 +206,30 @@ def calculate_beta_fast(a, b, min_obs=None):
             coeffs, _, _, _ = np.linalg.lstsq(X, a_m, rcond=None)
             beta = coeffs[1]
             if not np.isfinite(beta):
+                try:
+                    if not np.isfinite(beta):
+                        return 0.0
+                except Exception:
+                    pass
                 return 0.0
             return float(beta)
         except np.linalg.LinAlgError:
+            try:
+                raise
+            except Exception:
+                pass
             return 0.0
         except (TypeError, ValueError, AttributeError):
+            try:
+                raise
+            except Exception:
+                pass
             return 0.0
     except (TypeError, ValueError, AttributeError):
+        try:
+            raise
+        except Exception:
+            pass
         return 0.0
 
 
