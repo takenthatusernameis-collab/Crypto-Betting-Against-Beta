@@ -77,3 +77,21 @@ def test_metrics_compute_metrics_alias():
     from strategies.betting_against_beta import metrics
     m = metrics.compute_metrics(pd.Series([0.01, -0.01]), benchmark_returns=pd.Series([0.0, 0.01]))
     assert isinstance(m, dict)
+
+
+def test_metrics_max_drawdown_cumulative_all_nan_branch():
+    import numpy as np
+    import pandas as pd
+    from strategies.betting_against_beta import metrics
+    # -1.0 return -> cumulative = 0.0 -> drawdown = 0/0 = NaN -> line 71
+    s = pd.Series([-1.0])
+    assert np.isnan(metrics.max_drawdown(s))
+
+
+def test_metrics_turnover_dropna_mean_nan_branch():
+    import numpy as np
+    import pandas as pd
+    from strategies.betting_against_beta import metrics
+    # Single-row diff produces NaN mean -> line 97
+    df = pd.DataFrame({"A": [0.5], "B": [0.3]})
+    assert metrics.turnover(df) == 0.0
