@@ -1,21 +1,37 @@
-# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) — 2026-10-31T07:01:50Z
+# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) — 2026-10-31T07:21:51Z
 
 ## TIMESTAMP
-2026-10-31T07:01:50Z
+2026-10-31T07:21:51Z
 
 ## REPO / PRIORITY
-REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE (repo name = betting_against_beta). All work prioritizes strategies/betting_against_beta/. No vanity. No file-count goals.
+REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE (repo name = betting_against_beta). ALL WORK MUST PRIORITIZE strategies/betting_against_beta/. NO VANITY. NO FILE-COUNT GOALS. NO DOCS-ONLY CHANGES.
 
-## INITIAL TASK MESSAGE FOR NEXT AGENT (COPY/PASTE AS FIRST MESSAGE)
+## INITIAL TASK MESSAGE FOR NEXT AGENTIC SESSION (COPY/PASTE AS FIRST MESSAGE)
 ```
+>>> START IMMEDIATELY — HEAVY WORK REQUIRED <<<
+
 PRIORITY #1: strategies/betting_against_beta/beta.py | REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE
-beta.py coverage is 94% (286 stmts, 16 miss). CRUSH remaining UNCOVERED BRANCHES.
-TARGET: beta.py >= 95% | BAB TOTAL >= 97%.
-DO NOT TOUCH FILES FOR VANITY. CHANGE ONLY SMALLEST SET NEEDED FOR REAL UNCOVERED BRANCHES.
-HIT HARD LINES (current missing): 66-67, 114, 124, 144-145, 166, 182-185, 355-359.
-FOCUS AREAS: rolling_beta fallthrough paths (66-67, n==0/final excepts), calculate_beta y/None/empty/degenerate/LinAlgError/nonfinite beta (114, 124, 144-145), calculate_beta_fast empty/min_obs/degenerate/LinAlgError/TypeError/ValueError/AttributeError inner/outer excepts (166, 182-185), calculate_rolling_beta bad-asset outer-except BABDataError path (355-359).
-STATUS: gate green. Prior checkpoint fixed an uncaught TypeError at beta.py:252 (np.asarray fallback now raises BABDataError) and removed the unreachable dead double-conversion block (old lines 264-268); bench_arr now reuses bench_vals. Full BAB suite green (1160 passed, 0 failed).
-PROVE WITH COVERAGE (WORKING METHOD — do NOT use `coverage run -m pytest`; it crashes on numpy double-import and the full suite times out on perf tests):
+
+CURRENT STATE (VERIFIED):
+- beta.py: 94% (286 stmts, 16 miss) — ABSOLUTE BOTTLENECK
+- BAB beta-focused suite (excl. perf): 355 passed, GREEN (~2.5s)
+- Broad BAB suite: 1160 passed, 5 skipped, 0 failed — MUST STAY GREEN
+- Full suite: 1566 passed, 11 skipped, 2 failed (ONLY pre-existing unrelated workflow-pattern-sync failures in test_controller_progress_accounting.py are ALLOWED; everything else MUST pass)
+
+TARGETS (NON-NEGOTIABLE):
+- beta.py >= 95% (CRUSH remaining uncovered branches NOW)
+- BAB TOTAL >= 97% (after beta.py, hit next highest-leverage BAB module)
+- ZERO new regressions anywhere. BAB suite MUST remain fully green.
+
+EXACT UNCOVERED LINES TO HIT (no guessing): 66-67, 114, 124, 144-145, 166, 182-185, 355-359
+
+PRECISE FOCUS:
+- rolling_beta fallthrough (66-67): force both _calc_rolling_beta_series paths to fail so we hit the final `except: return np.array([np.nan])` (n==0/final excepts).
+- calculate_beta (114, 124, 144-145): cover y is None (114), empty after mask (124), and ensure BABDataError re-raise path (144-145) is exercised (e.g. None input).
+- calculate_beta_fast (166, 182-185): empty after mask (166), nonfinite beta, LinAlgError, TypeError/ValueError/AttributeError inner and outer excepts.
+- calculate_rolling_beta (355-359): force bad-asset path in outer except to raise BABDataError.
+
+VERIFICATION BOTTLENECK ELIMINATED (USE THIS EXACT METHOD — DO NOT use `coverage run -m pytest`):
   cd /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
   PYTHONPATH=/home/runner/work/_temp/kilo-home/.local/lib/python3.12/site-packages:$PWD python3 - <<'EOF'
   import glob, sys, coverage, pytest
@@ -29,10 +45,15 @@ PROVE WITH COVERAGE (WORKING METHOD — do NOT use `coverage run -m pytest`; it 
   cov.report(show_missing=True, include=ROOT + "/strategies/betting_against_beta/beta.py")
   sys.exit(rc)
   EOF
-ADD REAL TESTS WITH ASSERTIONS OR MINIMAL DEFENSIVE FIXES. NO DOCS-ONLY. NO FILE-COUNT GOAL.
-BOTTLENECK STATUS: verification bottleneck REMOVED — `coverage run -m pytest` is broken (numpy C-extension double-import); full suite times out on perf tests. Use the inline coverage driver above (excludes perf tests, runs ~2.5s). Dependencies (numpy/pandas/pytest/coverage) installed in user site-packages; use PYTHONPATH above.
-FULL SUITE MUST STAY GREEN. BAB SUITE MUST STAY GREEN (note: 2 pre-existing unrelated workflow-pattern-sync failures in test_controller_progress_accounting.py are allowed; everything else must pass).
-DO HEAVY WORK. NO DELAY.
+
+RULES:
+- ADD REAL TESTS WITH ASSERTIONS OR MINIMAL DEFENSIVE FIXES. NO DOCS-ONLY. NO FILE-COUNT GOAL.
+- CHANGE ONLY THE SMALLEST SET NEEDED TO COVER REAL UNCOVERED BRANCHES.
+- PRESERVE: 1-day lag, dollar-neutral where applicable, quantiles/deciles, beta window >= 60 default, ranking logic. Enforce finiteness. Raise BAB-specific errors. NO bare except:.
+- IF beta.py CANNOT HIT A BRANCH SAFELY IN THIS TURN, DO NOT SPIN — MOVE TO NEXT HIGHEST LEVERAGE BAB MODULE (data_loader.py or quality.py) WITH SAME RIGOR AND HEAVY WORK.
+- RUN GATES AFTER CHANGES: focused beta coverage + BAB suite + (spot-check full suite if risky). NEVER LEAVE GATES RED.
+
+DO HEAVY WORK. NO DELAY. NO EXCUSES.
 ```
 
 ## CAMPAIGN OBJECTIVE
