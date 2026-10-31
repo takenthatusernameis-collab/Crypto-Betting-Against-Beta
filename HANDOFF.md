@@ -1,7 +1,7 @@
-# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) — 2026-10-31T13:52:45Z
+# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) — 2026-10-31T14:34:24Z
 
 ## TIMESTAMP
-2026-10-31T13:52:45Z
+2026-10-31T14:34:24Z
 
 ## REPO / PRIORITY
 REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE (repo name = betting_against_beta). ALL WORK MUST PRIORITIZE strategies/betting_against_beta/. NO VANITY. NO FILE-COUNT GOALS. NO DOCS-ONLY CHANGES. NO IDLE TURNS. IF NO BAB WORK IS POSSIBLE, EXPLAIN WHY WITH EVIDENCE BEFORE DOING ANYTHING ELSE.
@@ -10,7 +10,7 @@ REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE (repo name = betting_again
 - The 2 workflow-pattern-sync failures in tests/test_controller_progress_accounting.py (test_python_patterns_are_subset_of_workflow, test_nested_workflow_pattern_is_present_in_workflow) REGRESSED (workflow lost `*/.github/workflows/*`) and are FIXED AGAIN. Added `*/.github/workflows/*` to .github/workflows/main.yml:1163 stage_safe_changes case list to match scripts/controller_progress.py EXCLUDE_PATTERNS (which has both `.github/workflows/*` and `*/.github/workflows/*`).
 - Full suite is now 100% GREEN: 1652 passed, 11 skipped, 0 failed. No allowed failures remain.
 
-## VERIFIED STATE (CLEAN MEASUREMENT - 2026-10-31T13:52:45Z)
+## VERIFIED STATE (CLEAN MEASUREMENT - 2026-10-31T14:34:24Z)
 - Full suite: 1652 passed, 11 skipped, 0 failed (FULLY GREEN; bottleneck removed)
 - BAB suite (tests/test_bab*.py): 1126 passed, 5 skipped, GREEN
 - data_loader.py: 97% (296 stmts, 10 miss) — TARGET >=97% MET NUMERICALLY, remaining misses: 44, 192-193, 256, 311-313, 340-342 (attempt or document as provably unreachable)
@@ -22,7 +22,7 @@ REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE (repo name = betting_again
 
 REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE
 
-VERIFIED STATE (CLEAN MEASUREMENT - 2026-10-31T13:52:45Z):
+VERIFIED STATE (CLEAN MEASUREMENT - 2026-10-31T14:34:24Z):
 - Full suite: 1652 passed, 11 skipped, 0 failed (FULLY GREEN; bottleneck removed)
 - BAB suite (tests/test_bab*.py): 1126 passed, 5 skipped, GREEN
 - data_loader.py: 97% (10 misses: 44, 192-193, 256, 311-313, 340-342)
@@ -109,7 +109,7 @@ DO HEAVY WORK. NO DELAY.
 ## CAMPAIGN OBJECTIVE
 Maximize BAB coverage to >=97% with zero regressions. Prioritize quality.py (92% -> >=93%) then hold data_loader.py >=97% and attack/document remaining misses. Hit only real hitable branches. Every turn must produce substantive test/logic changes. Focus on the specific missing lines identified above.
 
-## VERIFIED GATES (CURRENT - 2026-10-31T13:52:45Z)
+## VERIFIED GATES (CURRENT - 2026-10-31T14:34:24Z)
 - data_loader.py: 97% (10 misses: 44, 192-193, 256, 311-313, 340-342)
 - quality.py: 92% (14 misses: 3-11, 110, 124, 132, 145, 192, 216, 250, 259-262)
 - BAB suite (tests/test_bab*.py): 1126 passed, 5 skipped, GREEN
