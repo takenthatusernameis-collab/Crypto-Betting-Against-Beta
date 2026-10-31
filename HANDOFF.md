@@ -1,7 +1,7 @@
-# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) — 2026-10-31T09:58:12Z
+# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) — 2026-10-31T11:00:14Z
 
 ## TIMESTAMP
-2026-10-31T09:58:12Z
+2026-10-31T11:00:14Z
 
 ## REPO / PRIORITY
 REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE (repo name = betting_against_beta). ALL WORK MUST PRIORITIZE strategies/betting_against_beta/. NO VANITY. NO FILE-COUNT GOALS. NO DOCS-ONLY CHANGES. NO IDLE TURNS. IF NO BAB WORK IS POSSIBLE, EXPLAIN WHY WITH EVIDENCE BEFORE DOING ANYTHING ELSE.
@@ -12,11 +12,11 @@ REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE (repo name = betting_again
 
 REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE
 
-VERIFIED STATE (CLEAN MEASUREMENT - 2026-10-31T09:58:12Z):
+VERIFIED STATE (CLEAN MEASUREMENT - 2026-10-31T11:00:14Z):
 - beta.py: 97% (dead/unreachable misses only — do not spin)
 - data_loader.py: 91% (293 stmts, 26 miss) — PRIORITY #1
 - quality.py: 88% (183 stmts, 22 miss) — PRIORITY #2
-- BAB suite (tests/test_bab*.py): 1058 passed, 5 skipped, GREEN
+- BAB suite (tests/test_bab*.py): 1109 passed, 5 skipped, GREEN
 - Full suite: 1582 passed, 11 skipped, 2 failed. ONLY the 2 pre-existing unrelated workflow-pattern-sync failures in test_controller_progress_accounting.py are ALLOWED; everything else MUST pass.
 
 MANDATE: MAXIMIZE BAB COVERAGE TO >=97% WITH ZERO REGRESSIONS. EVERY TURN MUST PRODUCE SUBSTANTIVE CHANGES. NO EXPLORATORY IDLE TURNS.
@@ -89,7 +89,7 @@ Maximize BAB coverage to >=97% with zero regressions. Prioritize data_loader.py 
 - beta.py: 97% (dead misses only)
 - data_loader.py: 91% (293 stmts, 26 miss)
 - quality.py: 88% (183 stmts, 22 miss)
-- BAB suite (tests/test_bab*.py): 1058 passed, 5 skipped, GREEN
+- BAB suite (tests/test_bab*.py): 1109 passed, 5 skipped, GREEN
 - Full suite: 1582 passed, 11 skipped, 2 failed (pre-existing workflow sync in test_controller_progress_accounting.py — ALLOWED)
 
 ## EXACT NEXT STEPS (CHAINED)
