@@ -1,7 +1,7 @@
-# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) — 2026-10-31T16:35:40Z
+# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) — 2026-10-31T16:40:42Z
 
 ## TIMESTAMP
-2026-10-31T16:35:40Z
+2026-10-31T16:40:42Z
 
 ## REPO / PRIORITY
 REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE (repo name = betting_against_beta). ALL WORK MUST PRIORITIZE strategies/betting_against_beta/. NO VANITY. NO FILE-COUNT GOALS. NO DOCS-ONLY CHANGES. NO IDLE TURNS. IF NO BAB WORK IS POSSIBLE, EXPLAIN WHY WITH EVIDENCE BEFORE DOING ANYTHING ELSE.
@@ -10,7 +10,7 @@ REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE (repo name = betting_again
 - Fixed workflow pattern sync: added `*/.github/workflows/*` to `.github/workflows/main.yml` stage_safe_changes case list (line 1163) and to the checkpoint project-changes case (line 1240), so it matches `scripts/controller_progress.py:28` EXCLUDE_PATTERNS. Both `TestStageSafeChangesPatternSync` tests now pass.
 - Full suite GREEN again: 1656 passed, 11 skipped, 0 failed.
 
-## VERIFIED STATE (CLEAN MEASUREMENT - 2026-10-31T16:35:40Z)
+## VERIFIED STATE (CLEAN MEASUREMENT - 2026-10-31T16:40:42Z)
 - Full suite: 1656 passed, 11 skipped, 0 failed (FULLY GREEN)
 - BAB suite (tests/test_bab*.py): 1130 passed, 5 skipped, 0 failed (GREEN)
 - quality.py: 100% (183 stmts, 0 miss) — COMPLETE
@@ -37,7 +37,7 @@ REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE (repo name = betting_again
 
 REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE
 
-VERIFIED STATE (CLEAN MEASUREMENT - 2026-10-31T16:35:40Z):
+VERIFIED STATE (CLEAN MEASUREMENT - 2026-10-31T16:40:42Z):
 - Full suite: 1656 passed, 11 skipped, 0 failed (FULLY GREEN)
 - BAB suite (tests/test_bab*.py): 1130 passed, 5 skipped, 0 failed (GREEN)
 - quality.py: 100% COMPLETE
@@ -103,7 +103,7 @@ DO HEAVY WORK. NO DELAY.
 ## CAMPAIGN OBJECTIVE
 Maximize BAB coverage toward 100% with zero regressions. data_loader.py complete at 97% (unreachable misses documented). quality.py complete at 100%. Next focus: sizing.py (56%) then shorting.py, metrics.py, costs.py, portfolio.py, backtest.py, beta.py, regime.py, config.py/signals.py/strategy.py.
 
-## VERIFIED GATES (CURRENT - 2026-10-31T16:35:40Z)
+## VERIFIED GATES (CURRENT - 2026-10-31T16:40:42Z)
 - data_loader.py: 97% (10 misses, all provably unreachable — documented)
 - quality.py: 100%
 - BAB suite (tests/test_bab*.py): GREEN (1130 passed, 5 skipped)
