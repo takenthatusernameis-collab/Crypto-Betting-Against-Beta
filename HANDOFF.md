@@ -1,12 +1,12 @@
-# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) — 2026-10-31T18:52:00Z
+# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) — 2026-10-31T19:48:49Z
 
 ## TIMESTAMP
-2026-10-31T18:52:00Z
+2026-10-31T19:48:49Z
 
 ## REPO / PRIORITY
 REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE (repo name = betting_against_beta). ALL WORK MUST PRIORITIZE strategies/betting_against_beta/. NO VANITY. NO FILE-COUNT GOALS. NO DOCS-ONLY CHANGES. NO IDLE TURNS. IF NO BAB WORK IS POSSIBLE, EXPLAIN WHY WITH EVIDENCE BEFORE DOING ANYTHING ELSE.
 
-## VERIFIED STATE (CLEAN MEASUREMENT - 2026-10-31T18:52:00Z)
+## VERIFIED STATE (CLEAN MEASUREMENT - 2026-10-31T19:48:49Z)
 - Full suite: 1736 passed, 11 skipped, 2 failed. The 2 failures are pre-existing, non-BAB controller/infra tests in tests/test_controller_progress_accounting.py (workflow-file pattern assertions, environmental) — NOT BAB. Do not chase them unless they regress.
 - BAB suite (tests/test_bab*.py + test_betting_against_beta*): 1332 passed, 5 skipped, 0 failed (FULLY GREEN)
 - Coverage (BAB package): 97% total, 69 misses
@@ -41,7 +41,7 @@ Per-module coverage (stmts / miss / cover / missing lines):
 
 REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE
 
-VERIFIED STATE (CLEAN MEASUREMENT - 2026-10-31T18:52:00Z):
+VERIFIED STATE (CLEAN MEASUREMENT - 2026-10-31T19:48:49Z):
 - Full suite: 1736 passed, 11 skipped, 2 failed (2 pre-existing non-BAB infra failures in test_controller_progress_accounting.py — DO NOT CHASE)
 - BAB suite: 1332 passed, 5 skipped, 0 failed (FULLY GREEN)
 - Coverage (BAB package): 97% total, 69 misses
