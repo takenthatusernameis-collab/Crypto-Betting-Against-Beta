@@ -1,12 +1,12 @@
-# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) — 2026-10-31T18:38:09Z
+# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) — 2026-10-31T18:44:32Z
 
 ## TIMESTAMP
-2026-10-31T18:38:09Z
+2026-10-31T18:44:32Z
 
 ## REPO / PRIORITY
 REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE (repo name = betting_against_beta). ALL WORK MUST PRIORITIZE strategies/betting_against_beta/. NO VANITY. NO FILE-COUNT GOALS. NO DOCS-ONLY CHANGES. NO IDLE TURNS. IF NO BAB WORK IS POSSIBLE, EXPLAIN WHY WITH EVIDENCE BEFORE DOING ANYTHING ELSE.
 
-## VERIFIED STATE (CLEAN MEASUREMENT - 2026-10-31T18:38:09Z)
+## VERIFIED STATE (CLEAN MEASUREMENT - 2026-10-31T18:44:32Z)
 - Full suite: 1203 passed, 5 skipped, 0 failed (FULLY GREEN)
 - BAB suite (tests/test_bab*.py): 1203 passed, 5 skipped, 0 failed (GREEN)
 - shorting.py: 100% COMPLETE (was 66%)
@@ -27,7 +27,7 @@ REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE (repo name = betting_again
 
 REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE
 
-VERIFIED STATE (CLEAN MEASUREMENT - 2026-10-31T18:38:09Z):
+VERIFIED STATE (CLEAN MEASUREMENT - 2026-10-31T18:44:32Z):
 - Full suite: 1203 passed, 5 skipped, 0 failed (FULLY GREEN)
 - BAB suite (tests/test_bab*.py): 1203 passed, 5 skipped, 0 failed (GREEN)
 - shorting.py: 100% COMPLETE
