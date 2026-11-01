@@ -96,9 +96,12 @@ class TestBetaAlignmentPaths:
         assert np.isnan(out)
 
     def test_calculate_beta_fast_outer_typeerror(self):
-        # lines 163-164: outer TypeError/ValueError/AttributeError -> 0.0
+        # lines 163-164: outer TypeError/ValueError/AttributeError -> NaN
+        # (undefined beta, consistent with calculate_beta and the degenerate-
+        # benchmark invariant; a synthetic 0.0 would be ranked as a valid
+        # low-beta signal and corrupt long/short selection).
         out = beta.calculate_beta_fast("abc", "def")
-        assert out == 0.0
+        assert np.isnan(out)
 
     def test_calculate_beta_and_fast_agree_on_degenerate_benchmark(self):
         # Regression: calculate_beta_fast previously returned 0.0 for a

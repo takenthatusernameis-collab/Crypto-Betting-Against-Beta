@@ -178,14 +178,17 @@ def calculate_beta_fast(a, b, min_obs=None):
             coeffs, _, _, _ = np.linalg.lstsq(X, a_m, rcond=None)
             beta = coeffs[1]
             if not np.isfinite(beta):
-                return 0.0
+                # Undefined beta (singular fit) is NaN, never a synthetic 0.0
+                # that would be ranked as a valid low-beta signal.
+                return np.nan
             return float(beta)
         except np.linalg.LinAlgError:
-            return 0.0
+            # Singular design matrix -> beta is undefined, not zero.
+            return np.nan
         except (TypeError, ValueError, AttributeError):
-            return 0.0
+            return np.nan
     except (TypeError, ValueError, AttributeError):
-        return 0.0
+        return np.nan
 
 
 def _calc_rolling_beta_series(bench_arr, a_arr, window, min_obs):

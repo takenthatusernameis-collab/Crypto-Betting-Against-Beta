@@ -86,15 +86,19 @@ def test_crush_166():
 
 
 def test_crush_182_183():
-    # calculate_beta_fast: 2D input makes the inner lstsq except path return 0.0.
+    # calculate_beta_fast: 2D input makes the inner lstsq except path return NaN
+    # (undefined beta, never a synthetic 0.0 that would be ranked as a valid
+    # low-beta signal).
     a = np.array([[1.0, 2.0], [3.0, 4.0]])
     b = np.array([[1.0, 2.0], [3.0, 4.0]])
-    assert beta.calculate_beta_fast(a, b) == 0.0
+    assert np.isnan(beta.calculate_beta_fast(a, b))
 
 
 def test_crush_184_185():
-    # calculate_beta_fast: non-comparable min_obs triggers the outer except -> 0.0.
-    assert beta.calculate_beta_fast([1.0, 2.0], [1.0, 2.0], min_obs="x") == 0.0
+    # calculate_beta_fast: non-comparable min_obs triggers the outer except -> NaN
+    # (undefined beta, consistent with calculate_beta and the degenerate-benchmark
+    # invariant; a synthetic 0.0 would corrupt downstream ranking).
+    assert np.isnan(beta.calculate_beta_fast([1.0, 2.0], [1.0, 2.0], min_obs="x"))
 
 
 class BadToNumpy:
