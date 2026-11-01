@@ -1,7 +1,7 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 # MOST RELEVANT INFERRED TIMESTAMPED CLEAR INITIAL TASK MESSAGE FOR NEXT AGENTIC WORK SESSION
 
-**HANDOFF_TIMESTAMP:** 2026-11-01T05:27:46Z
+**HANDOFF_TIMESTAMP:** 2026-11-01T05:28:04Z
 **REPO:** Crypto-Betting-Against-Beta
 **PRIORITY:** BAB-FIRST (strategies/betting_against_beta/) — betting_against_beta inferred from repo name
 
@@ -13,12 +13,12 @@
 >>> START IMMEDIATELY — HEAVY WORK REQUIRED <<<
 
 REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE | COVERAGE MAXIMIZED
-TIMESTAMP: 2026-11-01T05:27:46Z
+TIMESTAMP: 2026-11-01T05:28:04Z
 
-VERIFIED STATE (2026-11-01T05:27:46Z - re-verified green):
+VERIFIED STATE (2026-11-01T05:28:04Z - re-verified green):
 - BAB suite: 1318 passed, 7 skipped, 0 failed (FULLY GREEN, RC=0)
 - Package coverage (BAB): 98% total, 45 misses across 2549 stmts — ALL provably unreachable dead code
-- Per-module: beta.py 94% (16 unreachable), config/costs 99% (unreachable except guards), data_loader 97%, metrics 99%, portfolio 97%, regime 99%, signals 98%, strategy 98% — DO NOT CHASE
+- Per-module: beta.py 94% (16 unreachable), config.py 99% (2 unreachable), costs.py 99% (2 unreachable), data_loader.py 97% (9 unreachable), metrics.py 99% (2 unreachable), portfolio.py 97% (8 unreachable), regime.py 99% (1 unreachable), signals.py 98% (2 unreachable), strategy.py 98% (3 unreachable) — DO NOT CHASE
 - 2 pre-existing non-BAB infra failures (test_controller_progress_accounting.py) must not increase
 
 BOTTLENECKS: REMOVED. Coverage ceiling 98%. No hitable branches remain.
@@ -61,8 +61,8 @@ RULES: GATE GREEN ALWAYS. NO CHASING UNREACHABLE (ceiling 98%). HEAVY WORK MANDA
 
 ## BOTTLENECKS REMOVED (unreachable — do not chase)
 - beta.py (16): guards/returns/LinAlgError unreachable for finite inputs (94% ceiling)
-- config.py/costs.py/strategy.py: freeze-except unreachable (plain dataclasses, no __slots__)
-- data_loader.py (7), metrics.py (2), portfolio.py (4), signals.py (2), regime.py (1): all unreachable
+- config.py (2), costs.py (2), strategy.py (3): freeze-except/unreachable guards
+- data_loader.py (9), metrics.py (2), portfolio.py (8), signals.py (2), regime.py (1): all unreachable
 
 ## INVARIANTS
 - 1-day lag, dollar-neutral where applicable, quantiles/deciles, beta>=60 default, ranking
