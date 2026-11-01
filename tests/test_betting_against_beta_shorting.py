@@ -149,11 +149,14 @@ class TestShortingConstraintsNormalizationAndQueries:
         out = shorting.apply_shorting_constraints(df, constraints=sc)
         assert not out.empty
 
-    def test_constraints_kwarg_invalid_uses_default_via_none(self):
+    def test_constraints_kwarg_invalid_raises(self):
         idx = pd.date_range("2023-01-01", periods=1, freq="D")
         df = pd.DataFrame({"A": [0.5]}, index=idx)
-        out = shorting.apply_shorting_constraints(df, constraints="x")
-        assert not out.empty
+        # Hardened API: a non-dict/non-ShortingConstraints type passed as the
+        # ``constraints`` keyword is a misconfiguration that raises instead of
+        # silently coercing to the default.
+        with pytest.raises(shorting.BABShortingError):
+            shorting.apply_shorting_constraints(df, constraints="x")
 
 
 class TestCleanDf:
@@ -178,11 +181,14 @@ class TestApplyShortingConstraintsEntryPaths:
         )
         assert not out.empty
 
-    def test_shorting_constraints_kwargs_invalid_uses_default(self):
+    def test_shorting_constraints_kwargs_invalid_raises(self):
         idx = pd.date_range("2023-01-01", periods=1, freq="D")
         df = pd.DataFrame({"A": [0.5]}, index=idx)
-        out = shorting.apply_shorting_constraints(df, shorting_constraints="x")
-        assert not out.empty
+        # Hardened API: a non-dict/non-ShortingConstraints type passed via the
+        # ``shorting_constraints`` keyword is a misconfiguration that raises
+        # instead of silently coercing to the default.
+        with pytest.raises(shorting.BABShortingError):
+            shorting.apply_shorting_constraints(df, shorting_constraints="x")
 
     def test_shorting_constraints_kwargs_object(self):
         idx = pd.date_range("2023-01-01", periods=1, freq="D")
@@ -271,11 +277,14 @@ class TestSignalConversion:
         out = shorting.apply_shorting_constraints(df, constraints=sc)
         assert not out.empty
 
-    def test_constraints_kwarg_invalid_uses_default(self):
+    def test_constraints_kwarg_invalid_raises(self):
         idx = pd.date_range("2023-01-01", periods=1, freq="D")
         df = pd.DataFrame({"A": [0.5]}, index=idx)
-        out = shorting.apply_shorting_constraints(df, constraints="x")
-        assert not out.empty
+        # Hardened API: a non-dict/non-ShortingConstraints type passed as the
+        # ``constraints`` keyword is a misconfiguration that raises instead of
+        # silently coercing to the default.
+        with pytest.raises(shorting.BABShortingError):
+            shorting.apply_shorting_constraints(df, constraints="x")
 
     def test_borrow_constraints_alias_is_shorting_constraints(self):
         assert shorting.BorrowConstraints is shorting.ShortingConstraints

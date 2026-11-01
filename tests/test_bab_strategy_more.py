@@ -4,6 +4,7 @@ import pandas as pd
 import pytest
 
 from strategies.betting_against_beta import BABStrategy, BABConfig
+from strategies.betting_against_beta.config import BABConfigError
 from strategies.betting_against_beta.errors import BABDataError
 
 
@@ -73,8 +74,7 @@ class TestStrategyMore:
         df = pd.DataFrame(index=dates)
         df["BTC"] = rng.normal(0.001, 0.02, 50)
         df["ETH"] = 0.8 * df["BTC"] + rng.normal(0, 0.01, 50)
-        # pass something that might cause issue but strategy catches non-BABDataError
-        cfg = BABConfig(shorting_constraints={"bad": True}, beta_window=15, min_observations=8)
-        s = BABStrategy(cfg)
-        res = s.run(returns_df=df)
-        assert np.isfinite(res.weights.values).all()
+        # A shorting_constraints dict with an unknown field is a misconfiguration
+        # that now raises at config construction (no silent coercion).
+        with pytest.raises(BABConfigError):
+            BABConfig(shorting_constraints={"bad": True}, beta_window=15, min_observations=8)

@@ -82,12 +82,18 @@ class BABConfig:
 
     def __post_init__(self):
         # Normalize shorting_constraints if passed as dict
-        try:
-            if isinstance(self.shorting_constraints, dict):
-                from . import shorting as _shorting
-                object.__setattr__(self, "shorting_constraints", _shorting.ShortingConstraints(**self.shorting_constraints))
-        except Exception:
-            pass
+        if isinstance(self.shorting_constraints, dict):
+            from . import shorting as _shorting
+            try:
+                object.__setattr__(
+                    self,
+                    "shorting_constraints",
+                    _shorting.ShortingConstraints(**self.shorting_constraints),
+                )
+            except (TypeError, ValueError) as e:
+                raise BABConfigError(
+                    f"shorting_constraints dict is invalid: {e}"
+                ) from e
         self._validate_ranges()
         # Freeze after validation to prevent downstream mutation
         try:

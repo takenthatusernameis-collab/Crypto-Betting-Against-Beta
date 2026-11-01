@@ -80,17 +80,21 @@ def test_run_shorting_constraints_error_propagates():
 
 
 def test_run_sizing_exception_swallowed():
+    # Hardened API: an unknown/invalid position_sizer is a misconfiguration
+    # that raises BABDataError instead of being silently swallowed.
     strat = BABStrategy(BABConfig(position_sizer="bogus"))
-    result = strat.run()
-    assert result is not None and result.backtest is not None
+    with pytest.raises(BABDataError):
+        strat.run()
 
 
-def test_run_regime_exception_swallowed():
+def test_run_regime_exception_propagates():
+    # Regime programming errors (not data errors) propagate unchanged rather
+    # than being swallowed or re-wrapped as BABDataError.
     with mock.patch("strategies.betting_against_beta.regime.regime_scale_factors",
                     side_effect=RuntimeError("boom")):
         strat = BABStrategy(BABConfig(regime_filter=True))
-        result = strat.run()
-        assert result is not None
+        with pytest.raises(RuntimeError):
+            strat.run()
 
 
 def test_run_finiteness_guard_clamp_nonfinite_weights():

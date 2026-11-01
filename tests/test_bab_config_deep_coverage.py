@@ -222,11 +222,12 @@ class TestShortingConstraintsNormalization:
         assert isinstance(cfg.shorting_constraints, shorting.ShortingConstraints)
         assert cfg.shorting_constraints.max_short_exposure == 0.5
 
-    def test_shorting_constraints_invalid_dict_swallowed(self):
-        cfg = BABConfig(shorting_constraints={"max_short_exposure": -0.1})
-        assert cfg.shorting_constraints is None or isinstance(
-            cfg.shorting_constraints, dict
-        )
+    def test_shorting_constraints_invalid_dict_raises(self):
+        # Hardened API: an invalid shorting_constraints dict (negative cap) is a
+        # misconfiguration that raises BABConfigError at construction instead of
+        # being silently swallowed.
+        with pytest.raises(BABConfigError):
+            BABConfig(shorting_constraints={"max_short_exposure": -0.1})
 
 
 class TestResolvedUniverse:

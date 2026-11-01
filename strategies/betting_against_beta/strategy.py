@@ -20,6 +20,48 @@ from . import sizing
 from . import shorting
 from .attribution import trade_attribution, attribution_totals
 from .errors import BABDataError
+from .shorting import ShortingConstraints
+from .sizing import KellySizer, VolatilityTargetSizer, RiskParitySizer, EqualWeightSizer
+
+
+def _normalize_position_sizer(ps):
+    """Coerce a dict shorthand into a sizer instance, or return as-is.
+
+    Recognized shorthands:
+      * ``{"type": "equal"}`` -> :class:`EqualWeightSizer`
+      * ``{"type": "kelly", ...}`` -> :class:`KellySizer`
+      * ``{"type": "vol_target", ...}`` -> :class:`VolatilityTargetSizer`
+      * ``{"type": "risk_parity", ...}`` -> :class:`RiskParitySizer`
+
+    Any other dict raises ``BABDataError`` so misconfiguration surfaces loudly
+    instead of being silently ignored.
+    """
+    if not isinstance(ps, dict):
+        return ps
+    s = str(ps.get("type", "")).lower()
+    if s == "equal":
+        return EqualWeightSizer(max_leverage=float(ps.get("max_leverage", 1.0)))
+    if s in ("kelly", "kelly_fraction"):
+        return KellySizer(
+            lookback=int(ps.get("lookback", 60)),
+            max_leverage=float(ps.get("max_leverage", 1.0)),
+            fraction=float(ps.get("fraction", 1.0)),
+        )
+    if s in ("vol_target", "volatility_target", "voltarget"):
+        return VolatilityTargetSizer(
+            target_vol=float(ps.get("target_vol", 0.10)),
+            lookback=int(ps.get("lookback", 60)),
+            annualize=int(ps.get("annualize", 252)),
+            max_leverage=float(ps.get("max_leverage", 2.0)),
+        )
+    if s in ("risk_parity", "riskparity", "rp"):
+        return RiskParitySizer(
+            lookback=int(ps.get("lookback", 60)),
+            max_leverage=float(ps.get("max_leverage", 1.0)),
+            target_vol=ps.get("target_vol"),
+            annualize=int(ps.get("annualize", 252)),
+        )
+    raise BABDataError(f"position_sizer dict has unknown type: {s!r}")
 
 
 def _rebalance_mask(index, freq: str) -> "pd.Series":  # noqa: ANN401
@@ -227,19 +269,32 @@ class BABStrategy:
         try:
             sc = getattr(cfg, "shorting_constraints", None)
             if sc is not None:
+                if not isinstance(sc, (ShortingConstraints, dict)):
+                    raise BABDataError(
+                        f"shorting_constraints must be a ShortingConstraints or dict, "
+                        f"got {type(sc).__name__}"
+                    )
                 weights = shorting.apply_shorting_constraints(weights, sc)
         except BABDataError:
             raise
-        except Exception:
-            pass
+        except (TypeError, ValueError, AttributeError) as e:
+            raise BABDataError(f"shorting_constraints failed: {e}") from e
         # Optional dynamic position sizing
         try:
             ps = getattr(cfg, "position_sizer", None)
             if ps is not None:
+                if isinstance(ps, dict):
+                    ps = _normalize_position_sizer(ps)
+                if not isinstance(ps, (KellySizer, VolatilityTargetSizer, RiskParitySizer, EqualWeightSizer, str)):
+                    raise BABDataError(
+                        f"position_sizer must be a sizer or string shorthand, "
+                        f"got {type(ps).__name__}"
+                    )
                 weights = sizing.apply_position_sizing(signals, returns=returns, betas=betas, sizer=ps)
-        except Exception:
-            # Do not break default behavior on sizing errors; fall back to weights
-            pass
+        except BABDataError:
+            raise
+        except (TypeError, ValueError, AttributeError) as e:
+            raise BABDataError(f"position_sizer failed: {e}") from e
 
         # Optional regime-based position scaling.  Regime at date t is computed
         # from returns up to t (causal, no lookahead); the backtest shifts
@@ -248,15 +303,21 @@ class BABStrategy:
         # neutrality exactly (per-asset regime factors would break it), so the
         # public portfolio API contract is unchanged.
         try:
-            if bool(getattr(cfg, "regime_filter", False)):
+            regime_flag = getattr(cfg, "regime_filter", False)
+            if not isinstance(regime_flag, bool):
+                raise BABDataError(
+                    f"regime_filter must be a bool, got {type(regime_flag).__name__}"
+                )
+            if regime_flag:
                 from . import regime as _regime
                 scale = _regime.regime_scale_scalar(returns, cfg)
                 if scale is not None and not scale.empty:
                     aligned = scale.reindex(index=weights.index).fillna(1.0)
                     weights = weights.mul(aligned, axis=0)
-        except Exception:
-            # Do not break default behavior on regime errors; fall back to unscaled weights
-            pass
+        except BABDataError:
+            raise
+        except (TypeError, ValueError, AttributeError) as e:
+            raise BABDataError(f"regime_filter failed: {e}") from e
 
         # Beta-neutral enforcement / drift detection (multi-file, no lookahead)
         beta_neutral_enabled = bool(getattr(cfg, "beta_neutral", False)) or bool(

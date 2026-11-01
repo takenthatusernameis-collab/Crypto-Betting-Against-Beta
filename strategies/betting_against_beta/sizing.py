@@ -79,6 +79,22 @@ class RiskParitySizer(_BaseSizer):
         super().__init__()
 
 
+@dataclass
+class EqualWeightSizer(_BaseSizer):
+    """No-op sizer: returns the base equal-weight portfolio unchanged.
+
+    Useful as an explicit placeholder when callers want the base construction
+    preserved through the sizing pipeline without any dynamic scaling.
+    """
+
+    max_leverage: float = 1.0
+
+    def __post_init__(self):
+        if not isinstance(self.max_leverage, (int, float)) or self.max_leverage <= 0:
+            raise BABSizingError("max_leverage must be > 0")
+        super().__init__()
+
+
 def _get_base_weights(signals: pd.DataFrame) -> pd.DataFrame:
     """Construct equal-weight base portfolio from signals (dollar neutral)."""
     from .portfolio import construct_portfolio
@@ -87,11 +103,16 @@ def _get_base_weights(signals: pd.DataFrame) -> pd.DataFrame:
 
 
 def apply_position_sizing(signals: pd.DataFrame,
-                          returns: pd.DataFrame = None,
-                          betas: pd.DataFrame = None,
-                          sizer: Union[KellySizer, VolatilityTargetSizer, RiskParitySizer, str] = None,
-                          **kwargs) -> pd.DataFrame:
-    """Apply position sizing to signals/returns and produce scaled weights."""
+                           returns: pd.DataFrame = None,
+                           betas: pd.DataFrame = None,
+                           sizer: Union[KellySizer, VolatilityTargetSizer, RiskParitySizer, EqualWeightSizer, str] = None,
+                           **kwargs) -> pd.DataFrame:
+    """Apply position sizing to signals/returns and produce scaled weights.
+
+    ``sizer`` must be a known sizer type, a string shorthand, or ``None``.
+    Passing any other type raises ``BABSizingError`` so misconfiguration
+    surfaces loudly instead of silently falling back to base weights.
+    """
     if signals is None or not isinstance(signals, pd.DataFrame) or signals.empty:
         return pd.DataFrame()
 
@@ -104,8 +125,19 @@ def apply_position_sizing(signals: pd.DataFrame,
             sizer = VolatilityTargetSizer()
         elif s in ("risk_parity", "riskparity", "rp"):
             sizer = RiskParitySizer()
+        elif s in ("equal", "equal_weight", "equalweight"):
+            sizer = EqualWeightSizer()
         else:
             raise BABSizingError(f"Unknown sizer: {sizer}")
+
+    if sizer is not None and not isinstance(
+        sizer, (KellySizer, VolatilityTargetSizer, RiskParitySizer, EqualWeightSizer)
+    ):
+        raise BABSizingError(
+            f"sizer must be a KellySizer, VolatilityTargetSizer, "
+            f"RiskParitySizer, EqualWeightSizer, or string shorthand, "
+            f"got {type(sizer).__name__}"
+        )
 
     base_w = _get_base_weights(signals)
     if returns is None:
@@ -205,6 +237,9 @@ def apply_position_sizing(signals: pd.DataFrame,
             scale = np.clip(scale, 0.0, max_lev)
             out_arr[i] = base_arr[i] * inv_vol * scale
         out = pd.DataFrame(out_arr, index=out.index, columns=out.columns)
+    elif isinstance(sizer, EqualWeightSizer):
+        # No dynamic scaling; the base equal-weight portfolio is the result.
+        out = base_w.copy()
 
     out = out.replace([np.inf, -np.inf], np.nan).fillna(0.0)
     return out

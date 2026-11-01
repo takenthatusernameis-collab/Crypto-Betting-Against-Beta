@@ -96,8 +96,9 @@ def test_apply_kwargs_paths():
     assert isinstance(out, pd.DataFrame)
     out = shorting.apply_shorting_constraints(df, shorting_constraints=shorting.ShortingConstraints(max_short_exposure=0.5))
     assert isinstance(out, pd.DataFrame)
-    out = shorting.apply_shorting_constraints(df, shorting_constraints="bad")
-    assert isinstance(out, pd.DataFrame)
+    # Hardened API: a non-dict/non-ShortingConstraints type is a misconfiguration.
+    with pytest.raises(shorting.BABShortingError):
+        shorting.apply_shorting_constraints(df, shorting_constraints="bad")
 
 
 def test_apply_constraints_arg_paths():
@@ -106,8 +107,10 @@ def test_apply_constraints_arg_paths():
     assert isinstance(out, pd.DataFrame)
     out = shorting.apply_shorting_constraints(df, constraints=shorting.ShortingConstraints(max_short_exposure=0.5))
     assert isinstance(out, pd.DataFrame)
-    out = shorting.apply_shorting_constraints(df, constraints="bad")
-    assert isinstance(out, pd.DataFrame)
+    # A non-dict/non-ShortingConstraints type is a misconfiguration: the
+    # hardened API raises BABShortingError instead of silently coercing to defaults.
+    with pytest.raises(shorting.BABShortingError):
+        shorting.apply_shorting_constraints(df, constraints="bad")
 
 
 def test_apply_borrowable_non_strict_removes():
@@ -211,8 +214,10 @@ def test_apply_constraints_passed_as_second_arg_dict():
 
 def test_apply_constraints_passed_as_second_arg_bad():
     df = pd.DataFrame({"A": [-1.0], "B": [1.0]})
-    out = shorting.apply_shorting_constraints(df, "x")
-    assert isinstance(out, pd.DataFrame)
+    # Hardened API: a non-dict/non-ShortingConstraints positional arg is a
+    # misconfiguration that raises instead of silently coercing to defaults.
+    with pytest.raises(shorting.BABShortingError):
+        shorting.apply_shorting_constraints(df, "x")
 
 
 def test_apply_constraints_passed_as_second_arg_obj():

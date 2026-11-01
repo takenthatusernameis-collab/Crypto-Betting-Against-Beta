@@ -114,6 +114,11 @@ def apply_shorting_constraints(signals_or_weights, constraints: Optional[Shortin
     """Apply shorting constraints to signals/weights.
 
     Accepts signals (e.g. -1/0/1) or weights; returns weights DataFrame.
+
+    ``constraints`` is required to be a ``ShortingConstraints`` instance (or a
+    dict that constructs one).  Passing any other type raises
+    ``BABShortingError`` so misconfiguration surfaces loudly instead of being
+    silently coerced to the default.
     """
     if constraints is None:
         # allow passing as first arg dict/config style? be flexible
@@ -124,18 +129,24 @@ def apply_shorting_constraints(signals_or_weights, constraints: Optional[Shortin
         # check kwargs
         if "shorting_constraints" in kwargs:
             sc = kwargs["shorting_constraints"]
-        else:
-            sc = None
-        if isinstance(sc, dict):
-            constraints = ShortingConstraints(**sc)
-        elif isinstance(sc, ShortingConstraints):
-            constraints = sc
+            if isinstance(sc, dict):
+                constraints = ShortingConstraints(**sc)
+            elif isinstance(sc, ShortingConstraints):
+                constraints = sc
+            else:
+                raise BABShortingError(
+                    f"shorting_constraints must be a ShortingConstraints or dict, "
+                    f"got {type(sc).__name__}"
+                )
         else:
             constraints = ShortingConstraints()
     elif isinstance(constraints, dict):
         constraints = ShortingConstraints(**constraints)
     elif not isinstance(constraints, ShortingConstraints):
-        constraints = ShortingConstraints()
+        raise BABShortingError(
+            f"shorting_constraints must be a ShortingConstraints or dict, "
+            f"got {type(constraints).__name__}"
+        )
 
     df = _clean_df(signals_or_weights)
     if df is None or len(df.columns) == 0:
