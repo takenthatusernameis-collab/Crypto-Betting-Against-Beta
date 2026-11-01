@@ -1,7 +1,7 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 # MOST RELEVANT INFERRED TIMESTAMPED CLEAR INITIAL TASK MESSAGE FOR NEXT AGENTIC WORK SESSION
 
-**HANDOFF_TIMESTAMP:** 2026-11-01T18:46:27Z
+**HANDOFF_TIMESTAMP:** 2026-11-01T19:09:01Z
 **REPO:** Crypto-Betting-Against-Beta
 **PRIORITY:** BAB-FIRST (strategies/betting_against_beta/) — ABSOLUTE MANDATE. BAB MUST get ALL attention until explicitly blocked by a gate-breaking issue with concrete evidence.
 
@@ -14,14 +14,14 @@
 >>> NO COASTING. EVERY TURN MUST DELIVER SUBSTANTIVE BAB IMPROVEMENTS. <<<
 
 REPO: Crypto-Betting-Against-Beta | BAB-FIRST ABSOLUTE MANDATE | MAXIMUM SUBSTANTIVE PROGRESS
-TIMESTAMP: 2026-11-01T18:46:27Z
+TIMESTAMP: 2026-11-01T19:09:01Z
 
-VERIFIED STATE (2026-11-01T18:46:27Z):
+VERIFIED STATE (2026-11-01T19:09:01Z):
 - BAB gate GREEN (all tests pass)
-- Full suite: 1776 passed, 13 skipped, 0 failed (100.04s)
+- Full suite: 1776 passed, 13 skipped, 0 failed (98.47s)
+- Controller/workflow sync fixed (added */.github/workflows/* to main.yml)
 - Coverage: ~98% total across strategies/betting_against_beta/ (ceiling held)
 - Bottlenecks: ELIMINATED. Test suite fast, fixtures complete, gate reliable.
-- Fixed: controller progress workflow pattern sync (added `*/.github/workflows/*` in main.yml). Tests pass.
 
 PRIMARY MANDATE: INVARIANT CRUSADE — SHIFT FROM "COVER LINES" TO "BREAK AND HARDEN INVARIANTS"
 You CANNOT avoid heavy work. Coverage ceiling is held. The next frontier is BEHAVIORAL ROBUSTNESS.
@@ -32,39 +32,36 @@ CAMPAIGN OBJECTIVE: Make future agents unable to coast by forcing invariant-driv
 
 IMMEDIATE ACTIONS (DO IN ORDER, NO EXCEPTIONS):
 
-1. GATE FIRST (MANDATORY): Run `scripts/bab_gate.sh`. Must return GREEN (>=1358 passed, >=7 skipped, 0 failed).
+1. GATE FIRST (MANDATORY): Run `scripts/bab_gate.sh`. Must return GREEN (>=1358 passed baseline; current >=1776 passed, >=13 skipped, 0 failed).
    - If broken for ANY reason, fix BEFORE anything else. No exploratory work until green.
    - Treat gate as your heartbeat. Re-run after every substantive change.
 
-2. BETA INVARIANT CRUSADE (HIGHEST CORRECTNESS LEVER) - beta.py (16 misses)
-   MANDATORY ENFORCEMENTS:
-   - Degenerate/zero-variance benchmark -> NaN for beta ACROSS ALL emitters. NEVER 0.0. Enforce cross-emitter equality on NaN/finite.
-   - All-NaN, single-point, perfect colinearity, insufficient window, misaligned timestamps
-   - _calc_rolling_beta_series edge cases; fast vs rolling paths must agree
+2. BETA INVARIANT CRUSADE (HIGHEST CORRECTNESS LEVER) - beta.py
+   MANDATORY ENFORCEMENTS (cross-emitter parity):
+   - Degenerate/zero-variance benchmark -> NaN for beta ACROSS ALL emitters (calculate_beta, calculate_beta_fast, rolling_beta/_calc_rolling_beta_series, calculate_rolling_beta). NEVER 0.0.
+   - All-NaN benchmark, single-point/insufficient window, perfect colinearity, misaligned timestamps
+   - fast vs rolling/DataFrame paths must agree on NaN/finite outcomes
    - Mixed finite/NaN across assets/benchmark; NaN propagation must be consistent
-   TARGET LINES: 101-102, 124, 138, 140-141, 144-145, 166, 183, 187, 377-381
-   ACTION: Add cross-emitter invariant tests + property-style tests (hypothesis if helpful) proving agreement.
+   TARGET AREAS: guards around std<eps, denom<eps, LinAlgError, mask logic
+   ACTION: Add cross-emitter invariant/property tests proving agreement under adversarial cases.
 
-3. STRATEGY INTEGRATION CHAOS (END-TO-END) - strategy.py (16 misses)
+3. STRATEGY INTEGRATION CHAOS (END-TO-END) - strategies/betting_against_beta/strategy.py
    ATTACK:
    - Empty/universe after filtering, all-same-side, partial universe
    - Missing/invalid config, CLI wiring, data flow end-to-end
    - Error paths with BAB-specific exceptions
    - Adversarial dtypes/NaN/inf/gaps; ensure 1-day lag never violated
-   TARGET LINES: 40, 44-64, 223, 230-235, 280-281, 296-297, 320
-   ACTION: Full integration tests with corrupted fixtures; assert invariants at every boundary.
+   ACTION: Integration tests with corrupted fixtures; assert invariants at every boundary.
 
-4. DATA LOADER HARDENING - data_loader.py (9 misses)
+4. DATA LOADER HARDENING - data_loader.py
    - Malformed inputs, dtype coercion, missing columns/benchmark, alignment/gaps/resampling
    - Assert BAB-specific error types/messages
-   TARGET LINES: 44, 192-193, 311-313, 340-342
 
-5. PORTFOLIO CONSTRAINT ENFORCEMENT - portfolio.py (8 misses)
+5. PORTFOLIO CONSTRAINT ENFORCEMENT - portfolio.py
    - max_position_size, max_turnover, beta neutrality residuals, tie-breaking
    - Dollar-neutral (~0) where applicable, weight finiteness/sums
-   TARGET LINES: 39-40, 172-177
 
-6. SURGICAL INVARIANT SWEEPS (12 misses across costs/config/metrics/regime/signals/sizing)
+6. SURGICAL INVARIANT SWEEPS (costs/config/metrics/regime/signals/sizing)
    ONLY if you can add MEANINGFUL BEHAVIOR tests enforcing invariants. No coverage-chasing.
 
 7. CROSS-CUTTING INVARIANT SUITE (MANDATORY EVERY TURN IF TIME)
@@ -72,7 +69,7 @@ IMMEDIATE ACTIONS (DO IN ORDER, NO EXCEPTIONS):
    - Weights finite, dollar-neutral (~0) where applicable, 1-day lag respected, ranking stable
    - Quantiles/deciles correct under ties/adversarial values
    - beta>=60 default enforced; no lookahead; deterministic (seeded); offline only
-   - No bare except. Degenerate/zero-variance benchmark beta is NaN across ALL emitters.
+   - No bare except. Degenerate/zero-variance benchmark beta is NaN across ALL emitters (never 0.0).
    - All public paths respect BAB error semantics
 
 8. BOTTLENECK ELIMINATION (IF FOUND - MANDATORY)
@@ -82,7 +79,7 @@ IMMEDIATE ACTIONS (DO IN ORDER, NO EXCEPTIONS):
    - Remove ANY friction blocking BAB progress
 
 NON-NEGOTIABLE RULES:
-1. GATE FIRST EVERY TURN. Must stay GREEN (>=1358 passed, >=7 skipped, 0 failed). No exceptions.
+1. GATE FIRST EVERY TURN. Must stay GREEN. No exceptions.
 2. DO NOT CHASE UNREACHABLE COVERAGE. Concrete evidence required before touching any uncovered line. Never change semantics just to hit lines.
 3. EVERY TURN = SUBSTANTIVE BAB WORK OR EXPLICIT CONCRETE EVIDENCE WHY IMPOSSIBLE. No idle turns. Period.
 4. Non-BAB changes ONLY if they directly unblock BAB gate with concrete evidence. BAB comes first. Always.
@@ -96,7 +93,7 @@ VERIFICATION (RUN AFTER EVERY SUBSTANTIVE CHANGE):
   scripts/bab_gate.sh
 
 SUCCESS CRITERIA (MEASURABLE):
-- Gate stays GREEN (>=1358 passed, >=7 skipped, 0 failed)
+- Gate stays GREEN (>=1776 passed, >=13 skipped, 0 failed)
 - New adversarial/property/cross-emitter/regression tests added with clear failure-to-pass evidence
 - Concrete robustness improvements to BAB code (beta + strategy first)
 - Cross-emitter beta agreement enforced and tested
@@ -118,7 +115,7 @@ ATTACK ORDER (RUTHLESS): beta.py (cross-emitter invariants) -> strategy.py (inte
 - 1-day lag, dollar-neutral where applicable, quantiles/deciles, beta>=60 default, ranking
 - Finiteness, BAB-specific errors, no bare except
 - Deterministic offline tests
-- Gate: >=1358 passed, >=7 skipped, 0 failed
+- Gate: >=1776 passed, >=13 skipped, 0 failed (current verified)
 - Coverage ~98% (ceiling) — behavioral hardening only, evidence required
 - Degenerate/zero-variance benchmark beta is NaN (undefined), never 0.0 — all beta emitters agree
 - No regressions
@@ -129,7 +126,7 @@ ATTACK ORDER (RUTHLESS): beta.py (cross-emitter invariants) -> strategy.py (inte
 - Coverage status: 98% (ceiling) — evidence required for any change
 - Momentum: MANDATORY — every turn must produce substantive BAB work or remove bottlenecks
 - Bottlenecks: NONE KNOWN (eliminated preflight)
-- Last verified: 2026-11-01T18:08:31Z (BAB gate GREEN, 1358 passed, 7 skipped, 0 failed, 98% coverage)
+- Last verified: 2026-11-01T19:09:01Z (BAB gate GREEN, 1776 passed, 13 skipped, 0 failed)
 - Focus: beta.py cross-emitter invariants first, then strategy.py integration chaos
 
 (End of file)
