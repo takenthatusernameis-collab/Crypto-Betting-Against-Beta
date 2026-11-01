@@ -126,7 +126,7 @@ def calculate_beta(asset_returns, benchmark_returns, min_obs=None):
             return np.nan
         # Guard against constant/degenerate benchmark
         x_std = np.std(x)
-        if x_std < 1e-18 or not np.isfinite(x_std):
+        if x_std < 1e-12 or not np.isfinite(x_std):
             return np.nan
 
         # Add intercept and solve via lstsq (efficient)
@@ -171,7 +171,7 @@ def calculate_beta_fast(a, b, min_obs=None):
         # to match calculate_beta() and metrics.strategy_beta() rather than a
         # synthetic 0.0 that would silently corrupt downstream ranking.
         b_std = np.std(b_m)
-        if b_std < 1e-18 or not np.isfinite(b_std):
+        if b_std < 1e-12 or not np.isfinite(b_std):
             return np.nan
         X = np.column_stack([np.ones(len(b_m), dtype=float), b_m])
         try:
@@ -245,12 +245,12 @@ def _calc_rolling_beta_series(bench_arr, a_arr, window, min_obs):
     # Check for constant benchmark
     try:
         bench_std = np.std(bench_arr_f)
-        if not np.isfinite(bench_std) or bench_std < 1e-18:
+        if not np.isfinite(bench_std) or bench_std < 1e-12:
             degenerate = np.ones_like(denom, dtype=bool)
         else:
-            degenerate = (~np.isfinite(denom)) | (np.abs(denom) < 1e-18)
+            degenerate = (~np.isfinite(denom)) | (np.abs(denom) < 1e-12)
     except Exception:
-        degenerate = (~np.isfinite(denom)) | (np.abs(denom) < 1e-18)
+        degenerate = (~np.isfinite(denom)) | (np.abs(denom) < 1e-12)
     # Enough valid observations to estimate a beta (not just window length).
     enough = cnt >= min_obs
 
@@ -309,14 +309,14 @@ def calculate_rolling_beta(returns_df, benchmark_name, window=90, min_obs=60):
     def _finalize_betas(beta_arr):
         """Apply degenerate / insufficient-observation masks to a (n,) beta array."""
         beta_arr = np.asarray(beta_arr, dtype=float).copy()
-        degenerate = (~np.isfinite(denom_shared)) | (np.abs(denom_shared) < 1e-18)
+        degenerate = (~np.isfinite(denom_shared)) | (np.abs(denom_shared) < 1e-12)
         # Also treat constant/zero-variance benchmark as degenerate regardless of tiny numerical artifacts
         try:
             if not np.all(np.isfinite(bench_arr)):
                 pass
             # check if benchmark is effectively constant
             bstd = np.std(bench_arr)
-            if not np.isfinite(bstd) or bstd < 1e-18:
+            if not np.isfinite(bstd) or bstd < 1e-12:
                 degenerate = np.ones_like(degenerate, dtype=bool)
         except Exception:
             pass
