@@ -1,7 +1,7 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 # MOST RELEVANT INFERRED TIMESTAMPED CLEAR INITIAL TASK MESSAGE FOR NEXT AGENTIC WORK SESSION
 
-**HANDOFF_TIMESTAMP:** 2026-11-01T14:02:09Z
+**HANDOFF_TIMESTAMP:** 2026-11-01T14:20:18Z
 **REPO:** Crypto-Betting-Against-Beta
 **PRIORITY:** BAB-FIRST (strategies/betting_against_beta/) — inferred from repository name. BAB MUST get ALL attention until explicitly blocked by a gate-breaking issue with concrete evidence.
 
@@ -13,12 +13,12 @@
 >>> START IMMEDIATELY — HEAVY WORK REQUIRED — NO IDLE TURNS — CAMPAIGN MANDATED <<<
 
 REPO: Crypto-Betting-Against-Beta | BAB-FIRST ABSOLUTE MANDATE | MAXIMUM SUBSTANTIVE PROGRESS
-TIMESTAMP: 2026-11-01T14:02:09Z
+TIMESTAMP: 2026-11-01T14:20:18Z
 
-VERIFIED STATE (2026-11-01T14:02:09Z):
+VERIFIED STATE (2026-11-01T14:20:18Z):
 - BAB gate GREEN (scripts/bab_gate.sh exit 0)
-- BAB suite: 1338 passed, 7 skipped, 0 failed
-- Coverage: 98% total (2593 stmts, 61 misses). COVERAGE CEILING REACHED.
+- BAB suite: 1345 passed, 7 skipped, 0 failed
+- Coverage: 98% total (2573 stmts, 61 misses). COVERAGE CEILING REACHED.
 - Per-module: backtest/attribution/cli/data/data_sources/errors/quality/shorting 100%; beta 94%, strategy 93%, data_loader 97%, portfolio 97%, costs/config/metrics/regime 99%, signals 98%, sizing 98%.
 - All known bottlenecks REMOVED:
   * .gitignore added (2026-11-01T12:13:00Z) — untracked __pycache__ noise suppressed
@@ -78,6 +78,11 @@ NEVER END WITH JUST "analysis" OR "investigation". PROGRESS = GREEN GATE + SUBST
 - **Gate regression removed (2026-11-01T13:18:00Z).** `calculate_beta_fast` outer TypeError path fixed to return NaN; 3 missed stale assertions updated. Gate GREEN.
 - **Noise suppression (2026-11-01T12:13:00Z).** `.gitignore` added for __pycache__/test artifacts; tracked coverage artifacts removed.
 
+## JUST COMPLETED THIS SESSION (2026-11-01T14:20:18Z)
+- Added `tests/test_bab_property_invariants.py`: hypothesis-based property tests for the full BABStrategy pipeline (finiteness of weights/returns/cumulative/signals, integer-valued signals, benchmark beta == 1.0, dollar-neutral row net-zero when both sides exist, determinism, chaos-data no-silent-failure). hypothesis was a declared dependency previously unused by the suite.
+- Verified lookahead prevention: perturbing final-day/midstream returns does not alter weights outside their legitimate lookback window (probe confirmed).
+- Gate GREEN: 1345 passed, 7 skipped, 0 failed (+2 from new property tests), coverage 98% ceiling held.
+
 ## INVARIANTS (MUST PRESERVE)
 - 1-day lag, dollar-neutral where applicable, quantiles/deciles, beta>=60 default, ranking
 - Finiteness, BAB-specific errors, no bare except:
@@ -90,9 +95,9 @@ NEVER END WITH JUST "analysis" OR "investigation". PROGRESS = GREEN GATE + SUBST
 ## HANDOFF METADATA
 - Type: Single durable handoff (consolidated, campaign-forced)
 - Campaign: HEAVY BAB HARDENING (adversarial, property-based, chaos, integration, numerical robustness) — UNAVOIDABLE
-- Coverage status: Ceiling reached (98%)
+- Coverage status: Ceiling reached (98%) — do NOT chase unreachable dead code
 - Momentum: MANDATORY — every turn must produce substantive BAB work or remove bottlenecks
 - Bottlenecks: ALL KNOWN REMOVED
-- Last verified: 2026-11-01T14:02:09Z (BAB gate GREEN, 1338 passed, 7 skipped, 0 failed, 98% coverage)
+- Last verified: 2026-11-01T14:20:18Z (BAB gate GREEN, 1345 passed, 7 skipped, 0 failed, 98% coverage)
 
 (End of file)
