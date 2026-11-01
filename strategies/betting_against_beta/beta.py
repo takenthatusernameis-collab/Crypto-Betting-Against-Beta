@@ -242,15 +242,16 @@ def _calc_rolling_beta_series(bench_arr, a_arr, window, min_obs):
         num = cnt * xy_sum - x_sum * y_sum
         beta = np.divide(num, denom)
 
-    # Check for constant benchmark
-    try:
-        bench_std = np.std(bench_arr_f)
-        if not np.isfinite(bench_std) or bench_std < 1e-12:
-            degenerate = np.ones_like(denom, dtype=bool)
-        else:
-            degenerate = (~np.isfinite(denom)) | (np.abs(denom) < 1e-12)
-    except Exception:
-        degenerate = (~np.isfinite(denom)) | (np.abs(denom) < 1e-12)
+    # Degeneracy is PER-WINDOW, not whole-series. ``denom`` is exactly
+    # cnt*xx - x^2, which is zero (or non-finite) exactly when the benchmark
+    # has zero variance *within that window*. A single NaN in the benchmark
+    # must not poison every window: non-finite entries are masked to 0.0 and
+    # counted separately via ``cnt``, so a window with one bad observation
+    # still has the correct count and sums for the remaining valid ones.
+    # A whole-series np.std(bench_arr) check would collapse the entire series
+    # to NaN on any benchmark NaN -- that is undefined-beta poisoning, not
+    # undefined beta, and it silently flattens real signals.
+    degenerate = (~np.isfinite(denom)) | (np.abs(denom) < 1e-12)
     # Enough valid observations to estimate a beta (not just window length).
     enough = cnt >= min_obs
 
@@ -292,7 +293,15 @@ def calculate_rolling_beta(returns_df, benchmark_name, window=90, min_obs=60):
 
     # Benchmark rolling sums are asset-independent; hoist them out so every
     # asset reuses the same cnt / x_sum / xx_sum instead of recomputing them.
-    ones_s = pd.Series(np.ones(n, dtype=float))
+    # CRITICAL: ``ones`` is the benchmark's *finite* mask, not a constant 1.0.
+    # pandas rolling .sum() skips NaN, so x_sum / xx_sum already sum only the
+    # finite benchmark observations per window. ``cnt`` MUST match that: it is
+    # the number of valid benchmark observations in each window, used both for
+    # the OLS denominator (cnt*xx - x^2) and the min_obs gate. Counting window
+    # length instead would let a single NaN in the benchmark inflate ``cnt``,
+    # loosen the min_obs gate, and corrupt the shared denominator -- producing
+    # a finite beta from one valid observation in an otherwise-NaN window.
+    ones_s = pd.Series(np.where(np.isfinite(bench_arr), 1.0, 0.0))
     x_s = pd.Series(bench_arr)
     xx_s = x_s * x_s
     cnt_s = ones_s.rolling(window=window, min_periods=min_obs).sum()
@@ -309,17 +318,13 @@ def calculate_rolling_beta(returns_df, benchmark_name, window=90, min_obs=60):
     def _finalize_betas(beta_arr):
         """Apply degenerate / insufficient-observation masks to a (n,) beta array."""
         beta_arr = np.asarray(beta_arr, dtype=float).copy()
+        # Degeneracy is PER-ROW (per-window), derived from the shared denominator
+        # cnt*xx - x^2. It is zero exactly when the benchmark has zero variance
+        # within that window. A whole-series np.std(bench_arr) check would
+        # collapse the entire beta series to NaN on any benchmark NaN, which is
+        # undefined-beta poisoning rather than undefined beta -- it silently
+        # flattens real signals in windows with plenty of valid observations.
         degenerate = (~np.isfinite(denom_shared)) | (np.abs(denom_shared) < 1e-12)
-        # Also treat constant/zero-variance benchmark as degenerate regardless of tiny numerical artifacts
-        try:
-            if not np.all(np.isfinite(bench_arr)):
-                pass
-            # check if benchmark is effectively constant
-            bstd = np.std(bench_arr)
-            if not np.isfinite(bstd) or bstd < 1e-12:
-                degenerate = np.ones_like(degenerate, dtype=bool)
-        except Exception:
-            pass
         if beta_arr.ndim == 1:
             beta_arr = np.where(degenerate.ravel(), np.nan, beta_arr)
             beta_arr = np.where(~np.isfinite(beta_arr), np.nan, beta_arr)
