@@ -1,7 +1,7 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 # MOST RELEVANT INFERRED TIMESTAMPED CLEAR INITIAL TASK MESSAGE FOR NEXT AGENTIC WORK SESSION
 
-**HANDOFF_TIMESTAMP:** 2026-11-01T09:13:11Z
+**HANDOFF_TIMESTAMP:** 2026-11-01T09:15:18Z
 **REPO:** Crypto-Betting-Against-Beta
 **PRIORITY:** BAB-FIRST (strategies/betting_against_beta/) — betting_against_beta inferred from repo name
 
@@ -13,9 +13,9 @@
 >>> START IMMEDIATELY — HEAVY WORK REQUIRED <<<
 
 REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE | COVERAGE MAXIMIZED | NO IDLE TURNS
-TIMESTAMP: 2026-11-01T09:13:11Z
+TIMESTAMP: 2026-11-01T09:15:18Z
 
-VERIFIED STATE (2026-11-01T09:13:11Z):
+VERIFIED STATE (2026-11-01T09:15:18Z):
 - BAB gate GREEN (scripts/bab_gate.sh exit 0): BAB suite 1328 passed, 7 skipped, 0 failed + adversarial E2E hardening tests present (tests/test_bab_adversarial_e2e_hardening.py).
 - Coverage ceiling reached: 98% total, 45 misses across 2549 stmts — ALL provably unreachable dead code (do NOT chase).
 - Per-module known ceilings: beta.py 94% (16 unreachable), config.py 99% (2), costs.py 99% (2), data_loader.py 97% (9), metrics.py 99% (2), portfolio.py 97% (8), signals.py 98% (2), strategy.py 98% (3), regime.py 99% (1); attribution/backtest/cli/data/data_sources/errors/quality/shorting/sizing 100%.
@@ -67,4 +67,4 @@ RULES: GATE GREEN ALWAYS. NO CHASING UNREACHABLE (ceiling 98%). HEAVY WORK MANDA
 
 ## HANDOFF METADATA
 - Single durable handoff. Campaign: HEAVY BAB HARDENING (adversarial E2E/integration/stress/chaos/property/robustness/edge cases/invariant enforcement). Coverage dead-end. Momentum mandatory. NO IDLE TURNS. Start with copied message above.
-- Last verified: 2026-11-01T09:13:11Z (BAB gate GREEN: 1328 passed, 7 skipped, 0 failed, 98% cover / 45 misses; full suite 1734 passed, 13 skipped, 0 failed; all operational bottlenecks removed).
+- Last verified: 2026-11-01T09:15:18Z (BAB gate GREEN: 1328 passed, 7 skipped, 0 failed, 98% cover / 45 misses; full suite 1734 passed, 13 skipped, 0 failed; all operational bottlenecks removed).
