@@ -1,12 +1,12 @@
-# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) — 2026-11-01T02:58:12Z
+# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) — 2026-11-01T02:36:29Z
 
 ## TIMESTAMP
-2026-11-01T02:58:12Z
+2026-11-01T02:36:29Z
 
 ## REPO / PRIORITY
 REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE (repo name = betting_against_beta). ALL WORK MUST PRIORITIZE strategies/betting_against_beta/. NO VANITY. NO FILE-COUNT GOALS. NO DOCS-ONLY CHANGES. NO IDLE TURNS. IF NO BAB WORK IS POSSIBLE, EXPLAIN WHY WITH EVIDENCE BEFORE DOING ANYTHING ELSE.
 
-## VERIFIED STATE (CLEAN MEASUREMENT - 2026-11-01T02:58:12Z)
+## VERIFIED STATE (CLEAN MEASUREMENT - 2026-11-01T02:36:29Z)
 - Full BAB suite: 1318 passed, 7 skipped, 0 failed (FULLY GREEN, RC=0)
 - 2 pre-existing non-BAB infra failures (test_controller_progress_accounting.py) — must not increase
 - Package coverage (BAB): 98% total, 44 misses across 2533 stmts
@@ -46,7 +46,7 @@ Ruling: BAB coverage is MAXIMIZED at 98% (44 misses, all unreachable). No furthe
 
 REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE | COVERAGE MAXIMIZED
 
-VERIFIED STATE (2026-11-01T02:58:12Z):
+VERIFIED STATE (2026-11-01T02:36:29Z):
 - BAB suite: 1318 passed, 7 skipped, 0 failed (FULLY GREEN, RC=0)
 - Package coverage: 98% | 44 misses, ALL provably unreachable dead code (documented in HANDOFF.md)
 - beta.py 94%, config 99%, costs 99%, data_loader 97%, metrics 99%, portfolio 96%,
@@ -102,7 +102,7 @@ RULES:
 - Coverage floor: 98% / 44 misses (all unreachable; must not increase)
 - 2 pre-existing non-BAB infra failures (test_controller_progress_accounting.py) must not increase
 
-## SESSION SUMMARY (2026-11-01T02:58:12Z)
+## SESSION SUMMARY (2026-11-01T02:36:29Z)
 - Coverage maximized at 98% (44 misses, all unreachable dead code). No hitable branches remain.
 - Shifted campaign from coverage-chasing to heavy BAB hardening: stress/integration tests, numerical robustness, performance, invariant enforcement.
 - Bottlenecks removed and documented. Gate remains green.
