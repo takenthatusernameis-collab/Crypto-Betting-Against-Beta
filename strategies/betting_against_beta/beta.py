@@ -191,6 +191,10 @@ def _calc_rolling_beta_series(bench_arr, a_arr, window, min_obs):
     Same numerics as the previous per-row loop: OLS slope per window derived
     from cumulative sums, with degenerate windows -> 0.0 and insufficient /
     non-finite windows -> NaN.
+
+    NaN-safe: non-finite observations are masked to 0.0 before the cumulative
+    sums so a single NaN in the benchmark or asset series does not poison every
+    subsequent window (the old ``np.cumsum`` path propagated NaN forward).
     """
     n = len(bench_arr)
     rolling_betas_arr = np.empty(n, dtype=float)
@@ -199,14 +203,20 @@ def _calc_rolling_beta_series(bench_arr, a_arr, window, min_obs):
         return rolling_betas_arr
     bench_arr_f = np.asarray(bench_arr, dtype=float)
     a_arr_f = np.asarray(a_arr, dtype=float)
-    # Precompute products
-    xy = a_arr_f * bench_arr_f
-    xx = bench_arr_f * bench_arr_f
-    ones = np.ones(n, dtype=float)
-    # Cumulative sums (NaN propagates, matching the legacy per-row semantics)
+    # Mask non-finite entries so cumulative sums stay finite.  The valid-observation
+    # count is tracked separately via ``ones`` (1.0 only where both inputs are finite).
+    finite_mask = np.isfinite(bench_arr_f) & np.isfinite(a_arr_f)
+    b_safe = np.where(finite_mask, bench_arr_f, 0.0)
+    a_safe = np.where(finite_mask, a_arr_f, 0.0)
+    ones = np.where(finite_mask, 1.0, 0.0)
+
+    xy = a_safe * b_safe
+    xx = b_safe * b_safe
+    # Cumulative sums over the NaN-safe arrays; ``cnt`` is the real number of
+    # valid observations per window, not the window length.
     csum1 = np.concatenate(([0.0], np.cumsum(ones)))
-    csumx = np.concatenate(([0.0], np.cumsum(bench_arr_f)))
-    csumy = np.concatenate(([0.0], np.cumsum(a_arr_f)))
+    csumx = np.concatenate(([0.0], np.cumsum(b_safe)))
+    csumy = np.concatenate(([0.0], np.cumsum(a_safe)))
     csumxy = np.concatenate(([0.0], np.cumsum(xy)))
     csumxx = np.concatenate(([0.0], np.cumsum(xx)))
 
@@ -227,7 +237,8 @@ def _calc_rolling_beta_series(bench_arr, a_arr, window, min_obs):
         beta = np.divide(num, denom)
 
     degenerate = (~np.isfinite(denom)) | (np.abs(denom) < 1e-18)
-    enough = window_len >= min_obs
+    # Enough valid observations to estimate a beta (not just window length).
+    enough = cnt >= min_obs
 
     rolling_betas_arr[:] = np.nan
     rolling_betas_arr[enough & degenerate] = 0.0
