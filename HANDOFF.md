@@ -1,7 +1,7 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 # MOST RELEVANT INFERRED TIMESTAMPED CLEAR INITIAL TASK MESSAGE FOR NEXT AGENTIC WORK SESSION
 
-**HANDOFF_TIMESTAMP:** 2026-11-01T07:36:20Z
+**HANDOFF_TIMESTAMP:** 2026-11-01T07:37:26Z
 **REPO:** Crypto-Betting-Against-Beta
 **PRIORITY:** BAB-FIRST (strategies/betting_against_beta/) — betting_against_beta inferred from repo name
 
@@ -12,34 +12,35 @@
 ```
 >>> START IMMEDIATELY — HEAVY WORK REQUIRED <<<
 
-REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE | COVERAGE MAXIMIZED
-TIMESTAMP: 2026-11-01T07:36:20Z
+REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE | COVERAGE MAXIMIZED | NO IDLE TURNS
+TIMESTAMP: 2026-11-01T07:37:26Z
 
-VERIFIED STATE (2026-11-01T07:36:20Z):
+VERIFIED STATE (2026-11-01T07:37:26Z):
 - BAB suite: 1318 passed, 7 skipped, 0 failed (FULLY GREEN, RC=0)
-- Coverage ceiling reached: 98% total, 45 misses across 2549 stmts — ALL provably unreachable dead code (do not chase)
+- Coverage ceiling reached: 98% total, 45 misses across 2549 stmts — ALL provably unreachable dead code (do NOT chase)
 - Per-module known ceilings: beta.py 94% (16 unreachable), data_loader.py 97% (9), portfolio.py 97% (8), strategy.py 98% (3), signals.py 98% (2), config/costs/metrics/regime smaller unreachable counts. Bottlenecks removed.
 - Non-BAB: 2 pre-existing infra failures in test_controller_progress_accounting.py — must not increase.
 
-BOTTLENECKS: NONE HITABLE. Focus on integration/stress/robustness, not coverage chasing.
+BOTTLENECKS: NONE HITABLE. Every cycle must be substantive BAB work.
 
-CAMPAIGN: HEAVY HARDENING — NO IDLE TURNS. Every turn must produce substantive BAB changes.
+CAMPAIGN: HEAVY HARDENING — NO IDLE TURNS. Every turn must produce substantive BAB changes. Treat coverage ceiling as hard dead-end.
 
-PRIMARY FOCUS (IN ORDER):
-1. ADVERSARIAL E2E (HEAVY): multi-asset, regime shifts, quantile/decile extremes, NaN/inf/mixed dtypes, sparse history, single-asset/universe shrink, all-long/all-short, min-history, liquidity shocks. Validate 1-day lag, dollar-neutrality, finiteness end-to-end.
-2. ROBUSTNESS/HARDENING: numerical stability (beta OLS/EPS/re-normalization/residuals), error taxonomy (use BAB-specific errors), portfolio sizing, metrics edge cases. Add property-style assertions where cheap.
-3. PERFORMANCE/STRESS: profile hot paths (rolling beta/cov/corr/signals/portfolio). Optimize without semantic changes; prove parity with targeted tests/gates.
-4. INVARIANT ENFORCEMENT: audit (1-day lag, dollar-neutral, quantiles/deciles, beta>=60, ranking, finiteness, BAB errors, no bare except:). Fix minimally + tests.
-5. FAILURE MODES: data quality gaps, missing columns/indexing, alignment, benchmark edges. Deterministic fixtures.
+IMMEDIATE ACTIONS (CONCRETE, DO IN ORDER):
+1. GATE FIRST: run BAB suite+coverage gate (commands below). Confirm GREEN.
+2. ADVERSARIAL E2E SWEEP (HEAVY): add/strengthen tests for multi-asset, regime shifts, quantile/decile extremes, NaN/inf/mixed dtypes, sparse history, single-asset/universe shrink, all-long/all-short, min-history, liquidity shocks. Validate 1-day lag, dollar-neutrality, finiteness end-to-end.
+3. NUMERICAL HARDENING: stress rolling beta (winsorization/clipping/EPS/re-normalization/residuals), portfolio sizing under degeneracy, signals/deciles/quantiles edge cases. Add property-style checks where cheap and deterministic.
+4. INVARIANT AUDIT: verify (1-day lag, dollar-neutral where applicable, quantiles/deciles, beta>=60 default, ranking, finiteness, BAB-specific errors, no bare except:). Fix minimally with tests.
+5. FAILURE MODES: cover data quality gaps, missing columns/indexing/alignment, benchmark edges, cost/transaction edges. Deterministic fixtures only.
 
 MANDATE (STRICT):
 1. GATE FIRST EVERY TURN: run BAB suite+coverage gate. Must stay GREEN (>=1318 passed, >=7 skipped, 0 failed). Coverage >=98% / <=45 misses. NO REGRESSIONS.
 2. DO NOT CHASE UNREACHABLE: 45 misses documented unreachable — reject with evidence, move to hardening.
 3. NO IDLE/DOCS-ONLY/FILE-COUNT. EVERY TURN substantive BAB work OR explicit evidence why impossible.
 4. Non-BAB only if DIRECTLY blocks BAB gate with evidence.
-5. Preserve invariants, enforce finiteness, BAB-specific errors, NO bare except:.
+5. Preserve invariants, enforce finiteness, BAB-specific errors, NO bare except:. No semantic changes to pass coverage.
+6. MOMENTUM REQUIRED: if tests missing for identified edge case, write them + harden code minimally. Never stop at explanation.
 
-VERIFICATION COMMANDS:
+VERIFICATION COMMANDS (RUN FIRST):
 cd /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
 rm -f .coverage
 PYTHONPATH=/home/runner/work/_temp/kilo-home/.local/lib/python3.12/site-packages:$PWD python3 - <<'PYEOF'
@@ -74,4 +75,4 @@ RULES: GATE GREEN ALWAYS. NO CHASING UNREACHABLE (ceiling 98%). HEAVY WORK MANDA
 
 ## HANDOFF METADATA
 - Single durable handoff. Campaign: heavy BAB hardening (adversarial E2E/integration/stress/robustness/performance/edge cases/invariant enforcement). Coverage dead-end. Momentum mandatory. Start with copied message above.
-- Last verified: 2026-11-01T06:41:41Z (1318 passed, 7 skipped, 0 failed, 98% cover / 45 misses; non-BAB infra baseline unchanged at 2 pre-existing failures in test_controller_progress_accounting.py).
+- Last verified: 2026-11-01T07:37:26Z (1318 passed, 7 skipped, 0 failed, 98% cover / 45 misses; non-BAB infra baseline unchanged at 2 pre-existing failures in test_controller_progress_accounting.py).
