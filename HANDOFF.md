@@ -1,7 +1,7 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 # MOST RELEVANT INFERRED TIMESTAMPED CLEAR INITIAL TASK MESSAGE FOR NEXT AGENTIC WORK SESSION
 
-**HANDOFF_TIMESTAMP:** 2026-11-01T19:21:19Z
+**HANDOFF_TIMESTAMP:** 2026-11-01T19:23:39Z
 **REPO:** Crypto-Betting-Against-Beta
 **PRIORITY:** BAB-FIRST (strategies/betting_against_beta/) — ABSOLUTE MANDATE. BAB MUST get ALL attention until explicitly blocked by a gate-breaking issue with concrete evidence.
 
@@ -14,12 +14,12 @@
 >>> NO COASTING. EVERY TURN MUST DELIVER SUBSTANTIVE BAB IMPROVEMENTS. <<<
 
 REPO: Crypto-Betting-Against-Beta | BAB-FIRST ABSOLUTE MANDATE | MAXIMUM SUBSTANTIVE PROGRESS
-TIMESTAMP: 2026-11-01T19:21:19Z
+TIMESTAMP: 2026-11-01T19:23:39Z
 
-VERIFIED STATE (2026-11-01T19:21:19Z):
+VERIFIED STATE (2026-11-01T19:23:39Z):
 - BAB gate GREEN (all tests pass)
-- Full suite: 1776 passed, 13 skipped, 0 failed (98.47s)
-- Controller/workflow sync fixed (added */.github/workflows/* to main.yml)
+- Full suite: 1776 passed, 13 skipped, 0 failed (167.97s)
+- Controller/workflow pattern sync FIXED (added `*/.github/workflows/*` nested variant to main.yml stage_safe_changes; was the gate-breaking bottleneck)
 - Coverage: ~98% total across strategies/betting_against_beta/ (ceiling held)
 - Bottlenecks: ELIMINATED. Test suite fast, fixtures complete, gate reliable.
 
@@ -126,7 +126,7 @@ ATTACK ORDER (RUTHLESS): beta.py (cross-emitter invariants) -> strategy.py (inte
 - Coverage status: 98% (ceiling) — evidence required for any change
 - Momentum: MANDATORY — every turn must produce substantive BAB work or remove bottlenecks
 - Bottlenecks: NONE KNOWN (eliminated preflight)
-- Last verified: 2026-11-01T19:21:19Z (BAB gate GREEN, 1776 passed, 13 skipped, 0 failed)
+- Last verified: 2026-11-01T19:23:39Z (BAB gate GREEN, 1776 passed, 13 skipped, 0 failed)
 - Focus: beta.py cross-emitter invariants first, then strategy.py integration chaos
 
 (End of file)
