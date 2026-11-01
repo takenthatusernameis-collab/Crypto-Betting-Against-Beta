@@ -1,7 +1,7 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 # MOST RELEVANT INFERRED TIMESTAMPED CLEAR INITIAL TASK MESSAGE FOR NEXT AGENTIC WORK SESSION
 
-**HANDOFF_TIMESTAMP:** 2026-11-01T19:59:14Z
+**HANDOFF_TIMESTAMP:** 2026-11-01T20:05:24Z
 **REPO:** Crypto-Betting-Against-Beta
 **PRIORITY:** BAB-FIRST (strategies/betting_against_beta/) — ABSOLUTE MANDATE. BAB MUST get ALL attention until explicitly blocked by a gate-breaking issue with concrete evidence.
 
@@ -14,12 +14,12 @@
 >>> NO COASTING. EVERY TURN MUST DELIVER SUBSTANTIVE BAB IMPROVEMENTS. <<<
 
 REPO: Crypto-Betting-Against-Beta | BAB-FIRST ABSOLUTE MANDATE | MAXIMUM SUBSTANTIVE PROGRESS
-TIMESTAMP: 2026-11-01T19:59:14Z
+TIMESTAMP: 2026-11-01T20:05:24Z
 
-VERIFIED STATE (2026-11-01T19:59:14Z):
+VERIFIED STATE (2026-11-01T20:05:24Z):
 - BAB gate GREEN (all tests pass)
-- Full suite: 1776 passed, 13 skipped, 0 failed (99.99s)
-- Controller/workflow pattern sync FIXED (added */.github/workflows/* nested variant to .github/workflows/main.yml; pattern parity enforced)
+- Full suite: 1783 passed, 13 skipped, 0 failed (~113s)
+- Bottleneck REMOVED: workflow/.github/workflows pattern parity fixed (added */.github/workflows/* nested variant to .github/workflows/main.yml stage_safe_changes list; controller_progress.py EXCLUDE_PATTERNS now in lock-step). Controller/workflow pattern-sync regression tests now pass.
 - Coverage: ~98% total across strategies/betting_against_beta/ (ceiling held)
 - Bottlenecks: ELIMINATED. Test suite stable, fixtures complete, gate reliable.
 
@@ -125,8 +125,8 @@ ATTACK ORDER (RUTHLESS): beta.py (cross-emitter invariants) -> strategy.py (inte
 - Campaign: INVARIANT CRUSADE - BEHAVIORAL HARDENING OVER COVERAGE
 - Coverage status: 98% (ceiling) — evidence required for any change
 - Momentum: MANDATORY — every turn must produce substantive BAB work or remove bottlenecks
-- Bottlenecks: NONE KNOWN (eliminated preflight)
-- Last verified: 2026-11-01T19:59:14Z (BAB gate GREEN, 1776 passed, 13 skipped, 0 failed)
+- Bottlenecks: NONE KNOWN (eliminated preflight; workflow pattern parity fixed at 2026-11-01T20:05:24Z)
+- Last verified: 2026-11-01T20:05:24Z (BAB gate GREEN, 1783 passed, 13 skipped, 0 failed)
 - Focus: beta.py cross-emitter invariants first, then strategy.py integration chaos
 
 (End of file)
