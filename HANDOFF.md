@@ -1,12 +1,12 @@
-# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) — 2026-11-01T04:27:27Z
+# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) — 2026-11-01T04:31:42Z
 
 ## TIMESTAMP
-2026-11-01T04:27:27Z
+2026-11-01T04:31:42Z
 
 ## REPO / PRIORITY
 REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE (repo name = betting_against_beta). ALL WORK MUST PRIORITIZE strategies/betting_against_beta/. NO VANITY. NO FILE-COUNT GOALS. NO DOCS-ONLY CHANGES. NO IDLE TURNS. IF NO BAB WORK IS POSSIBLE, EXPLAIN WHY WITH EVIDENCE BEFORE DOING ANYTHING ELSE.
 
-## VERIFIED STATE (CLEAN MEASUREMENT - 2026-11-01T04:27:27Z)
+## VERIFIED STATE (CLEAN MEASUREMENT - 2026-11-01T04:31:42Z)
 - Full BAB suite: 1318 passed, 7 skipped, 0 failed (FULLY GREEN, RC=0)
 - 2 pre-existing non-BAB infra failures (test_controller_progress_accounting.py) — must not increase
 - Package coverage (BAB): 98% total, 45 misses across 2549 stmts
@@ -46,9 +46,9 @@ Ruling: BAB coverage is MAXIMIZED at 98% (45 misses, all provably unreachable). 
 
 REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE | COVERAGE MAXIMIZED
 
-TIMESTAMP: 2026-11-01T04:27:27Z
+TIMESTAMP: 2026-11-01T04:31:42Z
 
-VERIFIED STATE (2026-11-01T04:27:27Z - re-verified green):
+VERIFIED STATE (2026-11-01T04:31:42Z - re-verified green):
 - BAB suite: 1318 passed, 7 skipped, 0 failed (FULLY GREEN, RC=0)
 - Package coverage: 98% | 45 misses, ALL provably unreachable dead code (documented in this HANDOFF under BOTTLENECKS REMOVED)
 - beta.py 94%, config 99%, costs 99%, data_loader 97%, metrics 99%, portfolio 97%, regime 99%, signals 98%, strategy 98% — every remaining miss is unreachable; DO NOT CHASE
@@ -103,7 +103,7 @@ RULES:
 - Coverage floor: 98% / 45 misses (all unreachable; must not increase)
 - 2 pre-existing non-BAB infra failures (test_controller_progress_accounting.py) must not increase
 
-## SESSION SUMMARY (2026-11-01T04:27:27Z)
+## SESSION SUMMARY (2026-11-01T04:31:42Z)
 - Handoff refreshed as single durable source of truth with timestamped initial task message.
 - Bottlenecks already removed and documented (all 45 misses provably unreachable; regime.py:305 newly noted as unreachable empty-factors early return; portfolio.py residual-drift loop re-lined to 172-177); campaign locked to heavy BAB hardening (integration/stress, robustness, performance, edge cases, invariant enforcement).
 - Gate remains green (1318 passed, 7 skipped, 0 failed; coverage 98% / 45 misses). Next agent must start immediately with the copied initial task message above and produce substantive BAB work every turn.
