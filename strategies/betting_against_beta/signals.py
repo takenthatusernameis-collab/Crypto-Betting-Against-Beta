@@ -126,7 +126,16 @@ def generate_bab_signals(betas_df, long_quantile=0.3, short_quantile=0.3):
     if sq >= 1.0:
         sq = 1.0
 
-    beta_df = betas_df.apply(pd.to_numeric, errors="coerce")
+    # Fast path: when every column is already numeric (the common case —
+    # calculate_rolling_beta emits float64, and integer frames from callers are
+    # already clean), skip the per-column pd.to_numeric apply entirely. This
+    # removes the dominant pandas overhead (apply_series_generator,
+    # to_numeric, Series construction) from the hot path. Object/string frames
+    # still take the slow, safe path below.
+    if all(pd.api.types.is_numeric_dtype(s) for s in betas_df.dtypes):
+        beta_df = betas_df
+    else:
+        beta_df = betas_df.apply(pd.to_numeric, errors="coerce")
     beta_arr = beta_df.to_numpy(dtype=float)
     finite = np.isfinite(beta_arr)
     counts = finite.sum(axis=1)

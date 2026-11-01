@@ -80,21 +80,29 @@ def construct_portfolio(signals_df, dollar_neutral=True, gross_exposure_limit=No
     # _clean_signal_value semantics: coerce to numeric (numeric strings such
     # as "1.5" parse, garbage becomes NaN), truncate toward zero, and keep only
     # the values whose truncated integral part is exactly +1 or -1.
-    # to_numeric is applied per column (N iterations, not M*N cells); each call
-    # is a fully vectorized Series operation.
-    try:
-        numeric = signals_df.apply(pd.to_numeric, errors="coerce")
-    except Exception:
-        # apply(pd.to_numeric) can raise for exotic object dtypes (e.g. columns
-        # holding builtin function/type objects).  Fall back to a copy and coerce
-        # each column individually so non-coercible columns become NaN instead of
-        # crashing the whole construction.
-        numeric = signals_df.copy()
-        for col in numeric.columns:
-            try:
-                numeric[col] = pd.to_numeric(numeric[col], errors="coerce")
-            except Exception:
-                numeric[col] = 0.0
+    #
+    # Fast path: when every column is already numeric (the common case —
+    # generate_bab_signals emits int64, and integer signals from callers are
+    # already clean), skip the per-column pd.to_numeric apply entirely. This
+    # removes the dominant pandas overhead (apply_series_generator,
+    # to_numeric, Series construction) from the hot path. Object/string frames
+    # still take the slow, safe path below.
+    if all(pd.api.types.is_numeric_dtype(s) for s in signals_df.dtypes):
+        numeric = signals_df
+    else:
+        try:
+            numeric = signals_df.apply(pd.to_numeric, errors="coerce")
+        except Exception:
+            # apply(pd.to_numeric) can raise for exotic object dtypes (e.g. columns
+            # holding builtin function/type objects).  Fall back to a copy and coerce
+            # each column individually so non-coercible columns become NaN instead of
+            # crashing the whole construction.
+            numeric = signals_df.copy()
+            for col in numeric.columns:
+                try:
+                    numeric[col] = pd.to_numeric(numeric[col], errors="coerce")
+                except Exception:
+                    numeric[col] = 0.0
     arr = numeric.to_numpy(dtype=float)
     iv = np.trunc(arr)
     clean_arr = np.where(iv == 1.0, 1, np.where(iv == -1.0, -1, 0)).astype(np.int64)
