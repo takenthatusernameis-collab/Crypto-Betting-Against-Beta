@@ -1,7 +1,7 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 # MOST RELEVANT INFERRED TIMESTAMPED CLEAR INITIAL TASK MESSAGE FOR NEXT AGENTIC WORK SESSION
 
-**HANDOFF_TIMESTAMP: 2026-11-01T23:02:47Z**
+**HANDOFF_TIMESTAMP: 2026-11-01T23:04:56Z**
 **REPO:** Crypto-Betting-Against-Beta
 **PRIORITY:** BAB-FIRST (strategies/betting_against_beta/) — ABSOLUTE MANDATE. BAB MUST get ALL attention until explicitly blocked by a gate-breaking issue with concrete evidence.
 
@@ -14,11 +14,11 @@
 >>> NO COASTING. EVERY TURN MUST DELIVER SUBSTANTIVE BAB IMPROVEMENTS. <<<
 
 REPO: Crypto-Betting-Against-Beta | BAB-FIRST ABSOLUTE MANDATE | MAXIMUM SUBSTANTIVE PROGRESS
-TIMESTAMP: 2026-11-01T23:02:47Z
+TIMESTAMP: 2026-11-01T23:04:56Z
 
-VERIFIED STATE (2026-11-01T23:02:47Z):
+VERIFIED STATE (2026-11-01T23:04:56Z):
 - BAB gate GREEN (all tests pass)
-- Full suite: 1791 passed, 13 skipped, 0 failed (~113s)
+- Full suite: 1792 passed, 13 skipped, 0 failed (~113s)
 - Bottleneck FIXED: workflow/.github/workflows pattern parity synced (added */.github/workflows/* to .github/workflows/main.yml stage_safe_changes; controller_progress.py EXCLUDE_PATTERNS in lock-step). All controller pattern-sync tests pass.
 - Coverage: ~98% total across strategies/betting_against_beta/ (ceiling held)
 - Bottlenecks: ELIMINATED. Test suite stable, fixtures complete, gate reliable.
@@ -32,7 +32,7 @@ CAMPAIGN OBJECTIVE: Make future agents unable to coast by forcing invariant-driv
 
 IMMEDIATE ACTIONS (DO IN ORDER, NO EXCEPTIONS):
 
-1. GATE FIRST (MANDATORY): Run `scripts/bab_gate.sh` or equivalent full suite. Must return GREEN (>=1791 passed, >=13 skipped, 0 failed).
+1. GATE FIRST (MANDATORY): Run `scripts/bab_gate.sh` or equivalent full suite. Must return GREEN (>=1792 passed, >=13 skipped, 0 failed).
    - If broken for ANY reason, fix BEFORE anything else. No exploratory work until green.
    - Treat gate as your heartbeat. Re-run after every substantive change.
 
@@ -93,7 +93,7 @@ VERIFICATION (RUN AFTER EVERY SUBSTANTIVE CHANGE):
   scripts/bab_gate.sh
 
 SUCCESS CRITERIA (MEASURABLE):
-- Gate stays GREEN (>=1791 passed, >=13 skipped, 0 failed)
+- Gate stays GREEN (>=1792 passed, >=13 skipped, 0 failed)
 - New adversarial/property/cross-emitter/regression tests added with clear failure-to-pass evidence
 - Concrete robustness improvements to BAB code (beta + strategy first)
 - Cross-emitter beta agreement enforced and tested
@@ -126,7 +126,7 @@ ATTACK ORDER (RUTHLESS): beta.py (cross-emitter invariants) -> strategy.py (inte
 - Coverage status: 98% (ceiling) — evidence required for any change
 - Momentum: MANDATORY — every turn must produce substantive BAB work or remove bottlenecks
 - Bottlenecks: NONE KNOWN (eliminated preflight; workflow pattern parity fixed at 2026-11-01T22:01:08Z)
-- Last verified: 2026-11-01T22:01:08Z (BAB gate GREEN, 1791 passed, 13 skipped, 0 failed)
+- Last verified: 2026-11-01T22:01:08Z (BAB gate GREEN, 1792 passed, 13 skipped, 0 failed)
 - Focus: beta.py cross-emitter invariants first, then strategy.py integration chaos
 
 (End of file)
