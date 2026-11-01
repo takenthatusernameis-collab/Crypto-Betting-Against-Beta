@@ -1,7 +1,7 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 # MOST RELEVANT INFERRED TIMESTAMPED CLEAR INITIAL TASK MESSAGE FOR NEXT AGENTIC WORK SESSION
 
-**HANDOFF_TIMESTAMP:** 2026-11-01T07:47:17Z
+**HANDOFF_TIMESTAMP:** 2026-11-01T07:55:58Z
 **REPO:** Crypto-Betting-Against-Beta
 **PRIORITY:** BAB-FIRST (strategies/betting_against_beta/) — betting_against_beta inferred from repo name
 
@@ -13,9 +13,9 @@
 >>> START IMMEDIATELY — HEAVY WORK REQUIRED <<<
 
 REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE | COVERAGE MAXIMIZED | NO IDLE TURNS
-TIMESTAMP: 2026-11-01T07:47:17Z
+TIMESTAMP: 2026-11-01T07:55:58Z
 
-VERIFIED STATE (2026-11-01T07:47:17Z):
+VERIFIED STATE (2026-11-01T07:55:58Z):
 - BAB suite: 1318 passed, 7 skipped, 0 failed (FULLY GREEN, RC=0)
 - Coverage ceiling reached: 98% total, 45 misses across 2549 stmts — ALL provably unreachable dead code (do NOT chase)
 - Per-module known ceilings: beta.py 94% (16 unreachable), data_loader.py 97% (9), portfolio.py 97% (8), strategy.py 98% (3), signals.py 98% (2), config/costs/metrics/regime smaller unreachable counts.
@@ -69,6 +69,4 @@ RULES: GATE GREEN ALWAYS. NO CHASING UNREACHABLE (ceiling 98%). HEAVY WORK MANDA
 
 ## HANDOFF METADATA
 - Single durable handoff. Campaign: heavy BAB hardening (adversarial E2E/integration/stress/robustness/performance/edge cases/invariant enforcement). Coverage dead-end. Momentum mandatory. Start with copied message above.
-- Last verified: 2026-11-01T07:47:17Z (1318 passed, 7 skipped, 0 failed, 98% cover / 45 misses; full suite 1724 passed, 13 skipped, 0 failed; non-BAB infra fixed from 2 pre-existing failures to 0).
-
-(End of file - total 86 lines)
+- Last verified: 2026-11-01T07:55:58Z (1318 passed, 7 skipped, 0 failed, 98% cover / 45 misses; full suite 1724 passed, 13 skipped, 0 failed; non-BAB infra fixed from 2 pre-existing failures to 0).
