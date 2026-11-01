@@ -24,7 +24,7 @@ PYTEST_ARGS=(-q -p no:cacheprovider -W ignore::UserWarning -W ignore::RuntimeWar
 # ROOT is computed at the top of this script (relative to $0), so the gate
 # works from any working directory and on any machine, not just this sandbox.
 python3 - "$ROOT" <<'PYEOF'
-import glob, os, sys
+import os, sys
 ROOT = sys.argv[1]
 sys.path.insert(0, ROOT)
 
@@ -39,12 +39,16 @@ except ImportError:
 
 import pytest
 
-# Pick up every BAB test file (test_bab*.py plus the two legacy-named ones).
-files = sorted(glob.glob(os.path.join(ROOT, "tests", "test_bab*.py")))
-for extra in ("test_betting_against_beta_costs.py", "test_betting_against_beta.py"):
-    p = os.path.join(ROOT, "tests", extra)
-    if os.path.exists(p):
-        files.append(p)
+# Pick up EVERY test file under tests/.  The previous glob of test_bab*.py
+# silently excluded ~15 files / 412 tests, hiding real regressions from the
+# gate (5 failures were invisible to it).  Order is deterministic so output is
+# reproducible across runs.
+tests_dir = os.path.join(ROOT, "tests")
+files = sorted(
+    os.path.join(tests_dir, f)
+    for f in os.listdir(tests_dir)
+    if f.endswith(".py") and f.startswith("test_")
+)
 
 common_args = ["-q", "-p", "no:cacheprovider",
                "-W", "ignore::UserWarning",

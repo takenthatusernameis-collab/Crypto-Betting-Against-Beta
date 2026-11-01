@@ -125,11 +125,12 @@ def test_calculate_beta_fast_180_185():
     class Bad:
         def __array__(self, dtype=None):
             raise TypeError()
+    # Non-convertible inputs -> undefined beta -> NaN, never a synthetic 0.0.
     res = beta.calculate_beta_fast(Bad(), [1,2,3])
-    assert res == 0.0
+    assert np.isnan(res)
 
     res = beta.calculate_beta_fast(object(), object())
-    assert res == 0.0
+    assert np.isnan(res)
 
 
 def test_calculate_rolling_beta_264_268():

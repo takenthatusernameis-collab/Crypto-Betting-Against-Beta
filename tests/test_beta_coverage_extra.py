@@ -81,8 +81,11 @@ class TestBetaCoverageExtra:
         assert np.isnan(calculate_beta_fast([0.01, 0.02], [0.01, 0.02], min_obs=100))
 
     def test_calculate_beta_fast_constant_bench(self):
+        # A constant/degenerate benchmark carries no information, so beta is
+        # *undefined* -> NaN, never a synthetic 0.0 that would be ranked as a
+        # valid low-beta signal and corrupt long/short selection.
         res = calculate_beta_fast([0.01, 0.02, 0.03], [0.01, 0.01, 0.01])
-        assert res == 0.0
+        assert np.isnan(res)
 
     def test_calc_rolling_beta_series_empty(self):
         res = _calc_rolling_beta_series([], [], 5, 3)

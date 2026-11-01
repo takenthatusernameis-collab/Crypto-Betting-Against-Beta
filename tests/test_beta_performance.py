@@ -107,7 +107,12 @@ class TestRollingBetaPerformance:
 class TestRollingBetaNumericalStability:
     """Edge cases that must not silently produce NaN/inf."""
 
-    def test_constant_benchmark_is_finite(self):
+    def test_constant_benchmark_is_nan(self):
+        # A constant/degenerate benchmark carries no information, so beta is
+        # *undefined* -> NaN, never a synthetic 0.0. This is the invariant
+        # enforced across calculate_beta / calculate_beta_fast /
+        # calculate_rolling_beta so ranking never treats a degenerate beta as
+        # a real (low) signal.
         df = pd.DataFrame(
             {
                 "BTC": np.ones(200) * 0.0,
@@ -115,9 +120,9 @@ class TestRollingBetaNumericalStability:
             }
         )
         betas = calculate_rolling_beta(df, "BTC", window=60, min_obs=30)
-        # Skip the warm-up window where insufficient observations are NaN by design.
         arr = betas["ETH"].to_numpy()
-        assert np.isfinite(arr[30:]).all()
+        # Every window with enough observations is NaN (undefined beta).
+        assert np.isnan(arr[30:]).all()
 
     def test_near_collinear_asset_is_finite(self):
         rng = np.random.default_rng(5)
