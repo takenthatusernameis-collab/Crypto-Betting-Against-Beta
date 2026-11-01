@@ -1,7 +1,7 @@
-# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) — 2026-11-01T00:32:58Z
+# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) — 2026-11-01T02:18:06Z
 
 ## TIMESTAMP
-2026-11-01T00:32:58Z
+2026-11-01T02:18:06Z
 
 ## REPO / PRIORITY
 REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE (repo name = betting_against_beta). ALL WORK MUST PRIORITIZE strategies/betting_against_beta/. NO VANITY. NO FILE-COUNT GOALS. NO DOCS-ONLY CHANGES. NO IDLE TURNS. IF NO BAB WORK IS POSSIBLE, EXPLAIN WHY WITH EVIDENCE BEFORE DOING ANYTHING ELSE.
@@ -38,22 +38,22 @@ Ruling: beta.py will not exceed 94% via tests. Documented above; do not spend fu
 
 REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE
 
-VERIFIED STATE (2026-11-01T00:32:58Z):
+VERIFIED STATE (2026-11-01T02:18:06Z):
 - BAB suite: 1309 passed, 5 skipped, 0 failed (FULLY GREEN)
 - Package coverage: 98% | total misses 50
 - beta.py: 94% | 16 misses — PROVABLY STUCK (documented in HANDOFF.md), DO NOT CHASE
-- Next targets by miss count: data_loader (10: 44, 192-193, 256, 311-313, 340-342),
-  portfolio (8: 39-40, 164-169), metrics (6: 25, 42, 97, 114, 126, 138),
+- data_loader.py: 98% | 3 misses — 44, 311-313, 340-342 (unreachable dead branches, documented); DO NOT CHASE
+- Next targets by miss count: portfolio (8: 39-40, 164-169), metrics (6: 25, 42, 97, 114, 126, 138),
   config/signals/strategy (3 each), costs (2: 59-60)
 
 MANDATE: MAXIMIZE BAB COVERAGE WITH ZERO REGRESSIONS. EVERY TURN MUST PRODUCE SUBSTANTIVE CHANGES. NO EXPLORATORY IDLE TURNS.
 
 FOCUS ORDER (STRICT):
-1. data_loader.py (97%, 10 misses) — IMMEDIATE
-2. portfolio.py (96%, 8 misses) — lines 39-40 previously documented unreachable; 164-169 next
-3. metrics.py (96%, 6 misses)
-4. config.py (98%, 3: 95-96, 113), signals.py (98%, 2: 37, 75), strategy.py (98%, 3: 181, 188-189)
-5. costs.py (99%, 2: 59-60) only if provably reachable
+1. portfolio.py (96%, 8 misses) — IMMEDIATE (lines 39-40 previously documented unreachable; 164-169 next)
+2. metrics.py (96%, 6 misses)
+3. config.py (98%, 3: 95-96, 113), signals.py (98%, 2: 37, 75), strategy.py (98%, 3: 181, 188-189)
+4. costs.py (99%, 2: 59-60) only if provably reachable
+5. data_loader.py — SKIP (98%, 3 misses unreachable, documented)
 6. beta.py — SKIP (provably stuck; documented)
 
 EXECUTION PROTOCOL (HEAVY WORK):
@@ -90,7 +90,7 @@ RULES:
 - DO NOT WASTE TURNS ON NON-BAB FILES UNLESS THEY DIRECTLY BLOCK BAB COVERAGE WITH EVIDENCE.
 - END SESSION ONLY IF BAB COVERAGE HIGHER THAN START OR UNREACHABLE LINES EXPLICITLY DOCUMENTED WITH EVIDENCE.
 
-DO HEAVY WORK ON data_loader.py NOW. NO DELAY.
+DO HEAVY WORK ON portfolio.py NOW. NO DELAY.
 ```
 
 ## INVARIANTS (MUST PRESERVE)
