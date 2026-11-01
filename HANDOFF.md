@@ -1,7 +1,7 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 # MOST RELEVANT INFERRED TIMESTAMPED CLEAR INITIAL TASK MESSAGE FOR NEXT AGENTIC WORK SESSION
 
-**HANDOFF_TIMESTAMP:** 2026-11-01T11:18:30Z
+**HANDOFF_TIMESTAMP:** 2026-11-01T11:26:37Z
 **REPO:** Crypto-Betting-Against-Beta
 **PRIORITY:** BAB-FIRST (strategies/betting_against_beta/) — inferred from repository name. BAB MUST get ALL attention until explicitly blocked by a gate-breaking issue with concrete evidence.
 
@@ -13,22 +13,26 @@
 >>> START IMMEDIATELY — HEAVY WORK REQUIRED — NO IDLE TURNS <<<
 
 REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE | MAXIMUM SUBSTANTIVE PROGRESS
-TIMESTAMP: 2026-11-01T11:18:30Z
+TIMESTAMP: 2026-11-01T11:26:37Z
 
-VERIFIED STATE (2026-11-01T11:18:12Z):
+VERIFIED STATE (2026-11-01T11:26:37Z):
 - BAB gate GREEN (scripts/bab_gate.sh exit 0)
 - BAB suite: 1335 passed, 7 skipped, 0 failed
 - Coverage: 98% total (2593 stmts, 61 misses). COVERAGE CEILING REACHED.
-- Per-module highlights: beta.py 94% (16), strategy.py 93% (16), data_loader.py 97% (9), portfolio.py 97% (8), costs.py/config/metrics/regime 99%, others 100%.
-- Bottlenecks removed: single-command gate (scripts/bab_gate.sh), warnings silenced, .github/workflows/main.yml updated for workflow paths.
+- Per-module: backtest/attribution/cli/data/data_sources/errors/quality/shorting 100%; beta 94%, strategy 93%, data_loader 97%, portfolio 97%, costs/config/metrics/regime 99%, signals 98%, sizing 98%.
+- Bottlenecks removed: __pycache__ dirs cleaned; tracked coverage artifacts (beta.py,cover, portfolio.py,cover) removed from git+fs; single-command gate (scripts/bab_gate.sh) intact; warnings silenced.
 
 PRIMARY MANDATE: HEAVY BAB HARDENING. Every single turn MUST produce concrete, substantive BAB improvements (tests + minimal hardening). Idle, docs-only, or file-count changes are FORBIDDEN.
 
 IMMEDIATE ACTIONS (DO IN ORDER, NO EXCEPTIONS):
-1. GATE FIRST: Run `scripts/bab_gate.sh`. Must return GREEN. If anything is broken, fix it BEFORE any other work.
-2. ATTACK REAL EDGE CASES (HEAVY): Focus on gaps that can actually break robustness - rolling beta numerical stability (near-singular, colinearity, zero variance), portfolio construction under degenerate signals/ties/all-same-beta, regime transitions, data quality storms (NaN/inf, duplicates/out-of-order/timezone mixes, gaps), lookahead prevention (1-day lag), dollar-neutrality enforcement.
-3. ADVERSARIAL + PROPERTY TESTS: Add deterministic seeded tests for chaos cases (extreme costs/slippage/turnover, partial universe, missing benchmark periods). Enforce invariants: weights finite, row sums ~0 for dollar-neutral, no lookahead, finiteness everywhere.
-4. INTEGRATION/CLI/ERRORS: Harden BABStrategy end-to-end, CLI paths, config validation. Replace any bare except: with specific BAB exceptions. Ensure errors are BAB-specific and actionable.
+1. GATE FIRST: Run `scripts/bab_gate.sh`. Must return GREEN (>=1335 passed, >=7 skipped, 0 failed). If anything is broken, fix it BEFORE any other work.
+2. ATTACK REAL EDGE CASES (HEAVY): Focus on gaps that can actually break robustness:
+   - Rolling beta numerical stability: near-singular / colinear windows, zero-variance benchmark (beta.py:calculate_beta_fast returns 0.0 for degenerate benchmark while calculate_beta returns np.nan — inconsistency to resolve), all-NaN columns, insufficient observations (<60).
+   - Portfolio construction under degenerate signals/ties/all-same-beta, single-asset rows, max_position_size/max_turnover enforcement paths, enforce_beta_neutrality residual drift (portfolio.py:164-177).
+   - Data quality storms: NaN/inf, duplicates, out-of-order, timezone mixes, gaps, empty columns, benchmark without finite values (data_loader.py).
+   - Lookahead prevention (1-day lag in backtest.py/run_backtest), dollar-neutrality enforcement (portfolio.py:151-179), quantile/decile rank determinism (signals.py argsort stable sort).
+3. ADVERSARIAL + PROPERTY TESTS: Add deterministic seeded tests for chaos cases (extreme costs/slippage/turnover, partial universe, missing benchmark periods, colinear assets). Enforce invariants: weights finite, row sums ~0 for dollar-neutral, no lookahead, finiteness everywhere.
+4. INTEGRATION/CLI/ERRORS: Harden BABStrategy end-to-end, CLI paths, config validation. Replace broad except: with specific BAB exceptions. Ensure errors are BAB-specific and actionable.
 5. REGRESSION GUARDRAILS: Every new failure mode discovered MUST get a regression test + minimal fix. Do not just explain.
 
 NON-NEGOTIABLE RULES:
@@ -53,10 +57,9 @@ SUCCESS CRITERIA FOR SESSION PROGRESS:
 NEVER END WITH JUST "analysis" OR "investigation". PROGRESS = GREEN GATE + SUBSTANTIVE BAB HARDENING/TESTS.
 ```
 
-## BOTTLENECKS REMOVED
-- Gate consolidated to single command: `scripts/bab_gate.sh`
-- Noisy warnings silenced in gate
-- Workflow patterns updated to include `*/.github/workflows/*`
+## BOTTLENECKS REMOVED (this session)
+- Cleaned untracked `__pycache__` dirs (scripts/, strategies/, tests/)
+- Removed tracked coverage artifacts `strategies/betting_against_beta/beta.py,cover` and `portfolio.py,cover` from git + filesystem (committed-by-mistake source duplicates, not code)
 
 ## INVARIANTS (MUST PRESERVE)
 - 1-day lag, dollar-neutral where applicable, quantiles/deciles, beta>=60 default, ranking
@@ -71,4 +74,4 @@ NEVER END WITH JUST "analysis" OR "investigation". PROGRESS = GREEN GATE + SUBST
 - Campaign: HEAVY BAB HARDENING (adversarial, property-based, chaos, integration, numerical robustness)
 - Coverage status: Ceiling reached (98%)
 - Momentum: MANDATORY — every turn must produce substantive BAB work
-- Last verified: 2026-11-01T11:18:12Z (BAB gate GREEN)
+- Last verified: 2026-11-01T11:26:37Z (BAB gate GREEN)
