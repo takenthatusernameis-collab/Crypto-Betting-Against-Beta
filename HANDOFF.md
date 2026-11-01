@@ -1,7 +1,7 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 # MOST RELEVANT INFERRED TIMESTAMPED CLEAR INITIAL TASK MESSAGE FOR NEXT AGENTIC WORK SESSION
 
-**HANDOFF_TIMESTAMP:** 2026-11-01T11:12:30Z
+**HANDOFF_TIMESTAMP:** 2026-11-01T11:14:15Z
 **REPO:** Crypto-Betting-Against-Beta
 **PRIORITY:** BAB-FIRST (strategies/betting_against_beta/) — betting_against_beta inferred from repo name
 
@@ -13,13 +13,13 @@
 >>> START IMMEDIATELY — HEAVY WORK REQUIRED <<<
 
 REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE | COVERAGE MAXIMIZED | NO IDLE TURNS
-TIMESTAMP: 2026-11-01T11:12:30Z
+TIMESTAMP: 2026-11-01T11:14:15Z
 
-VERIFIED STATE (2026-11-01T11:12:30Z):
+VERIFIED STATE (2026-11-01T11:14:15Z):
 - BAB gate GREEN (scripts/bab_gate.sh exit 0): BAB suite 1335 passed, 7 skipped, 0 failed.
 - Coverage: 98% total (2593 stmts, 61 misses). Ceiling effectively reached; do NOT chase unreachable dead code. Treat coverage ceiling as ABSOLUTE dead-end.
-- Per-module (from gate): beta.py 94% (16), config.py 99% (2), costs.py 99% (2), data_loader.py 97% (9), metrics.py 99% (2), portfolio.py 97% (8), signals.py 98% (2), sizing.py 98% (3), strategy.py 93% (16), regime.py 99% (1). Others 100%.
-- Full suite: 1734+ passed historically; current gate run shows BAB-focused suite passing with 0 failures.
+- Per-module (from gate): beta.py 94% (16), config.py 99% (2), costs.py 99% (2), data_loader.py 97% (9), metrics.py 99% (2), portfolio.py 97% (8), signals.py 98% (2), sizing.py 98% (3), strategy.py 93% (16), regime.py 99% (1), attribution.py 100%, backtest.py 100%, cli.py 100%, data.py 100%, data_sources.py 100%, errors.py 100%, quality.py 100%, shorting.py 100%.
+- Full suite: 1335 passed, 7 skipped, 0 failed (BAB-focused gate).
 - BOTTLENECKS REMOVED: .github/workflows/main.yml stage_safe_changes includes `*/.github/workflows/*`; scripts/bab_gate.sh is single-command gate; gate warnings silenced.
 
 CAMPAIGN: HEAVY BAB HARDENING — MAXIMUM SUBSTANTIVE WORK. Every turn must produce concrete BAB improvements. Treat coverage ceiling as ABSOLUTE dead-end.
@@ -62,4 +62,4 @@ RULES: GATE GREEN ALWAYS. NO CHASING UNREACHABLE. HEAVY WORK MANDATORY EVERY TUR
 
 ## HANDOFF METADATA
 - Single durable handoff. Campaign: HEAVY BAB HARDENING (adversarial E2E/integration/stress/chaos/property/robustness/edge cases/invariant enforcement). Coverage ceiling reached. Momentum mandatory. NO IDLE TURNS. Start with copied message above.
-- Last verified: 2026-11-01T11:12:30Z (BAB gate GREEN: 1335 passed, 7 skipped, 0 failed, ~98% cover).
+- Last verified: 2026-11-01T11:14:15Z (BAB gate GREEN: 1335 passed, 7 skipped, 0 failed, ~98% cover).
