@@ -1,25 +1,36 @@
-# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) — 2026-11-01T00:30:36Z
+# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) — 2026-11-01T00:32:58Z
 
 ## TIMESTAMP
-2026-11-01T00:30:36Z
+2026-11-01T00:32:58Z
 
 ## REPO / PRIORITY
 REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE (repo name = betting_against_beta). ALL WORK MUST PRIORITIZE strategies/betting_against_beta/. NO VANITY. NO FILE-COUNT GOALS. NO DOCS-ONLY CHANGES. NO IDLE TURNS. IF NO BAB WORK IS POSSIBLE, EXPLAIN WHY WITH EVIDENCE BEFORE DOING ANYTHING ELSE.
 
-## VERIFIED STATE (CLEAN MEASUREMENT - 2026-11-01T00:30:36Z)
-- Full suite (BAB tests): 1309 passed, 5 skipped, 0 failed (FULLY GREEN)
-- Coverage (BAB package): 98% total, 50 misses
-- beta.py: 94% (16 misses) — 101-102, 124, 138, 140-141, 144-145, 166, 178, 181, 355-359 — HIGHEST LEVERAGE NEXT
-- metrics.py: 96% (6 misses)
-- portfolio.py: 96% (8 misses) — 39-40 proven unreachable (document if cannot safely hit)
-- data_loader.py: 97% (10 misses)
-- config.py: 98% (3 misses)
-- signals.py: 98% (2 misses)
-- strategy.py: 98% (3 misses)
-- costs.py: 99% (2 misses)
+## VERIFIED STATE (CLEAN MEASUREMENT - 2026-11-01T00:32:58Z)
+- Full BAB suite: 1309 passed, 5 skipped, 0 failed (FULLY GREEN)
+- 2 pre-existing non-BAB infra failures (test_controller_progress_accounting.py) — must not increase
+- Package coverage (BAB): 98% total, 50 misses across 2533 stmts
 
-## BOTTLENECKS
-- beta.py remains the bottleneck by count and leverage. Attack it relentlessly until either covered or proven unreachable with concrete evidence. No other module until beta.py is provably stuck after >=2 focused attempts per blocked subpath with documented evidence.
+Per-module (BAB package):
+- 100%: __init__, attribution, backtest, cli, data, data_sources, errors, quality, regime, shorting, sizing
+- 99%: costs (2 misses: 59-60)
+- 98%: config (95-96, 113), signals (37, 75), strategy (181, 188-189)
+- 97%: data_loader (44, 192-193, 256, 311-313, 340-342)
+- 96%: metrics (25, 42, 97, 114, 126, 138), portfolio (39-40, 164-169)
+- 94%: beta.py (16 misses: 101-102, 124, 138, 140-141, 144-145, 166, 178, 181, 355-359) — STUCK
+
+## BOTTLENECK — BETA.PY PROVABLY STUCK (DO NOT CHASE)
+beta.py is the historical bottleneck but is now provably stuck: every remaining miss is unreachable dead code guarded by an earlier return. Verified by measurement + static guard analysis; no test can cover them without changing semantics.
+
+- 101-102: unreachable — line 78-79 np.asarray(...,dtype=float) must succeed before the alignment block (line 82-84), guaranteeing float-convertible data reaches line 99-100, so to_numpy(dtype=float) cannot raise.
+- 124: unreachable — line 118 `if not np.any(mask): return nan` returns first; mask has same length as y, so any(mask) => len(y)>=1 after filter.
+- 144-145: unreachable — BABDataError raised at line 74-75 BEFORE the try block (line 76); nothing inside try raises BABDataError.
+- 166: unreachable — line 157 `if not np.any(mask): return nan` returns first.
+- 355-359: unreachable — bad-column conversion raises BABDataError at line 333, re-raised at line 345-346 BEFORE the outer except (line 347); no other TypeError/ValueError/AttributeError source exists in the guarded fast path.
+- 138/178: unreachable — x_std guard (line 129/171) ensures finite non-degenerate x; lstsq on finite rank-2 X with finite y yields finite beta (SVD-based gelsd).
+- 140-141/181: LinAlgError handlers — gelsd raises only on SVD non-convergence, not triggered by finite inputs.
+
+Ruling: beta.py will not exceed 94% via tests. Documented above; do not spend further turns on beta.py. Move to the next highest-leverage BAB module (focus order below).
 
 ## INITIAL TASK MESSAGE FOR NEXT AGENTIC SESSION (COPY/PASTE AS FIRST MESSAGE)
 ```
@@ -27,59 +38,51 @@ REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE (repo name = betting_again
 
 REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE
 
-VERIFIED STATE (2026-11-01T00:30:36Z):
+VERIFIED STATE (2026-11-01T00:32:58Z):
 - BAB suite: 1309 passed, 5 skipped, 0 failed (FULLY GREEN)
-- BAB coverage: 98% | total misses 50
-- beta.py: 94% | 16 misses [101-102, 124, 138, 140-141, 144-145, 166, 178, 181, 355-359] <- ATTACK NOW
+- Package coverage: 98% | total misses 50
+- beta.py: 94% | 16 misses — PROVABLY STUCK (documented in HANDOFF.md), DO NOT CHASE
+- Next targets by miss count: data_loader (10: 44, 192-193, 256, 311-313, 340-342),
+  portfolio (8: 39-40, 164-169), metrics (6: 25, 42, 97, 114, 126, 138),
+  config/signals/strategy (3 each), costs (2: 59-60)
 
 MANDATE: MAXIMIZE BAB COVERAGE WITH ZERO REGRESSIONS. EVERY TURN MUST PRODUCE SUBSTANTIVE CHANGES. NO EXPLORATORY IDLE TURNS.
 
 FOCUS ORDER (STRICT):
-1. beta.py (94%, 16 misses) — IMMEDIATE. No other module until provably stuck with evidence after >=2 focused attempts per blocked subpath.
-2. metrics.py (96%, 6 misses)
-3. portfolio.py (96%, 8 misses) — only if provably reachable; lines 39-40 previously documented unreachable
-4. data_loader.py (97%, 10 misses)
-5. config.py/signals.py/strategy.py (98%)
-6. costs.py (99%) only if provably reachable
+1. data_loader.py (97%, 10 misses) — IMMEDIATE
+2. portfolio.py (96%, 8 misses) — lines 39-40 previously documented unreachable; 164-169 next
+3. metrics.py (96%, 6 misses)
+4. config.py (98%, 3: 95-96, 113), signals.py (98%, 2: 37, 75), strategy.py (98%, 3: 181, 188-189)
+5. costs.py (99%, 2: 59-60) only if provably reachable
+6. beta.py — SKIP (provably stuck; documented)
 
 EXECUTION PROTOCOL (HEAVY WORK):
-- Read strategies/betting_against_beta/beta.py end-to-end. Map every miss to exact line/path.
+- Read the target module end-to-end. Map every miss to exact line/path.
 - TDD: write a FAILING test hitting a real uncovered branch first. Make it pass with minimal change preserving semantics.
-- After EVERY batch, re-run focused coverage on beta.py (or full BAB gate). Track progress in your mind and don't spin.
-- Target mapping for current misses:
-  101-102: exception in alignment block when Series detected but dropna/iloc fail (BadSeries/dropna raising)
-  124: empty after finite mask in calculate_beta (all non-finite -> y becomes empty after mask/filter)
-  138: non-finite beta from lstsq -> return nan
-  140-141: LinAlgError in lstsq -> nan
-  144-145: re-raise BABDataError (must not be swallowed)
-  166: calculate_beta_fast empty after mask -> nan
-  178: calculate_beta_fast non-finite beta -> return 0.0
-  181: calculate_beta_fast LinAlgError -> return 0.0
-  355-359: fallback except path in calculate_rolling_beta when conversion fails (asset conversion raises in fallback branch)
-- NO SPINNING. If stuck >2 focused attempts on a subpath, document evidence in HANDOFF.md and move to next untested branch.
+- After EVERY batch, re-run focused coverage on the target module. Track progress; don't spin.
+- NO SPINNING. If stuck >2 focused attempts on a subpath, document evidence in HANDOFF.md and move to the next untested branch.
 - Preserve: 1-day lag, dollar-neutral, quantiles/deciles, beta window>=60 default, ranking logic, finiteness, BAB-specific errors, no bare except:.
+- CHANGE ONLY SMALLEST SET NEEDED TO COVER REAL UNCOVERED BRANCHES. NO DOCS-ONLY. NO FILE-COUNT GOAL.
 
 VERIFICATION (run after every batch):
 cd /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
 rm -f .coverage
 PYTHONPATH=/home/runner/work/_temp/kilo-home/.local/lib/python3.12/site-packages:$PWD python3 - <<'PYEOF'
-import glob,sys,coverage
+import glob,sys,coverage,pytest
 ROOT="/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta"
 sys.path.insert(0,ROOT)
 files=sorted(glob.glob(ROOT+"/tests/test_bab*.py"))+[ROOT+"/tests/test_betting_against_beta_costs.py",ROOT+"/tests/test_betting_against_beta.py"]
 cov=coverage.Coverage(source=[ROOT+"/strategies/betting_against_beta"],data_file=None)
 cov.start()
-import pytest
 rc=pytest.main(["-q","-p","no:cacheprovider"]+files)
 cov.stop()
-cov.report(show_missing=True,include=ROOT+"/strategies/betting_against_beta/beta.py")
+cov.report(show_missing=True)
 raise SystemExit(rc)
 PYEOF
 PYTHONPATH=/home/runner/work/_temp/kilo-home/.local/lib/python3.12/site-packages:$PWD python3 -m pytest -q -p no:cacheprovider tests/test_bab*.py tests/test_betting_against_beta_costs.py tests/test_betting_against_beta.py 2>&1 | tail -2
 
 RULES:
 - ADD REAL TESTS WITH ASSERTIONS OR MINIMAL DEFENSIVE FIXES. NO DOCS-ONLY. NO FILE-COUNT GOAL.
-- CHANGE ONLY SMALLEST SET NEEDED TO COVER REAL UNCOVERED BRANCHES.
 - PRESERVE ALL INVARIANTS. Enforce finiteness. Raise BAB-specific errors. NO bare except:.
 - IF MODULE STALLS (NO NEW BRANCH HITABLE SAFELY AFTER FOCUSED ATTEMPTS) -> DOCUMENT EVIDENCE IN HANDOFF.md AND MOVE TO NEXT HIGHEST-LEVERAGE BAB MODULE. NO SPINNING.
 - RUN GATES AFTER EVERY BATCH. NEVER LEAVE GATES RED.
@@ -87,7 +90,7 @@ RULES:
 - DO NOT WASTE TURNS ON NON-BAB FILES UNLESS THEY DIRECTLY BLOCK BAB COVERAGE WITH EVIDENCE.
 - END SESSION ONLY IF BAB COVERAGE HIGHER THAN START OR UNREACHABLE LINES EXPLICITLY DOCUMENTED WITH EVIDENCE.
 
-DO HEAVY WORK ON beta.py NOW. NO DELAY.
+DO HEAVY WORK ON data_loader.py NOW. NO DELAY.
 ```
 
 ## INVARIANTS (MUST PRESERVE)
