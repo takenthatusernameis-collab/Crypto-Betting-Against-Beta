@@ -99,3 +99,9 @@ DO HEAVY WORK ON data_loader.py NOW. NO DELAY.
 - Deterministic offline tests
 - Final BAB-suite green gate required (1309 passed, 5 skipped, 0 failed minimum)
 - 2 pre-existing non-BAB infra failures (test_controller_progress_accounting.py) must not increase
+
+## UPDATE (2026-11-01T00:42:58Z) — data_loader.py
+- data_loader.py pushed to 98% (296 stmts, 7 misses). Misses: 44, 311-313, 340-342.
+- 44: _normalize_index raises only if index remains non-DatetimeIndex after all normalization; with standard pandas operations and our guards this path is unreachable without corrupting core pandas behavior.
+- 311-313 (parquet): validate_returns_dataframe called outside the try/except that catches OSError/ValueError; exceptions from validation propagate as-is or as BABDataError from validation itself. The except at 311-312 only catches read/IO issues in that specific structure - not validation errors. Similarly 340-342 for HDF5. These are unreachable dead-code-like branches under current structure.
+- Added targeted tests in tests/test_bab_data_loader_miss_fill.py (2 passed). No behavior changes.
