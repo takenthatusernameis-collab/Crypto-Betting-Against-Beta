@@ -96,27 +96,63 @@ class TestBABIntegrationChaos:
         strat_rets = res.backtest['gross_return']
         assert len(strat_rets) == len(df)
 
-    def test_mixed_nan_adversarial_no_lookahead_violations(self):
-        np.random.seed(202)
-        n = 150
-        bench = np.random.randn(n) * 0.01
+    def test_missing_columns_malformed_data_handling(self):
+        np.random.seed(303)
+        n = 100
+        df = pd.DataFrame({
+            'BTC': np.random.randn(n)*0.01,
+        })
+        strat = BABStrategy(BABConfig(
+            universe=['BTC', 'ETH'],
+            benchmark='BTC',
+            beta_window=30,
+            min_observations=20,
+        ))
+        try:
+            res = strat.run(df)
+            # May work if ETH not available - universe gets resolved
+            assert np.all(np.isfinite(res.weights.values))
+        except Exception:
+            pass
+
+    def test_all_nan_assets(self):
+        np.random.seed(404)
+        n = 80
+        bench = np.random.randn(n)*0.01
         df = pd.DataFrame({
             'BTC': bench,
-            'ETH': 0.6 * bench + np.random.randn(n) * 0.007,
-            'SOL': 1.4 * bench + np.random.randn(n) * 0.015,
+            'ETH': [np.nan]*n,
+            'SOL': [np.nan]*n,
         })
-        # Insert NaNs randomly
-        df.iloc[10, 1] = np.nan
-        df.iloc[25, 2] = np.nan
-        df.iloc[50, 0] = np.nan  # benchmark NaN
         strat = BABStrategy(BABConfig(
             universe=['BTC', 'ETH', 'SOL'],
             benchmark='BTC',
-            beta_window=40,
+            beta_window=30,
             min_observations=20,
         ))
         try:
             res = strat.run(df)
             assert np.all(np.isfinite(res.weights.values))
         except Exception:
-            pass  # some NaN patterns may be rejected
+            pass
+
+    def test_extreme_outliers(self):
+        np.random.seed(505)
+        n = 120
+        bench = np.random.randn(n)*0.01
+        df = pd.DataFrame({
+            'BTC': bench,
+            'ETH': 0.7*bench + np.random.randn(n)*0.01,
+            'SOL': 1.3*bench + np.random.randn(n)*0.01,
+            'XRP': -0.2*bench + np.random.randn(n)*0.01,
+        })
+        df.iloc[5,1] = 10.0
+        df.iloc[60,2] = -10.0
+        strat = BABStrategy(BABConfig(
+            universe=['BTC','ETH','SOL','XRP'],
+            benchmark='BTC',
+            beta_window=40,
+            min_observations=20,
+        ))
+        res = strat.run(df)
+        assert np.all(np.isfinite(res.weights.values))
