@@ -1,7 +1,7 @@
-# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) — 2026-11-01T03:31:29Z
+# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) — 2026-11-01T03:43:16Z
 
 ## TIMESTAMP
-2026-11-01T03:31:29Z
+2026-11-01T03:43:16Z
 
 ## REPO / PRIORITY
 REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE (repo name = betting_against_beta). ALL WORK MUST PRIORITIZE strategies/betting_against_beta/. NO VANITY. NO FILE-COUNT GOALS. NO DOCS-ONLY CHANGES. NO IDLE TURNS. IF NO BAB WORK IS POSSIBLE, EXPLAIN WHY WITH EVIDENCE BEFORE DOING ANYTHING ELSE.
@@ -16,7 +16,6 @@ Per-module (BAB package):
 - 99%: config (95-96), costs (59-60), metrics (97, 114)
 - 98%: signals (37, 75), strategy (181, 188-189)
 - 97%: data_loader (44, 192-193, 311-313, 340-342)
-- 96%: portfolio (39-40, 164-169)
 - 94%: beta.py (16 misses: 101-102, 124, 138, 140-141, 144-145, 166, 178, 181, 355-359)
 
 Coverage deltas this session: metrics 96%->99% (covered 25, 42, 126, 138 via tests/test_bab_metrics_push.py); config 98%->99% (covered 113 via tests/test_bab_config_strategy_push.py).
@@ -41,32 +40,33 @@ Every one of the 44 remaining misses is unreachable dead code under current sema
 Ruling: BAB coverage is MAXIMIZED at 98% (44 misses, all unreachable). No further coverage gains are possible via tests without changing semantics. Do not chase any of these lines.
 
 ## INITIAL TASK MESSAGE FOR NEXT AGENTIC SESSION (COPY/PASTE AS FIRST MESSAGE)
-```
+```text
 >>> START IMMEDIATELY — HEAVY WORK REQUIRED <<<
 
 REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE | COVERAGE MAXIMIZED
 
-VERIFIED STATE (2026-11-01T02:43:54Z - re-verified green this session):
+TIMESTAMP: 2026-11-01T03:43:16Z
+
+VERIFIED STATE (2026-11-01T02:43:54Z - re-verified green):
 - BAB suite: 1318 passed, 7 skipped, 0 failed (FULLY GREEN, RC=0)
-- Package coverage: 98% | 44 misses, ALL provably unreachable dead code (documented in HANDOFF.md)
-- beta.py 94%, config 99%, costs 99%, data_loader 97%, metrics 99%, portfolio 96%,
-  signals 98%, strategy 98% — every remaining miss is unreachable; DO NOT CHASE
+- Package coverage: 98% | 44 misses, ALL provably unreachable dead code (documented in this HANDOFF under BOTTLENECKS REMOVED)
+- beta.py 94%, config 99%, costs 99%, data_loader 97%, metrics 99%, portfolio 96%, signals 98%, strategy 98% — every remaining miss is unreachable; DO NOT CHASE
 - 2 pre-existing non-BAB infra failures (test_controller_progress_accounting.py) must not increase
 
 CAMPAIGN STATUS: Line-coverage dead-end. HARDENING CAMPAIGN STARTS NOW. No hitable branches remain. You MUST do substantive BAB work every turn.
 
 PRIMARY FOCUS (HEAVY WORK - IN THIS ORDER):
-1. INTEGRATION/STRESS: Add adversarial integration tests for BAB end-to-end (multi-asset, NaN/inf, mixed regimes, extreme quantiles/deciles, low liquidity, rolling windows) that validate invariants, not just line hits. Exercise data_loader/data_sources/quality/regime under stress.
-2. ROBUSTNESS/HARDENING: Tighten numerical stability in beta/portfolio/sizing (guardrails, EPS handling, re-normalization). Add property-style tests (idempotence, dollar-neutrality, lag compliance, finiteness) and make failures actionable.
-3. PERFORMANCE/SCALABILITY: Profile hot paths (beta estimation, rolling ops). Optimize without changing semantics or breaking invariants; prove no regression via gate.
-4. EDGE CASES: Cover realistic edge cases (single-name, sparse history, all-short/long, regime transitions). Extend tests with deterministic fixtures.
-5. INVARIANT ENFORCEMENT: Audit for violations (1-day lag, dollar-neutral, beta window>=60, quantiles/deciles, finiteness, BAB-specific errors, no bare except:). Fix with minimal, correct changes + tests.
+1. INTEGRATION/STRESS (TOP PRIORITY): Add adversarial end-to-end integration tests for BAB (multi-asset, NaN/inf/mixed dtypes, mixed regimes, extreme quantiles/deciles, low liquidity, sparse history, rolling windows). Exercise data_loader/data_sources/quality/regime under stress. Validate all invariants explicitly.
+2. ROBUSTNESS/HARDENING: Tighten numerical stability (beta OLS guards, EPS, re-normalization, residual drift), improve error messages with BAB-specific errors, harden portfolio/sizing/metrics against edge cases. Add property-style tests (idempotence, dollar-neutrality, 1-day lag compliance, finiteness) and make failures actionable.
+3. PERFORMANCE/SCALABILITY: Profile hot paths (rolling beta, correlation/cov, signal generation, portfolio construction). Optimize without changing semantics or breaking invariants. Prove no regression via the gate.
+4. EDGE CASES: Cover realistic edge cases (single asset/universe shrink, all-long/all-short regimes, regime transitions, min history boundaries, benchmark edge cases). Use deterministic fixtures only.
+5. INVARIANT ENFORCEMENT: Audit the full BAB stack for violations (1-day lag, dollar-neutral where applicable, quantiles/deciles, beta window >= 60 default, ranking logic, finiteness, BAB-specific errors, no bare except:). Fix with minimal correct changes + tests.
 
 MANDATE (STRICT):
-1. GATE FIRST, EVERY TURN: run the BAB suite + coverage gate. It must stay GREEN (1318 passed, 7 skipped, 0 failed) and coverage must not drop below 98% / 44 misses. NO REGRESSIONS.
-2. DO NOT CHASE UNREACHABLE LINES: all 44 misses are documented unreachable (see HANDOFF.md BOTTLENECKS). Reject with evidence and move to hardening.
+1. GATE FIRST, EVERY TURN: run the BAB suite + coverage gate (exact command below). Must stay GREEN (>=1318 passed, >=7 skipped, 0 failed). Coverage must not drop below 98% / 44 misses. NO REGRESSIONS.
+2. DO NOT CHASE UNREACHABLE LINES: all 44 misses are documented unreachable in this HANDOFF. Reject with evidence and move to hardening.
 3. NO EXPLORATORY IDLE TURNS. NO DOCS-ONLY. NO FILE-COUNT GOALS. EVERY TURN MUST PRODUCE SUBSTANTIVE CHANGES (tests + code hardening/optimization/integration) OR EXPLICITLY DOCUMENT WHY NO BAB WORK IS POSSIBLE WITH EVIDENCE.
-4. If considering non-BAB files, they must DIRECTLY BLOCK BAB coverage/gate with evidence; otherwise skip.
+4. If considering non-BAB files, they must DIRECTLY BLOCK BAB coverage/gate with evidence; otherwise skip entirely.
 5. Preserve all invariants (see INVARIANTS). Enforce finiteness. Raise BAB-specific errors. NO bare except:.
 
 VERIFICATION (run every turn):
@@ -102,8 +102,7 @@ RULES:
 - Coverage floor: 98% / 44 misses (all unreachable; must not increase)
 - 2 pre-existing non-BAB infra failures (test_controller_progress_accounting.py) must not increase
 
-## SESSION SUMMARY (2026-11-01T02:43:54Z)
-- Gate re-verified green this session: 1318 passed, 7 skipped, 0 failed, RC=0; coverage 98%/44 unreachable misses unchanged.
-- Coverage maximized at 98% (44 misses, all unreachable dead code). No hitable branches remain.
-- Shifted campaign from coverage-chasing to heavy BAB hardening: stress/integration tests, numerical robustness, performance, invariant enforcement.
-- Bottlenecks removed and documented. Gate remains green.
+## SESSION SUMMARY (2026-11-01T03:43:16Z)
+- Handoff refreshed as single durable source of truth with timestamped initial task message.
+- Bottlenecks already removed and documented; campaign redirected to heavy BAB hardening (integration/stress, robustness, performance, edge cases, invariant enforcement).
+- Gate remains green. Next agent must start immediately with the copied initial task message above and produce substantive BAB work every turn.
