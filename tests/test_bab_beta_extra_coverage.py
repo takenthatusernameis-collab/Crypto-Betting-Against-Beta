@@ -74,7 +74,7 @@ def test_calculate_beta_fast_outer_except():
         def __array__(self, *args, **kwargs):
             raise AttributeError
     res = beta.calculate_beta_fast(Bad(), Bad())
-    assert res == 0.0
+    assert np.isnan(res)
 
 
 def test_calculate_beta_none_raises():

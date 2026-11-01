@@ -73,7 +73,7 @@ class TestBetaFillP0:
             def __array__(self, *args, **kwargs):
                 raise TypeError
         out = beta.calculate_beta_fast(Bad(), Bad())
-        assert out == 0.0
+        assert np.isnan(out)
 
     def test_estimate_betas_minobs_greater_than_window_clamped(self):
         idx = pd.date_range("2023-01-01", periods=50)

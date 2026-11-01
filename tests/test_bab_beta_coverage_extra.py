@@ -69,7 +69,7 @@ class TestBetaCoverageExtra:
             def __array__(self, *args, **kwargs):
                 raise ValueError()
         res6 = beta.calculate_beta_fast(BadArr(), BadArr())
-        assert res6 == 0.0
+        assert np.isnan(res6)
 
     def test_calculate_rolling_beta_edge_cases(self):
         df = pd.DataFrame({'MKT': [np.nan, np.inf], 'A': [0.01, 0.02]})

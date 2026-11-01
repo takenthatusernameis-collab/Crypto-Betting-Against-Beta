@@ -1,7 +1,7 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 # MOST RELEVANT INFERRED TIMESTAMPED CLEAR INITIAL TASK MESSAGE FOR NEXT AGENTIC WORK SESSION
 
-**HANDOFF_TIMESTAMP:** 2026-11-01T13:14:57Z
+**HANDOFF_TIMESTAMP:** 2026-11-01T13:18:02Z
 **REPO:** Crypto-Betting-Against-Beta
 **PRIORITY:** BAB-FIRST (strategies/betting_against_beta/) — inferred from repository name. BAB MUST get ALL attention until explicitly blocked by a gate-breaking issue with concrete evidence.
 
@@ -13,14 +13,15 @@
 >>> START IMMEDIATELY — HEAVY WORK REQUIRED — NO IDLE TURNS <<<
 
 REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE | MAXIMUM SUBSTANTIVE PROGRESS
-TIMESTAMP: 2026-11-01T13:14:57Z
+TIMESTAMP: 2026-11-01T13:18:02Z
 
-VERIFIED STATE (2026-11-01T12:21:00Z):
+VERIFIED STATE (2026-11-01T13:18:02Z):
 - BAB gate GREEN (scripts/bab_gate.sh exit 0)
 - BAB suite: 1338 passed, 7 skipped, 0 failed
 - Coverage: 98% total (2593 stmts, 61 misses). COVERAGE CEILING REACHED.
 - Per-module: backtest/attribution/cli/data/data_sources/errors/quality/shorting 100%; beta 94%, strategy 93%, data_loader 97%, portfolio 97%, costs/config/metrics/regime 99%, signals 98%, sizing 98%.
-- Bottlenecks removed: .gitignore added (2026-11-01T12:13:00Z) — untracked __pycache__ noise now suppressed; tracked coverage artifacts (beta.py,cover, portfolio.py,cover) already removed from git+fs; single-command gate (scripts/bab_gate.sh) intact; warnings silenced.
+- Bottlenecks removed: .gitignore added (2026-11-01T12:13:00Z) — untracked __pycache__ noise now suppressed; tracked coverage artifacts already removed from git+fs; single-command gate (scripts/bab_gate.sh) intact; warnings silenced.
+- Bottleneck removed this session (2026-11-01T13:18:00Z): gate was RED on entry — `calculate_beta_fast("abc","def")` returned `0.0` instead of NaN (beta.py:155), breaking `test_calculate_beta_fast_outer_typeerror`. Fixed `beta.py:155` to return `np.nan`, and updated 3 stale `== 0.0` assertions in `tests/test_bab_beta_coverage_extra.py:72`, `tests/test_bab_beta_extra_coverage.py:77`, `tests/test_bab_beta_fill_p0.py:76` to `np.isnan(...)`. Gate re-verified GREEN: 1338 passed, 7 skipped, 0 failed.
 
 PRIMARY MANDATE: HEAVY BAB HARDENING. Every single turn MUST produce concrete, substantive BAB improvements (tests + minimal hardening). Idle, docs-only, or file-count changes are FORBIDDEN.
 
@@ -59,6 +60,7 @@ NEVER END WITH JUST "analysis" OR "investigation". PROGRESS = GREEN GATE + SUBST
 
 ## BOTTLENECKS REMOVED (this session)
 - **Beta degeneracy consistency (2026-11-01T12:21:00Z).** `calculate_beta_fast` returned `0.0` for a zero-variance/degenerate benchmark while `calculate_beta`, `metrics.strategy_beta`, and the rolling path all returned `NaN`. A synthetic `0.0` is a real (low) beta estimate that the ranking treats as a valid signal, so degenerate windows silently corrupted long/short selection. All four emitters now return `NaN` for undefined beta: `beta.py:170-173` (`calculate_beta_fast`), `beta.py:128-130` (`calculate_beta`, already consistent), `beta.py:301-304` (`_finalize_betas` rolling fast path), `beta.py:243-246` (`_calc_rolling_beta_series` rolling fallback). Regression tests added in `tests/test_bab_beta_alignment_paths.py` (`test_calculate_beta_and_fast_agree_on_degenerate_benchmark`, `test_calculate_rolling_beta_degenerate_benchmark_is_nan`, `test_calculate_rolling_beta_and_fast_agree_on_degenerate_window`); 9 stale `== 0.0` assertions across 7 test files updated to `np.isnan(...)`.
+- **Gate regression removed (2026-11-01T13:18:00Z).** Gate was RED on entry — `calculate_beta_fast` returned `0.0` on outer conversion errors (`beta.py:155`, `except (TypeError, ValueError, AttributeError): return 0.0`), breaking `test_calculate_beta_fast_outer_typeerror`. Fixed `beta.py:155` to return `np.nan` (undefined beta is NaN, never a synthetic 0.0). Also removed 3 missed stale `== 0.0` assertions: `tests/test_bab_beta_coverage_extra.py:72`, `tests/test_bab_beta_extra_coverage.py:77`, `tests/test_bab_beta_fill_p0.py:76` → `np.isnan(...)`. Gate re-verified GREEN: 1338 passed, 7 skipped, 0 failed.
 
 ## INVARIANTS (MUST PRESERVE)
 - 1-day lag, dollar-neutral where applicable, quantiles/deciles, beta>=60 default, ranking
@@ -74,6 +76,6 @@ NEVER END WITH JUST "analysis" OR "investigation". PROGRESS = GREEN GATE + SUBST
 - Campaign: HEAVY BAB HARDENING (adversarial, property-based, chaos, integration, numerical robustness)
 - Coverage status: Ceiling reached (98%)
 - Momentum: MANDATORY — every turn must produce substantive BAB work
-- Last verified: 2026-11-01T12:19:42Z (BAB gate GREEN, 1335 passed, 7 skipped, 0 failed, 98% coverage)
+- Last verified: 2026-11-01T13:18:00Z (BAB gate GREEN, 1338 passed, 7 skipped, 0 failed, 98% coverage)
 
 (End of file)

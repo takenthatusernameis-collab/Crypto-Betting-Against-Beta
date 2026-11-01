@@ -152,7 +152,7 @@ def calculate_beta_fast(a, b, min_obs=None):
             a = np.asarray(a, dtype=float)
             b = np.asarray(b, dtype=float)
         except (TypeError, ValueError, AttributeError):
-            return 0.0
+            return np.nan
         mask = np.isfinite(a) & np.isfinite(b)
         if not np.any(mask):
             return np.nan
