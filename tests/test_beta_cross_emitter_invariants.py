@@ -130,3 +130,26 @@ class TestBetaCrossEmitterInvariants:
         # Should produce NaN for bad assets
         assert np.all(np.isnan(res['ETH']))
         assert np.all(np.isnan(res['SOL']))
+
+
+    def test_all_nan_mixed_emitters_agree_nan(self):
+        # All-NaN in different positions - ensure consistent NaN across paths
+        np.random.seed(7)
+        bench = np.random.randn(80) * 0.01
+        asset = 0.8 * bench + np.random.randn(80) * 0.005
+        bench_nan = bench.copy()
+        bench_nan[5:10] = np.nan
+        bench_nan[20:25] = np.nan
+        # If benchmark becomes all-NaN or has no finite? We tested all-NaN raises in df path
+        # test mixed
+        res = beta.rolling_beta(asset, bench_nan, window=15, min_obs=10)
+        assert isinstance(res, np.ndarray)
+        # calculate_beta with aligned NaNs dropped
+        b1 = beta.calculate_beta(asset, bench_nan)
+        b2 = beta.calculate_beta_fast(asset, bench_nan)
+        # may be finite if enough overlap, but both must agree
+        if np.isnan(b1):
+            assert np.isnan(b2)
+        elif np.isfinite(b1):
+            assert np.isfinite(b2)
+            assert abs(b1 - b2) < 1e-10
