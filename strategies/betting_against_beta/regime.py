@@ -282,3 +282,34 @@ def regime_scale_factors(returns: pd.DataFrame, cfg) -> pd.DataFrame:
             combined[col] = _np.minimum(vol_scale[col].to_numpy(), trend_scale[col].to_numpy())
 
     return combined.fillna(1.0)
+
+
+def regime_scale_scalar(returns: pd.DataFrame, cfg) -> "pd.Series":
+    """Return a single causal scalar scale factor per date.
+
+    Regime scaling must preserve the portfolio's dollar-neutrality: every
+    position in a row must be scaled by the *same* factor.  Per-asset regime
+    factors (see :func:`regime_scale_factors`) violate this, so this function
+    reduces the per-asset frame to its most conservative (minimum) factor per
+    date, then broadcasts it across all positions at construction time.
+
+    The result is:
+      * causal (uses only data up to and including each date),
+      * finite (non-finite / NaN entries collapse to 1.0),
+      * bounded to ``[min(scale_low, scale_high, 1.0), 1.0]``.
+    """
+    import pandas as pd
+
+    factors = regime_scale_factors(returns, cfg)
+    if factors is None or factors.empty:
+        return pd.Series(dtype="float64")
+    # Most conservative factor per date; min across assets keeps the book
+    # neutral (a uniform scalar per row preserves sum-to-zero exactly).
+    scalar = factors.min(axis=1)
+    scalar = scalar.replace([np.inf, -np.inf], np.nan).fillna(1.0)
+    scalar = scalar.astype("float64")
+    # Defensive finiteness + range clamp; never emit NaN/inf.
+    scalar = scalar.where(np.isfinite(scalar), 1.0)
+    scalar = scalar.clip(lower=0.0, upper=1.0)
+    scalar.name = "regime_scale"
+    return scalar
