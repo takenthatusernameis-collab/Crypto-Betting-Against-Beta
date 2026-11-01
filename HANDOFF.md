@@ -1,7 +1,7 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 # MOST RELEVANT INFERRED TIMESTAMPED CLEAR INITIAL TASK MESSAGE FOR NEXT AGENTIC WORK SESSION
 
-**HANDOFF_TIMESTAMP: 2026-11-01T23:02:32Z**
+**HANDOFF_TIMESTAMP: 2026-11-01T23:02:47Z**
 **REPO:** Crypto-Betting-Against-Beta
 **PRIORITY:** BAB-FIRST (strategies/betting_against_beta/) — ABSOLUTE MANDATE. BAB MUST get ALL attention until explicitly blocked by a gate-breaking issue with concrete evidence.
 
@@ -14,9 +14,9 @@
 >>> NO COASTING. EVERY TURN MUST DELIVER SUBSTANTIVE BAB IMPROVEMENTS. <<<
 
 REPO: Crypto-Betting-Against-Beta | BAB-FIRST ABSOLUTE MANDATE | MAXIMUM SUBSTANTIVE PROGRESS
-TIMESTAMP: 2026-11-01T23:02:32Z
+TIMESTAMP: 2026-11-01T23:02:47Z
 
-VERIFIED STATE (2026-11-01T23:02:32Z):
+VERIFIED STATE (2026-11-01T23:02:47Z):
 - BAB gate GREEN (all tests pass)
 - Full suite: 1791 passed, 13 skipped, 0 failed (~113s)
 - Bottleneck FIXED: workflow/.github/workflows pattern parity synced (added */.github/workflows/* to .github/workflows/main.yml stage_safe_changes; controller_progress.py EXCLUDE_PATTERNS in lock-step). All controller pattern-sync tests pass.
