@@ -33,7 +33,13 @@ def test_shorting_costs():
     sc = shorting.apply_shorting_constraints(weights)
     assert isinstance(sc, pd.DataFrame)
     tc = costs.compute_transaction_costs(weights)
-    assert isinstance(tc, pd.DataFrame)
+    # Regression guard (2026-11-01): compute_transaction_costs has a stable
+    # contract - it ALWAYS returns a Series named "transaction_costs".  The
+    # previous inspect.stack() hack returned a DataFrame from this file, which
+    # made the return type depend on the caller rather than the API.
+    assert isinstance(tc, pd.Series)
+    assert tc.name == "transaction_costs"
+    assert np.isfinite(tc.to_numpy()).all()
     tc2 = costs.apply_costs(weights, transaction_costs=tc)
     assert isinstance(tc2, pd.DataFrame)
 

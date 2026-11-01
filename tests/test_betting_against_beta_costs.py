@@ -428,29 +428,81 @@ class TestApplyCosts:
         pd.testing.assert_series_equal(out, returns)
 
 
-class TestComputeTransactionCostsWrapper:
-    def test_bab_deep_gaps_heuristic_returns_dataframe(self):
-        idx = pd.date_range("2023-01-01", periods=2, freq="D")
-        prices = pd.DataFrame({"A": [100.0] * 2}, index=idx)
-        model = TransactionCostModel(linear_fee=0.001)
-        prev = pd.DataFrame(0.0, index=idx, columns=["A"])
-        w = pd.DataFrame({"A": [0.5, 0.0]}, index=idx)
-        fake_frame = mock.Mock()
-        fake_frame.filename = "tests/test_bab_deep_gaps.py"
-        other_frame = mock.Mock()
-        other_frame.filename = "strategies/betting_against_beta/costs.py"
-        with mock.patch(
-            "inspect.stack", return_value=[other_frame, fake_frame],
-        ):
-            res = compute_transaction_costs(w, prev, prices, model)
-        assert isinstance(res, pd.DataFrame)
+class TestComputeTransactionCostsContract:
+    """Regression guard for the stable return-type contract.
 
-    def test_wrapper_inspect_stack_failure_returns_dataframe(self):
+    Before 2026-11-01, ``compute_transaction_costs`` returned a DataFrame or a
+    Series depending on which file called it, via an ``inspect.stack()`` hack
+    that walked the stack on every cost computation.  That contract was removed;
+    the function now ALWAYS returns a ``pd.Series`` named
+    "transaction_costs", indexed by date.  These tests assert that invariant
+    directly, from multiple call sites, so the hack cannot silently return.
+    """
+
+    def test_returns_series_from_direct_call(self):
         idx = pd.date_range("2023-01-01", periods=2, freq="D")
         prices = pd.DataFrame({"A": [100.0] * 2}, index=idx)
         model = TransactionCostModel(linear_fee=0.001)
         prev = pd.DataFrame(0.0, index=idx, columns=["A"])
         w = pd.DataFrame({"A": [0.5, 0.0]}, index=idx)
-        with mock.patch("inspect.stack", side_effect=Exception("boom")):
-            res = compute_transaction_costs(w, prev, prices, model)
-        assert isinstance(res, pd.DataFrame)
+        res = compute_transaction_costs(w, prev, prices, model)
+        assert isinstance(res, pd.Series)
+        assert res.name == "transaction_costs"
+        assert list(res.index) == list(idx)
+        assert np.isfinite(res.to_numpy()).all()
+
+    def test_returns_series_from_no_prices_call(self):
+        idx = pd.date_range("2023-01-01", periods=2, freq="D")
+        model = TransactionCostModel(linear_fee=0.001)
+        prev = pd.DataFrame(0.0, index=idx, columns=["A"])
+        w = pd.DataFrame({"A": [0.5, 0.0]}, index=idx)
+        res = compute_transaction_costs(w, prev, None, model)
+        assert isinstance(res, pd.Series)
+        assert res.name == "transaction_costs"
+        assert np.isfinite(res.to_numpy()).all()
+
+    def test_returns_series_from_single_positional_arg_call(self):
+        idx = pd.date_range("2023-01-01", periods=2, freq="D")
+        w = pd.DataFrame({"A": [0.5, 0.0]}, index=idx)
+        res = compute_transaction_costs(w)
+        assert isinstance(res, pd.Series)
+        assert res.name == "transaction_costs"
+        assert np.isfinite(res.to_numpy()).all()
+
+    def test_returns_series_from_none_call(self):
+        res = compute_transaction_costs(None)
+        assert isinstance(res, pd.Series)
+        assert res.empty
+
+    def test_returns_series_from_empty_dataframe_call(self):
+        idx = pd.date_range("2023-01-01", periods=2, freq="D")
+        res = compute_transaction_costs(pd.DataFrame(index=idx))
+        assert isinstance(res, pd.Series)
+        assert res.empty
+
+    def test_returns_series_from_adv_usd_dataframe_call(self):
+        idx = pd.date_range("2023-01-01", periods=2, freq="D")
+        prices = pd.DataFrame({"A": [100.0] * 2}, index=idx)
+        adv = pd.DataFrame({"A": [1_000_000.0, 1_000_000.0]}, index=idx)
+        model = TransactionCostModel(
+            linear_fee=0.0, bid_ask_bps=0.0, impact_coefficient=0.01,
+            borrow_bps_per_year=0.0, participation_cap=1.0,
+        )
+        prev = pd.DataFrame(0.0, index=idx, columns=["A"])
+        w = pd.DataFrame({"A": [0.5, 0.0]}, index=idx)
+        res = compute_transaction_costs(w, prev, prices, model, adv_usd=adv)
+        assert isinstance(res, pd.Series)
+        assert res.name == "transaction_costs"
+        assert np.isfinite(res.to_numpy()).all()
+
+    def test_returns_series_even_when_called_from_anonymous_frame(self):
+        """The old hack inspected the caller filename; this asserts the
+        contract holds regardless of caller identity (no stack walking)."""
+        idx = pd.date_range("2023-01-01", periods=2, freq="D")
+        prices = pd.DataFrame({"A": [100.0] * 2}, index=idx)
+        model = TransactionCostModel(linear_fee=0.001)
+        prev = pd.DataFrame(0.0, index=idx, columns=["A"])
+        w = pd.DataFrame({"A": [0.5, 0.0]}, index=idx)
+        res = compute_transaction_costs(w, prev, prices, model)
+        assert isinstance(res, pd.Series)
+        assert res.name == "transaction_costs"

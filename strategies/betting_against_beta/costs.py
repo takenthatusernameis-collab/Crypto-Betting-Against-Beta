@@ -225,8 +225,12 @@ def compute_transaction_costs(
         costs = costs + float(model.fixed_fee_per_trade) * (turnover > 0).astype(float)
 
     costs = costs.replace([np.inf, -np.inf], np.nan).fillna(0.0).clip(lower=0.0)
-    res = pd.Series(costs.values.reshape(-1), index=index, name="transaction_costs")
-    return res.to_frame()
+    # Stable contract: always a Series indexed by date, named "transaction_costs".
+    # Callers (backtest.py, apply_costs) consume it as a Series; returning a
+    # DataFrame-by-call-site would require an inspect.stack() hack that walks
+    # the stack on every cost computation.  That hack is removed here: the
+    # contract is explicit and the two legacy gaps tests assert Series.
+    return pd.Series(costs.values.reshape(-1), index=index, name="transaction_costs")
 
 
 
@@ -235,36 +239,12 @@ def compute_transaction_costs(
 
 
 
-# Make compute_transaction_costs return Series for compatibility with some tests
-_orig_ctc2 = compute_transaction_costs
-
-
-def compute_transaction_costs(*args, **kwargs):
-    res = _orig_ctc2(*args, **kwargs)
-    try:
-        # If called in old style expecting DataFrame behavior for gaps tests
-        frame = False
-        # heuristic: look up call stack not easy; just check - return DataFrame if it came as DataFrame from old wrapper? easier to just inspect
-        if isinstance(res, pd.DataFrame):
-            # check if any test expects DataFrame? gaps tests expect DataFrame
-            import inspect
-            st = inspect.stack()
-            for f in st[1:4]:
-                name = f.filename
-                if 'bab_deep_gaps' in name:
-                    return res
-            # otherwise return Series
-            if res.shape[1] == 1:
-                s = res.iloc[:, 0]
-                s.name = res.columns[0]
-                return s
-    except Exception:
-        pass
-    return res
-
-
-
-
+# Stable contract: compute_transaction_costs returns a Series (see the return
+# above).  The previous wrapper that redefined this name to inspect the call
+# stack and branch on caller filename has been removed - it walked the stack
+# on every cost computation and made the return type depend on which test file
+# called it.  The explicit Series contract is enforced by regression tests in
+# tests/test_bab_cost_contract.py.
 
 
 def apply_costs(returns, weights=None, transaction_costs=None, **kwargs):

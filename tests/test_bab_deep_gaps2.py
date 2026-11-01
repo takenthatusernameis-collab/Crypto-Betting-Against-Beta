@@ -33,7 +33,12 @@ def test_shorting_costs():
     sc = shorting.apply_shorting_constraints(weights)
     assert isinstance(sc, pd.DataFrame)
     tc = costs.compute_transaction_costs(weights.shift(1).fillna(0), weights)
-    assert isinstance(tc, pd.DataFrame)
+    # Regression guard (2026-11-01): stable Series contract (see
+    # test_bab_cost_contract.py); the old inspect.stack() hack returned a
+    # DataFrame from this file.
+    assert isinstance(tc, pd.Series)
+    assert tc.name == "transaction_costs"
+    assert np.isfinite(tc.to_numpy()).all()
 
 
 def test_attribution_config():
