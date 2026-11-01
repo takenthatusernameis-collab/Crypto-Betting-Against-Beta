@@ -242,7 +242,15 @@ def _calc_rolling_beta_series(bench_arr, a_arr, window, min_obs):
         num = cnt * xy_sum - x_sum * y_sum
         beta = np.divide(num, denom)
 
-    degenerate = (~np.isfinite(denom)) | (np.abs(denom) < 1e-18)
+    # Check for constant benchmark
+    try:
+        bench_std = np.std(bench_arr_f)
+        if not np.isfinite(bench_std) or bench_std < 1e-18:
+            degenerate = np.ones_like(denom, dtype=bool)
+        else:
+            degenerate = (~np.isfinite(denom)) | (np.abs(denom) < 1e-18)
+    except Exception:
+        degenerate = (~np.isfinite(denom)) | (np.abs(denom) < 1e-18)
     # Enough valid observations to estimate a beta (not just window length).
     enough = cnt >= min_obs
 
@@ -300,17 +308,29 @@ def calculate_rolling_beta(returns_df, benchmark_name, window=90, min_obs=60):
 
     def _finalize_betas(beta_arr):
         """Apply degenerate / insufficient-observation masks to a (n,) beta array."""
-        beta_arr = np.asarray(beta_arr, dtype=float)
+        beta_arr = np.asarray(beta_arr, dtype=float).copy()
         degenerate = (~np.isfinite(denom_shared)) | (np.abs(denom_shared) < 1e-18)
-        # A zero-variance benchmark (or a colinear/singular design matrix) makes
-        # beta undefined, not zero.  Return NaN to match calculate_beta() and
-        # calculate_beta_fast(), which both return NaN for a degenerate
-        # benchmark; a synthetic 0.0 would be treated as a real (low) beta by
-        # the ranking and silently corrupt the long/short selection.
-        beta_arr = np.where(degenerate.ravel() if hasattr(degenerate, 'ravel') else degenerate, np.nan, beta_arr)
-        beta_arr = np.where(~np.isfinite(beta_arr), np.nan, beta_arr)
-        beta_arr = np.where(obs_short, np.nan, beta_arr)
-        return beta_arr
+        # Also treat constant/zero-variance benchmark as degenerate regardless of tiny numerical artifacts
+        try:
+            if not np.all(np.isfinite(bench_arr)):
+                pass
+            # check if benchmark is effectively constant
+            bstd = np.std(bench_arr)
+            if not np.isfinite(bstd) or bstd < 1e-18:
+                degenerate = np.ones_like(degenerate, dtype=bool)
+        except Exception:
+            pass
+        if beta_arr.ndim == 1:
+            beta_arr = np.where(degenerate.ravel(), np.nan, beta_arr)
+            beta_arr = np.where(~np.isfinite(beta_arr), np.nan, beta_arr)
+            beta_arr = np.where(obs_short, np.nan, beta_arr)
+            return beta_arr
+        else:
+            deg = degenerate.reshape(-1)
+            beta_arr = np.where(deg[:, None], np.nan, beta_arr)
+            beta_arr = np.where(~np.isfinite(beta_arr), np.nan, beta_arr)
+            beta_arr = np.where(obs_short[:, None], np.nan, beta_arr)
+            return beta_arr
 
     asset_cols = [c for c in returns_df.columns if c != benchmark_name]
 
