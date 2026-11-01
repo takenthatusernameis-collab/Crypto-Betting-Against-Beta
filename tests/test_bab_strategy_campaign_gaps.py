@@ -104,6 +104,7 @@ class TestFreezeFallback:
         cfg.benchmark = "BTC"
         cfg.beta_window = 10
         cfg.min_observations = 5
+        cfg.min_rows = 1
         cfg.universe = ["BTC", "ETH", "SOL"]
         cfg.data_source = None
         cfg.synthetic_seed = 42
