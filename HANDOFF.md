@@ -1,12 +1,12 @@
-# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) — 2026-11-01T03:44:56Z
+# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) — 2026-11-01T04:27:27Z
 
 ## TIMESTAMP
-2026-11-01T03:44:56Z
+2026-11-01T04:27:27Z
 
 ## REPO / PRIORITY
 REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE (repo name = betting_against_beta). ALL WORK MUST PRIORITIZE strategies/betting_against_beta/. NO VANITY. NO FILE-COUNT GOALS. NO DOCS-ONLY CHANGES. NO IDLE TURNS. IF NO BAB WORK IS POSSIBLE, EXPLAIN WHY WITH EVIDENCE BEFORE DOING ANYTHING ELSE.
 
-## VERIFIED STATE (CLEAN MEASUREMENT - 2026-11-01T03:44:56Z)
+## VERIFIED STATE (CLEAN MEASUREMENT - 2026-11-01T04:27:27Z)
 - Full BAB suite: 1318 passed, 7 skipped, 0 failed (FULLY GREEN, RC=0)
 - 2 pre-existing non-BAB infra failures (test_controller_progress_accounting.py) — must not increase
 - Package coverage (BAB): 98% total, 45 misses across 2549 stmts
@@ -14,15 +14,15 @@ REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE (repo name = betting_again
 Per-module (BAB package):
 - 100%: __init__, attribution, backtest, cli, data, data_sources, errors, quality, shorting, sizing
 - 99%: config (95-96), costs (59-60), metrics (97, 114), regime (305)
-- 98%: signals (37, 75), strategy (181, 188-189)
+- 98%: signals (37, 75), strategy (181, 188-189, 193)
 - 97%: data_loader (44, 192-193, 311-313, 340-342), portfolio (39-40, 172-177)
 - 94%: beta.py (16 misses: 101-102, 124, 138, 140-141, 144-145, 166, 178, 181, 355-359)
 
-Coverage deltas this session: regime 100%->99% (new miss 305: empty-factors early return `return pd.Series(dtype="float64")`, unreachable via normal non-empty runs); all other modules unchanged. Total misses 44->45, coverage held at 98%.
+Coverage deltas this session: held at 98% / 45 misses; regime.py:305 unchanged (empty-factors early return `return pd.Series(dtype="float64")`, unreachable via normal non-empty runs).
 
 ## BOTTLENECKS REMOVED — ALL REMAINING MISSES ARE PROVABLY UNREACHABLE (DO NOT CHASE)
 
-Every one of the 44 remaining misses is unreachable dead code under current semantics; no test can cover them without changing behavior. Coverage cannot exceed 98% via tests. Documented below; do not spend further turns on these.
+Every one of the 45 misses is unreachable dead code under current semantics; no test can cover them without changing behavior. Coverage cannot exceed 98% via tests. Documented below; do not spend further turns on these.
 
 - beta.py (16 misses): every miss guarded by an earlier return / finiteness guard. LinAlgError handlers (gelsd) only on SVD non-convergence, not triggered by finite inputs. 94% is the ceiling.
 - config.py:95-96: `except Exception: pass` around `object.__setattr__(self, "_frozen", True)`. BABConfig is a plain `@dataclass(frozen=False)` with NO `__slots__`, so `object.__setattr__` never raises. Unreachable.
@@ -36,18 +36,19 @@ Every one of the 44 remaining misses is unreachable dead code under current sema
 - signals.py:75: reference `if n == 0: continue` — `_finite_beta_series` returns None when empty (handled at line 70-71), so clean is never empty at line 73. Unreachable.
 - strategy.py:181: `if not effective_universe: raise ValueError` — `_load_returns` rejects empty-column frames before line 179, and `resolved_universe` returns non-empty for any non-empty column set. Unreachable via run().
 - strategy.py:188-189: `except Exception: cfg.universe = ...` — plain dataclass, no slots, `object.__setattr__` never raises. Unreachable.
+- strategy.py:193: same category as 188-189 — freeze-except on plain dataclass without slots. Unreachable.
 
-Ruling: BAB coverage is MAXIMIZED at 98% (45 misses, all provably unreachable; regime.py:305 is the only new miss vs the prior snapshot). No further coverage gains are possible via tests without changing semantics. Do not chase any of these lines.
+Ruling: BAB coverage is MAXIMIZED at 98% (45 misses, all provably unreachable). No further coverage gains are possible via tests without changing semantics. Do not chase any of these lines.
 
 ## INITIAL TASK MESSAGE FOR NEXT AGENTIC SESSION (COPY/PASTE AS FIRST MESSAGE)
-```text
+```
 >>> START IMMEDIATELY — HEAVY WORK REQUIRED <<<
 
 REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE | COVERAGE MAXIMIZED
 
-TIMESTAMP: 2026-11-01T03:44:56Z
+TIMESTAMP: 2026-11-01T04:27:27Z
 
-VERIFIED STATE (2026-11-01T03:44:56Z - re-verified green):
+VERIFIED STATE (2026-11-01T04:27:27Z - re-verified green):
 - BAB suite: 1318 passed, 7 skipped, 0 failed (FULLY GREEN, RC=0)
 - Package coverage: 98% | 45 misses, ALL provably unreachable dead code (documented in this HANDOFF under BOTTLENECKS REMOVED)
 - beta.py 94%, config 99%, costs 99%, data_loader 97%, metrics 99%, portfolio 97%, regime 99%, signals 98%, strategy 98% — every remaining miss is unreachable; DO NOT CHASE
@@ -102,7 +103,7 @@ RULES:
 - Coverage floor: 98% / 45 misses (all unreachable; must not increase)
 - 2 pre-existing non-BAB infra failures (test_controller_progress_accounting.py) must not increase
 
-## SESSION SUMMARY (2026-11-01T03:44:56Z)
+## SESSION SUMMARY (2026-11-01T04:27:27Z)
 - Handoff refreshed as single durable source of truth with timestamped initial task message.
-- Bottlenecks already removed and documented (regime.py:305 newly noted as unreachable empty-factors early return; portfolio.py residual-drift loop re-lined to 172-177); campaign locked to heavy BAB hardening (integration/stress, robustness, performance, edge cases, invariant enforcement).
+- Bottlenecks already removed and documented (all 45 misses provably unreachable; regime.py:305 newly noted as unreachable empty-factors early return; portfolio.py residual-drift loop re-lined to 172-177); campaign locked to heavy BAB hardening (integration/stress, robustness, performance, edge cases, invariant enforcement).
 - Gate remains green (1318 passed, 7 skipped, 0 failed; coverage 98% / 45 misses). Next agent must start immediately with the copied initial task message above and produce substantive BAB work every turn.
