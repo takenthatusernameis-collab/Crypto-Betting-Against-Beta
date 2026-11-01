@@ -1,7 +1,7 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 # MOST RELEVANT INFERRED TIMESTAMPED CLEAR INITIAL TASK MESSAGE FOR NEXT AGENTIC WORK SESSION
 
-**HANDOFF_TIMESTAMP:** 2026-11-01T16:05:58Z
+**HANDOFF_TIMESTAMP:** 2026-11-01T16:09:30Z
 **REPO:** Crypto-Betting-Against-Beta
 **PRIORITY:** BAB-FIRST (strategies/betting_against_beta/) — ABSOLUTE MANDATE. BAB MUST get ALL attention until explicitly blocked by a gate-breaking issue with concrete evidence.
 
@@ -14,11 +14,11 @@
 >>> NO COASTING. EVERY TURN MUST DELIVER SUBSTANTIVE BAB IMPROVEMENTS. <<<
 
 REPO: Crypto-Betting-Against-Beta | BAB-FIRST ABSOLUTE MANDATE | MAXIMUM SUBSTANTIVE PROGRESS
-TIMESTAMP: 2026-11-01T16:05:58Z
+TIMESTAMP: 2026-11-01T16:09:30Z
 
-VERIFIED STATE (2026-11-01T16:05:58Z):
+VERIFIED STATE (2026-11-01T16:09:30Z):
 - BAB gate GREEN (scripts/bab_gate.sh exit 0)
-- BAB suite: 1345 passed, 7 skipped, 0 failed (56.63s)
+- BAB suite: 1358 passed, 7 skipped, 0 failed (56.63s)
 - Coverage: 98% total (2573 stmts, 61 misses). COVERAGE CEILING HELD.
 - Per-module: backtest/attribution/cli/data/data_sources/errors/quality/shorting 100%; beta 94%, strategy 93%, data_loader 97%, portfolio 97%, costs/config/metrics/regime 99%, signals 98%, sizing 98%.
 - Bottlenecks: ELIMINATED. Test suite fast, fixtures complete, gate reliable.
@@ -31,7 +31,7 @@ CAMPAIGN OBJECTIVE: Build momentum that future agents cannot coast on. Attack re
 
 IMMEDIATE ACTIONS (DO IN ORDER, NO EXCEPTIONS):
 
-1. GATE FIRST (MANDATORY): Run `scripts/bab_gate.sh`. Must return GREEN (>=1345 passed, >=7 skipped, 0 failed).
+1. GATE FIRST (MANDATORY): Run `scripts/bab_gate.sh`. Must return GREEN (>=1358 passed, >=7 skipped, 0 failed).
    - If broken for ANY reason, fix BEFORE anything else. No exploratory work until green.
    - Treat gate as your heartbeat. Re-run after every substantive change.
 
@@ -83,7 +83,7 @@ IMMEDIATE ACTIONS (DO IN ORDER, NO EXCEPTIONS):
    - Remove any friction blocking BAB progress
 
 NON-NEGOTIABLE RULES:
-1. GATE FIRST EVERY TURN. Must stay GREEN (>=1345 passed, >=7 skipped, 0 failed). No exceptions.
+1. GATE FIRST EVERY TURN. Must stay GREEN (>=1358 passed, >=7 skipped, 0 failed). No exceptions.
 2. DO NOT CHASE UNREACHABLE COVERAGE. Concrete evidence required before touching any uncovered line. Never change semantics just to hit lines.
 3. EVERY TURN = SUBSTANTIVE BAB WORK OR EXPLICIT CONCRETE EVIDENCE WHY IMPOSSIBLE. No idle turns. Period.
 4. Non-BAB changes ONLY if they directly unblock BAB gate with concrete evidence. BAB comes first. Always.
@@ -97,7 +97,7 @@ VERIFICATION (RUN AFTER EVERY SUBSTANTIVE CHANGE):
   scripts/bab_gate.sh
 
 SUCCESS CRITERIA (MEASURABLE):
-- Gate stays GREEN (>=1345 passed, >=7 skipped, 0 failed)
+- Gate stays GREEN (>=1358 passed, >=7 skipped, 0 failed)
 - New adversarial/property/regression tests added with clear failure-to-pass evidence
 - Concrete robustness improvements to BAB code (strategy/beta first)
 - Bottlenecks removed if discovered
@@ -118,7 +118,7 @@ ATTACK ORDER (RUTHLESS): strategy.py -> beta.py -> data_loader.py -> portfolio.p
 - 1-day lag, dollar-neutral where applicable, quantiles/deciles, beta>=60 default, ranking
 - Finiteness, BAB-specific errors, no bare except:
 - Deterministic offline tests
-- Gate: >=1345 passed, >=7 skipped, 0 failed
+- Gate: >=1358 passed, >=7 skipped, 0 failed
 - Coverage ~98% (ceiling) — surgical only, evidence required
 - Degenerate/zero-variance benchmark beta is NaN (undefined), never 0.0 — all beta emitters agree
 - No regressions
@@ -129,7 +129,7 @@ ATTACK ORDER (RUTHLESS): strategy.py -> beta.py -> data_loader.py -> portfolio.p
 - Coverage status: 98% (ceiling) — surgical only, evidence required
 - Momentum: MANDATORY — every turn must produce substantive BAB work or remove bottlenecks
 - Bottlenecks: NONE KNOWN (eliminated preflight)
-- Last verified: 2026-11-01T16:05:58Z (BAB gate GREEN, 1345 passed, 7 skipped, 0 failed, 98% coverage)
+- Last verified: 2026-11-01T16:09:30Z (BAB gate GREEN, 1358 passed, 7 skipped, 0 failed, 98% coverage)
 - Focus: strategy.py first, then beta.py, with relentless adversarial hardening
 
 (End of file)
