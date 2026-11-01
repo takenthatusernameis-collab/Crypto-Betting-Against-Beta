@@ -307,9 +307,9 @@ def calculate_rolling_beta(returns_df, benchmark_name, window=90, min_obs=60):
         # calculate_beta_fast(), which both return NaN for a degenerate
         # benchmark; a synthetic 0.0 would be treated as a real (low) beta by
         # the ranking and silently corrupt the long/short selection.
-        beta_arr = np.where(degenerate, np.nan, beta_arr)
+        beta_arr = np.where(degenerate.ravel() if hasattr(degenerate, 'ravel') else degenerate, np.nan, beta_arr)
         beta_arr = np.where(~np.isfinite(beta_arr), np.nan, beta_arr)
-        beta_arr = np.where(obs_short[:, None], np.nan, beta_arr)
+        beta_arr = np.where(obs_short, np.nan, beta_arr)
         return beta_arr
 
     asset_cols = [c for c in returns_df.columns if c != benchmark_name]
