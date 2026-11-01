@@ -41,7 +41,9 @@ def test_calculate_beta_fast_all_nonfinite_after_mask():
 
 def test_calculate_beta_fast_linalg():
     res = beta.calculate_beta_fast([1,2,3], [5,5,5])
-    assert res == 0.0
+    # Zero-variance benchmark -> undefined beta -> NaN (consistent with
+    # calculate_beta and metrics.strategy_beta).
+    assert np.isnan(res)
 
 
 def test_calculate_rolling_beta_bench_arr_fallback():

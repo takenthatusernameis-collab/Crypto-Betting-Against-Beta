@@ -166,10 +166,13 @@ def calculate_beta_fast(a, b, min_obs=None):
             return np.nan
         if min_obs is not None and len(a_m) < min_obs:
             return np.nan
-        # Guard against constant/degenerate benchmark
+        # Guard against constant/degenerate benchmark.  A zero-variance
+        # benchmark carries no information, so beta is undefined.  Return NaN
+        # to match calculate_beta() and metrics.strategy_beta() rather than a
+        # synthetic 0.0 that would silently corrupt downstream ranking.
         b_std = np.std(b_m)
         if b_std < 1e-18 or not np.isfinite(b_std):
-            return 0.0
+            return np.nan
         X = np.column_stack([np.ones(len(b_m), dtype=float), b_m])
         try:
             coeffs, _, _, _ = np.linalg.lstsq(X, a_m, rcond=None)
@@ -241,7 +244,7 @@ def _calc_rolling_beta_series(bench_arr, a_arr, window, min_obs):
     enough = cnt >= min_obs
 
     rolling_betas_arr[:] = np.nan
-    rolling_betas_arr[enough & degenerate] = 0.0
+    rolling_betas_arr[enough & degenerate] = np.nan
     valid = enough & ~degenerate & np.isfinite(beta)
     rolling_betas_arr[valid] = beta[valid]
     return rolling_betas_arr
@@ -296,8 +299,13 @@ def calculate_rolling_beta(returns_df, benchmark_name, window=90, min_obs=60):
         """Apply degenerate / insufficient-observation masks to a (n,) beta array."""
         beta_arr = np.asarray(beta_arr, dtype=float)
         degenerate = (~np.isfinite(denom_shared)) | (np.abs(denom_shared) < 1e-18)
-        beta_arr = np.where(degenerate, 0.0, beta_arr)
-        beta_arr = np.where(~np.isfinite(beta_arr) & ~np.isnan(beta_arr), 0.0, beta_arr)
+        # A zero-variance benchmark (or a colinear/singular design matrix) makes
+        # beta undefined, not zero.  Return NaN to match calculate_beta() and
+        # calculate_beta_fast(), which both return NaN for a degenerate
+        # benchmark; a synthetic 0.0 would be treated as a real (low) beta by
+        # the ranking and silently corrupt the long/short selection.
+        beta_arr = np.where(degenerate, np.nan, beta_arr)
+        beta_arr = np.where(~np.isfinite(beta_arr), np.nan, beta_arr)
         beta_arr = np.where(obs_short[:, None], np.nan, beta_arr)
         return beta_arr
 

@@ -101,7 +101,9 @@ def test_calculate_beta_fast_178_nonfinite():
     _np.linalg.lstsq = fake_lstsq
     try:
         res = beta.calculate_beta_fast([1,2,3], [0.1,0.2,0.3])
-        assert res == 0.0
+        # Non-finite lstsq result -> undefined beta -> NaN (consistent with
+        # calculate_beta which also returns NaN for a non-finite slope).
+        assert np.isnan(res)
     finally:
         _np.linalg.lstsq = orig
 
@@ -114,7 +116,9 @@ def test_calculate_beta_fast_180_185():
     _np.linalg.lstsq = fake_lstsq
     try:
         res = beta.calculate_beta_fast([1,2,3], [0.1,0.2,0.3])
-        assert res == 0.0
+        # LinAlgError -> undefined beta -> NaN (consistent with calculate_beta
+        # which also returns NaN for a LinAlgError).
+        assert np.isnan(res)
     finally:
         _np.linalg.lstsq = orig
 

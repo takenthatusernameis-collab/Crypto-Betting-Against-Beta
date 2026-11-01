@@ -57,7 +57,9 @@ class TestCalculateBetaFast:
 
     def test_fast_constant_bench(self):
         b = beta.calculate_beta_fast([0.01, 0.02, 0.03], [0.01, 0.01, 0.01])
-        assert b == 0.0
+        # Zero-variance benchmark -> undefined beta -> NaN (consistent with
+        # calculate_beta and metrics.strategy_beta).
+        assert np.isnan(b)
 
 
 class TestRollingBeta:

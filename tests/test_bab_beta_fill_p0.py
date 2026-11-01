@@ -125,8 +125,10 @@ class TestBetaMoreGaps:
     def test_calculate_beta_fast_linalg_issue(self):
         a = np.array([5.0, 5.0, 5.0, 5.0])
         b = np.array([1.0, 1.0, 1.0, 1.0])  # constant
-        out = beta.calculate_beta_fast(a,b)
-        assert out == 0.0
+        out = beta.calculate_beta_fast(a, b)
+        # Zero-variance benchmark -> undefined beta -> NaN (consistent with
+        # calculate_beta and metrics.strategy_beta).
+        assert np.isnan(out)
 
     def test_calculate_rolling_beta_bench_nan_all(self):
         idx = pd.date_range('2023-01-01', periods=5)

@@ -24,11 +24,14 @@ class TestRollingBetaEmptyInput:
         assert np.isnan(res[0])
 
     def test_rolling_beta_degenerate_constant_benchmark(self):
-        # Constant benchmark -> denom ~ 0 -> degenerate -> 0.0 where enough obs
+        # Constant benchmark -> denom ~ 0 -> degenerate -> NaN (undefined beta),
+        # consistent with calculate_beta / calculate_beta_fast /
+        # metrics.strategy_beta which all return NaN for a zero-variance
+        # benchmark.  A synthetic 0.0 would be treated as a real (low) beta by
+        # the ranking and silently corrupt the long/short selection.
         res = beta.rolling_beta([0.01, 0.02, 0.03, 0.04], [0.01, 0.01, 0.01, 0.01],
                                 window=4, min_obs=1)
-        assert np.all(np.isfinite(res))
-        assert np.all(res == 0.0)
+        assert np.all(np.isnan(res))
 
 
 class TestCalculateBetaAlignment:
@@ -58,9 +61,13 @@ class TestCalculateBetaFast:
         assert np.isnan(beta.calculate_beta_fast([], []))
 
     def test_fast_constant_benchmark(self):
-        assert beta.calculate_beta_fast([0.01, 0.02, 0.03], [0.01, 0.01, 0.01]) == 0.0
+        # Zero-variance benchmark -> NaN (undefined beta), consistent with
+        # calculate_beta and metrics.strategy_beta.
+        assert np.isnan(beta.calculate_beta_fast([0.01, 0.02, 0.03], [0.01, 0.01, 0.01]))
 
-    def test_fast_non_finite_result_returns_zero(self):
-        # Extremely ill-conditioned slope collapses to non-finite -> 0.0 (beta.py:163)
+    def test_fast_non_finite_result_returns_nan(self):
+        # Extremely ill-conditioned slope collapses to non-finite -> NaN
+        # (undefined beta), consistent with calculate_beta which also returns
+        # NaN for a non-finite lstsq result (beta.py:137-138).
         b = beta.calculate_beta_fast([1e308, 2e308, 3e308], [1.0, 2.0, 3.0])
-        assert np.isfinite(b)
+        assert np.isnan(b)

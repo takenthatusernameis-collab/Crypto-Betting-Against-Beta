@@ -89,7 +89,7 @@ def test_calculate_beta_fast_paths():
     assert res is not None
     assert np.isnan(calculate_beta_fast([np.nan], [5.0]))
     assert np.isnan(calculate_beta_fast([0.01, 0.02], [0.01, 0.02], min_obs=100))
-    assert calculate_beta_fast([0.01, 0.02, 0.03], [0.01, 0.01, 0.01]) == 0.0
+    assert np.isnan(calculate_beta_fast([0.01, 0.02, 0.03], [0.01, 0.01, 0.01]))
 
 
 def test_calc_rolling_beta_series_paths():

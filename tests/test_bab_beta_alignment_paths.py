@@ -89,14 +89,55 @@ class TestBetaAlignmentPaths:
         assert np.isnan(out)
 
     def test_calculate_beta_fast_constant_benchmark(self):
-        # line 153: b_std < 1e-18 -> 0.0
+        # line 153: b_std < 1e-18 -> NaN (undefined beta, consistent with
+        # calculate_beta and metrics.strategy_beta which both return NaN for a
+        # zero-variance benchmark).
         out = beta.calculate_beta_fast([1.0, 2.0, 3.0], [5.0, 5.0, 5.0])
-        assert out == 0.0
+        assert np.isnan(out)
 
     def test_calculate_beta_fast_outer_typeerror(self):
         # lines 163-164: outer TypeError/ValueError/AttributeError -> 0.0
         out = beta.calculate_beta_fast("abc", "def")
         assert out == 0.0
+
+    def test_calculate_beta_and_fast_agree_on_degenerate_benchmark(self):
+        # Regression: calculate_beta_fast previously returned 0.0 for a
+        # zero-variance benchmark while calculate_beta returned NaN.  A beta of
+        # 0.0 is a real (if small) estimate that corrupts downstream ranking,
+        # whereas NaN correctly marks the estimate as undefined.  Both must
+        # agree so signals/portfolio treat degenerate windows uniformly.
+        asset = [0.01, 0.02, -0.01, 0.03]
+        bench = [0.01, 0.01, 0.01, 0.01]
+        assert np.isnan(beta.calculate_beta(asset, bench))
+        assert np.isnan(beta.calculate_beta_fast(asset, bench))
+
+    def test_calculate_rolling_beta_degenerate_benchmark_is_nan(self):
+        # Regression: calculate_rolling_beta previously emitted 0.0 for
+        # zero-variance benchmark windows while calculate_beta /
+        # calculate_beta_fast / metrics.strategy_beta all return NaN.  A beta
+        # of 0.0 is a real (low) estimate that corrupts downstream ranking;
+        # NaN correctly marks the estimate as undefined so signals/portfolio
+        # treat degenerate windows as flat.
+        df = pd.DataFrame(
+            {
+                "BTC": [0.01, 0.01, 0.01, 0.01, 0.01, 0.01],
+                "ETH": [0.02, 0.01, 0.03, 0.02, 0.01, 0.02],
+            }
+        )
+        res = beta.calculate_rolling_beta(df, "BTC", window=4, min_obs=4)
+        assert np.all(np.isnan(res["ETH"].to_numpy()))
+
+    def test_calculate_rolling_beta_and_fast_agree_on_degenerate_window(self):
+        # Every beta emitter in the module must agree on degenerate windows so
+        # the strategy pipeline (which consumes calculate_rolling_beta) never
+        # sees a synthetic 0.0 where a single-asset call would see NaN.
+        asset = [0.01, 0.02, -0.01, 0.03, 0.02]
+        bench = [0.01, 0.01, 0.01, 0.01, 0.01]
+        assert np.isnan(beta.calculate_beta(asset, bench))
+        assert np.isnan(beta.calculate_beta_fast(asset, bench))
+        df = pd.DataFrame({"BTC": bench, "ETH": asset})
+        res = beta.calculate_rolling_beta(df, "BTC", window=5, min_obs=5)
+        assert np.all(np.isnan(res["ETH"].to_numpy()))
 
     def test_calculate_rolling_beta_string_fallback(self):
         # line 314: string column triggers fallback path

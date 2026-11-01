@@ -64,7 +64,7 @@ class TestBetaCoverageExtra:
         res4 = beta.calculate_beta_fast([0.01,0.02],[0.01,0.02], min_obs=5)
         assert np.isnan(res4)
         res5 = beta.calculate_beta_fast([0.01, 0.02, -0.01], [0.005, 0.005, 0.005])
-        assert res5 == 0.0
+        assert np.isnan(res5)
         class BadArr:
             def __array__(self, *args, **kwargs):
                 raise ValueError()

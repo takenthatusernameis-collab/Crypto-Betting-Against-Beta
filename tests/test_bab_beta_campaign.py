@@ -67,7 +67,9 @@ def test_calculate_beta_fast_constant_benchmark_zero():
     a = np.array([0.01, 0.02, -0.01, 0.03])
     b = np.array([0.01, 0.01, 0.01, 0.01])
     out = beta.calculate_beta_fast(a, b)
-    assert out == 0.0
+    # Zero-variance benchmark -> undefined beta -> NaN, consistent with
+    # calculate_beta and metrics.strategy_beta.
+    assert np.isnan(out)
 
 
 def test_calculate_beta_fast_inf_inputs():
