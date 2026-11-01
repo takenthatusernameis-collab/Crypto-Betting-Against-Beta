@@ -1,7 +1,7 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 # MOST RELEVANT INFERRED TIMESTAMPED CLEAR INITIAL TASK MESSAGE FOR NEXT AGENTIC WORK SESSION
 
-**HANDOFF_TIMESTAMP:** 2026-11-01T11:33:35Z
+**HANDOFF_TIMESTAMP:** 2026-11-01T12:13:16Z
 **REPO:** Crypto-Betting-Against-Beta
 **PRIORITY:** BAB-FIRST (strategies/betting_against_beta/) — inferred from repository name. BAB MUST get ALL attention until explicitly blocked by a gate-breaking issue with concrete evidence.
 
@@ -13,14 +13,14 @@
 >>> START IMMEDIATELY — HEAVY WORK REQUIRED — NO IDLE TURNS <<<
 
 REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE | MAXIMUM SUBSTANTIVE PROGRESS
-TIMESTAMP: 2026-11-01T11:33:35Z
+TIMESTAMP: 2026-11-01T12:13:16Z
 
-VERIFIED STATE (2026-11-01T11:33:35Z):
+VERIFIED STATE (2026-11-01T12:13:16Z):
 - BAB gate GREEN (scripts/bab_gate.sh exit 0)
 - BAB suite: 1335 passed, 7 skipped, 0 failed
 - Coverage: 98% total (2593 stmts, 61 misses). COVERAGE CEILING REACHED.
 - Per-module: backtest/attribution/cli/data/data_sources/errors/quality/shorting 100%; beta 94%, strategy 93%, data_loader 97%, portfolio 97%, costs/config/metrics/regime 99%, signals 98%, sizing 98%.
-- Bottlenecks removed: __pycache__ dirs cleaned (scripts/, strategies/, tests/) — verified clean at 2026-11-01T11:33:00Z; tracked coverage artifacts (beta.py,cover, portfolio.py,cover) removed from git+fs; single-command gate (scripts/bab_gate.sh) intact; warnings silenced.
+- Bottlenecks removed: .gitignore added (2026-11-01T12:13:00Z) — untracked __pycache__ noise now suppressed; tracked coverage artifacts (beta.py,cover, portfolio.py,cover) already removed from git+fs; single-command gate (scripts/bab_gate.sh) intact; warnings silenced.
 
 PRIMARY MANDATE: HEAVY BAB HARDENING. Every single turn MUST produce concrete, substantive BAB improvements (tests + minimal hardening). Idle, docs-only, or file-count changes are FORBIDDEN.
 
@@ -40,7 +40,7 @@ NON-NEGOTIABLE RULES:
 2. DO NOT CHASE UNREACHABLE COVERAGE. The ~61 misses are mostly unreachable dead code - require evidence to touch, and never change semantics just to hit lines.
 3. EVERY TURN = SUBSTANTIVE BAB WORK OR EXPLICIT EVIDENCE WHY IMPOSSIBLE. No idle turns.
 4. Non-BAB changes ONLY if they directly unblock BAB gate with concrete evidence.
-5. Preserve invariants: 1-day lag, dollar-neutral where applicable, quantiles/decimals, beta>=60 default, ranking, finiteness, BAB-specific errors, NO bare except:.
+5. Preserve invariants: 1-day lag, dollar-neutral where applicable, quantiles/deciles, beta>=60 default, ranking, finiteness, BAB-specific errors, NO bare except:.
 6. Deterministic only (seeded RNGs). All tests offline.
 7. Momentum mandatory - find edge case, write test, harden code. Never stop at analysis.
 
@@ -58,8 +58,8 @@ NEVER END WITH JUST "analysis" OR "investigation". PROGRESS = GREEN GATE + SUBST
 ```
 
 ## BOTTLENECKS REMOVED (this session)
-- Cleaned untracked `__pycache__` dirs (scripts/, strategies/, tests/)
-- Removed tracked coverage artifacts `strategies/betting_against_beta/beta.py,cover` and `portfolio.py,cover` from git + filesystem (committed-by-mistake source duplicates, not code)
+- Added `.gitignore` covering Python (`__pycache__/`, `*.pyc`), pytest cache (`.pytest_cache/`), coverage artifacts (`.coverage`, `*.cover`, `htmlcov/`, `coverage.xml`), and editor/venv noise. Verified: `git status --porcelain --untracked-files=all` now shows only `.gitignore` itself — the previously-untracked `__pycache__` dirs in `scripts/`, `strategies/`, `strategies/betting_against_beta/` are suppressed.
+- Previously removed tracked coverage artifacts `strategies/betting_against_beta/beta.py,cover` and `portfolio.py,cover` from git+fs (committed-by-mistake source duplicates, not code).
 
 ## INVARIANTS (MUST PRESERVE)
 - 1-day lag, dollar-neutral where applicable, quantiles/deciles, beta>=60 default, ranking
@@ -74,4 +74,6 @@ NEVER END WITH JUST "analysis" OR "investigation". PROGRESS = GREEN GATE + SUBST
 - Campaign: HEAVY BAB HARDENING (adversarial, property-based, chaos, integration, numerical robustness)
 - Coverage status: Ceiling reached (98%)
 - Momentum: MANDATORY — every turn must produce substantive BAB work
-- Last verified: 2026-11-01T11:33:35Z (BAB gate GREEN, 1335 passed, 7 skipped, 0 failed)
+- Last verified: 2026-11-01T12:13:16Z (BAB gate GREEN, 1335 passed, 7 skipped, 0 failed, 98% coverage)
+
+(End of file)
