@@ -1160,7 +1160,7 @@ jobs:
             git add -A -- . || return 1
             while IFS= read -r -d '' changed_path; do
               case "$changed_path" in
-                .github/workflows/*|*/.github/workflows/*|.venv/*|*/.venv/*|venv/*|*/venv/*|node_modules/*|*/node_modules/*|__pycache__/*|*/__pycache__/*|.pytest_cache/*|*/.pytest_cache/*|.mypy_cache/*|*/.mypy_cache/*|.ruff_cache/*|*/.ruff_cache/*|.tox/*|*/.tox/*|.env|.env.*|*/.env|*/.env.*|*.pyc|*.pyo|*.sqlite|*.sqlite3|*.db|*.sqlite-wal|*.sqlite-shm|*.sqlite3-wal|*.sqlite3-shm|*.db-wal|*.db-shm|*.tmp|coverage.xml|*/coverage.xml|.coverage|*/.coverage|kilo-session-*.log|*/kilo-session-*.log|kilo-progress-*.log|*/kilo-progress-*.log)
+                .github/workflows/*|.venv/*|*/.venv/*|venv/*|*/venv/*|node_modules/*|*/node_modules/*|__pycache__/*|*/__pycache__/*|.pytest_cache/*|*/.pytest_cache/*|.mypy_cache/*|*/.mypy_cache/*|.ruff_cache/*|*/.ruff_cache/*|.tox/*|*/.tox/*|.env|.env.*|*/.env|*/.env.*|*.pyc|*.pyo|*.sqlite|*.sqlite3|*.db|*.sqlite-wal|*.sqlite-shm|*.sqlite3-wal|*.sqlite3-shm|*.db-wal|*.db-shm|*.tmp|coverage.xml|*/coverage.xml|.coverage|*/.coverage|kilo-session-*.log|*/kilo-session-*.log|kilo-progress-*.log|*/kilo-progress-*.log)
                   if git cat-file -e "$base_sha:$changed_path" 2>/dev/null; then
                     git restore --staged -- "$changed_path" || return 1
                   else
