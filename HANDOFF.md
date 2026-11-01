@@ -1,12 +1,12 @@
-# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) — 2026-11-01T04:48:25Z
+# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) — 2026-11-01T05:22:11Z
 
 ## TIMESTAMP
-2026-11-01T04:48:25Z
+2026-11-01T05:22:11Z
 
 ## REPO / PRIORITY
 REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE (repo name = betting_against_beta). ALL WORK MUST PRIORITIZE strategies/betting_against_beta/. NO VANITY. NO FILE-COUNT GOALS. NO DOCS-ONLY CHANGES. NO IDLE TURNS. IF NO BAB WORK IS POSSIBLE, EXPLAIN WHY WITH EVIDENCE BEFORE DOING ANYTHING ELSE.
 
-## VERIFIED STATE (CLEAN MEASUREMENT - 2026-11-01T04:48:05Z)
+## VERIFIED STATE (CLEAN MEASUREMENT - 2026-11-01T05:22:11Z)
 - Full BAB suite: 1318 passed, 7 skipped, 0 failed (FULLY GREEN, RC=0)
 - 2 pre-existing non-BAB infra failures (test_controller_progress_accounting.py) — must not increase
 - Package coverage (BAB): 98% total, 45 misses across 2549 stmts
@@ -46,9 +46,9 @@ Ruling: BAB coverage is MAXIMIZED at 98% (45 misses, all provably unreachable). 
 
 REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE | COVERAGE MAXIMIZED
 
-TIMESTAMP: 2026-11-01T04:48:25Z
+TIMESTAMP: 2026-11-01T05:22:11Z
 
-VERIFIED STATE (2026-11-01T04:48:25Z - re-verified green):
+VERIFIED STATE (2026-11-01T05:22:11Z - re-verified green):
 - BAB suite: 1318 passed, 7 skipped, 0 failed (FULLY GREEN, RC=0)
 - Package coverage: 98% | 45 misses, ALL provably unreachable dead code (documented in this HANDOFF under BOTTLENECKS REMOVED)
 - beta.py 94%, config 99%, costs 99%, data_loader 97%, metrics 99%, portfolio 97%, regime 99%, signals 98%, strategy 98% — every remaining miss is unreachable; DO NOT CHASE
@@ -103,5 +103,5 @@ RULES:
 - Coverage floor: 98% / 45 misses (all unreachable; must not increase)
 - 2 pre-existing non-BAB infra failures (test_controller_progress_accounting.py) must not increase
 
-## SESSION SUMMARY (2026-11-01T04:48:25Z)
+## SESSION SUMMARY (2026-11-01T05:22:11Z)
 - Gate re-verified green (1318 passed, 7 skipped, 0 failed; coverage 98% / 45 misses, all provably unreachable). Bottlenecks removed and documented; no hitable branches remain — coverage ceiling is 98%. Campaign locked to heavy BAB hardening (integration/stress, robustness, performance, edge cases, invariant enforcement). Next agent must start immediately with the copied initial task message above and produce substantive BAB work every turn.
