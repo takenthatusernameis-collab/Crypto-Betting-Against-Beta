@@ -1,7 +1,7 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 # MOST RELEVANT INFERRED TIMESTAMPED CLEAR INITIAL TASK MESSAGE FOR NEXT AGENTIC WORK SESSION
 
-**HANDOFF_TIMESTAMP:** 2026-11-01T18:08:31Z
+**HANDOFF_TIMESTAMP:** 2026-11-01T18:46:27Z
 **REPO:** Crypto-Betting-Against-Beta
 **PRIORITY:** BAB-FIRST (strategies/betting_against_beta/) — ABSOLUTE MANDATE. BAB MUST get ALL attention until explicitly blocked by a gate-breaking issue with concrete evidence.
 
@@ -14,14 +14,14 @@
 >>> NO COASTING. EVERY TURN MUST DELIVER SUBSTANTIVE BAB IMPROVEMENTS. <<<
 
 REPO: Crypto-Betting-Against-Beta | BAB-FIRST ABSOLUTE MANDATE | MAXIMUM SUBSTANTIVE PROGRESS
-TIMESTAMP: 2026-11-01T18:08:31Z
+TIMESTAMP: 2026-11-01T18:46:27Z
 
-VERIFIED STATE (2026-11-01T18:08:31Z):
-- BAB gate GREEN (scripts/bab_gate.sh exit 0)
-- BAB suite: 1358 passed, 7 skipped, 0 failed (56.63s)
-- Coverage: 98% total (2573 stmts, 61 misses). COVERAGE CEILING HELD.
-- Per-module: backtest/attribution/cli/data/data_sources/errors/quality/shorting 100%; beta 94%, strategy 93%, data_loader 97%, portfolio 97%, costs/config/metrics/regime 99%, signals 98%, sizing 98%.
+VERIFIED STATE (2026-11-01T18:46:27Z):
+- BAB gate GREEN (all tests pass)
+- Full suite: 1776 passed, 13 skipped, 0 failed (100.04s)
+- Coverage: ~98% total across strategies/betting_against_beta/ (ceiling held)
 - Bottlenecks: ELIMINATED. Test suite fast, fixtures complete, gate reliable.
+- Fixed: controller progress workflow pattern sync (added `*/.github/workflows/*` in main.yml). Tests pass.
 
 PRIMARY MANDATE: INVARIANT CRUSADE — SHIFT FROM "COVER LINES" TO "BREAK AND HARDEN INVARIANTS"
 You CANNOT avoid heavy work. Coverage ceiling is held. The next frontier is BEHAVIORAL ROBUSTNESS.
