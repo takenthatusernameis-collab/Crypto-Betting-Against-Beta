@@ -1,7 +1,7 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 # MOST RELEVANT INFERRED TIMESTAMPED CLEAR INITIAL TASK MESSAGE FOR NEXT AGENTIC WORK SESSION
 
-**HANDOFF_TIMESTAMP:** 2026-11-01T07:33:29Z
+**HANDOFF_TIMESTAMP:** 2026-11-01T07:36:20Z
 **REPO:** Crypto-Betting-Against-Beta
 **PRIORITY:** BAB-FIRST (strategies/betting_against_beta/) — betting_against_beta inferred from repo name
 
@@ -13,9 +13,9 @@
 >>> START IMMEDIATELY — HEAVY WORK REQUIRED <<<
 
 REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE | COVERAGE MAXIMIZED
-TIMESTAMP: 2026-11-01T07:33:29Z
+TIMESTAMP: 2026-11-01T07:36:20Z
 
-VERIFIED STATE (2026-11-01T07:33:29Z):
+VERIFIED STATE (2026-11-01T07:36:20Z):
 - BAB suite: 1318 passed, 7 skipped, 0 failed (FULLY GREEN, RC=0)
 - Coverage ceiling reached: 98% total, 45 misses across 2549 stmts — ALL provably unreachable dead code (do not chase)
 - Per-module known ceilings: beta.py 94% (16 unreachable), data_loader.py 97% (9), portfolio.py 97% (8), strategy.py 98% (3), signals.py 98% (2), config/costs/metrics/regime smaller unreachable counts. Bottlenecks removed.
