@@ -185,7 +185,11 @@ class BABStrategy:
         try:
             object.__setattr__(cfg, "universe", effective_universe)
             object.__setattr__(cfg, "_frozen", True)
-        except Exception:
+        except (AttributeError, TypeError):
+            # Fallback for dataclasses with slots or other attribute restrictions.
+            # A frozen dataclass raises FrozenInstanceError (subclass of
+            # AttributeError) on assignment; we catch only that family rather
+            # than a bare ``Exception`` so programming errors surface loudly.
             cfg.universe = effective_universe
 
         betas = calculate_rolling_beta(
