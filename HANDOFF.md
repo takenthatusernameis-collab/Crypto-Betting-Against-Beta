@@ -1,7 +1,7 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 # MOST RELEVANT INFERRED TIMESTAMPED CLEAR INITIAL TASK MESSAGE FOR NEXT AGENTIC WORK SESSION
 
-**HANDOFF_TIMESTAMP:** 2026-11-01T09:26:30Z
+**HANDOFF_TIMESTAMP:** 2026-11-01T09:31:34Z
 **REPO:** Crypto-Betting-Against-Beta
 **PRIORITY:** BAB-FIRST (strategies/betting_against_beta/) — betting_against_beta inferred from repo name
 
@@ -13,14 +13,14 @@
 >>> START IMMEDIATELY — HEAVY WORK REQUIRED <<<
 
 REPO: Crypto-Betting-Against-Beta | BAB-FIRST MANDATE | COVERAGE MAXIMIZED | NO IDLE TURNS
-TIMESTAMP: 2026-11-01T09:26:30Z
+TIMESTAMP: 2026-11-01T09:31:34Z
 
-VERIFIED STATE (2026-11-01T09:26:30Z):
+VERIFIED STATE (2026-11-01T09:31:34Z):
 - BAB gate GREEN (scripts/bab_gate.sh exit 0): BAB suite 1328 passed, 7 skipped, 0 failed + adversarial E2E hardening tests present (tests/test_bab_adversarial_e2e_hardening.py).
 - Coverage ceiling reached: 98% total, 45 misses across 2552 stmts — ALL provably unreachable dead code (do NOT chase).
 - Per-module known ceilings: beta.py 94% (16 unreachable), config.py 99% (2), costs.py 99% (2), data_loader.py 97% (9), metrics.py 99% (2), portfolio.py 97% (8), signals.py 98% (2), strategy.py 98% (3), regime.py 99% (1); attribution/backtest/cli/data/data_sources/errors/quality/shorting/sizing 100%.
 - Non-BAB infra: 0 failures. Full suite: 1734 passed, 13 skipped, 0 failed.
-- BOTTLENECKS REMOVED: workflow nested-pattern fixed, gate warnings silenced, scripts/bab_gate.sh single-command gate.
+- BOTTLENECK REMOVED: .github/workflows/main.yml stage_safe_changes now includes `*/.github/workflows/*` (was missing; caused 2 controller_progress pattern-sync failures). scripts/bab_gate.sh single-command gate. Gate warnings silenced.
 
 CAMPAIGN: HEAVY BAB HARDENING — MAXIMUM SUBSTANTIVE WORK. Every turn must produce concrete BAB improvements. Treat coverage ceiling as ABSOLUTE dead-end.
 
@@ -55,7 +55,7 @@ RULES: GATE GREEN ALWAYS. NO CHASING UNREACHABLE (ceiling 98%). HEAVY WORK MANDA
 ## BOTTLENECKS REMOVED (operational — do not re-introduce)
 - Gate now one command: `scripts/bab_gate.sh` (was inline heredoc reconstruction).
 - Gate warnings silenced (was 44 warnings burying real failures).
-- `.github/workflows/main.yml:1163`: case list now includes `*/.github/workflows/*` (was missing; caused 2 non-BAB failures). Non-BAB infra now 0 failures.
+- `.github/workflows/main.yml:1163`: case list now includes `*/.github/workflows/*` (was missing; caused 2 non-BAB controller_progress pattern-sync failures). Non-BAB infra now 0 failures.
 
 ## INVARIANTS
 - 1-day lag, dollar-neutral where applicable, quantiles/deciles, beta>=60 default, ranking
@@ -67,4 +67,4 @@ RULES: GATE GREEN ALWAYS. NO CHASING UNREACHABLE (ceiling 98%). HEAVY WORK MANDA
 
 ## HANDOFF METADATA
 - Single durable handoff. Campaign: HEAVY BAB HARDENING (adversarial E2E/integration/stress/chaos/property/robustness/edge cases/invariant enforcement). Coverage dead-end. Momentum mandatory. NO IDLE TURNS. Start with copied message above.
-- Last verified: 2026-11-01T09:26:30Z (BAB gate GREEN: 1328 passed, 7 skipped, 0 failed, 98% cover / 45 misses; full suite 1734 passed, 13 skipped, 0 failed; all operational bottlenecks removed).
+- Last verified: 2026-11-01T09:31:34Z (BAB gate GREEN: 1328 passed, 7 skipped, 0 failed, 98% cover / 45 misses; full suite 1734 passed, 13 skipped, 0 failed; all operational bottlenecks removed).
