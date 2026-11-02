@@ -1389,6 +1389,7 @@ def load_returns_from_csv(
     path: str | Path,
     benchmark: str | None = None,
     min_rows: int = 1,
+    quality: bool = True,
     **kwargs,
 ) -> pd.DataFrame:
     """Load returns from a CSV file and validate it.
@@ -1408,7 +1409,7 @@ def load_returns_from_csv(
     if df is None or df.empty:
         raise BABDataError(f"Empty CSV file: {csv_path}")
 
-    return validate_returns_dataframe(df, benchmark=benchmark, min_rows=min_rows)
+    return validate_returns_dataframe(df, benchmark=benchmark, min_rows=min_rows, quality=quality)
 
 
 def load_returns_from_parquet(
@@ -1433,7 +1434,7 @@ def load_returns_from_parquet(
         raise
     except (OSError, ValueError) as exc:
         raise BABDataError(f"Failed to read Parquet {pq_path}: {exc}") from exc
-    return validate_returns_dataframe(df, benchmark=benchmark, min_rows=min_rows)
+    return validate_returns_dataframe(df, benchmark=benchmark, min_rows=min_rows, quality=quality)
 
 
 def load_returns_from_hdf5(
@@ -1462,7 +1463,7 @@ def load_returns_from_hdf5(
         raise
     except (OSError, ValueError) as exc:
         raise BABDataError(f"Failed to read HDF5 {h5_path}: {exc}") from exc
-    return validate_returns_dataframe(df, benchmark=benchmark, min_rows=min_rows)
+    return validate_returns_dataframe(df, benchmark=benchmark, min_rows=min_rows, quality=quality)
 
 
 def load_returns_from_pickle(
@@ -1488,7 +1489,7 @@ def load_returns_from_pickle(
         raise
     except (OSError, pickle.UnpicklingError, ValueError, TypeError) as exc:
         raise BABDataError(f"Failed to read pickle {pkl_path}: {exc}") from exc
-    return validate_returns_dataframe(df, benchmark=benchmark, min_rows=min_rows)
+    return validate_returns_dataframe(df, benchmark=benchmark, min_rows=min_rows, quality=quality)
 
 
 def load_returns_from_json(
@@ -1496,6 +1497,7 @@ def load_returns_from_json(
     benchmark: str | None = None,
     min_rows: int = 1,
     orient: str = "columns",
+    quality: bool = True,
     **kwargs,
 ) -> pd.DataFrame:
     """Load returns from a JSON file and validate it.
@@ -1545,7 +1547,7 @@ def load_returns_from_json(
             df = _normalize_index(df)
         except Exception:
             pass
-        return validate_returns_dataframe(df, benchmark=benchmark, min_rows=min_rows)
+        return validate_returns_dataframe(df, benchmark=benchmark, min_rows=min_rows, quality=quality)
     elif orient == "split":
         # {"columns": [...], "index": [...], "data": [[...], ...]}
         if not isinstance(data, dict) or "data" not in data:
@@ -1567,7 +1569,7 @@ def load_returns_from_json(
         # columns / table / anything else pandas understands
         df = pd.DataFrame(data)
 
-    return validate_returns_dataframe(df, benchmark=benchmark, min_rows=min_rows)
+    return validate_returns_dataframe(df, benchmark=benchmark, min_rows=min_rows, quality=quality)
 
 
 def load_returns_from_dataframe(
@@ -1727,7 +1729,7 @@ def load_prices(
 
     prices = _drop_metadata_columns(prices)
     returns = _prices_to_returns(prices)
-    return validate_returns_dataframe(returns, benchmark=benchmark, min_rows=min_rows, quality=True)
+    return validate_returns_dataframe(returns, benchmark=benchmark, min_rows=min_rows, quality=False)
 
 
 def _is_likely_returns(df: pd.DataFrame) -> bool:
