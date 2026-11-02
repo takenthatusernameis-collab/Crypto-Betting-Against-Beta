@@ -1,9 +1,9 @@
 # SINGLE DURABLE HANDOFF - Crypto-Betting-Against-Beta
 
-**Timestamp:** 2026-11-02T03:02:03Z
+**Timestamp:** 2026-11-02T03:52:38Z
 **Priority from repo name:** Crypto Betting Against Beta (BAB) - market-neutral (long low-beta, short high-beta vs benchmark). ALL WORK MUST ADVANCE BAB.
 **Session Mode:** Repo-prioritized, bottleneck-removal enforced. Heavy campaign required.
-**Status:** BASELINE GREEN (1792 passed, 13 skipped). Pattern sync fixed. All gates verified.
+**Status:** BASELINE GREEN (1792 passed, 13 skipped). Pattern-sync bottleneck removed; `*/.github/workflows/*` added to bash `stage_safe_changes()` in `.github/workflows/main.yml` (line 1163). All gates verified.
 
 ## BOTTOM LINE - DO THIS FIRST (NO EXCEPTIONS)
 
@@ -21,9 +21,8 @@ print(float(r.backtest['cumulative'].iloc[-1]))
 
 If red, fix immediately. Never proceed without green baseline.
 
-## BOTTLECKS REMOVED
-- **Pattern sync:** Fixed `.github/workflows/main.yml` `stage_safe_changes()` to include `*/.github/workflows/*` (nested variant). Both Python `EXCLUDE_PATTERNS` and workflow now in sync. All controller pattern-sync tests pass.
-- **Baseline:** Full suite 1792 passed, 13 skipped. Data loader/beta/BAB/core tests all green.
+## BOTTLENECKS REMOVED
+- **Pattern sync:** Added missing nested variant `*/.github/workflows/*` to the bash `stage_safe_changes()` exclusion list in `.github/workflows/main.yml:1163` so it matches Python `EXCLUDE_PATTERNS` in `scripts/controller_progress.py:28`. Both `test_python_patterns_are_subset_of_workflow` and `test_nested_workflow_pattern_is_present_in_workflow` now pass. Baseline full suite 1792 passed, 13 skipped.
 
 ## HEAVY FORCED CAMPAIGN (COMPLETE IN ORDER)
 
