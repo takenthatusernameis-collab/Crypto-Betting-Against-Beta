@@ -1,20 +1,21 @@
 # HANDOFF - Crypto-Betting-Against-Beta
 
 **Created:** 2026-11-02T01:14:12Z
-**Last updated:** 2026-11-02T01:14:12Z
+**Last updated:** 2026-11-02T01:49:10Z
 **Inferred priority from repo name:** Crypto Betting Against Beta (BAB) - market-neutral (long low-beta, short high-beta vs benchmark). ALL WORK MUST ADVANCE BAB.
 **Session Mode:** Repo-prioritized, bottleneck-removal enforced. Heavy campaign required.
-**Status:** BASELINE GREEN (1792 passed, 13 skipped). Ready for forced heavy execution.
+**Status:** BASELINE GREEN (1792 passed, 13 skipped). Bottlenecks removed. Ready for forced heavy execution.
 
 ## Project Priority (Crypto Betting Against Beta)
 Focus exclusively on **Betting Against Beta for crypto**: universe selection, benchmark (default BTC), rolling beta vs benchmark, rank by beta -> long lowest-beta quantile / short highest-beta quantile (default 30/30), dollar-neutral equal-weight, one-day lagged weights, transaction costs. Do not drift to unrelated infra. Only touch workflows/configs if strictly necessary to unblock BAB and must not break pattern-sync.
 
 ## Bottlenecks Removed (Current State)
-- **Pattern sync:** `.github/workflows/*` included in `stage_safe_changes()` to match `scripts/controller_progress.py:EXCLUDE_PATTERNS` (regression fixed). Enforced.
-- **Data loader coverage:** Extensive loader/validation tests present and passing (232 passed across loader suites).
-- **Baseline intact:** Full suite green at 1792 passed, 13 skipped.
+- **Pattern sync:** Fixed `.github/workflows/*` pattern sync in both `scripts/controller_progress.py` EXCLUDE_PATTERNS and `.github/workflows/main.yml` `stage_safe_changes()` to include `*/.github/workflows/*` (nested variant). All controller pattern-sync tests pass.
+- **Baseline verified:** Full suite green at 1792 passed, 13 skipped (post-install deps, patterns fixed).
+- **Data loader coverage:** Extensive loader/validation tests present and passing.
 
 ## SINGLE CLEAR INITIAL TASK FOR NEXT AGENT (DO FIRST - NO EXCEPTIONS)
+
 You MUST establish and lock the baseline before doing ANY heavy work. This is a hard gate.
 
 ### GATE 0 - BASELINE LOCK (MANDATORY)
@@ -31,6 +32,7 @@ print(float(r.backtest['cumulative'].iloc[-1]))
 If either check fails, fix regressions immediately. Do not proceed.
 
 ## FORCED HEAVY CAMPAIGN - "REAL DATA HARDENING + RIGOR" (NO ESCAPE HATCH)
+
 This campaign is designed to force substantial, non-trivial work. Complete in strict order. Each gate must pass with evidence.
 
 ### CAMPAIGN 1: DATA PIPELINE TO REAL DATA (HARDENING) - GATE 1
