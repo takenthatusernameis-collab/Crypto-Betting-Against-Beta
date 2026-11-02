@@ -1,30 +1,31 @@
 # HANDOFF - Crypto-Betting-Against-Beta
 
 **Created:** 2026-11-02T01:05:46Z
+**Last updated:** 2026-11-02T01:07:11Z
 **Session:** Campaign kickoff - enforce BAB-first heavy work (Data Pipeline Hardening is the blocking gate)
-**Status:** ALL TESTS PASSING (1792 passed, 13 skipped). Baseline verified green.
+**Status:** ALL TESTS PASSING (1792 passed, 13 skipped). Baseline re-confirmed green after fixing pattern-sync regression.
 
 ## Project Priority (Crypto Betting Against Beta)
 Repository focus: **Crypto Betting Against Beta (BAB)** - market-neutral strategy going long low-beta crypto, short high-beta crypto vs benchmark (default BTC). All work must advance the BAB strategy (data, beta, signals/portfolio/backtest, integration, tests). Do not drift to unrelated infra unless it directly unblocks BAB.
 
 ## Bottlenecks Removed (this session)
-- **Pattern sync enforced:** `*/.github/workflows/*` remains in sync between `.github/workflows/main.yml` (`stage_safe_changes()` and `checkpoint_has_project_changes`) and `scripts/controller_progress.py:EXCLUDE_PATTERNS`. Controller progress accounting remains green.
+- **Pattern sync enforced:** `*/.github/workflows/*` added to `.github/workflows/main.yml` `stage_safe_changes()` list to match `scripts/controller_progress.py:EXCLUDE_PATTERNS`. Pattern-sync tests now pass; full suite is green (1792 passed, 13 skipped). No further workflow drift tolerated.
 
 ## CLEAR INITIAL TASK FOR NEXT AGENT (DO THIS FIRST - NO EXCEPTIONS)
-Do not start any other campaign until the baseline is re-confirmed. Run these commands and only proceed if both succeed:
+The baseline (Gate 0) is confirmed green. Proceed immediately to **Campaign 1: Data Pipeline Hardening** (the blocking gate). Do not start any other campaign.
 
+First, re-confirm the baseline one more time:
 ```bash
 cd /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
 python -m pytest -q  # MUST be 1792 passed, 13 skipped
 python3 -c "from strategies.betting_against_beta import BABStrategy; s=BABStrategy(); r=s.run(); print(float(r.backtest['cumulative'].iloc[-1]))"  # MUST produce a float
 ```
+If anything deviates, fix the regression before touching Campaign 1. The baseline is a hard gate.
 
-If anything deviates from the expected baseline, **fix the regression before touching any campaign below**. The baseline is a hard gate.
-
-## MANDATORY HEAVY FOCUS CAMPAIGN (Do not avoid - complete in order)
-Each campaign has a **MANDATORY GATE**. You cannot move to the next campaign until the gate's verification command passes. If a gate fails, you must fix it within that campaign - no skipping.
-
-### Campaign 1: Data Pipeline Hardening (BLOCKING GATE - Highest Priority)
+Then begin **Campaign 1: Data Pipeline Hardening** (see below) and do not stop until Gate 1 passes:
+```bash
+python -m pytest tests/test_bab_data_loader*.py -v
+```
 **Goal:** Make the data path robust for real prices while keeping synthetic defaults intact. This is the bottleneck that will block real-data runs and is the most impactful next step for BAB.
 
 - [ ] **Audit loaders:** Review `strategies/betting_against_beta/data_loader.py` and `strategies/betting_against_beta/data_sources.py` end-to-end. Fix edge cases (CSV/JSON/parquet/HDF5/pickle), enforce clear errors, and avoid silent corruption.
