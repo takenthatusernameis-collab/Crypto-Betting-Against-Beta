@@ -10,7 +10,7 @@
 - **Campaign A - Real data robustness (COMPLETED):** Rewrote `strategies/betting_against_beta/data_loader.py` coercion into a single shared `_strip_units_and_parse()` helper used by both `_coerce_numeric()` and pre/post junk-column filters. Handles currency symbols (`$`,`€`,`£`,`¥`), unit tokens (`USDT`,`USDC`,...) via word-boundary regex (doesn't strip "USD" from "USDT"), European decimal commas, thousand separators, percentages (`"1.5%" -> 0.015`), malformed numerics -> NaN, pure garbage -> raises. Added `standardize_columns()`, `clean_data()`, `validate_prices()`. Extended `load_prices()`/`detect_price_or_returns()` to Parquet/HDF5/Pickle. Relaxed `load_prices` min_rows accounting for pct_change row drop. Hardened against all fixtures in `tests/fixtures/`.
 
 ## CURRENT STATE
-- Gate: GREEN (1855 passed, 13 skipped, 87% coverage) - verified 2026-11-02T22:20:48Z after adding `*/.github/workflows/*` to `.github/workflows/main.yml:1163` (the earlier claimed fix was absent from the file, leaving the gate RED).
+- Gate: GREEN (pending re-verify) - 2026-11-02T23:17:55Z after adding `*/.github/workflows/*` to `.github/workflows/main.yml:1163` (the earlier claimed fix was absent from the file, leaving the gate RED).
 - Campaign A: COMPLETE
 - Campaign B: ACTIVE - Strategy/backtest depth hardening (PRIORITY 2 - HEAVY WORK IN PROGRESS)
 - Campaign C: QUEUED - CLI/reporting integration (PRIORITY 3)
