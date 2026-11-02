@@ -20,13 +20,13 @@ class BABDataError(ValueError):
     """Raised when input data fails validation for the BAB strategy."""
 
 
-_EXCHANGE_DATE_KEYS = {"date", "datetime", "time", "timestamp", "open time", "close time", "candle_begin_time", "unix", "epoch", "t"}
-_EXCHANGE_PRICE_KEYS = {"close", "adj close", "adj_close", "closing price", "price", "last", "weighted price", "vwap"}
+_EXCHANGE_DATE_KEYS = {"date", "datetime", "time", "timestamp", "open time", "close time", "candle_begin_time", "candle begintime", "opentime", "closetime", "unix", "epoch", "t", "date(utc)", "snapped_at", "snapped at", "datetimeutc", "date utc"}
+_EXCHANGE_PRICE_KEYS = {"close", "adj close", "adj_close", "adjusted close", "adjusted_close", "closing price", "close price", "price", "last", "weighted price", "vwap", "last price", "mark price"}
 _EXCHANGE_OPEN_KEYS = {"open", "open price"}
 _EXCHANGE_HIGH_KEYS = {"high", "high price"}
 _EXCHANGE_LOW_KEYS = {"low", "low price"}
 _EXCHANGE_VOL_KEYS = {"volume", "vol", "base volume", "quote volume", "trading volume", "volume btc", "volume usd"}
-_EXCHANGE_SYMBOL_KEYS = {"symbol", "ticker", "pair", "market", "asset", "coin", "currency"}
+_EXCHANGE_SYMBOL_KEYS = {"symbol", "ticker", "pair", "market", "asset", "coin", "currency", "contract", "instrument", "tradingpair"}
 
 
 def _normalize_index(df: pd.DataFrame) -> pd.DataFrame:
@@ -142,39 +142,42 @@ def _detect_and_normalize_exchange_format(df: pd.DataFrame) -> pd.DataFrame:
     # Handle long format: columns like symbol/ticker + date + close/price
     symbol_col = None
     for k in _EXCHANGE_SYMBOL_KEYS:
-        if k in colmap:
-            symbol_col = colmap[k]
+        kl = k.lower()
+        if kl in colmap:
+            symbol_col = colmap[kl]
             break
     date_col = None
     for k in _EXCHANGE_DATE_KEYS:
-        if k in colmap:
-            date_col = colmap[k]
+        kl = k.lower()
+        if kl in colmap:
+            date_col = colmap[kl]
             break
     # Binance often has 'Open time' as epoch ms or string
     if date_col is None:
         # look for columns containing 'time'/'date'
         for c in df.columns:
             cl = str(c).strip().lower()
-            if 'time' in cl or cl == 'date' or cl == 'timestamp':
+            if 'time' in cl or cl == 'date' or cl == 'timestamp' or cl.startswith('open') and 'time' in cl or cl.startswith('close') and 'time' in cl:
                 date_col = c
                 break
 
     price_col = None
     for k in _EXCHANGE_PRICE_KEYS:
-        if k in colmap:
-            price_col = colmap[k]
+        kl = k.lower()
+        if kl in colmap:
+            price_col = colmap[kl]
             break
     # If no explicit close/price, maybe 'adj close' etc already handled
     if price_col is None:
         for c in df.columns:
             cl = str(c).strip().lower()
-            if cl == 'close' or cl.endswith('close') or cl == 'last price' or cl == 'price':
+            if cl == 'close' or cl.endswith('close') or cl == 'last price' or cl == 'price' or cl == 'mark price':
                 price_col = c
                 break
 
-    open_col = next((colmap[k] for k in _EXCHANGE_OPEN_KEYS if k in colmap), None)
-    high_col = next((colmap[k] for k in _EXCHANGE_HIGH_KEYS if k in colmap), None)
-    low_col = next((colmap[k] for k in _EXCHANGE_LOW_KEYS if k in colmap), None)
+    open_col = next((colmap[k.lower()] for k in _EXCHANGE_OPEN_KEYS if k.lower() in colmap), None)
+    high_col = next((colmap[k.lower()] for k in _EXCHANGE_HIGH_KEYS if k.lower() in colmap), None)
+    low_col = next((colmap[k.lower()] for k in _EXCHANGE_LOW_KEYS if k.lower() in colmap), None)
 
     # If it's long format (symbol + date + price) -> pivot to wide prices
     if symbol_col is not None and date_col is not None and price_col is not None:
@@ -231,13 +234,11 @@ def _detect_and_normalize_exchange_format(df: pd.DataFrame) -> pd.DataFrame:
         try:
             # prefer adjusted close, then close
             price_choice = None
-            for k in ['adj close', 'adj_close', 'adjusted close', 'close_price']:
+            for k in ['adj close', 'adj_close', 'adjusted close', 'close', 'close price']:
                 if k in colmap:
                     price_choice = colmap[k]
                     break
-            if price_choice is None and 'close' in colmap:
-                price_choice = colmap['close']
-            elif price_choice is None and price_col in df.columns:
+            if price_choice is None and price_col is not None:
                 price_choice = price_col
             if price_choice is not None:
                 try:
@@ -266,13 +267,10 @@ def _detect_and_normalize_exchange_format(df: pd.DataFrame) -> pd.DataFrame:
                             parsed.append(pdt)
                         except Exception:
                             parsed.append(pdv)
-                    # If the Close column might be named as a symbol in some formats? Or just keep as Close
-                    # Try to infer symbol from common patterns - sometimes 'symbol' in filename not here; also check if other cols look like symbols
                     tmp_out = tmp[[price_choice]].copy()
                     tmp_out.index = parsed
                     tmp_out.index.name = None
                     tmp_out.columns = [str(c).strip() for c in tmp_out.columns]
-                    # Normalize column name case for common names
                     return tmp_out
                 except Exception:
                     pass
@@ -290,8 +288,8 @@ def _detect_and_normalize_exchange_format(df: pd.DataFrame) -> pd.DataFrame:
                 s = str(sample).strip()
                 if s.isdigit() or (len(s) > 0 and s[0] in '+-' and s[1:].isdigit()):
                     do_coerce = True
-                elif len(s) > 10 and any(c.isdigit() for c in s) and ':' in s:
-                    do_coerce = False  # let pandas handle normally in other code paths
+                elif len(s) > 10 and any(c.isdigit() for c in s) and (':' in s or '-' in s):
+                    do_coerce = True  # try to be more aggressive
                 else:
                     do_coerce = False
             elif isinstance(sample, (int, np.integer, float, np.floating)) and not isinstance(sample, bool):
@@ -302,27 +300,36 @@ def _detect_and_normalize_exchange_format(df: pd.DataFrame) -> pd.DataFrame:
                     do_coerce = False
             else:
                 do_coerce = False
+            if do_coerce:
+                try:
+                    parsed = df[date_col].apply(_coerce_to_datetime_scalar)
+                    parsed_clean = []
+                    for pdv in parsed:
+                        try:
+                            if hasattr(pdv, 'tzinfo') and pdv.tzinfo is not None:
+                                pdv = pd.Timestamp(pdv).tz_convert('UTC').tz_localize(None)
+                            else:
+                                try:
+                                    pdt = pd.Timestamp(pdv)
+                                    if getattr(pdt, 'tzinfo', None) is not None:
+                                        pdt = pdt.tz_convert('UTC').tz_localize(None)
+                                    pdv = pdt
+                                except Exception:
+                                    pass
+                        except Exception:
+                            pass
+                        parsed_clean.append(pdv)
+                    df2 = df.copy()
+                    df2.index = parsed_clean
+                    df2 = df2.drop(columns=[date_col])
+                    return df2
+                except Exception:
+                    pass
             if not do_coerce:
                 return df  # let original promotion logic handle
         except Exception:
             pass
 
-    # If OHLCV format with Close/Adj Close, prefer Close for prices
-    if price_col is not None and price_col in df.columns:
-        # If there might be multiple columns but we want to use close as price series for each asset?
-        # For wide format, each column is asset - if they are prices (close), fine. Also sometimes Coinbase has different naming
-        pass
-
-    # Normalize column names to be more consistent (symbol case handling)
-    new_cols = []
-    for c in df.columns:
-        nc = str(c).strip()
-        # common mappings
-        cl = nc.lower()
-        if cl in {'adj close', 'adj_close'}:
-            new_cols.append('Close' if False else nc)  # keep as-is
-        new_cols.append(nc)
-    df.columns = [str(c).strip() for c in df.columns]
     return df
 
 
@@ -399,7 +406,38 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
 
 def _normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
     """Coerce columns to strings and strip whitespace; raise on duplicates."""
-    df.columns = [str(c).strip() for c in df.columns]
+    df = df.copy()
+    new_cols = []
+    for c in df.columns:
+        nc = str(c).strip()
+        cl = nc.lower()
+        # Normalize common variations
+        if cl in {"adj close", "adj_close", "adjusted close", "adjusted_close"}:
+            new_cols.append("Adj Close")
+            continue
+        if cl in {"close", "close price", "closing price", "last"}:
+            new_cols.append("Close")
+            continue
+        if cl in {"open", "open price"}:
+            new_cols.append("Open")
+            continue
+        if cl in {"high", "high price"}:
+            new_cols.append("High")
+            continue
+        if cl in {"low", "low price"}:
+            new_cols.append("Low")
+            continue
+        if cl in {"volume", "vol", "base volume", "quote volume", "trading volume"}:
+            new_cols.append("Volume")
+            continue
+        if cl in {"date", "datetime", "time", "timestamp", "open time", "opentime", "close time", "closetime", "candle_begin_time", "snapped_at", "snapped at"}:
+            new_cols.append(nc)  # keep normalized form
+            continue
+        if cl in {"symbol", "ticker", "pair", "market", "asset", "coin", "currency", "contract"}:
+            new_cols.append("symbol")
+            continue
+        new_cols.append(nc)
+    df.columns = new_cols
     dupes = df.columns[df.columns.duplicated()].tolist()
     if dupes:
         raise BABDataError(f"Duplicate column names after normalization: {sorted(set(dupes))}")
