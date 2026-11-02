@@ -53,7 +53,21 @@ def _normalize_index(df: pd.DataFrame) -> pd.DataFrame:
                     except Exception:
                         df.index = pd.to_datetime(idx, errors="raise")
                 else:
-                    df.index = pd.to_datetime(idx, errors="raise")
+                    # Try to be robust with mixed timezones/strings
+                    try:
+                        df.index = pd.to_datetime(idx, utc=True, errors="raise")
+                    except Exception:
+                        try:
+                            df.index = pd.to_datetime(idx, errors="raise")
+                        except Exception:
+                            # Try elementwise coercion
+                            coerced = []
+                            for v in idx:
+                                try:
+                                    coerced.append(_coerce_to_datetime_scalar(v))
+                                except Exception:
+                                    raise
+                            df.index = coerced
             except Exception:
                 df.index = pd.to_datetime(idx, errors="raise")
         except (ValueError, TypeError) as exc:
@@ -407,7 +421,11 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
         for col in df.columns:
             if col in tried:
                 continue
-            if not pd.api.types.is_string_dtype(df[col]) and not pd.api.types.is_object_dtype(df[col]) and not pd.api.types.is_numeric_dtype(df[col]):
+            # Never promote purely numeric columns (e.g., returns/prices) as datetime index
+            if pd.api.types.is_numeric_dtype(df[col]) and not pd.api.types.is_object_dtype(df[col]):
+                # Only consider if it's clearly epoch-like in a string/object form? No, skip numeric
+                continue
+            if not pd.api.types.is_string_dtype(df[col]) and not pd.api.types.is_object_dtype(df[col]):
                 continue
             try:
                 try:
@@ -416,6 +434,8 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
                         coerced_series = coerced
                         try:
                             if not getattr(coerced_series, "isna", lambda: pd.Series([True]))().all():
+                                # Sanity check: if values look like regular numbers (not epoch), skip
+                                # Only promote if coercion indicates epoch or proper date strings
                                 df2 = df.copy()
                                 df2.index = coerced_series
                                 df2 = df2.drop(columns=[col])
@@ -720,10 +740,54 @@ def validate_returns_dataframe(
             f"Insufficient rows: got {len(cleaned)}, need at least {min_rows}"
         )
 
-    cleaned = _coerce_numeric(cleaned)
+    # Drop columns that are entirely non-numeric junk before coercion if they look like metadata
+    try:
+        # Keep date/index context already in index; drop object columns that are all strings/unparseable and not asset-like
+        cols_to_drop = []
+        for col in list(cleaned.columns):
+            # If it's numeric dtype already maybe ok
+            if pd.api.types.is_numeric_dtype(cleaned[col]):
+                continue
+            if pd.api.types.is_string_dtype(cleaned[col]) or pd.api.types.is_object_dtype(cleaned[col]):
+                # Try to see if mostly numeric
+                try:
+                    s = cleaned[col]
+                    # Count numeric parsable
+                    # Quick test
+                    test = pd.to_numeric(s.astype(str).str.strip().str.replace(',', ''), errors='coerce')
+                    if test.notna().sum() < max(1, int(len(test) * 0.5)):  # mostly not numeric
+                        cols_to_drop.append(col)
+                        continue
+                except Exception:
+                    cols_to_drop.append(col)
+                    continue
+        if cols_to_drop:
+            cleaned = cleaned.drop(columns=cols_to_drop)
+    except Exception:
+        pass
 
-    # Drop columns that are entirely NaN (delisted/untradable assets) before
-    # the inf check so they cannot propagate NaNs into beta estimation.
+    try:
+        cleaned = _coerce_numeric(cleaned)
+    except BABDataError:
+        # Try again after dropping more junk
+        try:
+            cols_to_drop = []
+            for col in list(cleaned.columns):
+                if pd.api.types.is_numeric_dtype(cleaned[col]):
+                    continue
+                try:
+                    test = pd.to_numeric(cleaned[col], errors='coerce')
+                    if test.isna().all():
+                        cols_to_drop.append(col)
+                        continue
+                except Exception:
+                    cols_to_drop.append(col)
+                    continue
+            if cols_to_drop:
+                cleaned = cleaned.drop(columns=cols_to_drop)
+            cleaned = _coerce_numeric(cleaned)
+        except Exception:
+            raise
     cleaned = _drop_all_nan_columns(cleaned)
 
     if np.isinf(cleaned.to_numpy()).any():

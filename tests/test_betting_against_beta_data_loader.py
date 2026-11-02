@@ -520,3 +520,57 @@ class TestExchangeFormatSupport:
         # load_returns expects returns; if prices loaded, behavior depends - but our load_returns passes through validate
         # For wide price data, better to use load_prices; but test should be compatible
         assert "BTC" in out.columns
+
+
+class TestMultiSourceNormalization:
+    def test_messy_csv_extra_columns_spaces_mixed_case(self, tmp_path: Path):
+        from strategies.betting_against_beta.data_loader import load_prices, load_returns
+        # Messy headers with spaces, mixed case, extra columns
+        csv_content = """Date , BTC (USD) ,  ETH  ,  RANDOM_JUNK  , volume
+2023-01-01, 10000, 1000, abc, 12345
+2023-01-02, 10100, 1020, def, 12456
+2023-01-03, 10201, 1040.5, ghi, 12567
+2023-01-04, 10302, 1061.1, jkl, 12678
+"""
+        p = tmp_path / "messy.csv"
+        p.write_text(csv_content)
+        # load_prices should handle extra junk columns
+        out = load_prices(p)
+        assert "BTC" in out.columns
+        assert "ETH" in out.columns
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+    def test_normalize_schema_utility(self):
+        from strategies.betting_against_beta.data_loader import normalize_schema
+        import numpy as np
+        idx = pd.date_range("2023-01-01", periods=10, freq="D")
+        df = pd.DataFrame(
+            {
+                " DATE ": idx.strftime("%Y-%m-%d"),
+                "BTC/USD": np.random.default_rng(0).normal(10000, 10, 10),
+                "  eth  ": np.random.default_rng(1).normal(1000, 5, 10),
+            }
+        )
+        norm = normalize_schema(df)
+        assert isinstance(norm.index, pd.DatetimeIndex)
+        assert "BTC" in norm.columns or "ETH" in norm.columns
+
+
+class TestRobustDatetimeParsing:
+    def test_epoch_milliseconds_and_mixed_timezones(self):
+        from strategies.betting_against_beta.data_loader import load_prices
+        import numpy as np
+        # epoch ms
+        idx_ms = [1672531200000, 1672617600000, 1672704000000, 1672790400000]  # 2023-01-01 onward in ms
+        df = pd.DataFrame({"BTC": [100, 101, 102, 103], "ETH": [10, 10.1, 10.2, 10.3]}, index=idx_ms)
+        out = load_prices(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+        assert "BTC" in out.columns
+
+    def test_timezone_aware_strings_normalized(self):
+        from strategies.betting_against_beta.data_loader import load_prices
+        import numpy as np
+        dates = ["2023-01-01T00:00:00+00:00", "2023-01-02T00:00:00Z", "2023-01-03T01:00:00+01:00"]
+        df = pd.DataFrame({"BTC": [100, 101, 102], "ETH": [10, 10.5, 11]}, index=dates)
+        out = load_prices(df)
+        assert isinstance(out.index, pd.DatetimeIndex)

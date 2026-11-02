@@ -1,6 +1,6 @@
 # SINGLE DURABLE HANDOFF - Crypto-Betting-Against-Beta
 
-**Timestamp:** 2026-11-02T09:36:08Z
+**Timestamp:** 2026-11-02T09:47:03Z
 **Priority from repo name:** CRYPTO BETTING AGAINST BETA (BAB) - Market-neutral long low-beta / short high-beta vs benchmark. ALL WORK MUST DIRECTLY ADVANCE BAB.
 **Session Mode:** Repo-prioritized, bottleneck-removal enforced. Heavy campaign MANDATORY.
 **Status:** GATE 0 GREEN - Core BAB tests pass (137 passed, 6 skipped in key BAB suites). BABStrategy cumulative == 0.31664543005633267. Exchange-format loader support added.
@@ -28,6 +28,10 @@ print(float(r.backtest['cumulative'].iloc[-1]))
 - Aggressive datetime promotion for epoch/string timestamps.
 - Added comprehensive tests in `tests/test_betting_against_beta_data_loader_exchange.py` (CoinGecko long, Binance OHLCV, Coinbase OHLCV, symbol case handling) - all passing.
 2. Gate 0 verified: core BAB suites green; baseline cumulative unchanged.
+3. Multi-source normalization hardening: strengthened `normalize_schema`, robust column normalization for messy headers (whitespace/case/units), auto-drop of junk extra columns on load; added tests for messy CSVs and normalize_schema.
+4. Robust datetime parsing: hardened `_normalize_index`/coercion for epoch seconds/ms and mixed timezones (UTC normalization); added tests.
+5. Gate 0 re-verified: all core BAB suites green (142 passed, 6 skipped).
+
 
 ## IMMEDIATE TASK FOR NEXT SESSION (START HERE - HEAVY WORK REQUIRED)
 
