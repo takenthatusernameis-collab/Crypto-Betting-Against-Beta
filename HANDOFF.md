@@ -1,8 +1,8 @@
 # SINGLE DURABLE HANDOFF - Crypto-Betting-Against-Beta
-**Timestamp:** 2026-11-02T11:57:01Z (Gate 0 verified green: 150 passed, 6 skipped; BABStrategy cumulative == 0.31664543005633267)
+**Timestamp:** 2026-11-02T12:40:11Z (Gate 0 verified green: 150 passed, 6 skipped; BABStrategy cumulative == 0.31664543005633267)
 **Priority from repo name:** CRYPTO BETTING AGAINST BETA (BAB) - Market-neutral long low-beta / short high-beta vs benchmark. ALL WORK MUST DIRECTLY ADVANCE BAB.
 **Session Mode:** Repo-prioritized, bottleneck-removal enforced. Heavy campaign MANDATORY.
-**Status:** GATE 0 GREEN - Core BAB tests pass (142 passed in core suites, 101 passed across combined BAB/core+messy+exchange suites). BABStrategy cumulative == 0.31664543005633267. Multi-source normalization hardened; exchange-format loaders extended; datetime/index normalization hardened.
+**Status:** GATE 0 GREEN - Core BAB tests pass (150 passed in Gate 0 suites). BABStrategy cumulative == 0.31664543005633267. BOTTLENECK REMOVED: `load_prices` was failing on `test_load_prices_from_csv_with_messy_headers` because `pct_change()` on junk metadata columns (Unnamed: 0 CSV index artifact, EXTRA_COL/UNWANTED with normal(0,1) near-zero values) produced extreme spurious returns (max |r|=47.1) that tripped the implausible-returns check. Added `_drop_metadata_columns` to strip Unnamed:* columns, sequential integer row-index artifacts, and non-positive columns before `pct_change` in `load_prices`. Multi-source normalization hardened; exchange-format loaders extended; datetime/index normalization hardened.
 
 ## BOTTOM LINE - RUN GATE 0 FIRST, NO EXCEPTIONS
 
@@ -29,6 +29,7 @@ print(float(r.backtest['cumulative'].iloc[-1]))
 - Improved `_normalize_index` to coerce mixed tz/strings more defensively (coerce with/without utc, elementwise via `_coerce_to_datetime_scalar`), epoch seconds/ms heuristics, tz-aware → UTC → naive normalization, duplicate timestamps dropped, sorted index.
 - Strengthened `_promote_datetime_column` to try exchange normalization first, recognize more datetime column names, better promotion of unnamed/epoch columns.
 3. **Gate 0 + related suites verified green.** Controller/workflow pattern sync already fixed in previous session (tests/test_controller_progress_accounting.py green).
+4. **Bottleneck removed - `load_prices` metadata column fix:** `test_load_prices_from_csv_with_messy_headers` was red because `pct_change()` ran on junk metadata columns (`Unnamed: 0` CSV index artifact, `EXTRA_COL`/`UNWANTED` with normal(0,1) near-zero values → extreme spurious returns max |r|=47.1). Added `_drop_metadata_columns` in `data_loader.py:1352` to strip `Unnamed:*` columns, sequential integer row-index artifacts, and non-positive columns before `pct_change`. Gate 0 now 150 passed, 6 skipped.
 
 ## IMMEDIATE TASK FOR NEXT SESSION (START HERE - HEAVY WORK REQUIRED, NOT OPTIONAL)
 

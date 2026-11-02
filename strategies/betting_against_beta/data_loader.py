@@ -1349,6 +1349,48 @@ def load_returns(
     raise BABDataError(f"Unsupported data source extension: {suffix!r} for {path}")
 
 
+def _drop_metadata_columns(df: pd.DataFrame) -> pd.DataFrame:
+    """Drop columns that are CSV index artifacts or row-index metadata.
+
+    Columns named "Unnamed: *" are written by ``DataFrame.to_csv`` when the
+    index is included. Columns that are sequential integers starting from 0 are
+    row-index artifacts carried into the data. Neither represents a tradable
+    asset price, and keeping them would let ``pct_change`` on near-zero index
+    values produce extreme, spurious returns that fail validation.
+    """
+    if df is None or not isinstance(df, pd.DataFrame) or df.empty:
+        return df
+    df = df.copy()
+    cols_to_drop = []
+    for col in df.columns:
+        cl = str(col).strip()
+        if cl.lower().startswith("unnamed"):
+            cols_to_drop.append(col)
+            continue
+        try:
+            s = df[col]
+            if pd.api.types.is_numeric_dtype(s) and len(s) >= 2:
+                vals = s.to_numpy(dtype=float)
+                finite = np.isfinite(vals)
+                if finite.all() and finite.sum() >= 2:
+                    # Sequential integer index artifact (0, 1, 2, ...)
+                    diffs = np.diff(vals[finite])
+                    if np.allclose(diffs, 1.0, rtol=0, atol=1e-9) and float(vals[finite][0]) == 0.0:
+                        cols_to_drop.append(col)
+                        continue
+                    # Prices must be strictly positive; non-positive values are metadata/junk
+                    if float(np.min(vals[finite])) <= 0.0:
+                        cols_to_drop.append(col)
+                        continue
+        except Exception:
+            continue
+    if cols_to_drop:
+        df = df.drop(columns=cols_to_drop)
+    if df.empty:
+        raise BABDataError("All price columns were metadata; no tradable assets remain")
+    return df
+
+
 def _prices_to_returns(df: pd.DataFrame) -> pd.DataFrame:
     """Convert a price DataFrame to simple returns.
 
@@ -1397,6 +1439,7 @@ def load_prices(
     else:
         raise BABDataError(f"Unsupported price source type: {type(source).__name__}")
 
+    prices = _drop_metadata_columns(prices)
     returns = _prices_to_returns(prices)
     return validate_returns_dataframe(returns, benchmark=benchmark, min_rows=min_rows)
 
