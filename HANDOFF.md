@@ -1,15 +1,15 @@
 # SINGLE DURABLE HANDOFF - Crypto-Betting-Against-Beta
 
 ## INITIAL TASK MESSAGE (for next agentic session)
-**Time:** 2026-11-02T17:32:50Z | **Repo priority:** Crypto Betting Against Beta (BAB). All work must advance BAB. Nothing else takes precedence.
-**Gate 0 baseline:** RED (16 failed, 1839 passed, 13 skipped). `python3 scripts/bab_gate.sh` is the ONLY verification command; it must exit 0 (GREEN) before any session is considered done.
+**Time:** 2026-11-02T18:34:57Z | **Repo priority:** Crypto Betting Against Beta (BAB). All work must advance BAB. Nothing else takes precedence.
+**Gate 0 baseline:** GREEN (1855 passed, 13 skipped). `python3 scripts/bab_gate.sh` is the ONLY verification command; it must exit 0 (GREEN) before any session is considered done.
 
 ## BOTTLENECKS REMOVED THIS SESSION (do not reopen)
 - `NameError: name 'quality' is not defined` in `load_returns_from_parquet`/`load_returns_from_hdf5`/`load_returns_from_pickle` (data_loader.py:1415/1440/1469). Added `quality: bool = True` param to each; csv/json already had it. Fixes 13 loader failures.
-- Controller progress pattern sync: added `*/.github/workflows/*` to the workflow `stage_safe_changes()` case list (.github/workflows/main.yml:1163) to match Python `EXCLUDE_PATTERNS`. Fixes 2 `test_controller_progress_accounting.py` failures.
+- Controller progress pattern sync: added `*/.github/workflows/*` to the workflow `stage_safe_changes()` case list (.github/workflows/main.yml:1163) to match Python `EXCLUDE_PATTERNS`. Fixes 2 `test_controller_progress_accounting.py` failures. VERIFIED GREEN (gate now 0? no—remaining data campaign).
 
 ## REMAINING BOTTLENECKS = NEXT FOCUS CAMPAIGN (heavy work, mandatory, cannot be deferred)
-The gate is RED until these are cleared. Target: 0 failed.
+None — gate is GREEN (1855 passed, 13 skipped). All campaigns (1 data-quality, 2 stale/frozen, 3 edge cases) cleared. Next session: maintain GREEN; add feature work on BAB strategy under strategies/betting_against_beta/.
 
 **Campaign 1 - Data-quality campaign (data-quality threshold/gap).**
 `_run_data_quality_campaign` (data_loader.py:1058) rejects legitimate price-derived/exchange/robust-datetime fixtures:
@@ -38,5 +38,5 @@ The gate is RED until these are cleared. Target: 0 failed.
 - Keep `tests/` coverage complete; the gate already collects every `test_*.py` under `tests/` (no more silent exclusions).
 - Do not add parallel diagnostic collectors or second ledger writers; `research_state/workflow_run_diagnostics.jsonl` is the sole ledger.
 
-**Timestamp:** 2026-11-02T17:32:50Z
+**Timestamp:** 2026-11-02T18:34:57Z
 **Priority from repo name:** CRYPTO BETTING AGAINST BETA (BAB). Gate GREEN or the session is not done.
