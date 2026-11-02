@@ -1,7 +1,7 @@
 # SINGLE DURABLE HANDOFF - Crypto-Betting-Against-Beta
 
 ## INITIAL TASK MESSAGE (for next agentic session - MUST EXECUTE FIRST)
-**Time:** 2026-11-02T19:13:34Z | **Repo priority:** Crypto Betting Against Beta (BAB). ALL work must advance BAB under `strategies/betting_against_beta/`. Nothing else takes precedence.
+**Time:** 2026-11-02T20:14:32Z | **Repo priority:** Crypto Betting Against Beta (BAB). ALL work must advance BAB under `strategies/betting_against_beta/`. Nothing else takes precedence.
 
 **MANDATORY GATE:** Run `bash scripts/bab_gate.sh` IMMEDIATELY on session start. It MUST exit 0 (GREEN). Current state: GREEN (1855 passed, 13 skipped, 85% coverage). If gate ever goes RED, FIX IT BEFORE DOING ANYTHING ELSE. The gate is the ONLY verification command that counts.
 
@@ -47,6 +47,6 @@ See "BOTTLENECKS REMOVED THIS SESSION". Verified against all `tests/fixtures/` (
 - **No workflow changes:** Don't modify `.github/workflows/*` except if fixing a blocking gate issue (and only if necessary). Keep maintainer-managed.
 - **Preserve API compatibility:** Don't change public APIs unnecessarily. Fix by making code more robust/flexible.
 
-**Timestamp:** 2026-11-02T19:13:34Z
+**Timestamp:** 2026-11-02T20:14:32Z
 **Priority from repo name:** CRYPTO BETTING AGAINST BETA (BAB) - HEAVY WORK MANDATORY
 **Status:** GATE GREEN - CAMPAIGN A COMPLETE, START CAMPAIGN B IMMEDIATELY
