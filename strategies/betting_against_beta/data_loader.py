@@ -33,7 +33,29 @@ def _normalize_index(df: pd.DataFrame) -> pd.DataFrame:
     """Coerce the index to a sorted DatetimeIndex, raising on unparseable rows."""
     if not isinstance(df.index, pd.DatetimeIndex):
         try:
-            df.index = pd.to_datetime(df.index, errors="raise")
+            # Try epoch handling first for numeric indexes
+            idx = df.index
+            # Check if numeric
+            try:
+                if pd.api.types.is_numeric_dtype(idx):
+                    # Heuristic: if values look like epoch
+                    sample = idx[0] if len(idx) > 0 else 0
+                    try:
+                        sv = float(sample)
+                        if sv > 1e12:  # ms
+                            df.index = pd.to_datetime(idx, unit='ms')
+                        elif sv > 1e9:  # seconds
+                            df.index = pd.to_datetime(idx, unit='s')
+                        elif sv > 1e6:  # smaller epoch
+                            df.index = pd.to_datetime(idx, unit='s')
+                        else:
+                            df.index = pd.to_datetime(idx, errors="raise")
+                    except Exception:
+                        df.index = pd.to_datetime(idx, errors="raise")
+                else:
+                    df.index = pd.to_datetime(idx, errors="raise")
+            except Exception:
+                df.index = pd.to_datetime(idx, errors="raise")
         except (ValueError, TypeError) as exc:
             raise BABDataError(
                 f"Index could not be parsed as datetime: {exc}"
@@ -202,6 +224,58 @@ def _detect_and_normalize_exchange_format(df: pd.DataFrame) -> pd.DataFrame:
             pivoted.index.name = None
             pivoted.columns = [str(c).strip() for c in pivoted.columns]
             return pivoted
+        except Exception:
+            pass
+    # OHLCV wide format for single asset (no symbol column) - use Close/Adj Close as price
+    if date_col is not None and symbol_col is None:
+        try:
+            # prefer adjusted close, then close
+            price_choice = None
+            for k in ['adj close', 'adj_close', 'adjusted close', 'close_price']:
+                if k in colmap:
+                    price_choice = colmap[k]
+                    break
+            if price_choice is None and 'close' in colmap:
+                price_choice = colmap['close']
+            elif price_choice is None and price_col in df.columns:
+                price_choice = price_col
+            if price_choice is not None:
+                try:
+                    tmp = df.copy()
+                    parsed_dates = tmp[date_col].apply(_coerce_to_datetime_scalar)
+                    parsed = []
+                    for pdv in parsed_dates:
+                        try:
+                            if hasattr(pdv, 'tzinfo') and pdv.tzinfo is not None:
+                                pdv = pdv.tz_convert('UTC').tz_localize(None)
+                            else:
+                                try:
+                                    pdt = pd.Timestamp(pdv)
+                                    if getattr(pdt, 'tzinfo', None) is not None:
+                                        pdt = pdt.tz_convert('UTC').tz_localize(None)
+                                    parsed.append(pdt)
+                                    continue
+                                except Exception:
+                                    pass
+                        except Exception:
+                            pass
+                        try:
+                            pdt = pd.to_datetime(pdv)
+                            if getattr(pdt, 'tz', None) is not None:
+                                pdt = pdt.tz_convert('UTC').tz_localize(None)
+                            parsed.append(pdt)
+                        except Exception:
+                            parsed.append(pdv)
+                    # If the Close column might be named as a symbol in some formats? Or just keep as Close
+                    # Try to infer symbol from common patterns - sometimes 'symbol' in filename not here; also check if other cols look like symbols
+                    tmp_out = tmp[[price_choice]].copy()
+                    tmp_out.index = parsed
+                    tmp_out.index.name = None
+                    tmp_out.columns = [str(c).strip() for c in tmp_out.columns]
+                    # Normalize column name case for common names
+                    return tmp_out
+                except Exception:
+                    pass
         except Exception:
             pass
 

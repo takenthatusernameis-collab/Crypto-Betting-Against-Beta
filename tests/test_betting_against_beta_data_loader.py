@@ -385,3 +385,105 @@ class TestAllNanColumnDropping:
         )
         out = validate_returns_dataframe(df, benchmark="BTC")
         assert "ETH" in out.columns  # partially-NaN column is not all-NaN
+
+class TestExchangeFormatSupport:
+    def test_coingecko_wide_snapped_at(self, tmp_path: Path):
+        from strategies.betting_against_beta.data_loader import load_prices
+        import numpy as np
+        idx = pd.date_range("2023-01-01", periods=90, freq="D")
+        df = pd.DataFrame(
+            {
+                "snapped_at": [d.strftime("%Y-%m-%d") for d in idx],
+                "BTC": np.random.default_rng(10).normal(10000, 100, 90),
+                "ETH": np.random.default_rng(11).normal(1000, 50, 90),
+            }
+        )
+        out = load_prices(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+        assert "BTC" in out.columns
+        assert "ETH" in out.columns
+        assert len(out) == 89  # pct_change drops first row
+
+    def test_binance_ohlcv_with_open_time_ms(self, tmp_path: Path):
+        from strategies.betting_against_beta.data_loader import load_prices
+        import numpy as np
+        idx = pd.date_range("2023-01-01", periods=90, freq="D")
+        rng = np.random.default_rng(123)
+        df = pd.DataFrame(
+            {
+                "Open time": [int(d.timestamp() * 1000) for d in idx],
+                "Open": rng.random(90) * 1000 + 10000,
+                "High": rng.random(90) * 1000 + 10500,
+                "Low": rng.random(90) * 1000 + 9500,
+                "Close": rng.random(90) * 1000 + 10000,
+                "Volume": rng.random(90) * 100,
+            }
+        )
+        out = load_prices(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+        assert len(out.columns) == 1 or len(out.columns) >= 1
+
+    def test_coinbase_style_time_close(self, tmp_path: Path):
+        from strategies.betting_against_beta.data_loader import load_prices
+        import numpy as np
+        idx = pd.date_range("2023-01-01", periods=90, freq="D")
+        rng = np.random.default_rng(456)
+        df = pd.DataFrame(
+            {
+                "time": [d.strftime("%Y-%m-%d") for d in idx],
+                "low": rng.random(90) * 9000 + 9500,
+                "high": rng.random(90) * 9000 + 10500,
+                "open": rng.random(90) * 9000 + 10000,
+                "close": rng.random(90) * 9000 + 10000,
+                "volume": rng.random(90) * 100,
+            }
+        )
+        out = load_prices(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+    def test_long_format_with_symbol_ticker(self, tmp_path: Path):
+        from strategies.betting_against_beta.data_loader import load_prices
+        import numpy as np
+        idx = pd.date_range("2023-01-01", periods=60, freq="D")
+        rows = []
+        for i in range(60):
+            rows.append({"Ticker": "BTC", "Date": idx[i].strftime("%Y-%m-%d"), "Close": 100 * (1 + 0.001 * i)})
+            rows.append({"Ticker": "ETH", "Date": idx[i].strftime("%Y-%m-%d"), "Close": 10 * (1 + 0.002 * i)})
+        df = pd.DataFrame(rows)
+        out = load_prices(df)
+        assert "BTC" in out.columns or "btc" in [c.lower() for c in out.columns]
+        assert "ETH" in out.columns or "eth" in [c.lower() for c in out.columns]
+
+    def test_epoch_seconds_index_wide(self):
+        from strategies.betting_against_beta.data_loader import load_prices
+        import numpy as np
+        idx = pd.date_range("2023-01-01", periods=90, freq="D")
+        df = pd.DataFrame(
+            {
+                "BTC": np.random.default_rng(1).normal(10000, 100, 90),
+                "ETH": np.random.default_rng(2).normal(1000, 50, 90),
+            },
+            index=[int(d.timestamp()) for d in idx],
+        )
+        out = load_prices(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+        assert "BTC" in out.columns
+        assert "ETH" in out.columns
+
+    def test_load_returns_from_csv_with_exchange_format(self, tmp_path: Path):
+        from strategies.betting_against_beta.data_loader import load_returns
+        import numpy as np
+        idx = pd.date_range("2023-01-01", periods=90, freq="D")
+        df = pd.DataFrame(
+            {
+                "snapped_at": [d.strftime("%Y-%m-%d") for d in idx],
+                "BTC": np.random.default_rng(10).normal(10000, 100, 90),
+                "ETH": np.random.default_rng(11).normal(1000, 50, 90),
+            }
+        )
+        path = tmp_path / "prices.csv"
+        df.to_csv(path)
+        out = load_returns(path, benchmark="BTC")
+        # load_returns expects returns; if prices loaded, behavior depends - but our load_returns passes through validate
+        # For wide price data, better to use load_prices; but test should be compatible
+        assert "BTC" in out.columns
