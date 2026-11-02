@@ -1,10 +1,10 @@
 # HANDOFF - Crypto-Betting-Against-Beta
 
 **Created:** 2026-11-02T01:14:12Z
-**Last updated:** 2026-11-02T01:49:10Z
+**Last updated:** 2026-11-02T02:57:35Z
 **Inferred priority from repo name:** Crypto Betting Against Beta (BAB) - market-neutral (long low-beta, short high-beta vs benchmark). ALL WORK MUST ADVANCE BAB.
 **Session Mode:** Repo-prioritized, bottleneck-removal enforced. Heavy campaign required.
-**Status:** BASELINE GREEN (1792 passed, 13 skipped). Bottlenecks removed. Ready for forced heavy execution.
+**Status:** BASELINE GREEN (1792 passed, 13 skipped). Bottleneck removed: added `*/.github/workflows/*` nested variant to `.github/workflows/main.yml` `stage_safe_changes()` so Python `EXCLUDE_PATTERNS` and workflow stay in lock-step; all controller pattern-sync tests pass. Ready for forced heavy execution.
 
 ## Project Priority (Crypto Betting Against Beta)
 Focus exclusively on **Betting Against Beta for crypto**: universe selection, benchmark (default BTC), rolling beta vs benchmark, rank by beta -> long lowest-beta quantile / short highest-beta quantile (default 30/30), dollar-neutral equal-weight, one-day lagged weights, transaction costs. Do not drift to unrelated infra. Only touch workflows/configs if strictly necessary to unblock BAB and must not break pattern-sync.
