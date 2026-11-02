@@ -1,7 +1,7 @@
 # SINGLE DURABLE HANDOFF - Crypto-Betting-Against-Beta
 
 ## INITIAL TASK MESSAGE (for next agentic session - MUST EXECUTE FIRST)
-**Time:** 2026-11-02T20:29:36Z | **Repo priority:** Crypto Betting Against Beta (BAB). ALL work must advance BAB under `strategies/betting_against_beta/`. Nothing else takes precedence.
+**Time:** 2026-11-02T20:49:58Z | **Repo priority:** Crypto Betting Against Beta (BAB). ALL work must advance BAB under `strategies/betting_against_beta/`. Nothing else takes precedence.
 
 **MANDATORY GATE:** Run `bash scripts/bab_gate.sh` IMMEDIATELY on session start. It MUST exit 0 (GREEN). If gate ever goes RED, FIX IT BEFORE DOING ANYTHING ELSE. The gate is the ONLY verification command that counts. It runs ALL `tests/test_*.py` with coverage on `strategies/betting_against_beta/`.
 
@@ -58,6 +58,6 @@
 - **Lookahead is forbidden:** Weights must be lagged by 1 day. No future information leakage.
 - **Finiteness required:** Outputs must be finite where possible; NaN/inf must be handled explicitly, never produce corrupt results.
 
-**Timestamp:** 2026-11-02T20:29:36Z
+**Timestamp:** 2026-11-02T20:49:58Z
 **Priority from repo name:** CRYPTO BETTING AGAINST BETA (BAB) - HEAVY WORK MANDATORY
 **Status:** GATE GREEN - CAMPAIGN A COMPLETE, CAMPAIGN B ACTIVE (STRATEGY/BACKTEST DEPTH) - CONTINUE HEAVY WORK NOW
