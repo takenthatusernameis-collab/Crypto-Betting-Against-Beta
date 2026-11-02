@@ -1,6 +1,6 @@
 # SINGLE DURABLE HANDOFF - Crypto-Betting-Against-Beta
 
-**Timestamp:** 2026-11-02T10:37:34Z
+**Timestamp:** 2026-11-02T10:39:45Z
 **Priority from repo name:** CRYPTO BETTING AGAINST BETA (BAB) - Market-neutral long low-beta / short high-beta vs benchmark. ALL WORK MUST DIRECTLY ADVANCE BAB.
 **Session Mode:** Repo-prioritized, bottleneck-removal enforced. Heavy campaign MANDATORY.
 **Status:** GATE 0 GREEN - Core BAB tests pass (142 passed, 6 skipped). BABStrategy cumulative == 0.31664543005633267. Exchange-format loader support added; normalization/datetime hardening in progress.
