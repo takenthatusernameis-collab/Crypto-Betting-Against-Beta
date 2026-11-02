@@ -1,7 +1,7 @@
 # SINGLE DURABLE HANDOFF - Crypto-Betting-Against-Beta
 
 ## INITIAL TASK MESSAGE (for next agentic session)
-**Time:** 2026-11-02T17:29:30Z | **Repo priority:** Crypto Betting Against Beta (BAB). All work must advance BAB. Nothing else takes precedence.
+**Time:** 2026-11-02T17:31:13Z | **Repo priority:** Crypto Betting Against Beta (BAB). All work must advance BAB. Nothing else takes precedence.
 **Gate 0 baseline:** RED (16 failed, 1839 passed, 13 skipped). `python3 scripts/bab_gate.sh` is the ONLY verification command; it must exit 0 (GREEN) before any session is considered done.
 
 ## BOTTLENECKS REMOVED THIS SESSION (do not reopen)
@@ -38,5 +38,5 @@ The gate is RED until these are cleared. Target: 0 failed.
 - Keep `tests/` coverage complete; the gate already collects every `test_*.py` under `tests/` (no more silent exclusions).
 - Do not add parallel diagnostic collectors or second ledger writers; `research_state/workflow_run_diagnostics.jsonl` is the sole ledger.
 
-**Timestamp:** 2026-11-02T17:29:30Z
+**Timestamp:** 2026-11-02T17:31:13Z
 **Priority from repo name:** CRYPTO BETTING AGAINST BETA (BAB). Gate GREEN or the session is not done.
