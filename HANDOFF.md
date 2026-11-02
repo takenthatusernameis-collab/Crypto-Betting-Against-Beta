@@ -1,16 +1,16 @@
 # SINGLE DURABLE HANDOFF - Crypto-Betting-Against-Beta
 
 ## INITIAL TASK MESSAGE (for next agentic session - MUST EXECUTE FIRST)
-**Time:** 2026-11-02T21:49:46Z | **Repo priority:** Crypto Betting Against Beta (BAB). ALL work must advance BAB under `strategies/betting_against_beta/`. Nothing else takes precedence.
+**Time:** 2026-11-02T22:00:59Z | **Repo priority:** Crypto Betting Against Beta (BAB). ALL work must advance BAB under `strategies/betting_against_beta/`. Nothing else takes precedence.
 
 **MANDATORY GATE:** Run `bash scripts/bab_gate.sh` IMMEDIATELY on session start. It MUST exit 0 (GREEN). If gate ever goes RED, FIX IT BEFORE DOING ANYTHING ELSE. The gate is the ONLY verification command that counts. It runs ALL `tests/test_*.py` with coverage on `strategies/betting_against_beta/`.
 
 ## BOTTLENECKS REMOVED THIS SESSION (do not reopen)
-- **Workflow pattern sync (CRITICAL - FIXED FOR REAL):** `.github/workflows/main.yml` `stage_safe_changes()` case list was missing the nested variant `*/.github/workflows/*` (present in Python `scripts/controller_progress.py:28 EXCLUDE_PATTERNS`). Added it at main.yml:1163 alongside `.github/workflows/*`. Verified gate GREEN (1855 passed, 13 skipped). This had caused `TestStageSafeChangesPatternSync` to fail and the gate to go RED; do not let drift recur.
+- **Workflow pattern sync (CRITICAL - FIXED FOR REAL):** `.github/workflows/main.yml` `stage_safe_changes()` case list was missing the nested variant `*/.github/workflows/*` (present in Python `scripts/controller_progress.py:28 EXCLUDE_PATTERNS`). Added it at main.yml:1163 alongside `.github/workflows/*`. Verified gate GREEN. This had caused `TestStageSafeChangesPatternSync` to fail and the gate to go RED; do not let drift recur.
 - **Campaign A - Real data robustness (COMPLETED):** Rewrote `strategies/betting_against_beta/data_loader.py` coercion into a single shared `_strip_units_and_parse()` helper used by both `_coerce_numeric()` and pre/post junk-column filters. Handles currency symbols (`$`,`€`,`£`,`¥`), unit tokens (`USDT`,`USDC`,...) via word-boundary regex (doesn't strip "USD" from "USDT"), European decimal commas, thousand separators, percentages (`"1.5%" -> 0.015`), malformed numerics -> NaN, pure garbage -> raises. Added `standardize_columns()`, `clean_data()`, `validate_prices()`. Extended `load_prices()`/`detect_price_or_returns()` to Parquet/HDF5/Pickle. Relaxed `load_prices` min_rows accounting for pct_change row drop. Hardened against all fixtures in `tests/fixtures/`.
 
 ## CURRENT STATE
-- Gate: GREEN (1855 passed, 13 skipped, 87% coverage) - verified 2026-11-02T21:49:46Z after fixing workflow pattern sync bottleneck (main.yml:1163 added `*/.github/workflows/*` to match `controller_progress.py:28 EXCLUDE_PATTERNS`).
+- Gate: GREEN (1855 passed, 13 skipped, 87% coverage) - verified 2026-11-02T22:00:59Z after fixing workflow pattern sync bottleneck (main.yml:1163 added `*/.github/workflows/*` to match `controller_progress.py:28 EXCLUDE_PATTERNS`).
 - Campaign A: COMPLETE
 - Campaign B: ACTIVE - Strategy/backtest depth hardening (PRIORITY 2 - HEAVY WORK IN PROGRESS)
 - Campaign C: QUEUED - CLI/reporting integration (PRIORITY 3)
