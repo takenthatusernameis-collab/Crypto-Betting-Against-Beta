@@ -404,41 +404,130 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+def _normalize_asset_name(name: str) -> str:
+    """Normalize asset/symbol names by stripping units/suffixes/punctuation."""
+    try:
+        s = str(name).strip()
+        # Remove content in parentheses
+        import re
+        s_orig = s
+        s = re.sub(r'\([^)]*\)', ' ', s)
+        s = re.sub(r'\[[^\]]*\]', ' ', s)
+        # Handle slash pairs like BTC/USD or BTCUSDT
+        if '/' in s:
+            # Take base before slash
+            base = s.split('/')[0].strip()
+            return _normalize_asset_name(base)
+        # Handle concatenated pairs like BTCUSDT, ETHUSD (common)
+        for quote in ['USDT', 'USDC', 'BUSD', 'USD', 'EUR']:
+            if s.upper().endswith(quote) and len(s.upper()) > len(quote) + 1:
+                cand = s[: -(len(quote))].strip()
+                # Only if looks like symbol
+                if cand:
+                    return _normalize_asset_name(cand)
+        # Replace separators with spaces
+        s = s.replace('-', ' ').replace('_', ' ').replace('.', ' ')
+        # Remove currency/unit tokens
+        tokens = []
+        for tok in s.split():
+            tok_clean = tok.strip()
+            if not tok_clean:
+                continue
+            tl = tok_clean.lower()
+            if tl in {'usd', 'usdt', 'usdc', 'busd', 'eur', 'gbp', 'dollar', 'price'}:
+                continue
+            tokens.append(tok_clean)
+        s2 = ' '.join(tokens).strip()
+        if not s2:
+            s2 = s_orig.strip()
+        su = s2.upper()
+        # Common mappings
+        if su in {'BITCOIN'}:
+            su = 'BTC'
+        elif su in {'ETHEREUM'}:
+            su = 'ETH'
+        elif su in {'SOLANA'}:
+            su = 'SOL'
+        elif su in {'BINANCECOIN', 'BNB'}:
+            su = 'BNB'
+        elif su in {'RIPPLE'}:
+            su = 'XRP'
+        elif su in {'CARDANO'}:
+            su = 'ADA'
+        elif su in {'AVALANCHE'}:
+            su = 'AVAX'
+        elif su in {'POLKADOT'}:
+            su = 'DOT'
+        # If it's a single token that's all caps short form, keep as-is (common crypto symbols)
+        # Otherwise return as-is uppercased
+        return su
+    except Exception:
+        return str(name).strip().upper()
+
+
 def _normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
     """Coerce columns to strings and strip whitespace; raise on duplicates."""
     df = df.copy()
     new_cols = []
     for c in df.columns:
         nc = str(c).strip()
-        cl = nc.lower()
+        cl = nc.lower().replace("\t", " ").replace("\n", " ").replace("\r", " ")
+        # Remove extra whitespace
+        cl = " ".join(cl.split())
         # Normalize common variations
-        if cl in {"adj close", "adj_close", "adjusted close", "adjusted_close"}:
+        if cl in {"adj close", "adj_close", "adjusted close", "adjusted_close", "adjclose"}:
             new_cols.append("Adj Close")
             continue
-        if cl in {"close", "close price", "closing price", "last"}:
+        if cl in {"close", "close price", "closing price", "last", "last price", "close price usd"}:
             new_cols.append("Close")
             continue
-        if cl in {"open", "open price"}:
+        if cl in {"open", "open price", "opening price"}:
             new_cols.append("Open")
             continue
-        if cl in {"high", "high price"}:
+        if cl in {"high", "high price", "day high"}:
             new_cols.append("High")
             continue
-        if cl in {"low", "low price"}:
+        if cl in {"low", "low price", "day low"}:
             new_cols.append("Low")
             continue
-        if cl in {"volume", "vol", "base volume", "quote volume", "trading volume"}:
+        if cl in {"volume", "vol", "base volume", "quote volume", "trading volume", "vol usd", "volume usd", "volume(btc)", "volume(usd)"}:
             new_cols.append("Volume")
             continue
-        if cl in {"date", "datetime", "time", "timestamp", "open time", "opentime", "close time", "closetime", "candle_begin_time", "snapped_at", "snapped at"}:
-            new_cols.append(nc)  # keep normalized form
+        if cl in {"date", "datetime", "time", "timestamp", "open time", "opentime", "close time", "closetime", "candle_begin_time", "candle begintime", "snapped_at", "snapped at", "date utc", "date(utc)", "utc date", "datetimeutc"}:
+            new_cols.append(nc.strip())  # keep normalized form
             continue
-        if cl in {"symbol", "ticker", "pair", "market", "asset", "coin", "currency", "contract"}:
+        if cl in {"symbol", "ticker", "pair", "market", "asset", "coin", "currency", "contract", "instrument", "tradingpair", "symbol name", "cryptocurrency"}:
             new_cols.append("symbol")
             continue
-        new_cols.append(nc)
+        if cl in {"price", "market price"} and "adj" not in cl and "close" not in cl:
+            new_cols.append("Close")  # treat generic price as close for compatibility
+            continue
+        # Try to normalize asset names (remove units/suffixes)
+        normed = _normalize_asset_name(nc)
+        # Only apply aggressive normalization if it looks like an asset column (not date/index names)
+        if normed and normed.lower() not in {'date', 'datetime', 'time', 'timestamp', 'adj close', 'open', 'high', 'low', 'close', 'volume'}:
+            cl_norm = normed.lower()
+            if cl_norm in {'date', 'datetime', 'time', 'timestamp'}:
+                new_cols.append(nc.strip())
+                continue
+            # If original had common pairing indicators or long descriptive names
+            if '/' in nc or '(' in nc or ')' in nc or '[' in nc or any(x in cl for x in ['price', 'usd', 'usdt']):
+                new_cols.append(normed)
+                continue
+            # Also normalize short asset symbols to uppercase if they look like crypto symbols
+            if len(normed) <= 6 and normed.replace('-', '').replace('_', '').isalnum() and not normed.lower() in {'open','high','low','close','volume'}:
+                new_cols.append(normed.upper())
+                continue
+        new_cols.append(nc.strip())
     df.columns = new_cols
-    dupes = df.columns[df.columns.duplicated()].tolist()
+    # Check for duplicates (case-insensitive after our normalization where possible)
+    dupes = []
+    seen = set()
+    for c in df.columns:
+        cl = str(c).strip().lower()
+        if cl in seen:
+            dupes.append(c)
+        seen.add(cl)
     if dupes:
         raise BABDataError(f"Duplicate column names after normalization: {sorted(set(dupes))}")
     return df
@@ -484,7 +573,7 @@ def _coerce_numeric(df: pd.DataFrame) -> pd.DataFrame:
             raise
         except (ValueError, TypeError):
             pass
-        # Second pass: coerce with to_numeric to catch things like commas, but fail loudly if unparseable
+        # Second pass: coerce with to_numeric to catch things like commas, units, etc
         if not isinstance(df, pd.DataFrame):
             raise BABDataError(f"Expected DataFrame, got {type(df).__name__}")
         df_clean = df.copy()
@@ -498,25 +587,36 @@ def _coerce_numeric(df: pd.DataFrame) -> pd.DataFrame:
                         cleaned = x.strip()
                         # Check for explicit NA markers
                         lower = cleaned.lower()
-                        if lower in {'na', 'n/a', 'nan', 'none', 'null', '#n/a', '#na', 'missing'}:
+                        if lower in {'na', 'n/a', 'nan', 'none', 'null', '#n/a', '#na', 'missing', '--', '-'}:
                             return np.nan
+                        # Handle units like $1000, 1000 USD, 1000 BTC etc - remove common units
+                        # Remove currency symbols
+                        cleaned = cleaned.replace('$', '').replace('€', '').replace('£', '').replace('¥', '')
+                        cleaned = cleaned.replace('USD', '').replace('USDT', '').replace('BTC', '').replace('ETH', '')
+                        cleaned = cleaned.replace('usd', '').replace('usdt', '').replace('btc', '').replace('eth', '')
+                        cleaned = cleaned.strip()
                         # Handle cases like "1,000.50"
                         if ',' in cleaned and '.' in cleaned:
+                            # Assume comma is thousand sep if period is decimal
                             cleaned = cleaned.replace(',', '')
-                        elif ',' in cleaned and cleaned.count(',') == 1 and len(cleaned.split(',')[-1]) <= 3:
-                            # Could be decimal or thousand sep - if ends with 2-3 digits maybe decimal in some locales? But less common for returns
-                            # Try decimal comma first if it's European style - but safer to also try removing if it causes issues?
-                            # Default: remove commas (thousand sep)
-                            cleaned = cleaned.replace(',', '')
+                        elif ',' in cleaned and cleaned.count(',') == 1:
+                            # Could be decimal comma (European) vs thousand sep
+                            # Try to be smart - if after comma there are 2 digits maybe decimal
+                            parts = cleaned.split(',')
+                            if len(parts[-1]) <= 2 and len(parts) == 2:  # likely decimal
+                                cleaned = cleaned.replace(',', '.')
+                            else:
+                                cleaned = cleaned.replace(',', '')
                         elif ',' in cleaned:
                             cleaned = cleaned.replace(',', '')
-                        # Handle percent signs: "1.5%" -> 0.015, "150%" -> 1.5
+                        # Handle percent signs: "1.5%" -> 0.015
                         if cleaned.endswith('%'):
                             try:
                                 num = float(cleaned[:-1].strip()) / 100.0
                                 return num
                             except (ValueError, TypeError):
                                 return np.nan
+                        # Handle basis points if needed
                         return cleaned
                     return x
                 try:
@@ -1062,7 +1162,63 @@ def iter_assets(df: pd.DataFrame, benchmark: str | None = None) -> Iterable[str]
             continue
         yield name
 
+
+def normalize_schema(
+    df: pd.DataFrame,
+    benchmark: str | None = None,
+) -> pd.DataFrame:
+    """Normalize mixed schemas into canonical form.
+
+    Strips whitespace, normalizes column names, promotes datetime columns to index,
+    and coerces numeric values where possible. This is a defensive utility for
+    multi-source data normalization.
+    """
+    if df is None:
+        raise BABDataError("Returns DataFrame is None")
+    if not isinstance(df, pd.DataFrame):
+        raise BABDataError(f"Expected pandas DataFrame, got {type(df).__name__}")
+    if df.empty:
+        raise BABDataError("Returns DataFrame is empty")
+
+    cleaned = df.copy()
+    # Try exchange format normalization first
+    try:
+        cleaned = _detect_and_normalize_exchange_format(cleaned)
+    except Exception:
+        pass
+    cleaned = _promote_datetime_column(cleaned)
+    cleaned = _normalize_columns(cleaned)
+    try:
+        cleaned = _normalize_index(cleaned)
+    except Exception:
+        raise
+    cleaned = _coerce_numeric(cleaned)
+    cleaned = _drop_all_nan_columns(cleaned)
+    return cleaned
+
+
 # Alias for convenience
 load_returns_from_prices = load_prices
 load_price_data = load_prices
 detect_source_type = detect_price_or_returns
+
+
+__all__ = [
+    "BABDataError",
+    "load_returns",
+    "load_prices",
+    "load_returns_from_csv",
+    "load_returns_from_json",
+    "load_returns_from_parquet",
+    "load_returns_from_hdf5",
+    "load_returns_from_pickle",
+    "load_returns_from_dataframe",
+    "load_returns_from_prices",
+    "load_price_data",
+    "validate_returns_dataframe",
+    "normalize_schema",
+    "detect_price_or_returns",
+    "detect_source_type",
+    "list_columns",
+    "iter_assets",
+]
