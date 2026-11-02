@@ -1,74 +1,102 @@
 # HANDOFF - Crypto-Betting-Against-Beta
 
-**Created:** 2026-11-02T00:15:00Z
-**Session:** Pattern-sync bottleneck ACTUALLY REMOVED (added `*/.github/workflows/*` to `.github/workflows/main.yml` `stage_safe_changes()` and to the `checkpoint_has_project_changes` case list to stay in lock-step with `scripts/controller_progress.py:EXCLUDE_PATTERNS`).
-**Status:** ALL TESTS PASSING (1792 passed, 13 skipped). Baseline verified green with `python -m pytest -q`.
+**Created:** 2026-11-02T00:16:12Z
+**Session:** Campaign kickoff - enforce BAB-first heavy work (Data Pipeline Hardening is the blocking gate)
+**Status:** ALL TESTS PASSING (1792 passed, 13 skipped). Baseline verified green.
 
 ## Project Priority (Crypto Betting Against Beta)
-Repository focus: **Crypto Betting Against Beta (BAB)** - market-neutral strategy going long low-beta crypto, short high-beta crypto vs benchmark (default BTC). Prioritize work that advances the BAB strategy implementation, data/robustness, performance, and test coverage of campaign-heavy paths. Do not drift to unrelated work.
+Repository focus: **Crypto Betting Against Beta (BAB)** - market-neutral strategy going long low-beta crypto, short high-beta crypto vs benchmark (default BTC). All work must advance the BAB strategy (data, beta, signals/portfolio/backtest, integration, tests). Do not drift to unrelated infra unless it directly unblocks BAB.
 
 ## Bottlenecks Removed (this session)
-- **Pattern sync fixed for real**: `*/.github/workflows/*` added to the workflow bash `stage_safe_changes()` exclusion list (main.yml:1163) and to the `checkpoint_has_project_changes` case list (main.yml:1240), matching `scripts/controller_progress.py:EXCLUDE_PATTERNS`. All 68 `test_controller_progress_accounting.py` tests green. Full suite: 1792 passed, 13 skipped.
+- **Pattern sync enforced:** `*/.github/workflows/*` remains in sync between `.github/workflows/main.yml` (`stage_safe_changes()` and `checkpoint_has_project_changes`) and `scripts/controller_progress.py:EXCLUDE_PATTERNS`. Controller progress accounting remains green.
 
-## NEXT SESSION - CLEAR INITIAL TASK (do this FIRST)
-Run the quick-start verification to re-confirm the green baseline before any campaign work:
+## CLEAR INITIAL TASK FOR NEXT AGENT (DO THIS FIRST - NO EXCEPTIONS)
+Do not start any other campaign until the baseline is re-confirmed. Run these commands and only proceed if both succeed:
 
 ```bash
 cd /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
-python -m pytest -q  # expect 1792 passed, 13 skipped
-python3 -c "from strategies.betting_against_beta import BABStrategy; s=BABStrategy(); r=s.run(); print(float(r.backtest['cumulative'].iloc[-1]))"
+python -m pytest -q  # MUST be 1792 passed, 13 skipped
+python3 -c "from strategies.betting_against_beta import BABStrategy; s=BABStrategy(); r=s.run(); print(float(r.backtest['cumulative'].iloc[-1]))"  # MUST produce a float
 ```
 
-If green, proceed to **Campaign 1: Data Pipeline Hardening** below. Do not skip the baseline check.
+If anything deviates from the expected baseline, **fix the regression before touching any campaign below**. The baseline is a hard gate.
 
-## HEAVY FOCUS CAMPAIGN (do not avoid this work)
-Execute these in order - each item is concrete and verifiable.
+## MANDATORY HEAVY FOCUS CAMPAIGN (Do not avoid - complete in order)
+Each campaign has a **MANDATORY GATE**. You cannot move to the next campaign until the gate's verification command passes. If a gate fails, you must fix it within that campaign - no skipping.
 
-### Campaign 1: Data Pipeline Hardening (Critical for real data)
-- [ ] **Audit data loaders**: Review `strategies/betting_against_beta/data_loader.py` and `data_sources.py` end-to-end. Fix any edge cases around CSV/JSON/parquet/HDF5/pickle with proper errors.
-- [ ] **Validation**: Ensure datetime normalization, numeric coercion, duplicate column/index handling, min history enforcement. Leverage existing campaign tests as spec.
-- [ ] **Real data path**: Add/verify a simple example script to load real prices (document expected schema). Keep synthetic defaults intact.
+### Campaign 1: Data Pipeline Hardening (BLOCKING GATE - Highest Priority)
+**Goal:** Make the data path robust for real prices while keeping synthetic defaults intact. This is the bottleneck that will block real-data runs and is the most impactful next step for BAB.
 
-**Verify:** `python -m pytest tests/test_bab_data_loader*.py -v`
+- [ ] **Audit loaders:** Review `strategies/betting_against_beta/data_loader.py` and `strategies/betting_against_beta/data_sources.py` end-to-end. Fix edge cases (CSV/JSON/parquet/HDF5/pickle), enforce clear errors, and avoid silent corruption.
+- [ ] **Validation:** Ensure datetime normalization, numeric coercion, duplicate column/index handling, index alignment across assets/benchmark, and min-history enforcement. Match behavior to existing campaign specs.
+- [ ] **Real data contract:** Define/document expected schema (columns, index tz/naive, asset symbols) and add a minimal, concrete example script (e.g. `scripts/load_real_bab_example.py` or equivalent) showing how to swap `returns_df` into `BABStrategy.run()`. Do **not** remove synthetic defaults.
+- [ ] **Defensive I/O:** Add/strengthen guards for missing files, empty frames, all-NaN columns, and insufficient observations per asset/benchmark.
 
-### Campaign 2: Beta Calculation Robustness & Performance
-- [ ] **Rolling beta edge cases**: Stress `beta.py` (NaN/inf/object arrays/mismatched lengths). Ensure `calculate_rolling_beta` and `calculate_beta` behave deterministically; add guards without changing public API.
-- [ ] **Perf profiling**: Run `python scripts/perf_bench.py` and identify hotspots in rolling windows. Consider vectorization where safe (pandas/numpy). Don't break existing tests.
-- [ ] **Campaign coverage**: Ensure heavy beta campaign tests all pass and add minimal fixes only if gaps found.
-
-**Verify:** `python -m pytest tests/test_bab_beta_campaign*.py -v`
-
-### Campaign 3: Signals/Portfolio/Backtest Correctness
-- [ ] **No-lookahead**: Verify weights are lagged by 1 day in backtest; transaction costs applied correctly; dollar-neutral long/short.
-- [ ] **Quantile stability**: Test tie-breaking/ranking behavior for small universes and edge cases.
-- [ ] **Cumulative/math**: Check for division by zero, inf/nan propagation. Strategy should return sensible objects on bad inputs.
-
-**Verify:** `python -m pytest tests/test_betting_against_beta*.py -v`
-
-### Campaign 4: Strategy Integration & CLI
-- [ ] **End-to-end**: Test `BABStrategy.run()` with custom configs, empty/short data, benchmark variations.
-- [ ] **CLI**: If `strategies/betting_against_beta/cli.py` exists, make it usable (argparse, config loading). Add help/examples. If missing but useful, add minimal CLI without overengineering.
-- [ ] **Docs**: Update README with concrete examples (custom universe/benchmark, real data swap, costs).
-
-**Verify:** `python -c "from strategies.betting_against_beta import BABStrategy; s=BABStrategy(); r=s.run(); print(r.backtest['cumulative'].iloc[-1])"`
-
-### Campaign 5: Test Suite Hygiene (Large Suite Management)
-- [ ] **Full green**: Maintain `python -m pytest -q` green. Targeted runs for debugging.
-- [ ] **Flakiness**: Watch for any non-determinism (random seeds). Fix if found.
-- [ ] **Perf**: Note slow tests from summary; optimize only if clearly bottlenecking without changing behavior.
-
-**Verify:** `python -m pytest -q`
-
-## Quick Start (MUST DO FIRST)
+**MANDATORY GATE 1 (must pass):**
 ```bash
-cd /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
-python -m pytest -q  # expect 1792 passed, 13 skipped
+python -m pytest tests/test_bab_data_loader*.py -v
+```
+All data loader tests must pass. If none exist but the campaign surfaces gaps, add minimal tests only where necessary to lock behavior (without deleting existing tests).
+
+### Campaign 2: Beta Calculation Robustness & Performance (GATE)
+**Goal:** Hardening rolling OLS against real messy data and removing avoidable perf bottlenecks without changing public API.
+
+- [ ] **Edge cases:** Stress `strategies/betting_against_beta/beta.py` (NaN/inf/object arrays, mismatched lengths, insufficient windows). Ensure `calculate_beta` and `calculate_rolling_beta` are deterministic and return sane values (flat/zero-weight safe) on bad inputs.
+- [ ] **Numerics:** Guard against division by zero, degenerate variance/covariance, and dtype issues. Do not change function signatures.
+- [ ] **Perf:** Run `python scripts/perf_bench.py` and identify concrete hotspots in rolling windows. Prefer vectorization (pandas/numpy) where safe. Benchmark before/after and only optimize if it doesn't change behavior.
+- [ ] **Coverage:** Ensure all beta campaign tests pass and fix any discovered gaps with minimal, targeted changes.
+
+**MANDATORY GATE 2 (must pass):**
+```bash
+python -m pytest tests/test_bab_beta_campaign*.py -v
+```
+
+### Campaign 3: Signals/Portfolio/Backtest Correctness (GATE)
+**Goal:** Lock in no-lookahead, correct ranking/weighting, and numeric stability under stress.
+
+- [ ] **No-lookahead:** Verify weights are lagged by 1 day in `backtest.py`; transaction costs applied to turnover correctly; portfolio remains dollar-neutral (long/short weights sum to ~0).
+- [ ] **Ranking/ties:** Test quantile stability, tie-breaking, and behavior for small universes (edge counts). Ensure lowest-beta quantile long, highest-beta short per config.
+- [ ] **Numerics:** Audit for division by zero, inf/nan propagation, NaN/insufficient history producing flat (zero-weight) periods as intended.
+- [ ] **Integration:** Spot check `signals.py` + `portfolio.py` + `backtest.py` against existing `tests/test_betting_against_beta.py` expectations.
+
+**MANDATORY GATE 3 (must pass):**
+```bash
+python -m pytest tests/test_betting_against_beta*.py -v
+```
+
+### Campaign 4: Strategy Integration, CLI & Docs (GATE)
+**Goal:** Make BAB usable end-to-end with custom configs and real data, and document the real-data swap clearly.
+
+- [ ] **End-to-end:** Test `BABStrategy.run()` with custom configs, empty/short data, benchmark variations, and transaction costs. Ensure it returns sensible objects and doesn't crash on edge cases.
+- [ ] **CLI:** If `strategies/betting_against_beta/cli.py` exists, make it usable (argparse, config loading, help/examples). If missing but useful for running campaigns/experiments, add a minimal CLI without overengineering.
+- [ ] **Docs:** Update `README.md` with concrete examples (custom universe/benchmark, real data swap using the contract from Campaign 1, transaction costs). Keep it short and actionable.
+- [ ] **Smoke test:** Verify the quick-start example still works with default config.
+
+**MANDATORY GATE 4 (must pass):**
+```bash
+python -c "from strategies.betting_against_beta import BABStrategy; s=BABStrategy(); r=s.run(); print(float(r.backtest['cumulative'].iloc[-1]))"
+```
+
+### Campaign 5: Full Suite Hygiene & Flake Scan (FINAL GATE - DO NOT SKIP)
+**Goal:** Restore/maintain full green and eliminate any introduced flakiness.
+
+- [ ] **Full suite:** Run full pytest and fix any regressions introduced by campaigns 1-4. Do not weaken assertions.
+- [ ] **Flakiness:** Scan for non-determinism (random seeds). If found, seed or fix.
+- [ ] **Perf awareness:** Note slow tests from summary; only optimize if clearly bottlenecking and behavior-preserving.
+- [ ] **Final verification:** Confirm strategy quick-start still works.
+
+**MANDATORY GATE 5 (must pass):**
+```bash
+python -m pytest -q  # MUST be 1792 passed, 13 skipped
 python3 -c "from strategies.betting_against_beta import BABStrategy; s=BABStrategy(); r=s.run(); print(float(r.backtest['cumulative'].iloc[-1]))"
 ```
 
-## Rules for Next Agent
-- **MAINTAIN GREEN**: Never break existing passing tests. All 1792 must stay passing.
-- **PROJECT-FIRST**: Prioritize BAB strategy work over unrelated changes.
-- **HEAVY WORK**: Do the campaigns above - don't stop at trivial fixes.
-- **NO WORKFLOW CHANGES** unless absolutely necessary and pattern-sync tests still pass.
-- **CONCRETE DELIVERABLES**: Each campaign item should be completed with verification.
+## Rules for Next Agent (STRICT)
+- **BASELINE FIRST:** Gate 0 (initial task) is mandatory. Never skip it.
+- **GATE ENFORCEMENT:** Complete gates in order. Do not move to next campaign until current gate passes.
+- **MAINTAIN GREEN:** All 1792 passing, 13 skipped must remain. Never break existing passing tests.
+- **PROJECT-FIRST:** Prioritize BAB strategy work above all else.
+- **HEAVY WORK REQUIRED:** Do the full campaign sequence above. Trivial one-line fixes alone are not sufficient.
+- **NO UNNECESSARY WORKFLOW CHANGES:** Only change `.github/workflows/*` if absolutely required to unblock BAB and pattern-sync tests still pass.
+- **CONCRETE DELIVERABLES:** Each campaign item must be completed with evidence (gate output). Document what changed and why.
+- **DEFENSIVE CHANGES:** Keep synthetic defaults intact. Preserve public APIs unless there's no other way and all affected tests are updated with justification.
