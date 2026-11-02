@@ -1,5 +1,5 @@
 # SINGLE DURABLE HANDOFF - Crypto-Betting-Against-Beta
-**Timestamp:** 2026-11-02T12:46:23Z (Gate 0 verified green: 155 passed, 6 skipped; BABStrategy cumulative == 0.31664543005633267)
+**Timestamp:** 2026-11-02T13:23:56Z (Gate currently RED: 13 failures; remove bottlenecks then advance Campaign 7 Item 4 data quality)
 **Priority from repo name:** CRYPTO BETTING AGAINST BETA (BAB) - Market-neutral long low-beta / short high-beta vs benchmark. ALL WORK MUST DIRECTLY ADVANCE BAB.
 **Session Mode:** Repo-prioritized, bottleneck-removal enforced. Heavy campaign MANDATORY.
 **Status:** GATE 0 GREEN - Core BAB tests pass (155 passed in Gate 0 suites). BABStrategy cumulative == 0.31664543005633267. ITEM 3 (Robust datetime parsing) COMPLETED - hardened `_promote_datetime_column` and `_normalize_index` for epoch seconds/ms/μs, mixed timezones/offsets (Z, +00:00, -07:00), elementwise coercion, normalization to naive UTC; added comprehensive datetime tests (all passing). Bottlenecks removed.
