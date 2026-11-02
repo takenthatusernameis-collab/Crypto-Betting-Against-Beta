@@ -54,20 +54,29 @@ def _normalize_index(df: pd.DataFrame) -> pd.DataFrame:
                         df.index = pd.to_datetime(idx, errors="raise")
                 else:
                     # Try to be robust with mixed timezones/strings
+                    # First, try coerce with utc
                     try:
-                        df.index = pd.to_datetime(idx, utc=True, errors="raise")
+                        # pandas is picky; try
+                        df.index = pd.to_datetime(idx, utc=True, errors="coerce")
+                        if getattr(df.index, "isna", None) is not None and df.index.isna().any():
+                            # try without utc coercion
+                            df.index = pd.to_datetime(idx, errors="coerce")
+                        if getattr(df.index, "isna", None) is not None and df.index.isna().any():
+                            raise ValueError("unparseable")
                     except Exception:
                         try:
-                            df.index = pd.to_datetime(idx, errors="raise")
+                            df.index = pd.to_datetime(idx, errors="coerce")
+                            if getattr(df.index, "isna", None) is not None and df.index.isna().any():
+                                # try elementwise
+                                coerced = []
+                                for v in idx:
+                                    try:
+                                        coerced.append(_coerce_to_datetime_scalar(v))
+                                    except Exception:
+                                        raise
+                                df.index = coerced
                         except Exception:
-                            # Try elementwise coercion
-                            coerced = []
-                            for v in idx:
-                                try:
-                                    coerced.append(_coerce_to_datetime_scalar(v))
-                                except Exception:
-                                    raise
-                            df.index = coerced
+                            df.index = pd.to_datetime(idx, errors="raise")
             except Exception:
                 df.index = pd.to_datetime(idx, errors="raise")
         except (ValueError, TypeError) as exc:
@@ -373,7 +382,7 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
     except Exception:
         pass
 
-    candidate_names = {"date", "datetime", "timestamp", "time", "dt", "index", "idx", "open time", "close time", "snapped_at", "snapped at", "dateutc", "candle time", "open_time", "close_time"}
+    candidate_names = {"date", "datetime", "timestamp", "time", "dt", "index", "idx", "open time", "close time", "snapped_at", "snapped at", "dateutc", "candle time", "open_time", "close_time", "time(utc)"}
     lowered = {str(c).strip().lower(): c for c in df.columns}
     name_match = next((lowered[n] for n in candidate_names if n in lowered), None)
     if name_match is not None:
@@ -470,11 +479,12 @@ def _normalize_asset_name(name: str) -> str:
             base = s.split('/')[0].strip()
             return _normalize_asset_name(base)
         # Handle concatenated pairs like BTCUSDT, ETHUSD (common)
-        for quote in ['USDT', 'USDC', 'BUSD', 'USD', 'EUR']:
-            if s.upper().endswith(quote) and len(s.upper()) > len(quote) + 1:
-                cand = s[: -(len(quote))].strip()
+        for quote in ['USDT', 'USDC', 'BUSD', 'USD', 'EUR', 'GBP', 'AUD']:
+            uq = quote
+            if s.upper().endswith(uq) and len(s.upper()) > len(uq) + 1:
+                cand = s[: -(len(uq))].strip()
                 # Only if looks like symbol
-                if cand:
+                if cand and re.sub(r'[^A-Za-z0-9]', '', cand):
                     return _normalize_asset_name(cand)
         # Replace separators with spaces
         s = s.replace('-', ' ').replace('_', ' ').replace('.', ' ')
@@ -485,13 +495,13 @@ def _normalize_asset_name(name: str) -> str:
             if not tok_clean:
                 continue
             tl = tok_clean.lower()
-            if tl in {'usd', 'usdt', 'usdc', 'busd', 'eur', 'gbp', 'dollar', 'price'}:
+            if tl in {'usd', 'usdt', 'usdc', 'busd', 'eur', 'gbp', 'aud', 'dollar', 'price', 'token'}:
                 continue
             tokens.append(tok_clean)
         s2 = ' '.join(tokens).strip()
         if not s2:
             s2 = s_orig.strip()
-        su = s2.upper()
+        su = s2.upper().strip()
         # Common mappings
         if su in {'BITCOIN'}:
             su = 'BTC'
@@ -530,31 +540,31 @@ def _normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
         # Also handle multiple spaces
         cl_clean = cl
         # Normalize common variations
-        if cl_clean in {"adj close", "adj_close", "adjusted close", "adjusted_close", "adjclose"}:
+        if cl_clean in {"adj close", "adj_close", "adjusted close", "adjusted_close", "adjclose", "adj. close"}:
             new_cols.append("Adj Close")
             continue
-        if cl_clean in {"close", "close price", "closing price", "last", "last price", "close price usd", "close(usd)", "close_usd"}:
+        if cl_clean in {"close", "close price", "closing price", "last", "last price", "close price usd", "close(usd)", "close_usd", "close/usd"}:
             new_cols.append("Close")
             continue
-        if cl_clean in {"open", "open price", "opening price", "open(usd)"}:
+        if cl_clean in {"open", "open price", "opening price", "open(usd)", "open/usd"}:
             new_cols.append("Open")
             continue
-        if cl_clean in {"high", "high price", "day high", "high(usd)"}:
+        if cl_clean in {"high", "high price", "day high", "high(usd)", "high/usd"}:
             new_cols.append("High")
             continue
-        if cl_clean in {"low", "low price", "day low", "low(usd)"}:
+        if cl_clean in {"low", "low price", "day low", "low(usd)", "low/usd"}:
             new_cols.append("Low")
             continue
-        if cl_clean in {"volume", "vol", "base volume", "quote volume", "trading volume", "vol usd", "volume usd", "volume(btc)", "volume(usd)", "volume_btc", "volume_usd"}:
+        if cl_clean in {"volume", "vol", "base volume", "quote volume", "trading volume", "vol usd", "volume usd", "volume(btc)", "volume(usd)", "volume_btc", "volume_usd", "24h volume", "24h_volume"}:
             new_cols.append("Volume")
             continue
-        if cl_clean in {"date", "datetime", "time", "timestamp", "open time", "opentime", "close time", "closetime", "candle_begin_time", "candle begintime", "snapped_at", "snapped at", "date utc", "date(utc)", "utc date", "datetimeutc", "date/time", "datetime / time"}:
+        if cl_clean in {"date", "datetime", "time", "timestamp", "open time", "opentime", "close time", "closetime", "candle_begin_time", "candle begintime", "snapped_at", "snapped at", "date utc", "date(utc)", "utc date", "datetimeutc", "date/time", "datetime / time", "time (utc)", "time(utc)", "unix time"}:
             new_cols.append("Date")  # normalize date column name
             continue
-        if cl_clean in {"symbol", "ticker", "pair", "market", "asset", "coin", "currency", "contract", "instrument", "tradingpair", "symbol name", "cryptocurrency", "name", "base", "asset name"}:
+        if cl_clean in {"symbol", "ticker", "pair", "market", "asset", "coin", "currency", "contract", "instrument", "tradingpair", "symbol name", "cryptocurrency", "name", "base", "asset name", "base asset", "symbol/market"}:
             new_cols.append("symbol")
             continue
-        if cl_clean in {"price", "market price"} and "adj" not in cl_clean and "close" not in cl_clean:
+        if cl_clean in {"price", "market price", "value"} and "adj" not in cl_clean and "close" not in cl_clean and "open" not in cl_clean and "high" not in cl_clean and "low" not in cl_clean:
             new_cols.append("Close")  # treat generic price as close for compatibility
             continue
         # Try to normalize asset names (remove units/suffixes)
@@ -566,11 +576,11 @@ def _normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
                 new_cols.append("Date")
                 continue
             # If original had common pairing indicators or long descriptive names
-            if '/' in nc_stripped or '(' in nc_stripped or ')' in nc_stripped or '[' in nc_stripped or any(x in cl_clean for x in ['price', 'usd', 'usdt', 'usdc']):
+            if '/' in nc_stripped or '(' in nc_stripped or ')' in nc_stripped or '[' in nc_stripped or any(x in cl_clean for x in ['price', 'usd', 'usdt', 'usdc', 'eur', 'gbp']):
                 new_cols.append(normed)
                 continue
             # Also normalize short asset symbols to uppercase if they look like crypto symbols
-            if len(normed) <= 10 and normed.replace('-', '').replace('_', '').isalnum() and not normed.lower() in {'open','high','low','close','volume','symbol'}:
+            if len(normed) <= 12 and normed.replace('-', '').replace('_', '').isalnum() and not normed.lower() in {'open','high','low','close','volume','symbol'}:
                 new_cols.append(normed.upper())
                 continue
         # If it was a date-like name that got changed to keep form earlier, normalize
@@ -1228,6 +1238,38 @@ def normalize_schema(
         raise BABDataError("Returns DataFrame is empty")
 
     cleaned = df.copy()
+    # Handle multi-level columns
+    try:
+        if isinstance(cleaned.columns, pd.MultiIndex):
+            # Flatten by joining levels with space
+            cleaned.columns = [' '.join(str(x) for x in col if str(x) and str(x).lower() != 'nan').strip() or 'unnamed' for col in cleaned.columns]
+    except Exception:
+        pass
+    # Try to detect if headers are in first row (common in some exports)
+    try:
+        # If all column names look like generic Unnamed or numeric strings and first row looks like headers
+        cols_str = [str(c) for c in cleaned.columns]
+        if all((c.strip() == '' or c.strip().lower().startswith('unnamed') or c.strip().isdigit()) for c in cols_str):
+            if len(cleaned) > 0:
+                first_row = cleaned.iloc[0]
+                header_vals = [str(x).strip() for x in first_row.values]
+                # check if first row contains non-numeric strings that look like headers
+                if any(v and not v.replace('.', '').replace('-', '').replace('+', '').replace('e', '').replace('E', '').isdigit() and v.lower() not in {'nan','none','null'} for v in header_vals):
+                    cleaned.columns = header_vals
+                    cleaned = cleaned.iloc[1:].copy()
+        # Also check if first data row equals column names (duplicate header)
+        elif len(cleaned) > 0:
+            try:
+                first_row = cleaned.iloc[0]
+                first_vals = [str(x).strip() for x in first_row.values]
+                cols_norm = [str(x).strip().lower() for x in cleaned.columns]
+                first_norm = [str(x).strip().lower() for x in first_vals]
+                if first_norm == cols_norm and all(v and v not in {'nan','none','null'} for v in first_norm):
+                    cleaned = cleaned.iloc[1:].copy()
+            except Exception:
+                pass
+    except Exception:
+        pass
     # Try exchange format normalization first
     try:
         cleaned = _detect_and_normalize_exchange_format(cleaned)
@@ -1239,6 +1281,25 @@ def normalize_schema(
         cleaned = _normalize_index(cleaned)
     except Exception:
         raise
+    # Drop obvious junk columns before coercion if they're all strings/metadata
+    try:
+        cols_to_drop = []
+        for col in list(cleaned.columns):
+            if pd.api.types.is_numeric_dtype(cleaned[col]):
+                continue
+            try:
+                s = cleaned[col]
+                test = pd.to_numeric(s.astype(str).str.strip().str.replace(',', '').str.replace('$','').str.replace('€','').str.replace('£','').str.replace('%',''), errors='coerce')
+                if test.notna().sum() == 0:
+                    cols_to_drop.append(col)
+                    continue
+            except Exception:
+                cols_to_drop.append(col)
+                continue
+        if cols_to_drop and len(cols_to_drop) < len(cleaned.columns):
+            cleaned = cleaned.drop(columns=cols_to_drop)
+    except Exception:
+        pass
     cleaned = _coerce_numeric(cleaned)
     cleaned = _drop_all_nan_columns(cleaned)
     return cleaned

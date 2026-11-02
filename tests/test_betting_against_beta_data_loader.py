@@ -555,6 +555,29 @@ class TestMultiSourceNormalization:
         assert isinstance(norm.index, pd.DatetimeIndex)
         assert "BTC" in norm.columns or "ETH" in norm.columns
 
+    def test_normalize_schema_messy_units_and_multilevel(self):
+        from strategies.betting_against_beta.data_loader import normalize_schema
+        import numpy as np
+        idx = pd.date_range("2023-01-01", periods=4)
+        # units in headers
+        df = pd.DataFrame({"Date": idx, "BTC (Bitcoin) [USD]": [100,101,102,103], "Ethereum - Price (USD)": [10,11,12,13]})
+        norm = normalize_schema(df)
+        assert isinstance(norm.index, pd.DatetimeIndex)
+        assert "BTC" in norm.columns and "ETH" in norm.columns
+
+    def test_normalize_schema_duplicate_header_row(self):
+        from strategies.betting_against_beta.data_loader import normalize_schema
+        import numpy as np
+        idx = pd.date_range("2023-01-01", periods=3)
+        df = pd.DataFrame({"Date": list(idx.strftime("%Y-%m-%d")) + ["Date"], "BTC": [100,101,102,"BTC"], "ETH": [10,11,12,"ETH"]})
+        # easier to construct with header repeated
+        import io
+        csv = '''Date,BTC,ETH\nDate,BTC,ETH\n2023-01-01,100,10\n2023-01-02,101,11\n'''
+        df2 = pd.read_csv(io.StringIO(csv))
+        norm = normalize_schema(df2)
+        assert isinstance(norm.index, pd.DatetimeIndex)
+        assert "BTC" in norm.columns
+
 
 class TestRobustDatetimeParsing:
     def test_epoch_milliseconds_and_mixed_timezones(self):
