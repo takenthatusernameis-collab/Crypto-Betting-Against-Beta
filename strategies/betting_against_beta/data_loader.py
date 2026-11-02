@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import pickle
+import re
 from pathlib import Path
 from typing import Iterable
 
@@ -952,6 +953,91 @@ def _drop_all_nan_columns(df: pd.DataFrame) -> pd.DataFrame:
     return df[keep]
 
 
+_NA_MARKERS = {'na', 'n/a', 'nan', 'none', 'null', '#n/a', '#na', 'missing', '--', '-', ''}
+
+
+def _strip_units_and_parse(x):
+    """Coerce a single cell to float, tolerating units, commas, %, European decimals.
+
+    Returns a float, np.nan for explicit NA markers, or raises on true garbage.
+    """
+    if x is None:
+        return np.nan
+    if isinstance(x, (int, np.integer)):
+        return float(x)
+    if isinstance(x, (float, np.floating)):
+        if np.isnan(x) or np.isinf(x):
+            return np.nan
+        return float(x)
+    if not isinstance(x, str):
+        # Timestamps / other objects: let pandas try
+        try:
+            return float(x)
+        except Exception:
+            raise ValueError(f"non-numeric value: {x!r}")
+    cleaned = x.strip()
+    lower = cleaned.lower()
+    if lower in _NA_MARKERS:
+        return np.nan
+    # Remove currency symbols and standalone quote/unit tokens (word-boundary safe)
+    cleaned = cleaned.replace('$', '').replace('€', '').replace('£', '').replace('¥', '')
+    cleaned = re.sub(r'\b(USD|USDT|USDC|BUSD|BTC|ETH|EUR|GBP|AUD)\b', '', cleaned, flags=re.IGNORECASE)
+    cleaned = cleaned.strip()
+    if not cleaned:
+        return np.nan
+    # Comma handling: European decimal "1,5" vs thousand-sep "1,000.50"
+    if ',' in cleaned and '.' in cleaned:
+        cleaned = cleaned.replace(',', '')
+    elif ',' in cleaned:
+        parts = cleaned.split(',')
+        if len(parts) == 2 and len(parts[-1]) <= 2:
+            cleaned = cleaned.replace(',', '.')  # likely decimal comma
+        else:
+            cleaned = cleaned.replace(',', '')
+    # Percent: "1.5%" -> 0.015 (divide by 100). Malformed percent -> NaN (never raise).
+    if cleaned.endswith('%'):
+        inner = cleaned[:-1].strip()
+        try:
+            return float(inner) / 100.0
+        except ValueError:
+            return np.nan
+    try:
+        return float(cleaned)
+    except ValueError:
+        # Distinguish malformed numerics ("1.2.3", "1e") from pure garbage ("abc").
+        # If the cleaned string still contains a digit, treat it as a malformed
+        # numeric and return NaN so a column is not rejected wholesale; otherwise
+        # raise so the validator can surface genuinely non-numeric data.
+        if any(ch.isdigit() for ch in cleaned):
+            return np.nan
+        raise ValueError(f"non-numeric value: {x!r}")
+
+
+def _series_is_parseable(series: pd.Series) -> bool:
+    """True if at least 50% of non-NA cells parse as numbers via _strip_units_and_parse."""
+    try:
+        total = 0
+        parseable = 0
+        for v in series:
+            if v is None:
+                parseable += 1
+                continue
+            if isinstance(v, float) and np.isnan(v):
+                parseable += 1
+                continue
+            total += 1
+            try:
+                _strip_units_and_parse(v)
+                parseable += 1
+            except Exception:
+                continue
+        if total == 0:
+            return True
+        return parseable >= max(1, int(total * 0.5))
+    except Exception:
+        return False
+
+
 def _coerce_numeric(df: pd.DataFrame) -> pd.DataFrame:
     """Coerce every cell to float, raising on non-numeric garbage."""
     try:
@@ -973,48 +1059,9 @@ def _coerce_numeric(df: pd.DataFrame) -> pd.DataFrame:
             series = df_clean[col]
             # If it's object dtype, look for string patterns
             if series.dtype == object or pd.api.types.is_string_dtype(series):
-                # Replace commas if they appear as thousand separators (simple heuristic)
-                def clean_val(x):
-                    if isinstance(x, str):
-                        cleaned = x.strip()
-                        # Check for explicit NA markers
-                        lower = cleaned.lower()
-                        if lower in {'na', 'n/a', 'nan', 'none', 'null', '#n/a', '#na', 'missing', '--', '-'}:
-                            return np.nan
-                        # Handle units like $1000, 1000 USD, 1000 BTC etc - remove common units
-                        # Remove currency symbols
-                        cleaned = cleaned.replace('$', '').replace('€', '').replace('£', '').replace('¥', '')
-                        cleaned = cleaned.replace('USD', '').replace('USDT', '').replace('BTC', '').replace('ETH', '')
-                        cleaned = cleaned.replace('usd', '').replace('usdt', '').replace('btc', '').replace('eth', '')
-                        cleaned = cleaned.strip()
-                        # Handle cases like "1,000.50"
-                        if ',' in cleaned and '.' in cleaned:
-                            # Assume comma is thousand sep if period is decimal
-                            cleaned = cleaned.replace(',', '')
-                        elif ',' in cleaned and cleaned.count(',') == 1:
-                            # Could be decimal comma (European) vs thousand sep
-                            # Try to be smart - if after comma there are 2 digits maybe decimal
-                            parts = cleaned.split(',')
-                            if len(parts[-1]) <= 2 and len(parts) == 2:  # likely decimal
-                                cleaned = cleaned.replace(',', '.')
-                            else:
-                                cleaned = cleaned.replace(',', '')
-                        elif ',' in cleaned:
-                            cleaned = cleaned.replace(',', '')
-                        # Handle percent signs: "1.5%" -> 0.015
-                        if cleaned.endswith('%'):
-                            try:
-                                num = float(cleaned[:-1].strip()) / 100.0
-                                return num
-                            except (ValueError, TypeError):
-                                return np.nan
-                        # Handle basis points if needed
-                        return cleaned
-                    return x
                 try:
-                    cleaned_series = series.apply(clean_val)
-                    converted = pd.to_numeric(cleaned_series, errors='raise')
-                    df_clean[col] = converted.astype('float64')
+                    converted = series.apply(_strip_units_and_parse)
+                    df_clean[col] = pd.to_numeric(converted, errors='raise').astype('float64')
                 except Exception as exc:
                     raise BABDataError(f"Non-numeric values present in returns data: {exc}") from exc
             else:
@@ -1227,47 +1274,15 @@ def validate_returns_dataframe(
 
     # Drop columns that are entirely non-numeric junk before coercion if they look like metadata
     try:
-        # Keep date/index context already in index; drop object columns that are all strings/unparseable and not asset-like
+        # Keep date/index context already in index; drop object columns that are all
+        # strings/unparseable and not asset-like. Use the same coercion semantics as
+        # _coerce_numeric so units ($, %, commas, European decimals) are not mistaken for junk.
         cols_to_drop = []
-        na_markers = {'na', 'n/a', 'nan', 'none', 'null', '#n/a', '#na', 'missing', '--', '-', ''}
         for col in list(cleaned.columns):
-            # If it's numeric dtype already maybe ok
             if pd.api.types.is_numeric_dtype(cleaned[col]):
                 continue
             if pd.api.types.is_string_dtype(cleaned[col]) or pd.api.types.is_object_dtype(cleaned[col]):
-                # Try to see if mostly numeric
-                try:
-                    s = cleaned[col]
-                    parseable = 0
-                    total = len(s)
-                    for v in s:
-                        if v is None or (isinstance(v, float) and (np.isnan(v))):
-                            parseable += 1
-                            continue
-                        vs = str(v).strip().lower()
-                        if vs in na_markers:
-                            parseable += 1
-                            continue
-                        try:
-                            # handle commas/percent
-                            vs2 = str(v).strip()
-                            if vs2.endswith('%'):
-                                try:
-                                    float(vs2[:-1].strip())
-                                    parseable += 1
-                                    continue
-                                except Exception:
-                                    pass
-                            vs2c = vs2.replace(',', '')
-                            pd.to_numeric(vs2c, errors='raise')
-                            parseable += 1
-                            continue
-                        except Exception:
-                            continue
-                    if parseable < max(1, int(total * 0.5)):  # mostly not numeric
-                        cols_to_drop.append(col)
-                        continue
-                except Exception:
+                if not _series_is_parseable(cleaned[col]):
                     cols_to_drop.append(col)
                     continue
         if cols_to_drop:
@@ -1278,18 +1293,13 @@ def validate_returns_dataframe(
     try:
         cleaned = _coerce_numeric(cleaned)
     except BABDataError:
-        # Try again after dropping more junk
+        # Try again after dropping more junk (columns with no parseable values at all)
         try:
             cols_to_drop = []
             for col in list(cleaned.columns):
                 if pd.api.types.is_numeric_dtype(cleaned[col]):
                     continue
-                try:
-                    test = pd.to_numeric(cleaned[col], errors='coerce')
-                    if test.isna().all():
-                        cols_to_drop.append(col)
-                        continue
-                except Exception:
+                if not _series_is_parseable(cleaned[col]):
                     cols_to_drop.append(col)
                     continue
             if cols_to_drop:
@@ -1709,15 +1719,22 @@ def load_prices(
     """
     if isinstance(source, pd.DataFrame):
         prices = load_returns_from_dataframe(
-            source, benchmark=None, min_rows=min_rows, quality=False
+            source, benchmark=None, min_rows=max(min_rows, 2), quality=False
         )
     elif isinstance(source, (str, Path)):
         path = Path(source)
         suffix = path.suffix.lower()
         if suffix == ".csv":
-            prices = load_returns_from_csv(path, benchmark=None, min_rows=min_rows, quality=False, **kwargs)
+            prices = load_returns_from_csv(path, benchmark=None, min_rows=max(min_rows, 2), quality=False, **kwargs)
         elif suffix in (".json", ".jsonl"):
-            prices = load_returns_from_json(path, benchmark=None, min_rows=min_rows, quality=False, **kwargs)
+            prices = load_returns_from_json(path, benchmark=None, min_rows=max(min_rows, 2), quality=False, **kwargs)
+        elif suffix in (".parquet", ".pq"):
+            prices = load_returns_from_parquet(path, benchmark=None, min_rows=max(min_rows, 2), quality=False, **kwargs)
+        elif suffix in (".h5", ".hdf5", ".hdf"):
+            key = kwargs.pop("key", None)
+            prices = load_returns_from_hdf5(path, benchmark=None, min_rows=max(min_rows, 2), quality=False, key=key, **kwargs)
+        elif suffix in (".pkl", ".pickle"):
+            prices = load_returns_from_pickle(path, benchmark=None, min_rows=max(min_rows, 2), quality=False, **kwargs)
         else:
             raise BABDataError(f"Unsupported price source extension: {suffix!r} for {path}")
     else:
@@ -1725,7 +1742,8 @@ def load_prices(
 
     prices = _drop_metadata_columns(prices)
     returns = _prices_to_returns(prices)
-    return validate_returns_dataframe(returns, benchmark=benchmark, min_rows=min_rows, quality=False)
+    # pct_change drops the first row, so require one fewer return row than price rows.
+    return validate_returns_dataframe(returns, benchmark=benchmark, min_rows=max(min_rows - 1, 1), quality=False)
 
 
 def _is_likely_returns(df: pd.DataFrame) -> bool:
@@ -1790,6 +1808,28 @@ def detect_price_or_returns(
                         df = pd.DataFrame(data)
                     else:
                         df = pd.DataFrame()
+            except Exception:
+                return "unknown"
+        elif suffix in (".parquet", ".pq"):
+            try:
+                df = pd.read_parquet(path, **kwargs)
+            except Exception:
+                return "unknown"
+        elif suffix in (".h5", ".hdf5", ".hdf"):
+            try:
+                df = pd.read_hdf(path, **kwargs)
+            except Exception:
+                return "unknown"
+        elif suffix in (".pkl", ".pickle"):
+            try:
+                with path.open("rb") as handle:
+                    obj = pickle.load(handle)
+                if isinstance(obj, pd.DataFrame):
+                    df = obj
+                elif isinstance(obj, dict):
+                    df = pd.DataFrame(obj)
+                else:
+                    df = pd.DataFrame()
             except Exception:
                 return "unknown"
         else:
@@ -1904,6 +1944,53 @@ load_price_data = load_prices
 detect_source_type = detect_price_or_returns
 
 
+def standardize_columns(df: pd.DataFrame) -> pd.DataFrame:
+    """Normalize column names (strip whitespace, coerce to str, drop duplicates).
+
+    Thin convenience wrapper around :func:`_normalize_columns` so callers can
+    standardize a schema without importing the private helper.
+    """
+    if df is None or not isinstance(df, pd.DataFrame):
+        raise BABDataError(f"Expected pandas DataFrame, got {type(df).__name__}")
+    return _normalize_columns(df.copy())
+
+
+def clean_data(df: pd.DataFrame) -> pd.DataFrame:
+    """Coerce a DataFrame to numeric floats, dropping all-NaN columns.
+
+    Convenience wrapper around :func:`_coerce_numeric` + :func:`_drop_all_nan_columns`.
+    """
+    if df is None or not isinstance(df, pd.DataFrame):
+        raise BABDataError(f"Expected pandas DataFrame, got {type(df).__name__}")
+    cleaned = _coerce_numeric(df)
+    return _drop_all_nan_columns(cleaned)
+
+
+def validate_prices(df: pd.DataFrame) -> pd.DataFrame | None:
+    """Validate that ``df`` looks like a usable price series.
+
+    Returns the cleaned DataFrame when it contains at least one strictly
+    positive price column, otherwise ``None``. Never raises: callers that need
+    strict validation should use :func:`load_prices`.
+    """
+    if df is None or not isinstance(df, pd.DataFrame) or df.empty:
+        return None
+    try:
+        cleaned = clean_data(df)
+    except Exception:
+        return None
+    if cleaned.empty:
+        return None
+    try:
+        arr = cleaned.to_numpy(dtype=float)
+        finite = arr[np.isfinite(arr)]
+        if finite.size > 0 and float(np.max(finite)) > 0.0:
+            return cleaned
+    except Exception:
+        pass
+    return None
+
+
 __all__ = [
     "BABDataError",
     "load_returns",
@@ -1922,4 +2009,7 @@ __all__ = [
     "detect_source_type",
     "list_columns",
     "iter_assets",
+    "standardize_columns",
+    "clean_data",
+    "validate_prices",
 ]
