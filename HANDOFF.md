@@ -1,5 +1,11 @@
 # SINGLE DURABLE HANDOFF - Crypto-Betting-Against-Beta
-**Timestamp:** 2026-11-02T13:23:56Z (Gate currently RED: 13 failures; remove bottlenecks then advance Campaign 7 Item 4 data quality)
+
+## INITIAL TASK MESSAGE (for next agentic session)
+**Time:** 2026-11-02T13:39:17Z | **Repo priority:** Crypto Betting Against Beta (BAB) market-neutral long low-beta/short high-beta vs benchmark. All work must advance BAB.
+**Gate 0 baseline:** GREEN (155 passed, 6 skipped). BABStrategy cumulative == 0.31664543005633267.
+**Bottlenecks:** none blocking. Datetime parsing hardened (Item 3 done). Multi-source normalization done (Item 2).
+**FIRST ACTION:** Run Gate 0. Then implement Campaign 7 Item 4 - Comprehensive data quality checks in `validate_returns_dataframe` (gaps, duplicate timestamps across assets, stale data, implausible returns |r|>X, missing benchmark coverage) with clear BABDataError messages and substantial tests. Heavy work mandatory; do not stop until significant progress. Maintain green. Evidence required.
+**Timestamp:** 2026-11-02T13:39:17Z (Gate GREEN: 155 passed; Campaign 7 Item 4 data quality next)
 **Priority from repo name:** CRYPTO BETTING AGAINST BETA (BAB) - Market-neutral long low-beta / short high-beta vs benchmark. ALL WORK MUST DIRECTLY ADVANCE BAB.
 **Session Mode:** Repo-prioritized, bottleneck-removal enforced. Heavy campaign MANDATORY.
 **Status:** GATE 0 GREEN - Core BAB tests pass (155 passed in Gate 0 suites). BABStrategy cumulative == 0.31664543005633267. ITEM 3 (Robust datetime parsing) COMPLETED - hardened `_promote_datetime_column` and `_normalize_index` for epoch seconds/ms/μs, mixed timezones/offsets (Z, +00:00, -07:00), elementwise coercion, normalization to naive UTC; added comprehensive datetime tests (all passing). Bottlenecks removed.
