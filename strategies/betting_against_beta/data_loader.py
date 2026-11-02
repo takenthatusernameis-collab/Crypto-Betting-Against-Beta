@@ -1055,6 +1055,123 @@ def _coerce_numeric(df: pd.DataFrame) -> pd.DataFrame:
 
 
 
+def _run_data_quality_campaign(
+    df: pd.DataFrame,
+    max_return_abs: float | None = None,
+    max_gap_days: float | None = None,
+    stale_run_threshold: int | None = None,
+    min_finite_fraction: float | None = None,
+    allow_duplicate_timestamps: bool = False,
+) -> pd.DataFrame:
+    if df is None or not isinstance(df, pd.DataFrame):
+        raise BABDataError("Returns DataFrame is None")
+    if df.empty:
+        raise BABDataError("Returns DataFrame is empty")
+
+    cleaned = df.copy()
+    if not isinstance(cleaned.index, pd.DatetimeIndex):
+        try:
+            cleaned.index = pd.to_datetime(cleaned.index, errors="raise")
+        except Exception as exc:
+            raise BABDataError(f"Index must be datetime-like for data quality checks: {exc}") from exc
+    try:
+        if getattr(cleaned.index, "tz", None) is not None:
+            cleaned.index = cleaned.index.tz_convert("UTC").tz_localize(None)
+    except Exception:
+        try:
+            cleaned.index = cleaned.index.tz_localize(None)
+        except Exception:
+            pass
+    cleaned = cleaned.sort_index()
+
+    if cleaned.index.has_duplicates:
+        if allow_duplicate_timestamps:
+            cleaned = cleaned[~cleaned.index.duplicated(keep="first")]
+        else:
+            dup_times = cleaned.index[cleaned.index.duplicated(keep=False)]
+            first_dups = list(dict.fromkeys([str(t) for t in dup_times[:5]]))
+            raise BABDataError(
+                f"Duplicate timestamps detected in index (e.g., {first_dups}); use allow_duplicate_timestamps=True to drop duplicates"
+            )
+
+    if max_return_abs is None:
+        max_return_abs = 20.0
+    if max_gap_days is None:
+        max_gap_days = 7.0
+    if stale_run_threshold is None:
+        stale_run_threshold = 3
+    if min_finite_fraction is None:
+        min_finite_fraction = 0.0
+
+    try:
+        arr_all = cleaned.to_numpy(dtype=float)
+        if np.isfinite(arr_all).any():
+            abs_arr = np.abs(arr_all)
+            finite_abs = abs_arr[np.isfinite(abs_arr)]
+            if finite_abs.size > 0:
+                max_abs = float(np.nanmax(finite_abs))
+                if max_abs > float(max_return_abs):
+                    raise BABDataError(
+                        f"Implausible return detected: |r| = {max_abs:.6g} exceeds threshold {float(max_return_abs):.6g}"
+                    )
+    except BABDataError:
+        raise
+    except Exception:
+        pass
+
+    if isinstance(cleaned.index, pd.DatetimeIndex) and len(cleaned.index) > 1 and max_gap_days is not None and max_gap_days != float("inf"):
+        try:
+            gaps = cleaned.index.to_series().diff()
+            if gaps.notna().any():
+                max_gap = gaps.max()
+                if pd.notna(max_gap):
+                    try:
+                        max_gap_days_actual = max_gap.total_seconds() / 86400.0
+                    except Exception:
+                        max_gap_days_actual = float(max_gap)
+                    if max_gap_days_actual > float(max_gap_days):
+                        raise BABDataError(
+                            f"Data gap too large: {max_gap_days_actual:.2f} days exceeds threshold {float(max_gap_days):.2f} days"
+                        )
+        except BABDataError:
+            raise
+        except Exception:
+            pass
+
+    try:
+        for col in cleaned.columns:
+            try:
+                arr = pd.to_numeric(cleaned[col], errors="coerce").to_numpy(dtype=float)
+            except Exception:
+                arr = cleaned[col].to_numpy(dtype=float)
+            finite_mask = np.isfinite(arr)
+            finite_count = int(finite_mask.sum())
+            total = int(len(arr))
+            if total > 0 and float(min_finite_fraction) > 0:
+                frac = finite_count / total if total > 0 else 0.0
+                if frac < float(min_finite_fraction):
+                    raise BABDataError(
+                        f"Column '{col}' has insufficient finite data: {frac:.2%} < {float(min_finite_fraction):.2%}"
+                    )
+            if stale_run_threshold is not None and int(stale_run_threshold) > 0 and finite_count >= int(stale_run_threshold):
+                run = 1
+                for i in range(1, len(arr)):
+                    if np.isfinite(arr[i]) and np.isfinite(arr[i - 1]) and arr[i] == arr[i - 1]:
+                        run += 1
+                        if run >= int(stale_run_threshold):
+                            raise BABDataError(
+                                f"Stale/frozen data detected in column '{col}': {run} consecutive equal values"
+                            )
+                    else:
+                        run = 1
+    except BABDataError:
+        raise
+    except Exception:
+        pass
+    return cleaned
+
+
+
 def validate_returns_dataframe(
     df: pd.DataFrame,
     benchmark: str | None = None,
@@ -1457,9 +1574,10 @@ def load_returns_from_dataframe(
     df: pd.DataFrame,
     benchmark: str | None = None,
     min_rows: int = 1,
+    **kwargs,
 ) -> pd.DataFrame:
     """Validate an in-memory DataFrame (thin wrapper around validation)."""
-    return validate_returns_dataframe(df, benchmark=benchmark, min_rows=min_rows)
+    return validate_returns_dataframe(df, benchmark=benchmark, min_rows=min_rows, **kwargs)
 
 
 def load_returns(
@@ -1599,9 +1717,9 @@ def load_prices(
         path = Path(source)
         suffix = path.suffix.lower()
         if suffix == ".csv":
-            prices = load_returns_from_csv(path, benchmark=None, min_rows=min_rows, **kwargs)
+            prices = load_returns_from_csv(path, benchmark=None, min_rows=min_rows, quality=False, **kwargs)
         elif suffix in (".json", ".jsonl"):
-            prices = load_returns_from_json(path, benchmark=None, min_rows=min_rows, **kwargs)
+            prices = load_returns_from_json(path, benchmark=None, min_rows=min_rows, quality=False, **kwargs)
         else:
             raise BABDataError(f"Unsupported price source extension: {suffix!r} for {path}")
     else:
@@ -1609,7 +1727,7 @@ def load_prices(
 
     prices = _drop_metadata_columns(prices)
     returns = _prices_to_returns(prices)
-    return validate_returns_dataframe(returns, benchmark=benchmark, min_rows=min_rows)
+    return validate_returns_dataframe(returns, benchmark=benchmark, min_rows=min_rows, quality=True)
 
 
 def _is_likely_returns(df: pd.DataFrame) -> bool:
