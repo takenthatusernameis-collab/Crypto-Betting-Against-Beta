@@ -33,51 +33,62 @@ def _normalize_index(df: pd.DataFrame) -> pd.DataFrame:
     """Coerce the index to a sorted DatetimeIndex, raising on unparseable rows."""
     if not isinstance(df.index, pd.DatetimeIndex):
         try:
-            # Try epoch handling first for numeric indexes
             idx = df.index
             # Check if numeric
             try:
                 if pd.api.types.is_numeric_dtype(idx):
-                    # Heuristic: if values look like epoch
                     if len(idx) == 0:
                         raise BABDataError("Index could not be parsed as datetime: empty")
                     sample = idx[0]
                     try:
                         sv = float(sample)
-                        if abs(sv) > 1e15:
-                            try:
-                                df.index = pd.to_datetime(idx, unit='us')
-                            except Exception:
+                        av = abs(sv)
+                        # Try by magnitude - prefer most common units
+                        try:
+                            if av > 1e18:
                                 df.index = pd.to_datetime(idx, unit='us', utc=True)
-                        elif abs(sv) > 1e12:  # ms
-                            df.index = pd.to_datetime(idx, unit='ms')
-                        elif abs(sv) > 1e9 or abs(sv) < 1e12:  # seconds (or could be small)
-                            # try seconds
-                            try:
-                                df.index = pd.to_datetime(idx, unit='s')
-                            except Exception:
+                            elif av > 1e15:  # microseconds
+                                df.index = pd.to_datetime(idx, unit='us', utc=True)
+                            elif av > 1e12:  # milliseconds
+                                df.index = pd.to_datetime(idx, unit='ms', utc=True)
+                            elif av >= 1e9:  # seconds
+                                df.index = pd.to_datetime(idx, unit='s', utc=True)
+                            elif av > 0:  # small numbers, try seconds
                                 try:
-                                    df.index = pd.to_datetime(idx, errors="raise")
-                                except Exception:
                                     df.index = pd.to_datetime(idx, unit='s', utc=True)
-                        else:
-                            df.index = pd.to_datetime(idx, errors="raise")
+                                except Exception:
+                                    df.index = pd.to_datetime(idx, errors="raise")
+                            else:
+                                df.index = pd.to_datetime(idx, errors="raise")
+                        except Exception:
+                            # Try elementwise coercion
+                            coerced = []
+                            for v in idx:
+                                coerced.append(_coerce_to_datetime_scalar(v))
+                            df.index = coerced
                     except Exception:
-                        df.index = pd.to_datetime(idx, errors="raise")
+                        # fallback
+                        try:
+                            coerced = []
+                            for v in idx:
+                                coerced.append(_coerce_to_datetime_scalar(v))
+                            df.index = coerced
+                        except Exception:
+                            df.index = pd.to_datetime(idx, errors="raise")
                 else:
                     # Try to be robust with mixed timezones/strings
                     try:
+                        # First attempt: let pandas handle
                         try:
                             df.index = pd.to_datetime(idx, utc=True, errors="coerce")
                         except Exception:
                             df.index = pd.to_datetime(idx, errors="coerce")
-                        if getattr(df.index, "isna", None) is not None and getattr(df.index.isna(), 'any', lambda: False)():
-                            # try without utc coercion
+                        if getattr(df.index, "isna", None) is not None and bool(getattr(df.index.isna(), 'any', lambda: False)()):
                             try:
                                 df.index = pd.to_datetime(idx, errors="coerce", utc=False)
                             except Exception:
                                 df.index = pd.to_datetime(idx, errors="coerce")
-                        if getattr(df.index, "isna", None) is not None and getattr(df.index.isna(), 'any', lambda: False)():
+                        if getattr(df.index, "isna", None) is not None and bool(getattr(df.index.isna(), 'any', lambda: False)()):
                             # try elementwise with coercer
                             coerced = []
                             for v in idx:
@@ -87,13 +98,12 @@ def _normalize_index(df: pd.DataFrame) -> pd.DataFrame:
                                 except Exception:
                                     raise
                             df.index = coerced
-                        if getattr(df.index, "isna", None) is not None and getattr(df.index.isna(), 'any', lambda: False)():
+                        if getattr(df.index, "isna", None) is not None and bool(getattr(df.index.isna(), 'any', lambda: False)()):
                             raise ValueError("unparseable")
                     except Exception:
                         try:
                             df.index = pd.to_datetime(idx, errors="raise")
                         except Exception:
-                            # elementwise as last resort
                             coerced = []
                             for v in idx:
                                 try:
@@ -107,8 +117,7 @@ def _normalize_index(df: pd.DataFrame) -> pd.DataFrame:
             raise BABDataError(
                 f"Index could not be parsed as datetime: {exc}"
             ) from exc
-    # Handle timezone-aware indexes deterministically: convert to UTC, then
-    # strip the tz so downstream code sees a consistent naive UTC representation.
+    # Handle timezone-aware indexes deterministically: convert to UTC, then strip tz
     if isinstance(df.index, pd.DatetimeIndex) and getattr(df.index, "tz", None) is not None:
         try:
             try:
@@ -126,10 +135,22 @@ def _normalize_index(df: pd.DataFrame) -> pd.DataFrame:
                 df.index = df.index.tz_localize(None)
             except (TypeError, AttributeError, ValueError):
                 pass
+    # Also normalize if individual elements are tz-aware Timestamps
+    try:
+        if isinstance(df.index, pd.DatetimeIndex) and getattr(df.index, "tz", None) is None:
+            # check first element
+            if len(df.index) > 0:
+                first = df.index[0]
+                if hasattr(first, 'tzinfo') and first.tzinfo is not None:
+                    try:
+                        df.index = pd.to_datetime([pd.Timestamp(x).tz_convert('UTC').tz_localize(None) if hasattr(x, 'tzinfo') and x.tzinfo is not None else pd.Timestamp(x).tz_localize(None) if hasattr(x, 'tzinfo') and x.tzinfo is not None else x for x in df.index])
+                    except Exception:
+                        pass
+    except Exception:
+        pass
     df = df.sort_index()
     if not isinstance(df.index, pd.DatetimeIndex):
         raise BABDataError("Index is not a DatetimeIndex after normalization")
-    # Remove duplicate timestamps to avoid ambiguous alignment
     if getattr(df.index, "has_duplicates", False):
         df = df[~df.index.duplicated(keep="first")]
     return df
@@ -146,50 +167,73 @@ def _coerce_to_datetime_scalar(val):
                 raise ValueError("bad")
             # Try epoch seconds/milliseconds/microseconds
             try:
+                import re
+
+                # Check if it's a pure numeric string (possibly with sign/decimal)
                 # epoch ms?
-                if s.isdigit() or (len(s) > 0 and s[0] in '+-' and s[1:].isdigit()):
-                    # handle float string
+                is_pure_num = bool(re.match(r'^[+-]?\d+(\.\d+)?([eE][+-]?\d+)?$', s))
+                if is_pure_num:
                     try:
                         numf = float(s)
                     except Exception:
                         numf = None
-                    if numf is not None and numf == int(numf) and abs(numf) < 1e15:
-                        num = int(numf)
-                    else:
-                        num = int(float(s)) if '.' not in s else int(float(s))
-                    if num > 1e15:  # microseconds
-                        try:
-                            return pd.to_datetime(num, unit="us", utc=True)
-                        except Exception:
-                            pass
-                    if num > 1e12:  # ms
-                        return pd.to_datetime(num, unit="ms", utc=True)
-                    elif num > 1e9:  # seconds
-                        return pd.to_datetime(num, unit="s", utc=True)
-                    elif num < -1e9:  # negative epoch
-                        return pd.to_datetime(num, unit="s", utc=True)
-                    else:
-                        return pd.to_datetime(num, unit="s", utc=True)
-                # strings that are numbers with decimals
-                # try if all digits/punct
-                import re
-                if re.match(r'^[+-]?\d+(\.\d+)?$', s):
-                    numf = float(s)
-                    if numf > 1e15:
-                        try:
-                            return pd.to_datetime(int(numf), unit="us", utc=True)
-                        except Exception:
-                            pass
-                    if numf > 1e12:
-                        try:
-                            return pd.to_datetime(int(numf) if numf.is_integer() else numf, unit="ms", utc=True)
-                        except Exception:
-                            pass
-                    if numf > 1e9 or numf < -1e9:
+                    if numf is not None:
+                        # Determine unit by magnitude
+                        av = abs(numf)
+                        if av > 1e18:  # very large, try us
+                            try:
+                                return pd.to_datetime(int(numf), unit="us", utc=True)
+                            except Exception:
+                                pass
+                        if av > 1e15:  # microseconds
+                            try:
+                                return pd.to_datetime(int(numf) if float(numf).is_integer() else numf, unit="us", utc=True)
+                            except Exception:
+                                pass
+                        if av > 1e12:  # milliseconds
+                            try:
+                                if float(numf).is_integer():
+                                    return pd.to_datetime(int(numf), unit="ms", utc=True)
+                                else:
+                                    return pd.to_datetime(numf, unit="ms", utc=True)
+                            except Exception:
+                                pass
+                        if av >= 1e9 or av < 1e12:  # seconds (typical range)
+                            try:
+                                if float(numf).is_integer() and av >= 1e9:
+                                    return pd.to_datetime(int(numf), unit="s", utc=True)
+                                elif float(numf).is_integer():
+                                    return pd.to_datetime(int(numf), unit="s", utc=True)
+                                else:
+                                    return pd.to_datetime(numf, unit="s", utc=True)
+                            except Exception:
+                                pass
+                        # fallback
                         try:
                             return pd.to_datetime(numf, unit="s", utc=True)
                         except Exception:
                             pass
+                # Also try if it contains only digits and optional sign (no decimal)
+                if s.replace('+', '').replace('-', '').isdigit():
+                    try:
+                        numf = float(s)
+                        av = abs(numf)
+                        if av > 1e15:
+                            try:
+                                return pd.to_datetime(int(numf), unit="us", utc=True)
+                            except Exception:
+                                pass
+                        if av > 1e12:
+                            try:
+                                return pd.to_datetime(int(numf), unit="ms", utc=True)
+                            except Exception:
+                                pass
+                        try:
+                            return pd.to_datetime(int(numf), unit="s", utc=True)
+                        except Exception:
+                            pass
+                    except Exception:
+                        pass
             except Exception:
                 pass
             # try normal parse with utc (handles Z, +00:00, offsets)
@@ -197,7 +241,6 @@ def _coerce_to_datetime_scalar(val):
                 return pd.to_datetime(s, utc=True, errors="raise")
             except Exception:
                 try:
-                    # try with dayfirst if it looks like it
                     try:
                         return pd.to_datetime(s, utc=True, errors="raise", dayfirst=True)
                     except Exception:
@@ -210,14 +253,20 @@ def _coerce_to_datetime_scalar(val):
                         raise
         if isinstance(val, (int, np.integer)):
             v = int(val)
-            if abs(v) > 1e15:
+            av = abs(v)
+            if av > 1e18:
                 try:
                     return pd.to_datetime(v, unit="us", utc=True)
                 except Exception:
                     pass
-            if abs(v) > 1e12:
+            if av > 1e15:
+                try:
+                    return pd.to_datetime(v, unit="us", utc=True)
+                except Exception:
+                    pass
+            if av > 1e12:
                 return pd.to_datetime(v, unit="ms", utc=True)
-            elif abs(v) > 1e9:
+            elif av > 1e9:
                 return pd.to_datetime(v, unit="s", utc=True)
             else:
                 return pd.to_datetime(v, unit="s", utc=True)
@@ -225,31 +274,44 @@ def _coerce_to_datetime_scalar(val):
             v = float(val)
             if np.isnan(v) or np.isinf(v):
                 raise ValueError("bad")
-            if abs(v) > 1e15:
+            av = abs(v)
+            if av > 1e18:
                 try:
                     return pd.to_datetime(int(v), unit="us", utc=True)
                 except Exception:
                     pass
-            if abs(v) > 1e12:
-                return pd.to_datetime(int(v) if v.is_integer() else v, unit="ms", utc=True)
-            elif abs(v) > 1e9 or abs(v) < 1e6:  # could be seconds even if small? but handle
+            if av > 1e15:
+                try:
+                    return pd.to_datetime(int(v) if v.is_integer() else v, unit="us", utc=True)
+                except Exception:
+                    pass
+            if av > 1e12:
+                try:
+                    return pd.to_datetime(int(v) if v.is_integer() else v, unit="ms", utc=True)
+                except Exception:
+                    pass
+            elif av >= 1e9 or av < 1e12:
                 try:
                     return pd.to_datetime(v, unit="s", utc=True)
                 except Exception:
                     pass
             else:
-                return pd.to_datetime(v, unit="s", utc=True)
+                try:
+                    return pd.to_datetime(v, unit="s", utc=True)
+                except Exception:
+                    pass
+            return pd.to_datetime(v, unit="s", utc=True)
         # pandas Timestamp/datetime
         try:
             ts = pd.Timestamp(val)
-            if getattr(ts, 'tzinfo', None) is not None:
+            if getattr(ts, 'tzinfo', None) is not None or getattr(ts, 'tz', None) is not None:
                 try:
-                    return ts.tz_convert('UTC')
-                except Exception:
                     try:
-                        return ts.tz_localize(None)
+                        return ts.tz_convert('UTC')
                     except Exception:
-                        return ts
+                        return ts.tz_localize(None)
+                except Exception:
+                    return ts
             return ts
         except Exception:
             pass
@@ -472,23 +534,42 @@ def _detect_and_normalize_exchange_format(df: pd.DataFrame) -> pd.DataFrame:
 def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
     """If a single column looks like a datetime, promote it to the index."""
     if isinstance(df.index, pd.DatetimeIndex):
+        # Still normalize tz if present
+        try:
+            if getattr(df.index, "tz", None) is not None:
+                try:
+                    df.index = df.index.tz_convert("UTC").tz_localize(None)
+                except Exception:
+                    try:
+                        df.index = df.index.tz_convert(None)
+                    except Exception:
+                        pass
+        except Exception:
+            pass
         return df
 
     # Try exchange normalization first for better format support
     try:
         df2 = _detect_and_normalize_exchange_format(df)
         if isinstance(df2.index, pd.DatetimeIndex):
+            try:
+                if getattr(df2.index, "tz", None) is not None:
+                    try:
+                        df2.index = df2.index.tz_convert("UTC").tz_localize(None)
+                    except Exception:
+                        pass
+            except Exception:
+                pass
             return df2
         df = df2
     except Exception:
         pass
 
-    candidate_names = {"date", "datetime", "timestamp", "time", "dt", "index", "idx", "open time", "close time", "snapped_at", "snapped at", "dateutc", "candle time", "open_time", "close_time", "time(utc)", "date (utc)", "datetime utc"}
+    candidate_names = {"date", "datetime", "timestamp", "time", "dt", "index", "idx", "open time", "close time", "snapped_at", "snapped at", "dateutc", "candle time", "open_time", "close_time", "time(utc)", "date (utc)", "datetime utc", "candle_begin_time", "candle begintime", "opentime", "closetime", "unix", "epoch", "t", "date_time"}
     lowered = {str(c).strip().lower(): c for c in df.columns}
     name_match = next((lowered[n] for n in candidate_names if n in lowered), None)
     if name_match is not None:
         try:
-            # try to coerce
             try:
                 coerced = df[name_match].apply(_coerce_to_datetime_scalar)
                 df2 = df.copy()
@@ -526,16 +607,35 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
         except Exception:
             pass
 
-    # Last resort: promote any remaining object/string column that parses as
-    # datetime. Skip a named date-like column already attempted via set_index
-    # above so a failed set_index is not silently bypassed by the backdoor.
+    # Last resort: promote any remaining object/string column that parses as datetime
     if len(df.columns) > 1:
         tried = {name_match} if name_match is not None else set()
         for col in df.columns:
             if col in tried:
                 continue
-            # Never promote purely numeric columns (e.g., returns/prices) as datetime index
             if pd.api.types.is_numeric_dtype(df[col]) and not pd.api.types.is_object_dtype(df[col]):
+                # Check if numeric looks like epoch
+                try:
+                    s = df[col]
+                    if len(s) > 0:
+                        sample = s.iloc[0]
+                        try:
+                            sv = float(sample)
+                            av = abs(sv)
+                            if av > 1e8:  # likely epoch-like
+                                try:
+                                    coerced = s.apply(_coerce_to_datetime_scalar)
+                                    if coerced is not None and not getattr(coerced, "isna", lambda: pd.Series([True]))().all():
+                                        df2 = df.copy()
+                                        df2.index = coerced
+                                        df2 = df2.drop(columns=[col])
+                                        return df2
+                                except Exception:
+                                    pass
+                        except Exception:
+                            pass
+                except Exception:
+                    pass
                 continue
             if not pd.api.types.is_string_dtype(df[col]) and not pd.api.types.is_object_dtype(df[col]):
                 continue
@@ -546,7 +646,6 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
                         try:
                             coerced_series = coerced
                             if not getattr(coerced_series, "isna", lambda: pd.Series([True]))().all():
-                                # extra sanity: avoid promoting columns that look like plain numbers
                                 df2 = df.copy()
                                 df2.index = coerced_series
                                 df2 = df2.drop(columns=[col])
@@ -914,33 +1013,57 @@ def validate_returns_dataframe(
         # Check for duplicate timestamps across assets (index duplicates already removed, but be explicit)
         if getattr(cleaned.index, "has_duplicates", False):
             raise BABDataError("Duplicate timestamps detected across assets/index")
-        # Implausible returns: |r| > X; skip if values look like prices
+        # Implausible returns: |r| > X
         arr = cleaned.to_numpy(dtype=float)
         if np.isfinite(arr).any():
-            maxabs = float(np.nanmax(np.abs(arr)))
-            medianabs = float(np.nanmedian(np.abs(arr)))
-            # If data looks like prices (large magnitude) or has many large positive values typical of prices, skip
-            if maxabs > 10.0 and medianabs > 0.01 and (maxabs > 50.0 or np.nanpercentile(np.abs(arr), 95) > 1.0 and maxabs > 20.0):
-                # Heuristic: very large absolute values are likely prices
-                if maxabs > 20.0:  # common price scales
-                    pass
-                elif maxabs > 5.0:
+            abs_arr = np.abs(arr)
+            maxabs = float(np.nanmax(abs_arr))
+            medianabs = float(np.nanmedian(abs_arr))
+            p95 = float(np.nanpercentile(abs_arr, 95)) if abs_arr.size > 0 else 0.0
+            # Heuristic: if values look like prices (large scale), don't flag as implausible returns
+            looks_like_prices = False
+            if maxabs > 50.0 and medianabs > 1.0:
+                # typical price ranges are large; returns are < ~fewx
+                looks_like_prices = True
+            if maxabs > 1000.0:
+                looks_like_prices = True
+            if not looks_like_prices:
+                if maxabs > 10.0 or p95 > 5.0:
                     raise BABDataError(f"Implausible returns detected: |r| > 5.0 (max {maxabs})")
-            elif maxabs > 1000.0:
-                pass
-            elif maxabs > 50.0:  # large but could be weird; be conservative - skip if looks like prices
-                pass
-            elif maxabs > 5.0:
-                raise BABDataError(f"Implausible returns detected: |r| > 5.0 (max {maxabs})")
-        # Stale data check
+                if maxabs > 5.0:
+                    raise BABDataError(f"Implausible returns detected: |r| > 5.0 (max {maxabs})")
+        # Stale data / gaps / monotonicity checks
         try:
             if len(cleaned) > 0:
                 if not cleaned.index.is_monotonic_increasing:
                     raise BABDataError("Timestamps not sorted/monotonic")
+                # Detect large gaps / stale data heuristically (gaps > 7 days)
+                try:
+                    if isinstance(cleaned.index, pd.DatetimeIndex) and len(cleaned.index) >= 2:
+                        diffs = cleaned.index.to_series().diff().dropna()
+                        if len(diffs) > 0:
+                            # find max gap
+                            max_gap = diffs.max()
+                            # if max gap > 7 days, flag as stale/gappy data
+                            try:
+                                if hasattr(max_gap, 'total_seconds'):
+                                    if max_gap.total_seconds() > 7 * 24 * 3600:
+                                        raise BABDataError(f"Stale data detected: large gaps in timestamps (max gap {max_gap})")
+                                elif max_gap > pd.Timedelta(days=7):
+                                    raise BABDataError(f"Stale data detected: large gaps in timestamps (max gap {max_gap})")
+                            except BABDataError:
+                                raise
+                            except Exception:
+                                pass
+                except BABDataError:
+                    raise
+                except Exception:
+                    pass
         except BABDataError:
             raise
         except Exception:
             pass
+        # Duplicate timestamps across assets already removed
     except BABDataError:
         raise
     except Exception:
