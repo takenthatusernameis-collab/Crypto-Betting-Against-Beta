@@ -1,24 +1,13 @@
-# HANDOFF - Crypto-Betting-Against-Beta
+# SINGLE DURABLE HANDOFF - Crypto-Betting-Against-Beta
 
-**Created:** 2026-11-02T01:14:12Z
-**Last updated:** 2026-11-02T02:57:35Z
-**Inferred priority from repo name:** Crypto Betting Against Beta (BAB) - market-neutral (long low-beta, short high-beta vs benchmark). ALL WORK MUST ADVANCE BAB.
+**Timestamp:** 2026-11-02T03:07:42Z
+**Priority from repo name:** Crypto Betting Against Beta (BAB) - market-neutral (long low-beta, short high-beta vs benchmark). ALL WORK MUST ADVANCE BAB.
 **Session Mode:** Repo-prioritized, bottleneck-removal enforced. Heavy campaign required.
-**Status:** BASELINE GREEN (1792 passed, 13 skipped). Bottleneck removed: added `*/.github/workflows/*` nested variant to `.github/workflows/main.yml` `stage_safe_changes()` so Python `EXCLUDE_PATTERNS` and workflow stay in lock-step; all controller pattern-sync tests pass. Ready for forced heavy execution.
+**Status:** BASELINE GREEN (1792 passed, 13 skipped). Bottlenecks removed; pattern sync fixed.
 
-## Project Priority (Crypto Betting Against Beta)
-Focus exclusively on **Betting Against Beta for crypto**: universe selection, benchmark (default BTC), rolling beta vs benchmark, rank by beta -> long lowest-beta quantile / short highest-beta quantile (default 30/30), dollar-neutral equal-weight, one-day lagged weights, transaction costs. Do not drift to unrelated infra. Only touch workflows/configs if strictly necessary to unblock BAB and must not break pattern-sync.
+## BOTTOM LINE - DO THIS FIRST (NO EXCEPTIONS)
 
-## Bottlenecks Removed (Current State)
-- **Pattern sync:** Fixed `.github/workflows/*` pattern sync in both `scripts/controller_progress.py` EXCLUDE_PATTERNS and `.github/workflows/main.yml` `stage_safe_changes()` to include `*/.github/workflows/*` (nested variant). All controller pattern-sync tests pass.
-- **Baseline verified:** Full suite green at 1792 passed, 13 skipped (post-install deps, patterns fixed).
-- **Data loader coverage:** Extensive loader/validation tests present and passing.
-
-## SINGLE CLEAR INITIAL TASK FOR NEXT AGENT (DO FIRST - NO EXCEPTIONS)
-
-You MUST establish and lock the baseline before doing ANY heavy work. This is a hard gate.
-
-### GATE 0 - BASELINE LOCK (MANDATORY)
+Run Gate 0 immediately:
 ```bash
 cd /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
 python -m pytest -q  # MUST return: 1792 passed, 13 skipped
@@ -27,102 +16,86 @@ from strategies.betting_against_beta import BABStrategy
 s = BABStrategy()
 r = s.run()
 print(float(r.backtest['cumulative'].iloc[-1]))
-"  # MUST produce a finite float
+"  # MUST produce finite float
 ```
-If either check fails, fix regressions immediately. Do not proceed.
 
-## FORCED HEAVY CAMPAIGN - "REAL DATA HARDENING + RIGOR" (NO ESCAPE HATCH)
+If red, fix immediately. Never proceed without green baseline.
 
-This campaign is designed to force substantial, non-trivial work. Complete in strict order. Each gate must pass with evidence.
+## BOTTLENECKS REMOVED
+- **Pattern sync:** Fixed `.github/workflows/main.yml` `stage_safe_changes()` to include `*/.github/workflows/*` (nested variant). Both Python `EXCLUDE_PATTERNS` and workflow now in sync. All controller pattern-sync tests pass.
+- **Baseline:** Full suite 1792 passed, 13 skipped. All BAB/data/beta/core tests green.
+
+## SINGLE CLEAR INITIAL TASK FOR NEXT AGENT (START HERE)
+
+You MUST lock baseline (Gate 0), then execute the forced heavy campaign below in strict order. No shortcuts.
+
+## FORCED HEAVY CAMPAIGN (COMPLETE IN ORDER)
 
 ### CAMPAIGN 1: DATA PIPELINE TO REAL DATA (HARDENING) - GATE 1
-**Goal:** Make real-price/returns ingestion bulletproof while keeping synthetic defaults untouched.
+**Goal:** Bulletproof real-price/returns ingestion while keeping synthetic defaults untouched.
+**Focus:** `strategies/betting_against_beta/data_loader.py`, `data_sources.py`, `data.py`
+**Must do:**
+- [ ] Audit end-to-end for schema/alignment/coercion gaps
+- [ ] Harden validation (tz-aware->UTC naive, duplicates, column strip, all-NaN drop, numeric coercion with commas/%, NA strings, inf rejection)
+- [ ] Multi-format robustness (CSV/JSON/parquet/HDF5/pickle), clear actionable errors
+- [ ] Alignment guarantees (sorted index, no dupes, asset/benchmark aligned)
+- [ ] Create/update `scripts/load_real_bab_example.py` showing swap of `returns_df` into `BABStrategy.run()` with real CSV schema doc
+- [ ] Defensive I/O (missing files, empty, all-NaN, insufficient history)
 
-**Tasks (MUST DO ALL):**
-- [ ] **Audit end-to-end:** Review `strategies/betting_against_beta/data_loader.py`, `strategies/betting_against_beta/data_sources.py`, `strategies/betting_against_beta/data.py`. Document any gaps in schema, alignment, coercion.
-- [ ] **Harden validation:** Enforce datetime normalization (tz-aware -> UTC naive), duplicate handling, column stripping, all-NaN column drop, numeric coercion (commas/%, NA strings), inf rejection, benchmark presence + finiteness, min-rows.
-- [ ] **Multi-format robustness:** Test/strengthen CSV/JSON/parquet/HDF5/pickle paths. Clear errors with actionable messages (no silent failures).
-- [ ] **Alignment guarantees:** Ensure asset/benchmark index alignment, sorted index, no index/column duplicates causing leakage or misalignment.
-- [ ] **Real-data contract:** Create/complete `scripts/load_real_bab_example.py` showing concrete swap of `returns_df` into `BABStrategy.run()` with real CSV example. Include schema doc in docstring/comments.
-- [ ] **Defensive I/O:** Handle missing files, empty frames, all-NaN, insufficient history per asset/benchmark.
-
-**GATE 1 (MANDATORY):**
-```bash
-python -m pytest tests/test_bab_data_loader*.py -v  # all must pass
-```
-**Evidence required:** Summary of changes + gate output.
+**Gate 1 (MANDATORY):** `python -m pytest tests/test_bab_data_loader*.py -v` → all pass. Record changes + output.
 
 ### CAMPAIGN 2: BETA ROBUSTNESS & PERFORMANCE - GATE 2
-**Goal:** Eliminate numerical fragility and real perf issues without changing public API.
+**Goal:** Eliminate numerical fragility, optimize perf without API changes.
+**Focus:** `strategies/betting_against_beta/beta.py`
+**Must do:**
+- [ ] Stress NaN/inf/object/length mismatches/tiny windows (deterministic/safe → flat/zero weights)
+- [ ] Guard div-by-zero/degenerate cov/var/dtype coercion
+- [ ] Run `PYTHONPATH=/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta python scripts/perf_bench.py` before/after optimization with numbers; vectorize safely
 
-**Tasks (MUST DO ALL):**
-- [ ] **Edge hardening:** Stress `beta.py` (NaN/inf/object, length mismatch, tiny windows). `calculate_beta` and `calculate_rolling_beta` must be deterministic, safe (flat/zero-weights on bad inputs).
-- [ ] **Numerics:** Guard div-by-zero, degenerate cov/var, dtype coercion. No signature changes.
-- [ ] **Vectorize/optimize:** Run `python scripts/perf_bench.py`. Find hotspots, optimize with numpy/pandas safely. Benchmark before/after with numbers.
-- [ ] **Regression lock:** Fix any beta-related gaps found.
-
-**GATE 2 (MANDATORY):**
-```bash
-python -m pytest tests/test_bab_beta_campaign*.py -v  # all must pass
-```
-**Evidence required:** perf_bench before/after + gate output.
+**Gate 2 (MANDATORY):** `python -m pytest tests/test_bab_beta_campaign*.py -v` → all pass. Record perf before/after + output.
 
 ### CAMPAIGN 3: SIGNALS/PORTFOLIO/BACKTEST CORRECTNESS - GATE 3
 **Goal:** Lock no-lookahead, ranking, weighting, costs, dollar-neutrality under stress.
+**Focus:** `signals.py`, `portfolio.py`, `backtest.py`
+**Must do:**
+- [ ] Verify 1-day lag in backtest, turnover/cost application, weights shifted correctly
+- [ ] Ranking/ties/small universes, quantile stability, lowest-beta long/highest-beta short
+- [ ] NaN/inf → flat periods
+- [ ] Stress custom configs/costs on/off/small/large universes
 
-**Tasks (MUST DO ALL):**
-- [ ] **No-lookahead:** Verify 1-day lag in `backtest.py`, turnover/cost application, weights shifted correctly.
-- [ ] **Ranking/ties/small universes:** Quantile stability, tie-breaking, edge counts, lowest-beta long / highest-beta short.
-- [ ] **Numerics:** NaN/inf handling, flat periods on insufficient history.
-- [ ] **Stress integration:** Test with custom configs, costs on/off, small/large universes.
-
-**GATE 3 (MANDATORY):**
-```bash
-python -m pytest tests/test_betting_against_beta*.py -v  # all must pass (core BAB tests)
-```
-**Evidence required:** explicit verification of lag + neutrality + gate output.
+**Gate 3 (MANDATORY):** `python -m pytest tests/test_betting_against_beta*.py -v` → all pass. Explicitly verify lag+neutrality.
 
 ### CAMPAIGN 4: STRATEGY INTEGRATION, CLI, DOCS - GATE 4
 **Goal:** Make BAB fully usable end-to-end with real data and clear docs.
+**Focus:** `strategy.py`, `cli.py`, `README.md`
+**Must do:**
+- [ ] Harden `BABStrategy.run()` with custom universe/benchmark/costs/quantiles/short/empty/messy data
+- [ ] Ensure CLI functional (argparse/help/examples), fix if gaps
+- [ ] Update README with concrete real-data swap example using Campaign 1 contract + custom config + costs
+- [ ] Quick-start must still work
 
-**Tasks (MUST DO ALL):**
-- [ ] **End-to-end hardening:** `BABStrategy.run()` with custom universe/benchmark/costs/quantiles, short/empty/messy data.
-- [ ] **CLI:** Ensure `strategies/betting_against_beta/cli.py` is functional (argparse, help, examples). If gaps, fix/add minimally.
-- [ ] **Docs:** Update `README.md` with concrete real-data swap example using Campaign 1 contract, custom config, costs. Keep actionable.
-- [ ] **Smoke:** Quick-start must still work.
+**Gate 4 (MANDATORY):** `python -c "from strategies.betting_against_beta import BABStrategy; s=BABStrategy(); r=s.run(); print(float(r.backtest['cumulative'].iloc[-1]))"` → finite. Record CLI help/smoke + README notes.
 
-**GATE 4 (MANDATORY):**
-```bash
-python -c "from strategies.betting_against_beta import BABStrategy; s=BABStrategy(); r=s.run(); print(float(r.backtest['cumulative'].iloc[-1]))"  # finite float
-```
-**Evidence required:** CLI help/smoke + README update notes + gate output.
+### CAMPAIGN 5: FULL SUITE HYGIENE & FLAKE SCAN - FINAL GATE
+**Goal:** Absolute green, no regressions/flakiness.
+**Must do:**
+- [ ] Full pytest, fix all regressions (no weakening assertions)
+- [ ] Hunt randomness/seed if found
+- [ ] Note slow tests only if blocking and behavior-preserving
+- [ ] Confirm quick-start
 
-### CAMPAIGN 5: FULL SUITE HYGIENE & FLAKE SCAN - FINAL GATE (DO NOT SKIP)
-**Goal:** Absolute green, no regressions, no flakiness.
+**Gate 5 (MANDATORY - FINAL):** `python -m pytest -q` → `1792 passed, 13 skipped` AND smoke test finite. Record full summary.
 
-**Tasks (MUST DO ALL):**
-- [ ] **Full suite:** Run full pytest. Fix every regression introduced (no weakening assertions).
-- [ ] **Determinism:** Hunt for randomness; seed if found.
-- [ ] **Perf scan:** Note slow tests; only optimize if blocking and behavior-preserving.
-- [ ] **Final verification:** Strategy quick-start confirmed.
-
-**GATE 5 (MANDATORY - FINAL):**
-```bash
-python -m pytest -q  # MUST be 1792 passed, 13 skipped
-python3 -c "from strategies.betting_against_beta import BABStrategy; s=BABStrategy(); r=s.run(); print(float(r.backtest['cumulative'].iloc[-1]))"  # MUST be finite
-```
-**Evidence required:** Full suite summary + final smoke output.
-
-## RULES FOR NEXT AGENT (STRICT - NON-NEGOTIABLE)
-- **BASELINE FIRST:** Gate 0 is mandatory. Never skip.
-- **GATE ENFORCEMENT:** Complete in order 1-5. Do not advance until current gate passes.
+## NON-NEGOTIABLE RULES
+- **BASELINE FIRST:** Gate 0 mandatory. Never skip.
+- **GATE ENFORCEMENT:** Complete 1-5 in order. Don't advance until current gate passes.
 - **MAINTAIN GREEN:** 1792 passed, 13 skipped must remain. Never break existing passing tests.
 - **BAB FIRST:** Crypto Betting Against Beta above everything else.
-- **HEAVY WORK REQUIRED:** Trivial one-liners are insufficient. Do the full campaign with concrete deliverables.
+- **HEAVY WORK REQUIRED:** Trivial one-liners insufficient. Full campaign with concrete deliverables.
 - **NO UNNECESSARY WORKFLOW CHANGES:** Only touch `.github/workflows/*` if absolutely required to unblock BAB AND pattern-sync tests still pass.
-- **PRESERVE CONTRACTS:** Keep synthetic defaults. Preserve public APIs unless no alternative exists AND all affected tests updated with justification.
+- **PRESERVE CONTRACTS:** Keep synthetic defaults. Preserve public APIs unless no alternative AND all affected tests updated with justification.
 - **EVIDENCE MANDATORY:** For each gate, record what changed and command output summary.
-- **NO LOOKAHEAD:** Never introduce lookahead. Weights must be lagged by 1 day.
+- **NO LOOKAHEAD:** Weights must be lagged by 1 day. Never introduce lookahead.
 - **DEFENSIVE BY DEFAULT:** Validate, coerce safely, fail clearly.
 
 **START NOW:** Run Gate 0. If green, begin Campaign 1 immediately. Do not stop until Gate 5 passes.
