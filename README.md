@@ -46,6 +46,7 @@ All tests must pass. Strategy tests live in `tests/test_betting_against_beta.py`
 
 
 ### Real data (swap from synthetic)
+
 ```python
 from strategies.betting_against_beta import BABStrategy
 from strategies.betting_against_beta.data_loader import load_returns, load_prices
@@ -62,6 +63,7 @@ print(float(result.backtest["cumulative"].iloc[-1]))
 ```
 
 Or use the CLI:
+
 ```bash
 python -m strategies.betting_against_beta.cli --data returns.csv --benchmark BTC --beta-window 90 --long-quantile 0.3 --short-quantile 0.3 --transaction-costs 0.001
 # or from prices

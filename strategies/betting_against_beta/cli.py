@@ -12,7 +12,7 @@ from .strategy import BABStrategy
 
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description="Betting Against Beta (BAB) crypto strategy")
-    parser.add_argument("--data", type=str, help="Path to returns data (CSV/JSON/Parquet/HDF5/Pickle)")
+    parser.add_argument("--data", type=str, help="Path to returns data (CSV/JSON/Parquet/HDF5/Pickle). Use --from-prices to treat this as a price series instead.")
     parser.add_argument("--benchmark", type=str, default="BTC", help="Benchmark symbol (default: BTC)")
     parser.add_argument("--universe", type=str, nargs="*", help="Universe of assets")
     parser.add_argument("--beta-window", type=int, default=90, help="Beta estimation window")
@@ -23,6 +23,11 @@ def main(argv=None) -> int:
     parser.add_argument("--slippage", type=float, default=0.0, help="Slippage")
     parser.add_argument("--output", type=str, help="Output JSON file for results summary")
     parser.add_argument("--synthetic", action="store_true", help="Use synthetic data")
+    parser.add_argument(
+        "--from-prices",
+        action="store_true",
+        help="Treat --data as a price series and convert to returns via load_prices()",
+    )
 
     args = parser.parse_args(argv)
 
@@ -41,7 +46,13 @@ def main(argv=None) -> int:
     if args.synthetic or args.data is None:
         result = strategy.run()
     else:
-        result = strategy.run(returns_df=args.data)
+        from .data_loader import load_prices, load_returns
+
+        if args.from_prices:
+            returns_df = load_prices(args.data, benchmark=args.benchmark, min_rows=config.min_rows)
+        else:
+            returns_df = load_returns(args.data, benchmark=args.benchmark, min_rows=config.min_rows)
+        result = strategy.run(returns_df=returns_df)
 
     cum = result.backtest["cumulative"].iloc[-1]
     print(f"Final cumulative return: {cum:.6f}")
