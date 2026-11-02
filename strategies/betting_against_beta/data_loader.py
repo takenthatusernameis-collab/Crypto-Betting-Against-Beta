@@ -46,18 +46,38 @@ def _normalize_index(df: pd.DataFrame) -> pd.DataFrame:
                         # Try by magnitude - prefer most common units
                         try:
                             if av > 1e18:
-                                df.index = pd.to_datetime(idx, unit='us', utc=True)
+                                try:
+                                    df.index = pd.to_datetime(idx, unit='us', utc=True)
+                                except Exception:
+                                    coerced = [_coerce_to_datetime_scalar(v) for v in idx]
+                                    df.index = coerced
                             elif av > 1e15:  # microseconds
-                                df.index = pd.to_datetime(idx, unit='us', utc=True)
+                                try:
+                                    df.index = pd.to_datetime(idx, unit='us', utc=True)
+                                except Exception:
+                                    coerced = [_coerce_to_datetime_scalar(v) for v in idx]
+                                    df.index = coerced
                             elif av > 1e12:  # milliseconds
-                                df.index = pd.to_datetime(idx, unit='ms', utc=True)
+                                try:
+                                    df.index = pd.to_datetime(idx, unit='ms', utc=True)
+                                except Exception:
+                                    coerced = [_coerce_to_datetime_scalar(v) for v in idx]
+                                    df.index = coerced
                             elif av >= 1e9:  # seconds
-                                df.index = pd.to_datetime(idx, unit='s', utc=True)
+                                try:
+                                    df.index = pd.to_datetime(idx, unit='s', utc=True)
+                                except Exception:
+                                    coerced = [_coerce_to_datetime_scalar(v) for v in idx]
+                                    df.index = coerced
                             elif av > 0:  # small numbers, try seconds
                                 try:
                                     df.index = pd.to_datetime(idx, unit='s', utc=True)
                                 except Exception:
-                                    df.index = pd.to_datetime(idx, errors="raise")
+                                    try:
+                                        coerced = [_coerce_to_datetime_scalar(v) for v in idx]
+                                        df.index = coerced
+                                    except Exception:
+                                        df.index = pd.to_datetime(idx, errors="raise")
                             else:
                                 df.index = pd.to_datetime(idx, errors="raise")
                         except Exception:
@@ -78,7 +98,7 @@ def _normalize_index(df: pd.DataFrame) -> pd.DataFrame:
                 else:
                     # Try to be robust with mixed timezones/strings
                     try:
-                        # First attempt: let pandas handle
+                        # First attempt: let pandas handle with utc
                         try:
                             df.index = pd.to_datetime(idx, utc=True, errors="coerce")
                         except Exception:
@@ -99,7 +119,28 @@ def _normalize_index(df: pd.DataFrame) -> pd.DataFrame:
                                     raise
                             df.index = coerced
                         if getattr(df.index, "isna", None) is not None and bool(getattr(df.index.isna(), 'any', lambda: False)()):
-                            raise ValueError("unparseable")
+                            # last ditch: try with dayfirst where safe
+                            try:
+                                coerced = []
+                                for v in idx:
+                                    try:
+                                        try:
+                                            coerced.append(_coerce_to_datetime_scalar(v))
+                                            continue
+                                        except Exception:
+                                            pass
+                                        # try pandas with dayfirst
+                                        try:
+                                            coerced.append(pd.to_datetime(v, utc=True, errors="raise", dayfirst=True))
+                                            continue
+                                        except Exception:
+                                            pass
+                                        coerced.append(pd.to_datetime(v, utc=False, errors="raise", dayfirst=True))
+                                    except Exception:
+                                        raise
+                                df.index = coerced
+                            except Exception:
+                                raise ValueError("unparseable")
                     except Exception:
                         try:
                             df.index = pd.to_datetime(idx, errors="raise")
@@ -565,17 +606,39 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
     except Exception:
         pass
 
-    candidate_names = {"date", "datetime", "timestamp", "time", "dt", "index", "idx", "open time", "close time", "snapped_at", "snapped at", "dateutc", "candle time", "open_time", "close_time", "time(utc)", "date (utc)", "datetime utc", "candle_begin_time", "candle begintime", "opentime", "closetime", "unix", "epoch", "t", "date_time"}
+    candidate_names = {"date", "datetime", "timestamp", "time", "dt", "index", "idx", "open time", "close time", "snapped_at", "snapped at", "dateutc", "candle time", "open_time", "close_time", "time(utc)", "date (utc)", "datetime utc", "candle_begin_time", "candle begintime", "opentime", "closetime", "unix", "epoch", "t", "date_time", "datetimeindex"}
     lowered = {str(c).strip().lower(): c for c in df.columns}
     name_match = next((lowered[n] for n in candidate_names if n in lowered), None)
     if name_match is not None:
         try:
             try:
                 coerced = df[name_match].apply(_coerce_to_datetime_scalar)
-                df2 = df.copy()
-                df2.index = coerced
-                df2 = df2.drop(columns=[name_match])
-                return df2
+                # normalize tz
+                try:
+                    coerced_clean = []
+                    for pdv in coerced:
+                        try:
+                            if hasattr(pdv, 'tzinfo') and pdv.tzinfo is not None:
+                                pdv = pd.Timestamp(pdv).tz_convert('UTC').tz_localize(None)
+                            else:
+                                try:
+                                    pdt = pd.Timestamp(pdv)
+                                    if getattr(pdt, 'tzinfo', None) is not None:
+                                        pdt = pdt.tz_convert('UTC').tz_localize(None)
+                                    pdv = pdt
+                                except Exception:
+                                    pass
+                        except Exception:
+                            pass
+                        coerced_clean.append(pdv)
+                    coerced = coerced_clean
+                except Exception:
+                    pass
+                if coerced is not None and not getattr(coerced, "isna", lambda: pd.Series([True]))().all():
+                    df2 = df.copy()
+                    df2.index = coerced
+                    df2 = df2.drop(columns=[name_match])
+                    return df2
             except Exception:
                 pass
             try:
@@ -592,10 +655,31 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
         try:
             try:
                 coerced = df[col].apply(_coerce_to_datetime_scalar)
-                df2 = df.copy()
-                df2.index = coerced
-                df2 = df2.drop(columns=[col])
-                return df2
+                try:
+                    coerced_clean = []
+                    for pdv in coerced:
+                        try:
+                            if hasattr(pdv, 'tzinfo') and pdv.tzinfo is not None:
+                                pdv = pd.Timestamp(pdv).tz_convert('UTC').tz_localize(None)
+                            else:
+                                try:
+                                    pdt = pd.Timestamp(pdv)
+                                    if getattr(pdt, 'tzinfo', None) is not None:
+                                        pdt = pdt.tz_convert('UTC').tz_localize(None)
+                                    pdv = pdt
+                                except Exception:
+                                    pass
+                        except Exception:
+                            pass
+                        coerced_clean.append(pdv)
+                    coerced = coerced_clean
+                except Exception:
+                    pass
+                if coerced is not None and not getattr(coerced, "isna", lambda: pd.Series([True]))().all():
+                    df2 = df.copy()
+                    df2.index = coerced
+                    df2 = df2.drop(columns=[col])
+                    return df2
             except Exception:
                 pass
             try:
@@ -625,11 +709,37 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
                             if av > 1e8:  # likely epoch-like
                                 try:
                                     coerced = s.apply(_coerce_to_datetime_scalar)
-                                    if coerced is not None and not getattr(coerced, "isna", lambda: pd.Series([True]))().all():
-                                        df2 = df.copy()
-                                        df2.index = coerced
-                                        df2 = df2.drop(columns=[col])
-                                        return df2
+                                    if coerced is not None:
+                                        try:
+                                            coerced_series = coerced
+                                            # normalize tz
+                                            try:
+                                                coerced_clean = []
+                                                for pdv in coerced_series:
+                                                    try:
+                                                        if hasattr(pdv, 'tzinfo') and pdv.tzinfo is not None:
+                                                            pdv = pd.Timestamp(pdv).tz_convert('UTC').tz_localize(None)
+                                                        else:
+                                                            try:
+                                                                pdt = pd.Timestamp(pdv)
+                                                                if getattr(pdt, 'tzinfo', None) is not None:
+                                                                    pdt = pdt.tz_convert('UTC').tz_localize(None)
+                                                                pdv = pdt
+                                                            except Exception:
+                                                                pass
+                                                    except Exception:
+                                                        pass
+                                                    coerced_clean.append(pdv)
+                                                coerced_series = coerced_clean
+                                            except Exception:
+                                                pass
+                                            if not getattr(coerced_series, "isna", lambda: pd.Series([True]))().all():
+                                                df2 = df.copy()
+                                                df2.index = coerced_series
+                                                df2 = df2.drop(columns=[col])
+                                                return df2
+                                        except Exception:
+                                            pass
                                 except Exception:
                                     pass
                         except Exception:
@@ -645,6 +755,27 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
                     if coerced is not None:
                         try:
                             coerced_series = coerced
+                            # normalize tz
+                            try:
+                                coerced_clean = []
+                                for pdv in coerced_series:
+                                    try:
+                                        if hasattr(pdv, 'tzinfo') and pdv.tzinfo is not None:
+                                            pdv = pd.Timestamp(pdv).tz_convert('UTC').tz_localize(None)
+                                        else:
+                                            try:
+                                                pdt = pd.Timestamp(pdv)
+                                                if getattr(pdt, 'tzinfo', None) is not None:
+                                                    pdt = pdt.tz_convert('UTC').tz_localize(None)
+                                                pdv = pdt
+                                            except Exception:
+                                                pass
+                                    except Exception:
+                                        pass
+                                    coerced_clean.append(pdv)
+                                coerced_series = coerced_clean
+                            except Exception:
+                                pass
                             if not getattr(coerced_series, "isna", lambda: pd.Series([True]))().all():
                                 df2 = df.copy()
                                 df2.index = coerced_series
@@ -655,12 +786,24 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
                 except Exception:
                     pass
                 try:
-                    parsed = pd.to_datetime(df[col], errors="raise")
+                    parsed = pd.to_datetime(df[col], errors="raise", utc=False)
                 except Exception:
-                    continue
+                    try:
+                        parsed = pd.to_datetime(df[col], errors="raise", utc=True)
+                    except Exception:
+                        continue
                 if parsed is not None and hasattr(parsed, "isna") and not parsed.isna().any():
                     try:
-                        return df.set_index(col)
+                        # normalize tz
+                        try:
+                            if getattr(parsed, "tz", None) is not None:
+                                parsed = parsed.tz_convert("UTC").tz_localize(None)
+                        except Exception:
+                            pass
+                        df2 = df.copy()
+                        df2.index = parsed
+                        df2 = df2.drop(columns=[col])
+                        return df2
                     except (ValueError, TypeError, KeyError):
                         continue
             except Exception:

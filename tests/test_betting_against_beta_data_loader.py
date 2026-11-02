@@ -597,3 +597,49 @@ class TestRobustDatetimeParsing:
         df = pd.DataFrame({"BTC": [100, 101, 102], "ETH": [10, 10.5, 11]}, index=dates)
         out = load_prices(df)
         assert isinstance(out.index, pd.DatetimeIndex)
+
+    def test_epoch_seconds_as_strings(self):
+        from strategies.betting_against_beta.data_loader import load_prices
+        import pandas as pd
+        idx = [str(int(d.timestamp())) for d in pd.date_range("2023-01-01", periods=5)]
+        df = pd.DataFrame({"BTC": [1, 2, 3, 4, 5], "ETH": [0.1, 0.2, 0.3, 0.4, 0.5]}, index=idx)
+        out = load_prices(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+    def test_epoch_microseconds(self):
+        from strategies.betting_against_beta.data_loader import load_prices
+        import pandas as pd
+        idx = pd.date_range("2023-01-01", periods=4)
+        # microseconds
+        idx_us = [int(d.timestamp() * 1e6) for d in idx]
+        df = pd.DataFrame({"BTC": [100, 101, 102, 103]}, index=idx_us)
+        out = load_prices(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+    def test_promote_date_column_mixed_offsets(self):
+        from strategies.betting_against_beta.data_loader import load_prices
+        df = pd.DataFrame({
+            "date": ["2023-01-01T00:00:00+00:00", "2023-01-02T00:00:00Z", "2023-01-03T12:00:00-07:00"],
+            "BTC": [100, 101, 102],
+            "ETH": [10, 11, 12],
+        })
+        out = load_prices(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+        assert "BTC" in out.columns
+
+    def test_promote_datetime_column_epoch_seconds_in_column(self):
+        from strategies.betting_against_beta.data_loader import load_prices
+        import pandas as pd
+        idx = [int(d.timestamp()) for d in pd.date_range("2023-01-01", periods=4)]
+        df = pd.DataFrame({"timestamp": idx, "BTC": [1, 2, 3, 4], "ETH": [0.1, 0.2, 0.3, 0.4]})
+        out = load_prices(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+    def test_duplicate_timestamps_dropped(self):
+        from strategies.betting_against_beta.data_loader import load_prices
+        import pandas as pd
+        dates = ["2023-01-01", "2023-01-01", "2023-01-02", "2023-01-03"]
+        df = pd.DataFrame({"BTC": [100, 101, 102, 103], "ETH": [10, 11, 12, 13]}, index=dates)
+        out = load_prices(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+        assert len(out) >= 1

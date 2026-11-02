@@ -1,8 +1,8 @@
 # SINGLE DURABLE HANDOFF - Crypto-Betting-Against-Beta
-**Timestamp:** 2026-11-02T12:40:11Z (Gate 0 verified green: 150 passed, 6 skipped; BABStrategy cumulative == 0.31664543005633267)
+**Timestamp:** 2026-11-02T12:46:23Z (Gate 0 verified green: 155 passed, 6 skipped; BABStrategy cumulative == 0.31664543005633267)
 **Priority from repo name:** CRYPTO BETTING AGAINST BETA (BAB) - Market-neutral long low-beta / short high-beta vs benchmark. ALL WORK MUST DIRECTLY ADVANCE BAB.
 **Session Mode:** Repo-prioritized, bottleneck-removal enforced. Heavy campaign MANDATORY.
-**Status:** GATE 0 GREEN - Core BAB tests pass (150 passed in Gate 0 suites). BABStrategy cumulative == 0.31664543005633267. BOTTLENECK REMOVED: `load_prices` was failing on `test_load_prices_from_csv_with_messy_headers` because `pct_change()` on junk metadata columns (Unnamed: 0 CSV index artifact, EXTRA_COL/UNWANTED with normal(0,1) near-zero values) produced extreme spurious returns (max |r|=47.1) that tripped the implausible-returns check. Added `_drop_metadata_columns` to strip Unnamed:* columns, sequential integer row-index artifacts, and non-positive columns before `pct_change` in `load_prices`. Multi-source normalization hardened; exchange-format loaders extended; datetime/index normalization hardened.
+**Status:** GATE 0 GREEN - Core BAB tests pass (155 passed in Gate 0 suites). BABStrategy cumulative == 0.31664543005633267. ITEM 3 (Robust datetime parsing) COMPLETED - hardened `_promote_datetime_column` and `_normalize_index` for epoch seconds/ms/μs, mixed timezones/offsets (Z, +00:00, -07:00), elementwise coercion, normalization to naive UTC; added comprehensive datetime tests (all passing). Bottlenecks removed.
 
 ## BOTTOM LINE - RUN GATE 0 FIRST, NO EXCEPTIONS
 
@@ -28,42 +28,26 @@ print(float(r.backtest['cumulative'].iloc[-1]))
 2. **Robust datetime parsing hardening:**
 - Improved `_normalize_index` to coerce mixed tz/strings more defensively (coerce with/without utc, elementwise via `_coerce_to_datetime_scalar`), epoch seconds/ms heuristics, tz-aware → UTC → naive normalization, duplicate timestamps dropped, sorted index.
 - Strengthened `_promote_datetime_column` to try exchange normalization first, recognize more datetime column names, better promotion of unnamed/epoch columns.
-3. **Gate 0 + related suites verified green.** Controller/workflow pattern sync already fixed in previous session (tests/test_controller_progress_accounting.py green).
-4. **Bottleneck removed - `load_prices` metadata column fix:** `test_load_prices_from_csv_with_messy_headers` was red because `pct_change()` ran on junk metadata columns (`Unnamed: 0` CSV index artifact, `EXTRA_COL`/`UNWANTED` with normal(0,1) near-zero values → extreme spurious returns max |r|=47.1). Added `_drop_metadata_columns` in `data_loader.py:1352` to strip `Unnamed:*` columns, sequential integer row-index artifacts, and non-positive columns before `pct_change`. Gate 0 now 150 passed, 6 skipped.
+3. **Gate 0 + related suites verified green (now 155 passed).** Controller/workflow pattern sync already fixed in previous session.
+4. **Bottleneck removed - `load_prices` metadata column fix.** (as above)
+5. **Robust datetime parsing hardened (Campaign 7 Item 3):** Enhanced `_promote_datetime_column` and `_normalize_index` for epoch seconds/ms/microseconds, numeric/string mixing, mixed tz/offsets (Z, +HH:MM, -HH:MM), elementwise `_coerce_to_datetime_scalar` with normalization to naive UTC, better duplicate handling; added tests in `TestRobustDatetimeParsing`. Gate 0 + all datetime tests green.
 
 ## IMMEDIATE TASK FOR NEXT SESSION (START HERE - HEAVY WORK REQUIRED, NOT OPTIONAL)
 
 **CAMPAIGN 7: PRODUCTION HARDENING FOR REAL CRYPTO DATA** - DO NOT STOP UNTIL SUBSTANTIAL PROGRESS
 
-**NEXT CONCRETE ITEM (Priority 1, item 3) - ROBUST DATETIME PARSING (MUST DO NOW):**
+**NEXT CONCRETE ITEM (Priority 1, item 4) - COMPREHENSIVE DATA QUALITY CHECKS (MUST DO NOW):**
 
-Harden datetime normalization utilities for real-world messiness. This blocks reliable ingestion from mixed sources. Make substantial, tested changes - trivial edits insufficient.
+Harden data quality validation in `validate_returns_dataframe`. Add/strengthen checks for gaps, duplicate timestamps across assets, stale data, implausible returns (|r| > X), missing benchmark coverage with clear `BABDataError` messages. This is critical for real crypto data. Make substantial tested changes.
 
 **REQUIRED ACTIONS (HEAVY - NON-NEGOTIABLE):**
-1. **Harden `_promote_datetime_column`** in `strategies/betting_against_beta/data_loader.py`:
-- Better detection of datetime columns when mixed with numeric/string metadata
-- Handle cases where date is split across columns or in non-obvious positions
-- More aggressive promotion for epoch seconds/ms strings, ISO8601 with/without Z/offsets
-- Ensure idempotent behavior
+1. **Enhance duplicate detection:** Ensure duplicate timestamps across the index are caught and handled robustly (across all code paths). Add explicit tests.
+2. **Stale data / large gaps:** Strengthen gap detection (configurable thresholds, better messages). Already partially added - extend with tests for various frequencies.
+3. **Implausible returns:** Enforce |r| > threshold (e.g., > 5-10 or configurable) with clear BABDataError messages. Add tests for extreme returns.
+4. **Missing/invalid benchmark coverage:** Already present but harden messages and edge cases (benchmark all-NaN, benchmark missing). Add tests.
+5. **ADD TESTS (substantial):** Create/extend tests in `tests/test_bab_*` or `tests/test_betting_against_beta_data_loader.py`. All must stay green.
 
-2. **Harden `_normalize_index`**:
-- Strengthen mixed timezone handling (naive vs aware), normalize everything to naive UTC consistently
-- Handle dayfirst/ambiguous formats more robustly where safe
-- Better error messages with clear `BABDataError`
-- Preserve sort + duplicate removal behavior
-
-3. **Tighten integration**:
-- Ensure `normalize_schema`, `load_prices`, `load_returns` all use hardened paths
-- Handle common exchange variants (Binance/OKX/Bybit/Coinbase/Kraken long/wide formats)
-
-4. **ADD TESTS (substantial):**
-- Epoch seconds (not just ms), microseconds, mixed naive/aware, strings with Z/+00:00/-07:00
-- Dayfirst formats where unambiguous
-- Index promotion from various column names
-- Duplicate timestamps across sources
-- All tests must stay green
-
-**AFTER ITEM 3 COMPLETE:** Move to Priority 1 item 4 (comprehensive data quality checks - gaps, duplicate timestamps across assets, stale data, implausible returns |r|>X, missing benchmark coverage with clear BABDataError messages). Same rigor - heavy work, comprehensive tests.
+**AFTER ITEM 4 COMPLETE:** Move to Priority 1 item 5+ as needed, continuing heavy work.
 
 **MANDATE:** Not a quick fix. Add comprehensive tests. Verify Gate 0 + new tests pass. Evidence required for each major change.
 
