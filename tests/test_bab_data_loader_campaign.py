@@ -119,7 +119,9 @@ def test_coerce_numeric_percent_bad_value():
 def test_coerce_numeric_decimal_comma():
     df = pd.DataFrame({"BTC": ["1,5", "2,5"], "ETH": [0.01, 0.02]})
     out = _coerce_numeric(df)
-    assert out["BTC"].iloc[0] == 15.0
+    # European decimal comma: "1,5" -> 1.5, "2,5" -> 2.5
+    assert out["BTC"].iloc[0] == 1.5
+    assert out["BTC"].iloc[1] == 2.5
 
 
 def test_coerce_numeric_non_numeric_column_raises():

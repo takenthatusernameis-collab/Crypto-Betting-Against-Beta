@@ -13,6 +13,7 @@ from strategies.betting_against_beta.data_loader import (
     BABDataError,
     iter_assets,
     list_columns,
+    load_prices,
     load_returns,
     load_returns_from_csv,
     load_returns_from_dataframe,
@@ -197,7 +198,39 @@ class TestLoaders:
         assert "BTC" in out.columns
         assert "ETH" in out.columns
 
-    def test_load_returns_from_pickle_missing_file(self, tmp_path: Path):
+    def test_load_prices_from_csv_with_messy_headers(self, tmp_path: Path):
+        # extra columns, spaces, mixed case headers
+        idx = pd.date_range("2023-01-01", periods=40, freq="D")
+        rng = np.random.default_rng(789)
+        # create price-like data
+        df = pd.DataFrame(
+            {
+                "  DATE  ": idx.strftime("%Y-%m-%d"),
+                "BTC (USD) ": rng.normal(100, 1, 40).cumsum() + 30000,
+                " eth/usdt ": rng.normal(100, 1, 40).cumsum() + 2000,
+                "EXTRA_COL": rng.normal(0, 1, 40),
+                "UNWANTED ": rng.normal(0, 1, 40),
+            }
+        )
+        path = tmp_path / "messy.csv"
+        df.to_csv(path)
+        out = load_prices(path)
+        assert isinstance(out.index, pd.DatetimeIndex)
+        cols = [str(c).upper() for c in out.columns]
+        assert "BTC" in cols and "ETH" in cols
+
+    def test_load_returns_from_csv_with_messy_headers(self, tmp_path: Path):
+        df = _valid_df(rows=50)
+        # rename columns messily
+        df.columns = ["  " + c + " (USD) " if c == "BTC" else (" eth/usdt " if c == "ETH" else c + "  ") for c in df.columns]
+        # add extra columns
+        df["EXTRA_COL"] = np.random.default_rng(5).normal(0, 0.01, len(df))
+        df["  JUNK  "] = np.random.default_rng(6).normal(0, 0.01, len(df))
+        path = tmp_path / "messy_returns.csv"
+        df.to_csv(path)
+        out = load_returns(path, benchmark="BTC")
+        assert "BTC" in out.columns
+        assert any(c.upper() == "ETH" for c in out.columns)
         with pytest.raises(BABDataError):
             load_returns_from_pickle(tmp_path / "nope.pkl", benchmark="BTC")
 

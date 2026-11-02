@@ -89,11 +89,9 @@ def _coerce_to_datetime_scalar(val):
             if s.lower() in {"", "na", "n/a", "nan", "null", "none"}:
                 raise ValueError("bad")
             # Try epoch seconds/milliseconds
-            # If all digits (and maybe minus)
             try:
                 # epoch ms?
-                # heuristics
-                if s.isdigit() or (s[0] in '+-' and s[1:].isdigit()):
+                if s.isdigit() or (len(s) > 0 and s[0] in '+-' and s[1:].isdigit()):
                     num = int(float(s))
                     if num > 1e12:  # ms
                         return pd.to_datetime(num, unit="ms", utc=True)
@@ -103,8 +101,14 @@ def _coerce_to_datetime_scalar(val):
                         return pd.to_datetime(num, unit="s", utc=True)
             except Exception:
                 pass
-            # try normal parse
-            return pd.to_datetime(s, utc=True)
+            # try normal parse with utc
+            try:
+                return pd.to_datetime(s, utc=True, errors="raise")
+            except Exception:
+                try:
+                    return pd.to_datetime(s, utc=False, errors="raise")
+                except Exception:
+                    raise
         if isinstance(val, (int, np.integer)):
             v = int(val)
             if v > 1e12:
@@ -123,6 +127,14 @@ def _coerce_to_datetime_scalar(val):
                 return pd.to_datetime(v, unit="s", utc=True)
             else:
                 return pd.to_datetime(v, unit="s", utc=True)
+        # pandas Timestamp/datetime
+        try:
+            ts = pd.Timestamp(val)
+            if getattr(ts, 'tzinfo', None) is not None:
+                return ts.tz_convert('UTC')
+            return ts
+        except Exception:
+            pass
         return pd.to_datetime(val, utc=True)
     except Exception:
         raise
@@ -347,25 +359,45 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
     except Exception:
         pass
 
-    candidate_names = {"date", "datetime", "timestamp", "time", "dt", "index", "idx", "open time", "close time", "snapped_at", "snapped at", "dateutc", "candle time"}
+    candidate_names = {"date", "datetime", "timestamp", "time", "dt", "index", "idx", "open time", "close time", "snapped_at", "snapped at", "dateutc", "candle time", "open_time", "close_time"}
     lowered = {str(c).strip().lower(): c for c in df.columns}
     name_match = next((lowered[n] for n in candidate_names if n in lowered), None)
     if name_match is not None:
         try:
+            # try to coerce
+            try:
+                coerced = df[name_match].apply(_coerce_to_datetime_scalar)
+                df2 = df.copy()
+                df2.index = coerced
+                df2 = df2.drop(columns=[name_match])
+                return df2
+            except Exception:
+                pass
             df = df.set_index(name_match)
             return df
         except (ValueError, TypeError, KeyError):
             pass
 
-    unnamed = [c for c in df.columns if str(c).strip() == "" or str(c).strip().lower() == "unnamed: 0"]
+    unnamed = [c for c in df.columns if str(c).strip() == "" or str(c).strip().lower().startswith("unnamed")]
     if len(unnamed) == 1 and len(df.columns) > 1:
         col = unnamed[0]
         try:
+            try:
+                coerced = df[col].apply(_coerce_to_datetime_scalar)
+                df2 = df.copy()
+                df2.index = coerced
+                df2 = df2.drop(columns=[col])
+                return df2
+            except Exception:
+                pass
             parsed = pd.to_datetime(df[col], errors="raise")
         except (ValueError, TypeError):
             parsed = None
         if parsed is not None and not parsed.isna().any():
-            return df.set_index(col)
+            try:
+                return df.set_index(col)
+            except Exception:
+                pass
 
     # Last resort: promote any remaining object/string column that parses as
     # datetime. Skip a named date-like column already attempted via set_index
@@ -375,14 +407,13 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
         for col in df.columns:
             if col in tried:
                 continue
-            if not pd.api.types.is_string_dtype(df[col]) and not pd.api.types.is_object_dtype(df[col]):
+            if not pd.api.types.is_string_dtype(df[col]) and not pd.api.types.is_object_dtype(df[col]) and not pd.api.types.is_numeric_dtype(df[col]):
                 continue
             try:
                 try:
                     coerced = df[col].apply(_coerce_to_datetime_scalar)
                     if coerced is not None:
                         coerced_series = coerced
-                        # check not all na
                         try:
                             if not getattr(coerced_series, "isna", lambda: pd.Series([True]))().all():
                                 df2 = df.copy()
@@ -470,55 +501,63 @@ def _normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
     new_cols = []
     for c in df.columns:
-        nc = str(c).strip()
-        cl = nc.lower().replace("\t", " ").replace("\n", " ").replace("\r", " ")
+        nc = str(c)
+        # Strip all whitespace aggressively
+        nc_stripped = nc.strip()
+        cl = nc_stripped.lower().replace("\t", " ").replace("\n", " ").replace("\r", " ")
         # Remove extra whitespace
         cl = " ".join(cl.split())
+        # Also handle multiple spaces
+        cl_clean = cl
         # Normalize common variations
-        if cl in {"adj close", "adj_close", "adjusted close", "adjusted_close", "adjclose"}:
+        if cl_clean in {"adj close", "adj_close", "adjusted close", "adjusted_close", "adjclose"}:
             new_cols.append("Adj Close")
             continue
-        if cl in {"close", "close price", "closing price", "last", "last price", "close price usd"}:
+        if cl_clean in {"close", "close price", "closing price", "last", "last price", "close price usd", "close(usd)", "close_usd"}:
             new_cols.append("Close")
             continue
-        if cl in {"open", "open price", "opening price"}:
+        if cl_clean in {"open", "open price", "opening price", "open(usd)"}:
             new_cols.append("Open")
             continue
-        if cl in {"high", "high price", "day high"}:
+        if cl_clean in {"high", "high price", "day high", "high(usd)"}:
             new_cols.append("High")
             continue
-        if cl in {"low", "low price", "day low"}:
+        if cl_clean in {"low", "low price", "day low", "low(usd)"}:
             new_cols.append("Low")
             continue
-        if cl in {"volume", "vol", "base volume", "quote volume", "trading volume", "vol usd", "volume usd", "volume(btc)", "volume(usd)"}:
+        if cl_clean in {"volume", "vol", "base volume", "quote volume", "trading volume", "vol usd", "volume usd", "volume(btc)", "volume(usd)", "volume_btc", "volume_usd"}:
             new_cols.append("Volume")
             continue
-        if cl in {"date", "datetime", "time", "timestamp", "open time", "opentime", "close time", "closetime", "candle_begin_time", "candle begintime", "snapped_at", "snapped at", "date utc", "date(utc)", "utc date", "datetimeutc"}:
-            new_cols.append(nc.strip())  # keep normalized form
+        if cl_clean in {"date", "datetime", "time", "timestamp", "open time", "opentime", "close time", "closetime", "candle_begin_time", "candle begintime", "snapped_at", "snapped at", "date utc", "date(utc)", "utc date", "datetimeutc", "date/time", "datetime / time"}:
+            new_cols.append("Date")  # normalize date column name
             continue
-        if cl in {"symbol", "ticker", "pair", "market", "asset", "coin", "currency", "contract", "instrument", "tradingpair", "symbol name", "cryptocurrency"}:
+        if cl_clean in {"symbol", "ticker", "pair", "market", "asset", "coin", "currency", "contract", "instrument", "tradingpair", "symbol name", "cryptocurrency", "name", "base", "asset name"}:
             new_cols.append("symbol")
             continue
-        if cl in {"price", "market price"} and "adj" not in cl and "close" not in cl:
+        if cl_clean in {"price", "market price"} and "adj" not in cl_clean and "close" not in cl_clean:
             new_cols.append("Close")  # treat generic price as close for compatibility
             continue
         # Try to normalize asset names (remove units/suffixes)
-        normed = _normalize_asset_name(nc)
+        normed = _normalize_asset_name(nc_stripped)
         # Only apply aggressive normalization if it looks like an asset column (not date/index names)
-        if normed and normed.lower() not in {'date', 'datetime', 'time', 'timestamp', 'adj close', 'open', 'high', 'low', 'close', 'volume'}:
+        if normed and normed.lower() not in {'date', 'datetime', 'time', 'timestamp', 'adj close', 'open', 'high', 'low', 'close', 'volume', 'symbol'}:
             cl_norm = normed.lower()
             if cl_norm in {'date', 'datetime', 'time', 'timestamp'}:
-                new_cols.append(nc.strip())
+                new_cols.append("Date")
                 continue
             # If original had common pairing indicators or long descriptive names
-            if '/' in nc or '(' in nc or ')' in nc or '[' in nc or any(x in cl for x in ['price', 'usd', 'usdt']):
+            if '/' in nc_stripped or '(' in nc_stripped or ')' in nc_stripped or '[' in nc_stripped or any(x in cl_clean for x in ['price', 'usd', 'usdt', 'usdc']):
                 new_cols.append(normed)
                 continue
             # Also normalize short asset symbols to uppercase if they look like crypto symbols
-            if len(normed) <= 6 and normed.replace('-', '').replace('_', '').isalnum() and not normed.lower() in {'open','high','low','close','volume'}:
+            if len(normed) <= 10 and normed.replace('-', '').replace('_', '').isalnum() and not normed.lower() in {'open','high','low','close','volume','symbol'}:
                 new_cols.append(normed.upper())
                 continue
-        new_cols.append(nc.strip())
+        # If it was a date-like name that got changed to keep form earlier, normalize
+        if cl_clean in {"open time", "close time"}:
+            new_cols.append("Date")
+            continue
+        new_cols.append(nc_stripped)
     df.columns = new_cols
     # Check for duplicates (case-insensitive after our normalization where possible)
     dupes = []
@@ -637,56 +676,7 @@ def _coerce_numeric(df: pd.DataFrame) -> pd.DataFrame:
         raise BABDataError(f"Non-numeric values present in returns data: {exc}") from exc
 
 
-def validate_returns_dataframe(
-    df: pd.DataFrame,
-    benchmark: str | None = None,
-    min_rows: int = 1,
-) -> pd.DataFrame:
-    """Validate that ``df`` is a usable returns DataFrame.
 
-    Checks performed:
-      * non-empty
-      * datetime index (normalized and sorted)
-      * string column names, no duplicates
-      * all-numeric cells
-      * no inf values
-      * at least ``min_rows`` observations
-      * benchmark column present when ``benchmark`` is provided
-      * at least one asset column besides the benchmark
-
-    Returns a cleaned, validated copy.
-    """
-    if df is None:
-        raise BABDataError("Returns DataFrame is None")
-    if not isinstance(df, pd.DataFrame):
-        raise BABDataError(f"Expected pandas DataFrame, got {type(df).__name__}")
-
-    cleaned = df.copy()
-    if cleaned.empty:
-        raise BABDataError("Returns DataFrame is empty")
-
-    cleaned = _promote_datetime_column(cleaned)
-    cleaned = _normalize_columns(cleaned)
-    try:
-        cleaned = _normalize_index(cleaned)
-    except BABDataError:
-        raise
-    except (ValueError, TypeError) as exc:
-        raise BABDataError(str(exc)) from exc
-
-    if len(cleaned) < min_rows:
-        raise BABDataError(
-            f"Insufficient rows: got {len(cleaned)}, need at least {min_rows}"
-        )
-
-    cleaned = _coerce_numeric(cleaned)
-
-    # Drop columns that are entirely NaN (delisted/untradable assets) before
-    # the inf check so they cannot propagate NaNs into beta estimation.
-    cleaned = _drop_all_nan_columns(cleaned)
-
-    if np.isinf(cleaned.to_numpy()).any():
-        raise BABDataError("Returns DataFrame contains infinite values")
 
 def validate_returns_dataframe(
     df: pd.DataFrame,
@@ -749,21 +739,17 @@ def validate_returns_dataframe(
             bench_map = {str(c).strip().lower(): c for c in cleaned.columns}
             if str(benchmark).strip().lower() in bench_map:
                 bench_found = bench_map[str(benchmark).strip().lower()]
-                # rename to original benchmark case for consistency if requested? or just match
         if bench_found is None:
             raise BABDataError(
                 f"Benchmark '{benchmark}' not found in columns: {list(cleaned.columns)}"
             )
-        # If different case, optionally normalize column name to match requested benchmark? Keep compatible
-        if bench_found != benchmark and benchmark in cleaned.columns is False:
-            # try to rename
+        if bench_found != benchmark and benchmark not in cleaned.columns:
             try:
                 cleaned = cleaned.rename(columns={bench_found: benchmark})
                 bench_found = benchmark
             except Exception:
                 pass
         if benchmark not in cleaned.columns:
-            # final check
             bench_map = {str(c).strip().lower(): c for c in cleaned.columns}
             if str(benchmark).strip().lower() in bench_map:
                 bf = bench_map[str(benchmark).strip().lower()]
@@ -780,10 +766,7 @@ def validate_returns_dataframe(
                 f"Only the benchmark column '{benchmark}' is present; no assets to trade"
             )
 
-    # Per-asset minimum history: an asset with too few finite observations
-    # cannot be reliably ranked and would produce degenerate betas. Use the
-    # caller-supplied ``min_rows`` floor so small test fixtures still validate
-    # while real-data consumers can enforce a higher bar.
+    # Per-asset minimum history
     finite_counts = pd.DataFrame(cleaned).apply(lambda s: int(np.isfinite(s.to_numpy()).sum()))
     short = finite_counts[finite_counts < min_rows]
     if len(short) > 0:
