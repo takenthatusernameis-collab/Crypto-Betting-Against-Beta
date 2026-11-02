@@ -7,6 +7,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import pytest
 
 from strategies.betting_against_beta.cli import main
 
@@ -23,6 +24,23 @@ def _make_returns(tmp_path, n_days=200, seed=7):
         index=dates,
     )
     p = tmp_path / "rets.csv"
+    df.to_csv(p)
+    return p
+
+
+def _make_prices(tmp_path, n_days=200, seed=7):
+    rng = np.random.RandomState(seed)
+    dates = pd.date_range("2023-01-01", periods=n_days)
+    base = 100.0 + np.cumsum(rng.normal(0.0, 1.0, n_days))
+    df = pd.DataFrame(
+        {
+            "BTC": base,
+            "ETH": base * 0.8 + rng.normal(0.0, 0.5, n_days),
+            "SOL": base * 0.5 + rng.normal(0.0, 0.3, n_days),
+        },
+        index=dates,
+    )
+    p = tmp_path / "prices.csv"
     df.to_csv(p)
     return p
 
@@ -89,3 +107,59 @@ def test_cli_main_returns_df_path_none_uses_synthetic(tmp_path):
     # --data omitted => synthetic path (args.data is None)
     rc = main([])
     assert rc == 0
+
+
+def test_cli_from_prices_real_prices_path(tmp_path):
+    prices_path = _make_prices(tmp_path)
+    rc = main(["--data", str(prices_path), "--from-prices", "--benchmark", "BTC"])
+    assert rc == 0
+
+
+def test_cli_from_prices_missing_file(tmp_path):
+    missing = tmp_path / "does_not_exist.csv"
+    rc = main(["--data", str(missing), "--from-prices", "--benchmark", "BTC"])
+    assert rc == 1
+
+
+def test_cli_from_prices_benchmark_mismatch(tmp_path):
+    prices_path = _make_prices(tmp_path)
+    rc = main(["--data", str(prices_path), "--from-prices", "--benchmark", "NOTPRESENT"])
+    assert rc == 1
+
+
+def test_cli_help_output_snapshot(capsys):
+    with pytest.raises(SystemExit) as excinfo:
+        main(["--help"])
+    assert excinfo.value.code == 0
+    captured = capsys.readouterr()
+    assert "Betting Against Beta" in captured.out
+    assert "--from-prices" in captured.out
+    assert "--dry-run" in captured.out
+    assert "--version" in captured.out
+
+
+def test_cli_version(capsys):
+    with pytest.raises(SystemExit) as excinfo:
+        main(["--version"])
+    assert excinfo.value.code == 0
+    captured = capsys.readouterr()
+    assert "bab 0.1.0" in captured.out
+
+
+def test_cli_dry_run_synthetic(tmp_path):
+    out = tmp_path / "out.json"
+    rc = main(["--dry-run", "--synthetic", "--benchmark", "BTC"])
+    assert rc == 0
+    assert not out.exists()
+
+
+def test_cli_dry_run_valid_prices(tmp_path):
+    prices_path = _make_prices(tmp_path)
+    rc = main(["--dry-run", "--data", str(prices_path), "--from-prices", "--benchmark", "BTC"])
+    assert rc == 0
+
+
+def test_cli_dry_run_invalid_data(tmp_path):
+    missing = tmp_path / "nope.csv"
+    rc = main(["--dry-run", "--data", str(missing), "--benchmark", "BTC"])
+    assert rc == 1

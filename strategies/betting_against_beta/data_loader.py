@@ -488,6 +488,8 @@ def load_returns(
     - ``str``/``Path`` ending in ``.pkl``/.pickle -> Pickle loader
     - ``pd.DataFrame`` -> DataFrame loader
     """
+    if source is None:
+        raise BABDataError("Data source is None")
     if isinstance(source, pd.DataFrame):
         return load_returns_from_dataframe(source, benchmark=benchmark, min_rows=min_rows)
 

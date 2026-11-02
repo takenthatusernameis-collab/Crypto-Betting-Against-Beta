@@ -1,0 +1,2 @@
+[console_scripts]
+bab-example = scripts.load_real_bab_example:main

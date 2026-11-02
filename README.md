@@ -62,12 +62,31 @@ result = strategy.run(returns_df=returns_df)
 print(float(result.backtest["cumulative"].iloc[-1]))
 ```
 
-Or use the CLI:
+### CLI
 
 ```bash
-python -m strategies.betting_against_beta.cli --data returns.csv --benchmark BTC --beta-window 90 --long-quantile 0.3 --short-quantile 0.3 --transaction-costs 0.001
-# or from prices
-python scripts/load_real_bab_example.py prices.csv --from-prices --benchmark BTC
+# Synthetic data (default)
+python -m strategies.betting_against_beta.cli --synthetic
+
+# From returns CSV
+python -m strategies.betting_against_beta.cli --data returns.csv --benchmark BTC
+
+# From prices CSV
+python -m strategies.betting_against_beta.cli --data prices.csv --from-prices --benchmark BTC
+
+# Dry-run: validate inputs and print resolved config without running
+python -m strategies.betting_against_beta.cli --dry-run --data prices.csv --from-prices --benchmark BTC
+
+# Version
+python -m strategies.betting_against_beta.cli --version
+```
+
+Supported flags: `--data`, `--benchmark`, `--universe`, `--beta-window`, `--long-quantile`, `--short-quantile`, `--rebalance-freq`, `--transaction-costs`, `--slippage`, `--output`, `--synthetic`, `--from-prices`, `--dry-run`, `--version`.
+
+Or use the installed `bab-example` console script:
+
+```bash
+bab-example prices.csv --from-prices --benchmark BTC
 ```
 
 ### Assumptions
