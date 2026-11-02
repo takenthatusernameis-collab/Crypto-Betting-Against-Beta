@@ -1,9 +1,9 @@
 # SINGLE DURABLE HANDOFF - Crypto-Betting-Against-Beta
 
-**Timestamp:** 2026-11-02T09:47:03Z
+**Timestamp:** 2026-11-02T09:47:19Z
 **Priority from repo name:** CRYPTO BETTING AGAINST BETA (BAB) - Market-neutral long low-beta / short high-beta vs benchmark. ALL WORK MUST DIRECTLY ADVANCE BAB.
 **Session Mode:** Repo-prioritized, bottleneck-removal enforced. Heavy campaign MANDATORY.
-**Status:** GATE 0 GREEN - Core BAB tests pass (137 passed, 6 skipped in key BAB suites). BABStrategy cumulative == 0.31664543005633267. Exchange-format loader support added.
+**Status:** GATE 0 GREEN - Core BAB tests pass (142 passed, 6 skipped). BABStrategy cumulative == 0.31664543005633267. Exchange-format loader support added; normalization/datetime hardening in progress.
 
 ## BOTTOM LINE - RUN GATE 0 FIRST, NO EXCEPTIONS
 
@@ -35,16 +35,37 @@ print(float(r.backtest['cumulative'].iloc[-1]))
 
 ## IMMEDIATE TASK FOR NEXT SESSION (START HERE - HEAVY WORK REQUIRED)
 
-**CAMPAIGN 7: PRODUCTION HARDENING FOR REAL CRYPTO DATA** (still open)
+**CAMPAIGN 7: PRODUCTION HARDENING FOR REAL CRYPTO DATA** - DO NOT STOP UNTIL SUBSTANTIAL PROGRESS
 
-**NEXT CONCRETE ITEM (Priority 1, item 2): Multi-source normalization**
-Harden normalization utilities to unify schemas across sources:
-- Add utilities to normalize mixed schemas (whitespace, units, duplicate headers) into canonical datetime index + numeric columns.
-- Ensure `load_prices`/`load_returns` handle CSV/JSON with various header casings and redundant columns robustly.
-- Add tests for messy real-world CSVs (extra columns, spaces, mixed case headers).
-- Keep all tests green.
+**NEXT CONCRETE ITEM (Priority 1, item 2) - MULTI-SOURCE NORMALIZATION (MUST DO NOW):**
+Harden normalization utilities to unify schemas across sources. This is blocking real-data ingestion.
 
-Then proceed to Priority 1 item 3 (robust datetime parsing for epoch/ms, mixed timezones, dayfirst).
+**REQUIRED ACTIONS (HEAVY):**
+1. **Strengthen `_normalize_columns`** in `strategies/betting_against_beta/data_loader.py`:
+- More aggressive whitespace/unit/duplicate-header handling across mixed schemas
+- Better asset name normalization (handle units like "BTC (Bitcoin)", "BTC-USD", "XBT", common exchange suffixes)
+- Normalize redundant metadata columns that appear in real exports
+- Ensure deterministic behavior with duplicate column names raising clear BABDataError
+
+2. **Add schema unification helpers**:
+- Create/extend utilities to normalize mixed schemas into canonical datetime index + numeric columns
+- Handle cases where headers are spread across rows, or have multi-level headers
+- Make `load_prices`/`load_returns` resilient to header casing, extra junk columns, units in headers
+
+3. **Harden datetime normalization**:
+- Strengthen `_normalize_index` and `_promote_datetime_column` for epoch seconds/ms, mixed timezones, dayfirst
+- Better handling of strings like "2023-01-01T00:00:00Z", Unix timestamps as strings
+- Ensure UTC normalization is consistent
+
+4. **ADD TESTS** (must be substantial):
+- Create/extend tests for messy real-world CSVs: extra columns, spaces, mixed case headers, units in headers
+- Test multi-source schemas (CoinGecko, Binance, Coinbase variants, CoinMarketCap-like exports)
+- Test normalization edge cases
+- Keep ALL tests green
+
+**AFTER ITEM 2 COMPLETE:** Move to Priority 1 item 3 (robust datetime parsing) with same rigor.
+
+**MANDATE:** This is NOT a quick fix. Do heavy, thorough work. Add comprehensive tests. Verify Gate 0 + new tests all pass.
 
 ## PRIORITY 1 - CRITICAL (DO FIRST)
 1. **DONE**: Exchange-format loader support - CoinGecko/Binance/Coinbase CSV formats, column mapping, symbol case, price-vs-returns auto-detect. Added tests.
