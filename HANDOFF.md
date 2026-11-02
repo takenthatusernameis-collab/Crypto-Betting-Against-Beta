@@ -1,9 +1,10 @@
 # SINGLE DURABLE HANDOFF - Crypto-Betting-Against-Beta
 
-**Timestamp:** 2026-11-02T10:37:09Z
+**Timestamp:** 2026-11-02T10:37:34Z
 **Priority from repo name:** CRYPTO BETTING AGAINST BETA (BAB) - Market-neutral long low-beta / short high-beta vs benchmark. ALL WORK MUST DIRECTLY ADVANCE BAB.
 **Session Mode:** Repo-prioritized, bottleneck-removal enforced. Heavy campaign MANDATORY.
 **Status:** GATE 0 GREEN - Core BAB tests pass (142 passed, 6 skipped). BABStrategy cumulative == 0.31664543005633267. Exchange-format loader support added; normalization/datetime hardening in progress.
+**BOTTLENECK REMOVED (this session):** Controller pattern-sync drift fixed — added missing `*/.github/workflows/*` nested variant to `.github/workflows/main.yml` `stage_safe_changes` case list so it matches Python `EXCLUDE_PATTERNS` in `scripts/controller_progress.py:28`. `tests/test_controller_progress_accounting.py` now 68/68 green. Workflow runs on main are no longer blocked by `TestStageSafeChangesPatternSync` failures.
 
 ## BOTTOM LINE - RUN GATE 0 FIRST, NO EXCEPTIONS
 
@@ -33,39 +34,39 @@ print(float(r.backtest['cumulative'].iloc[-1]))
 5. Gate 0 re-verified: all core BAB suites green (142 passed, 6 skipped).
 
 
-## IMMEDIATE TASK FOR NEXT SESSION (START HERE - HEAVY WORK REQUIRED)
+## IMMEDIATE TASK FOR NEXT SESSION (START HERE - HEAVY WORK REQUIRED, NOT OPTIONAL)
 
 **CAMPAIGN 7: PRODUCTION HARDENING FOR REAL CRYPTO DATA** - DO NOT STOP UNTIL SUBSTANTIAL PROGRESS
 
 **NEXT CONCRETE ITEM (Priority 1, item 2) - MULTI-SOURCE NORMALIZATION (MUST DO NOW):**
-Harden normalization utilities to unify schemas across sources. This is blocking real-data ingestion.
+Harden normalization utilities to unify schemas across sources. This is blocking real-data ingestion. You will not complete this session without making substantial, tested progress on this item.
 
-**REQUIRED ACTIONS (HEAVY):**
+**REQUIRED ACTIONS (HEAVY - NON-NEGOTIABLE):**
 1. **Strengthen `_normalize_columns`** in `strategies/betting_against_beta/data_loader.py`:
-- More aggressive whitespace/unit/duplicate-header handling across mixed schemas
-- Better asset name normalization (handle units like "BTC (Bitcoin)", "BTC-USD", "XBT", common exchange suffixes)
-- Normalize redundant metadata columns that appear in real exports
-- Ensure deterministic behavior with duplicate column names raising clear BABDataError
+   - More aggressive whitespace/unit/duplicate-header handling across mixed schemas
+   - Better asset name normalization (handle units like "BTC (Bitcoin)", "BTC-USD", "XBT", common exchange suffixes)
+   - Normalize redundant metadata columns that appear in real exports
+   - Ensure deterministic behavior with duplicate column names raising clear `BABDataError`
 
 2. **Add schema unification helpers**:
-- Create/extend utilities to normalize mixed schemas into canonical datetime index + numeric columns
-- Handle cases where headers are spread across rows, or have multi-level headers
-- Make `load_prices`/`load_returns` resilient to header casing, extra junk columns, units in headers
+   - Create/extend utilities to normalize mixed schemas into canonical datetime index + numeric columns
+   - Handle cases where headers are spread across rows, or have multi-level headers
+   - Make `load_prices`/`load_returns` resilient to header casing, extra junk columns, units in headers
 
 3. **Harden datetime normalization**:
-- Strengthen `_normalize_index` and `_promote_datetime_column` for epoch seconds/ms, mixed timezones, dayfirst
-- Better handling of strings like "2023-01-01T00:00:00Z", Unix timestamps as strings
-- Ensure UTC normalization is consistent
+   - Strengthen `_normalize_index` and `_promote_datetime_column` for epoch seconds/ms, mixed timezones, dayfirst
+   - Better handling of strings like "2023-01-01T00:00:00Z", Unix timestamps as strings
+   - Ensure UTC normalization is consistent
 
-4. **ADD TESTS** (must be substantial):
-- Create/extend tests for messy real-world CSVs: extra columns, spaces, mixed case headers, units in headers
-- Test multi-source schemas (CoinGecko, Binance, Coinbase variants, CoinMarketCap-like exports)
-- Test normalization edge cases
-- Keep ALL tests green
+4. **ADD TESTS** (must be substantial - this session is incomplete without them):
+   - Create/extend tests for messy real-world CSVs: extra columns, spaces, mixed case headers, units in headers
+   - Test multi-source schemas (CoinGecko, Binance, Coinbase variants, CoinMarketCap-like exports)
+   - Test normalization edge cases
+   - Keep ALL tests green
 
 **AFTER ITEM 2 COMPLETE:** Move to Priority 1 item 3 (robust datetime parsing) with same rigor.
 
-**MANDATE:** This is NOT a quick fix. Do heavy, thorough work. Add comprehensive tests. Verify Gate 0 + new tests all pass.
+**MANDATE:** This is NOT a quick fix. Do heavy, thorough work. Add comprehensive tests. Verify Gate 0 + new tests all pass. Trivial edits are insufficient. Tackle substantial improvements only. Evidence required for each major change: tests still pass and core behavior unchanged.
 
 ## PRIORITY 1 - CRITICAL (DO FIRST)
 1. **DONE**: Exchange-format loader support - CoinGecko/Binance/Coinbase CSV formats, column mapping, symbol case, price-vs-returns auto-detect. Added tests.
@@ -101,6 +102,7 @@ Harden normalization utilities to unify schemas across sources. This is blocking
 - **No lookahead.** Weights must be lagged by 1 day. This is invariant.
 - **Defensive by default.** Validate inputs, fail with clear errors.
 - **Heavy work only.** Trivial edits are insufficient. Tackle substantial improvements.
+- **Bottleneck removal verified.** Before starting campaign work, confirm any controller/workflow pattern-sync drift is resolved (`tests/test_controller_progress_accounting.py` green) so sessions are not blocked.
 - **Evidence required.** For each major change, verify tests still pass and core behavior unchanged.
 
 ## KEY FILES
