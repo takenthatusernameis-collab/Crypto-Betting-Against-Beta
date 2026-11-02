@@ -43,6 +43,31 @@ python3 -m pytest -q
 ```
 All tests must pass. Strategy tests live in `tests/test_betting_against_beta.py`; controller/infra tests cover progress accounting, diagnostics scanning, nonfinite serialization, and campaign resume.
 
+
+
+### Real data (swap from synthetic)
+```python
+from strategies.betting_against_beta import BABStrategy
+from strategies.betting_against_beta.data_loader import load_returns, load_prices
+
+# Load pre-computed daily returns (CSV/JSON/JSONL/Parquet/HDF5/Pickle)
+returns_df = load_returns("returns.csv", benchmark="BTC")  # datetime index/col + numeric columns
+
+# Or load prices and convert to returns
+# returns_df = load_prices("prices.csv", benchmark="BTC")
+
+strategy = BABStrategy(benchmark="BTC", beta_window=90, long_quantile=0.3, short_quantile=0.3, transaction_costs=0.001)
+result = strategy.run(returns_df=returns_df)
+print(float(result.backtest["cumulative"].iloc[-1]))
+```
+
+Or use the CLI:
+```bash
+python -m strategies.betting_against_beta.cli --data returns.csv --benchmark BTC --beta-window 90 --long-quantile 0.3 --short-quantile 0.3 --transaction-costs 0.001
+# or from prices
+python scripts/load_real_bab_example.py prices.csv --from-prices --benchmark BTC
+```
+
 ### Assumptions
 - Synthetic data by default; swap `returns_df` in `BABStrategy.run()` for real price/return data.
 - Daily rebalance on close; no slippage model beyond optional transaction costs.

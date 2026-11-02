@@ -294,9 +294,13 @@ def load_returns_from_csv(
     if not csv_path.exists():
         raise BABDataError(f"CSV file not found: {csv_path}")
     try:
-        df = pd.read_csv(csv_path, **kwargs)
-    except (pd.errors.ParserError, OSError, UnicodeDecodeError) as exc:
+        read_kwargs = dict(kwargs)
+        read_kwargs.setdefault("low_memory", False)
+        df = pd.read_csv(csv_path, **read_kwargs)
+    except (pd.errors.ParserError, OSError, UnicodeDecodeError, ValueError) as exc:
         raise BABDataError(f"Failed to read CSV {csv_path}: {exc}") from exc
+    if df is None or df.empty:
+        raise BABDataError(f"Empty CSV file: {csv_path}")
 
     return validate_returns_dataframe(df, benchmark=benchmark, min_rows=min_rows)
 
@@ -397,9 +401,29 @@ def load_returns_from_json(
     json_path = Path(path)
     if not json_path.exists():
         raise BABDataError(f"JSON file not found: {json_path}")
+    suffix = json_path.suffix.lower()
     try:
-        with json_path.open("r", encoding="utf-8") as handle:
-            data = json.load(handle)
+        if suffix == ".jsonl":
+            # JSON Lines: one JSON object per line
+            records = []
+            with json_path.open("r", encoding="utf-8") as handle:
+                for line in handle:
+                    line = line.strip()
+                    if not line or line.startswith("#"):
+                        continue
+                    try:
+                        records.append(json.loads(line))
+                    except json.JSONDecodeError as exc:
+                        raise BABDataError(f"Failed to read JSONL {json_path}: {exc}") from exc
+            if not records:
+                raise BABDataError(f"Empty JSONL file: {json_path}")
+            data = records
+            orient = kwargs.get("orient", "records")
+        else:
+            with json_path.open("r", encoding="utf-8") as handle:
+                data = json.load(handle)
+    except BABDataError:
+        raise
     except (OSError, json.JSONDecodeError) as exc:
         raise BABDataError(f"Failed to read JSON {json_path}: {exc}") from exc
 
