@@ -232,7 +232,6 @@ def _detect_and_normalize_exchange_format(df: pd.DataFrame) -> pd.DataFrame:
                 return df  # let original promotion logic handle
         except Exception:
             pass
-        try:
 
     # If OHLCV format with Close/Adj Close, prefer Close for prices
     if price_col is not None and price_col in df.columns:
@@ -287,9 +286,14 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
         if parsed is not None and not parsed.isna().any():
             return df.set_index(col)
 
-    # Last resort
+    # Last resort: promote any remaining object/string column that parses as
+    # datetime. Skip a named date-like column already attempted via set_index
+    # above so a failed set_index is not silently bypassed by the backdoor.
     if len(df.columns) > 1:
+        tried = {name_match} if name_match is not None else set()
         for col in df.columns:
+            if col in tried:
+                continue
             if not pd.api.types.is_string_dtype(df[col]) and not pd.api.types.is_object_dtype(df[col]):
                 continue
             try:
