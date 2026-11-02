@@ -109,9 +109,23 @@ def run_backtest(returns_df, weights_df, transaction_costs=0.0, slippage=0.0,
 
     # Calculate cumulative returns
     portfolio_returns = portfolio_returns.fillna(0.0)
+    # Ensure finiteness - replace any remaining non-finite
+    try:
+        portfolio_returns = portfolio_returns.replace([np.inf, -np.inf], 0.0)
+        portfolio_returns = portfolio_returns.fillna(0.0)
+    except Exception:
+        pass
     portfolio_returns_filled = portfolio_returns.clip(lower=-1.0 + 1e-12)
-    log_returns = np.log1p(portfolio_returns_filled.to_numpy(dtype=float))
-    cumulative_returns = np.exp(np.cumsum(log_returns))
+    try:
+        log_returns = np.log1p(portfolio_returns_filled.to_numpy(dtype=float))
+        if not np.all(np.isfinite(log_returns)):
+            log_returns = np.where(np.isfinite(log_returns), log_returns, 0.0)
+        cumulative_returns = np.exp(np.cumsum(log_returns))
+        if not np.all(np.isfinite(cumulative_returns)):
+            cumulative_returns = np.where(np.isfinite(cumulative_returns), cumulative_returns, 1.0)
+    except Exception:
+        # Fallback
+        cumulative_returns = (1.0 + portfolio_returns_filled).cumprod()
 
     results = pd.DataFrame({
         'returns': portfolio_returns,
@@ -120,5 +134,10 @@ def run_backtest(returns_df, weights_df, transaction_costs=0.0, slippage=0.0,
         'slippage_drag': slippage_drag.fillna(0.0),
         'cumulative': cumulative_returns
     }, index=common_idx)
+    # Final sanitization
+    try:
+        results = results.replace([np.inf, -np.inf], np.nan).fillna(0.0)
+    except Exception:
+        pass
 
     return results

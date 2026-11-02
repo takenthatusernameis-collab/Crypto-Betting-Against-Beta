@@ -184,4 +184,5 @@ def generate_bab_signals(betas_df, long_quantile=0.3, short_quantile=0.3):
 
     # Final finiteness guard
     signals_arr = np.where(np.isfinite(signals_arr), signals_arr, 0)
+    signals_arr = np.clip(signals_arr, -1, 1)
     return pd.DataFrame(signals_arr, index=betas_df.index, columns=betas_df.columns)

@@ -234,37 +234,53 @@ class BABStrategy:
             # than a bare ``Exception`` so programming errors surface loudly.
             cfg.universe = effective_universe
 
-        betas = calculate_rolling_beta(
-            returns,
-            cfg.benchmark,
-            window=cfg.beta_window,
-            min_obs=min(getattr(cfg, 'min_observations', cfg.beta_window), cfg.beta_window),
-        )
+        try:
+            betas = calculate_rolling_beta(
+                returns,
+                cfg.benchmark,
+                window=cfg.beta_window,
+                min_obs=min(getattr(cfg, 'min_observations', cfg.beta_window), cfg.beta_window),
+            )
+        except Exception as e:
+            raise BABDataError(f"beta calculation failed: {e}") from e
 
 
-        signals = generate_bab_signals(
-            betas, long_quantile=cfg.long_quantile, short_quantile=cfg.short_quantile
-        )
+        try:
+            signals = generate_bab_signals(
+                betas, long_quantile=cfg.long_quantile, short_quantile=cfg.short_quantile
+            )
+        except Exception as e:
+            raise BABDataError(f"signal generation failed: {e}") from e
 
-        rebalance_freq = getattr(cfg, "rebalance_freq", "daily") or "daily"
-        rebalance_freq = str(rebalance_freq).lower()
-        if rebalance_freq != "daily" and len(signals) > 0:
-            # Hold signals constant between rebalance dates so weights (and
-            # therefore turnover/costs) only change on rebalance dates.
-            signals = _apply_rebalance(signals, rebalance_freq)
+        try:
+            rebalance_freq = getattr(cfg, "rebalance_freq", "daily") or "daily"
+            rebalance_freq = str(rebalance_freq).lower()
+            if rebalance_freq != "daily" and len(signals) > 0:
+                # Hold signals constant between rebalance dates so weights (and
+                # therefore turnover/costs) only change on rebalance dates.
+                signals = _apply_rebalance(signals, rebalance_freq)
+        except BABDataError:
+            raise
+        except Exception as e:
+            raise BABDataError(f"rebalance application failed: {e}") from e
 
-        _max_turnover = getattr(cfg, "max_turnover", None) or getattr(cfg, "max_total_turnover", None)
-        _enforce_risk = bool(getattr(cfg, "enforce_risk_checks", False) or getattr(cfg, "risk_checks", False))
-        weights = construct_portfolio(
-            signals,
-            dollar_neutral=cfg.dollar_neutral,
-            max_position_size=getattr(cfg, "max_position_size", None),
-            max_turnover=_max_turnover,
-            enforce_risk_checks=_enforce_risk,
-            gross_exposure_limit=getattr(cfg, "gross_exposure_limit", None),
-            net_exposure_limit=getattr(cfg, "net_exposure_limit", None),
-            max_single_weight=getattr(cfg, "max_single_weight", None),
-        )
+        try:
+            _max_turnover = getattr(cfg, "max_turnover", None) or getattr(cfg, "max_total_turnover", None)
+            _enforce_risk = bool(getattr(cfg, "enforce_risk_checks", False) or getattr(cfg, "risk_checks", False))
+            weights = construct_portfolio(
+                signals,
+                dollar_neutral=cfg.dollar_neutral,
+                max_position_size=getattr(cfg, "max_position_size", None),
+                max_turnover=_max_turnover,
+                enforce_risk_checks=_enforce_risk,
+                gross_exposure_limit=getattr(cfg, "gross_exposure_limit", None),
+                net_exposure_limit=getattr(cfg, "net_exposure_limit", None),
+                max_single_weight=getattr(cfg, "max_single_weight", None),
+            )
+        except BABDataError:
+            raise
+        except Exception as e:
+            raise BABDataError(f"portfolio construction failed: {e}") from e
         # Apply shorting constraints if configured
         try:
             sc = getattr(cfg, "shorting_constraints", None)

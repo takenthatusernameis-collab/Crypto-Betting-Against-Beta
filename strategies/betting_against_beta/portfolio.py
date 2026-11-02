@@ -142,7 +142,9 @@ def construct_portfolio(signals_df, dollar_neutral=True, gross_exposure_limit=No
 
     # Final finiteness guard in-place on the working array (no DataFrame copy).
     w_arr[~np.isfinite(w_arr)] = 0.0
-    # Enforce dollar neutrality strictly if requested and both sides exist.
+    # Clip to reasonable range to avoid numerical blowups
+    w_arr = np.clip(w_arr, -1e12, 1e12)  # should be reasonable weights
+    w_arr[~np.isfinite(w_arr)] = 0.0
     # The equal-weight construction is neutral by construction, but floating
     # point drift and the disjoint-set guards can leave a residual.  We
     # redistribute the residual proportionally across the long book when both

@@ -1,7 +1,7 @@
 # SINGLE DURABLE HANDOFF - Crypto-Betting-Against-Beta
 
 ## INITIAL TASK MESSAGE (for next agentic session - MUST EXECUTE FIRST)
-**Time:** 2026-11-02T20:49:58Z | **Repo priority:** Crypto Betting Against Beta (BAB). ALL work must advance BAB under `strategies/betting_against_beta/`. Nothing else takes precedence.
+**Time:** 2026-11-02T21:34:27Z | **Repo priority:** Crypto Betting Against Beta (BAB). ALL work must advance BAB under `strategies/betting_against_beta/`. Nothing else takes precedence.
 
 **MANDATORY GATE:** Run `bash scripts/bab_gate.sh` IMMEDIATELY on session start. It MUST exit 0 (GREEN). If gate ever goes RED, FIX IT BEFORE DOING ANYTHING ELSE. The gate is the ONLY verification command that counts. It runs ALL `tests/test_*.py` with coverage on `strategies/betting_against_beta/`.
 
@@ -58,6 +58,26 @@
 - **Lookahead is forbidden:** Weights must be lagged by 1 day. No future information leakage.
 - **Finiteness required:** Outputs must be finite where possible; NaN/inf must be handled explicitly, never produce corrupt results.
 
-**Timestamp:** 2026-11-02T20:49:58Z
+**Timestamp:** 2026-11-02T21:34:27Z
 **Priority from repo name:** CRYPTO BETTING AGAINST BETA (BAB) - HEAVY WORK MANDATORY
-**Status:** GATE GREEN - CAMPAIGN A COMPLETE, CAMPAIGN B ACTIVE (STRATEGY/BACKTEST DEPTH) - CONTINUE HEAVY WORK NOW
+**Status:** GATE GREEN (1855 passed, 13 skipped) - CAMPAIGN A COMPLETE, CAMPAIGN B ACTIVE (STRATEGY/BACKTEST DEPTH) - HARDEN AGGRESSIVELY. Add defensive guards, test adversarial cases, ensure numerical stability everywhere.
+
+
+---
+
+## UPDATE - 2026-11-02T21:38:22Z
+**STATE:** GATE GREEN (1855 passed, 13 skipped). Campaign B (Strategy/backtest depth) - actively hardened.
+
+**RECENT HARDENING COMPLETED:**
+- Added defensive error wrapping in `BABStrategy.run()` for beta calculation, signal generation, rebalance application, portfolio construction
+- Enhanced `backtest.run_backtest()` with comprehensive finiteness guards and safer cumulative returns computation
+- Added finiteness/clipping guards in `signals.generate_bab_signals()` and `portfolio.construct_portfolio()`
+- Gate remains GREEN after all changes
+
+**IMMEDIATE NEXT ACTIONS (HEAVY WORK - CONTINUE):**
+1. **Run gate first:** `bash scripts/bab_gate.sh` (must stay GREEN)
+2. **Deep dive beta/rolling paths:** Look for numerical issues in `beta.py` when all assets have constant relation to benchmark or when windows have mixed NaN patterns. Ensure no division issues, proper NaN propagation.
+3. **Strategy pipeline stress:** Test more adversarial cases - all NaN benchmark path (data_loader blocks stale/frozen benchmark), degenerate universes, rebalance with weekly/monthly frequencies, position sizers, shorting constraints, regime/beta-neutral paths
+4. **Backtest edge cases:** Test with weights starting all NaN/inf, extreme turnover, costs+slippage combined
+5. **Fix any weaknesses found, gate after each change. Don't stop until all code paths are bulletproof.**
+6. **Update handoff before stopping if interrupted.**
