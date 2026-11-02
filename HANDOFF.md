@@ -1,14 +1,25 @@
 # HANDOFF - Crypto-Betting-Against-Beta
 
-**Created:** 2026-11-02T00:07:35Z
-**Session:** Controller pattern-sync bottleneck REMOVED (staged .github/workflows/* nested pattern)
-**Status:** ALL TESTS PASSING (1792 passed, 13 skipped)
+**Created:** 2026-11-02T00:15:00Z
+**Session:** Pattern-sync bottleneck ACTUALLY REMOVED (added `*/.github/workflows/*` to `.github/workflows/main.yml` `stage_safe_changes()` and to the `checkpoint_has_project_changes` case list to stay in lock-step with `scripts/controller_progress.py:EXCLUDE_PATTERNS`).
+**Status:** ALL TESTS PASSING (1792 passed, 13 skipped). Baseline verified green with `python -m pytest -q`.
 
 ## Project Priority (Crypto Betting Against Beta)
-Repository focus: **Crypto Betting Against Beta (BAB)** - market-neutral strategy going long low-beta crypto, short high-beta crypto vs benchmark (default BTC). Prioritize work that advances the BAB strategy implementation, data/robustness, performance, and test coverage of campaign-heavy paths.
+Repository focus: **Crypto Betting Against Beta (BAB)** - market-neutral strategy going long low-beta crypto, short high-beta crypto vs benchmark (default BTC). Prioritize work that advances the BAB strategy implementation, data/robustness, performance, and test coverage of campaign-heavy paths. Do not drift to unrelated work.
 
-## Bottlenecks Removed
-- **Pattern sync fixed**: Added `*/.github/workflows/*` to `.github/workflows/main.yml` `stage_safe_changes()` to match `scripts/controller_progress.py:EXCLUDE_PATTERNS`. All controller progress accounting tests green.
+## Bottlenecks Removed (this session)
+- **Pattern sync fixed for real**: `*/.github/workflows/*` added to the workflow bash `stage_safe_changes()` exclusion list (main.yml:1163) and to the `checkpoint_has_project_changes` case list (main.yml:1240), matching `scripts/controller_progress.py:EXCLUDE_PATTERNS`. All 68 `test_controller_progress_accounting.py` tests green. Full suite: 1792 passed, 13 skipped.
+
+## NEXT SESSION - CLEAR INITIAL TASK (do this FIRST)
+Run the quick-start verification to re-confirm the green baseline before any campaign work:
+
+```bash
+cd /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
+python -m pytest -q  # expect 1792 passed, 13 skipped
+python3 -c "from strategies.betting_against_beta import BABStrategy; s=BABStrategy(); r=s.run(); print(float(r.backtest['cumulative'].iloc[-1]))"
+```
+
+If green, proceed to **Campaign 1: Data Pipeline Hardening** below. Do not skip the baseline check.
 
 ## HEAVY FOCUS CAMPAIGN (do not avoid this work)
 Execute these in order - each item is concrete and verifiable.
