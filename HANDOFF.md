@@ -6,6 +6,7 @@
 
 ## BOTTLENECKS REMOVED THIS SESSION (do not reopen)
 - Workflow pattern sync: added `*/.github/workflows/*` to `.github/workflows/main.yml` `stage_safe_changes()` to match `scripts/controller_progress.py` EXCLUDE_PATTERNS. Fixed 2 controller progress tests. Gate now GREEN (1855 passed, 13 skipped).
+- Removed residual bottleneck: workflow case pattern now includes both `.github/workflows/*` and `*/.github/workflows/*`; gate re-verified GREEN.
 
 ## REMAINING BOTTLENECKS = NEXT FOCUS CAMPAIGN (heavy work, mandatory, cannot be deferred)
 None blocking gate. Gate is GREEN. Focus on advancing BAB strategy under `strategies/betting_against_beta/`.
@@ -35,5 +36,5 @@ None blocking gate. Gate is GREEN. Focus on advancing BAB strategy under `strate
 - Keep `tests/` coverage complete; gate collects every `test_*.py` under `tests/`.
 - Do not add parallel diagnostic collectors or second ledger writers; `research_state/workflow_run_diagnostics.jsonl` is the sole ledger.
 
-**Timestamp:** 2026-11-02T18:42:00Z
+**Timestamp:** 2026-11-02T18:47:00Z
 **Priority from repo name:** CRYPTO BETTING AGAINST BETA (BAB). Gate GREEN or the session is not done.
