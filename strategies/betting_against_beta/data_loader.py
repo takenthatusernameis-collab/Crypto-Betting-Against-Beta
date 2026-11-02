@@ -263,6 +263,19 @@ def validate_returns_dataframe(
                 f"Only the benchmark column '{benchmark}' is present; no assets to trade"
             )
 
+    # Per-asset minimum history: an asset with too few finite observations
+    # cannot be reliably ranked and would produce degenerate betas. Use the
+    # caller-supplied ``min_rows`` floor so small test fixtures still validate
+    # while real-data consumers can enforce a higher bar.
+    finite_counts = pd.DataFrame(cleaned).apply(lambda s: int(np.isfinite(s.to_numpy()).sum()))
+    short = finite_counts[finite_counts < min_rows]
+    if len(short) > 0:
+        details = ", ".join(f"{col}={int(n)}" for col, n in short.sort_values().items())
+        raise BABDataError(
+            f"Insufficient finite history for {len(short)} asset(s) "
+            f"(need >= {min_rows} finite rows): {details}"
+        )
+
     return cleaned
 
 
@@ -375,7 +388,12 @@ def load_returns_from_json(
     orient: str = "columns",
     **kwargs,
 ) -> pd.DataFrame:
-    """Load returns from a JSON file (object-of-arrays or records) and validate it."""
+    """Load returns from a JSON file and validate it.
+
+    Supports ``columns`` (object-of-arrays), ``records`` (list of dicts),
+    ``split`` (``{"columns": [...], "index": [...], "data": [...]}``), and
+    ``table`` orients. Datetime columns/index are promoted automatically.
+    """
     json_path = Path(path)
     if not json_path.exists():
         raise BABDataError(f"JSON file not found: {json_path}")
@@ -385,11 +403,12 @@ def load_returns_from_json(
     except (OSError, json.JSONDecodeError) as exc:
         raise BABDataError(f"Failed to read JSON {json_path}: {exc}") from exc
 
-    df = pd.DataFrame(data) if not isinstance(data, pd.DataFrame) else data
-    if orient == "records":
-        # records: list of dicts like [{"date": ..., "BTC": ...}, ...] -> want columns as assets with datetime index
-        df = pd.DataFrame(data) if not isinstance(data, pd.DataFrame) else df
-        # Try to promote common date column to index
+    # Build a DataFrame from the parsed JSON, handling the common orients
+    # explicitly so we don't drop rows or misalign columns.
+    if isinstance(data, pd.DataFrame):
+        df = data
+    elif orient == "records":
+        df = pd.DataFrame(data)
         df = _promote_datetime_column(df)
         df = _normalize_columns(df)
         try:
@@ -397,6 +416,26 @@ def load_returns_from_json(
         except Exception:
             pass
         return validate_returns_dataframe(df, benchmark=benchmark, min_rows=min_rows)
+    elif orient == "split":
+        # {"columns": [...], "index": [...], "data": [[...], ...]}
+        if not isinstance(data, dict) or "data" not in data:
+            raise BABDataError(
+                "JSON with orient='split' must contain 'columns', 'index', and 'data' keys"
+            )
+        df = pd.DataFrame(data=data["data"], columns=data.get("columns"))
+        if "index" in data and data["index"] is not None:
+            df.index = data["index"]
+    elif orient == "index":
+        # {col: {timestamp: value, ...}, ...}
+        df = pd.DataFrame(data)
+        if not isinstance(df.index, pd.DatetimeIndex):
+            try:
+                df.index = pd.to_datetime(df.index, errors="raise")
+            except (ValueError, TypeError):
+                pass
+    else:
+        # columns / table / anything else pandas understands
+        df = pd.DataFrame(data)
 
     return validate_returns_dataframe(df, benchmark=benchmark, min_rows=min_rows)
 
