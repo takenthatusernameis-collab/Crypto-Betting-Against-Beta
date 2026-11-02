@@ -1,9 +1,10 @@
 # HANDOFF - Crypto-Betting-Against-Beta
 
 **Created:** 2026-11-02T01:05:46Z
-**Last updated:** 2026-11-02T01:11:07Z
-**Session:** Campaign kickoff - enforce BAB-first heavy work (Data Pipeline Hardening is the blocking gate)
-**Status:** ALL TESTS PASSING (1792 passed, 13 skipped). Baseline re-confirmed green after fixing pattern-sync regression.
+**Last updated:** 2026-11-02T01:11:47Z
+**Inferred priority from repo name:** Crypto Betting Against Beta (BAB) - market-neutral (long low-beta, short high-beta vs benchmark). All work MUST advance BAB.
+**Session:** Repo-prioritized hard gate enforcement (Data Pipeline Hardening = blocking gate)
+**Status:** ALL TESTS PASSING (1792 passed, 13 skipped). Baseline re-confirmed green. Pattern-sync regression fixed.
 
 ## Project Priority (Crypto Betting Against Beta)
 Repository focus: **Crypto Betting Against Beta (BAB)** - market-neutral strategy going long low-beta crypto, short high-beta crypto vs benchmark (default BTC). All work must advance the BAB strategy (data, beta, signals/portfolio/backtest, integration, tests). Do not drift to unrelated infra unless it directly unblocks BAB.
@@ -14,7 +15,7 @@ Repository focus: **Crypto Betting Against Beta (BAB)** - market-neutral strateg
 ## CLEAR INITIAL TASK FOR NEXT AGENT (DO THIS FIRST - NO EXCEPTIONS)
 The baseline (Gate 0) is confirmed green. Proceed immediately to **Campaign 1: Data Pipeline Hardening** (the blocking gate). Do not start any other campaign.
 
-First, re-confirm the baseline one more time:
+**FIRST (MANDATORY - GATE 0):**
 ```bash
 cd /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
 python -m pytest -q  # MUST be 1792 passed, 13 skipped
@@ -22,7 +23,8 @@ python3 -c "from strategies.betting_against_beta import BABStrategy; s=BABStrate
 ```
 If anything deviates, fix the regression before touching Campaign 1. The baseline is a hard gate.
 
-Then begin **Campaign 1: Data Pipeline Hardening** (see below) and do not stop until Gate 1 passes:
+**IMMEDIATELY AFTER (MANDATORY - CAMPAIGN 1):**
+Begin **Campaign 1: Data Pipeline Hardening** and do not stop until Gate 1 passes:
 ```bash
 python -m pytest tests/test_bab_data_loader*.py -v
 ```
