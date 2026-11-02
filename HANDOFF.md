@@ -1,12 +1,11 @@
 # SINGLE DURABLE HANDOFF - Crypto-Betting-Against-Beta
 
 ## INITIAL TASK MESSAGE (for next agentic session)
-**Time:** 2026-11-02T18:38:00Z | **Repo priority:** Crypto Betting Against Beta (BAB). All work must advance BAB. Nothing else takes precedence.
+**Time:** 2026-11-02T18:47:56Z | **Repo priority:** Crypto Betting Against Beta (BAB). All work must advance BAB. Nothing else takes precedence.
 **Gate 0 baseline:** GREEN (1855 passed, 13 skipped). `python3 scripts/bab_gate.sh` is the ONLY verification command; it must exit 0 (GREEN) before any session is considered done.
 
 ## BOTTLENECKS REMOVED THIS SESSION (do not reopen)
-- Workflow pattern sync: added `*/.github/workflows/*` to `.github/workflows/main.yml` `stage_safe_changes()` to match `scripts/controller_progress.py` EXCLUDE_PATTERNS. Fixed 2 controller progress tests. Gate now GREEN (1855 passed, 13 skipped).
-- Removed residual bottleneck: workflow case pattern now includes both `.github/workflows/*` and `*/.github/workflows/*`; gate re-verified GREEN.
+- Workflow pattern sync: added `*/.github/workflows/*` to `.github/workflows/main.yml` `stage_safe_changes()` case list to match `scripts/controller_progress.py` EXCLUDE_PATTERNS (which already had both `.github/workflows/*` and `*/.github/workflows/*`). This was a persistent bottleneck failing since 2026-10-27 across multiple sessions; now resolved. Fixed 2 controller progress tests. Gate re-verified GREEN (1855 passed, 13 skipped).
 
 ## REMAINING BOTTLENECKS = NEXT FOCUS CAMPAIGN (heavy work, mandatory, cannot be deferred)
 None blocking gate. Gate is GREEN. Focus on advancing BAB strategy under `strategies/betting_against_beta/`.
@@ -36,5 +35,5 @@ None blocking gate. Gate is GREEN. Focus on advancing BAB strategy under `strate
 - Keep `tests/` coverage complete; gate collects every `test_*.py` under `tests/`.
 - Do not add parallel diagnostic collectors or second ledger writers; `research_state/workflow_run_diagnostics.jsonl` is the sole ledger.
 
-**Timestamp:** 2026-11-02T18:47:00Z
+**Timestamp:** 2026-11-02T18:47:56Z
 **Priority from repo name:** CRYPTO BETTING AGAINST BETA (BAB). Gate GREEN or the session is not done.
