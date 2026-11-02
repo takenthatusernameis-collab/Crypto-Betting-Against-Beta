@@ -1416,6 +1416,7 @@ def load_returns_from_parquet(
     path: str | Path,
     benchmark: str | None = None,
     min_rows: int = 1,
+    quality: bool = True,
     **kwargs,
 ) -> pd.DataFrame:
     """Load returns from a Parquet file and validate it."""
@@ -1441,6 +1442,7 @@ def load_returns_from_hdf5(
     path: str | Path,
     benchmark: str | None = None,
     min_rows: int = 1,
+    quality: bool = True,
     key: str | None = None,
     **kwargs,
 ) -> pd.DataFrame:
@@ -1470,6 +1472,7 @@ def load_returns_from_pickle(
     path: str | Path,
     benchmark: str | None = None,
     min_rows: int = 1,
+    quality: bool = True,
     **kwargs,
 ) -> pd.DataFrame:
     """Load returns from a pickle file and validate it."""
