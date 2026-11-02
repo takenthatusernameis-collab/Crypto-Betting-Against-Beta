@@ -1059,6 +1059,13 @@ def validate_returns_dataframe(
     df: pd.DataFrame,
     benchmark: str | None = None,
     min_rows: int = 1,
+    *,
+    quality: bool = True,
+    max_return_abs: float | None = None,
+    max_gap_days: float | None = None,
+    stale_run_threshold: int | None = None,
+    min_finite_fraction: float | None = None,
+    allow_duplicate_timestamps: bool = False,
 ) -> pd.DataFrame:
     """Validate that ``df`` is a usable returns DataFrame.
 
@@ -1073,7 +1080,32 @@ def validate_returns_dataframe(
       * at least one asset column besides the benchmark
       * data quality: gaps/duplicates/stale data/implausible returns
 
-    Returns a cleaned, validated copy.
+    Parameters
+    ----------
+    quality:
+        When True (default) run the comprehensive data-quality campaign
+        (Campaign 7 Item 4). Set False to skip the extra checks and only
+        perform the structural validation above.
+    max_return_abs:
+        Reject any return whose absolute value exceeds this threshold.
+        Defaults to 20.0 when ``quality`` is True and ``max_return_abs``
+        is None.
+    max_gap_days:
+        Reject data whose largest inter-timestamp gap exceeds this many
+        days. Defaults to 7.0 when ``quality`` is True and ``max_gap_days``
+        is None. Set to ``math.inf`` to disable.
+    stale_run_threshold:
+        Reject columns with a run of ``>=`` this many consecutive equal
+        finite values (stale/frozen data). Defaults to 3 when ``quality``
+        is True and ``stale_run_threshold`` is None.
+    min_finite_fraction:
+        Reject columns whose finite-fraction is below this threshold.
+        Defaults to 0.0 when ``quality`` is True (i.e. any finite data
+        is acceptable as long as the column is not entirely NaN, which
+        is handled separately).
+    allow_duplicate_timestamps:
+        When True, duplicate timestamps are silently dropped (keep first)
+        instead of raising. Defaults to False (raise).
     """
     if df is None:
         raise BABDataError("Returns DataFrame is None")
@@ -1175,77 +1207,16 @@ def validate_returns_dataframe(
     if np.isinf(cleaned.to_numpy()).any():
         raise BABDataError("Returns DataFrame contains infinite values")
 
-    # Comprehensive data quality checks
-    try:
-        # Check for duplicate timestamps across assets (index duplicates already removed, but be explicit)
-        if getattr(cleaned.index, "has_duplicates", False):
-            raise BABDataError("Duplicate timestamps detected across assets/index")
-        # Also explicitly check for duplicates
-        try:
-            if hasattr(cleaned.index, 'duplicated'):
-                if cleaned.index.duplicated().any():
-                    raise BABDataError("Duplicate timestamps detected across assets/index")
-        except BABDataError:
-            raise
-        except Exception:
-            pass
-        # Implausible returns: |r| > X
-        arr = cleaned.to_numpy(dtype=float)
-        if np.isfinite(arr).any():
-            abs_arr = np.abs(arr)
-            maxabs = float(np.nanmax(abs_arr))
-            medianabs = float(np.nanmedian(abs_arr))
-            p95 = float(np.nanpercentile(abs_arr, 95)) if abs_arr.size > 0 else 0.0
-            # Heuristic: if values look like prices (large scale), don't flag as implausible returns
-            looks_like_prices = False
-            if maxabs > 50.0 and medianabs > 1.0:
-                # typical price ranges are large; returns are < ~fewx
-                looks_like_prices = True
-            if maxabs > 1000.0:
-                looks_like_prices = True
-            if not looks_like_prices:
-                if maxabs > 20.0 or p95 > 10.0:
-                    raise BABDataError(f"Implausible returns detected: |r| > 5.0 (max {maxabs:.6g})")
-                if maxabs > 10.0:
-                    raise BABDataError(f"Implausible returns detected: |r| > 5.0 (max {maxabs:.6g})")
-        # Stale data / gaps / monotonicity checks
-        try:
-            if len(cleaned) > 0:
-                if not cleaned.index.is_monotonic_increasing:
-                    raise BABDataError("Timestamps not sorted/monotonic")
-                # Detect large gaps / stale data heuristically (gaps > 7 days)
-                try:
-                    if isinstance(cleaned.index, pd.DatetimeIndex) and len(cleaned.index) >= 2:
-                        diffs = cleaned.index.to_series().diff().dropna()
-                        if len(diffs) > 0:
-                            # find max gap
-                            max_gap = diffs.max()
-                            # if max gap > 7 days, flag as stale/gappy data
-                            try:
-                                if hasattr(max_gap, 'total_seconds'):
-                                    gap_sec = max_gap.total_seconds()
-                                    if gap_sec > 7 * 24 * 3600:
-                                        raise BABDataError(f"Stale data detected: large gaps in timestamps (max gap {max_gap})")
-                                elif max_gap > pd.Timedelta(days=7):
-                                    raise BABDataError(f"Stale data detected: large gaps in timestamps (max gap {max_gap})")
-                            except BABDataError:
-                                raise
-                            except Exception:
-                                pass
-                        # Also check for very frequent stale/constant patterns across assets? not specified, focus on gaps/duplicates/implausible
-                except BABDataError:
-                    raise
-                except Exception:
-                    pass
-        except BABDataError:
-            raise
-        except Exception:
-            pass
-        # Duplicate timestamps across assets already removed
-    except BABDataError:
-        raise
-    except Exception:
-        pass
+    # Comprehensive data quality checks (Campaign 7 Item 4)
+    if quality:
+        cleaned = _run_data_quality_campaign(
+            cleaned,
+            max_return_abs=max_return_abs,
+            max_gap_days=max_gap_days,
+            stale_run_threshold=stale_run_threshold,
+            min_finite_fraction=min_finite_fraction,
+            allow_duplicate_timestamps=allow_duplicate_timestamps,
+        )
 
     # Handle symbol case-insensitively for benchmark
     if benchmark is not None:
