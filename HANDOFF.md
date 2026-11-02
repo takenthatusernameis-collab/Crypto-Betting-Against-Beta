@@ -1,86 +1,75 @@
 # SINGLE DURABLE HANDOFF - Crypto-Betting-Against-Beta
 
-**Timestamp:** 2026-11-02T04:57:26Z
-**Priority from repo name:** Crypto Betting Against Beta (BAB) - market-neutral (long low-beta, short high-beta vs benchmark). ALL WORK MUST ADVANCE BAB.
-**Session Mode:** Repo-prioritized, bottleneck-removal enforced. Heavy campaign required.
-**Status:** GATE 6 GREEN — 1828 passed, 13 skipped, 0 failures. Campaigns 1-6 complete. Pattern-sync bottleneck fixed. Baseline verified and stable.
+**Timestamp:** 2026-11-02T05:02:10Z
+**Priority from repo name:** CRYPTO BETTING AGAINST BETA (BAB) - Market-neutral long low-beta / short high-beta vs benchmark. ALL WORK MUST DIRECTLY ADVANCE BAB.
+**Session Mode:** Repo-prioritized, bottleneck-removal enforced. Heavy campaign MANDATORY.
+**Status:** ALL TESTS GREEN - 1828 passed, 13 skipped, 0 failures. Gate 0 verified. Bottlenecks eliminated.
 
-## BOTTOM LINE - DO THIS FIRST (NO EXCEPTIONS)
+## BOTTOM LINE - RUN GATE 0 FIRST, NO EXCEPTIONS
 
-Gate 0 (already green):
 ```bash
 cd /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
-python -m pytest -q  # 1828 passed, 13 skipped
+python -m pytest -q  # MUST be: 1828 passed, 13 skipped
 python3 -c "
 from strategies.betting_against_beta import BABStrategy
 s = BABStrategy()
 r = s.run()
 print(float(r.backtest['cumulative'].iloc[-1]))
-"  # 0.31664543005633267
+"  # MUST be ~0.31664543005633267
 ```
 
-If red, fix immediately. Never proceed without green baseline.
+**If red → fix before doing anything else.**
 
 ## IMMEDIATE TASK FOR NEXT SESSION (START HERE - HEAVY WORK REQUIRED)
 
-**CAMPAIGN 7: PRODUCTION HARDENING & REAL-WORLD VALIDATION**
+**CAMPAIGN 7: PRODUCTION HARDENING FOR REAL CRYPTO DATA**
 
-The repo is at a clean checkpoint with full CLI/data-loader/packaging support. Next focus: make BAB robust for production use with real crypto data, add rigorous validation, and extend functionality without breaking existing behavior.
+Do NOT do cosmetic changes. Do heavy, verifiable work in these areas:
 
-### Priority 1: Real Data Integration & Validation (CRITICAL)
-1. **Real data pipeline hardening** - Test with actual crypto market data patterns. Validate data_loader handles exchange-specific formats (CoinGecko, Binance, Coinbase CSVs). Add support for common formats if gaps exist.
-2. **Data quality validation** - Add comprehensive checks for survivorship bias, missing data handling, outlier detection. Ensure defensive behavior on messy real data.
-3. **Time series integrity** - Validate no lookahead, proper alignment, timezone handling across datasets.
+### PRIORITY 1 - CRITICAL (DO FIRST)
+1. **Exchange-format loader support** - Extend `strategies/betting_against_beta/data_loader.py` to robustly handle common exchange CSV formats (CoinGecko exports, Binance OHLCV/price CSVs, Coinbase exports). Add flexible column mapping (date/time/open/high/low/close/adj_close/volume), handle symbol case, auto-detect price vs returns. Add tests.
+2. **Multi-source normalization** - Create/extend utilities to normalize different schemas into the canonical datetime index + numeric columns format expected by validator. Make it defensive against whitespace, units, etc.
+3. **Robust datetime parsing** - Harden `_promote_datetime_column` and `_normalize_index` for more formats (epoch seconds/ms, mixed timezones, dayfirst, etc.). All existing behavior must be preserved.
 
-### Priority 2: Performance & Scalability (HIGH)
-4. **Optimize rolling calculations** - Profile `calculate_rolling_beta` on large datasets. Vectorize where possible while maintaining correctness.
-5. **Memory efficiency** - Test with multi-year data (1000+ assets, 2000+ days). Ensure reasonable memory usage.
-6. **Benchmarking expansion** - Extend `scripts/perf_bench.py` with larger dataset scenarios.
+### PRIORITY 2 - CRITICAL (DATA QUALITY)
+4. **Comprehensive data quality checks** - Add validation for gaps, duplicate timestamps across assets, stale data, implausible returns (|r| > X), missing benchmark coverage. Return clear `BABDataError` messages.
+5. **Survivorship bias awareness** - Add utilities to handle delistings better (already partially handled). Ensure behavior is explicit and tested.
+6. **Timezone/alignments** - Test cross-timezone datasets. Ensure no lookahead - weights lagged by 1 day is already enforced; verify no regressions.
 
-### Priority 3: Strategy Enhancements (HIGH)
-7. **Transaction cost modeling** - Make costs more realistic (market impact, slippage models). Current implementation exists but needs real-world calibration.
-8. **Risk management** - Add position limits, leverage controls, drawdown monitoring. Integrate with sizing/shorting modules.
-9. **Attribution & reporting** - Expand attribution analysis, add risk metrics (Sharpe, Sortino, max drawdown, turnover). Leverage existing `metrics.py`, `attribution.py`.
+### PRIORITY 3 - HIGH (PERFORMANCE & SCALABILITY)
+7. **Profile & optimize** - Profile `calculate_rolling_beta` in `strategies/betting_against_beta/beta.py`. Vectorize bottlenecks without changing API/results. Add perf tests or extend `scripts/perf_bench.py`.
+8. **Large dataset testing** - Add tests with larger synthetic data (multi-year, 500+ assets) to catch memory issues. Ensure reasonable performance.
+9. **Efficient I/O** - Improve loaders for large files where easy wins exist.
 
-### Priority 4: Testing & Robustness (HIGH)
-10. **Property-based testing** - Add hypothesis tests for edge cases (dollar neutrality, weight constraints, no lookahead).
-11. **Stress testing** - More extreme scenarios (correlation breakdowns, regime changes).
-12. **Integration tests** - End-to-end with real-style data, CLI edge cases.
+### PRIORITY 4 - HIGH (RISK/REALISM)
+10. **Transaction costs realism** - Extend cost modeling (market impact/slippage tiers). Maintain backward compat.
+11. **Risk controls** - Add position/leverage limits, max drawdown monitoring hooks. Integrate cleanly.
+12. **Attribution & metrics** - Expand `metrics.py`/`attribution.py` with Sharpe, Sortino, Calmar, max DD, turnover, hit rate as appropriate.
 
-## EXECUTION STRATEGY
-- **Run Gate 0 first** - Confirm baseline is green before making changes.
-- **Work iteratively** - Make small, tested changes. Run tests after each modification.
-- **Maintain green** - Never let tests go red. Add tests for new functionality.
-- **BAB-first mindset** - Every change must advance the Betting Against Beta strategy.
-- **Heavy work required** - Trivial changes won't cut it. Tackle the priorities above systematically.
-- **Preserve contracts** - Keep synthetic defaults, public APIs stable unless absolutely necessary with full test coverage.
+### PRIORITY 5 - MANDATORY (TEST COVERAGE)
+13. **Property-based tests** - Add hypothesis tests for dollar-neutrality, weight bounds, no lookahead, idempotency where applicable.
+14. **Stress tests** - Correlation regime shifts, extreme vol, missing data patterns matching real exchanges.
+15. **CLI integration tests** - Test `--from-prices`, `bab-example`, real file formats end-to-end.
 
-## CURRENT STATE
-- **Tests:** 1828 passed, 13 skipped, 0 failures
-- **CLI:** `bab-example` works, `--dry-run`, `--version`, `--from-prices` all functional
-- **Packaging:** pyproject.toml with console entry point, package discovery configured
-- **Data loading:** Robust loader with stress-tested edge cases
-- **Real data E2E:** Tested with fixtures
-- **Performance:** Benchmarked (beta calc ~1.55ms, full run ~10.71ms)
-- **Bottlenecks:** All removed
+## EXECUTION RULES (NON-NEGOTIABLE)
+- **Gate 0 first. ALWAYS.** Confirm green baseline before any change.
+- **Maintain green.** Keep 1828 passed + 13 skipped. Add tests, don't weaken them.
+- **BAB-first.** Every change must advance Crypto Betting Against Beta.
+- **No workflow changes unless absolutely necessary.** If touching `.github/workflows/*`, pattern-sync tests must pass (they do now).
+- **Preserve APIs/contracts.** Synthetic defaults must remain. Public APIs stable unless absolutely required with full coverage.
+- **No lookahead.** Weights must be lagged by 1 day. This is invariant.
+- **Defensive by default.** Validate inputs, fail with clear errors.
+- **Heavy work only.** Trivial edits are insufficient. Tackle substantial improvements.
+- **Evidence required.** For each major change, verify tests still pass and core behavior unchanged.
 
-## FILES OF INTEREST
-- `strategies/betting_against_beta/` - Core BAB implementation
-- `strategies/betting_against_beta/data_loader.py` - Data loading (needs hardening)
-- `strategies/betting_against_beta/cli.py` - CLI interface
-- `scripts/load_real_bab_example.py` - Example loader
-- `tests/test_bab_*` - BAB-specific tests
-- `pyproject.toml` - Packaging config
+## KEY FILES
+- `strategies/betting_against_beta/data_loader.py` - Data loading/validation (prime target)
+- `strategies/betting_against_beta/beta.py`, `strategy.py`, `portfolio.py` - Core
+- `strategies/betting_against_beta/cli.py`, `scripts/` - CLI/examples
+- `tests/test_bab_*` - All BAB tests (must stay green)
 
-## NON-NEGOTIABLE RULES
-- **BASELINE FIRST:** Gate 0 mandatory. Never skip.
-- **MAINTAIN GREEN:** 1828 passed, 13 skipped must remain; only add tests, never weaken.
-- **BAB FIRST:** Crypto Betting Against Beta above everything else.
-- **NO UNNECESSARY WORKFLOW CHANGES:** Only touch `.github/workflows/*` if absolutely required AND pattern-sync tests still pass.
-- **PRESERVE CONTRACTS:** Keep synthetic defaults. Preserve public APIs.
-- **EVIDENCE MANDATORY:** For each significant change, record what changed and test results.
-- **NO LOOKAHEAD:** Weights must be lagged by 1 day.
-- **DEFENSIVE BY DEFAULT:** Validate, coerce safely, fail clearly.
-- **HEAVY WORK REQUIRED:** Trivial one-liners insufficient.
-
-**START NOW:** Run Gate 0. This is a clean, production-ready checkpoint. Campaign 7 awaits - focus on real-world robustness and production hardening.
+## START NOW
+1. Run Gate 0 (confirm green)
+2. Pick ONE concrete item from Priority 1 and implement it fully with tests
+3. Run tests after each change - never let them go red
+4. Repeat with heavy work until substantial progress on real-data robustness
