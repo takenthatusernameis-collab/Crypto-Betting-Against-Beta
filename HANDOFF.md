@@ -1,6 +1,6 @@
 # SINGLE DURABLE HANDOFF - Crypto-Betting-Against-Beta
 
-**Timestamp:** 2026-11-02T04:04:50Z
+**Timestamp:** 2026-11-02T04:05:14Z
 **Priority from repo name:** Crypto Betting Against Beta (BAB) - market-neutral (long low-beta, short high-beta vs benchmark). ALL WORK MUST ADVANCE BAB.
 **Session Mode:** Repo-prioritized, bottleneck-removal enforced. Heavy campaign required.
 **Status:** ALL 5 GATES GREEN — FULL SUITE 1792 passed, 13 skipped. Campaigns 1-5 complete. No regressions. Bottleneck: duplicate handoff files consolidated into this single durable handoff.
