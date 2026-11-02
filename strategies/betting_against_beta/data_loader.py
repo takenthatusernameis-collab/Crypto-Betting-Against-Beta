@@ -1102,6 +1102,7 @@ def validate_returns_dataframe(
     try:
         # Keep date/index context already in index; drop object columns that are all strings/unparseable and not asset-like
         cols_to_drop = []
+        na_markers = {'na', 'n/a', 'nan', 'none', 'null', '#n/a', '#na', 'missing', '--', '-', ''}
         for col in list(cleaned.columns):
             # If it's numeric dtype already maybe ok
             if pd.api.types.is_numeric_dtype(cleaned[col]):
@@ -1110,10 +1111,33 @@ def validate_returns_dataframe(
                 # Try to see if mostly numeric
                 try:
                     s = cleaned[col]
-                    # Count numeric parsable
-                    # Quick test
-                    test = pd.to_numeric(s.astype(str).str.strip().str.replace(',', ''), errors='coerce')
-                    if test.notna().sum() < max(1, int(len(test) * 0.5)):  # mostly not numeric
+                    parseable = 0
+                    total = len(s)
+                    for v in s:
+                        if v is None or (isinstance(v, float) and (np.isnan(v))):
+                            parseable += 1
+                            continue
+                        vs = str(v).strip().lower()
+                        if vs in na_markers:
+                            parseable += 1
+                            continue
+                        try:
+                            # handle commas/percent
+                            vs2 = str(v).strip()
+                            if vs2.endswith('%'):
+                                try:
+                                    float(vs2[:-1].strip())
+                                    parseable += 1
+                                    continue
+                                except Exception:
+                                    pass
+                            vs2c = vs2.replace(',', '')
+                            pd.to_numeric(vs2c, errors='raise')
+                            parseable += 1
+                            continue
+                        except Exception:
+                            continue
+                    if parseable < max(1, int(total * 0.5)):  # mostly not numeric
                         cols_to_drop.append(col)
                         continue
                 except Exception:
@@ -1156,6 +1180,15 @@ def validate_returns_dataframe(
         # Check for duplicate timestamps across assets (index duplicates already removed, but be explicit)
         if getattr(cleaned.index, "has_duplicates", False):
             raise BABDataError("Duplicate timestamps detected across assets/index")
+        # Also explicitly check for duplicates
+        try:
+            if hasattr(cleaned.index, 'duplicated'):
+                if cleaned.index.duplicated().any():
+                    raise BABDataError("Duplicate timestamps detected across assets/index")
+        except BABDataError:
+            raise
+        except Exception:
+            pass
         # Implausible returns: |r| > X
         arr = cleaned.to_numpy(dtype=float)
         if np.isfinite(arr).any():
@@ -1171,10 +1204,10 @@ def validate_returns_dataframe(
             if maxabs > 1000.0:
                 looks_like_prices = True
             if not looks_like_prices:
-                if maxabs > 10.0 or p95 > 5.0:
-                    raise BABDataError(f"Implausible returns detected: |r| > 5.0 (max {maxabs})")
-                if maxabs > 5.0:
-                    raise BABDataError(f"Implausible returns detected: |r| > 5.0 (max {maxabs})")
+                if maxabs > 20.0 or p95 > 10.0:
+                    raise BABDataError(f"Implausible returns detected: |r| > 5.0 (max {maxabs:.6g})")
+                if maxabs > 10.0:
+                    raise BABDataError(f"Implausible returns detected: |r| > 5.0 (max {maxabs:.6g})")
         # Stale data / gaps / monotonicity checks
         try:
             if len(cleaned) > 0:
@@ -1190,7 +1223,8 @@ def validate_returns_dataframe(
                             # if max gap > 7 days, flag as stale/gappy data
                             try:
                                 if hasattr(max_gap, 'total_seconds'):
-                                    if max_gap.total_seconds() > 7 * 24 * 3600:
+                                    gap_sec = max_gap.total_seconds()
+                                    if gap_sec > 7 * 24 * 3600:
                                         raise BABDataError(f"Stale data detected: large gaps in timestamps (max gap {max_gap})")
                                 elif max_gap > pd.Timedelta(days=7):
                                     raise BABDataError(f"Stale data detected: large gaps in timestamps (max gap {max_gap})")
@@ -1198,6 +1232,7 @@ def validate_returns_dataframe(
                                 raise
                             except Exception:
                                 pass
+                        # Also check for very frequent stale/constant patterns across assets? not specified, focus on gaps/duplicates/implausible
                 except BABDataError:
                     raise
                 except Exception:
@@ -1510,6 +1545,11 @@ def _drop_metadata_columns(df: pd.DataFrame) -> pd.DataFrame:
         if cl.lower().startswith("unnamed"):
             cols_to_drop.append(col)
             continue
+        # Drop obvious junk column names
+        cl_low = cl.lower().replace(' ', '').replace('_', '')
+        if cl_low in {'extracol', 'unwanted', 'junk', 'extra', 'garbage'} or 'extra' in cl_low and 'col' in cl_low or cl_low == 'unwanted':
+            cols_to_drop.append(col)
+            continue
         try:
             s = df[col]
             if pd.api.types.is_numeric_dtype(s) and len(s) >= 2:
@@ -1522,9 +1562,23 @@ def _drop_metadata_columns(df: pd.DataFrame) -> pd.DataFrame:
                         cols_to_drop.append(col)
                         continue
                     # Prices must be strictly positive; non-positive values are metadata/junk
-                    if float(np.min(vals[finite])) <= 0.0:
-                        cols_to_drop.append(col)
-                        continue
+                    minv = float(np.min(vals[finite]))
+                    maxv = float(np.max(vals[finite]))
+                    if minv <= 0.0:
+                        try:
+                            if np.allclose(vals[finite], np.round(vals[finite])):
+                                if float(vals[finite][0]) == 0.0 and np.allclose(np.diff(vals[finite]), 1.0):
+                                    cols_to_drop.append(col)
+                                    continue
+                        except Exception:
+                            pass
+                        if minv < 0.0:
+                            continue  # could be negative prices? unlikely, but be conservative
+                        if minv == 0.0 and maxv == 0.0:
+                            cols_to_drop.append(col)
+                            continue
+                    # If values are like pure noise around 0 with huge variance and no clear price trend, might be junk
+                    # But be conservative - only drop if clearly not price-like
         except Exception:
             continue
     if cols_to_drop:
