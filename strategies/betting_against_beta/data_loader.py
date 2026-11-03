@@ -742,12 +742,72 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
     name_match = next((lowered[n] for n in candidate_names if n in lowered), None)
     if name_match is not None:
         try:
+            col = name_match
+            # Try to coerce to datetime
+            try:
+                # First check if all values are parseable as datetimes
+                try:
+                    parsed = pd.to_datetime(df[col], errors="raise")
+                except Exception:
+                    # If unparseable, raise BABDataError as per test
+                    raise BABDataError("Unparseable datetime values")
+                # If parsed successfully, promote to DatetimeIndex
+                df2 = df.copy()
+                try:
+                    if getattr(parsed, "tz", None) is not None:
+                        parsed = parsed.tz_convert("UTC").tz_localize(None)
+                except Exception:
+                    pass
+                df2.index = parsed
+                df2 = df2.drop(columns=[col])
+                if isinstance(df2.index, pd.DatetimeIndex):
+                    return df2
+                # Fallback to set_index if still not datetime index
+                result = df2.set_index(df2.index) if False else None  # dummy
+            except BABDataError:
+                raise
+            except Exception:
+                pass
             try:
                 df_test = df.copy()
-                result = df_test.set_index(name_match)
+                # Try parsing
+                try:
+                    parsed = pd.to_datetime(df_test[col], errors="raise")
+                    if getattr(parsed, "tz", None) is not None:
+                        try:
+                            parsed = parsed.tz_convert("UTC").tz_localize(None)
+                        except Exception:
+                            pass
+                    df_test.index = parsed
+                    df_test = df_test.drop(columns=[col])
+                    if isinstance(df_test.index, pd.DatetimeIndex):
+                        return df_test
+                except BABDataError:
+                    raise
+                except Exception:
+                    pass
+                result = df_test.set_index(col)
+                if isinstance(result.index, pd.DatetimeIndex):
+                    return result
+                # Try to convert
+                try:
+                    result.index = pd.to_datetime(result.index)
+                    if getattr(result.index, "tz", None) is not None:
+                        try:
+                            result.index = result.index.tz_convert("UTC").tz_localize(None)
+                        except Exception:
+                            pass
+                    if isinstance(result.index, pd.DatetimeIndex):
+                        return result
+                except Exception:
+                    pass
                 return result
+            except BABDataError:
+                raise
             except Exception:
                 return df
+        except BABDataError:
+            raise
         except (ValueError, TypeError, KeyError):
             pass
 
