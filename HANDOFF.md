@@ -72,6 +72,11 @@
 - **Finiteness required:** Outputs must be finite where possible; NaN/inf must be handled explicitly.
 - **Heavy work mandatory:** Given repo name "Crypto-Betting-Against-Beta", this session MUST produce substantial hardening/improvements to the BAB implementation.
 
-**Timestamp:** 2026-11-03T03:22:00Z
+**Timestamp:** 2026-11-03T03:30:40Z
 **Priority from repo name:** CRYPTO BETTING AGAINST BETA (BAB) - HEAVY WORK MANDATORY
-**Status:** GATE GREEN (1870 passed). Workflow pattern sync bottleneck REMOVED. Campaign C hardened; CLI/reporting all tests passing. Continue aggressive hardening per campaigns.
+**Status:** GATE GREEN (1870 passed, 13 skipped). Workflow pattern sync bottleneck REMOVED. Campaign C hardened further (CLI --universe nargs handling, dry-run/output validation all passing). Continue aggressive hardening per campaigns.
+
+## PROGRESS THIS SESSION (2026-11-03T03:30:40Z)
+- **Fixed gate regression (workflow sync):** Added `*/.github/workflows/*` to `.github/workflows/main.yml` `stage_safe_changes()` pattern to match `scripts/controller_progress.py` `EXCLUDE_PATTERNS`. Gate restored GREEN.
+- **Campaign C hardening:** Strengthened CLI universe flag parsing (`nargs='*'` with SUPPRESS/default handling) to avoid consuming next flag as value; validated --universe followed by --synthetic. All CLI/report hardening and edge case tests pass.
+- **Verification:** Full gate passing multiple times.

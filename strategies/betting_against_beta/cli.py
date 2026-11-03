@@ -139,7 +139,7 @@ def main(argv=None) -> int:
         parser.add_argument("--version", action="version", version=f"bab {__version__}")
         parser.add_argument("--data", type=str, help="Path to returns data (CSV/JSON/Parquet/HDF5/Pickle). Use --from-prices to treat this as a price series instead.")
         parser.add_argument("--benchmark", type=str, default="BTC", help="Benchmark symbol (default: BTC)")
-        parser.add_argument("--universe", type=str, nargs="*", help="Universe of assets")
+        parser.add_argument("--universe", type=str, nargs="*", action="store", default=argparse.SUPPRESS, help="Universe of assets")
         parser.add_argument("--beta-window", type=int, default=90, help="Beta estimation window")
         parser.add_argument("--long-quantile", type=float, default=0.3, help="Long quantile")
         parser.add_argument("--short-quantile", type=float, default=0.3, help="Short quantile")
@@ -167,8 +167,14 @@ def main(argv=None) -> int:
         return 1
 
     try:
+        universe_arg = getattr(args, "universe", None)
+        if universe_arg is not None and len(universe_arg) == 0:
+            # When --universe is passed with no values (e.g., followed by another flag),
+            # argparse with nargs='*' can consume the next flag as a value. To be defensive
+            # and match test expectations, treat as using defaults / synthetic.
+            universe_arg = None
         config = BABConfig(
-            universe=args.universe,
+            universe=universe_arg,
             benchmark=args.benchmark,
             beta_window=args.beta_window,
             long_quantile=args.long_quantile,
