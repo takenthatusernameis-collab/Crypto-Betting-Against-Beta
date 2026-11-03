@@ -1,15 +1,14 @@
 # SINGLE DURABLE HANDOFF - Crypto-Betting-Against-Beta
 
 ## INITIAL TASK MESSAGE (for next agentic session - MUST EXECUTE FIRST)
-**Time:** 2026-11-03T12:19:21Z
+**Time:** 2026-11-03T12:19:48Z
 **Repo priority:** Crypto Betting Against Beta (BAB). ALL work must advance BAB under `strategies/betting_against_beta/`. Nothing else takes precedence. Repo name DEMANDS heavy implementation/hardening work on BAB - do not deviate.
 
-**MANDATORY GATE (LAW):** Run `timeout 600 bash scripts/bab_gate.sh` IMMEDIATELY on session start. It MUST exit 0 (GREEN). If gate ever goes RED at any point, STOP ALL FEATURE WORK AND FIX IT BEFORE DOING ANYTHING ELSE. Gate runs ALL `tests/test_*.py` (coverage on `strategies/betting_against_beta/` ~1900 tests, ~3-4 min). Be patient - do not kill it early.
+**MANDATORY GATE (LAW):** Run `timeout 600 bash scripts/bab_gate.sh` IMMEDIATELY on session start. It MUST exit 0 (GREEN). If gate ever goes RED at any point, STOP ALL FEATURE WORK AND FIX IT BEFORE DOING ANYTHING ELSE. Gate runs ALL `tests/test_*.py` (~1900 tests, ~3-4 min). Be patient - do not kill it early.
 
-**GATE STATUS AT HANDOFF TIME:** GREEN (exit 0) — 1898 passed, 13 skipped, 210.62s. Verified with `timeout 600 bash scripts/bab_gate.sh`.
+**GATE STATUS AT HANDOFF TIME:** GREEN (exit 0) — 1923 passed, 13 skipped, ~207s. Verified with `timeout 600 bash scripts/bab_gate.sh`.
 
-**BOTTLENECK REMOVED THIS SESSION:** Workflow pattern drift was the RED blocker. `*/.github/workflows/*` was missing from the bash `stage_safe_changes` case in `.github/workflows/main.yml` (line 1163), failing `test_python_patterns_are_subset_of_workflow` + `test_nested_workflow_pattern_is_present_in_workflow`. Added `*/.github/workflows/*` right after `.github/workflows/*` at `main.yml:1163`. Pattern-sync tests now 4/4 pass. Gate re-ran GREEN.
-NOTE: workflow fix APPLIED this session (`*/.github/workflows/*` now present at main.yml:1163). Working tree uncommitted — do not commit unless explicitly asked. Confirm present before trusting gate.
+**BOTTLENECK REMOVED THIS SESSION:** Workflow pattern drift RED blocker is now actually fixed. `*/.github/workflows/*` was missing from the bash `stage_safe_changes` case in `.github/workflows/main.yml:1163`, failing `test_python_patterns_are_subset_of_workflow` + `test_nested_workflow_pattern_is_present_in_workflow`. Added `*/.github/workflows/*` right after `.github/workflows/*` at `main.yml:1163`. Pattern-sync tests now 4/4 pass. Gate re-ran GREEN (1923 passed). Working tree UNCOMMITTED — do not commit unless explicitly asked. Confirm `*/.github/workflows/*` present at main.yml:1163 before trusting gate.
 
 ## BOTTLENECKS IDENTIFIED & REMOVAL INSTRUCTIONS
 1. **Long gate runtime** - Expect 3-4 min. Use `timeout 600`. Do not interrupt. Treat completion as required verification.
@@ -63,10 +62,10 @@ Targets: lookahead safety, finiteness, numerical stability. Watch `backtest.py`,
 - **No unnecessary workflow changes:** Only if required to fix blocking gate issue.
 - **Heavy work mandatory:** Given repo name "Crypto-Betting-Against-Beta", substantial hardening is required.
 
-## PROGRESS SNAPSHOT (2026-11-03T12:19:21Z)
-- Gate GREEN: 1898 passed, 13 skipped, exit 0 (210.62s). Bottleneck (workflow `*/.github/workflows/*` pattern) REMOVED at `main.yml:1163` — now actually applied (was claimed but missing). Working tree only, NOT committed.
-- `data_loader.py`: 66% coverage (540 missing) - PRIMARY TARGET (Campaign D). `_normalize_index` numeric epochs + `_coerce_to_datetime_scalar` clusters now covered via new `tests/test_bab_data_loader_campaign_d.py` (25 tests, all pass).
+## PROGRESS SNAPSHOT (2026-11-03T12:19:48Z)
+- Gate GREEN: 1923 passed, 13 skipped, exit 0 (~207s). Bottleneck (workflow `*/.github/workflows/*` pattern) REMOVED at `main.yml:1163` — now actually applied (was claimed but missing). Working tree only, NOT committed.
+- `data_loader.py`: 67% coverage (521 missing) - PRIMARY TARGET (Campaign D). `_normalize_index` numeric epochs + `_coerce_to_datetime_scalar` clusters now covered via `tests/test_bab_data_loader_campaign_d.py` (25 tests, all pass).
 - `cli.py`: 61% coverage (124 missing) - Campaign C (queued, do not start until D >=90% and gate GREEN).
 - Other BAB modules >=89%; `quality.py`, `data_sources.py`, `errors.py`, `data.py`, `shorting.py`, `attribution.py` at 100%.
 - Bottlenecks: gate runtime long (~3.5 min, use timeout 600); data_loader is largest unhardened surface.
-- Next action: run full gate to confirm GREEN, then continue Campaign D at `_normalize_index` mixed-tz/string branch (`data_loader.py:182-261`) and `_coerce_to_datetime_scalar` float/Timestamp fallbacks (`data_loader.py:428-488`).
+- Next action: run full gate to confirm GREEN (done - GREEN), then continue Campaign D at `_normalize_index` mixed-tz/string branch (`data_loader.py:182-261`) and `_coerce_to_datetime_scalar` float/Timestamp fallbacks (`data_loader.py:428-488`).
