@@ -63,8 +63,15 @@
 - **Finiteness required:** Outputs must be finite where possible; NaN/inf must be handled explicitly.
 - **Heavy work mandatory:** Given repo name "Crypto-Betting-Against-Beta", this session MUST produce substantial hardening/improvements to the BAB implementation.
 
-## PROGRESS THIS SESSION (2026-11-03T06:49:16Z)
-- **Gate restored:** Fixed workflow pattern sync - added both `.github/workflows/*` and `*/.github/workflows/*` to `.github/workflows/main.yml`. All 1898 tests pass.
-- **CLI/Report:** All CLI and report tests passing (68 tests). Already heavily hardened.
-- **Campaign focus shifted:** Prioritizing Campaign D (data_loader/quality) - largest untested surface area for heavy implementation work.
-- **Handoff refreshed:** Updated with aggressive campaign forcing heavy work on BAB implementation.
+## PROGRESS THIS SESSION (2026-11-03T09:01:00Z)
+- **Gate restored to GREEN:** 1898 passed, 13 skipped, exit 0. Full gate verified after all fixes.
+- **Bottleneck 1 (workflow pattern sync):** Added `*/.github/workflows/*` to the `stage_safe_changes()` case pattern in `.github/workflows/main.yml` (line 1163) so it matches `scripts/controller_progress.py` `EXCLUDE_PATTERNS`. The pattern had been missing, causing `test_controller_progress_accounting.py` to fail. Verified both directions (Python subset of workflow AND workflow subset of Python).
+- **Bottleneck 2 (data_loader finite-check logic inverted):** `_promote_datetime_column` had `if not _series_has_any_finite(coerced_series)` — the negation meant valid date columns were NOT promoted, so unnamed/extra date columns in CSVs fell through to `_normalize_index`, which parsed them as epoch integers → 1970 timestamps. Fixed to `if _series_has_any_finite(...)` at data_loader.py:785 and :828. This unblocked `test_coerce_numeric_percent_signs`, `test_coerce_numeric_mixed_string_numbers`, and the unnamed-column promotion tests.
+- **Bottleneck 3 (exchange format drops unnamed columns):** `_detect_and_normalize_exchange_format` ran `_normalize_columns` which silently dropped unnamed date columns. `_promote_datetime_column` then accepted the shrunken frame. Added a guard: only accept the exchange result when `len(df2.columns) >= len(original_columns)`, otherwise fall through to generic promotion. This restored the unnamed-column promotion tests.
+- **Bottleneck 4 (pickle flat scalar lists):** `load_returns_from_pickle` accepted `[1,2,3]` as a valid DataFrame (single int column, RangeIndex → epoch timestamps). Added a guard rejecting flat scalar lists/tuples whose first element is not dict/list/tuple/pd.Series. This fixed `test_load_returns_from_pickle_bad_obj` and `test_load_returns_from_pickle_bad_type`.
+- **data_loader coverage improved:** 1540 → 1544 statements, 82% → 83% overall; data_loader 66% → 68%.
+
+## NEXT SESSION FOCUS (Campaign D - data loader hardening, PRIORITY 1)
+- `strategies/betting_against_beta/data_loader.py` still has 499 missed statements — the largest single hardening surface.
+- **Top targets:** `_normalize_index` numeric/epoch branches (lines 119-167), `_detect_and_normalize_exchange_format` long-format pivot and OHLCV wide paths (lines 495-640), `_coerce_to_datetime_scalar` fallback paths (lines 262-441), `load_returns_from_json` split/table orients (lines 1646-1760), `load_returns_from_hdf5`/`load_returns_from_parquet` error paths, and the `_run_data_quality_campaign` stale-run / min-finite-fraction branches (lines 1240-1283).
+- Gate after every meaningful change: `bash scripts/bab_gate.sh` must stay GREEN.

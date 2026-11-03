@@ -669,7 +669,10 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
         if len(df.columns) == 2 and has_date_like:
             pass
         else:
+            original_columns = list(df.columns)
             df2 = _detect_and_normalize_exchange_format(df)
+            # Only accept the exchange result if it did not silently drop columns
+            # (e.g. unnamed date columns). Otherwise fall through to generic promotion.
             if isinstance(df2.index, pd.DatetimeIndex):
                 try:
                     if getattr(df2.index, "tz", None) is not None:
@@ -680,7 +683,9 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
                 except Exception:
                     pass
                 return df2
-            df = df2
+            # If column count shrank, the exchange path dropped something; revert.
+            if len(df2.columns) >= len(original_columns):
+                df = df2
     except Exception:
         pass
 
@@ -782,7 +787,7 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
                                                 coerced_series = coerced_clean
                                             except Exception:
                                                 pass
-                                            if not _series_has_any_finite(coerced_series):
+                                            if _series_has_any_finite(coerced_series):
                                                 df2 = df.copy()
                                                 df2.index = coerced_series
                                                 df2 = df2.drop(columns=[col])
@@ -825,7 +830,7 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
                                 coerced_series = coerced_clean
                             except Exception:
                                 pass
-                            if not _series_has_any_finite(coerced_series):
+                            if _series_has_any_finite(coerced_series):
                                 df2 = df.copy()
                                 df2.index = coerced_series
                                 df2 = df2.drop(columns=[col])
@@ -1572,6 +1577,13 @@ def load_returns_from_pickle(
             except Exception as exc:
                 raise BABDataError(f"Failed to read pickle {pkl_path}: {exc}") from exc
         elif isinstance(obj, (list, tuple)):
+            # Reject flat scalar lists such as [1, 2, 3]: they produce a single
+            # integer-named column with a RangeIndex that normalize_index happily
+            # turns into 1970-epoch timestamps, silently passing validation.
+            if not obj or not isinstance(obj[0], (dict, list, tuple, pd.Series)):
+                raise BABDataError(
+                    f"Unsupported pickle object: flat scalar list is not tabular data"
+                )
             try:
                 df = pd.DataFrame(obj)
             except Exception as exc:
