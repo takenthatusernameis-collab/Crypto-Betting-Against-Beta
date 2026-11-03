@@ -17,8 +17,11 @@ import argparse
 import json
 import sys
 
+import pandas as pd
+
 from strategies.betting_against_beta import BABConfig, BABStrategy
 from strategies.betting_against_beta import metrics
+from strategies.betting_against_beta.errors import BABDataError
 
 
 def _sanitize_metrics(summary: dict) -> dict:
@@ -80,6 +83,12 @@ def build_parser() -> argparse.ArgumentParser:
         dest="returns_csv",
         help="Alias for --data-source pointing at a CSV returns file.",
     )
+    parser.add_argument(
+        "--returns",
+        default=None,
+        dest="returns",
+        help="Alias for --data-source pointing at a returns file.",
+    )
     parser.add_argument("--benchmark", default="BTC", help="Benchmark asset column name.")
     parser.add_argument("--beta-window", type=int, default=90)
     parser.add_argument("--min-observations", type=int, default=60)
@@ -90,13 +99,89 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _empty_summary() -> dict:
+    """Return a sanitized, all-zero summary used when metrics cannot be computed."""
+    return _sanitize_metrics({
+        "final_cumulative": 1.0,
+        "total_return": 0.0,
+        "sharpe_ratio": 0.0,
+        "annualized_volatility": 0.0,
+        "max_drawdown": 0.0,
+        "turnover": 0.0,
+        "strategy_beta": 0.0,
+        "n_observations": 0,
+    })
+
+
+def _safe_get(obj, *keys, default=None):
+    """Walk a nested mapping/attribute chain without raising."""
+    current = obj
+    for key in keys:
+        try:
+            if isinstance(current, dict):
+                if key not in current:
+                    return default
+                current = current[key]
+            elif hasattr(current, "__getitem__"):
+                current = current[key]
+            else:
+                current = getattr(current, key)
+        except (KeyError, IndexError, TypeError, AttributeError):
+            return default
+    return current
+
+
+def _compute_rebalances(weights) -> int:
+    """Count non-all-NaN rebalance rows defensively."""
+    try:
+        if weights is None:
+            return 0
+        if hasattr(weights, "dropna"):
+            return int(len(weights.dropna(how="all")))
+        return int(len(weights))
+    except Exception:
+        return 0
+
+
+def _compute_summary(strategy, result) -> dict:
+    """Compute metrics defensively; never raise from this helper."""
+    try:
+        returns = _safe_get(result, "backtest", "returns", default=None)
+        weights = _safe_get(result, "weights", default=None)
+        benchmark = _safe_get(strategy, "config", "benchmark", default="BTC")
+        benchmark_returns = _safe_get(result, "returns", benchmark, default=None)
+        if benchmark_returns is None and isinstance(returns, pd.DataFrame):
+            benchmark_returns = returns.get(benchmark)
+        if returns is None or weights is None:
+            return _empty_summary()
+        try:
+            summary = metrics.summary(
+                returns,
+                weights_df=weights,
+                benchmark_returns=benchmark_returns,
+            )
+        except Exception:
+            return _empty_summary()
+        if not isinstance(summary, dict):
+            return _empty_summary()
+        return _sanitize_metrics(summary)
+    except Exception:
+        return _empty_summary()
+
+
 def main(argv: list[str] | None = None) -> int:
     try:
         args = build_parser().parse_args(argv)
+    except SystemExit:
+        raise
+    except Exception as exc:
+        print(f"Error parsing arguments: {exc}", file=sys.stderr)
+        return 2
 
-        # --returns-csv is an explicit alias for the CSV data path; it wins over
-        # --data-source so callers can pass either flag interchangeably.
-        data_source = args.returns_csv or args.data_source
+    try:
+        # --returns-csv / --returns are explicit aliases for the CSV data path;
+        # they win over --data-source so callers can pass either flag interchangeably.
+        data_source = args.returns_csv or args.returns or args.data_source
         data_source = None if data_source in (None, "", "synthetic") else data_source
         cfg = BABConfig(
             benchmark=args.benchmark,
@@ -109,59 +194,48 @@ def main(argv: list[str] | None = None) -> int:
         )
         strategy = BABStrategy(cfg)
         result = strategy.run()
-
-        try:
-            returns = result.backtest["returns"]
-            weights = result.weights
-            benchmark_returns = result.returns[strategy.config.benchmark]
-        except Exception as exc:
-            raise RuntimeError(f"report_missing_results: {exc}") from exc
-
-        try:
-            summary = metrics.summary(
-                returns,
-                weights_df=weights,
-                benchmark_returns=benchmark_returns,
-            )
-        except Exception as exc:
-            # Fallback to sanitized empty summary
-            summary = {
-                "final_cumulative": 1.0,
-                "total_return": 0.0,
-                "sharpe_ratio": 0.0,
-                "annualized_volatility": 0.0,
-                "max_drawdown": 0.0,
-                "turnover": 0.0,
-                "strategy_beta": 0.0,
-                "n_observations": 0,
-            }
-            summary = _sanitize_metrics(summary)
-    except Exception as exc:
-        if args and getattr(args, 'json', False):
+    except BABDataError as exc:
+        if getattr(args, "json", False):
             try:
-                print(_dumps_json({"error": str(exc), "metrics": _sanitize_metrics({})}))
+                print(_dumps_json({"error": str(exc), "metrics": _empty_summary()}))
             except Exception:
                 print('{"error": "report_failed"}')
-        else:
-            print(f"Error generating report: {exc}", file=sys.stderr)
+            return 1
+        print(f"Error generating report: {exc}", file=sys.stderr)
+        return 1
+    except Exception as exc:
+        if getattr(args, "json", False):
+            try:
+                print(_dumps_json({"error": str(exc), "metrics": _empty_summary()}))
+            except Exception:
+                print('{"error": "report_failed"}')
+            return 1
+        print(f"Error generating report: {exc}", file=sys.stderr)
         return 1
 
-    if args.json:
+    summary = _compute_summary(strategy, result)
+    rebalances = _compute_rebalances(_safe_get(result, "weights", default=None))
+
+    if getattr(args, "json", False):
         payload = {
             "config": {
-                "universe": list(strategy.config.universe),
-                "benchmark": strategy.config.benchmark,
-                "beta_window": strategy.config.beta_window,
-                "min_observations": strategy.config.min_observations,
-                "long_quantile": strategy.config.long_quantile,
-                "short_quantile": strategy.config.short_quantile,
-                "transaction_costs": strategy.config.transaction_costs,
-                "data_source": strategy.config.data_source,
+                "universe": list(getattr(strategy.config, "universe", []) or []),
+                "benchmark": getattr(strategy.config, "benchmark", "BTC"),
+                "beta_window": getattr(strategy.config, "beta_window", 90),
+                "min_observations": getattr(strategy.config, "min_observations", 60),
+                "long_quantile": getattr(strategy.config, "long_quantile", 0.3),
+                "short_quantile": getattr(strategy.config, "short_quantile", 0.3),
+                "transaction_costs": getattr(strategy.config, "transaction_costs", 0.0),
+                "data_source": getattr(strategy.config, "data_source", None),
             },
-            "rebalances": int(len(weights.dropna(how="all"))),
-            "metrics": _sanitize_metrics(summary),
+            "rebalances": rebalances,
+            "metrics": summary,
         }
-        print(_dumps_json(payload))
+        try:
+            print(_dumps_json(payload))
+        except Exception as exc:
+            print(_dumps_json({"error": f"serialization_failed: {exc}", "metrics": _empty_summary()}))
+            return 1
         return 0
 
     try:
@@ -169,18 +243,18 @@ def main(argv: list[str] | None = None) -> int:
         source_desc = "synthetic data" if data_source is None else f"data source: {data_source}"
         print(f"BAB STRATEGY BACKTEST REPORT ({source_desc})")
         print("=" * 60)
-        print(f"Universe: {', '.join(strategy.config.universe)}")
-        print(f"Benchmark: {strategy.config.benchmark}")
-        print(f"Beta window: {strategy.config.beta_window} days (min {strategy.config.min_observations} obs)")
-        print(f"Long/Short quantiles: {strategy.config.long_quantile}/{strategy.config.short_quantile}")
-        print(f"Rebalances: {len(weights.dropna(how='all'))}")
+        print(f"Universe: {', '.join(getattr(strategy.config, 'universe', []) or [])}")
+        print(f"Benchmark: {getattr(strategy.config, 'benchmark', 'BTC')}")
+        print(f"Beta window: {getattr(strategy.config, 'beta_window', 90)} days (min {getattr(strategy.config, 'min_observations', 60)} obs)")
+        print(f"Long/Short quantiles: {getattr(strategy.config, 'long_quantile', 0.3)}/{getattr(strategy.config, 'short_quantile', 0.3)}")
+        print(f"Rebalances: {rebalances}")
         print("-" * 60)
         print(f"Final Cumulative: {summary['final_cumulative']:.4f}x ({summary['total_return']:.2%})")
         print(f"Sharpe Ratio (ann.): {summary['sharpe_ratio']:.4f}")
         print(f"Annualized Volatility: {summary['annualized_volatility']:.2%}")
         print(f"Max Drawdown: {summary['max_drawdown']:.2%}")
         print(f"Turnover (avg): {summary['turnover']:.4f}")
-        print(f"Strategy Beta vs {strategy.config.benchmark}: {summary['strategy_beta']:.4f}")
+        print(f"Strategy Beta vs {getattr(strategy.config, 'benchmark', 'BTC')}: {summary['strategy_beta']:.4f}")
         print(f"Observations: {summary['n_observations']}")
         print("=" * 60)
     except Exception as exc:

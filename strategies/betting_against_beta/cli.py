@@ -182,6 +182,15 @@ def main(argv=None) -> int:
         return 1
 
     if args.dry_run:
+        # --dry-run must validate everything it would validate in a real run,
+        # including the --output path, without ever writing a file or running
+        # the backtest. A bad output target must surface as a clean error.
+        if args.output:
+            try:
+                _validate_output_path(args.output)
+            except Exception as exc:
+                print(f"Error validating output path: {exc}")
+                return 1
         try:
             _print_resolved_config(config)
         except Exception as exc:
