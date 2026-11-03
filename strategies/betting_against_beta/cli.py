@@ -88,44 +88,84 @@ def _coerce_finite_scalar(value, default=1.0):
 
 
 def _build_output_summary(result, config, cum_out):
-    """Build a JSON-safe output summary dict, always finite."""
+    """Build a JSON-safe output summary dict, always finite.
+
+    Defensive against malformed result objects: a backtest that is a Series,
+    a list, or any non-DataFrame is handled gracefully. Universe elements
+    that are not strings are coerced.
+    """
     import numpy as _np
 
     backtest = getattr(result, "backtest", None)
     try:
-        periods = int(len(backtest)) if backtest is not None and hasattr(backtest, "__len__") else 0
+        periods = 0
+        if backtest is not None and hasattr(backtest, "__len__"):
+            periods = int(len(backtest))
     except TypeError:
         periods = 0
     universe = getattr(config, "universe", None)
+    safe_universe = []
+    if universe is not None:
+        try:
+            for u in universe:
+                if u is None:
+                    continue
+                try:
+                    safe_universe.append(str(u))
+                except Exception:
+                    safe_universe.append(repr(u))
+        except TypeError:
+            safe_universe = []
     return {
         "final_cumulative": float(cum_out),
         "periods": periods,
         "benchmark": getattr(config, "benchmark", None),
-        "universe": list(universe) if universe else [],
+        "universe": safe_universe,
     }
 
 
 def _json_default(obj):
-    """Fallback serializer for objects json.dumps doesn't know about."""
-    import numpy as _np
-    import math
+    """Fallback serializer for objects json.dumps doesn't know about.
 
-    if isinstance(obj, float):
-        if math.isnan(obj) or math.isinf(obj):
-            return 0.0
-        return obj
-    if isinstance(obj, (np.integer,)):
-        return int(obj)
-    if isinstance(obj, (np.floating,)):
-        f = float(obj)
-        return 0.0 if not math.isfinite(f) else f
-    if isinstance(obj, (np.bool_,)):
-        return bool(obj)
+    Handles numpy arrays, pandas objects, datetimes, and any other
+    non-natively-serializable object by converting to JSON-safe primitives.
+    Non-finite floats are coerced to 0.0 so ``allow_nan=False`` never raises.
+    """
+    import math
+    import numpy as _np
+    import pandas as _pd
+
+    # Numpy arrays -> list of sanitized values
+    if isinstance(obj, _np.ndarray):
+        return [_json_default(v) for v in obj.tolist()]
+    # Pandas Series -> list of sanitized values
+    if isinstance(obj, _pd.Series):
+        return [_json_default(v) for v in obj.tolist()]
+    # Pandas DataFrame -> dict of lists
+    if isinstance(obj, _pd.DataFrame):
+        return {str(k): [_json_default(v) for v in obj[k].tolist()] for k in obj.columns}
+    # Pandas Index -> list
+    if isinstance(obj, _pd.Index):
+        return [_json_default(v) for v in obj.tolist()]
+    # Pandas Timestamp / datetime
+    if isinstance(obj, (_pd.Timestamp,)):
+        try:
+            return obj.isoformat()
+        except Exception:
+            return str(obj)
     if hasattr(obj, "isoformat"):
         try:
             return obj.isoformat()
         except Exception:
             pass
+    if isinstance(obj, (set, frozenset)):
+        return [_json_default(v) for v in obj]
+    if isinstance(obj, bytes):
+        try:
+            return obj.decode("utf-8", errors="replace")
+        except Exception:
+            return repr(obj)
+    # Last resort: stringify
     return str(obj)
 
 
@@ -306,42 +346,93 @@ def main(argv=None) -> int:
 
 
 def _extract_cumulative(result):
-    """Best-effort extraction of the final cumulative return from a BABResult."""
+    """Best-effort extraction of the final cumulative return from a BABResult.
+
+    Handles DataFrame, Series, list, and arbitrary objects. Returns None
+    (never raises) when no cumulative value can be found.
+    """
     try:
         backtest = getattr(result, "backtest", None)
-        if backtest is None or not hasattr(backtest, "__len__") or len(backtest) == 0:
+        if backtest is None:
             return None
-        if "cumulative" in getattr(backtest, "columns", []):
-            return backtest["cumulative"].iloc[-1]
-        # Fallback: look for any cumulative-like column
-        for col in backtest.columns:
-            if "cum" in str(col).lower():
+        if hasattr(backtest, "__len__") and len(backtest) == 0:
+            return None
+        # DataFrame with columns
+        if hasattr(backtest, "columns") and hasattr(backtest, "iloc"):
+            cols = list(backtest.columns)
+            if "cumulative" in cols:
                 try:
-                    return backtest[col].iloc[-1]
+                    return backtest["cumulative"].iloc[-1]
                 except Exception:
-                    continue
+                    pass
+            for col in cols:
+                if "cum" in str(col).lower():
+                    try:
+                        return backtest[col].iloc[-1]
+                    except Exception:
+                        continue
+        # Series with a name containing 'cum'
+        if hasattr(backtest, "iloc") and hasattr(backtest, "name"):
+            name = str(getattr(backtest, "name", "") or "")
+            if "cum" in name.lower():
+                try:
+                    return backtest.iloc[-1]
+                except Exception:
+                    pass
+        # List / tuple / ndarray: take last element
+        if isinstance(backtest, (list, tuple)):
+            return backtest[-1] if backtest else None
+        # Single scalar
+        return backtest
     except Exception:
-        pass
-    return None
+        return None
 
 
 def _json_safe(obj):
-    """Recursively sanitize a payload so json.dumps(allow_nan=False) never fails."""
+    """Recursively sanitize a payload so json.dumps(allow_nan=False) never fails.
+
+    Handles numpy arrays, pandas objects, datetimes, and nested containers.
+    Non-finite floats are coerced to 0.0.
+    """
     import math
+    import numpy as _np
+    import pandas as _pd
 
     if isinstance(obj, dict):
         return {str(k): _json_safe(v) for k, v in obj.items()}
     if isinstance(obj, (list, tuple)):
         return [_json_safe(v) for v in obj]
+    if isinstance(obj, (set, frozenset)):
+        return [_json_safe(v) for v in obj]
+    if isinstance(obj, _np.ndarray):
+        return [_json_safe(v) for v in obj.tolist()]
+    if isinstance(obj, _pd.Series):
+        return [_json_safe(v) for v in obj.tolist()]
+    if isinstance(obj, _pd.DataFrame):
+        return {str(k): [_json_safe(v) for v in obj[k].tolist()] for k in obj.columns}
+    if isinstance(obj, _pd.Index):
+        return [_json_safe(v) for v in obj.tolist()]
+    if isinstance(obj, (_pd.Timestamp,)):
+        try:
+            return obj.isoformat()
+        except Exception:
+            return str(obj)
+    if isinstance(obj, bool):
+        return bool(obj)
+    if isinstance(obj, (int, _np.integer)):
+        return int(obj)
     if isinstance(obj, float):
         return 0.0 if not math.isfinite(obj) else obj
-    if isinstance(obj, (np.integer,)):
-        return int(obj)
-    if isinstance(obj, (np.floating,)):
+    if isinstance(obj, (_np.floating,)):
         f = float(obj)
         return 0.0 if not math.isfinite(f) else f
-    if isinstance(obj, (np.bool_,)):
+    if isinstance(obj, (_np.bool_,)):
         return bool(obj)
+    if hasattr(obj, "isoformat"):
+        try:
+            return obj.isoformat()
+        except Exception:
+            pass
     return obj
 
 

@@ -189,17 +189,17 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     try:
-    # --returns-csv / --returns are explicit aliases for the CSV data path;
-    # they win over --data-source so callers can pass either flag interchangeably.
-    data_source = args.returns_csv or args.returns or args.data_source
-    data_source = None if data_source in (None, "", "synthetic") else data_source
-    if isinstance(data_source, str):
-        p = Path(data_source)
-        if not p.is_absolute():
-            p = (REPO_ROOT / p).resolve()
-        if p.exists() and p.is_dir():
-            raise BABDataError(f"Data path is a directory, not a file: {p}")
-    try:
+        # --returns-csv / --returns are explicit aliases for the CSV data path;
+        # they win over --data-source so callers can pass either flag interchangeably.
+        data_source = args.returns_csv or args.returns or args.data_source
+        data_source = None if data_source in (None, "", "synthetic") else data_source
+        if isinstance(data_source, str):
+            p = Path(data_source)
+            if not p.is_absolute():
+                p = (REPO_ROOT / p).resolve()
+            if p.exists() and p.is_dir():
+                raise BABDataError(f"Data path is a directory, not a file: {p}")
+        try:
             cfg = BABConfig(
                 benchmark=args.benchmark,
                 beta_window=args.beta_window,

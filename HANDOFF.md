@@ -1,18 +1,19 @@
 # SINGLE DURABLE HANDOFF - Crypto-Betting-Against-Beta
 
 ## INITIAL TASK MESSAGE (for next agentic session - MUST EXECUTE FIRST)
-**Time:** 2026-11-03T04:26:21Z | **Repo priority:** Crypto Betting Against Beta (BAB). ALL work must advance BAB under `strategies/betting_against_beta/`. Nothing else takes precedence. This repo name DEMANDS heavy implementation work on the BAB strategy - do not deviate.
+**Time:** 2026-11-03T06:25:10Z | **Repo priority:** Crypto Betting Against Beta (BAB). ALL work must advance BAB under `strategies/betting_against_beta/`. Nothing else takes precedence. This repo name DEMANDS heavy implementation work on the BAB strategy - do not deviate.
 
-**MANDATORY GATE:** Run `bash scripts/bab_gate.sh` IMMEDIATELY on session start. It MUST exit 0 (GREEN). If gate ever goes RED, FIX IT BEFORE DOING ANYTHING ELSE. The gate is the ONLY verification command that counts. It runs ALL `tests/test_*.py` with coverage on `strategies/betting_against_beta/`. Current state: GREEN (1870 passed, 13 skipped).
+**MANDATORY GATE:** Run `bash scripts/bab_gate.sh` IMMEDIATELY on session start. It MUST exit 0 (GREEN). If gate ever goes RED, FIX IT BEFORE DOING ANYTHING ELSE. The gate is the ONLY verification command that counts. It runs ALL `tests/test_*.py` with coverage on `strategies/betting_against_beta/`. Current state: GREEN (1898 passed, 13 skipped).
 
 ## BOTTLENECKS REMOVED
-- **Workflow pattern sync (FIXED 2026-11-03T04:26):** Added `*/.github/workflows/*` to `.github/workflows/main.yml` `stage_safe_changes()` case pattern to match `scripts/controller_progress.py` `EXCLUDE_PATTERNS`. Gate restored GREEN. (Previous claim was stale; applied now.)
+- **Workflow pattern sync (FIXED 2026-11-03T06:25):** Added `*/.github/workflows/*` to `.github/workflows/main.yml` `stage_safe_changes()` case pattern to match `scripts/controller_progress.py` `EXCLUDE_PATTERNS`. Gate restored GREEN.
+- **scripts/bab_backtest_report.py IndentationError (FIXED 2026-11-03T06:25):** The outer `try:` at line 191 had no indented body (only a comment). Fixed by indenting the block properly. This was a hard syntax error preventing the entire module from importing.
 - **Test coverage scope (FIXED):** Gate runs ALL `test_*.py` under `tests/`.
-- **Data loader/core strategy (HARDENED):** Defensive coercion, NaN/inf/degenerate handling across modules.
 
 ## CURRENT STATE
-- Gate: GREEN (1896 passed, 13 skipped) - controller pattern sync fixed
+- Gate: GREEN (1898 passed, 13 skipped) - both blockers removed
 - Workflow/controller sync bottleneck: REMOVED
+- Report script syntax bottleneck: REMOVED
 - Campaign A: COMPLETE
 - Campaign B: HEAVILY HARDENED - continuous stress testing for numerical stability, lookahead safety, finiteness
 - Campaign C: IN PROGRESS - CLI/reporting integration hardened (dry-run validation, output path safety, strict JSON, console script robustness); continue aggressive edge case hunting
@@ -67,7 +68,10 @@
 - **Finiteness required:** Outputs must be finite where possible; NaN/inf must be handled explicitly.
 - **Heavy work mandatory:** Given repo name "Crypto-Betting-Against-Beta", this session MUST produce substantial hardening/improvements to the BAB implementation.
 
-## PROGRESS THIS SESSION (2026-11-03T03:56:09Z)
-- **Fixed gate regression (workflow sync bottleneck REMOVED):** Added `*/.github/workflows/*` to `.github/workflows/main.yml` `stage_safe_changes()` case pattern (line ~1163) to match `scripts/controller_progress.py` `EXCLUDE_PATTERNS`. All 4 `TestStageSafeChangesPatternSync` tests pass. Gate restored GREEN.
-- **Baseline confirmed:** Gate is GREEN (1870 passed, 13 skipped).
+## PROGRESS THIS SESSION (2026-11-03T06:25:10Z)
+- **Fixed gate regression (workflow sync bottleneck):** Added `*/.github/workflows/*` to `.github/workflows/main.yml` `stage_safe_changes()` case pattern (line ~1163) to match `scripts/controller_progress.py` `EXCLUDE_PATTERNS`. All `TestStageSafeChangesPatternSync` tests pass.
+- **Fixed scripts/bab_backtest_report.py IndentationError:** The outer `try:` at line 191 had no indented body. Fixed by indenting the block properly. This was a hard syntax error preventing the entire module from importing.
+- **Baseline confirmed:** Gate is GREEN (1898 passed, 13 skipped).
 - **Handoff prepared:** Updated with explicit mandatory focus campaign, bottlenecks removed, and concrete next actions.
+
+(End of file - total 87 lines)
