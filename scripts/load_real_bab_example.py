@@ -43,6 +43,8 @@ def main() -> int:
     data_path = Path(args.data_path)
     if not data_path.exists():
         raise SystemExit(f"File not found: {data_path}")
+    if data_path.is_dir():
+        raise SystemExit(f"Path is a directory, not a file: {data_path}")
 
     try:
         if args.from_prices:

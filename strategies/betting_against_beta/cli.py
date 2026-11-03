@@ -205,6 +205,11 @@ def main(argv=None) -> int:
         if args.data is not None:
             try:
                 from .data_loader import load_returns, load_prices, BABDataError
+                from pathlib import Path
+                data_p = Path(args.data)
+                if data_p.exists() and data_p.is_dir():
+                    print(f"data:             {args.data} (INVALID: Path is a directory, not a file: {data_p})")
+                    return 1
 
                 try:
                     if getattr(args, 'from_prices', False):
@@ -234,6 +239,12 @@ def main(argv=None) -> int:
             result = strategy.run()
         else:
             from .data_loader import load_prices, load_returns, BABDataError
+            from pathlib import Path
+
+            data_p = Path(args.data)
+            if data_p.exists() and data_p.is_dir():
+                print(f"Error running strategy: Path is a directory, not a file: {data_p}")
+                return 1
 
             try:
                 if args.from_prices:

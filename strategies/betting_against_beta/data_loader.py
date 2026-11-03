@@ -1602,6 +1602,8 @@ def load_returns(
         return load_returns_from_dataframe(df, benchmark=benchmark, min_rows=min_rows, **kwargs)
 
     path = Path(source)
+    if path.exists() and path.is_dir():
+        raise BABDataError(f"data path is a directory, not a file: {path}")
     suffix = path.suffix.lower()
     # Try to auto-detect for file sources
     try:
