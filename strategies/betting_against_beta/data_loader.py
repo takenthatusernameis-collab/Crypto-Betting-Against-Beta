@@ -490,7 +490,7 @@ def _coerce_to_datetime_scalar(val):
 
 def _detect_and_normalize_exchange_format(df: pd.DataFrame) -> pd.DataFrame:
     """Detect common exchange CSV formats (CoinGecko, Binance, Coinbase) and normalize."""
-    if df.empty or not isinstance(df, pd.DataFrame):
+    if not isinstance(df, pd.DataFrame) or df.empty:
         return df
     df = df.copy()
     df = _normalize_columns(df)
