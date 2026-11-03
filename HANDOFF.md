@@ -64,8 +64,8 @@
 - Pattern changes mirrored between controller and workflow
 - Heavy hardening required - no half-measures
 
-## PROGRESS SNAPSHOT (2026-11-03T22:25:15Z)
-- **Gate:** GREEN (2000 passed, 13 skipped)
-- **Bottleneck removed:** controller/workflow pattern parity (`*/.github/workflows/*` added to workflow stage_safe_changes); gate was RED, now GREEN
-- **Focus:** Campaign D - data_loader.py 72% (425 missing / 1522 stmts) -> >=90%
-- **Immediate next action:** Run gate (GREEN confirmed), run recon coverage on data_loader.py against data_loader tests, target `_normalize_index` and `_coerce_to_datetime_scalar` uncovered branches first with adversarial tests.
+## PROGRESS SNAPSHOT (2026-11-03T23:00:XXZ)
+- **Gate:** GREEN (2000 passed, 13 skipped) - re-verified after controller/workflow pattern parity fix
+- **Bottleneck removed:** controller/workflow pattern parity (`*/.github/workflows/*` added to workflow `stage_safe_changes()` and mirrored in controller); gate was RED, now GREEN
+- **Focus:** Campaign D - data_loader.py hardening in progress (72% -> improving). Added targeted adversarial tests for `_normalize_index` numeric epoch branches (ns/us/ms/s, floats, mixed scales) and `_coerce_to_datetime_scalar` edge cases (NaN/inf/None/strings/tz-aware, large/small magnitudes). All existing data_loader tests pass.
+- **Immediate next action:** Continue Campaign D - attack remaining large gaps in data_loader (e.g. `_promote_datetime_column`, exchange format detection, loaders `load_returns/load_prices/load_*`, validation/cleaning paths). Add tight tests per branch, minimal defensive fixes only if necessary, run gate after each batch. Target >=90% coverage on data_loader.py, keep gate GREEN.
