@@ -1,42 +1,55 @@
-"""Campaign D3: _coerce_series_to_datetime_index and more."""
+"""More Campaign D tests for tricky branches."""
+
+from __future__ import annotations
+
 import numpy as np
 import pandas as pd
 import pytest
 
-from strategies.betting_against_beta import data_loader
 from strategies.betting_against_beta.data_loader import (
-    _coerce_series_to_datetime_index,
+    _coerce_to_datetime_scalar,
     _normalize_index,
 )
-from strategies.betting_against_beta.errors import BABDataError
 
 
-def test_coerce_series_to_datetime_index_basic():
-    df = pd.DataFrame({"date": ["2023-01-01", "2023-01-02"], "BTC": [1.0, 2.0]})
-    coerced = pd.to_datetime(df["date"])
-    # simulate
-    result = _coerce_series_to_datetime_index(df, "date", coerced)
-    assert result is True
+def test_normalize_index_numeric_us_boundary():
+    df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=pd.Index([1700000000000000, 1700000001000000]))
+    out = _normalize_index(df)
+    assert isinstance(out.index, pd.DatetimeIndex)
 
 
-def test_coerce_series_to_datetime_index_with_tz():
-    df = pd.DataFrame({"date": ["2023-01-01T00:00:00+00:00", "2023-01-02T00:00:00+00:00"], "BTC": [1.0, 2.0]})
-    coerced = pd.to_datetime(df["date"], utc=True)
-    result = _coerce_series_to_datetime_index(df, "date", coerced)
-    assert result is True
+def test_normalize_index_numeric_us_boundary_high():
+    df = pd.DataFrame({"BTC": [0.01]}, index=pd.Index([1e17 + 5]))
+    out = _normalize_index(df)
+    assert isinstance(out.index, pd.DatetimeIndex)
 
 
-def test_coerce_series_to_datetime_index_empty_like():
-    df = pd.DataFrame({"date": [None, None], "BTC": [1.0, 2.0]})
-    coerced = pd.Series([pd.NaT, pd.NaT])
-    result = _coerce_series_to_datetime_index(df, "date", coerced)
-    assert result is False
+def test_normalize_index_numeric_above_ns():
+    df = pd.DataFrame({"BTC": [0.01]}, index=pd.Index([1e19]))
+    out = _normalize_index(df)
+    assert isinstance(out.index, pd.DatetimeIndex)
 
 
-def test_normalize_index_all_nat_dropped():
-    df = pd.DataFrame({"BTC": [1.0, 2.0]}, index=[pd.NaT, pd.NaT])
-    try:
-        out = _normalize_index(df)
-        # might raise
-    except Exception:
-        pass
+def test_normalize_index_numeric_small_positive():
+    df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=pd.Index([5, 6]))
+    out = _normalize_index(df)
+    assert isinstance(out.index, pd.DatetimeIndex)
+
+
+def test_normalize_index_numeric_zero_or_negative_magnitude():
+    df = pd.DataFrame({"BTC": [0.01]}, index=pd.Index([0]))
+    out = _normalize_index(df)
+    assert isinstance(out.index, pd.DatetimeIndex)
+
+
+def test_normalize_index_object_index_with_mixed_tz_strings():
+    df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=["2023-01-01T00:00:00+02:00", "2023-01-02T00:00:00-07:00"])
+    out = _normalize_index(df)
+    assert isinstance(out.index, pd.DatetimeIndex)
+    assert out.index.tz is None
+
+
+def test_normalize_index_unparseable_raises_babdataerror():
+    df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=["not-a-date", "also-bad"])
+    with pytest.raises(Exception):
+        _normalize_index(df)

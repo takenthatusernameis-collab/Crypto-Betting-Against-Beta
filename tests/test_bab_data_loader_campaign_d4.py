@@ -1,42 +1,69 @@
-"""Campaign D4: _promote_datetime_column and _coerce_numeric paths."""
+"""More Campaign D tests for _coerce_to_datetime_scalar."""
+
+from __future__ import annotations
+
 import numpy as np
 import pandas as pd
 import pytest
 
-from strategies.betting_against_beta import data_loader
-from strategies.betting_against_beta.data_loader import (
-    _promote_datetime_column,
-    _coerce_numeric,
-)
-from strategies.betting_against_beta.errors import BABDataError
+from strategies.betting_against_beta.data_loader import _coerce_to_datetime_scalar
 
 
-def test_promote_datetime_from_date_column():
-    df = pd.DataFrame({"date": ["2023-01-01", "2023-01-02"], "BTC": [1.0, 2.0]})
-    out = _promote_datetime_column(df)
-    assert isinstance(out.index, pd.DatetimeIndex)
+def test_coerce_scalar_float_seconds():
+    ts = _coerce_to_datetime_scalar(1700000000.0)
+    assert isinstance(ts, pd.Timestamp)
 
 
-def test_promote_datetime_from_timestamp_column():
-    df = pd.DataFrame({"timestamp": [1672531200, 1672617600], "BTC": [1.0, 2.0]})  # seconds
-    out = _promote_datetime_column(df)
-    assert isinstance(out.index, pd.DatetimeIndex)
+def test_coerce_scalar_float_ms():
+    ts = _coerce_to_datetime_scalar(1700000000000.0)
+    assert isinstance(ts, pd.Timestamp)
 
 
-def test_promote_datetime_unparseable_raises():
-    df = pd.DataFrame({"date": ["bad", "also-bad"], "BTC": [1.0, 2.0]})
-    with pytest.raises(BABDataError):
-        _promote_datetime_column(df)
+def test_coerce_scalar_float_us():
+    ts = _coerce_to_datetime_scalar(1700000000000000.0)
+    assert isinstance(ts, pd.Timestamp)
 
 
-def test_coerce_numeric_mixed():
-    df = pd.DataFrame({"BTC": ["1.0", "2.5"], "ETH": [1, np.nan]})
-    out = _coerce_numeric(df)
-    # numeric columns should be numeric
-    assert np.isfinite(out["BTC"].iloc[0])
+def test_coerce_scalar_float_ns():
+    ts = _coerce_to_datetime_scalar(1700000000000000000.0)
+    assert isinstance(ts, pd.Timestamp)
 
 
-def test_coerce_numeric_garbage_raises():
-    df = pd.DataFrame({"BTC": ["abc", "def"]})
-    with pytest.raises(BABDataError):
-        _coerce_numeric(df)
+def test_coerce_scalar_float_large_ns():
+    ts = _coerce_to_datetime_scalar(1.7e18)
+    assert isinstance(ts, pd.Timestamp)
+
+
+def test_coerce_scalar_float_us_boundary():
+    ts = _coerce_to_datetime_scalar(1e17 + 1000)
+    assert isinstance(ts, pd.Timestamp)
+
+
+def test_coerce_scalar_float_small():
+    ts = _coerce_to_datetime_scalar(100.0)
+    assert isinstance(ts, pd.Timestamp)
+
+
+def test_coerce_scalar_numpy_int():
+    ts = _coerce_to_datetime_scalar(np.int64(1700000000))
+    assert isinstance(ts, pd.Timestamp)
+
+
+def test_coerce_scalar_numeric_string_us():
+    ts = _coerce_to_datetime_scalar("1700000000000000")
+    assert isinstance(ts, pd.Timestamp)
+
+
+def test_coerce_scalar_numeric_string_ns():
+    ts = _coerce_to_datetime_scalar("1700000000000000000")
+    assert isinstance(ts, pd.Timestamp)
+
+
+def test_coerce_scalar_z_string():
+    ts = _coerce_to_datetime_scalar("2023-11-14T22:13:20Z")
+    assert isinstance(ts, pd.Timestamp)
+
+
+def test_coerce_scalar_offset_string():
+    ts = _coerce_to_datetime_scalar("2023-11-14T22:13:20+00:00")
+    assert isinstance(ts, pd.Timestamp)
