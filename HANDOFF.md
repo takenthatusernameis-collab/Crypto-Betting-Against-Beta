@@ -1,12 +1,12 @@
 # SINGLE DURABLE HANDOFF - Crypto-Betting-Against-Beta
 
 ## INITIAL TASK MESSAGE (for next agentic session - MUST EXECUTE FIRST)
-**Time:** 2026-11-03T10:26:11Z | **Repo priority:** Crypto Betting Against Beta (BAB). ALL work must advance BAB under `strategies/betting_against_beta/`. Nothing else takes precedence. Repo name DEMANDS heavy implementation work on BAB - do not deviate.
+**Time:** 2026-11-03T10:40:13Z | **Repo priority:** Crypto Betting Against Beta (BAB). ALL work must advance BAB under `strategies/betting_against_beta/`. Nothing else takes precedence. Repo name DEMANDS heavy implementation work on BAB - do not deviate.
 
 **MANDATORY GATE:** Run `bash scripts/bab_gate.sh` IMMEDIATELY on session start. It MUST exit 0 (GREEN). If gate ever goes RED, FIX IT BEFORE DOING ANYTHING ELSE. Gate runs ALL `tests/test_*.py` with coverage on `strategies/betting_against_beta/`. Full suite is large (~1900 tests, ~3.5 min) - be patient.
 
 ## GATE STATUS AT HANDOFF TIME: GREEN (VERIFIED)
-**Bottleneck cleared:** `*.github/workflows/*` nested-variant pattern added to `.github/workflows/main.yml` case list (line 1163), in lock-step with `scripts/controller_progress.py:28` `EXCLUDE_PATTERNS`. Gate re-verified: `bash scripts/bab_gate.sh` → 1898 passed, 13 skipped, exit 0 (GREEN). No controller/infra failures remain.
+**Bottleneck cleared:** `*/.github/workflows/*` nested-variant pattern added to `.github/workflows/main.yml` case list (line 1163), in lock-step with `scripts/controller_progress.py:28` `EXCLUDE_PATTERNS`. Gate re-verified: `bash scripts/bab_gate.sh` → 1898 passed, 13 skipped, exit 0 (GREEN). No controller/infra failures remain.
 
 ## IMMEDIATE BOTTLENECKS TO CLEAR (if any block progress)
 1. **Gate RED** - none currently (gate GREEN). If it turns RED, diagnose and fix before any feature work (see `main.yml:1163` pattern-sync rule).
@@ -60,7 +60,7 @@
 - **Preserve API compatibility.**
 - **Heavy work mandatory** given repo name.
 
-## PROGRESS SNAPSHOT (2026-11-03T10:26:11Z)
+## PROGRESS SNAPSHOT (2026-11-03T10:40:13Z)
 - Gate bottleneck cleared: added `*/.github/workflows/*` to `.github/workflows/main.yml` case list (line 1163). Gate re-verified GREEN (1898 passed, 13 skipped, exit 0).
 - `data_loader.py` coverage 68% (499 missing stmts) - Campaign D primary target. Concrete missing-line targets listed above.
 - `cli.py` coverage 61% (124 missing stmts) - Campaign C, queued.
