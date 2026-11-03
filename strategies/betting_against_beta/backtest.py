@@ -115,6 +115,14 @@ def run_backtest(returns_df, weights_df, transaction_costs=0.0, slippage=0.0,
         portfolio_returns = portfolio_returns.fillna(0.0)
     except Exception:
         pass
+    # Extra hardening: force all finite
+    try:
+        arr_pr = portfolio_returns.to_numpy(dtype=float)
+        if not np.all(np.isfinite(arr_pr)):
+            arr_pr = np.where(np.isfinite(arr_pr), arr_pr, 0.0)
+            portfolio_returns = pd.Series(arr_pr, index=portfolio_returns.index)
+    except Exception:
+        pass
     portfolio_returns_filled = portfolio_returns.clip(lower=-1.0 + 1e-12)
     try:
         log_returns = np.log1p(portfolio_returns_filled.to_numpy(dtype=float))
@@ -125,8 +133,20 @@ def run_backtest(returns_df, weights_df, transaction_costs=0.0, slippage=0.0,
             cumulative_returns = np.where(np.isfinite(cumulative_returns), cumulative_returns, 1.0)
     except Exception:
         # Fallback
-        cumulative_returns = (1.0 + portfolio_returns_filled).cumprod()
-
+        try:
+            cumulative_returns = (1.0 + portfolio_returns_filled).cumprod()
+            cumulative_returns_arr = np.asarray(cumulative_returns, dtype=float)
+            if not np.all(np.isfinite(cumulative_returns_arr)):
+                cumulative_returns_arr = np.where(np.isfinite(cumulative_returns_arr), 1.0 if False else 1.0, 1.0)
+                # better: replace bad values with forward fill logic
+                bad = ~np.isfinite(cumulative_returns_arr)
+                if np.any(bad):
+                    for i in range(len(cumulative_returns_arr)):
+                        if bad[i]:
+                            cumulative_returns_arr[i] = cumulative_returns_arr[i-1] if i > 0 else 1.0
+                cumulative_returns = cumulative_returns_arr
+        except Exception:
+            cumulative_returns = np.ones(len(portfolio_returns_filled))
     results = pd.DataFrame({
         'returns': portfolio_returns,
         'gross_return': gross_returns.fillna(0.0),

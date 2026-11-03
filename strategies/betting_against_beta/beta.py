@@ -122,8 +122,13 @@ def calculate_beta(asset_returns, benchmark_returns, min_obs=None):
             x = x[mask]
         if len(y) == 0:
             return np.nan
-        if min_obs is not None and len(y) < min_obs:
-            return np.nan
+        if min_obs is not None:
+            try:
+                mo = int(min_obs)
+                if mo > 0 and len(y) < mo:
+                    return np.nan
+            except Exception:
+                pass
         # Guard against constant/degenerate benchmark
         x_std = np.std(x)
         if x_std < 1e-12 or not np.isfinite(x_std):
@@ -153,6 +158,21 @@ def calculate_beta_fast(a, b, min_obs=None):
             b = np.asarray(b, dtype=float)
         except (TypeError, ValueError, AttributeError):
             return np.nan
+        if a is None or b is None:
+            return np.nan
+        # Flatten
+        try:
+            a = np.array(a).ravel()
+            b = np.array(b).ravel()
+        except Exception:
+            return np.nan
+        if len(a) == 0 or len(b) == 0:
+            return np.nan
+        # If lengths differ, align
+        if len(a) != len(b):
+            n = min(len(a), len(b))
+            a = a[:n]
+            b = b[:n]
         mask = np.isfinite(a) & np.isfinite(b)
         if not np.any(mask):
             return np.nan
@@ -164,8 +184,13 @@ def calculate_beta_fast(a, b, min_obs=None):
             b_m = b
         if len(a_m) == 0:
             return np.nan
-        if min_obs is not None and len(a_m) < min_obs:
-            return np.nan
+        if min_obs is not None:
+            try:
+                mo = int(min_obs)
+                if mo > 0 and len(a_m) < mo:
+                    return np.nan
+            except Exception:
+                pass
         # Guard against constant/degenerate benchmark.  A zero-variance
         # benchmark carries no information, so beta is undefined.  Return NaN
         # to match calculate_beta() and metrics.strategy_beta() rather than a

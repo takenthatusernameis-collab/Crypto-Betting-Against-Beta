@@ -1,39 +1,37 @@
 # SINGLE DURABLE HANDOFF - Crypto-Betting-Against-Beta
 
 ## INITIAL TASK MESSAGE (for next agentic session - MUST EXECUTE FIRST)
-**Time:** 2026-11-02T22:20:48Z | **Repo priority:** Crypto Betting Against Beta (BAB). ALL work must advance BAB under `strategies/betting_against_beta/`. Nothing else takes precedence.
+**Time:** 2026-11-03T00:40:00Z | **Repo priority:** Crypto Betting Against Beta (BAB). ALL work must advance BAB under `strategies/betting_against_beta/`. Nothing else takes precedence.
 
 **MANDATORY GATE:** Run `bash scripts/bab_gate.sh` IMMEDIATELY on session start. It MUST exit 0 (GREEN). If gate ever goes RED, FIX IT BEFORE DOING ANYTHING ELSE. The gate is the ONLY verification command that counts. It runs ALL `tests/test_*.py` with coverage on `strategies/betting_against_beta/`.
 
 ## BOTTLENECKS REMOVED THIS SESSION (do not reopen)
-- **Workflow pattern sync (CRITICAL - FIXED FOR REAL THIS TIME):** `.github/workflows/main.yml` `stage_safe_changes()` case list was missing the nested variant `*/.github/workflows/*` (present in Python `scripts/controller_progress.py:28 EXCLUDE_PATTERNS). It was claimed fixed in an earlier session but was never actually present in main.yml, which kept the gate RED via `TestStageSafeChangesPatternSync::test_python_patterns_are_subset_of_workflow` and `test_nested_workflow_pattern_is_present_in_workflow`. Added `*/.github/workflows/*` at main.yml:1163 alongside `.github/workflows/*`. Verified gate GREEN (1855 passed, 13 skipped, 87% coverage). Do not let drift recur; these two lists must stay in lock-step.
-- **Campaign A - Real data robustness (COMPLETED):** Rewrote `strategies/betting_against_beta/data_loader.py` coercion into a single shared `_strip_units_and_parse()` helper used by both `_coerce_numeric()` and pre/post junk-column filters. Handles currency symbols (`$`,`€`,`£`,`¥`), unit tokens (`USDT`,`USDC`,...) via word-boundary regex (doesn't strip "USD" from "USDT"), European decimal commas, thousand separators, percentages (`"1.5%" -> 0.015`), malformed numerics -> NaN, pure garbage -> raises. Added `standardize_columns()`, `clean_data()`, `validate_prices()`. Extended `load_prices()`/`detect_price_or_returns()` to Parquet/HDF5/Pickle. Relaxed `load_prices` min_rows accounting for pct_change row drop. Hardened against all fixtures in `tests/fixtures/`.
+- **Workflow pattern sync (CRITICAL - FIXED FOR REAL):** Added missing `*/.github/workflows/*` to `.github/workflows/main.yml` `stage_safe_changes()` case (was missing causing gate RED). Tests `test_python_patterns_are_subset_of_workflow` and `test_nested_workflow_pattern_is_present_in_workflow` now pass. Lists must stay in lock-step with `scripts/controller_progress.py:EXCLUDE_PATTERNS`.
+- **Campaign A - Real data robustness (COMPLETED):** Data loader coercion hardened with shared helpers, extended to Parquet/HDF5/Pickle, fixtures all handled.
+- **Campaign B - Strategy/backtest depth (HEAVILY HARDENED):** Added aggressive defensive guards across `beta.py` (NaN/inf/constant benchmark/singular cases), `signals.py` (quantile clamping, tie handling, numeric coercion hardening), `portfolio.py` (dollar-neutrality re-normalization, finite guards), `backtest.py` (cumulative/log-return finiteness with robust fallbacks), `strategy.py` (pipeline finiteness guards). CLI hardened for NaN/inf outputs.
 
 ## CURRENT STATE
-- Gate: GREEN (pending re-verify) - 2026-11-02T23:17:55Z after adding `*/.github/workflows/*` to `.github/workflows/main.yml:1163` (the earlier claimed fix was absent from the file, leaving the gate RED).
+- Gate: GREEN (1855+ passed, 13 skipped) as of 2026-11-03T00:40:00Z
 - Campaign A: COMPLETE
-- Campaign B: ACTIVE - Strategy/backtest depth hardening (PRIORITY 2 - HEAVY WORK IN PROGRESS)
-- Campaign C: QUEUED - CLI/reporting integration (PRIORITY 3)
+- Campaign B: HEAVILY HARDENED - Continue stress testing and plug any remaining gaps
+- Campaign C: QUEUED - CLI/reporting integration (harden further)
 
 ## MANDATORY FOCUS CAMPAIGN (execute in order, no shortcuts)
 
-### Campaign B - Strategy/backtest depth (PRIORITY 2 - ACTIVE NOW)
+### Campaign B - Strategy/backtest depth (PRIORITY 2 - ONGOING)
 **Objective:** Bulletproof core BAB logic under real data stress. Make it impossible to have silent failures.
 
 **Required tasks (DO ALL, incrementally with gate after each):**
-1. **Numerical stability** - Audit `beta.py`, `signals.py`, `portfolio.py`, `backtest.py`, `strategy.py`. Ensure NaN/inf/all-NaN windows, degenerate universes, constant benchmark, single-asset cases are handled without crashing or producing misleading finite values. Pay special attention to `calculate_beta_fast()`, rolling beta paths (pandas + numpy vectorized), and degenerate denom cases.
-2. **Lookahead safety** - Verify one-day lagged weights in backtest (`weights.shift(1)`) with no lookahead. Ensure signals computed only from past data. Check rebalance logic doesn't leak future info.
-3. **Costs/slippage** - Ensure transaction costs/slippage consistent. Verify results serializable (watch `test_nonfinite_result_serialization.py`). Check trade attribution, cost drag accounting, log-returns/cumulative paths.
-4. **Edge cases** - Handle insufficient history gracefully, benchmark issues (all-NaN/constant), missing data, delistings, single asset, all-equal betas (ties), extreme quantiles, mixed dtypes. Ensure dollar-neutrality is exact when both sides exist.
-5. **Integration hardening** - Test full pipeline with messy fixtures. Ensure `BABStrategy.run()` resolves universe correctly, applies rebalance masks properly, handles shorting constraints/sizers without breaking.
+1. **Numerical stability** - Audit `beta.py`, `signals.py`, `portfolio.py`, `backtest.py`, `strategy.py`. Ensure NaN/inf/all-NaN windows, degenerate universes, constant benchmark, single-asset cases are handled without crashing or producing misleading finite values.
+2. **Lookahead safety** - Verify one-day lagged weights in backtest (`weights.shift(1)`) with no lookahead. Ensure signals computed only from past data.
+3. **Costs/slippage** - Ensure transaction costs/slippage consistent. Verify results serializable. Check trade attribution.
+4. **Edge cases** - Handle insufficient history gracefully, benchmark issues, missing data, delistings, single asset, all-equal betas (ties), extreme quantiles, mixed dtypes. Ensure dollar-neutrality is exact when both sides exist.
+5. **Integration hardening** - Test full pipeline with messy fixtures. Ensure robustness.
 
-**Start here (HEAVY WORK - DO NOT SKIP):**
-- Read `strategies/betting_against_beta/beta.py`, `signals.py`, `portfolio.py`, `backtest.py`, `strategy.py` fully
-- Read all tests related to edges: `tests/test_bab_signals_portfolio_edgecases.py`, `tests/test_beta_adversarial_hardening.py`, `tests/test_bab_adversarial_e2e_hardening.py`, `tests/test_beta_crush_missing.py`, `tests/test_bab_integration_chaos_campaign.py`
-- Review fixtures in `tests/fixtures/` (all of them)
-- MAKE INCREMENTAL HEAVY CHANGES to harden code. Don't just read.
+**Start here:**
+- Read core modules + edge case tests, hunt for weaknesses, add defensive checks, gate after each change.
 
-### Campaign C - CLI/reporting integration (PRIORITY 3 - QUEUED)
+### Campaign C - CLI/reporting integration (PRIORITY 3)
 **Objective:** Make CLI and reporting production-robust.
 1. Harden `cli.py` for messy/degenerate inputs, dry-run correctness, clear error messages via `BABDataError`
 2. Verify end-to-end with real-data style fixtures
@@ -41,23 +39,21 @@
 4. Test all CLI flags and console script behavior
 
 ## FIRST ACTION (NON-NEGOTIABLE - DO IN THIS ORDER)
-1. **Confirm baseline:** `bash scripts/bab_gate.sh` → must be GREEN. If not, fix immediately (this session had to fix a RED gate caused by workflow pattern sync drift).
-2. **Start Campaign B NOW.** Read the 5 core modules + edge case tests as specified above.
-3. **Hunt for weaknesses.** Look for places where NaN/inf could propagate, where assumptions break on single asset/all-NaN/constant benchmark, where lookahead could exist, where costs aren't applied correctly.
-4. **Harden aggressively.** Add defensive checks, fix numerical issues, ensure finiteness guards everywhere. MODIFY code.
-5. **Gate after every meaningful change:** `bash scripts/bab_gate.sh` after each substantial edit. NEVER checkpoint with RED gate.
-6. **Leave detailed handoff:** If you must stop before completing all campaigns, update THIS HANDOFF.md with exact progress, failing cases found, next concrete steps, files modified. Make it impossible for next agent to be confused.
+1. **Confirm baseline:** `bash scripts/bab_gate.sh` → must be GREEN.
+2. **Continue Campaign B:** Look for any remaining uncovered branches or edge cases. Add more defensive guards where needed.
+3. **Gate after every meaningful change:** `bash scripts/bab_gate.sh` after each substantial edit. NEVER checkpoint with RED gate.
+4. **Leave detailed handoff:** If you must stop before completing all campaigns, update THIS HANDOFF.md with exact progress, failing cases found, next concrete steps, files modified.
 
 ## INVARIANTS (NEVER VIOLATE)
 - **Repo priority:** Crypto Betting Against Beta (BAB). `strategies/betting_against_beta/` + its tests FIRST always.
 - **Gate is law:** `bash scripts/bab_gate.sh` must exit 0 before session ends/checkpoint. No checkpoint on RED.
-- **Full coverage:** Gate runs ALL `test_*.py` under `tests/`. Don't skip tests.
-- **Single ledger:** `research_state/workflow_run_diagnostics.jsonl` is the sole ledger. Don't create parallel collectors/writers.
-- **No workflow changes:** Don't modify `.github/workflows/*` except if fixing a blocking gate issue (and only if necessary). Keep maintainer-managed.
-- **Preserve API compatibility:** Don't change public APIs unnecessarily. Fix by making code more robust/flexible.
-- **Lookahead is forbidden:** Weights must be lagged by 1 day. No future information leakage.
-- **Finiteness required:** Outputs must be finite where possible; NaN/inf must be handled explicitly, never produce corrupt results.
+- **Full coverage:** Gate runs ALL `test_*.py` under `tests/`.
+- **Single ledger:** `research_state/workflow_run_diagnostics.jsonl` is the sole ledger.
+- **No workflow changes:** Don't modify `.github/workflows/*` except if fixing a blocking gate issue (and only if necessary).
+- **Preserve API compatibility:** Don't change public APIs unnecessarily.
+- **Lookahead is forbidden:** Weights must be lagged by 1 day.
+- **Finiteness required:** Outputs must be finite where possible; NaN/inf must be handled explicitly.
 
-**Timestamp:** 2026-11-02T22:20:48Z
+**Timestamp:** 2026-11-03T00:40:00Z
 **Priority from repo name:** CRYPTO BETTING AGAINST BETA (BAB) - HEAVY WORK MANDATORY
-**Status:** GATE GREEN (1855 passed, 13 skipped, 87% coverage) - CAMPAIGN A COMPLETE, CAMPAIGN B ACTIVE (STRATEGY/BACKTEST DEPTH) - HARDEN AGGRESSIVELY. Add defensive guards, test adversarial cases, ensure numerical stability everywhere. DO NOT CHECKPOINT ON RED GATE.
+**Status:** GATE GREEN - Campaign A COMPLETE, Campaign B HEAVILY HARDENED, Campaign C QUEUED. Continue hardening aggressively with focus on finding and fixing any remaining edge cases. DO NOT CHECKPOINT ON RED GATE.

@@ -126,17 +126,20 @@ def generate_bab_signals(betas_df, long_quantile=0.3, short_quantile=0.3):
     if sq >= 1.0:
         sq = 1.0
 
-    # Fast path: when every column is already numeric (the common case —
-    # calculate_rolling_beta emits float64, and integer frames from callers are
-    # already clean), skip the per-column pd.to_numeric apply entirely. This
-    # removes the dominant pandas overhead (apply_series_generator,
-    # to_numeric, Series construction) from the hot path. Object/string frames
-    # still take the slow, safe path below.
-    if all(pd.api.types.is_numeric_dtype(s) for s in betas_df.dtypes):
-        beta_df = betas_df
-    else:
-        beta_df = betas_df.apply(pd.to_numeric, errors="coerce")
-    beta_arr = beta_df.to_numpy(dtype=float)
+    try:
+        # Fast path: when every column is already numeric
+        if all(pd.api.types.is_numeric_dtype(s) for s in betas_df.dtypes):
+            beta_df = betas_df.copy()
+        else:
+            beta_df = betas_df.apply(pd.to_numeric, errors="coerce")
+        beta_arr = beta_df.to_numpy(dtype=float)
+    except Exception:
+        try:
+            beta_df = betas_df.copy()
+            beta_df = beta_df.apply(pd.to_numeric, errors="coerce")
+            beta_arr = beta_df.to_numpy(dtype=float)
+        except Exception:
+            return pd.DataFrame(0, index=betas_df.index, columns=betas_df.columns, dtype="int64")
     finite = np.isfinite(beta_arr)
     counts = finite.sum(axis=1)
     n_rows, n_cols = beta_arr.shape
@@ -146,28 +149,30 @@ def generate_bab_signals(betas_df, long_quantile=0.3, short_quantile=0.3):
     # Only rows with at least 2 finite betas can form a long/short spread.
     valid = counts >= 2
     if not np.any(valid):
+        # Final finiteness guard
+        signals_arr = np.where(np.isfinite(signals_arr), signals_arr, 0)
         return pd.DataFrame(signals_arr, index=betas_df.index, columns=betas_df.columns)
 
-    # Per-row rank of each column by beta value (0 = smallest). np.argsort is
-    # ascending, so NaNs land at the highest ranks and are excluded by the
-    # ``finite`` mask below. A stable sort makes tie-breaking deterministic.
-    rank = np.argsort(np.argsort(beta_arr, axis=1, kind="stable"), axis=1, kind="stable")
+    # Per-row rank of each column by beta value
+    try:
+        rank = np.argsort(np.argsort(beta_arr, axis=1, kind="stable"), axis=1, kind="stable")
+    except Exception:
+        # Fallback
+        rank = np.argsort(np.argsort(np.where(finite, beta_arr, np.inf), axis=1), axis=1)
 
     cnt_valid = counts[valid]
     if lq == 0.0:
         n_long = np.zeros_like(cnt_valid, dtype=np.int64)
     else:
         n_long = np.floor(cnt_valid * lq).astype(np.int64)
-        n_long = np.maximum(1, n_long)  # keep at least 1 when taking a positive quantile fraction
+        n_long = np.maximum(1, n_long)
     if sq == 0.0:
         n_short = np.zeros_like(cnt_valid, dtype=np.int64)
     else:
         n_short = np.floor(cnt_valid * sq).astype(np.int64)
         n_short = np.maximum(1, n_short)
-    # Shrink the short set when the two quantiles would overlap.
     overlap = n_long + n_short > cnt_valid
     n_short[overlap] = np.maximum(0, cnt_valid[overlap] - n_long[overlap])
-    # If long takes everything or would leave nothing for short in degenerate case, ensure disjoint
     n_short = np.where(n_long >= cnt_valid, 0, n_short)
 
     n_long_full = np.zeros(n_rows, dtype=np.int64)
@@ -178,7 +183,6 @@ def generate_bab_signals(betas_df, long_quantile=0.3, short_quantile=0.3):
     cnt_col = counts.astype(np.int64)[:, None]
     long_mask = finite & (rank < n_long_full[:, None])
     short_mask = finite & (rank >= (cnt_col - n_short_full[:, None]))
-    # Ensure disjoint sets
     short_mask = short_mask & ~long_mask
     signals_arr = long_mask.astype(np.int64) - short_mask.astype(np.int64)
 

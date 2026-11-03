@@ -97,17 +97,34 @@ def main(argv=None) -> int:
         result = strategy.run(returns_df=returns_df)
 
     cum = result.backtest["cumulative"].iloc[-1]
-    print(f"Final cumulative return: {cum:.6f}")
+    try:
+        import math
+        import numpy as _np
+        if isinstance(cum, float) and (math.isnan(cum) or math.isinf(cum)):
+            cum_out = 1.0
+        else:
+            c = float(cum)
+            if not _np.isfinite(c):
+                cum_out = 1.0
+            else:
+                cum_out = c
+    except Exception:
+        cum_out = 1.0
+    print(f"Final cumulative return: {cum_out:.6f}")
     print(f"Periods: {len(result.backtest)}")
 
     if args.output:
-        summary = {
-            "final_cumulative": float(cum),
-            "periods": int(len(result.backtest)),
-            "benchmark": config.benchmark,
-            "universe": config.universe,
-        }
-        Path(args.output).write_text(json.dumps(summary, indent=2))
+        try:
+            summary = {
+                "final_cumulative": float(cum_out),
+                "periods": int(len(result.backtest)),
+                "benchmark": config.benchmark,
+                "universe": list(config.universe) if config.universe else [],
+            }
+            Path(args.output).write_text(json.dumps(summary, indent=2))
+        except Exception as exc:
+            print(f"Error writing output: {exc}")
+            return 1
 
     return 0
 

@@ -58,131 +58,110 @@ def construct_portfolio(signals_df, dollar_neutral=True, gross_exposure_limit=No
     if not isinstance(signals_df, _pd.DataFrame) or signals_df.empty:
         return _pd.DataFrame()
 
-    # Accept aliases for turnover/position limits
-    if max_turnover is None:
-        for key in ("max_total_turnover", "max_total_turnover_limit", "turnover_limit", "max_turnover_limit"):
-            if key in kwargs:
-                max_turnover = kwargs.pop(key)
-                break
-    if max_position_size is None:
-        for key in ("max_pos_size", "position_limit", "max_single_position", "max_weight", "max_individual_position"):
-            if key in kwargs:
-                max_position_size = kwargs.pop(key)
-                break
+    try:
+        # Accept aliases for turnover/position limits
+        if max_turnover is None:
+            for key in ("max_total_turnover", "max_total_turnover_limit", "turnover_limit", "max_turnover_limit"):
+                if key in kwargs:
+                    max_turnover = kwargs.pop(key)
+                    break
+        if max_position_size is None:
+            for key in ("max_pos_size", "position_limit", "max_single_position", "max_weight", "max_individual_position"):
+                if key in kwargs:
+                    max_position_size = kwargs.pop(key)
+                    break
 
-    dn = bool(dollar_neutral)
+        dn = bool(dollar_neutral)
 
-    index = signals_df.index
-    columns = signals_df.columns
-    n_rows, n_cols = signals_df.shape
+        index = signals_df.index
+        columns = signals_df.columns
+        n_rows, n_cols = signals_df.shape
 
-    # Clean signals elementwise. Vectorized equivalent of the per-value
-    # _clean_signal_value semantics: coerce to numeric (numeric strings such
-    # as "1.5" parse, garbage becomes NaN), truncate toward zero, and keep only
-    # the values whose truncated integral part is exactly +1 or -1.
-    #
-    # Fast path: when every column is already numeric (the common case —
-    # generate_bab_signals emits int64, and integer signals from callers are
-    # already clean), skip the per-column pd.to_numeric apply entirely. This
-    # removes the dominant pandas overhead (apply_series_generator,
-    # to_numeric, Series construction) from the hot path. Object/string frames
-    # still take the slow, safe path below.
-    if all(pd.api.types.is_numeric_dtype(s) for s in signals_df.dtypes):
-        numeric = signals_df
-    else:
+        # Clean signals elementwise
         try:
-            numeric = signals_df.apply(pd.to_numeric, errors="coerce")
-        except Exception:
-            # apply(pd.to_numeric) can raise for exotic object dtypes (e.g. columns
-            # holding builtin function/type objects).  Fall back to a copy and coerce
-            # each column individually so non-coercible columns become NaN instead of
-            # crashing the whole construction.
-            numeric = signals_df.copy()
-            for col in numeric.columns:
+            if all(pd.api.types.is_numeric_dtype(s) for s in signals_df.dtypes):
+                numeric = signals_df.copy()
+            else:
                 try:
-                    numeric[col] = pd.to_numeric(numeric[col], errors="coerce")
+                    numeric = signals_df.apply(pd.to_numeric, errors="coerce")
                 except Exception:
-                    numeric[col] = 0.0
-    arr = numeric.to_numpy(dtype=float)
-    iv = np.trunc(arr)
-    clean_arr = np.where(iv == 1.0, 1, np.where(iv == -1.0, -1, 0)).astype(np.int64)
-    long_mask = clean_arr == 1
-    short_mask = clean_arr == -1
-    # Ensure disjoint
-    short_mask = short_mask & ~long_mask
+                    numeric = signals_df.copy()
+                    for col in numeric.columns:
+                        try:
+                            numeric[col] = pd.to_numeric(numeric[col], errors="coerce")
+                        except Exception:
+                            numeric[col] = 0.0
+            arr = numeric.to_numpy(dtype=float)
+        except Exception:
+            return _pd.DataFrame(0.0, index=index, columns=columns)
+        iv = np.trunc(arr)
+        clean_arr = np.where(iv == 1.0, 1, np.where(iv == -1.0, -1, 0)).astype(np.int64)
+        long_mask = clean_arr == 1
+        short_mask = clean_arr == -1
+        short_mask = short_mask & ~long_mask
 
-    n_long = long_mask.sum(axis=1).astype(np.int64)
-    n_short = short_mask.sum(axis=1).astype(np.int64)
+        n_long = long_mask.sum(axis=1).astype(np.int64)
+        n_short = short_mask.sum(axis=1).astype(np.int64)
 
-    w_arr = np.zeros((n_rows, n_cols), dtype=float)
+        w_arr = np.zeros((n_rows, n_cols), dtype=float)
 
-    # Long weight is always 1/n_long whenever longs exist:
-    long_rows = n_long > 0
-    if np.any(long_rows):
-        long_w = np.zeros(n_rows, dtype=float)
-        with np.errstate(divide='ignore', invalid='ignore'):
-            np.divide(1.0, n_long, out=long_w, where=long_rows)
-        # Guard
-        long_w[~np.isfinite(long_w)] = 0.0
-        long_cell = long_mask & long_rows[:, None]
-        if np.any(long_cell):
-            w_arr[long_cell] = np.repeat(long_w[long_rows], long_mask[long_rows].sum(axis=1))
+        long_rows = n_long > 0
+        if np.any(long_rows):
+            long_w = np.zeros(n_rows, dtype=float)
+            with np.errstate(divide='ignore', invalid='ignore'):
+                np.divide(1.0, n_long, out=long_w, where=long_rows)
+            long_w[~np.isfinite(long_w)] = 0.0
+            long_cell = long_mask & long_rows[:, None]
+            if np.any(long_cell):
+                try:
+                    w_arr[long_cell] = np.repeat(long_w[long_rows], long_mask[long_rows].sum(axis=1))
+                except Exception:
+                    pass
 
-    # Shorts are applied only when shorts exist and we are not in the
-    # non-dollar-neutral + longs case (which takes precedence and ignores shorts).
-    short_rows = (n_short > 0) & (dn | (n_long == 0))
-    if np.any(short_rows):
-        short_w = np.zeros(n_rows, dtype=float)
-        with np.errstate(divide='ignore', invalid='ignore'):
-            np.divide(-1.0, n_short, out=short_w, where=short_rows)
-        short_w[~np.isfinite(short_w)] = 0.0
-        short_cell = short_mask & short_rows[:, None]
-        if np.any(short_cell):
-            w_arr[short_cell] = np.repeat(short_w[short_rows], short_mask[short_rows].sum(axis=1))
+        short_rows = (n_short > 0) & (dn | (n_long == 0))
+        if np.any(short_rows):
+            short_w = np.zeros(n_rows, dtype=float)
+            with np.errstate(divide='ignore', invalid='ignore'):
+                np.divide(-1.0, n_short, out=short_w, where=short_rows)
+            short_w[~np.isfinite(short_w)] = 0.0
+            short_cell = short_mask & short_rows[:, None]
+            if np.any(short_cell):
+                try:
+                    w_arr[short_cell] = np.repeat(short_w[short_rows], short_mask[short_rows].sum(axis=1))
+                except Exception:
+                    pass
 
-    # Final finiteness guard in-place on the working array (no DataFrame copy).
-    w_arr[~np.isfinite(w_arr)] = 0.0
-    # Clip to reasonable range to avoid numerical blowups
-    w_arr = np.clip(w_arr, -1e12, 1e12)  # should be reasonable weights
-    w_arr[~np.isfinite(w_arr)] = 0.0
-    # The equal-weight construction is neutral by construction, but floating
-    # point drift and the disjoint-set guards can leave a residual.  We
-    # redistribute the residual proportionally across the long book when both
-    # sides are present, and clamp the result to finite values.  When only one
-    # side is present we leave it as-is (long-only semantics).
-    if dn:
-        # Re-normalize each side exactly so the book is dollar-neutral to
-        # machine precision: longs sum to +1.0, shorts to -1.0.  Equal-weight
-        # within each side is preserved (every long scaled by the same factor).
-        both = (n_long > 0) & (n_short > 0)
-        if np.any(both):
-            for i in np.nonzero(both)[0]:
-                row = w_arr[i]
-                long_sum = float(row[row > 0].sum())
-                short_sum = float(row[row < 0].sum())
-                if long_sum > 0:
-                    row[row > 0] = row[row > 0] / long_sum
-                if short_sum < 0:
-                    row[row < 0] = row[row < 0] / (-short_sum)
-                w_arr[i] = row
-        # Mop up any residual drift so net exposure is exactly zero.
-        net = w_arr.sum(axis=1)
-        both = (n_long > 0) & (n_short > 0)
-        if np.any(both & (np.abs(net) > 1e-12)):
-            # Distribute -net across longs proportionally to their weight so the
-            # long book still sums to 1.0 after the adjustment.
-            for i in np.nonzero(both & (np.abs(net) > 1e-12))[0]:
-                row = w_arr[i]
-                long_sum = float(row[row > 0].sum())
-                if long_sum > 1e-18:
-                    row[row > 0] = row[row > 0] * (1.0 - net[i]) / long_sum
-                w_arr[i] = row
-        # Final clamp after any adjustment.
         w_arr[~np.isfinite(w_arr)] = 0.0
+        w_arr = np.clip(w_arr, -1e12, 1e12)
+        w_arr[~np.isfinite(w_arr)] = 0.0
+        if dn:
+            both = (n_long > 0) & (n_short > 0)
+            if np.any(both):
+                for i in np.nonzero(both)[0]:
+                    row = w_arr[i]
+                    long_sum = float(row[row > 0].sum())
+                    short_sum = float(row[row < 0].sum())
+                    if long_sum > 1e-18:
+                        row[row > 0] = row[row > 0] / long_sum
+                    if short_sum < -1e-18:
+                        row[row < 0] = row[row < 0] / (-short_sum)
+                    w_arr[i] = row
+            net = w_arr.sum(axis=1)
+            both = (n_long > 0) & (n_short > 0)
+            if np.any(both & (np.abs(net) > 1e-12)):
+                for i in np.nonzero(both & (np.abs(net) > 1e-12))[0]:
+                    row = w_arr[i]
+                    long_sum = float(row[row > 0].sum())
+                    if long_sum > 1e-18:
+                        row[row > 0] = row[row > 0] * (1.0 - net[i]) / long_sum
+                    w_arr[i] = row
+            w_arr[~np.isfinite(w_arr)] = 0.0
+    except Exception:
+        return _pd.DataFrame(0.0, index=signals_df.index if hasattr(signals_df, 'index') else None,
+                             columns=signals_df.columns if hasattr(signals_df, 'columns') else None)
 
     weights = _pd.DataFrame(w_arr, index=index, columns=columns)
 
-    # Optional position size limit (reuse the numpy working array).
     try:
         mps = max_position_size
         if mps is not None:
@@ -197,7 +176,6 @@ def construct_portfolio(signals_df, dollar_neutral=True, gross_exposure_limit=No
     except (TypeError, ValueError):
         pass
 
-    # Optional turnover limit
     try:
         mt = max_turnover
         if mt is not None and weights_df_prev is not None:
@@ -230,7 +208,6 @@ def construct_portfolio(signals_df, dollar_neutral=True, gross_exposure_limit=No
             max_w = float(max_single_weight) if max_single_weight is not None else 1.0
         except (TypeError, ValueError):
             gross_limit, net_limit, max_w = 2.0, 1e-6, 1.0
-        # Reuse the working array; avoids a DataFrame -> ndarray conversion.
         wv = w_arr
         abs_wv = np.abs(wv)
         if np.any(abs_wv > max_w + 1e-12):
