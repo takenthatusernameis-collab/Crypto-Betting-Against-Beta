@@ -159,40 +159,32 @@ def _normalize_index(df: pd.DataFrame) -> pd.DataFrame:
             raise BABDataError(
                 f"Index could not be parsed as datetime: {exc}"
             ) from exc
-    # Handle timezone-aware indexes deterministically: convert to UTC, then strip tz
-    if isinstance(df.index, pd.DatetimeIndex) and getattr(df.index, "tz", None) is not None:
+    if isinstance(df.index, pd.DatetimeIndex):
         try:
-            try:
-                df.index = df.index.tz_convert("UTC").tz_localize(None)
-            except Exception:
+            if getattr(df.index, 'tz', None) is not None:
                 try:
-                    df.index = df.index.tz_convert(None)
+                    df.index = df.index.tz_convert('UTC').tz_localize(None)
                 except Exception:
                     try:
-                        df.index = df.index.tz_localize(None)
+                        df.index = df.index.tz_convert(None)
                     except Exception:
-                        pass
-        except (TypeError, AttributeError, ValueError):
-            try:
-                df.index = df.index.tz_localize(None)
-            except (TypeError, AttributeError, ValueError):
-                pass
-    # Also normalize if individual elements are tz-aware Timestamps
-    try:
-        if isinstance(df.index, pd.DatetimeIndex) and getattr(df.index, "tz", None) is None:
-            # check first element
-            if len(df.index) > 0:
-                first = df.index[0]
-                if hasattr(first, 'tzinfo') and first.tzinfo is not None:
-                    try:
-                        df.index = pd.to_datetime([pd.Timestamp(x).tz_convert('UTC').tz_localize(None) if hasattr(x, 'tzinfo') and x.tzinfo is not None else pd.Timestamp(x).tz_localize(None) if hasattr(x, 'tzinfo') and x.tzinfo is not None else x for x in df.index])
-                    except Exception:
-                        pass
-    except Exception:
-        pass
+                        try:
+                            df.index = df.index.tz_localize(None)
+                        except Exception:
+                            pass
+        except Exception:
+            pass
     df = df.sort_index()
     if not isinstance(df.index, pd.DatetimeIndex):
         raise BABDataError("Index is not a DatetimeIndex after normalization")
+    # Drop NaT
+    try:
+        if hasattr(df.index, 'isna'):
+            mask = ~df.index.isna()
+            if hasattr(mask, 'all') and not bool(mask.all()):
+                df = df[mask]
+    except Exception:
+        pass
     if getattr(df.index, "has_duplicates", False):
         df = df[~df.index.duplicated(keep="first")]
     return df
@@ -201,8 +193,16 @@ def _normalize_index(df: pd.DataFrame) -> pd.DataFrame:
 def _coerce_to_datetime_scalar(val):
     """Try to coerce various epoch formats to datetime."""
     try:
-        if val is None or (isinstance(val, float) and (np.isnan(val) or np.isinf(val))):
+        if val is None:
             raise ValueError("bad")
+        if isinstance(val, float) and (np.isnan(val) or np.isinf(val)):
+            raise ValueError("bad")
+        # pandas NaT
+        try:
+            if pd.isna(val):
+                raise ValueError("bad")
+        except Exception:
+            pass
         if isinstance(val, str):
             s = val.strip()
             if s.lower() in {"", "na", "n/a", "nan", "null", "none"}:
@@ -852,32 +852,59 @@ def _normalize_asset_name(name: str) -> str:
 
 def _normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
     """Coerce columns to strings and strip whitespace; raise on duplicates."""
+    if df is None or not isinstance(df, pd.DataFrame):
+        return df
     df = df.copy()
     new_cols = []
     for c in df.columns:
-        nc = str(c)
-        # Strip all whitespace aggressively
-        nc_stripped = nc.strip()
-        cl = nc_stripped.lower().replace("\t", " ").replace("\n", " ").replace("\r", " ")
-        # Remove extra whitespace
-        cl = " ".join(cl.split())
-        # Also handle multiple spaces
-        cl_clean = cl
-        # Normalize common variations
-        if cl_clean in {"adj close", "adj_close", "adjusted close", "adjusted_close", "adjclose", "adj. close"}:
-            new_cols.append("Adj Close")
-            continue
-        if cl_clean in {"close", "close price", "closing price", "last", "last price", "close price usd", "close(usd)", "close_usd", "close/usd"}:
-            new_cols.append("Close")
-            continue
-        if cl_clean in {"open", "open price", "opening price", "open(usd)", "open/usd"}:
-            new_cols.append("Open")
-            continue
-        if cl_clean in {"high", "high price", "day high", "high(usd)", "high/usd"}:
-            new_cols.append("High")
-            continue
-        if cl_clean in {"low", "low price", "day low", "low(usd)", "low/usd"}:
-            new_cols.append("Low")
+        try:
+            nc = str(c)
+            nc_stripped = nc.strip()
+            cl = nc_stripped.lower().replace("\t", " ").replace("\n", " ").replace("\r", " ")
+            cl = " ".join(cl.split())
+            cl_clean = cl.replace('\ufeff', '').replace('\u200b', '')
+            # Normalize common variations
+            if cl_clean in {"adj close", "adj_close", "adjusted close", "adjusted_close", "adjclose", "adj. close", "adj_close_price"}:
+                new_cols.append("Adj Close")
+                continue
+            if cl_clean in {"close", "close price", "closing price", "last", "last price", "close price usd", "close(usd)", "close_usd", "close/usd", "close_price"}:
+                new_cols.append("Close")
+                continue
+            if cl_clean in {"open", "open price", "opening price", "open(usd)", "open/usd", "open_price"}:
+                new_cols.append("Open")
+                continue
+            if cl_clean in {"high", "high price", "day high", "high(usd)", "high/usd", "high_price"}:
+                new_cols.append("High")
+                continue
+            if cl_clean in {"low", "low price", "day low", "low(usd)", "low/usd", "low_price"}:
+                new_cols.append("Low")
+                continue
+            if cl_clean in {"volume", "vol", "volume(usd)", "volume_usd", "quote volume", "base volume", "trading volume", "volume btc", "volume usd"}:
+                new_cols.append("Volume")
+                continue
+            if cl_clean in {"date", "datetime", "time", "timestamp", "date time", "datetime(utc)", "date(utc)", "candle_begin_time", "candle begintime", "open time", "close time", "opentime", "closetime"}:
+                new_cols.append(cl_clean)
+                continue
+            # Keep reasonable form
+            new_cols.append(cl_clean if cl_clean else nc_stripped)
+        except Exception:
+            try:
+                new_cols.append(str(c).strip())
+            except Exception:
+                new_cols.append(c)
+    df.columns = new_cols
+    # drop unnamed empty columns if multiple exist
+    try:
+        to_drop = []
+        for c in df.columns:
+            cs = str(c).strip().lower()
+            if cs == '' or cs.startswith('unnamed') or cs == 'unnamed:':
+                to_drop.append(c)
+        if to_drop and len(to_drop) < len(df.columns):
+            df = df.drop(columns=to_drop)
+    except Exception:
+        pass
+    return df
             continue
         if cl_clean in {"volume", "vol", "base volume", "quote volume", "trading volume", "vol usd", "volume usd", "volume(btc)", "volume(usd)", "volume_btc", "volume_usd", "24h volume", "24h_volume"}:
             new_cols.append("Volume")
@@ -932,7 +959,7 @@ def _drop_all_nan_columns(df: pd.DataFrame) -> pd.DataFrame:
     A column with no finite values contributes nothing to beta estimation or
     ranking, and keeping it would let NaNs propagate into signals/weights.
     """
-    if df.empty:
+    if df is None or not isinstance(df, pd.DataFrame) or df.empty:
         return df
     keep = []
     for col in df.columns:
@@ -942,15 +969,26 @@ def _drop_all_nan_columns(df: pd.DataFrame) -> pd.DataFrame:
             arr = numeric.to_numpy(dtype=float)
             if np.isfinite(arr).any():
                 keep.append(col)
-            # else drop if all NaN/inf
-        except (ValueError, TypeError):
+                continue
+            keep.append(col) if False else None  # no-op
+            # also check if original has any non-NaN
+            try:
+                if not df[col].isna().all():
+                    keep.append(col)
+                    continue
+            except Exception:
+                pass
+            # if all NaN, skip
+            continue
+        except Exception:
             keep.append(col)
             continue
-    if len(keep) == len(df.columns):
+    # rebuild
+    try:
+        df2 = df[keep]
+        return df2
+    except Exception:
         return df
-    if not keep:
-        raise BABDataError("All columns are entirely NaN; no tradable assets remain")
-    return df[keep]
 
 
 _NA_MARKERS = {'na', 'n/a', 'nan', 'none', 'null', '#n/a', '#na', 'missing', '--', '-', ''}
@@ -1308,6 +1346,8 @@ def validate_returns_dataframe(
         except Exception:
             raise
     cleaned = _drop_all_nan_columns(cleaned)
+    if cleaned.empty:
+        raise BABDataError("Returns DataFrame is empty after cleaning")
 
     if np.isinf(cleaned.to_numpy()).any():
         raise BABDataError("Returns DataFrame contains infinite values")
@@ -1396,6 +1436,14 @@ def load_returns_from_csv(
         raise BABDataError(f"Failed to read CSV {csv_path}: {exc}") from exc
     if df is None or df.empty:
         raise BABDataError(f"Empty CSV file: {csv_path}")
+    # If someone passes header/index handling oddly, try to be robust
+    try:
+        if isinstance(df, pd.DataFrame) and df.empty:
+            raise BABDataError(f"Empty CSV file: {csv_path}")
+    except BABDataError:
+        raise
+    except Exception:
+        pass
 
     return validate_returns_dataframe(df, benchmark=benchmark, min_rows=min_rows, quality=quality)
 
@@ -1473,13 +1521,23 @@ def load_returns_from_pickle(
         if isinstance(obj, pd.DataFrame):
             df = obj
         elif isinstance(obj, dict):
-            df = pd.DataFrame(obj)
+            try:
+                df = pd.DataFrame(obj)
+            except Exception as exc:
+                raise BABDataError(f"Failed to read pickle {pkl_path}: {exc}") from exc
+        elif isinstance(obj, (list, tuple)):
+            try:
+                df = pd.DataFrame(obj)
+            except Exception as exc:
+                raise BABDataError(f"Failed to read pickle {pkl_path}: {exc}") from exc
         else:
             raise BABDataError(f"Unsupported pickle object type: {type(obj).__name__}")
     except BABDataError:
         raise
     except (OSError, pickle.UnpicklingError, ValueError, TypeError) as exc:
         raise BABDataError(f"Failed to read pickle {pkl_path}: {exc}") from exc
+    if df is None or (isinstance(df, pd.DataFrame) and df.empty):
+        raise BABDataError(f"Pickle contains empty data: {pkl_path}")
     return validate_returns_dataframe(df, benchmark=benchmark, min_rows=min_rows, quality=quality)
 
 
