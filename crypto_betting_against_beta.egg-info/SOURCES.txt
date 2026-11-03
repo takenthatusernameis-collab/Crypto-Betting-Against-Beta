@@ -69,6 +69,7 @@ tests/test_bab_beta_parity_regression.py
 tests/test_bab_beta_targeted_gaps.py
 tests/test_bab_beta_uncovered_fallbacks.py
 tests/test_bab_cli.py
+tests/test_bab_cli_report_hardening.py
 tests/test_bab_cli_strategy_edge.py
 tests/test_bab_config_deep_coverage.py
 tests/test_bab_config_matrix_stress.py
@@ -90,6 +91,7 @@ tests/test_bab_data_loader_miss_fill.py
 tests/test_bab_data_loader_precision_hits.py
 tests/test_bab_data_loader_precision_hits2.py
 tests/test_bab_data_loader_robust.py
+tests/test_bab_data_loader_stress.py
 tests/test_bab_data_loader_targeted.py
 tests/test_bab_data_sources.py
 tests/test_bab_data_sources_campaign.py
@@ -123,6 +125,7 @@ tests/test_bab_quality_more_gaps.py
 tests/test_bab_quality_precision_hits.py
 tests/test_bab_quality_precision_hits2.py
 tests/test_bab_quality_targeted.py
+tests/test_bab_real_data_e2e.py
 tests/test_bab_regime_extra.py
 tests/test_bab_regime_gaps.py
 tests/test_bab_report_cli_edge_cases.py
@@ -155,6 +158,7 @@ tests/test_beta_performance.py
 tests/test_betting_against_beta.py
 tests/test_betting_against_beta_costs.py
 tests/test_betting_against_beta_data_loader.py
+tests/test_betting_against_beta_data_loader_exchange.py
 tests/test_betting_against_beta_metrics.py
 tests/test_betting_against_beta_metrics_edge_cases.py
 tests/test_betting_against_beta_quality.py
