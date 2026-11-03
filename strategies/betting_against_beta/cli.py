@@ -4,7 +4,10 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from pathlib import Path
+
+import numpy as np
 
 from .config import BABConfig
 from .strategy import BABStrategy
@@ -27,7 +30,110 @@ def _print_resolved_config(config: BABConfig) -> None:
     print(f"  min_rows:         {config.min_rows}")
 
 
+def _validate_output_path(path_str: str) -> Path:
+    """Validate that the --output path is writable, creating parent dirs.
+
+    Raises ``BABDataError`` (or a wrapped ``ValueError``) on any problem so the
+    caller can surface a clean message instead of crashing mid-backtest.
+    """
+    from .errors import BABDataError
+
+    if not path_str or not isinstance(path_str, str) or not path_str.strip():
+        raise BABDataError("--output path must be a non-empty string")
+    out_path = Path(path_str)
+    # Reject directories as output targets
+    if out_path.exists() and out_path.is_dir():
+        raise BABDataError(f"--output path is a directory, not a file: {out_path}")
+    # Create parent directories if needed
+    parent = out_path.parent
+    if str(parent) and str(parent) != ".":
+        try:
+            parent.mkdir(parents=True, exist_ok=True)
+        except OSError as exc:
+            raise BABDataError(
+                f"cannot create parent directory for --output {out_path}: {exc}"
+            ) from exc
+    # Probe writability of the destination (or its parent if the file does not exist yet)
+    probe_target = out_path if out_path.exists() else parent
+    if str(probe_target) and str(probe_target) != ".":
+        try:
+            if not os.access(str(probe_target), os.W_OK):
+                raise BABDataError(f"--output path is not writable: {out_path}")
+        except BABDataError:
+            raise
+        except Exception:
+            pass  # access() may not be reliable on all filesystems; defer to write
+    return out_path
+
+
+def _coerce_finite_scalar(value, default=1.0):
+    """Coerce a possibly-nan/inf scalar to a finite float, never raising."""
+    import math
+    import numpy as _np
+
+    try:
+        if value is None:
+            return float(default)
+        if isinstance(value, bool):
+            return float(value)
+        if isinstance(value, (int, float)):
+            f = float(value)
+        else:
+            f = float(value)
+        if not _np.isfinite(f):
+            return float(default)
+        return f
+    except (TypeError, ValueError):
+        return float(default)
+
+
+def _build_output_summary(result, config, cum_out):
+    """Build a JSON-safe output summary dict, always finite."""
+    import numpy as _np
+
+    backtest = getattr(result, "backtest", None)
+    try:
+        periods = int(len(backtest)) if backtest is not None and hasattr(backtest, "__len__") else 0
+    except TypeError:
+        periods = 0
+    universe = getattr(config, "universe", None)
+    return {
+        "final_cumulative": float(cum_out),
+        "periods": periods,
+        "benchmark": getattr(config, "benchmark", None),
+        "universe": list(universe) if universe else [],
+    }
+
+
+def _json_default(obj):
+    """Fallback serializer for objects json.dumps doesn't know about."""
+    import numpy as _np
+    import math
+
+    if isinstance(obj, float):
+        if math.isnan(obj) or math.isinf(obj):
+            return 0.0
+        return obj
+    if isinstance(obj, (np.integer,)):
+        return int(obj)
+    if isinstance(obj, (np.floating,)):
+        f = float(obj)
+        return 0.0 if not math.isfinite(f) else f
+    if isinstance(obj, (np.bool_,)):
+        return bool(obj)
+    if hasattr(obj, "isoformat"):
+        try:
+            return obj.isoformat()
+        except Exception:
+            pass
+    return str(obj)
+
+
 def main(argv=None) -> int:
+    import os
+    import math
+    import numpy as _np
+
     try:
         parser = argparse.ArgumentParser(description="Betting Against Beta (BAB) crypto strategy")
         parser.add_argument("--version", action="version", version=f"bab {__version__}")
@@ -136,50 +242,73 @@ def main(argv=None) -> int:
         print(f"Error running strategy: {exc}")
         return 1
 
-    try:
-        cum = result.backtest["cumulative"].iloc[-1]
-    except Exception:
-        cum = 1.0
-    try:
-        import math
-        import numpy as _np
-        if isinstance(cum, float) and (math.isnan(cum) or math.isinf(cum)):
-            cum_out = 1.0
-        else:
-            c = float(cum)
-            if not _np.isfinite(c):
-                cum_out = 1.0
-            else:
-                cum_out = c
-    except Exception:
-        cum_out = 1.0
+    # Extract cumulative return defensively; never let a bad value crash the CLI.
+    cum_out = _coerce_finite_scalar(
+        _extract_cumulative(result), default=1.0
+    )
     try:
         print(f"Final cumulative return: {cum_out:.6f}")
         print(f"Periods: {len(result.backtest)}")
     except Exception:
         pass
 
+    # --output handling: validate path first, then write defensively.
     if args.output:
         try:
-            summary = {
-                "final_cumulative": float(cum_out),
-                "periods": int(len(getattr(result, 'backtest', []))) if hasattr(result, 'backtest') else 0,
-                "benchmark": getattr(config, 'benchmark', None),
-                "universe": list(getattr(config, 'universe', [])) if getattr(config, 'universe', None) else [],
-            }
-            out_path = Path(args.output)
-            # Ensure parent directory exists if specified
-            if out_path.parent and str(out_path.parent) != '.':
-                try:
-                    out_path.parent.mkdir(parents=True, exist_ok=True)
-                except Exception:
-                    pass
-            out_path.write_text(json.dumps(summary, indent=2))
+            out_path = _validate_output_path(args.output)
+        except Exception as exc:
+            print(f"Error validating output path: {exc}")
+            return 1
+        try:
+            summary = _build_output_summary(result, config, cum_out)
+            # Ensure the summary is fully JSON-safe before writing.
+            payload = _json_safe(summary)
+            out_path.write_text(json.dumps(payload, indent=2, default=_json_default, allow_nan=False))
         except Exception as exc:
             print(f"Error writing output: {exc}")
             return 1
 
     return 0
+
+
+def _extract_cumulative(result):
+    """Best-effort extraction of the final cumulative return from a BABResult."""
+    try:
+        backtest = getattr(result, "backtest", None)
+        if backtest is None or not hasattr(backtest, "__len__") or len(backtest) == 0:
+            return None
+        if "cumulative" in getattr(backtest, "columns", []):
+            return backtest["cumulative"].iloc[-1]
+        # Fallback: look for any cumulative-like column
+        for col in backtest.columns:
+            if "cum" in str(col).lower():
+                try:
+                    return backtest[col].iloc[-1]
+                except Exception:
+                    continue
+    except Exception:
+        pass
+    return None
+
+
+def _json_safe(obj):
+    """Recursively sanitize a payload so json.dumps(allow_nan=False) never fails."""
+    import math
+
+    if isinstance(obj, dict):
+        return {str(k): _json_safe(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [_json_safe(v) for v in obj]
+    if isinstance(obj, float):
+        return 0.0 if not math.isfinite(obj) else obj
+    if isinstance(obj, (np.integer,)):
+        return int(obj)
+    if isinstance(obj, (np.floating,)):
+        f = float(obj)
+        return 0.0 if not math.isfinite(f) else f
+    if isinstance(obj, (np.bool_,)):
+        return bool(obj)
+    return obj
 
 
 if __name__ == "__main__":
