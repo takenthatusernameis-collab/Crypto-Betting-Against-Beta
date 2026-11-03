@@ -183,15 +183,18 @@ def main(argv: list[str] | None = None) -> int:
         # they win over --data-source so callers can pass either flag interchangeably.
         data_source = args.returns_csv or args.returns or args.data_source
         data_source = None if data_source in (None, "", "synthetic") else data_source
-        cfg = BABConfig(
-            benchmark=args.benchmark,
-            beta_window=args.beta_window,
-            min_observations=args.min_observations,
-            long_quantile=args.long_quantile,
-            short_quantile=args.short_quantile,
-            transaction_costs=args.transaction_costs,
-            data_source=data_source,
-        )
+        try:
+            cfg = BABConfig(
+                benchmark=args.benchmark,
+                beta_window=args.beta_window,
+                min_observations=args.min_observations,
+                long_quantile=args.long_quantile,
+                short_quantile=args.short_quantile,
+                transaction_costs=args.transaction_costs,
+                data_source=data_source,
+            )
+        except Exception as exc:
+            raise BABDataError(str(exc)) from exc
         strategy = BABStrategy(cfg)
         result = strategy.run()
     except BABDataError as exc:
