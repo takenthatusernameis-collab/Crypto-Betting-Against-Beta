@@ -905,54 +905,6 @@ def _normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
     except Exception:
         pass
     return df
-            continue
-        if cl_clean in {"volume", "vol", "base volume", "quote volume", "trading volume", "vol usd", "volume usd", "volume(btc)", "volume(usd)", "volume_btc", "volume_usd", "24h volume", "24h_volume"}:
-            new_cols.append("Volume")
-            continue
-        if cl_clean in {"date", "datetime", "time", "timestamp", "open time", "opentime", "close time", "closetime", "candle_begin_time", "candle begintime", "snapped_at", "snapped at", "date utc", "date(utc)", "utc date", "datetimeutc", "date/time", "datetime / time", "time (utc)", "time(utc)", "unix time"}:
-            new_cols.append("Date")  # normalize date column name
-            continue
-        if cl_clean in {"symbol", "ticker", "pair", "market", "asset", "coin", "currency", "contract", "instrument", "tradingpair", "symbol name", "cryptocurrency", "name", "base", "asset name", "base asset", "symbol/market"}:
-            new_cols.append("symbol")
-            continue
-        if cl_clean in {"price", "market price", "value"} and "adj" not in cl_clean and "close" not in cl_clean and "open" not in cl_clean and "high" not in cl_clean and "low" not in cl_clean:
-            new_cols.append("Close")  # treat generic price as close for compatibility
-            continue
-        # Try to normalize asset names (remove units/suffixes)
-        normed = _normalize_asset_name(nc_stripped)
-        # Only apply aggressive normalization if it looks like an asset column (not date/index names)
-        if normed and normed.lower() not in {'date', 'datetime', 'time', 'timestamp', 'adj close', 'open', 'high', 'low', 'close', 'volume', 'symbol'}:
-            cl_norm = normed.lower()
-            if cl_norm in {'date', 'datetime', 'time', 'timestamp'}:
-                new_cols.append("Date")
-                continue
-            # If original had common pairing indicators or long descriptive names
-            if '/' in nc_stripped or '(' in nc_stripped or ')' in nc_stripped or '[' in nc_stripped or any(x in cl_clean for x in ['price', 'usd', 'usdt', 'usdc', 'eur', 'gbp']):
-                new_cols.append(normed)
-                continue
-            # Also normalize short asset symbols to uppercase if they look like crypto symbols
-            if len(normed) <= 12 and normed.replace('-', '').replace('_', '').isalnum() and not normed.lower() in {'open','high','low','close','volume','symbol'}:
-                new_cols.append(normed.upper())
-                continue
-        # If it was a date-like name that got changed to keep form earlier, normalize
-        if cl_clean in {"open time", "close time"}:
-            new_cols.append("Date")
-            continue
-        new_cols.append(nc_stripped)
-    df.columns = new_cols
-    # Check for duplicates (case-insensitive after our normalization where possible)
-    dupes = []
-    seen = set()
-    for c in df.columns:
-        cl = str(c).strip().lower()
-        if cl in seen:
-            dupes.append(c)
-        seen.add(cl)
-    if dupes:
-        raise BABDataError(f"Duplicate column names after normalization: {sorted(set(dupes))}")
-    return df
-
-
 def _drop_all_nan_columns(df: pd.DataFrame) -> pd.DataFrame:
     """Drop columns that are entirely NaN (delisted or untradable assets).
 
