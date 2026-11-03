@@ -1,7 +1,7 @@
 # SINGLE DURABLE HANDOFF - Crypto-Betting-Against-Beta
 
 ## INITIAL TASK MESSAGE (for next agentic session - MUST EXECUTE FIRST)
-**Time:** 2026-11-03T08:00:22Z | **Repo priority:** Crypto Betting Against Beta (BAB). ALL work must advance BAB under `strategies/betting_against_beta/`. Nothing else takes precedence. This repo name DEMANDS heavy implementation work on the BAB strategy - do not deviate.
+**Time:** 2026-11-03T09:22:32Z | **Repo priority:** Crypto Betting Against Beta (BAB). ALL work must advance BAB under `strategies/betting_against_beta/`. Nothing else takes precedence. This repo name DEMANDS heavy implementation work on the BAB strategy - do not deviate.
 
 **MANDATORY GATE:** Run `bash scripts/bab_gate.sh` IMMEDIATELY on session start. It MUST exit 0 (GREEN). If gate ever goes RED, FIX IT BEFORE DOING ANYTHING ELSE. The gate is the ONLY verification command that counts. It runs ALL `tests/test_*.py` with coverage on `strategies/betting_against_beta/`. Current state: GREEN (1898 passed, 13 skipped).
 
@@ -63,7 +63,7 @@
 - **Finiteness required:** Outputs must be finite where possible; NaN/inf must be handled explicitly.
 - **Heavy work mandatory:** Given repo name "Crypto-Betting-Against-Beta", this session MUST produce substantial hardening/improvements to the BAB implementation.
 
-## PROGRESS THIS SESSION (2026-11-03T09:01:00Z)
+## PROGRESS THIS SESSION (2026-11-03T09:22:32Z)
 - **Gate restored to GREEN:** 1898 passed, 13 skipped, exit 0. Full gate verified after all fixes.
 - **Bottleneck 1 (workflow pattern sync):** Added `*/.github/workflows/*` to the `stage_safe_changes()` case pattern in `.github/workflows/main.yml` (line 1163) so it matches `scripts/controller_progress.py` `EXCLUDE_PATTERNS`. The pattern had been missing, causing `test_controller_progress_accounting.py` to fail. Verified both directions (Python subset of workflow AND workflow subset of Python).
 - **Bottleneck 2 (data_loader finite-check logic inverted):** `_promote_datetime_column` had `if not _series_has_any_finite(coerced_series)` — the negation meant valid date columns were NOT promoted, so unnamed/extra date columns in CSVs fell through to `_normalize_index`, which parsed them as epoch integers → 1970 timestamps. Fixed to `if _series_has_any_finite(...)` at data_loader.py:785 and :828. This unblocked `test_coerce_numeric_percent_signs`, `test_coerce_numeric_mixed_string_numbers`, and the unnamed-column promotion tests.
