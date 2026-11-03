@@ -30,6 +30,75 @@ _EXCHANGE_VOL_KEYS = {"volume", "vol", "base volume", "quote volume", "trading v
 _EXCHANGE_SYMBOL_KEYS = {"symbol", "ticker", "pair", "market", "asset", "coin", "currency", "contract", "instrument", "tradingpair"}
 
 
+def _not_null(v) -> bool:
+    try:
+        if v is None:
+            return False
+        try:
+            if pd.isna(v):
+                return False
+        except Exception:
+            pass
+        return True
+    except Exception:
+        return False
+
+
+def _series_has_any_finite(series) -> bool:
+    """True if the series-like value has at least one non-NaN entry.
+
+    Safe for both pandas Series and plain lists (the coercion helpers above
+    sometimes reassign to a list of Timestamps)."""
+    try:
+        if isinstance(series, pd.Series):
+            return bool(series.notna().any())
+        if isinstance(series, (list, tuple)):
+            return any(_not_null(v) for v in series)
+        if series is None:
+            return False
+        return _not_null(series)
+    except Exception:
+        return False
+
+
+def _coerce_series_to_datetime_index(df: pd.DataFrame, col, coerced) -> bool:
+    """Promote a successfully coerced column to the index. Returns True on success."""
+    try:
+        if not _series_has_any_finite(coerced):
+            return False
+        if isinstance(coerced, pd.Series):
+            idx = coerced
+        else:
+            idx = pd.Series(coerced, index=df.index)
+        # normalize tz
+        try:
+            clean = []
+            for pdv in idx:
+                try:
+                    if hasattr(pdv, 'tzinfo') and pdv.tzinfo is not None:
+                        pdv = pd.Timestamp(pdv).tz_convert('UTC').tz_localize(None)
+                    else:
+                        try:
+                            pdt = pd.Timestamp(pdv)
+                            if getattr(pdt, 'tzinfo', None) is not None:
+                                pdt = pdt.tz_convert('UTC').tz_localize(None)
+                            pdv = pdt
+                        except Exception:
+                            pass
+                except Exception:
+                    pass
+                clean.append(pdv)
+            idx = pd.Series(clean, index=df.index)
+        except Exception:
+            pass
+        df2 = df.copy()
+        df2.index = idx
+        df2 = df2.drop(columns=[col])
+        return True
+    except Exception:
+        return False
+
+
 def _normalize_index(df: pd.DataFrame) -> pd.DataFrame:
     """Coerce the index to a sorted DatetimeIndex, raising on unparseable rows."""
     if not isinstance(df.index, pd.DatetimeIndex):
@@ -255,25 +324,29 @@ def _coerce_to_datetime_scalar(val):
                             return pd.to_datetime(numf, unit="s", utc=True)
                         except Exception:
                             pass
-                # Also try if it contains only digits and optional sign (no decimal)
+                # Also try if it contains only digits and optional sign (no decimal).
+                # Epoch seconds only make sense at >= 1e9 (~2001-09-09); shorter
+                # digit runs (e.g. "20230101", "01012023") are compact date
+                # representations and must fall through to normal parsing.
                 if s.replace('+', '').replace('-', '').isdigit():
                     try:
                         numf = float(s)
                         av = abs(numf)
-                        if av > 1e15:
+                        if av >= 1e9:
+                            if av > 1e15:
+                                try:
+                                    return pd.to_datetime(int(numf), unit="us", utc=True)
+                                except Exception:
+                                    pass
+                            if av > 1e12:
+                                try:
+                                    return pd.to_datetime(int(numf), unit="ms", utc=True)
+                                except Exception:
+                                    pass
                             try:
-                                return pd.to_datetime(int(numf), unit="us", utc=True)
+                                return pd.to_datetime(int(numf), unit="s", utc=True)
                             except Exception:
                                 pass
-                        if av > 1e12:
-                            try:
-                                return pd.to_datetime(int(numf), unit="ms", utc=True)
-                            except Exception:
-                                pass
-                        try:
-                            return pd.to_datetime(int(numf), unit="s", utc=True)
-                        except Exception:
-                            pass
                     except Exception:
                         pass
             except Exception:
@@ -312,7 +385,6 @@ def _coerce_to_datetime_scalar(val):
                 return pd.to_datetime(v, unit="s", utc=True)
             else:
                 return pd.to_datetime(v, unit="s", utc=True)
-        if isinstance(val, (float, np.floating)):
             v = float(val)
             if np.isnan(v) or np.isinf(v):
                 raise ValueError("bad")
@@ -652,7 +724,7 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
                     coerced = coerced_clean
                 except Exception:
                     pass
-                if coerced is not None and not getattr(coerced, "isna", lambda: pd.Series([True]))().all():
+                if coerced is not None and _series_has_any_finite(coerced):
                     df2 = df.copy()
                     df2.index = coerced
                     df2 = df2.drop(columns=[col])
@@ -661,7 +733,7 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
                 pass
             try:
                 parsed = pd.to_datetime(df[col], errors="raise")
-                if parsed is not None and not getattr(parsed, "isna", lambda: pd.Series([True]))().any():
+                if parsed is not None and _series_has_any_finite(parsed):
                     return df.set_index(col)
             except (ValueError, TypeError):
                 pass
@@ -710,7 +782,7 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
                                                 coerced_series = coerced_clean
                                             except Exception:
                                                 pass
-                                            if not getattr(coerced_series, "isna", lambda: pd.Series([True]))().all():
+                                            if not _series_has_any_finite(coerced_series):
                                                 df2 = df.copy()
                                                 df2.index = coerced_series
                                                 df2 = df2.drop(columns=[col])
@@ -753,7 +825,7 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
                                 coerced_series = coerced_clean
                             except Exception:
                                 pass
-                            if not getattr(coerced_series, "isna", lambda: pd.Series([True]))().all():
+                            if not _series_has_any_finite(coerced_series):
                                 df2 = df.copy()
                                 df2.index = coerced_series
                                 df2 = df2.drop(columns=[col])
@@ -851,7 +923,14 @@ def _normalize_asset_name(name: str) -> str:
 
 
 def _normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
-    """Coerce columns to strings and strip whitespace; raise on duplicates."""
+    """Coerce columns to strings, strip whitespace and units; raise on duplicates.
+
+    OHLCV/date metadata headers are normalized to canonical Title-Case names.
+    Asset/symbol columns are normalized via :func:`_normalize_asset_name` so that
+    units/suffixes (``BTC (USD)`` -> ``BTC``, ``eth/usdt`` -> ``ETH``) are
+    stripped while preserving the canonical uppercase symbol casing that the
+    rest of the pipeline (benchmark lookup, beta alignment) relies on.
+    """
     if df is None or not isinstance(df, pd.DataFrame):
         return df
     df = df.copy()
@@ -885,14 +964,24 @@ def _normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
             if cl_clean in {"date", "datetime", "time", "timestamp", "date time", "datetime(utc)", "date(utc)", "candle_begin_time", "candle begintime", "open time", "close time", "opentime", "closetime"}:
                 new_cols.append(cl_clean)
                 continue
-            # Keep reasonable form
-            new_cols.append(cl_clean if cl_clean else nc_stripped)
+            # Asset/symbol column: strip units/suffixes but preserve casing.
+            new_cols.append(_normalize_asset_name(nc_stripped) if nc_stripped else nc_stripped)
         except Exception:
             try:
                 new_cols.append(str(c).strip())
             except Exception:
                 new_cols.append(c)
     df.columns = new_cols
+    # Detect duplicate columns after normalization (regression guard).
+    seen: dict[str, int] = {}
+    for c in df.columns:
+        seen[str(c)] = seen.get(str(c), 0) + 1
+    dups = sorted({k for k, v in seen.items() if v > 1})
+    if dups:
+        raise BABDataError(
+            f"Duplicate column names after normalization: {dups}. "
+            "Rename ambiguous columns before loading."
+        )
     # drop unnamed empty columns if multiple exist
     try:
         to_drop = []
@@ -910,35 +999,40 @@ def _drop_all_nan_columns(df: pd.DataFrame) -> pd.DataFrame:
 
     A column with no finite values contributes nothing to beta estimation or
     ranking, and keeping it would let NaNs propagate into signals/weights.
+
+    If *every* remaining column is all-NaN the frame carries no usable signal at
+    all, so raise ``BABDataError`` instead of returning an empty frame.
     """
     if df is None or not isinstance(df, pd.DataFrame) or df.empty:
         return df
     keep = []
     for col in df.columns:
         try:
-            # Convert to numeric to be safe
             numeric = pd.to_numeric(df[col], errors="coerce")
             arr = numeric.to_numpy(dtype=float)
             if np.isfinite(arr).any():
                 keep.append(col)
                 continue
-            keep.append(col) if False else None  # no-op
-            # also check if original has any non-NaN
+            # No finite numeric values: keep object-typed columns that still
+            # carry non-null data (e.g. dicts/strings) rather than dropping them
+            # silently - they may be coerced later, and dropping would lose info.
             try:
                 if not df[col].isna().all():
                     keep.append(col)
                     continue
             except Exception:
                 pass
-            # if all NaN, skip
+            # All-NaN column: drop.
             continue
         except Exception:
             keep.append(col)
             continue
-    # rebuild
+    if not keep:
+        raise BABDataError(
+            "All columns are entirely NaN; no usable return data remains."
+        )
     try:
-        df2 = df[keep]
-        return df2
+        return df[keep]
     except Exception:
         return df
 
