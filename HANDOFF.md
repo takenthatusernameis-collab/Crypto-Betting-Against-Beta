@@ -1,7 +1,7 @@
 # SINGLE DURABLE HANDOFF - Crypto-Betting-Against-Beta
 
 ## INITIAL TASK MESSAGE (for next agentic session - MUST EXECUTE FIRST)
-**Time:** 2026-11-03T01:35:10Z | **Repo priority:** Crypto Betting Against Beta (BAB). ALL work must advance BAB under `strategies/betting_against_beta/`. Nothing else takes precedence. This repo name DEMANDS heavy implementation work on the BAB strategy - do not deviate.
+**Time:** 2026-11-03T02:19:44Z | **Repo priority:** Crypto Betting Against Beta (BAB). ALL work must advance BAB under `strategies/betting_against_beta/`. Nothing else takes precedence. This repo name DEMANDS heavy implementation work on the BAB strategy - do not deviate.
 
 **MANDATORY GATE:** Run `bash scripts/bab_gate.sh` IMMEDIATELY on session start. It MUST exit 0 (GREEN). If gate ever goes RED, FIX IT BEFORE DOING ANYTHING ELSE. The gate is the ONLY verification command that counts. It runs ALL `tests/test_*.py` with coverage on `strategies/betting_against_beta/`. Current state: GREEN (1855 passed).
 
@@ -66,6 +66,6 @@
 - **Finiteness required:** Outputs must be finite where possible; NaN/inf must be handled explicitly.
 - **Heavy work mandatory:** Given repo name "Crypto-Betting-Against-Beta", this session MUST produce substantial hardening/improvements to the BAB implementation.
 
-**Timestamp:** 2026-11-03T01:35:10Z
+**Timestamp:** 2026-11-03T02:19:44Z
 **Priority from repo name:** CRYPTO BETTING AGAINST BETA (BAB) - HEAVY WORK MANDATORY
 **Status:** GATE GREEN (1855 passed). Bottlenecks REMOVED. Focus on Campaign C (CLI/reporting) with Campaign B continuous hardening. ATTACK aggressively. DO NOT CHECKPOINT ON RED GATE.
