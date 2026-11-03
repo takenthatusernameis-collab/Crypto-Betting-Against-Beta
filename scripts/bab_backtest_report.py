@@ -91,33 +91,43 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
-    args = build_parser().parse_args(argv)
+    try:
+        args = build_parser().parse_args(argv)
 
-    # --returns-csv is an explicit alias for the CSV data path; it wins over
-    # --data-source so callers can pass either flag interchangeably.
-    data_source = args.returns_csv or args.data_source
-    data_source = None if data_source in (None, "", "synthetic") else data_source
-    cfg = BABConfig(
-        benchmark=args.benchmark,
-        beta_window=args.beta_window,
-        min_observations=args.min_observations,
-        long_quantile=args.long_quantile,
-        short_quantile=args.short_quantile,
-        transaction_costs=args.transaction_costs,
-        data_source=data_source,
-    )
-    strategy = BABStrategy(cfg)
-    result = strategy.run()
+        # --returns-csv is an explicit alias for the CSV data path; it wins over
+        # --data-source so callers can pass either flag interchangeably.
+        data_source = args.returns_csv or args.data_source
+        data_source = None if data_source in (None, "", "synthetic") else data_source
+        cfg = BABConfig(
+            benchmark=args.benchmark,
+            beta_window=args.beta_window,
+            min_observations=args.min_observations,
+            long_quantile=args.long_quantile,
+            short_quantile=args.short_quantile,
+            transaction_costs=args.transaction_costs,
+            data_source=data_source,
+        )
+        strategy = BABStrategy(cfg)
+        result = strategy.run()
 
-    returns = result.backtest["returns"]
-    weights = result.weights
-    benchmark_returns = result.returns[strategy.config.benchmark]
+        returns = result.backtest["returns"]
+        weights = result.weights
+        benchmark_returns = result.returns[strategy.config.benchmark]
 
-    summary = metrics.summary(
-        returns,
-        weights_df=weights,
-        benchmark_returns=benchmark_returns,
-    )
+        summary = metrics.summary(
+            returns,
+            weights_df=weights,
+            benchmark_returns=benchmark_returns,
+        )
+    except Exception as exc:
+        if args and getattr(args, 'json', False):
+            try:
+                print(_dumps_json({"error": str(exc), "metrics": _sanitize_metrics({})}))
+            except Exception:
+                print('{"error": "report_failed"}')
+        else:
+            print(f"Error generating report: {exc}", file=sys.stderr)
+        return 1
 
     if args.json:
         payload = {
@@ -137,24 +147,28 @@ def main(argv: list[str] | None = None) -> int:
         print(_dumps_json(payload))
         return 0
 
-    print("=" * 60)
-    source_desc = "synthetic data" if data_source is None else f"data source: {data_source}"
-    print(f"BAB STRATEGY BACKTEST REPORT ({source_desc})")
-    print("=" * 60)
-    print(f"Universe: {', '.join(strategy.config.universe)}")
-    print(f"Benchmark: {strategy.config.benchmark}")
-    print(f"Beta window: {strategy.config.beta_window} days (min {strategy.config.min_observations} obs)")
-    print(f"Long/Short quantiles: {strategy.config.long_quantile}/{strategy.config.short_quantile}")
-    print(f"Rebalances: {len(weights.dropna(how='all'))}")
-    print("-" * 60)
-    print(f"Final Cumulative: {summary['final_cumulative']:.4f}x ({summary['total_return']:.2%})")
-    print(f"Sharpe Ratio (ann.): {summary['sharpe_ratio']:.4f}")
-    print(f"Annualized Volatility: {summary['annualized_volatility']:.2%}")
-    print(f"Max Drawdown: {summary['max_drawdown']:.2%}")
-    print(f"Turnover (avg): {summary['turnover']:.4f}")
-    print(f"Strategy Beta vs {strategy.config.benchmark}: {summary['strategy_beta']:.4f}")
-    print(f"Observations: {summary['n_observations']}")
-    print("=" * 60)
+    try:
+        print("=" * 60)
+        source_desc = "synthetic data" if data_source is None else f"data source: {data_source}"
+        print(f"BAB STRATEGY BACKTEST REPORT ({source_desc})")
+        print("=" * 60)
+        print(f"Universe: {', '.join(strategy.config.universe)}")
+        print(f"Benchmark: {strategy.config.benchmark}")
+        print(f"Beta window: {strategy.config.beta_window} days (min {strategy.config.min_observations} obs)")
+        print(f"Long/Short quantiles: {strategy.config.long_quantile}/{strategy.config.short_quantile}")
+        print(f"Rebalances: {len(weights.dropna(how='all'))}")
+        print("-" * 60)
+        print(f"Final Cumulative: {summary['final_cumulative']:.4f}x ({summary['total_return']:.2%})")
+        print(f"Sharpe Ratio (ann.): {summary['sharpe_ratio']:.4f}")
+        print(f"Annualized Volatility: {summary['annualized_volatility']:.2%}")
+        print(f"Max Drawdown: {summary['max_drawdown']:.2%}")
+        print(f"Turnover (avg): {summary['turnover']:.4f}")
+        print(f"Strategy Beta vs {strategy.config.benchmark}: {summary['strategy_beta']:.4f}")
+        print(f"Observations: {summary['n_observations']}")
+        print("=" * 60)
+    except Exception as exc:
+        print(f"Error printing report: {exc}", file=sys.stderr)
+        return 1
     return 0
 
 
