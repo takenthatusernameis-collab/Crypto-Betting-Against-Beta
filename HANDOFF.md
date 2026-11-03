@@ -1,12 +1,12 @@
 # SINGLE DURABLE HANDOFF - Crypto-Betting-Against-Beta
 
 ## INITIAL TASK MESSAGE (for next agentic session - MUST EXECUTE FIRST)
-**Time:** 2026-11-03T13:09:57Z
+**Time:** 2026-11-03T17:08:15Z
 **Repo priority:** Crypto Betting Against Beta (BAB). ALL work must advance BAB under `strategies/betting_against_beta/`. Nothing else takes precedence. Repo name DEMANDS heavy implementation/hardening work on BAB - do not deviate.
 
 **MANDATORY GATE (LAW):** Run `timeout 600 bash scripts/bab_gate.sh` IMMEDIATELY on session start. It MUST exit 0 (GREEN). If gate ever goes RED at any point, STOP ALL FEATURE WORK AND FIX IT BEFORE DOING ANYTHING ELSE. Gate runs ALL `tests/test_*.py` (~1900 tests, ~3-4 min). Be patient - do not kill it early.
 
-**GATE STATUS AT HANDOFF TIME:** RED — 1940 passed, 13 skipped, 4 FAILED, exit 1 (~217s).
+**GATE STATUS AT HANDOFF TIME:** RED — 1938 passed, 13 skipped, 6 FAILED, exit 1 (~170s).
 **Failures (must fix first):**
 - `tests/test_bab_data_loader_campaign_d4.py::test_promote_datetime_from_date_column` - `_promote_datetime_column` not promoting `date` column to `DatetimeIndex`
 - `tests/test_bab_data_loader_campaign_d4.py::test_promote_datetime_unparseable_raises` - unparseable dates not raising `BABDataError`
@@ -86,7 +86,7 @@ Only expand if regressions appear or D+C complete and gate GREEN.
 - **Heavy work mandatory:** Given repo name "Crypto-Betting-Against-Beta", substantial hardening is required.
 
 ## PROGRESS SNAPSHOT (2026-11-03T13:09:57Z)
-- **Gate:** RED (1940 passed, 13 skipped, 4 failed, ~217s). Must unblock before Campaign D.
+- **Gate:** RED (1938 passed, 13 skipped, 6 failed, ~170s). Must unblock before Campaign D.
 - **New failures:** D4 tests for `_promote_datetime_column` + pattern sync regression.
 - **data_loader.py:** 68% coverage (499 missing) - PRIMARY TARGET after unblocking.
 - **cli.py:** 61% coverage (124 missing) - Campaign C (queued).
