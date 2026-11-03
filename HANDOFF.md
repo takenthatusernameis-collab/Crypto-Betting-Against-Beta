@@ -1,12 +1,12 @@
 # SINGLE DURABLE HANDOFF - Crypto-Betting-Against-Beta
 
 ## INITIAL TASK MESSAGE (for next agentic session - MUST EXECUTE FIRST)
-**Time:** 2026-11-03T09:22:32Z | **Repo priority:** Crypto Betting Against Beta (BAB). ALL work must advance BAB under `strategies/betting_against_beta/`. Nothing else takes precedence. This repo name DEMANDS heavy implementation work on the BAB strategy - do not deviate.
+**Time:** 2026-11-03T09:25:28Z | **Repo priority:** Crypto Betting Against Beta (BAB). ALL work must advance BAB under `strategies/betting_against_beta/`. Nothing else takes precedence. This repo name DEMANDS heavy implementation work on the BAB strategy - do not deviate.
 
 **MANDATORY GATE:** Run `bash scripts/bab_gate.sh` IMMEDIATELY on session start. It MUST exit 0 (GREEN). If gate ever goes RED, FIX IT BEFORE DOING ANYTHING ELSE. The gate is the ONLY verification command that counts. It runs ALL `tests/test_*.py` with coverage on `strategies/betting_against_beta/`. Current state: GREEN (1898 passed, 13 skipped).
 
 ## BOTTLENECKS REMOVED
-- **Workflow pattern sync (FIXED 2026-11-03T06:42 & 06:49):** Added both `.github/workflows/*` and `*/.github/workflows/*` to `.github/workflows/main.yml` `stage_safe_changes()` case pattern to match `scripts/controller_progress.py` `EXCLUDE_PATTERNS`. Gate restored GREEN.
+- **Workflow pattern sync (FIXED 2026-11-03T09:25):** Added missing `*/.github/workflows/*` to `.github/workflows/main.yml` `stage_safe_changes()` case pattern. Gate bottleneck removed; tests pass.
 - **scripts/bab_backtest_report.py IndentationError (FIXED 2026-11-03T06:25):** The outer `try:` at line 191 had no indented body. Fixed by indenting the block properly. This was a hard syntax error preventing the entire module from importing.
 - **Test coverage scope (FIXED):** Gate runs ALL `test_*.py` under `tests/`.
 
