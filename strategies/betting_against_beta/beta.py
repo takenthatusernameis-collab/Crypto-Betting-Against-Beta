@@ -160,6 +160,8 @@ def calculate_beta_fast(a, b, min_obs=None):
             return np.nan
         if a is None or b is None:
             return np.nan
+        if getattr(a, "ndim", 0) != 1 or getattr(b, "ndim", 0) != 1:
+            return np.nan
         # Flatten
         try:
             a = np.array(a).ravel()
@@ -190,7 +192,7 @@ def calculate_beta_fast(a, b, min_obs=None):
                 if mo > 0 and len(a_m) < mo:
                     return np.nan
             except Exception:
-                pass
+                return np.nan
         # Guard against constant/degenerate benchmark.  A zero-variance
         # benchmark carries no information, so beta is undefined.  Return NaN
         # to match calculate_beta() and metrics.strategy_beta() rather than a
@@ -202,7 +204,7 @@ def calculate_beta_fast(a, b, min_obs=None):
         try:
             coeffs, _, _, _ = np.linalg.lstsq(X, a_m, rcond=None)
             beta = coeffs[1]
-            if not np.isfinite(beta):
+            if (not np.isscalar(beta)) or not np.isfinite(beta):
                 # Undefined beta (singular fit) is NaN, never a synthetic 0.0
                 # that would be ranked as a valid low-beta signal.
                 return np.nan
