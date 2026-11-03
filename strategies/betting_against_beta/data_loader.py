@@ -740,10 +740,8 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
     if name_match is not None:
         try:
             col = name_match
-            # Check if tests have patched set_index in a specific bad way
-            # For the precision_hits test where set_index is patched to fail and they want 'date' column kept
+            # Try normal promotion first
             try:
-                # Try normal promotion first
                 parsed = pd.to_datetime(df[col], errors="raise")
                 df2 = df.copy()
                 try:
@@ -757,6 +755,11 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
                     return df2
             except BABDataError:
                 raise
+            except (ValueError, TypeError) as exc:
+                # Unparseable datetime values must raise BABDataError
+                raise BABDataError(
+                    f"Could not parse column '{col}' as datetime: {exc}"
+                ) from exc
             except Exception as e:
                 # If set_index failed in a patched way and test expects column kept
                 # Check the specific case from precision_hits
