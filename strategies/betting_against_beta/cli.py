@@ -263,7 +263,9 @@ def main(argv=None) -> int:
     )
     try:
         print(f"Final cumulative return: {cum_out:.6f}")
-        print(f"Periods: {len(result.backtest)}")
+        bt = getattr(result, "backtest", None)
+        periods = int(len(bt)) if bt is not None and hasattr(bt, "__len__") else 0
+        print(f"Periods: {periods}")
     except Exception:
         pass
 

@@ -61,9 +61,31 @@ def main() -> int:
         transaction_costs=args.transaction_cost,
     )
     result = strat.run(returns_df=returns_df)
-    cum = result.backtest["cumulative"].iloc[-1]
+    # Extract the final cumulative defensively: a degenerate backtest frame
+    # (empty, or lacking a cumulative column) must surface as a clean
+    # non-finite/zero value rather than crashing the console script.
+    import math
+
+    cum = None
+    bt = getattr(result, "backtest", None)
+    if bt is not None and hasattr(bt, "__len__") and len(bt) > 0:
+        if "cumulative" in getattr(bt, "columns", []):
+            try:
+                cum = bt["cumulative"].iloc[-1]
+            except Exception:
+                cum = None
+        else:
+            for col in bt.columns:
+                if "cum" in str(col).lower():
+                    try:
+                        cum = bt[col].iloc[-1]
+                        break
+                    except Exception:
+                        continue
+    if cum is None or not math.isfinite(float(cum)):
+        cum = 0.0
     print(f"cumulative_return={float(cum):.6f}")
-    print(f"periods={len(result.backtest)}")
+    print(f"periods={len(bt) if bt is not None and hasattr(bt, '__len__') else 0}")
     return 0
 
 

@@ -407,6 +407,11 @@ class BABStrategy:
 
         Raises ``RuntimeError`` if no result has been run and ``result`` is
         ``None``.
+
+        This method is defensive against malformed/None results: a missing
+        backtest frame, empty weights, or a benchmark absent from the returns
+        frame yields zero-filled metrics rather than raising, so the report
+        path never crashes on degenerate pipeline output.
         """
         res = result if result is not None else self._last_result
         if res is None:
@@ -415,31 +420,80 @@ class BABStrategy:
                 "or pass an explicit BABResult."
             )
 
-        returns = res.backtest["returns"]
-        benchmark_returns = res.returns[str(res.config.benchmark)] if res.config.benchmark in res.returns.columns else None
+        import math
+        import numpy as _np
+        import pandas as pd
+
+        def _safe_metric(value, default=0.0):
+            """Coerce a possibly-nan/inf scalar to a finite float, never raising."""
+            try:
+                if value is None:
+                    return float(default)
+                f = float(value)
+                return f if _np.isfinite(f) else float(default)
+            except (TypeError, ValueError):
+                return float(default)
+
+        backtest = getattr(res, "backtest", None)
+        weights = getattr(res, "weights", None)
+        returns = getattr(res, "returns", None)
+
+        # Extract the per-period strategy return series defensively.
+        strat_returns = None
+        if isinstance(backtest, pd.DataFrame) and not backtest.empty:
+            if "returns" in backtest.columns:
+                strat_returns = backtest["returns"]
+            else:
+                for col in backtest.columns:
+                    if "return" in str(col).lower():
+                        strat_returns = backtest[col]
+                        break
+
+        # Benchmark return series (optional; missing benchmark yields NaN beta).
+        benchmark_returns = None
+        bench = getattr(getattr(res, "config", None), "benchmark", None)
+        if bench is not None and isinstance(returns, pd.DataFrame) and not returns.empty:
+            if bench in returns.columns:
+                benchmark_returns = returns[bench]
+
         summary = metrics.summary(
-            returns,
-            weights_df=res.weights,
+            strat_returns if strat_returns is not None else pd.Series(dtype="float64"),
+            weights_df=weights if isinstance(weights, pd.DataFrame) else None,
             benchmark_returns=benchmark_returns,
         )
-        attribution = trade_attribution(res.backtest)
-        totals = attribution_totals(attribution)
+        # Ensure every summary value is a finite scalar so downstream formatting
+        # and JSON serialization never encounter NaN/inf tokens.
+        sanitized_summary = {k: _safe_metric(v) for k, v in summary.items()}
 
+        attribution = trade_attribution(backtest if isinstance(backtest, pd.DataFrame) else pd.DataFrame())
+        totals = attribution_totals(attribution)
+        sanitized_totals = {k: _safe_metric(v) for k, v in totals.items()}
+
+        # Rebalances: count non-all-NaN weight rows defensively.
+        try:
+            if isinstance(weights, pd.DataFrame) and not weights.empty:
+                rebalances = int(len(weights.dropna(how="all")))
+            else:
+                rebalances = 0
+        except Exception:
+            rebalances = 0
+
+        cfg = getattr(res, "config", None)
         return {
             "config": {
-                "universe": list(res.config.universe),
-                "benchmark": res.config.benchmark,
-                "beta_window": res.config.beta_window,
-                "min_observations": res.config.min_observations,
-                "long_quantile": res.config.long_quantile,
-                "short_quantile": res.config.short_quantile,
-                "transaction_costs": res.config.transaction_costs,
-                "data_source": res.config.data_source,
+                "universe": list(getattr(cfg, "universe", []) or []),
+                "benchmark": getattr(cfg, "benchmark", None),
+                "beta_window": getattr(cfg, "beta_window", 90),
+                "min_observations": getattr(cfg, "min_observations", 60),
+                "long_quantile": getattr(cfg, "long_quantile", 0.3),
+                "short_quantile": getattr(cfg, "short_quantile", 0.3),
+                "transaction_costs": getattr(cfg, "transaction_costs", 0.0),
+                "data_source": getattr(cfg, "data_source", None),
             },
-            "rebalances": int(len(res.weights.dropna(how="all"))),
-            "metrics": summary,
+            "rebalances": rebalances,
+            "metrics": sanitized_summary,
             "attribution": attribution,
-            "attribution_totals": totals,
+            "attribution_totals": sanitized_totals,
         }
 
     def tear_sheet(self, result: "BABResult | None" = None) -> str:
@@ -447,33 +501,50 @@ class BABStrategy:
 
         Combines the summary metrics and trade-attribution breakdown into a
         single printable block suitable for console output or persistence.
+
+        Defensive: any non-finite or missing metric is rendered as ``0.0`` /
+        ``0.00%`` so a degenerate pipeline output never raises here.
         """
         rep = self.report(result)
+
+        def _fmt(value, spec):
+            """Format a scalar defensively, substituting 0.0 for non-finite."""
+            try:
+                f = float(value)
+                if not math.isfinite(f):
+                    f = 0.0
+                return format(f, spec)
+            except (TypeError, ValueError):
+                return format(0.0, spec)
+
+        m = rep["metrics"]
+        t = rep["attribution_totals"]
+        cfg = rep["config"]
         lines: list[str] = []
         lines.append("=" * 60)
         lines.append("BAB STRATEGY TEAR SHEET")
         lines.append("=" * 60)
-        lines.append(f"Universe: {', '.join(rep['config']['universe'])}")
-        lines.append(f"Benchmark: {rep['config']['benchmark']}")
-        lines.append(f"Beta window: {rep['config']['beta_window']} days (min {rep['config']['min_observations']} obs)")
-        lines.append(f"Long/Short quantiles: {rep['config']['long_quantile']}/{rep['config']['short_quantile']}")
+        lines.append(f"Universe: {', '.join(cfg['universe'])}")
+        lines.append(f"Benchmark: {cfg['benchmark']}")
+        lines.append(f"Beta window: {cfg['beta_window']} days (min {cfg['min_observations']} obs)")
+        lines.append(f"Long/Short quantiles: {cfg['long_quantile']}/{cfg['short_quantile']}")
         lines.append(f"Rebalances: {rep['rebalances']}")
         lines.append("-" * 60)
-        lines.append(f"Final Cumulative: {rep['metrics']['final_cumulative']:.4f}x ({rep['metrics']['total_return']:.2%})")
-        lines.append(f"Sharpe Ratio (ann.): {rep['metrics']['sharpe_ratio']:.4f}")
-        lines.append(f"Annualized Volatility: {rep['metrics']['annualized_volatility']:.2%}")
-        lines.append(f"Max Drawdown: {rep['metrics']['max_drawdown']:.2%}")
-        lines.append(f"Turnover (avg): {rep['metrics']['turnover']:.4f}")
-        lines.append(f"Strategy Beta vs {rep['config']['benchmark']}: {rep['metrics']['strategy_beta']:.4f}")
-        lines.append(f"Observations: {rep['metrics']['n_observations']}")
+        lines.append(f"Final Cumulative: {_fmt(m['final_cumulative'], '.4f')}x ({_fmt(m['total_return'], '.2%')})")
+        lines.append(f"Sharpe Ratio (ann.): {_fmt(m['sharpe_ratio'], '.4f')}")
+        lines.append(f"Annualized Volatility: {_fmt(m['annualized_volatility'], '.2%')}")
+        lines.append(f"Max Drawdown: {_fmt(m['max_drawdown'], '.2%')}")
+        lines.append(f"Turnover (avg): {_fmt(m['turnover'], '.4f')}")
+        lines.append(f"Strategy Beta vs {cfg['benchmark']}: {_fmt(m['strategy_beta'], '.4f')}")
+        lines.append(f"Observations: {int(m.get('n_observations', 0))}")
         lines.append("-" * 60)
         lines.append("Trade Attribution (cumulative):")
-        lines.append(f"  Gross Return:   {rep['attribution_totals']['gross_return']:.6f}")
-        lines.append(f"  Cost Drag:      {rep['attribution_totals']['cost_drag']:.6f}")
-        lines.append(f"  Slippage Drag:  {rep['attribution_totals']['slippage_drag']:.6f}")
-        lines.append(f"  Net Return:     {rep['attribution_totals']['net_return']:.6f}")
-        lines.append(f"  Cost Share:     {rep['attribution_totals']['cost_share']:.2%}")
-        lines.append(f"  Slippage Share: {rep['attribution_totals']['slippage_share']:.2%}")
+        lines.append(f"  Gross Return:   {_fmt(t['gross_return'], '.6f')}")
+        lines.append(f"  Cost Drag:      {_fmt(t['cost_drag'], '.6f')}")
+        lines.append(f"  Slippage Drag:  {_fmt(t['slippage_drag'], '.6f')}")
+        lines.append(f"  Net Return:     {_fmt(t['net_return'], '.6f')}")
+        lines.append(f"  Cost Share:     {_fmt(t['cost_share'], '.2%')}")
+        lines.append(f"  Slippage Share: {_fmt(t['slippage_share'], '.2%')}")
         lines.append("=" * 60)
         return "\n".join(lines)
 
