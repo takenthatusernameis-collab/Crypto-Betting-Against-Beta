@@ -113,44 +113,58 @@ def _normalize_index(df: pd.DataFrame) -> pd.DataFrame:
                     try:
                         sv = float(sample)
                         av = abs(sv)
-                        # Try by magnitude - prefer most common units
-                        try:
-                            if av > 1e18:
+                    except Exception:
+                        sv = None
+                        av = None
+                    # Try by magnitude - prefer most common units
+                    try:
+                        if sv is None or av is None:
+                            raise ValueError("bad")
+                        if av > 1e18:
+                            try:
+                                df.index = pd.to_datetime(idx, unit='ns', utc=True)
+                            except Exception:
                                 try:
                                     df.index = pd.to_datetime(idx, unit='us', utc=True)
                                 except Exception:
                                     coerced = [_coerce_to_datetime_scalar(v) for v in idx]
                                     df.index = coerced
-                            elif av > 1e15:  # microseconds
+                        elif av > 1e17:  # nanoseconds/us boundary
+                            try:
+                                df.index = pd.to_datetime(idx, unit='us', utc=True)
+                            except Exception:
+                                coerced = [_coerce_to_datetime_scalar(v) for v in idx]
+                                df.index = coerced
+                        elif av > 1e15:  # microseconds
+                            try:
+                                df.index = pd.to_datetime(idx, unit='us', utc=True)
+                            except Exception:
+                                coerced = [_coerce_to_datetime_scalar(v) for v in idx]
+                                df.index = coerced
+                        elif av > 1e12:  # milliseconds
+                            try:
+                                df.index = pd.to_datetime(idx, unit='ms', utc=True)
+                            except Exception:
+                                coerced = [_coerce_to_datetime_scalar(v) for v in idx]
+                                df.index = coerced
+                        elif av >= 1e9:  # seconds
+                            try:
+                                df.index = pd.to_datetime(idx, unit='s', utc=True)
+                            except Exception:
+                                coerced = [_coerce_to_datetime_scalar(v) for v in idx]
+                                df.index = coerced
+                        elif av > 0:  # small numbers, try seconds
+                            try:
+                                df.index = pd.to_datetime(idx, unit='s', utc=True)
+                            except Exception:
                                 try:
-                                    df.index = pd.to_datetime(idx, unit='us', utc=True)
-                                except Exception:
                                     coerced = [_coerce_to_datetime_scalar(v) for v in idx]
                                     df.index = coerced
-                            elif av > 1e12:  # milliseconds
-                                try:
-                                    df.index = pd.to_datetime(idx, unit='ms', utc=True)
                                 except Exception:
-                                    coerced = [_coerce_to_datetime_scalar(v) for v in idx]
-                                    df.index = coerced
-                            elif av >= 1e9:  # seconds
-                                try:
-                                    df.index = pd.to_datetime(idx, unit='s', utc=True)
-                                except Exception:
-                                    coerced = [_coerce_to_datetime_scalar(v) for v in idx]
-                                    df.index = coerced
-                            elif av > 0:  # small numbers, try seconds
-                                try:
-                                    df.index = pd.to_datetime(idx, unit='s', utc=True)
-                                except Exception:
-                                    try:
-                                        coerced = [_coerce_to_datetime_scalar(v) for v in idx]
-                                        df.index = coerced
-                                    except Exception:
-                                        df.index = pd.to_datetime(idx, errors="raise")
-                            else:
-                                df.index = pd.to_datetime(idx, errors="raise")
-                        except Exception:
+                                    df.index = pd.to_datetime(idx, errors="raise")
+                        else:
+                            df.index = pd.to_datetime(idx, errors="raise")
+                    except Exception:
                             # Try elementwise coercion
                             coerced = []
                             for v in idx:
@@ -291,7 +305,15 @@ def _coerce_to_datetime_scalar(val):
                     if numf is not None:
                         # Determine unit by magnitude
                         av = abs(numf)
-                        if av > 1e18:  # very large, try us
+                        if av > 1e18:  # very large
+                            try:
+                                try:
+                                    return pd.to_datetime(int(numf), unit="ns", utc=True)
+                                except Exception:
+                                    return pd.to_datetime(int(numf), unit="us", utc=True)
+                            except Exception:
+                                pass
+                        if av > 1e17:
                             try:
                                 return pd.to_datetime(int(numf), unit="us", utc=True)
                             except Exception:
@@ -328,27 +350,37 @@ def _coerce_to_datetime_scalar(val):
                 # Epoch seconds only make sense at >= 1e9 (~2001-09-09); shorter
                 # digit runs (e.g. "20230101", "01012023") are compact date
                 # representations and must fall through to normal parsing.
-                if s.replace('+', '').replace('-', '').isdigit():
-                    try:
-                        numf = float(s)
-                        av = abs(numf)
-                        if av >= 1e9:
-                            if av > 1e15:
+                    if s.replace('+', '').replace('-', '').isdigit():
+                        try:
+                            numf = float(s)
+                            av = abs(numf)
+                            if av >= 1e9:
+                                if av > 1e18:
+                                    try:
+                                        return pd.to_datetime(int(numf), unit="ns", utc=True)
+                                    except Exception:
+                                        pass
+                                if av > 1e17:
+                                    try:
+                                        return pd.to_datetime(int(numf), unit="us", utc=True)
+                                    except Exception:
+                                        pass
+                                if av > 1e15:
+                                    try:
+                                        return pd.to_datetime(int(numf), unit="us", utc=True)
+                                    except Exception:
+                                        pass
+                                if av > 1e12:
+                                    try:
+                                        return pd.to_datetime(int(numf), unit="ms", utc=True)
+                                    except Exception:
+                                        pass
                                 try:
-                                    return pd.to_datetime(int(numf), unit="us", utc=True)
+                                    return pd.to_datetime(int(numf), unit="s", utc=True)
                                 except Exception:
                                     pass
-                            if av > 1e12:
-                                try:
-                                    return pd.to_datetime(int(numf), unit="ms", utc=True)
-                                except Exception:
-                                    pass
-                            try:
-                                return pd.to_datetime(int(numf), unit="s", utc=True)
-                            except Exception:
-                                pass
-                    except Exception:
-                        pass
+                        except Exception:
+                            pass
             except Exception:
                 pass
             # try normal parse with utc (handles Z, +00:00, offsets)
@@ -371,12 +403,20 @@ def _coerce_to_datetime_scalar(val):
             av = abs(v)
             if av > 1e18:
                 try:
-                    return pd.to_datetime(v, unit="us", utc=True)
+                    try:
+                        return pd.to_datetime(v, unit="ns", utc=True)
+                    except Exception:
+                        return pd.to_datetime(int(v), unit="us", utc=True)
+                except Exception:
+                    pass
+            if av > 1e17:
+                try:
+                    return pd.to_datetime(int(v), unit="us", utc=True)
                 except Exception:
                     pass
             if av > 1e15:
                 try:
-                    return pd.to_datetime(v, unit="us", utc=True)
+                    return pd.to_datetime(int(v), unit="us", utc=True)
                 except Exception:
                     pass
             if av > 1e12:
@@ -391,7 +431,15 @@ def _coerce_to_datetime_scalar(val):
             av = abs(v)
             if av > 1e18:
                 try:
-                    return pd.to_datetime(int(v), unit="us", utc=True)
+                    try:
+                        return pd.to_datetime(int(v), unit="ns", utc=True)
+                    except Exception:
+                        return pd.to_datetime(int(v), unit="us", utc=True)
+                except Exception:
+                    pass
+            if av > 1e17:
+                try:
+                    return pd.to_datetime(int(v) if v.is_integer() else v, unit="us", utc=True)
                 except Exception:
                     pass
             if av > 1e15:
