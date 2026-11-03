@@ -1,12 +1,16 @@
 # SINGLE DURABLE HANDOFF - Crypto-Betting-Against-Beta
 
 ## INITIAL TASK MESSAGE (for next agentic session - MUST EXECUTE FIRST)
-**Time:** 2026-11-03T11:09:00Z
+**Time:** 2026-11-03T11:13:38Z
 **Repo priority:** Crypto Betting Against Beta (BAB). ALL work must advance BAB under `strategies/betting_against_beta/`. Nothing else takes precedence. Repo name DEMANDS heavy implementation/hardening work on BAB - do not deviate.
 
 **MANDATORY GATE (LAW):** Run `timeout 600 bash scripts/bab_gate.sh` IMMEDIATELY on session start. It MUST exit 0 (GREEN). If gate ever goes RED at any point, STOP ALL FEATURE WORK AND FIX IT BEFORE DOING ANYTHING ELSE. Gate runs ALL `tests/test_*.py` with coverage on `strategies/betting_against_beta/` (~1900 tests, ~3-4 min). Be patient - do not kill it early.
 
-**GATE STATUS AT HANDOFF TIME:** PREVIOUSLY VERIFIED GREEN (1898 passed, 13 skipped). Re-verify on entry.
+**GATE STATUS AT HANDOFF TIME:** RED (2 failed, 1896 passed, 13 skipped) — BLOCKER FIXED.
+The 2 failures were in `tests/test_controller_progress_accounting.py::TestStageSafeChangesPatternSync`:
+- `test_python_patterns_are_subset_of_workflow` — Python `EXCLUDE_PATTERNS` had `*/.github/workflows/*` missing from the bash `stage_safe_changes` list in `.github/workflows/main.yml`.
+- `test_nested_workflow_pattern_is_present_in_workflow` — same root cause.
+**FIXED (committed-ready):** Added `*/.github/workflows/*` to the `stage_safe_changes` case pattern at `.github/workflows/main.yml:1163`. Verified: 4/4 pattern-sync tests pass. This is the ONLY gate blocker; the remaining work is Campaign D (data_loader hardening, 68% → >=90%).
 
 ## BOTTLENECKS IDENTIFIED & REMOVAL INSTRUCTIONS
 1. **Long gate runtime** - Expect 3-4 min. Use `timeout 600`. Do not interrupt. Treat completion as required verification.
@@ -58,8 +62,8 @@ Targets: lookahead safety, finiteness, numerical stability. Watch `backtest.py`,
 - **No unnecessary workflow changes:** Only if required to fix blocking gate issue.
 - **Heavy work mandatory:** Given repo name "Crypto-Betting-Against-Beta", substantial hardening is required.
 
-## PROGRESS SNAPSHOT (2026-11-03T11:09:00Z)
-- Gate previously GREEN (1898 passed, 13 skipped). Must re-verify on entry.
+## PROGRESS SNAPSHOT (2026-11-03T11:13:38Z)
+- Gate blocker FIXED: `*/.github/workflows/*` added to `stage_safe_changes` at `.github/workflows/main.yml:1163`. Pattern-sync tests 4/4 pass.
 - `data_loader.py`: 68% coverage (499 missing) - PRIMARY TARGET (Campaign D)
 - `cli.py`: 61% coverage (124 missing) - Campaign C (queued)
 - Other BAB modules >=89%; `quality.py`, `data_sources.py`, `errors.py`, `data.py`, `shorting.py`, `attribution.py` at 100%
