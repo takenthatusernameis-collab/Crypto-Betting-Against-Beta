@@ -1,7 +1,7 @@
 # SINGLE DURABLE HANDOFF - Crypto-Betting-Against-Beta
 
 ## INITIAL TASK MESSAGE (for next agentic session - MUST EXECUTE FIRST)
-**Time:** 2026-11-03T00:40:00Z | **Repo priority:** Crypto Betting Against Beta (BAB). ALL work must advance BAB under `strategies/betting_against_beta/`. Nothing else takes precedence.
+**Time:** 2026-11-03T00:09:28Z | **Repo priority:** Crypto Betting Against Beta (BAB). ALL work must advance BAB under `strategies/betting_against_beta/`. Nothing else takes precedence.
 
 **MANDATORY GATE:** Run `bash scripts/bab_gate.sh` IMMEDIATELY on session start. It MUST exit 0 (GREEN). If gate ever goes RED, FIX IT BEFORE DOING ANYTHING ELSE. The gate is the ONLY verification command that counts. It runs ALL `tests/test_*.py` with coverage on `strategies/betting_against_beta/`.
 
@@ -11,7 +11,7 @@
 - **Campaign B - Strategy/backtest depth (HEAVILY HARDENED):** Added aggressive defensive guards across `beta.py` (NaN/inf/constant benchmark/singular cases), `signals.py` (quantile clamping, tie handling, numeric coercion hardening), `portfolio.py` (dollar-neutrality re-normalization, finite guards), `backtest.py` (cumulative/log-return finiteness with robust fallbacks), `strategy.py` (pipeline finiteness guards). CLI hardened for NaN/inf outputs.
 
 ## CURRENT STATE
-- Gate: GREEN (1855+ passed, 13 skipped) as of 2026-11-03T00:40:00Z
+- Gate: GREEN (1855+ passed, 13 skipped) as of 2026-11-03T00:09:28Z
 - Campaign A: COMPLETE
 - Campaign B: HEAVILY HARDENED - Continue stress testing and plug any remaining gaps
 - Campaign C: QUEUED - CLI/reporting integration (harden further)
@@ -54,6 +54,6 @@
 - **Lookahead is forbidden:** Weights must be lagged by 1 day.
 - **Finiteness required:** Outputs must be finite where possible; NaN/inf must be handled explicitly.
 
-**Timestamp:** 2026-11-03T00:40:00Z
+**Timestamp:** 2026-11-03T00:09:28Z
 **Priority from repo name:** CRYPTO BETTING AGAINST BETA (BAB) - HEAVY WORK MANDATORY
 **Status:** GATE GREEN - Campaign A COMPLETE, Campaign B HEAVILY HARDENED, Campaign C QUEUED. Continue hardening aggressively with focus on finding and fixing any remaining edge cases. DO NOT CHECKPOINT ON RED GATE.
