@@ -1,7 +1,7 @@
 # SINGLE DURABLE HANDOFF - Crypto-Betting-Against-Beta
 
 ## INITIAL TASK MESSAGE (for next agentic session - MUST EXECUTE FIRST)
-**Time:** 2026-11-03T18:26:12Z
+**Time:** 2026-11-03T18:33:01Z
 **Repo priority:** Crypto Betting Against Beta (BAB). ALL work must advance BAB under `strategies/betting_against_beta/`. Nothing else takes precedence. Repo name DEMANDS heavy implementation/hardening work on BAB - do not deviate.
 
 **MANDATORY GATE (LAW):** Run `timeout 600 bash scripts/bab_gate.sh` IMMEDIATELY on session start. It MUST exit 0 (GREEN). If gate ever goes RED at any point, STOP ALL FEATURE WORK AND FIX IT BEFORE DOING ANYTHING ELSE. Gate runs ALL `tests/test_*.py` (~1944 tests, ~3 min). Be patient - do not kill it early. NEVER checkpoint with RED.
@@ -67,7 +67,7 @@ Only expand if regressions appear or D+C complete and gate GREEN.
 - **Sync workflows/controllers:** Pattern changes must be mirrored.
 - **Heavy work mandatory:** Given repo name "Crypto-Betting-Against-Beta", substantial hardening is required.
 
-## PROGRESS SNAPSHOT (2026-11-03T18:26:12Z)
+## PROGRESS SNAPSHOT (2026-11-03T18:33:01Z)
 - **Gate:** GREEN (1944 passed, 13 skipped, exit 0, ~169s). Unblocked.
 - **Working tree:** Modified (uncommitted): `.github/workflows/main.yml`
 - **Fixed this session:** pattern sync in `.github/workflows/main.yml` (added `*/.github/workflows/*` to `stage_safe_changes`, matching `scripts/controller_progress.py` EXCLUDE_PATTERNS). Gate was RED on 2 pattern-sync tests; now GREEN.
