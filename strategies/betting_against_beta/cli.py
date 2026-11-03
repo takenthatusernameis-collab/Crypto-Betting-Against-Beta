@@ -83,14 +83,23 @@ def main(argv=None) -> int:
             return 1
         if args.data is not None:
             try:
-                from .data_loader import load_returns
+                from .data_loader import load_returns, load_prices, BABDataError
 
                 try:
-                    load_returns(args.data, benchmark=args.benchmark, min_rows=config.min_rows)
+                    if getattr(args, 'from_prices', False):
+                        load_prices(args.data, benchmark=args.benchmark, min_rows=config.min_rows)
+                    else:
+                        load_returns(args.data, benchmark=args.benchmark, min_rows=config.min_rows)
                     print(f"data:             {args.data} (valid, --from-prices={args.from_prices})")
+                except BABDataError as exc:
+                    print(f"data:             {args.data} (INVALID: {exc})")
+                    return 1
                 except Exception as exc:
                     print(f"data:             {args.data} (INVALID: {exc})")
                     return 1
+            except BABDataError as exc:
+                print(f"data:             {args.data} (INVALID: {exc})")
+                return 1
             except Exception as exc:
                 print(f"data:             {args.data} (INVALID: {exc})")
                 return 1
@@ -103,17 +112,26 @@ def main(argv=None) -> int:
         if args.synthetic or args.data is None:
             result = strategy.run()
         else:
-            from .data_loader import load_prices, load_returns
+            from .data_loader import load_prices, load_returns, BABDataError
 
             try:
                 if args.from_prices:
                     returns_df = load_prices(args.data, benchmark=args.benchmark, min_rows=config.min_rows)
                 else:
                     returns_df = load_returns(args.data, benchmark=args.benchmark, min_rows=config.min_rows)
+            except BABDataError:
+                raise
             except Exception as exc:
-                print(f"Error loading data: {exc}")
-                return 1
-            result = strategy.run(returns_df=returns_df)
+                raise BABDataError(str(exc)) from exc
+            try:
+                result = strategy.run(returns_df=returns_df)
+            except BABDataError:
+                raise
+            except Exception as exc:
+                raise BABDataError(str(exc)) from exc
+    except BABDataError as exc:
+        print(f"Error running strategy: {exc}")
+        return 1
     except Exception as exc:
         print(f"Error running strategy: {exc}")
         return 1

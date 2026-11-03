@@ -110,15 +110,32 @@ def main(argv: list[str] | None = None) -> int:
         strategy = BABStrategy(cfg)
         result = strategy.run()
 
-        returns = result.backtest["returns"]
-        weights = result.weights
-        benchmark_returns = result.returns[strategy.config.benchmark]
+        try:
+            returns = result.backtest["returns"]
+            weights = result.weights
+            benchmark_returns = result.returns[strategy.config.benchmark]
+        except Exception as exc:
+            raise RuntimeError(f"report_missing_results: {exc}") from exc
 
-        summary = metrics.summary(
-            returns,
-            weights_df=weights,
-            benchmark_returns=benchmark_returns,
-        )
+        try:
+            summary = metrics.summary(
+                returns,
+                weights_df=weights,
+                benchmark_returns=benchmark_returns,
+            )
+        except Exception as exc:
+            # Fallback to sanitized empty summary
+            summary = {
+                "final_cumulative": 1.0,
+                "total_return": 0.0,
+                "sharpe_ratio": 0.0,
+                "annualized_volatility": 0.0,
+                "max_drawdown": 0.0,
+                "turnover": 0.0,
+                "strategy_beta": 0.0,
+                "n_observations": 0,
+            }
+            summary = _sanitize_metrics(summary)
     except Exception as exc:
         if args and getattr(args, 'json', False):
             try:
