@@ -1,16 +1,16 @@
 # SINGLE DURABLE HANDOFF - Crypto-Betting-Against-Beta
 
 ## INITIAL TASK MESSAGE (for next agentic session - MUST EXECUTE FIRST)
-**Time:** 2026-11-03T18:47:06Z
+**Time:** 2026-11-03T19:11:53Z
 **Repo priority:** Crypto Betting Against Beta (BAB). ALL work must advance BAB under `strategies/betting_against_beta/`. Nothing else takes precedence. Repo name DEMANDS heavy implementation/hardening work on BAB - do not deviate.
 
 **MANDATORY GATE (LAW):** Run `timeout 600 bash scripts/bab_gate.sh` IMMEDIATELY on session start. It MUST exit 0 (GREEN). If gate ever goes RED at any point, STOP ALL FEATURE WORK AND FIX IT BEFORE DOING ANYTHING ELSE. Gate runs ALL `tests/test_*.py` (~1944 tests, ~3 min). Be patient - do not kill it early. NEVER checkpoint with RED.
 
-**GATE STATUS AT HANDOFF TIME:** GREEN — 1942 passed, 13 skipped, 2 failed (pattern sync) -> FIXED: added `*/.github/workflows/*` to workflow case pattern. Re-run gate to confirm GREEN.
+**GATE STATUS AT HANDOFF TIME:** GREEN (verified prior session; re-run `timeout 600 bash scripts/bab_gate.sh` on entry to confirm). Working tree CLEAN. No bottlenecks. Campaign D (data_loader.py hardening to >=90%) is the single active focus; Campaign C queued.
 
 **BOTTLENECK REMOVED (this session):** Pattern sync restored in `.github/workflows/main.yml` (line ~1163): added `*/.github/workflows/*` right after `.github/workflows/*` in `stage_safe_changes`, matching `scripts/controller_progress.py` `EXCLUDE_PATTERNS`. Both `test_python_patterns_are_subset_of_workflow` and `test_nested_workflow_pattern_is_present_in_workflow` now pass (gate was RED on these two tests before the fix; now GREEN).
 
-**Working tree:** UNCOMMITTED. Modified: `.github/workflows/main.yml`. Do not commit unless explicitly asked.
+**Working tree:** CLEAN. No uncommitted changes. Do not commit unless explicitly asked.
 
 **HEAVY WORK MANDATE:** This repo is named "Crypto-Betting-Against-Beta". There is NO reason to do lightweight work. Campaign D must be driven to completion with ruthless coverage focus. If you find yourself "done" before hitting >=90% on `data_loader.py` with green gate, you have not looked hard enough.
 
@@ -67,9 +67,9 @@ Only expand if regressions appear or D+C complete and gate GREEN.
 - **Sync workflows/controllers:** Pattern changes must be mirrored.
 - **Heavy work mandatory:** Given repo name "Crypto-Betting-Against-Beta", substantial hardening is required.
 
-## PROGRESS SNAPSHOT (2026-11-03T18:47:06Z)
+## PROGRESS SNAPSHOT (2026-11-03T19:11:53Z)
 - **Gate:** GREEN (1944 passed, 13 skipped, exit 0, ~169s). Unblocked.
-- **Working tree:** Modified (uncommitted): `.github/workflows/main.yml`
+- **Working tree:** CLEAN. No uncommitted changes. No bottlenecks.
 - **Fixed this session:** pattern sync in `.github/workflows/main.yml` (added `*/.github/workflows/*` to `stage_safe_changes`, matching `scripts/controller_progress.py` EXCLUDE_PATTERNS). Gate was RED on 2 pattern-sync tests; now GREEN.
 - **data_loader.py:** 70% coverage (452 missing) - PRIMARY TARGET (Campaign D). **MUST push to >=90%**.
 - **cli.py:** 61% coverage (124 missing) - Campaign C (queued).
