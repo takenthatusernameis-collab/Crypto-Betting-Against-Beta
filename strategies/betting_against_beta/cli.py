@@ -258,13 +258,19 @@ def main(argv=None) -> int:
         return 1
 
     # Extract cumulative return defensively; never let a bad value crash the CLI.
-    cum_out = _coerce_finite_scalar(
-        _extract_cumulative(result), default=1.0
-    )
+    try:
+        cum_out = _coerce_finite_scalar(
+            _extract_cumulative(result), default=1.0
+        )
+    except Exception:
+        cum_out = 1.0
     try:
         print(f"Final cumulative return: {cum_out:.6f}")
         bt = getattr(result, "backtest", None)
-        periods = int(len(bt)) if bt is not None and hasattr(bt, "__len__") else 0
+        try:
+            periods = int(len(bt)) if bt is not None and hasattr(bt, "__len__") else 0
+        except Exception:
+            periods = 0
         print(f"Periods: {periods}")
     except Exception:
         pass

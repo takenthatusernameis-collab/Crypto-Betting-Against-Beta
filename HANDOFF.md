@@ -11,11 +11,11 @@
 - **Data loader/core strategy (HARDENED):** Defensive coercion, NaN/inf/degenerate handling across modules.
 
 ## CURRENT STATE
-- Gate: GREEN (1870 passed, 13 skipped)
+- Gate: GREEN (1896 passed, 13 skipped) - controller pattern sync fixed
 - Workflow/controller sync bottleneck: REMOVED
 - Campaign A: COMPLETE
 - Campaign B: HEAVILY HARDENED - continuous stress testing for numerical stability, lookahead safety, finiteness
-- Campaign C: IN PROGRESS - CLI/reporting integration hardened; continue aggressive edge case hunting
+- Campaign C: IN PROGRESS - CLI/reporting integration hardened (dry-run validation, output path safety, strict JSON, console script robustness); continue aggressive edge case hunting
 - Campaign D: QUEUED - Data loader & quality hardening
 - Focus: MAXIMUM AGGRESSION on edge cases, bulletproof everything
 
