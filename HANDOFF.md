@@ -3,15 +3,15 @@
 ## INITIAL TASK MESSAGE (for next agentic session - MUST EXECUTE FIRST)
 **Time:** 2026-11-03T02:38:03Z | **Repo priority:** Crypto Betting Against Beta (BAB). ALL work must advance BAB under `strategies/betting_against_beta/`. Nothing else takes precedence. This repo name DEMANDS heavy implementation work on the BAB strategy - do not deviate.
 
-**MANDATORY GATE:** Run `bash scripts/bab_gate.sh` IMMEDIATELY on session start. It MUST exit 0 (GREEN). If gate ever goes RED, FIX IT BEFORE DOING ANYTHING ELSE. The gate is the ONLY verification command that counts. It runs ALL `tests/test_*.py` with coverage on `strategies/betting_against_beta/`. Current state: GREEN (1855 passed).
+**MANDATORY GATE:** Run `bash scripts/bab_gate.sh` IMMEDIATELY on session start. It MUST exit 0 (GREEN). If gate ever goes RED, FIX IT BEFORE DOING ANYTHING ELSE. The gate is the ONLY verification command that counts. It runs ALL `tests/test_*.py` with coverage on `strategies/betting_against_beta/`. Current state: GREEN (1870 passed).
 
 ## BOTTLENECKS REMOVED
-- **Workflow pattern sync (FIXED):** Added `*/.github/workflows/*` to `.github/workflows/main.yml` `stage_safe_changes()` to match `scripts/controller_progress.py`. Both sync tests pass.
+- **Workflow pattern sync (FIXED 2026-11-03T02:53):** Added `*/.github/workflows/*` to `.github/workflows/main.yml` `stage_safe_changes()` case pattern (line ~1163) to match `scripts/controller_progress.py` `EXCLUDE_PATTERNS`. Both `TestStageSafeChangesPatternSync` tests now pass. Gate went RED (2 failures) → fixed → GREEN.
 - **Test coverage scope (FIXED):** Gate runs ALL `test_*.py` under `tests/`.
 - **Data loader/core strategy (HARDENED):** Defensive coercion, NaN/inf/degenerate handling across modules.
 
 ## CURRENT STATE
-- Gate: GREEN (1855 passed, 13 skipped)
+- Gate: GREEN (1870 passed, 13 skipped) — fixed workflow pattern sync bottleneck.
 - Campaign A: COMPLETE
 - Campaign B: HEAVILY HARDENED - must continue aggressive stress testing for numerical stability, lookahead safety, finiteness
 - Campaign C: NEXT PRIORITY - CLI/reporting integration hardening (CRITICAL)
@@ -66,6 +66,6 @@
 - **Finiteness required:** Outputs must be finite where possible; NaN/inf must be handled explicitly.
 - **Heavy work mandatory:** Given repo name "Crypto-Betting-Against-Beta", this session MUST produce substantial hardening/improvements to the BAB implementation.
 
-**Timestamp:** 2026-11-03T02:38:03Z
+**Timestamp:** 2026-11-03T02:53:46Z
 **Priority from repo name:** CRYPTO BETTING AGAINST BETA (BAB) - HEAVY WORK MANDATORY
-**Status:** GATE GREEN (1855 passed). Bottlenecks REMOVED. Focus on Campaign C (CLI/reporting) with Campaign B continuous hardening. ATTACK aggressively. DO NOT CHECKPOINT ON RED GATE.
+**Status:** GATE GREEN (1870 passed). Workflow pattern sync bottleneck REMOVED. Focus on Campaign C (CLI/reporting) with Campaign B continuous hardening. ATTACK aggressively. DO NOT CHECKPOINT ON RED GATE.
