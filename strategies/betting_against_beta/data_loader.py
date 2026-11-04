@@ -380,6 +380,12 @@ def _coerce_to_datetime_scalar(val):
                         return pd.to_datetime(numf, unit="s", utc=True)
                     except Exception:
                         pass
+                try:
+                    if float(numf).is_integer():
+                        return pd.to_datetime(int(numf), unit="s", utc=True)
+                    return pd.to_datetime(numf, unit="s", utc=True)
+                except Exception:
+                    pass
             except Exception:
                 pass
         # Normal datetime parsing (handles ISO, Z, offsets, dayfirst).
