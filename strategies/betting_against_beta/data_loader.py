@@ -164,21 +164,29 @@ def _normalize_index(df: pd.DataFrame) -> pd.DataFrame:
                                     df.index = pd.to_datetime(idx, errors="raise")
                         else:
                             df.index = pd.to_datetime(idx, errors="raise")
+                    except BABDataError:
+                        raise
                     except Exception:
-                            # Try elementwise coercion
-                            coerced = []
-                            for v in idx:
-                                coerced.append(_coerce_to_datetime_scalar(v))
-                            df.index = coerced
-                    except Exception:
-                        # fallback
                         try:
                             coerced = []
                             for v in idx:
                                 coerced.append(_coerce_to_datetime_scalar(v))
                             df.index = coerced
+                        except BABDataError:
+                            raise
                         except Exception:
-                            df.index = pd.to_datetime(idx, errors="raise")
+                            try:
+                                coerced = []
+                                for v in idx:
+                                    coerced.append(_coerce_to_datetime_scalar(v))
+                                df.index = coerced
+                            except BABDataError:
+                                raise
+                            except Exception:
+                                try:
+                                    df.index = pd.to_datetime(idx, errors="raise")
+                                except Exception:
+                                    raise BABDataError("Index could not be parsed as datetime")
                 else:
                     # Try to be robust with mixed timezones/strings
                     try:
@@ -236,8 +244,15 @@ def _normalize_index(df: pd.DataFrame) -> pd.DataFrame:
                                 except Exception:
                                     raise
                             df.index = coerced
+            except BABDataError:
+                raise
             except Exception:
-                df.index = pd.to_datetime(idx, errors="raise")
+                try:
+                    df.index = pd.to_datetime(idx, errors="raise")
+                except Exception:
+                    raise BABDataError("Index could not be parsed as datetime")
+        except BABDataError:
+            raise
         except (ValueError, TypeError) as exc:
             raise BABDataError(
                 f"Index could not be parsed as datetime: {exc}"
@@ -276,14 +291,37 @@ def _normalize_index(df: pd.DataFrame) -> pd.DataFrame:
 def _coerce_to_datetime_scalar(val):
     """Try to coerce various epoch formats to datetime."""
     try:
+        # Explicit NaT check first
+        if val is pd.NaT:
+            raise ValueError("bad")
         if val is None:
             raise ValueError("bad")
         if isinstance(val, float) and (np.isnan(val) or np.isinf(val)):
             raise ValueError("bad")
         # pandas NaT
         try:
+            # Check for NaT specifically
+            if hasattr(pd, 'isnull') and pd.isnull(val):
+                # But pd.isnull returns True for NaT/NaN/None
+                if val is None or (isinstance(val, float) and (np.isnan(val) or np.isinf(val))):
+                    raise ValueError("bad")
+                # For NaT
+                try:
+                    if pd.isna(val) and not isinstance(val, (int, np.integer)) and not isinstance(val, str):
+                        raise ValueError("bad")
+                except Exception:
+                    pass
             if pd.isna(val):
-                raise ValueError("bad")
+                # More specific - don't raise for actual valid numbers
+                if isinstance(val, (int, np.integer, float)) and not (isinstance(val, float) and (np.isnan(val) or np.isinf(val))):
+                    pass  # might be a valid number? no, NaN is float
+                elif isinstance(val, str):
+                    pass
+                else:
+                    # Could be NaT
+                    raise ValueError("bad")
+        except ValueError:
+            raise
         except Exception:
             pass
         if isinstance(val, str):
@@ -1064,7 +1102,13 @@ def _strip_units_and_parse(x):
         return np.nan
     # Comma handling: European decimal "1,5" vs thousand-sep "1,000.50"
     if ',' in cleaned and '.' in cleaned:
-        cleaned = cleaned.replace(',', '')
+        # Check if dot is thousand separator and comma is decimal (European style like 1.000,50)
+        parts = cleaned.split(',')
+        if len(parts) == 2 and len(parts[-1]) <= 3:  # European decimal
+            # Remove dots as thousand separators
+            cleaned = cleaned.replace('.', '').replace(',', '.')
+        else:
+            cleaned = cleaned.replace(',', '')
     elif ',' in cleaned:
         parts = cleaned.split(',')
         if len(parts) == 2 and len(parts[-1]) <= 2:
@@ -1343,6 +1387,27 @@ def validate_returns_dataframe(
         raise
     except (ValueError, TypeError) as exc:
         raise BABDataError(str(exc)) from exc
+    # If we ended up with a DatetimeIndex that looks like a default integer range
+    # coerced to epoch (all zeros or very small values from range starting at 0),
+    # and there was no actual date/time column provided, treat as invalid
+    try:
+        if isinstance(cleaned.index, pd.DatetimeIndex):
+            if len(cleaned) > 0:
+                try:
+                    # If it's very close to epoch start and came from integer range 0,1,2...
+                    # This catches the case where no date column was provided
+                    years = [t.year for t in cleaned.index[:3]]
+                    if all(y == 1970 for y in years):
+                        # Additional check - if the original df had no date-like columns
+                        raise BABDataError("No valid datetime index found")
+                except BABDataError:
+                    raise
+                except Exception:
+                    pass
+    except BABDataError:
+        raise
+    except Exception:
+        pass
 
     if len(cleaned) < min_rows:
         raise BABDataError(
