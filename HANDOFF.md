@@ -1,7 +1,7 @@
 # SINGLE DURABLE HANDOFF - Crypto-Betting-Against-Beta
 
 ## INITIAL TASK MESSAGE (for next agentic session - MUST EXECUTE FIRST)
-**Time:** 2026-11-04T03:35:34Z
+**Time:** 2026-11-04T03:38:07Z
 **Repo priority:** Crypto Betting Against Beta (BAB). ALL work MUST advance BAB under `strategies/betting_against_beta/`. The repository NAME is a mandate for HEAVY, relentless implementation and hardening. Do NOT deviate to unrelated work.
 
 **MANDATORY GATE (LAW):** Run `bash scripts/bab_gate.sh` IMMEDIATELY on session start. It MUST exit 0 (GREEN). If gate ever goes RED at any point, STOP ALL FEATURE WORK AND FIX IT BEFORE DOING ANYTHING ELSE. Gate runs ALL `tests/test_*.py` with coverage on `strategies/betting_against_beta/`. Be patient - full suite takes time. NEVER checkpoint with RED.
@@ -11,7 +11,7 @@
 ## BOTTLENECKS REMOVED / FIXED THIS SESSION
 1. **Gate verified clean.** Confirmed GREEN with full suite passing (2135 passed, 17 skipped). No blocking issues.
 2. **Controller progress accounting bottleneck removed.** The workflow's bash `stage_safe_changes` exclusion list (`.github/workflows/main.yml:1163`) was missing the nested variant `*/.github/workflows/*` that Python `EXCLUDE_PATTERNS` (`scripts/controller_progress.py:28`) requires. Added it, restoring lock-step between the two lists. `tests/test_controller_progress_accounting.py` (95 tests) now passes; gate GREEN.
-3. **Handoff updated with concrete next steps.** Clear attack plan for largest coverage gap.
+3. **Handoff hardened for continuity.** Concrete attack plan for largest coverage gap with non-negotiable gate discipline.
 
 ## CURRENT FOCUS CAMPAIGN (MAXIMUM IMPACT - DO NOT STOP UNTIL DONE)
 ### CAMPAIGN D - data_loader.py HARDENING (CRITICAL - HIGHEST ROI)
@@ -45,7 +45,7 @@
 - Heavy hardening required - no shortcuts
 - Raise `BABDataError` on bad/parse failures
 
-## PROGRESS SNAPSHOT (2026-11-04T03:35:34Z)
+## PROGRESS SNAPSHOT (2026-11-04T03:38:07Z)
 - **Gate:** GREEN (2135 passed, 17 skipped)
 - **Coverage:** 85% total; data_loader.py 73% (406 missing) - PRIMARY TARGET
-- **State:** Clean working tree. Controller progress accounting workflow sync fixed. Campaign D in progress - focus on data_loader hardening to >=90%.
+- **State:** Clean working tree. Controller progress accounting workflow sync fixed. Next session MUST start with Campaign D - data_loader hardening to >=90% with gate discipline.
