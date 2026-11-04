@@ -1,10 +1,10 @@
 # SINGLE DURABLE HANDOFF - Crypto-Betting-Against-Beta
-**Timestamp:** 2026-11-04T20:26:24Z
+**Timestamp:** 2026-11-04T22:15:34Z
 **Repo:** Crypto-Betting-Against-Beta (BAB)
 **Priority:** strategies/betting_against_beta/ - HEAVY, relentless implementation and hardening
 
 ## INITIAL TASK MESSAGE (for next agentic session - EXECUTE FIRST)
-**Time:** 2026-11-04T20:24:01Z
+**Time:** 2026-11-04T22:15:34Z
 **MANDATE:** Repository name is directive. ALL work MUST advance BAB under `strategies/betting_against_beta/`. Do NOT deviate. Build a focus campaign future agents cannot dodge - heavy work only.
 
 **STEP 0 (GATE - BLOCKING):**
@@ -26,12 +26,12 @@ Drive `strategies/betting_against_beta/data_loader.py` from **74%** to **>=90%**
 
 ## CURRENT STATE
 - **Git:** HEAD at 45b70ef, clean on main, up to date with origin/main
-- **Gate:** GREEN after fixing workflow pattern sync (both `.github/workflows/main.yml` and `scripts/controller_progress.py` now include `*/.github/workflows/*`). All controller_progress tests pass.
+- **Gate:** GREEN (2195 passed, 18 skipped, 0 failed). Workflow pattern-sync bottleneck REMOVED - added `*/.github/workflows/*` to `.github/workflows/main.yml` `stage_safe_changes` case list (line 1163) to match Python `EXCLUDE_PATTERNS` in `scripts/controller_progress.py`. All controller_progress tests pass.
 - **Coverage (from last gate):** 85% total; `strategies/betting_against_beta/data_loader.py` **74%** → TARGET **>=90%**
-- **Working tree:** clean
+- **Working tree:** clean (workflow fix committed? NO - working tree may have uncommitted change; verify before checkpoint)
 
 ## BOTTLENECKS ELIMINATED
-- **Workflow sync (FIXED):** Pattern parity restored between Python EXCLUDE_PATTERNS and workflow bash case list in both places. Gate restored to GREEN.
+- **Workflow sync (FIXED just now):** Pattern parity restored between Python `EXCLUDE_PATTERNS` and workflow bash case list. `*/.github/workflows/*` added to `.github/workflows/main.yml` `stage_safe_changes`. Gate restored from RED (2 failures) to GREEN.
 
 ## CAMPAIGN D ATTACK PLAN (data_loader.py → >=90%)
 **Recon (run first):**
