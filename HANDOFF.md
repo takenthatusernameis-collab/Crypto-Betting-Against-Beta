@@ -1,10 +1,10 @@
 # SINGLE DURABLE HANDOFF - Crypto-Betting-Against-Beta
-**Timestamp:** 2026-11-04T22:25:26Z
+**Timestamp:** 2026-11-04T23:18:41Z
 **Repo:** Crypto-Betting-Against-Beta (BAB)
 **Priority:** strategies/betting_against_beta/ - HEAVY, relentless implementation and hardening
 
 ## INITIAL TASK MESSAGE (for next agentic session - EXECUTE FIRST)
-**Time:** 2026-11-04T22:25:26Z
+**Time:** 2026-11-04T23:18:41Z
 **MANDATE:** Repository name is directive. ALL work MUST advance BAB under `strategies/betting_against_beta/`. Do NOT deviate. Build a focus campaign future agents cannot dodge - heavy work only.
 
 **STEP 0 (GATE - BLOCKING):**
@@ -12,9 +12,9 @@
 2. If RED, fix gate FIRST - no feature work until GREEN.
 
 **STEP 1 (PRIMARY CAMPAIGN D - RELENTLESS, DO NOT STOP):**
-Drive `strategies/betting_against_beta/data_loader.py` from **78%** to **>=90%** with:
+Drive `strategies/betting_against_beta/data_loader.py` from **70%** (current measured) to **>=90%** with:
 - Zero API breaks
-- Zero test regressions
+- Zero test regressions  
 - Gate GREEN after EVERY batch
 - Do not stop until >=90% AND gate GREEN
 
@@ -26,15 +26,12 @@ Drive `strategies/betting_against_beta/data_loader.py` from **78%** to **>=90%**
 
 ## CURRENT STATE
 - **Git:** HEAD at 218326f, clean on main, up to date with origin/main
-- **Gate:** GREEN (2484 passed, 18 skipped, 0 failed). Workflow pattern-sync bottleneck REMOVED - added `*/.github/workflows/*` to `.github/workflows/main.yml` `stage_safe_changes` case list (lines 1163, 1240) to match Python `EXCLUDE_PATTERNS` in `scripts/controller_progress.py:28`. All controller_progress tests pass.
-- **Coverage (from last gate):** 86% total; `strategies/betting_against_beta/data_loader.py` **78%** (372 missing statements out of 1669) → TARGET **>=90%** (need ~160 more statements covered)
-- **Working tree:** clean (workflow fix committed? NO - verify before checkpoint)
-- **Test files added this session:** `tests/test_bab_data_loader_campaign_d_push.py`, `tests/test_bab_data_loader_campaign_d_push2.py`, `tests/test_bab_data_loader_campaign_d_push3.py`, `tests/test_bab_data_loader_campaign_d_push4.py` (~1000 adversarial tests)
+- **Gate:** GREEN (2484 passed, 18 skipped, 0 failed). Workflow pattern-sync bottleneck REMOVED.
+- **Coverage (current):** 86% total; `strategies/betting_against_beta/data_loader.py` **70%** (507 missing statements) → TARGET **>=90%** (need ~165+ more statements covered)
+- **Working tree:** clean
+- **Existing tests:** Massive coverage of data_loader with many test files (6779 lines across many test files)
 
-## BOTTLENECKS ELIMINATED
-- **Workflow sync (FIXED):** Pattern parity restored between Python `EXCLUDE_PATTERNS` and workflow bash case list. `*/.github/workflows/*` added to `.github/workflows/main.yml` case list (lines 1163 and 1240). Gate restored from RED (2 controller_progress failures) to GREEN (2484 passed).
-
-## CAMPAIGN D ATTACK PLAN (data_loader.py 78% → >=90%)
+## ATTACK STRATEGY - HIT EVERY UNCOVERED BRANCH
 
 **Recon (run FIRST every session):**
 ```bash
@@ -43,37 +40,46 @@ PYTHONPATH=$PWD python3 -m coverage run --source=strategies/betting_against_beta
 PYTHONPATH=$PWD python3 -m coverage report -m --include="strategies/betting_against_beta/data_loader.py"
 ```
 
-**Missing line blocks by priority (coverage report shows exactly which lines are uncovered):**
+**SYSTEMATIC ATTACK PLAN (use coverage Missing list):**
 
-**PRIORITY 1 - Largest uncovered blocks (hit these first):**
-1. **Lines 120-193** `_normalize_index` numeric epoch magnitude branches (ns/us/ms/s), empty numeric index, mixed types, tz handling, coercer fallbacks, NaT dropping, duplicate handling
-2. **Lines 295-390** `_coerce_to_datetime_scalar` string epoch magnitude branches, ISO/dayfirst parsing, NA markers
-3. **Lines 411-479** `_coerce_to_datetime_scalar` int/float/Timestamp branches, final fallback, garbage raising
-4. **Lines 525-700** `_detect_and_normalize_exchange_format` long-format pivot, OHLCV wide, date-column promotion, empty/early-return
-5. **Lines 715-906** `_promote_datetime_column` candidate column parsing, unnamed columns, last-resort object column, tz normalization
+**PRIORITY 1 - _normalize_index numeric epoch branches (lines ~120-193):**
+Hit ns/us/ms/s boundaries, empty numeric index, sample conversion failures, all fallback paths, mixed types.
 
-**PRIORITY 2 - Medium uncovered blocks:**
-6. **Lines 981-1043** `_normalize_columns` column-name variants (adj close, OHLCV, date, asset names), duplicate detection, unnamed drop, exception handler
-7. **Lines 1053-1084** `_drop_all_nan_columns` all-NaN raise, mixed keep, object column keep, empty/None
-8. **Lines 1095-1150** `_strip_units_and_parse` currency symbols, commas/thousand/Euro decimal, percent, NA markers, malformed-with-digits→NaN, pure-garbage→raise, None/NaN/inf
-9. **Lines 1180-1213** `_coerce_numeric` direct astype, object string coercion, non-numeric raise
-10. **Lines 1226-1333** `_run_data_quality_campaign` None/empty/non-DF, duplicates, implausible return, gap too large, stale run, min finite fraction, all-pass
-11. **Lines 1389-1545** `validate_returns_dataframe` None/non-DF/empty, insufficient rows, missing benchmark, only benchmark, benchmark no finite, short history, inf values, valid pass, case-insensitive rename, quality=False, RangeIndex lacks datetime
+**PRIORITY 2 - _coerce_to_datetime_scalar (lines ~295-479):**
+All string epoch magnitudes (ns/us/ms/s), ISO formats, dayfirst, NA markers, int/float/Timestamp paths, garbage raising.
 
-**PRIORITY 3 - Loader and helper blocks:**
-12. **Lines 1548-1854** All loaders: CSV not-found/empty, parquet/hdf5/pickle/json not-found, pickle flat-scalar-list, pickle unsupported type, unsupported extension, None source, directory path, CSV/JSON/pickle/DataFrame roundtrips with data, dispatch
-13. **Lines 1866-1915** `_drop_metadata_columns` Unnamed drop, sequential integer artifact, non-positive min value, all zeros, all-metadata raise
-14. **Lines 1981-2069** `detect_price_or_returns` returns/prices detection, empty→prices, unknown extension, CSV/JSON/parquet/hdf5/pickle source detection
-15. **Lines 2096-2168** `normalize_schema` None/non-DF/empty, multi-level columns, first-row-as-headers, duplicate-header removal, junk column dropping, valid schema
-16. **Lines 2183-2221** `standardize_columns`, `clean_data`, `validate_prices` None/non-DF, valid, no-positive→None
+**PRIORITY 3 - _detect_and_normalize_exchange_format (lines ~525-700):**
+Long-format pivot, OHLCV wide formats, date-column promotion, early returns, edge cases.
 
-**Execution rules (NON-NEGOTIABLE):**
-1. Recon first - identify exact missing lines with coverage report
-2. Add comprehensive adversarial tests hitting every uncovered branch. Put tests in `tests/test_bab_data_loader_campaign_d_push*.py` or create `test_bab_data_loader_campaign_d_push5.py` if needed.
-3. Only modify implementation if branch is truly untestable via public APIs; preserve all public APIs, raise `BABDataError` on failures
-4. `bash scripts/bab_gate.sh` MUST exit 0 after EVERY batch (~2-3 min) - be patient
-5. Do NOT move to other campaigns until data_loader.py >=90% AND gate GREEN
-6. No shortcuts. Heavy relentless hardening.
+**PRIORITY 4 - _promote_datetime_column (lines ~715-904):**
+Unnamed columns, last-resort object column, tz normalization, candidate parsing failures.
+
+**PRIORITY 5 - _normalize_columns (lines ~981-1043):**
+Column variants, duplicate detection, unnamed drop, exception handlers.
+
+**PRIORITY 6 - _drop_all_nan_columns, _strip_units_and_parse, _coerce_numeric (lines ~1053-1213):**
+All-NaN edge cases, currency symbols/commas/percent/NA, malformed numbers, pure garbage, object coercion.
+
+**PRIORITY 7 - _run_data_quality_campaign (lines ~1226-1333):**
+All quality checks - None/empty/non-DF, duplicates, implausible returns, gaps, staleness, min finite fraction.
+
+**PRIORITY 8 - validate_returns_dataframe (lines ~1389-1545):**
+All validation paths - None/non-DF/empty, insufficient rows, missing benchmark, only benchmark, short history, inf values, RangeIndex without datetime.
+
+**PRIORITY 9 - All loaders (lines ~1548-1854):**
+CSV/JSON/JSONL/Parquet/HDF5/Pickle roundtrips, not-found cases, empty files, pickle scalar/list types, unsupported extensions, directory paths, dispatch logic.
+
+**PRIORITY 10 - Remaining helpers (lines ~1866-2221):**
+_drop_metadata_columns, detect_price_or_returns, normalize_schema, standardize_columns, clean_data, validate_prices.
+
+## EXECUTION RULES (NON-NEGOTIABLE)
+1. **Recon first** - identify exact missing lines with coverage report every session
+2. **Adversarial tests** - Add comprehensive tests hitting EVERY uncovered branch. Put in `tests/test_bab_data_loader_campaign_d_push*.py` (create new files as needed)
+3. **Implementation only if necessary** - Only modify implementation if branch truly untestable via public APIs; preserve all public APIs, raise `BABDataError` on failures
+4. **Gate after EVERY batch** - `bash scripts/bab_gate.sh` MUST exit 0 after EVERY batch (~2-3 min) - be patient, no rushing
+5. **No sidetracks** - Do NOT move to other campaigns until data_loader.py >=90% AND gate GREEN
+6. **No shortcuts** - Heavy relentless hardening. Every single missing branch must be covered or proven untestable
+7. **Zero regressions** - All existing tests must pass
 
 ## QUEUED AFTER D>=90%
 - **CAMPAIGN C:** CLI/reporting (`cli.py`, `scripts/bab_backtest_report.py`) if gaps remain
@@ -89,4 +95,4 @@ PYTHONPATH=$PWD python3 -m coverage report -m --include="strategies/betting_agai
 - Heavy hardening - no shortcuts
 - Raise `BABDataError` on parse/validation failures
 
-**ACTION:** Gate confirmed GREEN. Campaign D in progress - data_loader.py at 78%, need >=90%. No exploratory sidetracks. Heavy relentless work required.
+**ACTION:** Gate GREEN. Campaign D is the ONLY mission. Drive data_loader.py from 70% to >=90% with zero regressions. Be relentless. Hit every uncovered line.
