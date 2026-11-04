@@ -292,48 +292,55 @@ def _coerce_to_datetime_scalar(val):
     """Try to coerce various epoch formats to datetime."""
     try:
         # Explicit NaT check first
-        if val is pd.NaT:
-            return pd.NaT
+        try:
+            if val is pd.NaT:
+                raise ValueError("bad")
+        except Exception:
+            pass
+        try:
+            import pandas as _pd
+            if type(val).__name__ == 'NaTType' or val is _pd.NaT:
+                raise ValueError("bad")
+        except Exception:
+            pass
         if val is None:
             raise ValueError("bad")
         if isinstance(val, float) and (np.isnan(val) or np.isinf(val)):
             raise ValueError("bad")
-        # pandas NaT
         try:
-            # For NaT from pandas
-            try:
-                if isinstance(val, type(pd.NaT)) or (hasattr(val, 'value') and getattr(val, 'value', None) == pd.NaT.value):
-                    raise ValueError("bad")
-            except Exception:
-                pass
-            try:
-                # Handle lists/tuples/arrays specially
-                if isinstance(val, (list, tuple)) and not isinstance(val, str):
+            import pandas as _pd
+            if type(val).__name__ == 'NaTType' or val is _pd.NaT:
+                raise ValueError("bad")
+        except Exception:
+            pass
+        try:
+            # Handle lists/tuples/arrays specially
+            if isinstance(val, (list, tuple)) and not isinstance(val, str):
+                try:
+                    res = pd.to_datetime(list(val), utc=True, errors='raise')
+                    return res
+                except Exception:
                     try:
-                        res = pd.to_datetime(list(val), utc=True, errors='raise')
+                        res = pd.to_datetime(list(val), utc=False, errors='raise')
                         return res
                     except Exception:
+                        raise ValueError("bad")
+            if isinstance(val, np.ndarray) and not isinstance(val, str):
+                try:
+                    if getattr(val, 'size', 1) > 1:
                         try:
-                            res = pd.to_datetime(list(val), utc=False, errors='raise')
+                            res = pd.to_datetime(val, utc=True, errors='raise')
                             return res
                         except Exception:
-                            raise ValueError("bad")
-                if isinstance(val, np.ndarray) and not isinstance(val, str):
-                    try:
-                        if getattr(val, 'size', 1) > 1:
                             try:
-                                res = pd.to_datetime(val, utc=True, errors='raise')
+                                res = pd.to_datetime(val, utc=False, errors='raise')
                                 return res
                             except Exception:
-                                try:
-                                    res = pd.to_datetime(val, utc=False, errors='raise')
-                                    return res
-                                except Exception:
-                                    raise ValueError("bad")
-                    except Exception:
-                        pass
-            except ValueError:
-                raise
+                                raise ValueError("bad")
+                except Exception:
+                    pass
+            try:
+                pass
             except Exception:
                 pass
             try:
@@ -353,12 +360,23 @@ def _coerce_to_datetime_scalar(val):
                     pass
                 if isna_res:
                     # More specific - don't raise for actual valid numbers
+                    try:
+                        if type(val).__name__ == 'NaTType':
+                            # NaT: return pd.NaT as per test expectation
+                            return pd.NaT
+                    except Exception:
+                        pass
                     if isinstance(val, (int, np.integer, float)) and not (isinstance(val, float) and (np.isnan(val) or np.isinf(val))):
                         pass  # might be a valid number? no, NaN is float
                     elif isinstance(val, str):
                         pass
                     else:
                         # Could be NaT
+                        try:
+                            if type(val).__name__ == 'NaTType':
+                                return pd.NaT
+                        except Exception:
+                            pass
                         raise ValueError("bad")
             except ValueError:
                 raise
