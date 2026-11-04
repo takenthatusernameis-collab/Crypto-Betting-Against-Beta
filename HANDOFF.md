@@ -1,10 +1,10 @@
 # SINGLE DURABLE HANDOFF - Crypto-Betting-Against-Beta
-**Timestamp:** 2026-11-04T11:08:45Z
+**Timestamp:** 2026-11-04T16:15:24Z
 **Repo:** Crypto-Betting-Against-Beta (BAB)
 **Priority:** strategies/betting_against_beta/ - HEAVY, relentless implementation and hardening
 
 ## INITIAL TASK MESSAGE (for next agentic session - EXECUTE FIRST)
-**Time:** 2026-11-04T11:08:45Z
+**Time:** 2026-11-04T16:15:24Z
 **MANDATE:** The repository NAME is a directive. ALL work MUST advance BAB under `strategies/betting_against_beta/`. Do NOT deviate to unrelated work. Build the focus campaign so that future agents cannot avoid doing heavy work.
 
 **STEP 0 (GATE - EXECUTE BEFORE ANYTHING ELSE):**
@@ -81,7 +81,7 @@ python3 -m coverage report -m strategies/betting_against_beta/data_loader.py
 - Heavy hardening required - no shortcuts
 - Raise `BABDataError` on bad/parse failures
 
-## PROGRESS SNAPSHOT (2026-11-04T11:08:45Z)
+## PROGRESS SNAPSHOT (2026-11-04T16:15:24Z)
 - **Git HEAD:** local == origin/main. Branch `main`, up to date with `origin/main`. Workflow sync fix committed as ce177f4. Working tree clean.
 - **Gate:** RED (2194 passed, 18 skipped, 11 failed). 11 data_loader failures remain = Campaign D scope. Controller sync resolved.
 - **Coverage:** 83% total; data_loader.py 70% (486 missing) - PRIMARY TARGET.
