@@ -10,10 +10,13 @@ from strategies.betting_against_beta import data_loader as dl
 from strategies.betting_against_beta.errors import BABDataError
 
 
-def test_normalize_index_empty_numeric_raises():
+def test_normalize_index_empty_numeric_returns_empty_datetimeindex():
+    # An empty numeric index is normalized to an empty DatetimeIndex (no raise)
+    # so downstream code sees a valid, if empty, time index.
     df = pd.DataFrame({"ret": []}, index=pd.Index([], dtype=float))
-    with pytest.raises(BABDataError):
-        dl._normalize_index(df)
+    out = dl._normalize_index(df)
+    assert isinstance(out.index, pd.DatetimeIndex)
+    assert len(out) == 0
 
 
 def test_coerce_to_datetime_scalar_float_int_variants():

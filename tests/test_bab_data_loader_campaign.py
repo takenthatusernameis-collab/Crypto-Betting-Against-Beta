@@ -65,7 +65,12 @@ def test_promote_datetime_column_date_named_promoted():
         {"date": ["2023-01-01", "2023-01-02"], "BTC": [0.01, 0.02], "ETH": [0.03, 0.04]}
     )
     out = _promote_datetime_column(df)
-    assert list(out.index) == ["2023-01-01", "2023-01-02"]
+    assert isinstance(out.index, pd.DatetimeIndex)
+    assert out.index.tz is None
+    assert list(out.index) == [
+        pd.Timestamp("2023-01-01"),
+        pd.Timestamp("2023-01-02"),
+    ]
 
 
 def test_promote_datetime_column_unnamed_nondate():

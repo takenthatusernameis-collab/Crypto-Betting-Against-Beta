@@ -108,11 +108,11 @@ def _normalize_index(df: pd.DataFrame) -> pd.DataFrame:
             try:
                 if pd.api.types.is_numeric_dtype(idx):
                     if len(idx) == 0:
-                        try:
-                            return df.copy()
-                        except Exception:
-                            raise BABDataError("Index could not be parsed as datetime: empty")
-                        raise BABDataError("Index could not be parsed as datetime: empty")
+                        # Empty numeric index: return an empty DatetimeIndex so
+                        # downstream code sees a valid (if empty) time index.
+                        out = df.copy()
+                        out.index = pd.DatetimeIndex([])
+                        return out
                     sample = idx[0]
                     try:
                         sv = float(sample)
@@ -293,306 +293,158 @@ def _normalize_index(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def _coerce_to_datetime_scalar(val):
-    """Try to coerce various epoch formats to datetime."""
-    try:
-        # Explicit NaT check first
-        try:
-            if val is pd.NaT:
-                raise ValueError("bad")
-        except Exception:
-            raise ValueError("bad")
-        try:
-            import pandas as _pd
-            if type(val).__name__ == 'NaTType' or val is _pd.NaT:
-                raise ValueError("bad")
-        except ValueError:
-            raise
-        except Exception:
-            pass
-        if val is None:
-            raise ValueError("bad")
-        if isinstance(val, float) and (np.isnan(val) or np.isinf(val)):
-            raise ValueError("bad")
-        try:
-            import pandas as _pd
-            if type(val).__name__ == 'NaTType' or val is _pd.NaT:
-                raise ValueError("bad")
-        except Exception:
-            pass
-        try:
-            # Handle lists/tuples/arrays specially
-            if isinstance(val, (list, tuple)) and not isinstance(val, str):
-                try:
-                    res = pd.to_datetime(list(val), utc=True, errors='raise')
-                    return res
-                except Exception:
-                    try:
-                        res = pd.to_datetime(list(val), utc=False, errors='raise')
-                        return res
-                    except Exception:
-                        raise ValueError("bad")
-            if isinstance(val, np.ndarray) and not isinstance(val, str):
-                try:
-                    if getattr(val, 'size', 1) > 1:
-                        try:
-                            res = pd.to_datetime(val, utc=True, errors='raise')
-                            return res
-                        except Exception:
-                            try:
-                                res = pd.to_datetime(val, utc=False, errors='raise')
-                                return res
-                            except Exception:
-                                raise ValueError("bad")
-                except Exception:
-                    pass
-            try:
-                pass
-            except Exception:
-                pass
-            try:
-                isna_res = pd.isna(val)
-                # If it's an array-like with multiple elements, skip
-                try:
-                    import numpy as _np
-                    if isinstance(isna_res, _np.ndarray) and getattr(isna_res, 'size', 1) > 1:
-                        isna_res = False
-                    elif hasattr(isna_res, '__iter__') and not isinstance(isna_res, str):
-                        # check if it's a scalar bool
-                        try:
-                            isna_res = bool(isna_res)
-                        except Exception:
-                            isna_res = False
-                except Exception:
-                    pass
-                if isna_res:
-                    # More specific - don't raise for actual valid numbers
-                    try:
-                        if type(val).__name__ == 'NaTType':
-                            # NaT: return pd.NaT as per test expectation
-                            return pd.NaT
-                    except Exception:
-                        pass
-                    if isinstance(val, (int, np.integer, float)) and not (isinstance(val, float) and (np.isnan(val) or np.isinf(val))):
-                        pass  # might be a valid number? no, NaN is float
-                    elif isinstance(val, str):
-                        pass
-                    else:
-                        # Could be NaT
-                        try:
-                            if type(val).__name__ == 'NaTType':
-                                return pd.NaT
-                        except Exception:
-                            pass
-                        raise ValueError("bad")
-            except ValueError:
-                raise
-            except Exception:
-                pass
-        except ValueError:
-            raise
-        except Exception:
-            pass
-        if isinstance(val, str):
-            s = val.strip()
-            if s.lower() in {"", "na", "n/a", "nan", "null", "none"}:
-                raise ValueError("bad")
-            # Try epoch seconds/milliseconds/microseconds
-            try:
-                import re
+    """Try to coerce various epoch formats to datetime.
 
-                # Check if it's a pure numeric string (possibly with sign/decimal)
-                # epoch ms?
-                is_pure_num = bool(re.match(r'^[+-]?\d+(\.\d+)?([eE][+-]?\d+)?$', s))
-                if is_pure_num:
-                    try:
-                        numf = float(s)
-                    except Exception:
-                        numf = None
-                    if numf is not None:
-                        # Determine unit by magnitude
-                        av = abs(numf)
-                        if av > 1e18:  # very large
-                            try:
-                                try:
-                                    return pd.to_datetime(int(numf), unit="ns", utc=True)
-                                except Exception:
-                                    return pd.to_datetime(int(numf), unit="us", utc=True)
-                            except Exception:
-                                pass
-                        if av > 1e17:
-                            try:
-                                return pd.to_datetime(int(numf), unit="us", utc=True)
-                            except Exception:
-                                pass
-                        if av > 1e15:  # microseconds
-                            try:
-                                return pd.to_datetime(int(numf) if float(numf).is_integer() else numf, unit="us", utc=True)
-                            except Exception:
-                                pass
-                        if av > 1e12:  # milliseconds
-                            try:
-                                if float(numf).is_integer():
-                                    return pd.to_datetime(int(numf), unit="ms", utc=True)
-                                else:
-                                    return pd.to_datetime(numf, unit="ms", utc=True)
-                            except Exception:
-                                pass
-                        if av >= 1e9 or av < 1e12:  # seconds (typical range)
-                            try:
-                                if float(numf).is_integer() and av >= 1e9:
-                                    return pd.to_datetime(int(numf), unit="s", utc=True)
-                                elif float(numf).is_integer():
-                                    return pd.to_datetime(int(numf), unit="s", utc=True)
-                                else:
-                                    return pd.to_datetime(numf, unit="s", utc=True)
-                            except Exception:
-                                pass
-                        # fallback
-                        try:
-                            return pd.to_datetime(numf, unit="s", utc=True)
-                        except Exception:
-                            pass
-                # Also try if it contains only digits and optional sign (no decimal).
-                # Epoch seconds only make sense at >= 1e9 (~2001-09-09); shorter
-                # digit runs (e.g. "20230101", "01012023") are compact date
-                # representations and must fall through to normal parsing.
-                    if s.replace('+', '').replace('-', '').isdigit():
-                        try:
-                            numf = float(s)
-                            av = abs(numf)
-                            if av >= 1e9:
-                                if av > 1e18:
-                                    try:
-                                        return pd.to_datetime(int(numf), unit="ns", utc=True)
-                                    except Exception:
-                                        pass
-                                if av > 1e17:
-                                    try:
-                                        return pd.to_datetime(int(numf), unit="us", utc=True)
-                                    except Exception:
-                                        pass
-                                if av > 1e15:
-                                    try:
-                                        return pd.to_datetime(int(numf), unit="us", utc=True)
-                                    except Exception:
-                                        pass
-                                if av > 1e12:
-                                    try:
-                                        return pd.to_datetime(int(numf), unit="ms", utc=True)
-                                    except Exception:
-                                        pass
-                                try:
-                                    return pd.to_datetime(int(numf), unit="s", utc=True)
-                                except Exception:
-                                    pass
-                        except Exception:
-                            pass
-            except Exception:
-                pass
-            # try normal parse with utc (handles Z, +00:00, offsets)
+    NaT/NaN/inf/None/empty-string inputs return ``pd.NaT`` (not raise) so callers
+    can drop them later; only genuinely unparseable values raise ``ValueError``.
+    """
+    # NaT / NaN / inf / None / empty-string all become NaT
+    if val is None:
+        return pd.NaT
+    try:
+        if type(val).__name__ == 'NaTType' or val is pd.NaT:
+            return pd.NaT
+    except Exception:
+        pass
+    if isinstance(val, float):
+        try:
+            if np.isnan(val) or np.isinf(val):
+                return pd.NaT
+        except Exception:
+            pass
+    if isinstance(val, str):
+        s = val.strip()
+        if s == "" or s.lower() in {"na", "n/a", "nan", "null", "none"}:
+            return pd.NaT
+        # Try epoch numeric strings first (by magnitude), then normal parsing.
+        import re as _re
+        if _re.match(r'^[+-]?(\d+)(\.\d+)?([eE][+-]?\d+)?$', s):
             try:
-                return pd.to_datetime(s, utc=True, errors="raise")
-            except Exception:
-                try:
+                numf = float(s)
+                av = abs(numf)
+                if av > 1e18:
                     try:
-                        return pd.to_datetime(s, utc=True, errors="raise", dayfirst=True)
+                        return pd.to_datetime(int(numf), unit="ns", utc=True)
+                    except Exception:
+                        try:
+                            return pd.to_datetime(int(numf), unit="us", utc=True)
+                        except Exception:
+                            pass
+                if av > 1e17:
+                    try:
+                        return pd.to_datetime(int(numf), unit="us", utc=True)
                     except Exception:
                         pass
+                if av > 1e15:
+                    try:
+                        return pd.to_datetime(int(numf) if float(numf).is_integer() else numf, unit="us", utc=True)
+                    except Exception:
+                        pass
+                if av > 1e12:
+                    try:
+                        if float(numf).is_integer():
+                            return pd.to_datetime(int(numf), unit="ms", utc=True)
+                        return pd.to_datetime(numf, unit="ms", utc=True)
+                    except Exception:
+                        pass
+                if av >= 1e9:
+                    try:
+                        if float(numf).is_integer():
+                            return pd.to_datetime(int(numf), unit="s", utc=True)
+                        return pd.to_datetime(numf, unit="s", utc=True)
+                    except Exception:
+                        pass
+            except Exception:
+                pass
+        # Normal datetime parsing (handles ISO, Z, offsets, dayfirst).
+        try:
+            return pd.to_datetime(s, utc=True, errors="raise")
+        except Exception:
+            try:
+                return pd.to_datetime(s, utc=True, errors="raise", dayfirst=True)
+            except Exception:
+                try:
                     return pd.to_datetime(s, utc=False, errors="raise")
                 except Exception:
                     try:
                         return pd.to_datetime(s, utc=False, errors="raise", dayfirst=True)
                     except Exception:
-                        raise
-        if isinstance(val, (int, np.integer)):
-            v = int(val)
-            av = abs(v)
-            if av > 1e18:
+                        raise ValueError("bad")
+    if isinstance(val, (int, np.integer)):
+        v = int(val)
+        av = abs(v)
+        if av > 1e18:
+            try:
+                return pd.to_datetime(v, unit="ns", utc=True)
+            except Exception:
                 try:
-                    try:
-                        return pd.to_datetime(v, unit="ns", utc=True)
-                    except Exception:
-                        return pd.to_datetime(int(v), unit="us", utc=True)
+                    return pd.to_datetime(v, unit="us", utc=True)
                 except Exception:
                     pass
-            if av > 1e17:
+        if av > 1e17:
+            try:
+                return pd.to_datetime(v, unit="us", utc=True)
+            except Exception:
+                pass
+        if av > 1e15:
+            try:
+                return pd.to_datetime(v, unit="us", utc=True)
+            except Exception:
+                pass
+        if av > 1e12:
+            return pd.to_datetime(v, unit="ms", utc=True)
+        return pd.to_datetime(v, unit="s", utc=True)
+    if isinstance(val, float):
+        v = val
+        av = abs(v)
+        if av > 1e18:
+            try:
+                return pd.to_datetime(int(v), unit="ns", utc=True)
+            except Exception:
                 try:
                     return pd.to_datetime(int(v), unit="us", utc=True)
                 except Exception:
                     pass
-            if av > 1e15:
-                try:
-                    return pd.to_datetime(int(v), unit="us", utc=True)
-                except Exception:
-                    pass
-            if av > 1e12:
-                return pd.to_datetime(v, unit="ms", utc=True)
-            elif av > 1e9:
-                return pd.to_datetime(v, unit="s", utc=True)
-            else:
-                return pd.to_datetime(v, unit="s", utc=True)
-            v = float(val)
-            if np.isnan(v) or np.isinf(v):
-                raise ValueError("bad")
-            av = abs(v)
-            if av > 1e18:
-                try:
-                    try:
-                        return pd.to_datetime(int(v), unit="ns", utc=True)
-                    except Exception:
-                        return pd.to_datetime(int(v), unit="us", utc=True)
-                except Exception:
-                    pass
-            if av > 1e17:
-                try:
-                    return pd.to_datetime(int(v) if v.is_integer() else v, unit="us", utc=True)
-                except Exception:
-                    pass
-            if av > 1e15:
-                try:
-                    return pd.to_datetime(int(v) if v.is_integer() else v, unit="us", utc=True)
-                except Exception:
-                    pass
-            if av > 1e12:
-                try:
-                    return pd.to_datetime(int(v) if v.is_integer() else v, unit="ms", utc=True)
-                except Exception:
-                    pass
-            elif av >= 1e9 or av < 1e12:
-                try:
-                    return pd.to_datetime(v, unit="s", utc=True)
-                except Exception:
-                    pass
-            else:
-                try:
-                    return pd.to_datetime(v, unit="s", utc=True)
-                except Exception:
-                    pass
-            return pd.to_datetime(v, unit="s", utc=True)
-        # pandas Timestamp/datetime
+        if av > 1e17:
+            try:
+                return pd.to_datetime(int(v) if float(v).is_integer() else v, unit="us", utc=True)
+            except Exception:
+                pass
+        if av > 1e15:
+            try:
+                return pd.to_datetime(int(v) if float(v).is_integer() else v, unit="us", utc=True)
+            except Exception:
+                pass
+        if av > 1e12:
+            try:
+                return pd.to_datetime(int(v) if float(v).is_integer() else v, unit="ms", utc=True)
+            except Exception:
+                pass
         try:
-            ts = pd.Timestamp(val)
-            if getattr(ts, 'tzinfo', None) is not None or getattr(ts, 'tz', None) is not None:
-                try:
-                    try:
-                        return ts.tz_convert('UTC')
-                    except Exception:
-                        return ts.tz_localize(None)
-                except Exception:
-                    return ts
-            return ts
+            return pd.to_datetime(v, unit="s", utc=True)
         except Exception:
             pass
-        try:
-            return pd.to_datetime(val, utc=True, errors="raise")
-        except Exception:
+    # pandas Timestamp / datetime
+    try:
+        ts = pd.Timestamp(val)
+        if getattr(ts, 'tzinfo', None) is not None or getattr(ts, 'tz', None) is not None:
             try:
-                return pd.to_datetime(val, utc=False, errors="raise")
+                return ts.tz_convert('UTC')
             except Exception:
-                raise
+                try:
+                    return ts.tz_localize(None)
+                except Exception:
+                    return ts
+        return ts
     except Exception:
-        raise
-
+        pass
+    try:
+        return pd.to_datetime(val, utc=True, errors="raise")
+    except Exception:
+        try:
+            return pd.to_datetime(val, utc=False, errors="raise")
+        except Exception:
+            raise ValueError("bad")
 
 def _detect_and_normalize_exchange_format(df: pd.DataFrame) -> pd.DataFrame:
     """Detect common exchange CSV formats (CoinGecko, Binance, Coinbase) and normalize."""
@@ -860,8 +712,36 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
                     pass
                 if not bad:
                     try:
-                        if getattr(parsed, "tz", None) is not None:
-                            parsed = parsed.tz_convert("UTC").tz_localize(None)
+                        # Normalize tz-aware Timestamps to tz-naive UTC. The
+                        # Series-level ``.tz`` is None even when individual
+                        # elements are tz-aware, so check the dtype too.
+                        try:
+                            dt_attr = getattr(parsed, "tz", None)
+                        except Exception:
+                            dt_attr = None
+                        try:
+                            dt_attr = dt_attr or getattr(getattr(parsed, "dtype", None), "tz", None)
+                        except Exception:
+                            pass
+                        if dt_attr is not None:
+                            try:
+                                parsed = parsed.tz_convert("UTC").tz_localize(None)
+                            except Exception:
+                                try:
+                                    parsed = parsed.tz_localize(None)
+                                except Exception:
+                                    pass
+                        else:
+                            # Element-wise tz normalization for tz-aware scalars.
+                            try:
+                                if hasattr(parsed, "apply"):
+                                    parsed = parsed.apply(
+                                        lambda p: pd.Timestamp(p).tz_convert("UTC").tz_localize(None)
+                                        if getattr(p, "tzinfo", None) is not None
+                                        else pd.Timestamp(p)
+                                    )
+                            except Exception:
+                                pass
                     except Exception:
                         pass
                     df2 = df.copy()
@@ -1486,31 +1366,34 @@ def validate_returns_dataframe(
     except (ValueError, TypeError) as exc:
         raise BABDataError(str(exc)) from exc
     # If we ended up with a DatetimeIndex that looks like a default integer range
-    # coerced to epoch (all zeros or very small values from range starting at 0),
-    # and there was no actual date/time column provided, treat as invalid
+    # coerced to epoch, only reject when the original index was a default RangeIndex
+    # starting at 0 AND no date/time column was promoted AND the values are the
+    # trivial 0,1,2,... sequence (a clear sign the caller forgot to supply dates).
+    # Legitimate numeric epoch indices (e.g. seconds/ms/us/ns timestamps) are kept.
     try:
-        if isinstance(cleaned.index, pd.DatetimeIndex):
-            if len(cleaned) > 0:
+        if isinstance(cleaned.index, pd.DatetimeIndex) and len(cleaned) > 0:
+            orig = df.copy()
+            had_date_col = False
+            for k in list(orig.columns):
+                kl = str(k).strip().lower()
+                if kl in {'date','datetime','time','timestamp','open_time','close_time','timestamp_ms','time_stamp'} or 'date' in kl or ('time' in kl and kl not in {'volume','turnover'}):
+                    had_date_col = True
+                    break
+            if isinstance(orig.index, pd.DatetimeIndex):
+                had_date_col = True
+            if not had_date_col and isinstance(orig.index, pd.RangeIndex) and getattr(orig.index, 'start', None) == 0 and getattr(orig.index, 'stop', None) == len(orig.index):
+                # Only treat as a missing-date mistake when the index is the exact
+                # 0..N-1 sequence (i.e. the caller passed nothing meaningful). Real
+                # numeric epoch data is accepted even when it happens to start at 0.
                 try:
-                    # Only reject if it came from a RangeIndex starting at 0 (default) with no date col
-                    orig = df.copy()
-                    had_date_col = False
-                    for k in list(orig.columns):
-                        kl = str(k).strip().lower()
-                        if kl in {'date','datetime','time','timestamp','open_time','close_time','timestamp_ms','time_stamp'} or 'date' in kl or ('time' in kl and kl not in {'volume','turnover'}):
-                            had_date_col = True
-                            break
-                    # Also check if original index had explicit datetime-like info
-                    if isinstance(orig.index, pd.DatetimeIndex):
-                        had_date_col = True
-                    if not had_date_col and isinstance(orig.index, (pd.RangeIndex,)) and getattr(orig.index, 'start', None) == 0:
-                        years = [t.year for t in cleaned.index[:3]]
-                        if all(y == 1970 for y in years):
-                            raise BABDataError("Returns DataFrame lacks a datetime index")
-                except BABDataError:
-                    raise
+                    idx_vals = list(orig.index)
+                    is_trivial_sequence = all(idx_vals[i] == i for i in range(len(idx_vals)))
                 except Exception:
-                    pass
+                    is_trivial_sequence = False
+                if is_trivial_sequence:
+                    years = [t.year for t in cleaned.index[:3]]
+                    if all(y == 1970 for y in years):
+                        raise BABDataError("Returns DataFrame lacks a datetime index")
     except BABDataError:
         raise
     except Exception:
