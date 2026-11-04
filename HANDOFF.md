@@ -1,15 +1,15 @@
 # SINGLE DURABLE HANDOFF - Crypto-Betting-Against-Beta
 
 ## INITIAL TASK MESSAGE (for next agentic session - MUST EXECUTE FIRST)
-**Time:** 2026-11-04T01:18:22Z
+**Time:** 2026-11-04T01:40:00Z
 **Repo priority:** Crypto Betting Against Beta (BAB). ALL work MUST advance BAB under `strategies/betting_against_beta/`. The repository NAME is a mandate for HEAVY, relentless implementation and hardening. Do NOT deviate to unrelated work.
 
 **MANDATORY GATE (LAW):** Run `export PATH=$HOME/.local/bin:$PATH && timeout 600 bash scripts/bab_gate.sh` IMMEDIATELY on session start. It MUST exit 0 (GREEN). If gate ever goes RED at any point, STOP ALL FEATURE WORK AND FIX IT BEFORE DOING ANYTHING ELSE. Gate runs ALL `tests/test_*.py`. Be patient. NEVER checkpoint with RED.
 
-**GATE STATUS AT HANDOFF TIME:** GREEN (2081 passed, 15 skipped). Working tree clean of blocking issues.
+**GATE STATUS AT HANDOFF TIME:** GREEN (2135 passed, 17 skipped). Working tree clean of blocking issues.
 
 ## BOTTLENECKS REMOVED / FIXED THIS SESSION
-1. **Controller/workflow pattern parity FIXED (was blocking the gate - RED).** The gate was RED with 2 controller failures (`test_python_patterns_are_subset_of_workflow`, `test_nested_workflow_pattern_is_present_in_workflow`) because `.github/workflows/main.yml:stage_safe_changes()` missing `*/.github/workflows/*` while `scripts/controller_progress.py:EXCLUDE_PATTERNS` had it. Added `*/.github/workflows/*` to workflow pattern list. Mirrored parity. Gate re-ran GREEN.
+1. **Controller/workflow pattern parity FIXED (was blocking gate - RED).** Added `*/.github/workflows/*` to `.github/workflows/main.yml:stage_safe_changes()` (both locations) to match `scripts/controller_progress.py:EXCLUDE_PATTERNS`. Gate restored to GREEN.
 
 ## CURRENT FOCUS CAMPAIGN (MAXIMUM IMPACT - DO NOT STOP UNTIL DONE)
 ### CAMPAIGN D - data_loader.py HARDENING (PRIMARY CRITICAL TARGET - STILL IN PROGRESS)
@@ -23,21 +23,13 @@
 5. `validate_returns_dataframe`, `load_returns*` (CSV/JSON/JSONL/Parquet/HDF5/Pickle/DataFrame), `load_prices`, `normalize_schema`, `detect_price_or_returns`, quality campaign paths, error cases
 
 **Aggressive execution plan:**
-1. **Recon:** Measure data_loader coverage in isolation.
+1. **Recon:** Measure data_loader coverage in isolation (all data_loader tests).
    ```bash
    export PATH=$HOME/.local/bin:$PATH
-   timeout 300 bash -lc 'PYTHONPATH=$PWD python3 -c "
-   import coverage,pytest,os
-   ROOT=os.getcwd()
-   cov=coverage.Coverage(source=[os.path.join(ROOT,\"strategies\",\"betting_against_beta\",\"data_loader.py\")],data_file=None)
-   cov.start()
-   files=sorted([os.path.join(ROOT,\"tests\",f) for f in os.listdir(os.path.join(ROOT,\"tests\")) if f.startswith(\"test_\") and f.endswith(\".py\") and \"data_loader\" in f])
-   pytest.main([\"-q\"]+files)
-   cov.stop()
-   cov.report(show_missing=True)
-   "'
+   PYTHONPATH=$PWD coverage run -m pytest -q tests/test_*data_loader*.py tests/test_betting_against_beta_data_loader*.py
+   coverage report -m strategies/betting_against_beta/data_loader.py
    ```
-2. **Attack relentlessly:** Add adversarial tests to existing `tests/test_bab_data_loader*.py` files OR create `tests/test_bab_data_loader_campaign_d_deep2.py`. Cover every branch with tight assertions. Test error paths (BABDataError) explicitly.
+2. **Attack relentlessly:** Add adversarial tests to existing `tests/test_bab_data_loader*.py` files OR create new campaign tests. Cover every branch with tight assertions. Test error paths (BABDataError) explicitly.
 3. **Harden minimally:** Only make minimal defensive changes if truly untestable through existing APIs. Always raise `BABDataError` with clear messages. Preserve all public APIs. No behavior changes breaking existing tests.
 4. **Verify constantly:** Run full gate after each batch - MUST stay GREEN. Be patient with full suite.
 5. **Iterate until >=90%:** Do not move to next campaign until >=90% coverage on data_loader.py and gate GREEN.
@@ -65,10 +57,8 @@
 - Heavy hardening required - no half-measures
 - Raise `BABDataError` on bad/parse failures as per module conventions
 
-## PROGRESS SNAPSHOT (2026-11-04T01:18:22Z)
-- **Gate:** GREEN (2081 passed, 15 skipped)
-- **Bottlenecks removed:** controller/workflow pattern parity fixed (`*/.github/workflows/*` added to `.github/workflows/main.yml:stage_safe_changes()` and mirrored in `scripts/controller_progress.py:EXCLUDE_PATTERNS`); gate restored to GREEN
-- **Focus:** Campaign D - data_loader.py hardening in progress (73%, 406 missing statements). Added comprehensive adversarial tests covering numeric epochs (ns/us/ms/s), string epochs, tz handling, exchange formats, loaders (CSV/JSON/JSONL/pickle/parquet/hdf5), validation paths.
-- **Immediate next action:** Continue Campaign D - attack remaining large gaps in data_loader. Focus on uncovered branches in `_normalize_index`, `_coerce_to_datetime_scalar`, `_promote_datetime_column`, `_detect_and_normalize_exchange_format`, loaders and validation. Add tight tests per branch, minimal defensive fixes only if necessary, run gate after each batch. Target >=90% coverage on data_loader.py, keep gate GREEN.
-
-(End of file)
+## PROGRESS SNAPSHOT (2026-11-04T01:40:00Z)
+- **Gate:** GREEN (2135 passed, 17 skipped)
+- **Bottlenecks removed:** controller/workflow pattern parity fixed (`*/.github/workflows/*` added to `.github/workflows/main.yml:stage_safe_changes()` in both places and mirrored in `scripts/controller_progress.py:EXCLUDE_PATTERNS`); gate restored to GREEN
+- **Added tests (this session):** Multiple adversarial test files for data_loader covering epoch magnitudes (ns/us/ms/s, floats/strings/ints), coercer edge cases (NaN/inf/None/NaT/tz-aware/dayfirst), normalize_index numeric/object paths and fallbacks, _promote_datetime_column, _detect_and_normalize_exchange_format (long/wide/ohlcv), loaders (CSV/JSON/JSONL/pickle/parquet/hdf5/DataFrame), load_prices/load_returns auto-detect, validate paths. All passing.
+- **Focus:** Campaign D - data_loader.py hardening in progress (73% at last measured in isolation context; need precise recon). Continue attacking remaining large gaps in data_loader. Focus on uncovered branches in `_normalize_index`, `_coerce_to_datetime_scalar`, `_promote_datetime_column`, `_detect_and_normalize_exchange_format`, loaders and validation. Add tight tests per branch, minimal defensive fixes only if necessary, run gate after each batch. Target >=90% coverage on data_loader.py, keep gate GREEN.
