@@ -1,7 +1,7 @@
 # SINGLE DURABLE HANDOFF - Crypto-Betting-Against-Beta
 
 ## INITIAL TASK MESSAGE (for next agentic session - MUST EXECUTE FIRST)
-**Time:** 2026-11-04T00:21:00Z
+**Time:** 2026-11-04T01:18:02Z
 **Repo priority:** Crypto Betting Against Beta (BAB). ALL work MUST advance BAB under `strategies/betting_against_beta/`. The repository NAME is a mandate for HEAVY, relentless implementation and hardening. Do NOT deviate to unrelated work.
 
 **MANDATORY GATE (LAW):** Run `export PATH=$HOME/.local/bin:$PATH && timeout 600 bash scripts/bab_gate.sh` IMMEDIATELY on session start. It MUST exit 0 (GREEN). If gate ever goes RED at any point, STOP ALL FEATURE WORK AND FIX IT BEFORE DOING ANYTHING ELSE. Gate runs ALL `tests/test_*.py`. Be patient. NEVER checkpoint with RED.
@@ -65,7 +65,7 @@
 - Heavy hardening required - no half-measures
 - Raise `BABDataError` on bad/parse failures as per module conventions
 
-## PROGRESS SNAPSHOT (2026-11-04T00:21:00Z)
+## PROGRESS SNAPSHOT (2026-11-04T01:18:02Z)
 - **Gate:** GREEN (2081 passed, 15 skipped)
 - **Bottlenecks removed:** controller/workflow pattern parity fixed (`*/.github/workflows/*` added to `.github/workflows/main.yml:stage_safe_changes()` and mirrored in `scripts/controller_progress.py:EXCLUDE_PATTERNS`); gate restored to GREEN
 - **Focus:** Campaign D - data_loader.py hardening in progress (73%, 406 missing statements). Added comprehensive adversarial tests covering numeric epochs (ns/us/ms/s), string epochs, tz handling, exchange formats, loaders (CSV/JSON/JSONL/pickle/parquet/hdf5), validation paths.
