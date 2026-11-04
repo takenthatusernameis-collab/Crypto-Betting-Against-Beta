@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import pytest
+import pickle
 
 from strategies.betting_against_beta import data_loader as dl
 from strategies.betting_against_beta.errors import BABDataError
