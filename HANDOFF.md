@@ -1,10 +1,10 @@
 # SINGLE DURABLE HANDOFF - Crypto-Betting-Against-Beta
-**Timestamp:** 2026-11-04T06:54:54Z
+**Timestamp:** 2026-11-04T08:22:01Z
 **Repo:** Crypto-Betting-Against-Beta (BAB)
 **Priority:** strategies/betting_against_beta/ - HEAVY, relentless implementation and hardening
 
 ## INITIAL TASK MESSAGE (for next agentic session - EXECUTE FIRST)
-**Time:** 2026-11-04T06:54:54Z
+**Time:** 2026-11-04T08:22:01Z
 **MANDATE:** The repository NAME is a directive. ALL work MUST advance BAB under `strategies/betting_against_beta/`. Do NOT deviate to unrelated work. Build the focus campaign so that future agents cannot avoid doing heavy work.
 
 ### MANDATORY GATE (LAW)
@@ -18,7 +18,7 @@
 
 ### BOTTLENECKS TO ELIMINATE (IF PRESENT)
 - **Workflow sync:** RESOLVED. Both `scripts/controller_progress.py` EXCLUDE_PATTERNS and `.github/workflows/main.yml:stage_safe_changes` now include `*/.github/workflows/*`. Gate GREEN.
-- **Push/persistence:** GitHub App token cannot push workflow file changes. When checkpointing, ensure only non-workflow changes or handle workflow changes separately. The controller retries persistence; do not claim persistence until remote SHA matches.
+- **Push/persistence:** RESOLVED. local == origin/main (210e76). No pending commits.
 - **Gate hygiene:** Any new tests must not break gate; if adding large test files, still expect full gate to pass.
 - **Test flakiness:** If any tests appear environment-dependent, fix or isolate without weakening gate coverage requirements.
 - **Coverage accounting:** Track coverage deltas per batch against data_loader.py specifically.
@@ -60,12 +60,12 @@ python3 -m coverage report -m strategies/betting_against_beta/data_loader.py
 - Heavy hardening required - no shortcuts
 - Raise `BABDataError` on bad/parse failures
 
-### PROGRESS SNAPSHOT (2026-11-04T06:54:54Z)
-- **Git HEAD:** local ahead of origin/main (workflow file changes cannot be pushed by GitHub App; controller will retry persistence).
-- **Gate:** GREEN (2234 passed, 20 skipped, exit 0). Verified this session.
+### PROGRESS SNAPSHOT (2026-11-04T08:22:01Z)
+- **Git HEAD:** 210e76 (local == origin/main). Persistence bottleneck RESOLVED this session: remote SHA matches HEAD.
+- **Gate:** GREEN (2234 passed, 20 skipped, exit 0). Verified prior session.
 - **Coverage:** 85% total; data_loader.py 74% (402 missing) - PRIMARY TARGET
-- **Working tree:** clean (after workflow fix)
-- **Recovery:** Recovery bundles/patches saved. Controller will retry persistence of local-ahead commits after this session; do not claim persistence until remote SHA matches.
+- **Working tree:** clean
+- **Recovery:** No pending local-ahead commits. Controller persistence complete.
 
 **ACTION:** Run gate first. If GREEN, immediately start Campaign D recon and drive data_loader.py to >=90% with gate discipline. Focus relentlessly on BAB under strategies/betting_against_beta/.
 
