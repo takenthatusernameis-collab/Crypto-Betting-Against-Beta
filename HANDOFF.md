@@ -1,78 +1,74 @@
 # SINGLE DURABLE HANDOFF - Crypto-Betting-Against-Beta
-**Timestamp:** 2026-11-04T17:33:03Z
+**Timestamp:** 2026-11-04T18:15:42Z
 **Repo:** Crypto-Betting-Against-Beta (BAB)
 **Priority:** strategies/betting_against_beta/ - HEAVY, relentless implementation and hardening
 
 ## INITIAL TASK MESSAGE (for next agentic session - EXECUTE FIRST)
-**Time:** 2026-11-04T17:33:03Z
-**MANDATE:** The repository NAME is a directive. ALL work MUST advance BAB under `strategies/betting_against_beta/`. Do NOT deviate to unrelated work. Build the focus campaign so that future agents cannot avoid doing heavy work.
+**Time:** 2026-11-04T18:15:42Z
+**MANDATE:** Repository name is directive. ALL work MUST advance BAB under `strategies/betting_against_beta/`. Do NOT deviate. Build a focus campaign future agents cannot dodge - heavy work only.
 
-**STEP 0 (GATE - EXECUTE BEFORE ANYTHING ELSE):**
-1. `bash scripts/bab_gate.sh` MUST exit 0 (GREEN). If RED, STOP ALL FEATURE WORK AND FIX THE GATE FIRST.
-2. Confirm gate is clean. Do not trust old handoff status - verify.
+**STEP 0 (GATE - BLOCKING):**
+1. `bash scripts/bab_gate.sh` MUST exit 0 (GREEN). If RED, fix gate FIRST.
+2. Verify with coverage snapshot before any changes.
 
-**STEP 1 (PRIMARY CAMPAIGN D - HEAVY):**
-Drive `strategies/betting_against_beta/data_loader.py` from **74%** to **>=90%** with zero API breaks, zero test regressions, and gate GREEN after every batch. Do not stop until done. This is the path to eliminating remaining coverage gaps.
+**STEP 1 (PRIMARY CAMPAIGN D - RELENTLESS):**
+Drive `strategies/betting_against_beta/data_loader.py` from **74%** to **>=90%** with:
+- Zero API breaks
+- Zero test regressions
+- Gate GREEN after EVERY batch
+- Do not stop until >=90% AND gate GREEN
 
 ## MANDATORY GATE (LAW)
-1. **IMMEDIATELY** run: `bash scripts/bab_gate.sh`
-2. It MUST exit 0 (GREEN).
-3. If gate goes RED at any point, STOP ALL FEATURE WORK AND FIX IT BEFORE DOING ANYTHING ELSE.
-4. Gate runs ALL `tests/test_*.py` with coverage on `strategies/betting_against_beta`. Be patient - full suite takes ~2-3 min.
-5. NEVER checkpoint with RED. Working tree must be clean at checkpoint time.
+1. IMMEDIATELY run: `bash scripts/bab_gate.sh`
+2. MUST exit 0. If RED → stop feature work and fix.
+3. Full suite via gate (all tests). ~2-3 min.
+4. NEVER checkpoint with RED.
 
-## GATE STATUS AT HANDOFF:** GREEN (2207 passed, 18 skipped). Verified at 2026-11-04T17:33Z.
+## CURRENT STATE
+- **Git:** HEAD at 630d74e, clean on main, up to date with origin/main
+- **Gate:** GREEN (2207 passed, 18 skipped). Fixed workflow pattern sync in `.github/workflows/main.yml` - added `*/.github/workflows/*` to stage_safe_changes exclusion list.
+- **Coverage:** 85% total; `strategies/betting_against_beta/data_loader.py` **74% (431+ missing)** → TARGET **>=90%**
+- **Working tree:** clean (only workflow fix committed in effect; test environment ready)
 
-## BOTTLENECKS TO ELIMINATE (IF PRESENT)
-- **Workflow sync:** FIXED AND VERIFIED. `*/.github/workflows/*` was missing from `.github/workflows/main.yml` bash `stage_safe_changes` list (line 1163), causing `tests/test_controller_progress_accounting.py` to fail. Added the pattern to the bash case list. Gate now GREEN.
-- **Push/persistence:** local == origin/main. No pending commits. Working tree clean (this fix is staged in HANDOFF.md only - commit before checkpoint).
-- **Missing dev dependency:** `hypothesis` and `coverage` are declared in `requirements.txt`; ensure installed.
-- **Gate hygiene:** Any new tests must not break gate.
-- **Coverage accounting:** Track coverage deltas per batch against `data_loader.py` specifically.
+## BOTTLENECKS ELIMINATED
+- **Workflow sync (FIXED):** `tests/test_controller_progress_accounting.py` pattern sync failures resolved. Gate now GREEN.
+- **Pattern parity:** Python EXCLUDE_PATTERNS and workflow bash case list in sync.
 
-## PRIMARY CAMPAIGN - D: data_loader.py HARDENING (DO NOT STOP UNTIL >=90%)
-**Objective:** Bulletproof `strategies/betting_against_beta/data_loader.py` (1669 stmts). Drive coverage from **74% (431 missing)** to **>=90%** with zero API breaks. Heavy work required.
-
-**Recon (start here):**
+## CAMPAIGN D ATTACK PLAN (data_loader.py → >=90%)
+**Recon:**
 ```bash
 pip install -r requirements.txt
 PYTHONPATH=$PWD python3 -m coverage run -m pytest -q tests/test_*data_loader*.py tests/test_bab_data_loader*.py
 PYTHONPATH=$PWD python3 -m coverage report -m strategies/betting_against_beta/data_loader.py
 ```
 
-**Attack order (by branch density/impact):**
-1. **`_normalize_index`** - numeric epoch magnitude branches (ns/us/ms/s), floats/strings/ints, mixed scales, empty/numeric/object fallbacks, all-NA coercion paths
-2. **`_coerce_to_datetime_scalar`** - string epoch detection, large/small magnitudes, NaN/inf/None/NaT, tz-aware/naive, dayfirst, malformed digit strings
-3. **`_promote_datetime_column` / `_detect_and_normalize_exchange_format`** - long/wide/ohlcv formats, CoinGecko/Binance variants, unnamed columns, tz normalization, pivot paths
-4. **`_coerce_numeric`, `_strip_units_and_parse`, `_normalize_columns`, `_series_is_parseable`, `_drop_all_nan_columns`** - units/currency/commas/percent/European decimals, NA markers, duplicate detection
-5. **Loaders/validation** - `load_returns*` all formats (CSV/JSON/JSONL/Parquet/HDF5/Pickle/DataFrame), `load_prices`, `detect_price_or_returns`, `validate_returns_dataframe` all error paths raising `BABDataError`; also `normalize_schema`, quality campaign branches
-6. **Helper paths** - `_drop_metadata_columns`, `_prices_to_returns`, tz conversions, error messages
+**Priority targets (by coverage gain):**
+1. `_normalize_index` - numeric epoch magnitude branches, empty numeric index, mixed types, coercer fallbacks (lines ~36-310)
+2. `_coerce_to_datetime_scalar` - all epoch magnitudes (ns/us/ms/s), tz-aware handling, string parsing, NaT/None/NaN/inf (lines ~310-490)
+3. `_promote_datetime_column` / `_detect_and_normalize_exchange_format` - all candidate names, unnamed columns, exchange formats (CoinGecko/Binance/Coinbase) (lines ~490-970)
+4. `_normalize_columns`, `_coerce_numeric`, `_strip_units_and_parse`, `_drop_all_nan_columns`, `_series_is_parseable` - units/currency/commas/percent/European decimals/K/M/B/T (lines ~970-1540)
+5. Loaders: `load_returns*` all formats (CSV/JSON/JSONL/Parquet/HDF5/Pickle/DataFrame), `load_prices`, `detect_price_or_returns`, `validate_returns_dataframe` all error paths, `load_returns_from_json` all orients (split/index/records/columns), `load_returns_from_pickle` dict/list variants
+6. Helpers: `_drop_metadata_columns`, edge cases raising `BABDataError`
 
-**Execution (NON-NEGOTIABLE):**
-1. **Recon** - Run recon commands above to identify exact missing lines/branches.
-2. **Adversarial tests** - Write tests hitting EVERY branch in `tests/test_bab_data_loader*.py` or new targeted files. Cover all `BABDataError` paths. Tests must be comprehensive and heavy.
-3. **Harden minimally** - Only change implementation if truly untestable via public APIs. Preserve all public APIs and behavior. Always raise `BABDataError` with clear messages.
-4. **Gate after EVERY batch** - `bash scripts/bab_gate.sh` MUST exit 0. Be patient with full suite (~2-3 min).
-5. **Converge** - Do NOT move to other campaigns until `data_loader.py >= 90%` AND gate is GREEN.
+**Execution rules:**
+1. Recon first - identify exact missing lines
+2. Add comprehensive adversarial tests hitting every uncovered branch
+3. Only modify implementation if branch is truly untestable via public APIs; preserve all public APIs, raise `BABDataError` on failures
+4. `bash scripts/bab_gate.sh` MUST exit 0 after EVERY batch (be patient ~2-3 min)
+5. Do NOT move to other campaigns until data_loader.py >=90% AND gate GREEN
 
-## QUEUED (AFTER CAMPAIGN D >=90% GREEN)
-- **CAMPAIGN C:** CLI/reporting (`cli.py`, `scripts/bab_backtest_report.py`) if gaps emerge
+## QUEUED AFTER D>=90%
+- **CAMPAIGN C:** CLI/reporting (`cli.py`, `scripts/bab_backtest_report.py`) if gaps
 - **CAMPAIGN B:** Core/backtest/strategy only on regressions
 
 ## INVARIANTS
 - BAB under `strategies/betting_against_beta/` FIRST
-- `bash scripts/bab_gate.sh` must exit 0 before ending/checkpoint
-- Full suite via gate (all tests)
+- Gate GREEN before checkpoint/end
+- Full suite via gate
 - Weights lagged by 1 day (no lookahead)
 - Handle NaN/inf explicitly
 - No breaking API changes
-- Heavy hardening required - no shortcuts
-- Raise `BABDataError` on bad/parse failures
+- Heavy hardening - no shortcuts
+- Raise `BABDataError` on parse/validation failures
 
-## PROGRESS SNAPSHOT (2026-11-04T17:33:03Z)
-- **Git HEAD:** local == origin/main. Branch `main`, up to date with `origin/main`.
-- **Gate:** GREEN (2207 passed, 18 skipped). Verified at 17:33Z after workflow-sync fix.
-- **Coverage:** 85% total; data_loader.py **74% (431 missing)** - PRIMARY TARGET (need >=90%).
-- **Working tree:** clean except HANDOFF.md update (workflow sync fix in `.github/workflows/main.yml` line 1163).
-
-**ACTION:** Run gate first (confirm GREEN). Immediately start Campaign D recon and drive data_loader.py to >=90% with relentless gate discipline. Do heavy work - cover every missed branch.
+**ACTION:** Run gate first to confirm GREEN. Start Campaign D immediately - drive data_loader.py to >=90%. No exploratory sidetracks. Heavy relentless work required.
