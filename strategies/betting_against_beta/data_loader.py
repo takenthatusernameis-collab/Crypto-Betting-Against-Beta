@@ -108,6 +108,10 @@ def _normalize_index(df: pd.DataFrame) -> pd.DataFrame:
             try:
                 if pd.api.types.is_numeric_dtype(idx):
                     if len(idx) == 0:
+                        try:
+                            return df.copy()
+                        except Exception:
+                            raise BABDataError("Index could not be parsed as datetime: empty")
                         raise BABDataError("Index could not be parsed as datetime: empty")
                     sample = idx[0]
                     try:
@@ -296,11 +300,13 @@ def _coerce_to_datetime_scalar(val):
             if val is pd.NaT:
                 raise ValueError("bad")
         except Exception:
-            pass
+            raise ValueError("bad")
         try:
             import pandas as _pd
             if type(val).__name__ == 'NaTType' or val is _pd.NaT:
                 raise ValueError("bad")
+        except ValueError:
+            raise
         except Exception:
             pass
         if val is None:
@@ -1486,11 +1492,21 @@ def validate_returns_dataframe(
         if isinstance(cleaned.index, pd.DatetimeIndex):
             if len(cleaned) > 0:
                 try:
-                    # If it's very close to epoch start and came from integer range 0,1,2...
-                    # This catches the case where no date column was provided
-                    years = [t.year for t in cleaned.index[:3]]
-                    if all(y == 1970 for y in years):
-                        raise BABDataError("Returns DataFrame lacks a datetime index")
+                    # Only reject if it came from a RangeIndex starting at 0 (default) with no date col
+                    orig = df.copy()
+                    had_date_col = False
+                    for k in list(orig.columns):
+                        kl = str(k).strip().lower()
+                        if kl in {'date','datetime','time','timestamp','open_time','close_time','timestamp_ms','time_stamp'} or 'date' in kl or ('time' in kl and kl not in {'volume','turnover'}):
+                            had_date_col = True
+                            break
+                    # Also check if original index had explicit datetime-like info
+                    if isinstance(orig.index, pd.DatetimeIndex):
+                        had_date_col = True
+                    if not had_date_col and isinstance(orig.index, (pd.RangeIndex,)) and getattr(orig.index, 'start', None) == 0:
+                        years = [t.year for t in cleaned.index[:3]]
+                        if all(y == 1970 for y in years):
+                            raise BABDataError("Returns DataFrame lacks a datetime index")
                 except BABDataError:
                     raise
                 except Exception:
