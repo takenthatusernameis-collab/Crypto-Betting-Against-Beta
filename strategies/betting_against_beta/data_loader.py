@@ -108,21 +108,7 @@ def _normalize_index(df: pd.DataFrame) -> pd.DataFrame:
             try:
                 if pd.api.types.is_numeric_dtype(idx):
                     if len(idx) == 0:
-                        try:
-                            # Try to be compatible with different expectations
-                            try:
-                                # Check if it's a completely empty dataframe
-                                df.index = pd.DatetimeIndex([])
-                                return df
-                            except BABDataError:
-                                raise
-                            except Exception:
-                                pass
-                            raise BABDataError("Index could not be parsed as datetime: empty")
-                        except BABDataError:
-                            raise
-                        except Exception:
-                            raise BABDataError("Index could not be parsed as datetime: empty")
+                        raise BABDataError("Index could not be parsed as datetime: empty")
                     sample = idx[0]
                     try:
                         sv = float(sample)
@@ -307,7 +293,7 @@ def _coerce_to_datetime_scalar(val):
     try:
         # Explicit NaT check first
         if val is pd.NaT:
-            raise ValueError("bad")
+            return pd.NaT
         if val is None:
             raise ValueError("bad")
         if isinstance(val, float) and (np.isnan(val) or np.isinf(val)):
@@ -1486,10 +1472,7 @@ def validate_returns_dataframe(
                     # This catches the case where no date column was provided
                     years = [t.year for t in cleaned.index[:3]]
                     if all(y == 1970 for y in years):
-                        # Don't be too strict - allow if columns look normal (e.g., just returns)
-                        # Additional check - if the original df had no date-like columns
-                        # For simple column-wise JSON like {"BTC": [...], ...} with no index/date, be lenient
-                        pass
+                        raise BABDataError("Returns DataFrame lacks a datetime index")
                 except BABDataError:
                     raise
                 except Exception:
@@ -1861,6 +1844,8 @@ def load_returns(
         return load_returns_from_dataframe(df, benchmark=benchmark, min_rows=min_rows, **kwargs)
 
     path = Path(source)
+    if not path.exists():
+        raise BABDataError(f"data file not found: {path}")
     if path.exists() and path.is_dir():
         raise BABDataError(f"data path is a directory, not a file: {path}")
     suffix = path.suffix.lower()

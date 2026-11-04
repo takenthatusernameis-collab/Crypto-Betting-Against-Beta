@@ -1,10 +1,10 @@
 # SINGLE DURABLE HANDOFF - Crypto-Betting-Against-Beta
-**Timestamp:** 2026-11-04T09:24:12Z
+**Timestamp:** 2026-11-04T10:52:19Z
 **Repo:** Crypto-Betting-Against-Beta (BAB)
 **Priority:** strategies/betting_against_beta/ - HEAVY, relentless implementation and hardening
 
 ## INITIAL TASK MESSAGE (for next agentic session - EXECUTE FIRST)
-**Time:** 2026-11-04T09:24:12Z
+**Time:** 2026-11-04T10:52:19Z
 **MANDATE:** The repository NAME is a directive. ALL work MUST advance BAB under `strategies/betting_against_beta/`. Do NOT deviate to unrelated work. Build the focus campaign so that future agents cannot avoid doing heavy work.
 
 ### MANDATORY GATE (LAW)
@@ -60,7 +60,7 @@ python3 -m coverage report -m strategies/betting_against_beta/data_loader.py
 - Heavy hardening required - no shortcuts
 - Raise `BABDataError` on bad/parse failures
 
-### PROGRESS SNAPSHOT (2026-11-04T09:24:12Z)
+### PROGRESS SNAPSHOT (2026-11-04T10:52:19Z)
 - **Git HEAD:** 210e76 (local == origin/main). Persistence bottleneck RESOLVED this session: remote SHA matches HEAD.
 - **Gate:** GREEN (2234 passed, 20 skipped, exit 0). Verified prior session.
 - **Coverage:** 85% total; data_loader.py 74% (402 missing) - PRIMARY TARGET
