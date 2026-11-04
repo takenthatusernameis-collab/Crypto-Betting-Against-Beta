@@ -1,10 +1,10 @@
 # SINGLE DURABLE HANDOFF - Crypto-Betting-Against-Beta
-**Timestamp:** 2026-11-04T03:55:51Z
+**Timestamp:** 2026-11-04T04:28:00Z
 **Repo:** Crypto-Betting-Against-Beta (BAB)
 **Priority:** strategies/betting_against_beta/ - HEAVY, relentless implementation and hardening
 
 ## INITIAL TASK MESSAGE (for next agentic session - EXECUTE FIRST)
-**Time:** 2026-11-04T03:55:51Z
+**Time:** 2026-11-04T04:28:00Z
 **MANDATE:** The repository NAME is a directive. ALL work MUST advance BAB under `strategies/betting_against_beta/`. Do NOT deviate to unrelated work. Build the focus campaign so that future agents cannot avoid doing heavy work.
 
 ### MANDATORY GATE (LAW)
@@ -14,23 +14,22 @@
 4. Gate runs ALL `tests/test_*.py` with coverage on `strategies/betting_against_beta/`. Be patient - full suite takes time.
 5. NEVER checkpoint with RED. Working tree must be clean at checkpoint time.
 
-**GATE STATUS AT HANDOFF:** GREEN (2135 passed, 17 skipped). Coverage total 85%.
-**data_loader.py:** 73% (406 missing) - LARGEST UNTAPPED COVERAGE GAP.
+**GATE STATUS AT HANDOFF:** GREEN (2193 passed, 19 skipped). All tests pass.
+**data_loader.py:** ~73% coverage (404 missing) - LARGEST UNTAPPED COVERAGE GAP.
 
 ### BOTTLENECKS TO ELIMINATE (IF PRESENT)
-- **Workflow sync:** Ensure `scripts/controller_progress.py` EXCLUDE_PATTERNS and `.github/workflows/main.yml:stage_safe_changes` exclusion lists stay in lock-step (including `*/.github/workflows/*`).
+- **Workflow sync:** Ensure `scripts/controller_progress.py` EXCLUDE_PATTERNS and `.github/workflows/main.yml:stage_safe_changes` exclusion lists stay in lock-step (including `*/.github/workflows/*`). FIXED in this session.
 - **Gate hygiene:** Any new tests must not break gate; if adding large test files, still expect full gate to pass.
 - **Test flakiness:** If any tests appear environment-dependent, fix or isolate without weakening gate coverage requirements.
 - **Coverage accounting:** Track coverage deltas per batch against data_loader.py specifically.
 
 ### PRIMARY CAMPAIGN - D: data_loader.py HARDENING (DO NOT STOP UNTIL DONE)
-**Objective:** Bulletproof `strategies/betting_against_beta/data_loader.py` (1522 stmts). Drive coverage from **73% (406 missing)** to **>=90%** with zero API breaks. This is the highest ROI target.
+**Objective:** Bulletproof `strategies/betting_against_beta/data_loader.py` (1522 stmts). Drive coverage from **73%** to **>=90%** with zero API breaks. This is the highest ROI target.
 
 **Recon (start here):**
 ```bash
-PYTHONPATH=$PWD coverage run -m pytest -q tests/test_*data_loader*.py
-coverage report -m strategies/betting_against_beta/data_loader.py
-coverage html -d /tmp/bab_data_loader_cov  # optional for inspection
+PYTHONPATH=$PWD python3 -m coverage run -m pytest -q tests/test_*data_loader*.py tests/test_bab_data_loader*.py tests/test_betting_against_beta_data_loader*.py
+python3 -m coverage report -m strategies/betting_against_beta/data_loader.py
 ```
 
 **Attack order (by branch density/impact):**
@@ -61,11 +60,11 @@ coverage html -d /tmp/bab_data_loader_cov  # optional for inspection
 - Heavy hardening required - no shortcuts
 - Raise `BABDataError` on bad/parse failures
 
-### PROGRESS SNAPSHOT (2026-11-04T03:55:51Z)
-- **Git HEAD:** bfded84 chore: capture completed workflow run diagnostics
-- **Gate:** GREEN (2135 passed, 17 skipped)
-- **Coverage:** 85% total; data_loader.py 73% (406 missing) - PRIMARY TARGET
-- **Working tree:** clean
-- **Notes:** Controller progress accounting workflow sync fixed previously. Next session MUST start with Campaign D.
+### PROGRESS SNAPSHOT (2026-11-04T04:28:00Z)
+- **Git HEAD:** d27f4543eec34fbab4c95329beb15af0d2b5e955 (local, 2 commits ahead of origin/main ef1001bf; controller will retry persistence)
+- **Gate:** GREEN (2193 passed, 19 skipped) - verified by direct pytest run
+- **Coverage:** 85% total (from previous run); data_loader.py ~73% (404 missing) - PRIMARY TARGET
+- **Working tree:** clean (after commits)
+- **Changes in this session:** Fixed workflow sync for `*/.github/workflows/*` in both locations; added data_loader coverage test files (campaign_d_heavy variants). All tests passing.
 
 **ACTION:** Run gate first. If GREEN, immediately start Campaign D recon and drive data_loader.py to >=90% with gate discipline.
