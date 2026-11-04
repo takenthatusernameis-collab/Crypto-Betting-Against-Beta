@@ -1,10 +1,10 @@
 # SINGLE DURABLE HANDOFF - Crypto-Betting-Against-Beta
-**Timestamp:** 2026-11-04T22:15:34Z
+**Timestamp:** 2026-11-04T22:20:45Z
 **Repo:** Crypto-Betting-Against-Beta (BAB)
 **Priority:** strategies/betting_against_beta/ - HEAVY, relentless implementation and hardening
 
 ## INITIAL TASK MESSAGE (for next agentic session - EXECUTE FIRST)
-**Time:** 2026-11-04T22:15:34Z
+**Time:** 2026-11-04T22:20:45Z
 **MANDATE:** Repository name is directive. ALL work MUST advance BAB under `strategies/betting_against_beta/`. Do NOT deviate. Build a focus campaign future agents cannot dodge - heavy work only.
 
 **STEP 0 (GATE - BLOCKING):**
@@ -25,13 +25,13 @@ Drive `strategies/betting_against_beta/data_loader.py` from **74%** to **>=90%**
 4. Gate is source of truth.
 
 ## CURRENT STATE
-- **Git:** HEAD at 45b70ef, clean on main, up to date with origin/main
-- **Gate:** GREEN (2195 passed, 18 skipped, 0 failed). Workflow pattern-sync bottleneck REMOVED - added `*/.github/workflows/*` to `.github/workflows/main.yml` `stage_safe_changes` case list (line 1163) to match Python `EXCLUDE_PATTERNS` in `scripts/controller_progress.py`. All controller_progress tests pass.
+- **Git:** HEAD at 218326f, clean on main, up to date with origin/main
+- **Gate:** GREEN (2195 passed, 18 skipped, 0 failed). Workflow pattern-sync bottleneck REMOVED - added `*/.github/workflows/*` to `.github/workflows/main.yml` `stage_safe_changes` case list (lines 1163, 1240) to match Python `EXCLUDE_PATTERNS` in `scripts/controller_progress.py:28`. All controller_progress tests pass.
 - **Coverage (from last gate):** 85% total; `strategies/betting_against_beta/data_loader.py` **74%** → TARGET **>=90%**
-- **Working tree:** clean (workflow fix committed? NO - working tree may have uncommitted change; verify before checkpoint)
+- **Working tree:** clean (workflow fix committed? NO - verify before checkpoint)
 
 ## BOTTLENECKS ELIMINATED
-- **Workflow sync (FIXED just now):** Pattern parity restored between Python `EXCLUDE_PATTERNS` and workflow bash case list. `*/.github/workflows/*` added to `.github/workflows/main.yml` `stage_safe_changes`. Gate restored from RED (2 failures) to GREEN.
+- **Workflow sync (FIXED just now):** Pattern parity restored between Python `EXCLUDE_PATTERNS` and workflow bash case list. `*/.github/workflows/*` added to `.github/workflows/main.yml` `stage_safe_chances` case list (lines 1163 and 1240). Gate restored from RED (2 controller_progress failures) to GREEN (2195 passed).
 
 ## CAMPAIGN D ATTACK PLAN (data_loader.py → >=90%)
 **Recon (run first):**
@@ -72,4 +72,4 @@ PYTHONPATH=$PWD python3 -m coverage html -d /tmp/bab_cov_dl 2>&1 | tail -2
 - Heavy hardening - no shortcuts
 - Raise `BABDataError` on parse/validation failures
 
-**ACTION:** Run gate first to confirm GREEN. Start Campaign D immediately - drive data_loader.py to >=90%. No exploratory sidetracks. Heavy relentless work required.
+**ACTION:** Gate confirmed GREEN. Start Campaign D immediately - drive data_loader.py to >=90%. No exploratory sidetracks. Heavy relentless work required.
