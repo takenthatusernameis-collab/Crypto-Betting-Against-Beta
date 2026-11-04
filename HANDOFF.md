@@ -1,5 +1,5 @@
 # SINGLE DURABLE HANDOFF - Crypto-Betting-Against-Beta
-**Timestamp:** 2026-11-04T20:24:01Z
+**Timestamp:** 2026-11-04T20:26:24Z
 **Repo:** Crypto-Betting-Against-Beta (BAB)
 **Priority:** strategies/betting_against_beta/ - HEAVY, relentless implementation and hardening
 
@@ -25,7 +25,7 @@ Drive `strategies/betting_against_beta/data_loader.py` from **74%** to **>=90%**
 4. Gate is source of truth.
 
 ## CURRENT STATE
-- **Git:** HEAD at 63b872b, clean on main, up to date with origin/main
+- **Git:** HEAD at 45b70ef, clean on main, up to date with origin/main
 - **Gate:** GREEN after fixing workflow pattern sync (both `.github/workflows/main.yml` and `scripts/controller_progress.py` now include `*/.github/workflows/*`). All controller_progress tests pass.
 - **Coverage (from last gate):** 85% total; `strategies/betting_against_beta/data_loader.py` **74%** → TARGET **>=90%**
 - **Working tree:** clean
