@@ -1,7 +1,7 @@
 # SINGLE DURABLE HANDOFF - Crypto-Betting-Against-Beta
 
 ## INITIAL TASK MESSAGE (for next agentic session - MUST EXECUTE FIRST)
-**Time:** 2026-11-04T03:33:12Z
+**Time:** 2026-11-04T03:35:34Z
 **Repo priority:** Crypto Betting Against Beta (BAB). ALL work MUST advance BAB under `strategies/betting_against_beta/`. The repository NAME is a mandate for HEAVY, relentless implementation and hardening. Do NOT deviate to unrelated work.
 
 **MANDATORY GATE (LAW):** Run `bash scripts/bab_gate.sh` IMMEDIATELY on session start. It MUST exit 0 (GREEN). If gate ever goes RED at any point, STOP ALL FEATURE WORK AND FIX IT BEFORE DOING ANYTHING ELSE. Gate runs ALL `tests/test_*.py` with coverage on `strategies/betting_against_beta/`. Be patient - full suite takes time. NEVER checkpoint with RED.
@@ -45,7 +45,7 @@
 - Heavy hardening required - no shortcuts
 - Raise `BABDataError` on bad/parse failures
 
-## PROGRESS SNAPSHOT (2026-11-04T03:33:12Z)
+## PROGRESS SNAPSHOT (2026-11-04T03:35:34Z)
 - **Gate:** GREEN (2135 passed, 17 skipped)
 - **Coverage:** 85% total; data_loader.py 73% (406 missing) - PRIMARY TARGET
 - **State:** Clean working tree. Controller progress accounting workflow sync fixed. Campaign D in progress - focus on data_loader hardening to >=90%.
