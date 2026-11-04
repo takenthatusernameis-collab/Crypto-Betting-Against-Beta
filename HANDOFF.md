@@ -1,11 +1,18 @@
 # SINGLE DURABLE HANDOFF - Crypto-Betting-Against-Beta
-**Timestamp:** 2026-11-04T11:01:54Z
+**Timestamp:** 2026-11-04T11:08:45Z
 **Repo:** Crypto-Betting-Against-Beta (BAB)
 **Priority:** strategies/betting_against_beta/ - HEAVY, relentless implementation and hardening
 
 ## INITIAL TASK MESSAGE (for next agentic session - EXECUTE FIRST)
-**Time:** 2026-11-04T11:01:54Z
+**Time:** 2026-11-04T11:08:45Z
 **MANDATE:** The repository NAME is a directive. ALL work MUST advance BAB under `strategies/betting_against_beta/`. Do NOT deviate to unrelated work. Build the focus campaign so that future agents cannot avoid doing heavy work.
+
+**STEP 0 (GATE - EXECUTE BEFORE ANYTHING ELSE):**
+1. `bash scripts/bab_gate.sh` MUST exit 0 (GREEN). If RED, STOP ALL FEATURE WORK AND FIX THE GATE FIRST.
+2. Confirm the 11 remaining failures are ALL data_loader.py (Campaign D). If controller progress tests fail, fix `.github/workflows/main.yml:stage_safe_changes` to match `scripts/controller_progress.py:EXCLUDE_PATTERNS` (the `*/.github/workflows/*` nested pattern) — that is a hard blocker on checkpointing.
+
+**STEP 1 (PRIMARY CAMPAIGN D):**
+Drive `strategies/betting_against_beta/data_loader.py` from 70% coverage (486 missing) to >=90% with zero API breaks, zero test regressions, and gate GREEN after every batch. Do not stop until done.
 
 ## MANDATORY GATE (LAW)
 1. **IMMEDIATELY** run: `bash scripts/bab_gate.sh`
@@ -14,24 +21,24 @@
 4. Gate runs ALL `tests/test_*.py` with coverage on `strategies/betting_against_beta`. Be patient - full suite takes ~2-3 min.
 5. NEVER checkpoint with RED. Working tree must be clean at checkpoint time.
 
-**GATE STATUS AT HANDOFF:** RED (2194 passed, 18 skipped, **13 failed**, exit 1).
-- 2 controller failures (workflow pattern sync) — RESOLVED this session: added `*/.github/workflows/*` to `.github/workflows/main.yml:stage_safe_changes` to match `scripts/controller_progress.py:EXCLUDE_PATTERNS`. Verified: `tests/test_controller_progress_accounting.py` 68 passed.
-- **11 data_loader failures REMAINING** — these are the Campaign D entry point. See PRIMARY CAMPAIGN below.
-  - `test_bab_data_loader_campaign.py::test_promote_datetime_column_date_named_promoted`
-  - `test_bab_data_loader_campaign_d.py::test_normalize_index_empty_numeric`
-  - `test_bab_data_loader_campaign_d_core.py::test_coerce_to_datetime_scalar_branches`
-  - `test_bab_data_loader_campaign_d_heavy.py::TestNormalizeIndexCampaign::test_normalize_index_empty_df_returns_df`
-  - `test_bab_data_loader_comprehensive.py::TestValidateReturnsDataframe::test_load_returns_from_json`
-  - `test_bab_integration_chaos_campaign.py` x4 (`*_lacks a datetime index*`)
-  - `test_bab_strategy_deep_coverage.py::test_weekly_with_non_datetime_fallback`
-  - `test_bab_strategy_more.py::test_weekly_rebalance_non_datetime_index`
+**GATE STATUS AT HANDOFF:** RED (2194 passed, 18 skipped, **11 failed**, exit 1). All 11 are data_loader.py Campaign D failures — the entry point to PRIMARY CAMPAIGN D.
+- `test_bab_data_loader_campaign.py::test_promote_datetime_column_date_named_promoted`
+- `test_bab_data_loader_campaign_d.py::test_normalize_index_empty_numeric`
+- `test_bab_data_loader_campaign_d_core.py::test_coerce_to_datetime_scalar_branches`
+- `test_bab_data_loader_campaign_d_heavy.py::TestNormalizeIndexCampaign::test_normalize_index_empty_df_returns_df`
+- `test_bab_data_loader_comprehensive.py::TestValidateReturnsDataframe::test_load_returns_from_json`
+- `test_bab_integration_chaos_campaign.py` x4 (`*_lacks a datetime index*`)
+- `test_bab_strategy_deep_coverage.py::test_weekly_with_non_datetime_fallback`
+- `test_bab_strategy_more.py::test_weekly_rebalance_non_datetime_index`
+
+**Workflow sync bottleneck RESOLVED and COMMITTED (ce177f4):** added `*/.github/workflows/*` to `.github/workflows/main.yml:stage_safe_changes`, lock-step with `scripts/controller_progress.py:EXCLUDE_PATTERNS`. Verified: `tests/test_controller_progress_accounting.py` 68 passed. Controller failures no longer in the gate.
 
 **Note:** The prior HANDOFF claimed gate GREEN and workflow sync RESOLVED — both were STALE/INCORRECT. Gate was RED at handoff; workflow sync was NOT actually in the workflow file. Do not trust prior status lines without re-verifying.
 
 ## BOTTLENECKS TO ELIMINATE (IF PRESENT)
-- **Workflow sync:** RESOLVED this session. `.github/workflows/main.yml:stage_safe_changes` now includes `*/.github/workflows/*`, lock-step with `scripts/controller_progress.py:EXCLUDE_PATTERNS`. Verified green.
-- **Push/persistence:** local == origin/main. No pending commits. Working tree clean (after workflow fix, commit before checkpoint).
-- **Missing dev dependency:** `hypothesis` and `coverage` are declared in `requirements.txt` but were NOT installed in this environment, which previously caused collection to fail and hide the whole suite. Ensure `pip install -r requirements.txt` before running gate.
+- **Workflow sync:** RESOLVED and committed (ce177f4). `.github/workflows/main.yml:stage_safe_changes` includes `*/.github/workflows/*`, lock-step with `scripts/controller_progress.py:EXCLUDE_PATTERNS`. Verified green (68 passed).
+- **Push/persistence:** local == origin/main. No pending commits. Working tree clean.
+- **Missing dev dependency:** `hypothesis` and `coverage` are declared in `requirements.txt`; ensure `pip install -r requirements.txt` before running gate (collection fails without them, hiding the whole suite).
 - **Gate hygiene:** Any new tests must not break gate; if adding large test files, still expect full gate to pass.
 - **Test flakiness:** If any tests appear environment-dependent, fix or isolate without weakening gate coverage requirements.
 - **Coverage accounting:** Track coverage deltas per batch against `data_loader.py` specifically.
@@ -74,13 +81,13 @@ python3 -m coverage report -m strategies/betting_against_beta/data_loader.py
 - Heavy hardening required - no shortcuts
 - Raise `BABDataError` on bad/parse failures
 
-## PROGRESS SNAPSHOT (2026-11-04T11:01:54Z)
-- **Git HEAD:** local == origin/main. Branch `main`, up to date with `origin/main`.
-- **Gate:** RED (2194 passed, 18 skipped, 13 failed). Workflow bottleneck removed; 11 data_loader failures remain = Campaign D scope.
-- **Coverage:** 83% total; data_loader.py 70% (486 missing) - PRIMARY TARGET (prior HANDOFF's 74% was stale).
-- **Working tree:** clean BEFORE workflow fix; now has `.github/workflows/main.yml` edit (uncommitted). Commit it before checkpoint.
+## PROGRESS SNAPSHOT (2026-11-04T11:08:45Z)
+- **Git HEAD:** local == origin/main. Branch `main`, up to date with `origin/main`. Workflow sync fix committed as ce177f4. Working tree clean.
+- **Gate:** RED (2194 passed, 18 skipped, 11 failed). 11 data_loader failures remain = Campaign D scope. Controller sync resolved.
+- **Coverage:** 83% total; data_loader.py 70% (486 missing) - PRIMARY TARGET.
+- **Working tree:** clean.
 - **Recovery:** `hypothesis`+`coverage` installed; controller persistence complete.
 
-**ACTION:** Run gate first. Confirm RED persists (11 data_loader failures). Immediately start Campaign D recon and drive data_loader.py to >=90% with gate discipline. Focus relentlessly on BAB under strategies/betting_against_beta/.
+**ACTION:** Run gate first. Confirm RED persists (11 data_loader failures, controller green). Immediately start Campaign D recon and drive data_loader.py to >=90% with gate discipline. Focus relentlessly on BAB under strategies/betting_against_beta/.
 
 (End of file - total 115 lines)
