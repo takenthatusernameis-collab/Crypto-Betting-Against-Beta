@@ -1,12 +1,12 @@
 # SINGLE DURABLE HANDOFF - Crypto-Betting-Against-Beta
 
 ## INITIAL TASK MESSAGE (for next agentic session - MUST EXECUTE FIRST)
-**Time:** 2026-11-03T22:25:15Z
+**Time:** 2026-11-04T00:00:08Z
 **Repo priority:** Crypto Betting Against Beta (BAB). ALL work MUST advance BAB under `strategies/betting_against_beta/`. The repository NAME is a mandate for HEAVY, relentless implementation and hardening. Do NOT deviate to unrelated work.
 
 **MANDATORY GATE (LAW):** Run `export PATH=$HOME/.local/bin:$PATH && timeout 600 bash scripts/bab_gate.sh` IMMEDIATELY on session start. It MUST exit 0 (GREEN). If gate ever goes RED at any point, STOP ALL FEATURE WORK AND FIX IT BEFORE DOING ANYTHING ELSE. Gate runs ALL `tests/test_*.py`. Be patient. NEVER checkpoint with RED.
 
-**GATE STATUS AT HANDOFF TIME:** GREEN (2000 passed, 13 skipped; controller tests all pass). Working tree clean as of handoff EXCEPT the bottleneck fix below, which is now applied and verified GREEN.
+**GATE STATUS AT HANDOFF TIME:** GREEN (2000 passed, 13 skipped; controller tests all pass). Working tree clean EXCEPT the bottleneck fix just applied below, which is now verified GREEN.
 
 ## BOTTLENECKS REMOVED / FIXED THIS SESSION
 1. **Controller/workflow pattern parity FIXED (was blocking the gate - RED).** The gate entered this session RED: 2 controller failures (`test_python_patterns_are_subset_of_workflow`, `test_nested_workflow_pattern_is_present_in_workflow`) because `scripts/controller_progress.py:EXCLUDE_PATTERNS` contains `*/.github/workflows/*` but `.github/workflows/main.yml:1163` (`stage_safe_changes()` bash case list) did not. Added `*/.github/workflows/*` to the workflow's `stage_safe_changes()` pattern list right after `.github/workflows/*`. Pattern lists are now in lock-step. Gate re-ran GREEN (2000 passed, 13 skipped). This is the single point that was blocking all progress; it is cleared.
@@ -64,8 +64,8 @@
 - Pattern changes mirrored between controller and workflow
 - Heavy hardening required - no half-measures
 
-## PROGRESS SNAPSHOT (2026-11-03T23:00:XXZ)
+## PROGRESS SNAPSHOT (2026-11-04T00:00:08Z)
 - **Gate:** GREEN (2000 passed, 13 skipped) - re-verified after controller/workflow pattern parity fix
-- **Bottleneck removed:** controller/workflow pattern parity (`*/.github/workflows/*` added to workflow `stage_safe_changes()` and mirrored in controller); gate was RED, now GREEN
-- **Focus:** Campaign D - data_loader.py hardening in progress (72% -> improving). Added targeted adversarial tests for `_normalize_index` numeric epoch branches (ns/us/ms/s, floats, mixed scales) and `_coerce_to_datetime_scalar` edge cases (NaN/inf/None/strings/tz-aware, large/small magnitudes). All existing data_loader tests pass.
+- **Bottleneck removed:** controller/workflow pattern parity (`*/.github/workflows/*` added to workflow `stage_safe_changes()` and mirrored in controller); gate was RED (2 controller failures), now GREEN
+- **Focus:** Campaign D - data_loader.py hardening in progress (72%, 425 missing statements). Prior adversarial test batches for `_normalize_index` numeric epoch branches (ns/us/ms/s, floats, mixed scales) and `_coerce_to_datetime_scalar` edge cases (NaN/inf/None/strings/tz-aware, large/small magnitudes) exist; all existing data_loader tests pass.
 - **Immediate next action:** Continue Campaign D - attack remaining large gaps in data_loader (e.g. `_promote_datetime_column`, exchange format detection, loaders `load_returns/load_prices/load_*`, validation/cleaning paths). Add tight tests per branch, minimal defensive fixes only if necessary, run gate after each batch. Target >=90% coverage on data_loader.py, keep gate GREEN.
