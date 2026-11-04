@@ -17,7 +17,7 @@
 **GATE STATUS AT HANDOFF:** GREEN (latest full gate run status to be confirmed). Local has 6 commits ahead of origin/main that could not all be pushed due to workflow file changes requiring `workflows` permission (GitHub App restriction). Controller will retry persistence. **Preserve all local commits.**
 
 ### BOTTLENECKS TO ELIMINATE (IF PRESENT)
-- **Workflow sync (CRITICAL):** `scripts/controller_progress.py` EXCLUDE_PATTERNS and `.github/workflows/main.yml:stage_safe_changes` exclusion lists MUST stay in lock-step (including `*/.github/workflows/*`). Both were fixed in recent sessions - verify they remain in sync.
+- **Workflow sync:** `scripts/controller_progress.py` EXCLUDE_PATTERNS and `.github/workflows/main.yml:stage_safe_changes` exclusion lists MUST stay in lock-step (including `*/.github/workflows/*`). Both fixed locally (controller already had fix, workflow synced in commit 91ded33). Workflow fix cannot be pushed due to GitHub App `workflows` permission; saved in `/tmp/workflow-sync-fix.bundle`.
 - **Push/persistence:** GitHub App token cannot push workflow file changes. When checkpointing, ensure only non-workflow changes or handle workflow changes separately. The controller retries persistence; do not claim persistence until remote SHA matches.
 - **Gate hygiene:** Any new tests must not break gate; if adding large test files, still expect full gate to pass.
 - **Test flakiness:** If any tests appear environment-dependent, fix or isolate without weakening gate coverage requirements.
