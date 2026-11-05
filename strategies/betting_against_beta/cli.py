@@ -11,6 +11,7 @@ import numpy as np
 
 from .config import BABConfig
 from .strategy import BABStrategy
+from .errors import BABDataError
 
 __version__ = "0.1.0"
 
@@ -244,7 +245,7 @@ def main(argv=None) -> int:
             return 1
         if args.data is not None:
             try:
-                from .data_loader import load_returns, load_prices, BABDataError
+                from .data_loader import load_returns, load_prices
                 from pathlib import Path
                 data_p = Path(args.data)
                 if data_p.exists() and data_p.is_dir():
@@ -278,7 +279,7 @@ def main(argv=None) -> int:
         if args.synthetic or args.data is None:
             result = strategy.run()
         else:
-            from .data_loader import load_prices, load_returns, BABDataError
+            from .data_loader import load_prices, load_returns
             from pathlib import Path
 
             data_p = Path(args.data)

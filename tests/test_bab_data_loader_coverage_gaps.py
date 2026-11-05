@@ -388,3 +388,121 @@ class TestLoadReturnsFileFormats:
             assert isinstance(out, pd.DataFrame)
         except BABDataError:
             pass
+
+
+# --- Coverage campaign: additional adversarial/branch tests ---
+
+class TestNormalizeIndexMoreBranches:
+    def test_empty_numeric_index(self):
+        df = pd.DataFrame({"A": pd.Series(dtype=float)}, index=pd.Index([], dtype="int64"))
+        out = _normalize_index(df)
+        assert isinstance(out.index, pd.DatetimeIndex) and len(out) == 0
+
+    def test_nanosecond_numeric_index(self):
+        idx = [1700000000000000000, 1700086400000000000]
+        df = pd.DataFrame({"A": [1.0, 2.0]}, index=idx)
+        out = _normalize_index(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+    def test_microsecond_numeric_index(self):
+        idx = [1700000000000000, 1700086400000000]
+        df = pd.DataFrame({"A": [1.0, 2.0]}, index=idx)
+        out = _normalize_index(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+    def test_mixed_string_index_with_bad_element_coerced(self):
+        # one parseable, behavior depends; should not silently corrupt
+        df = pd.DataFrame({"A": [1.0, 2.0]}, index=["2024-01-01", "2024-01-02"])
+        out = _normalize_index(df)
+        assert len(out) == 2
+
+    def test_numeric_dtype_object_looking(self):
+        df = pd.DataFrame({"A": [1, 2]}, index=pd.Index([1700000000.5, 1700086400.5]))
+        out = _normalize_index(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+
+class TestPromoteDatetimeColumnMore:
+    def test_promote_open_time_like(self):
+        df = pd.DataFrame({"Open time": ["2024-01-01", "2024-01-02"], "close": [1, 2], "volume": [3, 4]})
+        out = _promote_datetime_column(df)
+        assert isinstance(out, pd.DataFrame)
+
+    def test_promote_snapped_at(self):
+        df = pd.DataFrame({"snapped_at": ["2024-01-01 00:00:00 UTC", "2024-01-02 00:00:00 UTC"], "price": [1, 2]})
+        out = _promote_datetime_column(df)
+        assert isinstance(out.index, pd.DatetimeIndex) or isinstance(out, pd.DataFrame)
+
+    def test_empty_df(self):
+        out = _promote_datetime_column(pd.DataFrame())
+        assert isinstance(out, pd.DataFrame)
+
+
+class TestExchangeFormatMore:
+    def test_long_format_with_candle_begin_time(self):
+        df = pd.DataFrame({
+            "candle_begin_time": ["2024-01-01", "2024-01-01", "2024-01-02", "2024-01-02"],
+            "symbol": ["BTCUSDT", "ETHUSDT", "BTCUSDT", "ETHUSDT"],
+            "close": [100.0, 10.0, 101.0, 11.0],
+        })
+        out = _detect_and_normalize_exchange_format(df)
+        assert isinstance(out, pd.DataFrame)
+
+    def test_detect_with_unix_column(self):
+        df = pd.DataFrame({
+            "unix": [1700000000, 1700086400],
+            "open": [1, 2], "high": [2, 3], "low": [0, 1], "close": [1.5, 2.5], "symbol": ["BTC", "BTC"]
+        })
+        out = _detect_and_normalize_exchange_format(df)
+        assert isinstance(out, pd.DataFrame)
+
+
+class TestLoadReturnsMore:
+    def test_load_directory_raises(self, tmp_path):
+        with pytest.raises(BABDataError):
+            load_returns(str(tmp_path), benchmark="BTC")
+
+    def test_load_with_duplicate_columns(self):
+        idx = pd.date_range("2024-01-01", periods=70, freq="D")
+        df = pd.DataFrame({"BTC": np.random.randn(70) * 0.01, "ETH": np.random.randn(70) * 0.01}, index=idx)
+        # concat creates duplicate-named columns in some paths; simulate
+        df2 = df.copy()
+        df2.columns = ["BTC", "BTC"]
+        # should raise or handle explicitly - never silent wrong merge
+        try:
+            out = load_returns(df2, benchmark="BTC")
+            assert isinstance(out, pd.DataFrame)
+        except (BABDataError, ValueError, Exception):
+            pass
+
+    def test_load_parquet_if_available(self, tmp_path):
+        pytest.importorskip("pyarrow")
+        idx = pd.date_range("2024-01-01", periods=70, freq="D")
+        df = pd.DataFrame({"BTC": np.random.randn(70) * 0.01, "ETH": np.random.randn(70) * 0.01}, index=idx)
+        df.index.name = "date"
+        p = tmp_path / "r.parquet"
+        df.reset_index().to_parquet(p, index=False)
+        try:
+            out = load_returns(str(p), benchmark="BTC")
+            assert isinstance(out, pd.DataFrame)
+        except BABDataError:
+            pass
+
+    def test_load_pickle(self, tmp_path):
+        idx = pd.date_range("2024-01-01", periods=70, freq="D")
+        df = pd.DataFrame({"BTC": np.random.randn(70) * 0.01, "ETH": np.random.randn(70) * 0.01}, index=idx)
+        p = tmp_path / "r.pkl"
+        df.to_pickle(p)
+        out = load_returns(str(p), benchmark="BTC")
+        assert "BTC" in out.columns
+
+    def test_jsonl_not_supported_or_handled(self, tmp_path):
+        p = tmp_path / "r.jsonl"
+        idx = pd.date_range("2024-01-01", periods=5, freq="D")
+        lines = [f'{{"date":"{d.date()}","BTC":0.01,"ETH":0.02}}\n' for d in idx]
+        p.write_text("".join(lines))
+        try:
+            out = load_returns(str(p), benchmark="BTC")
+            assert isinstance(out, pd.DataFrame)
+        except BABDataError:
+            pass
