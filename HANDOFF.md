@@ -1,26 +1,27 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 
-**Timestamp (UTC):** 2026-11-05T19:45:57Z (refreshed this session)
+**Timestamp (UTC):** 2026-11-05T19:49:15Z (refreshed; recon/coverage re-verified this session)
 **Repo:** `Crypto-Betting-Against-Beta` (`/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`)
-**Branch/SHA (verified):** `main` @ `c75a057` (`chore(kilo): checkpoint agent session`). Working tree: **`HANDOFF.md` updated (untracked/modified relative to HEAD state) as the single durable handoff**; **`tests/test_bab_data_loader_coverage_gaps.py` exists locally (499 passed, 5 skipped in isolation) and is included in the measured aggregate — verify persistence/commit state with `git status`/`git diff` before assuming it is in HEAD.** Transient `.coverage`/cache artifacts present locally; **no production code changed**; **no `.github/workflows/*` touched**.
+**Branch/SHA (verified):** `main` @ `37426b1` (`chore(kilo): checkpoint agent session`). Working tree at session start: clean vs HEAD aside from normal ephemeral context; this session updates **`HANDOFF.md` only** as the single durable handoff. **No production code changed. No `.github/workflows/*` edits/commits/pushes.** Ignore transient `.coverage`/`.pytest_cache/`/`.hypothesis/` if created.
 
 **Priority (repo-name driven, non-negotiable):** **Crypto-Betting-Against-Beta → BAB only**: `strategies/betting_against_beta/` correctness, robustness, adversarial handling, and **measured** coverage. No infra/controller refactors, no workflow commits/pushes, no sidetracks. Do not explore unrelated files.
 
-## Recon re-verified (2026-11-05T19:43Z)
+## Recon re-verified (2026-11-05T19:49Z)
 
 - Env: Python 3.12.3, pytest 9.2.0.
-- BAB loader/CLI aggregate (fresh, completed): `--ignore=tests/test_controller_progress_accounting.py tests/test_bab_data_loader_coverage_gaps.py tests/test_bab_data_loader_robust.py tests/test_betting_against_beta_data_loader.py tests/test_bab_messy_data.py tests/test_bab_zero_silent_error.py tests/test_bab_data_loader_promote.py tests/test_bab_cli_coverage_campaign.py tests/test_bab_cli.py` → **608 passed, 11 skipped, 48 warnings, RC 0**.
-- Inspect-sensitive regression spot-check: `tests/test_bab_data_loader_campaign_d.py tests/test_bab_data_loader_campaign_d2.py tests/test_bab_data_loader_campaign_d3.py` → **44 passed, 5 warnings, RC 0**. **`_coerce_to_datetime_scalar` inspect/caller branches preserved.**
-- `tests/test_bab_data_loader_coverage_gaps.py` alone → **499 passed, 5 skipped, RC 0** (prior verified run; aggregate includes it).
+- `tests/test_bab_data_loader_coverage_gaps.py` is **tracked in git** and passes in isolation: **499 passed, 5 skipped, 42 warnings, RC 0**.
+- BAB loader/CLI focused aggregate (fresh, completed, route-around): **608 passed, 11 skipped, 48 warnings, RC 0**.
+- Inspect-sensitive regression spot-check: `tests/test_bab_data_loader_campaign_d.py d2 d3` → **44 passed, 5 warnings, RC 0**. **`_coerce_to_datetime_scalar` inspect/caller branches preserved.**
+- Full repo route-around gate (`--ignore=tests/test_controller_progress_accounting.py`): **3364 passed, 25 skipped, 179 warnings, RC 0** (completed). **Controller-pattern tests excluded by ignore; workflow-sync blocker remains unaddressed in workflows.**
 
-## Verified state (fresh completed measurement, 2026-11-05T19:43Z)
+## Verified state (fresh completed measurement)
 
-- **Infra blocker (not BAB logic; agent cannot clear):** `tests/test_controller_progress_accounting.py` — `main.yml` missing `*/.github/workflows/*` vs `scripts/controller_progress.py`. **Operator with `workflows` scope only.** **Mandatory route-around:** `--ignore=tests/test_controller_progress_accounting.py` for all BAB verification. **No `.github/workflows/*` edits/commits/pushes.**
-- **Coverage — fresh completed aggregate (2026-11-05T19:43Z, `coverage run`):** **608 passed, 11 skipped, RC 0**.
+- **Infra blocker (NOT BAB logic; agent cannot clear):** `tests/test_controller_progress_accounting.py::TestStageSafeChangesPatternSync` fails because `.github/workflows/main.yml` `stage_safe_changes`/related exclusions are missing `*/.github/workflows/*` (and must stay in lock-step with `scripts/controller_progress.py` `EXCLUDE_PATTERNS`). **Operator with `workflows` scope only.** **Mandatory route-around for BAB verification:** `--ignore=tests/test_controller_progress_accounting.py`. **Never edit/commit/push `.github/workflows/*`.**
+- **Coverage — fresh completed aggregate (2026-11-05T19:49Z, `coverage run`):**
 
 | Module | Stmts | Miss | Cover | Target |
 |---|---:|---:|---:|---|
-| `strategies/betting_against_beta/data_loader.py` | 1693 | 437 | **74%** | **≥90%** (Campaign A, mandatory) |
+| `strategies/betting_against_beta/data_loader.py` | 1693 | 437 | **74%** | **≥90%** (Campaign A, mandatory, heavy) |
 | `strategies/betting_against_beta/cli.py` | 319 | 62 | **81%** (loader-focused aggregate) | **≥85%** (full scope, low priority) |
 | **Measured slice total** | 2012 | 499 | **75%** | **≥85%** |
 
@@ -37,7 +38,7 @@ python3 -m coverage run --source=strategies.betting_against_beta -m pytest -q --
   tests/test_bab_cli_coverage_campaign.py tests/test_bab_cli.py
 python3 -m coverage report --include='strategies/betting_against_beta/data_loader.py,strategies/betting_against_beta/cli.py' --show-missing
 ```
-- **Not freshly re-measured this session:** full repo route-around gate; core BAB engines beyond loader/CLI slice; full BAB-only aggregate across all BAB modules/tests.
+- **Not freshly re-measured as a single BAB-only all-modules coverage table this session:** core engines beyond loader/CLI slice (some have many campaign tests; measure in bounded batches).
 - **Transient local artifacts (ignore, not committed):** `.coverage`, `.pytest_cache/`, `.hypothesis/`.
 
 ## Sacred invariants (never regress)
@@ -46,6 +47,7 @@ python3 -m coverage report --include='strategies/betting_against_beta/data_loade
 - **Robust parsing:** NaN/inf/NaT/non-numeric/ambiguous datetime handled explicitly; invalid parse/validation → `BABDataError` per contract (**no silent wrong success**).
 - **Dollar-neutral by default**; transaction costs/slippage semantics preserved.
 - **Public APIs stable:** `BABStrategy.run`, loaders, config, CLI behavior/flags unless a tested bug fix requires change.
+- **Inspect-sensitive behavior preserved:** `_coerce_to_datetime_scalar` caller/inspect branches must keep `campaign_d`/`campaign_d2`/`campaign_d3` (and related) suites passing.
 - No force-push/history rewrite. No fake persistence/remote claims without matching SHA. **No `.github/workflows/*` edits/commits/pushes.**
 
 ## Environment
@@ -61,22 +63,21 @@ python3 -V && python3 -m pytest --version
 
 | # | Bottleneck | Owner | Action | Exit criteria |
 |---|------------|-------|--------|---------------|
-| 1 | Workflow/controller exclude-pattern sync blocks full gate (`main.yml` missing `*/.github/workflows/*`) | **Operator with `workflows` scope** | Add pattern in workflow file only. **Agents lacking permission must not touch `.github/workflows/*`.** Route BAB verification with `--ignore=tests/test_controller_progress_accounting.py`. | `pytest -q tests/test_controller_progress_accounting.py` passes; `bash scripts/bab_gate.sh` unblocked |
+| 1 | Workflow/controller exclude-pattern sync blocks full un-ignored gate (`main.yml` missing `*/.github/workflows/*` in `stage_safe_changes` path patterns) | **Operator with `workflows` scope** | Add pattern in workflow file only. **Agents lacking permission must not touch `.github/workflows/*`.** Route BAB verification with `--ignore=tests/test_controller_progress_accounting.py`. | `pytest -q tests/test_controller_progress_accounting.py` passes; un-ignored full gate unblocked |
 | 2 | `data_loader.py` **74% (437 miss / 1693 stmts)** — largest BAB risk/coverage surface | **Next BAB agent (heavy, immediate, non-optional)** | **Test-first per batch.** Target remaining uncovered clusters (reconfirm with `coverage report --show-missing`). Use `monkeypatch`/`tmp_path`; smallest correct fix only on proven contract violation. **No broad refactor; never silent wrong success; preserve `BABDataError` contract. Preserve inspect-based caller branches in `_coerce_to_datetime_scalar`. No comments in code.** | Measured `data_loader.py` **≥90%** in a **fresh completed aggregate** BAB-loader run with zero regressions and `BABDataError` contract preserved |
-| 3 | `tests/test_bab_data_loader_coverage_gaps.py` persistence unclear in git | **Next BAB agent** | Before large additions, verify with `git status`/`git diff`; if untracked/uncommitted but valuable, include it in BAB work commits only when repo policy allows and tests are green (agent may commit code/tests if appropriate; never push workflows). | File state explicit; no accidental loss of verified tests |
-| 4 | `cli.py` — **81%** in loader aggregate | **Next BAB agent (low priority)** | Add safe deterministic tests only if touching CLI behavior; prefer correctness over coverage churn. | Stable/no-regression; ≥85% in full scope |
-| 5 | Core engines under-covered / not freshly re-measured | **Next BAB agent (after A gains each batch)** | Close high-value branches with invariant assertions across `beta.py`, `portfolio.py`, `strategy.py`, `signals.py`, `backtest.py`, `metrics.py`, `costs.py`, `sizing.py`, `regime.py`, `shorting.py`, `quality.py`, `attribution.py`, `data_sources.py`. | Material measured lift per module; no regressions |
-| 6 | Full BAB-only aggregate coverage truth unknown | **Next BAB agent** | Run BAB-only coverage in bounded/completed batches; persist exact numbers + command here. | Completed coverage table recorded |
+| 3 | `cli.py` — **81%** in loader-focused aggregate | **Next BAB agent (low priority)** | Safe deterministic tests only if touching CLI behavior; prefer correctness over coverage churn. | Stable/no-regression; ≥85% in full scope |
+| 4 | Core engines not in a single fresh BAB-only all-modules coverage table | **Next BAB agent (after A gains each batch)** | Close high-value branches with invariant assertions across `beta.py`, `portfolio.py`, `strategy.py`, `signals.py`, `backtest.py`, `metrics.py`, `costs.py`, `sizing.py`, `regime.py`, `shorting.py`, `quality.py`, `attribution.py`, `data_sources.py`. | Material measured lift per module; no regressions |
+| 5 | Full un-ignored repo gate blocked by #1 | **Operator** | Fix workflow sync per #1. | All tests pass without controller ignore |
 
 ---
 
 # INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (MANDATORY, HEAVY, BAB-ONLY)
 
-**Verified 2026-11-05T19:43Z, `main@c75a057`.** Repo name = `Crypto-Betting-Against-Beta`; prioritize BAB correctness/robustness/coverage above everything else. **This is the only durable handoff. Read it, run Step 0, then execute Campaign A immediately. Do not idle, do not explore unrelated files, do not stop after one small patch.**
+**Verified 2026-11-05T19:49Z, `main@37426b1`.** Repo name = `Crypto-Betting-Against-Beta`; prioritize BAB correctness/robustness/coverage above everything else. **This is the only durable handoff. Read it, run Step 0, then execute Campaign A immediately. Do not idle, do not explore unrelated files, do not stop after one small patch.**
 
 ## Non-negotiable operating rules
 - **BAB-only scope.** Work only in `strategies/betting_against_beta/*`, BAB tests, and this handoff.
-- **Heavy session required.** Deliver **≥2 verified batches** (more if stable). Each batch = new/updated tests + targeted run + aggregate/coverage delta + recorded numbers.
+- **Heavy session required.** Deliver **≥2 verified batches** (more if stable). Each batch = new/updated tests + focused run + aggregate/coverage delta + recorded numbers.
 - **No workflow/infra changes.** Route around controller blocker with `--ignore=tests/test_controller_progress_accounting.py`. Never edit/commit/push `.github/workflows/*`.
 - **Production code secondary.** Keep unchanged unless a **tested contract violation** requires the **smallest correct fix**. Never silent wrong success. Preserve `BABDataError` semantics and public APIs.
 - **Preserve inspect-sensitive behavior.** `_coerce_to_datetime_scalar` caller/inspect branches must keep `campaign_d`/`campaign_d2`/`campaign_d3` (and related) suites passing.
@@ -100,11 +101,11 @@ python3 -m coverage run --source=strategies.betting_against_beta -m pytest -q --
   tests/test_betting_against_beta_data_loader.py tests/test_bab_messy_data.py \
   tests/test_bab_zero_silent_error.py tests/test_bab_data_loader_promote.py \
   tests/test_bab_cli_coverage_campaign.py tests/test_bab_cli.py 2>&1 | tail -2
-python3 -m coverage report --include='strategies/betting_against_beta/data_loader.py' --show-missing 2>&1 | tail -10
+python3 -m coverage report --include='strategies/betting_against_beta/data_loader.py' --show-missing 2>&1 | tail -12
 ```
 
 ## Campaign A — `data_loader.py` (PRIMARY, HEAVY — DO NOT DEFER)
-**Baseline (fresh, 2026-11-05T19:43Z):** **74% (437 miss / 1693 stmts)**; aggregate **608 passed, 11 skipped**. **Campaign A is NOT done until `data_loader.py` ≥90% in a fresh completed aggregate run with zero regressions and `BABDataError` contract preserved.**
+**Baseline (fresh, 2026-11-05T19:49Z):** **74% (437 miss / 1693 stmts)**; focused aggregate **608 passed, 11 skipped**. **Campaign A is NOT done until `data_loader.py` ≥90% in a fresh completed aggregate run with zero regressions and `BABDataError` contract preserved.**
 
 **Target:** extend `tests/test_bab_data_loader_coverage_gaps.py` with deterministic batch classes (no comments in code). Use `monkeypatch`/`tmp_path`. After each batch: run focused file, run aggregate + coverage, run inspect-sensitive `campaign_d*` spot-check.
 
