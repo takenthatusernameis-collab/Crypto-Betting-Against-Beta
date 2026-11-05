@@ -1,10 +1,10 @@
 # SINGLE DURABLE HANDOFF - Crypto-Betting-Against-Beta
-**Timestamp:** 2026-11-05T03:31:14Z
+**Timestamp:** 2026-11-05T03:37:27Z
 **Repo:** Crypto-Betting-Against-Beta (BAB)
 **Priority:** strategies/betting_against_beta/ - HEAVY, relentless implementation and hardening
 
 ## INITIAL TASK MESSAGE (for next agentic session - EXECUTE FIRST)
-**Time:** 2026-11-05T03:31:14Z
+**Time:** 2026-11-05T03:37:27Z
 **MANDATE:** Repository name is directive. ALL work MUST advance BAB under `strategies/betting_against_beta/`. Do NOT deviate. Build a focus campaign future agents cannot dodge - heavy work only.
 
 ## BLOCKER REMOVED (SAME-RUN RECOVERY CONTEXT)
@@ -37,7 +37,7 @@ Drive `strategies/betting_against_beta/data_loader.py` from **79%** to **>=90%**
 3. NEVER checkpoint with RED.
 4. Gate is source of truth.
 
-## CURRENT STATE (2026-11-05T03:31:14Z)
+## CURRENT STATE (2026-11-05T03:37:27Z)
 - **Git:** Clean working tree on main, HEAD == origin/main (`fc53df6`). No pending pushes.
 - **Gate:** GREEN (2779 passed, 18 skipped). All tests pass.
 - **Coverage:** data_loader.py **79%** → TARGET **>=90%** (need +11pp, ~188 stmts). Other modules have good coverage.
