@@ -1,8 +1,8 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 
-**Timestamp (UTC):** 2026-11-05T13:39:14Z
+**Timestamp (UTC):** 2026-11-05T13:40:50Z
 **Repo:** `Crypto-Betting-Against-Beta` (`/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`)
-**Branch/SHA (local, verified):** `main` @ `e8c2704` (`git status --short` clean at recon; 2026-11-05T13:39Z). Prod code identical to `05d0b88`; only `HANDOFF.md` checkpointed between `05d0b88` and `e8c2704`.
+**Branch/SHA (local, verified):** `main` @ `c80eb85` (`git status --short` clean at recon; 2026-11-05T13:40Z). Prod code identical across recent checkpoints; only `HANDOFF.md` checkpointed.
 **Durable handoff:** this file only (`./HANDOFF.md`). No duplicates.
 **Priority filter (non-negotiable):** repo name = **Crypto-Betting-Against-Beta** → focus **BAB only**: `strategies/betting_against_beta/` correctness, robustness, adversarial handling, and **measured** coverage. No infra/controller refactors, no workflow commits/pushes, no sidetracks.
 
