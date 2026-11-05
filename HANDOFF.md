@@ -1,10 +1,10 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 
-**Timestamp (UTC):** 2026-11-05T10:17:30Z
+**Timestamp (UTC):** 2026-11-05T10:20:55Z
 **Repo:** `takenthatusernameis-collab/Crypto-Betting-Against-Beta` — **BAB-only focus (non-negotiable).** Every action must increase `strategies/betting_against_beta/` correctness, robustness, adversarial handling, or coverage. No sidetracks. Prioritize by repo name.
 **Git:** `HEAD` = `origin/main` = `038cb1d7ebc2889f086a280bb0dc7c55e709072f` (`chore: capture completed workflow run diagnostics`). Working tree clean except this HANDOFF update.
 
-## Verified state (this session, 2026-11-05T10:17Z)
+## Verified state (this session, 2026-11-05T10:20Z)
 
 - **Recon:** Clean tree at `038cb1d`; `origin/main` in sync. Deps present in runner user site (`kilo-home/.local/lib/python3.12/site-packages`).
 - **BAB smoke:** `pytest -q tests/test_bab_data_loader_campaign_d_core.py tests/test_bab_cli.py tests/test_bab_beta_campaign.py tests/test_betting_against_beta.py` → **118 passed** (env below).
