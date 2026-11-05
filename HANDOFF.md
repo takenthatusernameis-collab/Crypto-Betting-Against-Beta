@@ -1,6 +1,6 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 
-**Timestamp (UTC):** 2026-11-05T13:40:50Z
+**Timestamp (UTC):** 2026-11-05T13:41:46Z
 **Repo:** `Crypto-Betting-Against-Beta` (`/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`)
 **Branch/SHA (local, verified):** `main` @ `c80eb85` (`git status --short` clean at recon; 2026-11-05T13:40Z). Prod code identical across recent checkpoints; only `HANDOFF.md` checkpointed.
 **Durable handoff:** this file only (`./HANDOFF.md`). No duplicates.
@@ -30,7 +30,7 @@
 
 ## Progress this session (BAB-only)
 
-- Re-recon completed: SHA `e8c2704` (clean), controller blocker reproduced (2 fails; routed around again), BAB targeted suites green (82 passed). Expanded coverage slice carried forward (data_loader.py 56%, cli.py 56%). **No production BAB code changed. No workflow/infra files touched.**
+- Re-recon completed: SHA `d38fa11` (clean), controller blocker reproduced (2 fails; routed around again), BAB targeted suites green (82 passed). Expanded coverage slice carried forward (data_loader.py 56%, cli.py 56%). **No production BAB code changed. No workflow/infra files touched.**
 - Durable handoff refreshed in place with current timestamp/SHA and an explicit heavy next-session campaign.
 
 ## Sacred invariants (never regress)
@@ -64,7 +64,7 @@ python3 -V && python3 -m pytest --version
 
 ## INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (MANDATORY, HEAVY, BAB-ONLY)
 
-**You are on BAB hardening duty (SHA `e8c2704`, 2026-11-05T13:39Z verified, clean tree).** Repo name = `Crypto-Betting-Against-Beta`; prioritize BAB correctness/robustness/coverage above everything else. Do **not** explore unrelated files. Do **not** stop after one small patch. Do **not** edit/commit/push `.github/workflows/*` or other infra. Work in **verified batches** and record real output in this handoff. Bottleneck #1 (controller workflow pattern) is routed around — it must not stop BAB work.
+**You are on BAB hardening duty (SHA `d38fa11`, 2026-11-05T13:39Z verified, clean tree).** Repo name = `Crypto-Betting-Against-Beta`; prioritize BAB correctness/robustness/coverage above everything else. Do **not** explore unrelated files. Do **not** stop after one small patch. Do **not** edit/commit/push `.github/workflows/*` or other infra. Work in **verified batches** and record real output in this handoff. Bottleneck #1 (controller workflow pattern) is routed around — it must not stop BAB work.
 
 ### 0) Recon — establish truth (run to completion; record key numbers)
 ```bash
