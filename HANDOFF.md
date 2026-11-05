@@ -1,29 +1,25 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 
-**Timestamp (UTC):** 2026-11-05T18:50:15Z (refreshed this session)
+**Timestamp (UTC):** 2026-11-05T18:58:13Z (refreshed this session)
 **Repo:** `Crypto-Betting-Against-Beta` (`/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`)
-**Branch/SHA (verified):** `main` @ `1260d65` (`chore(kilo): checkpoint agent session`). Working tree has transient `.coverage`/`.pytest_cache`/`.hypothesis` only; **no `.github/workflows/*` touched**. **Durable handoff:** **this file only** (`./HANDOFF.md`).
+**Branch/SHA (verified):** `main` @ `cd6c483` (`chore(kilo): checkpoint agent session`). Working tree has transient `.coverage`/`.pytest_cache`/`.hypothesis` only; **no `.github/workflows/*` touched**. **Durable handoff:** **this file only** (`./HANDOFF.md`).
 **Priority (repo-name driven, non-negotiable):** **Crypto-Betting-Against-Beta → BAB only**: `strategies/betting_against_beta/` correctness, robustness, adversarial handling, and **measured** coverage. No infra/controller refactors, no workflow commits/pushes, no sidetracks.
 
-## Recon re-verified (2026-11-05T18:50Z)
+## Recon re-verified (2026-11-05T18:58Z)
 - Env: Python 3.12.3, pytest 9.2.0.
-- Targeted loader recon (no coverage; completed): `--ignore=tests/test_controller_progress_accounting.py tests/test_bab_data_loader_coverage_gaps.py tests/test_bab_data_loader_robust.py tests/test_betting_against_beta_data_loader.py tests/test_bab_messy_data.py tests/test_bab_zero_silent_error.py tests/test_bab_data_loader_promote.py` → **404 passed, 10 skipped, 25 warnings**, RC 0.
+- BAB loader/CLI aggregate (fresh, completed): `--ignore=tests/test_controller_progress_accounting.py tests/test_bab_data_loader_coverage_gaps.py tests/test_bab_data_loader_robust.py tests/test_betting_against_beta_data_loader.py tests/test_bab_messy_data.py tests/test_bab_zero_silent_error.py tests/test_bab_data_loader_promote.py tests/test_bab_cli_coverage_campaign.py tests/test_bab_cli.py` → **515 passed, 10 skipped, 35 warnings**, RC 0.
 
-## Verified state (baseline from 2026-11-05T18:49Z fresh measurement; recon still green)
+## Verified state (fresh completed measurement, 2026-11-05T18:58Z)
 
 - **Infra blocker (not BAB logic; agent cannot clear):** `tests/test_controller_progress_accounting.py` — `main.yml` missing `*/.github/workflows/*` vs `scripts/controller_progress.py`. **Operator with `workflows` scope only.** **Mandatory route-around:** `--ignore=tests/test_controller_progress_accounting.py` for all BAB verification. **No `.github/workflows/*` edits/commits/pushes.**
-- **BAB loader/CLI broad regression (fresh, completed):** `python3 -m pytest -q --tb=no --ignore=tests/test_controller_progress_accounting.py tests/test_bab_data_loader_*.py tests/test_betting_against_beta_data_loader*.py tests/test_bab_messy_data.py tests/test_bab_zero_silent_error.py tests/test_bab_cli.py tests/test_bab_cli_coverage_campaign.py` → **1602 passed, 19 skipped, 112 warnings**, RC 0.
-- **Full repo (route-around, fresh, completed):** `python3 -m pytest -q --tb=no --ignore=tests/test_controller_progress_accounting.py` → **3089 passed, 24 skipped, 153 warnings**, RC 0 (excludes the 2 known controller-pattern failures from full run without ignore).
-- **Targeted loader/CLI aggregate (fresh, completed):** `tests/test_bab_data_loader_coverage_gaps.py tests/test_bab_data_loader_robust.py tests/test_betting_against_beta_data_loader.py tests/test_bab_messy_data.py tests/test_bab_zero_silent_error.py tests/test_bab_data_loader_promote.py tests/test_bab_cli_coverage_campaign.py tests/test_bab_cli.py` → **433 passed, 10 skipped, 25 warnings**, RC 0 (~9.7s).
-- **Coverage — fresh completed aggregate (2026-11-05T18:49Z, `coverage run`):** **433 passed, 10 skipped, RC 0**.
+- **Coverage — fresh completed aggregate (2026-11-05T18:58Z, `coverage run`):** **515 passed, 10 skipped, RC 0**.
 
-| Module | Stmts | Miss | Cover | Δ vs 17:39Z | Target |
+| Module | Stmts | Miss | Cover | Δ vs 18:49Z baseline | Target |
 |---|---:|---:|---:|---:|---|
-| `strategies/betting_against_beta/data_loader.py` | 1693 | 541 | **68%** | **+5pp** (623→541 miss) | **≥90%** |
-| `strategies/betting_against_beta/cli.py` | 319 | 62 | **81%** (loader-focused aggregate) / **85%** (full CLI scope confirmed) | stable / confirmed | **≥85%** (full scope) |
-| **Measured slice total** | 2012 | 603 | **70%** | **+4pp** | **≥85%** |
+| `strategies/betting_against_beta/data_loader.py` | 1693 | 526 | **69%** | **+1pp** (541→526 miss) | **≥90%** |
+| `strategies/betting_against_beta/cli.py` | 319 | 62 | **81%** (loader-focused aggregate) / **85%** (full CLI scope confirmed prior) | stable | **≥85%** (full scope) |
+| **Measured slice total** | 2012 | 588 | **71%** | **+1pp** | **≥85%** |
 
-- **CLI full-scope confirmation (fresh):** `coverage run --source=strategies.betting_against_beta -m pytest -q --tb=no --ignore=tests/test_controller_progress_accounting.py tests/test_bab_cli.py tests/test_bab_cli_console_adversarial.py tests/test_bab_cli_report_hardening.py tests/test_bab_cli_strategy_edge.py tests/test_bab_cli_coverage_campaign.py` → **64 passed, 1 warning**; `cli.py` **85% (48 miss / 319 stmts)**.
 - **Coverage command (bounded, completed):**
 ```bash
 cd /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
@@ -37,14 +33,13 @@ python3 -m coverage run --source=strategies.betting_against_beta -m pytest -q --
   tests/test_bab_cli_coverage_campaign.py tests/test_bab_cli.py
 python3 -m coverage report --include='strategies/betting_against_beta/data_loader.py,strategies/betting_against_beta/cli.py'
 ```
-- **Not freshly re-measured this session:** core BAB engines beyond loader/CLI slice; full BAB-only aggregate across *all* BAB modules/tests unknown until measured in bounded/completed batches.
+- **Not freshly re-measured this session:** full repo route-around gate; core BAB engines beyond loader/CLI slice; full BAB-only aggregate across all BAB modules/tests.
 - **Transient local artifacts (ignore, not committed):** `.coverage`, `.pytest_cache/`, `.hypothesis/`.
 
 ## This session’s verified progress (BAB-only)
 
-- **Added batch 5+6 tests** to `tests/test_bab_data_loader_coverage_gaps.py` covering: `_normalize_index` numeric magnitude branches (ns/us/ms/s/zero/small/empty), tz normalization/dedup/NaT-drop, object/mixed/epoch-string index parsing, `to_datetime`/tz fallback error paths via `monkeypatch`; `_coerce_to_datetime_scalar` NaT/None/inf/nan/empty/null variants, epoch magnitudes (ns/us/ms/s, int/float/np types), ISO/Z/offset/dayfirst/whitespace, `np.datetime64`/`pd.Timestamp`/datetime/date passthrough; `_detect_and_normalize_exchange_format` long symbol+date+close, timestamp/price, OHLCV single-asset, epoch numeric date promotion, conservative string-date path, empty/None passthrough; `_promote_datetime_column` tz-aware index normalization, date/timestamp/unnamed/epoch promotion, no-op cases; `normalize_schema` None/non-df/empty, MultiIndex flatten, duplicate-header/junk-column handling, exchange integration; format loaders CSV/parquet/hdf5/pickle missing-file/read-error/dispatch paths, pickle df/dict/list-of-dicts/flat-scalar-reject/unsupported/unpickling, parquet/hdf5 success via monkeypatch; `load_returns` dispatch (csv/json/parquet/hdf5/pickle, bad format); internal helpers `_coerce_numeric`/`_drop_all_nan_columns`/`iter_assets`; validation benchmark-missing/min-rows.
-- **Fixes to test contracts only** (no production code changes): corrected batch-5/6 assertions to match existing contracts (`NaT` coercion raises in this context, `load_returns` bad-format behavior, `pickle` local imports, `np.int16` bounds).
-- **No production logic changed.** Invariants preserved: no lookahead/lag semantics untouched; `BABDataError` contract preserved (no silent wrong success introduced); dollar-neutral/costs/slippage/public APIs untouched.
+- **Added Batch 7 tests** to `tests/test_bab_data_loader_coverage_gaps.py` (406 passed, 4 skipped in that file alone): `_normalize_index` numeric/object fallback/elementwise/dayfirst/duplicate/tz/numeric-magnitude branches; `_coerce_to_datetime_scalar` epoch/string/ISO/offset/dayfirst/numpy/datetime/date/zero/magnitude variants (preserving inspect-based caller-branch behavior — **no production changes**); `_detect_and_normalize_exchange_format` long symbol variants, OHLCV/adj-close/close-price/time heuristic, conservative string-date, epoch-ms promotion; `_promote_datetime_column` tz-aware index, 2-col date promotion, unparseable candidate `BABDataError`, unnamed/last-resort scan, epoch/snapped_at candidates; format loaders CSV empty/read-error, JSON split/index/table/jsonl/bad-line/missing, `load_returns` jsonl/dir/None dispatch, pickle dict/empty, parquet/hdf5 read/validate exception wrapping; `validate_returns_dataframe` type/None/empty/no-dt-index/min-rows/junk/inf/benchmark/no-finite/only-benchmark/insufficient-history/quality-off/case-insensitive; `_run_data_quality_campaign` bad-index/dups/allow-dups/implausible/gap/stale/min-finite-fraction/tz/clean; `normalize_schema` MultiIndex flatten, duplicate-header handling, junk-column drop, non-df/empty errors.
+- **Production code:** **unchanged**. Invariants preserved: no lookahead/lag semantics untouched; `BABDataError` contract preserved (no silent wrong success introduced); dollar-neutral/costs/slippage/public APIs untouched. **Did not break inspect-based caller branches in `_coerce_to_datetime_scalar`.**
 
 ## Sacred invariants (never regress)
 
@@ -68,8 +63,8 @@ python3 -V && python3 -m pytest --version
 | # | Bottleneck | Owner | Action | Exit criteria |
 |---|------------|-------|--------|---------------|
 | 1 | Workflow/controller exclude-pattern sync blocks full gate (`main.yml` missing `*/.github/workflows/*`) | **Operator with `workflows` scope** | Add pattern in workflow file only. **Agents lacking permission must not touch `.github/workflows/*`.** Route BAB verification with `--ignore=tests/test_controller_progress_accounting.py`. | `pytest -q tests/test_controller_progress_accounting.py` passes; `bash scripts/bab_gate.sh` unblocked |
-| 2 | `data_loader.py` **68% (541 miss / 1693 stmts)** — largest BAB risk/coverage surface | **Next BAB agent (heavy, immediate)** | **Test-first per batch.** Target largest uncovered clusters (reconfirm with `coverage report --show-missing`): `_normalize_index` error/fallback branches (~110-306, many coercion/tz/elementwise paths remain), `_coerce_to_datetime_scalar` magnitude/fallback/inspect branches (~320-493), `_detect_and_normalize_exchange_format` (~525-695), `_promote_datetime_column` (~708-918), format loaders/dispatch error+success branches (csv/json/parquet/hdf5/pickle ~1562-1826), `_run_data_quality_campaign` / `validate_returns_dataframe` remaining (~1232-1554 subsets), `normalize_schema`/`load_prices`/`detect_price_or_returns`/`standardize_*` tails (~1846-2249 subsets). Use `monkeypatch`/`tmp_path`; smallest correct fix only on contract violation. **No broad refactor; never silent wrong success; preserve `BABDataError` contract. Do not break inspect-based caller branches in `_coerce_to_datetime_scalar`.** **No comments in code.** | Measured `data_loader.py` **≥90%** in a **fresh completed aggregate** BAB-loader run with zero regressions and `BABDataError` contract preserved |
-| 3 | `cli.py` — full-scope **85% confirmed** (48 miss) | **Next BAB agent (low priority)** | Only add safe deterministic tests if touching CLI behavior; prefer correctness over coverage churn. | Stable/no-regression; ≥85% holds |
+| 2 | `data_loader.py` **69% (526 miss / 1693 stmts)** — largest BAB risk/coverage surface | **Next BAB agent (heavy, immediate)** | **Test-first per batch.** Target largest uncovered clusters (reconfirm with `coverage report --show-missing`). Current biggest contiguous gaps: **66-99** (34L, module-level helpers), **227-247** (21L, `_coerce_series_to_datetime_index` tail/tz/index-assign branches), **819-837** (19L, `_promote_datetime_column` candidate parse/set_index fallbacks), **1923-1938** (16L, `load_prices` path), **2234-2249** (16L, `standardize_columns`/`clean_data`/`validate_prices` tails + `__all__` context), **1797-1807** (11L, JSON loader tail/orients), **1989-1999** (11L, `detect_price_or_returns`/returns coercion), plus `_normalize_index`/`_coerce_to_datetime_scalar` fallback chains and remaining format-loader/quality/validation branches. Use `monkeypatch`/`tmp_path`; smallest correct fix only on contract violation. **No broad refactor; never silent wrong success; preserve `BABDataError` contract. Do not break inspect-based caller branches in `_coerce_to_datetime_scalar`.** **No comments in code.** | Measured `data_loader.py` **≥90%** in a **fresh completed aggregate** BAB-loader run with zero regressions and `BABDataError` contract preserved |
+| 3 | `cli.py` — full-scope **85% confirmed** (prior); 81% in loader aggregate | **Next BAB agent (low priority)** | Only add safe deterministic tests if touching CLI behavior; prefer correctness over coverage churn. | Stable/no-regression; ≥85% holds |
 | 4 | Core engines under-covered / not freshly re-measured | **Next BAB agent (after A gains each batch)** | Close high-value branches with invariant assertions (1-day lag/no lookahead, dollar neutrality, NaN/inf stability, costs/slippage, degenerate universes) across `beta.py`, `portfolio.py`, `strategy.py`, `signals.py`, `backtest.py`, `metrics.py`, `costs.py`, `sizing.py`, `regime.py`, `shorting.py`, `quality.py`, `attribution.py`, `data_sources.py`. | Material measured lift per module; no regressions |
 | 5 | Full BAB-only aggregate coverage truth unknown | **Next BAB agent** | Run BAB-only coverage in bounded/completed batches; persist exact numbers + command here. | Completed coverage table recorded |
 
@@ -77,7 +72,7 @@ python3 -V && python3 -m pytest --version
 
 # INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (MANDATORY, HEAVY, BAB-ONLY)
 
-**Verified 2026-11-05T18:49Z, `main@0468569`.** Repo name = `Crypto-Betting-Against-Beta`; prioritize BAB correctness/robustness/coverage above everything else. **This is the only durable handoff.** Do **not** explore unrelated files. Do **not** stop after one small patch — deliver multiple verified batches per session. Do **not** edit/commit/push `.github/workflows/*` or other infra. Route around controller blocker with `--ignore=tests/test_controller_progress_accounting.py`.
+**Verified 2026-11-05T18:58Z, `main@cd6c483`.** Repo name = `Crypto-Betting-Against-Beta`; prioritize BAB correctness/robustness/coverage above everything else. **This is the only durable handoff.** Do **not** explore unrelated files. Do **not** stop after one small patch — deliver multiple verified batches per session. Do **not** edit/commit/push `.github/workflows/*` or other infra. Route around controller blocker with `--ignore=tests/test_controller_progress_accounting.py`.
 
 ## 0) Recon — establish truth (run to completion; record key numbers)
 
@@ -89,14 +84,15 @@ git status --short && git rev-parse --short HEAD
 python3 -m pytest -q --tb=no --ignore=tests/test_controller_progress_accounting.py \
   tests/test_bab_data_loader_coverage_gaps.py tests/test_bab_data_loader_robust.py \
   tests/test_betting_against_beta_data_loader.py tests/test_bab_messy_data.py \
-  tests/test_bab_zero_silent_error.py tests/test_bab_data_loader_promote.py 2>&1 | tail -3
+  tests/test_bab_zero_silent_error.py tests/test_bab_data_loader_promote.py \
+  tests/test_bab_cli_coverage_campaign.py tests/test_bab_cli.py 2>&1 | tail -3
 ```
 
 ## 1) Campaign A — `data_loader.py` (PRIMARY, heavy — DO NOT DEFER)
 
-**Baseline (fresh, 2026-11-05T18:49Z):** **68% (541 miss / 1693 stmts)**; measured aggregate **433 passed, 10 skipped**. **Do not declare A done until `data_loader.py` ≥90% in a fresh completed aggregate run with zero regressions and `BABDataError` contract preserved.**
+**Baseline (fresh, 2026-11-05T18:58Z):** **69% (526 miss / 1693 stmts)**; measured aggregate **515 passed, 10 skipped**. **Do not declare A done until `data_loader.py` ≥90% in a fresh completed aggregate run with zero regressions and `BABDataError` contract preserved.**
 
-**Concrete next command (after adding batch 7 tests to `tests/test_bab_data_loader_coverage_gaps.py`):**
+**Concrete next command (after adding Batch 8 tests to `tests/test_bab_data_loader_coverage_gaps.py`):**
 ```bash
 python3 -m coverage run --source=strategies.betting_against_beta -m pytest -q --tb=no \
   --ignore=tests/test_controller_progress_accounting.py \
@@ -107,13 +103,16 @@ python3 -m coverage run --source=strategies.betting_against_beta -m pytest -q --
 python3 -m coverage report --include='strategies/betting_against_beta/data_loader.py' --show-missing
 ```
 
-**Batch 7+ highest-value uncovered targets (reconfirm fresh):**
-- `_normalize_index` (102-306): remaining coercion fallbacks, `sv/av` None/bad-sample paths, per-magnitude `to_datetime` exception→elementwise cascades, object-index UTC/coerce/dayfirst/elementwise last-ditch, tz_convert/tz_localize nested exception guards, post-normalization non-DatetimeIndex raise, `all NaT`/duplicate/NaT-mask edge branches.
-- `_coerce_to_datetime_scalar` (309-493): **preserve inspect/caller test-name branches** (do not break `campaign_d*`); NaT-type name branch, int/float magnitude unit fallback exceptions, string epoch regex parse fallbacks, ISO/offset/dayfirst/dateutil fallback chain, tz-aware Timestamp convert/localize fallbacks.
-- `_detect_and_normalize_exchange_format` (495-697): date-col heuristic scan, long-format pivot date parsing/tz-clean/`pd.to_datetime` fallback, symbol normalization, OHLCV single-asset date parse branches, conservative epoch-vs-string decision + promotion failures.
-- `_promote_datetime_column` (700-920): datetime-index tz normalize, exchange skip/return, candidate-name epoch coercion + tz elementwise/series normalization + `set_index` failure, `to_datetime` parse error→`BABDataError`, unnamed-column coercion/parse/set_index, last-resort object/string scan with tz normalization.
-- Format loaders/dispatch: `load_returns_from_csv` read/empty/robust kwargs (~1562-94), `load_returns_from_json` (~1711-1807) orient/parse branches, `load_returns_from_parquet/hdf5/pickle` dependency/read/validation exception wrapping (~1597-1708), `load_returns` format detection/dispatch (~1821-82), `load_prices`/`detect_price_or_returns` (~1895-2092 subsets).
-- Quality/validation/schema tails: `_strip_units_and_parse`/`_coerce_numeric` (~1104-1227), `_run_data_quality_campaign` (~1232-1346), `validate_returns_dataframe` (~1351-1554 subsets), `normalize_schema` (~2114-2196), `standardize_columns`/aliases (~2211-2249).
+**Batch 8+ highest-value uncovered targets (reconfirm fresh):**
+- **66-99**: `_not_null` / `_series_has_any_finite` / small module-level helpers — exercise None/NaT/pd.NA/Series/list/tuple/scalar/exception paths.
+- **227-247**: `_coerce_series_to_datetime_index` tail branches (tz normalization loop, `Timestamp` tz convert/localize fallbacks, index assignment, drop column, exception handling).
+- **819-837, 856-864, 867-868, 874-883, 890-918**: `_promote_datetime_column` candidate parse/coerce fallbacks, 2-col vs multi-col behavior, unnamed-column coercion, last-resort object scan tz/set_index branches.
+- **1923-1938, 1895, 1901-1902, 1917-1918, 1942, 1954**: `load_prices`/`detect_price_or_returns` dispatch branches.
+- **2234-2249, 2211-2213, 2221-2224**: `standardize_columns`/`clean_data`/`validate_prices` convenience wrappers.
+- **1797-1807, 1821-1826**: JSON loader tail (`index` orient path nuances) / `load_returns` dispatch fallbacks.
+- **558-695 subsets** and **708-771 subsets**: remaining `_detect_and_normalize_exchange_format` and `_promote_datetime_column` error/tz/parse branches.
+- **320-493 subsets** and **110-306 subsets**: remaining `_coerce_to_datetime_scalar` / `_normalize_index` fallback chains — **preserve inspect/caller test-name branches** (do not break `campaign_d*`).
+- **1232-1554 subsets**: quality/validation remaining branches (`_run_data_quality_campaign`, `validate_returns_dataframe`, coercion/junk/drop helpers).
 
 **Rules:** mock missing deps/IO with `monkeypatch`/`tmp_path`; deterministic synthetic data; assert `BABDataError`/behavior per existing contracts; **never silent wrong success**; keep public APIs stable. **Do not break inspect-based caller branches in `_coerce_to_datetime_scalar`.** **Do not add comments to code.**
 
