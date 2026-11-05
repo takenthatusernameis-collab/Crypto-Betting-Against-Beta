@@ -3418,3 +3418,114 @@ class TestValidateReturnsBatch9:
         df = pd.DataFrame({"BTC": [0.01, 0.02, 0.03]}, index=pd.date_range("2024-01-01", periods=3))
         out = validate_returns_dataframe(df, quality=False)
         assert len(out) == 3
+
+
+# ---- Batch 10 (2026-11-05): coverage push on remaining data_loader bottleneck clusters ----
+
+
+class TestNormalizeIndexBatch10TzFallbacks:
+    def test_tz_convert_raises_then_localize_succeeds(self, monkeypatch):
+        idx = pd.date_range("2024-01-01", periods=2, tz="UTC")
+        df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=idx)
+
+        def bad_convert(self, *a, **k):
+            raise RuntimeError("convert boom")
+
+        monkeypatch.setattr(pd.DatetimeIndex, "tz_convert", bad_convert)
+        out = _normalize_index(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+        assert out.index.tz is None
+
+    def test_tz_convert_and_localize_both_fail(self, monkeypatch):
+        idx = pd.date_range("2024-01-01", periods=2, tz="UTC")
+        df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=idx)
+
+        def bad_convert(self, *a, **k):
+            raise RuntimeError("convert boom")
+
+        def bad_localize(self, *a, **k):
+            raise RuntimeError("localize boom")
+
+        monkeypatch.setattr(pd.DatetimeIndex, "tz_convert", bad_convert)
+        monkeypatch.setattr(pd.DatetimeIndex, "tz_localize", bad_localize)
+        out = _normalize_index(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+    def test_nat_mask_drops_rows(self):
+        idx = pd.to_datetime(["2024-01-01", None, "2024-01-02"])
+        df = pd.DataFrame({"BTC": [0.01, 0.02, 0.03]}, index=idx)
+        out = _normalize_index(df)
+        assert len(out) == 2
+        assert out.index.notna().all()
+
+    def test_all_nat_datetime_index_raises(self):
+        idx = pd.DatetimeIndex([pd.NaT, pd.NaT])
+        df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=idx)
+        with pytest.raises(BABDataError):
+            _normalize_index(df)
+
+
+class TestCoerceScalarBatch10EpochMagnitude:
+    def test_epoch_string_above_1e18_ns(self):
+        ts = _coerce_to_datetime_scalar("1704067200000000000")
+        assert pd.notna(ts)
+
+    def test_epoch_int_above_1e18_ns(self):
+        ts = _coerce_to_datetime_scalar(1704067200000000000)
+        assert pd.notna(ts)
+
+    def test_epoch_float_above_1e18_ns(self):
+        ts = _coerce_to_datetime_scalar(1.7040672e18)
+        assert pd.notna(ts)
+
+
+class TestPromoteDatetimeBatch10Coercion:
+    def test_unnamed_column_apply_coerce_path(self):
+        df = pd.DataFrame({
+            "Unnamed: 0": ["2024-01-01", "2024-01-02"],
+            "BTC": [0.01, 0.02],
+        })
+        out = _promote_datetime_column(df)
+        assert isinstance(out, pd.DataFrame)
+
+    def test_unnamed_column_bad_then_pandas_fallback(self):
+        df = pd.DataFrame({
+            "Unnamed: 0": ["bad", "worse"],
+            "BTC": [0.01, 0.02],
+            "ETH": [0.03, 0.04],
+        })
+        out = _promote_datetime_column(df)
+        assert isinstance(out, pd.DataFrame)
+
+    def test_multi_column_conservative_raw_index(self):
+        df = pd.DataFrame({
+            "date": ["2024-01-01", "2024-01-02"],
+            "A": [1, 2],
+            "B": [3, 4],
+            "C": [5, 6],
+        })
+        out = _promote_datetime_column(df)
+        assert isinstance(out, pd.DataFrame)
+
+
+class TestExchangeFormatBatch10Tz:
+    def test_long_format_tz_aware_convert(self):
+        df = pd.DataFrame({
+            "date": pd.to_datetime(["2024-01-01", "2024-01-01", "2024-01-02", "2024-01-02"]).tz_localize("UTC"),
+            "symbol": ["BTC", "ETH", "BTC", "ETH"],
+            "close": [100.0, 10.0, 101.0, 11.0],
+        })
+        out = _detect_and_normalize_exchange_format(df)
+        assert isinstance(out, pd.DataFrame)
+
+    def test_ohlcv_single_asset_tz_aware(self):
+        df = pd.DataFrame({
+            "date": pd.date_range("2024-01-01", periods=3).tz_localize("UTC"),
+            "open": [1, 2, 3],
+            "high": [2, 3, 4],
+            "low": [0.5, 1.5, 2.5],
+            "close": [1.5, 2.5, 3.5],
+            "volume": [100, 200, 300],
+        })
+        out = _detect_and_normalize_exchange_format(df)
+        assert isinstance(out.index, (pd.DatetimeIndex, pd.Index))
