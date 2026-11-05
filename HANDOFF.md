@@ -1,15 +1,15 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 
-**Timestamp (UTC):** 2026-11-05T15:11:00Z
+**Timestamp (UTC):** 2026-11-05T15:11:42Z
 **Repo:** `Crypto-Betting-Against-Beta` (`/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`)
-**Branch/SHA (verified 2026-11-05T15:10Z):** `main` @ `a9b872f` (`chore(kilo): checkpoint agent session`). Working tree clean at verification. **Durable handoff:** **this file only** (`./HANDOFF.md`).
+**Branch/SHA (verified 2026-11-05T15:11Z):** `main` @ `7ea47d2` (`chore(kilo): checkpoint agent session`). Working tree clean at verification. **Durable handoff:** **this file only** (`./HANDOFF.md`).
 **Priority (repo-name driven, non-negotiable):** **Crypto-Betting-Against-Beta → BAB only**: `strategies/betting_against_beta/` correctness, robustness, adversarial handling, and **measured** coverage. No infra/controller refactors, no workflow commits/pushes, no sidetracks.
 
-## Verified state (re-recon, 2026-11-05T15:10Z)
+## Verified state (re-recon, 2026-11-05T15:11Z)
 
 - **Infra blocker (not BAB logic; agent cannot clear):** `python3 -m pytest -q tests/test_controller_progress_accounting.py --tb=no` → **2 failed, 66 passed** (0.22s). `main.yml` `stage_safe_changes()` missing `*/.github/workflows/*` vs `scripts/controller_progress.py`. **Operator with `workflows` scope only.** **Mandatory route-around:** `--ignore=tests/test_controller_progress_accounting.py` for BAB verification.
-- **BAB targeted verification (fresh, 2026-11-05T15:10Z):** `python3 -m pytest -q --ignore=tests/test_controller_progress_accounting.py tests/test_bab_data_loader_coverage_gaps.py tests/test_bab_cli.py tests/test_bab_cli_coverage_campaign.py` → **111 passed, 1 skipped, 4 warnings** (6.39s), RC 0.
-- **Coverage — fresh completed aggregate (2026-11-05T15:10Z, programmatic `coverage.Coverage`, same scope as below):** **226 passed, 7 skipped, 11 warnings, RC 0** (17.90s).
+- **BAB targeted verification (fresh, 2026-11-05T15:11Z):** `python3 -m pytest -q --ignore=tests/test_controller_progress_accounting.py tests/test_bab_data_loader_coverage_gaps.py tests/test_bab_cli.py tests/test_bab_cli_coverage_campaign.py` → **111 passed, 1 skipped, 4 warnings** (6.31s), RC 0.
+- **Coverage — fresh completed aggregate (2026-11-05T15:11Z, programmatic `coverage.Coverage`, same scope as below):** **226 passed, 7 skipped, 11 warnings, RC 0** (17.76s).
 
 | Module | Stmts | Miss | Cover | Notes |
 |---|---:|---:|---:|---|
@@ -71,7 +71,7 @@ python3 -V && python3 -m pytest --version
 
 ## INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (MANDATORY, HEAVY, BAB-ONLY)
 
-**Verified 2026-11-05T15:10Z, `main@a9b872f`, working tree clean.** Repo name = `Crypto-Betting-Against-Beta`; prioritize BAB correctness/robustness/coverage above everything else. **This is the only durable handoff.** Do **not** explore unrelated files. Do **not** stop after one small patch — deliver multiple verified batches per session. Do **not** edit/commit/push `.github/workflows/*` or other infra. Work in **verified batches** and record real output in this handoff. Bottleneck #1 is routed around.
+**Verified 2026-11-05T15:11Z, `main@7ea47d2`, working tree clean.** Repo name = `Crypto-Betting-Against-Beta`; prioritize BAB correctness/robustness/coverage above everything else. **This is the only durable handoff.** Do **not** explore unrelated files. Do **not** stop after one small patch — deliver multiple verified batches per session. Do **not** edit/commit/push `.github/workflows/*` or other infra. Work in **verified batches** and record real output in this handoff. Bottleneck #1 is routed around.
 
 ### 0) Recon — establish truth (run to completion; record key numbers)
 ```bash
