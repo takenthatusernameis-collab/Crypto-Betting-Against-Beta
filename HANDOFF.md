@@ -1,15 +1,15 @@
 # SINGLE DURABLE HANDOFF - Crypto-Betting-Against-Beta
-**Timestamp:** 2026-11-05T02:43:30Z
+**Timestamp:** 2026-11-05T03:21:07Z
 **Repo:** Crypto-Betting-Against-Beta (BAB)
 **Priority:** strategies/betting_against_beta/ - HEAVY, relentless implementation and hardening
 
 ## INITIAL TASK MESSAGE (for next agentic session - EXECUTE FIRST)
-**Time:** 2026-11-05T02:43:30Z
+**Time:** 2026-11-05T03:21:07Z
 **MANDATE:** Repository name is directive. ALL work MUST advance BAB under `strategies/betting_against_beta/`. Do NOT deviate. Build a focus campaign future agents cannot dodge - heavy work only.
 
 ## SAME-RUN RECOVERY (BLOCKING CONTEXT)
 - **Run context:** NEW worker session inside the SAME active GitHub Actions run (previous session ended due to bounded remote checkpoint persistence failure).
-- **HEAD state:** Local HEAD `33b9ce0ca320dc89e3d6ab614f4a2b14ede67eb0` (ahead of origin/main by 8 commits). Last known remote-tracking `1a585a3d7cf12009aa55c723d6cfc725c697e959`.
+- **HEAD state:** Local HEAD `29d0d3cf1740dee4605e4358e3f29aa5261c0868` (ahead of origin/main by 9 commits). Last known remote-tracking `1a585a3d7cf12009aa55c723d6cfc725c697e959`.
 - **Preserve:** ALL existing local commits and work. Do NOT reset/discard. No history rewrite unless confirmed root cause requires AND after preserving recovery bundle + rollback plan.
 - **Push:** Remote push pending due to GitHub App missing `workflows` permission on workflow changes in previous context; controller will retry persistence of all local-ahead commits after this session - DO NOT claim persistence until remote SHA matches.
 - **Status:** `git status --short --branch` shows clean tree, ahead commits preserved.
@@ -26,13 +26,13 @@
 3. Gate is source of truth.
 
 ## STEP 1 (PRIMARY CAMPAIGN D - RELENTLESS, DO NOT STOP)
-Drive `strategies/betting_against_beta/data_loader.py` from **79%** to **>=90%** with:
+Drive `strategies/betting_against_beta/data_loader.py` from **78%** to **>=90%** with:
 - Zero API breaks
 - Zero test regressions  
 - Gate GREEN after EVERY batch
 - Do not stop until >=90% AND gate GREEN
 
-**Current (gate):** data_loader.py **79%** (1679 stmts, 356 missed). Need to cover ~185+ more statements to reach >=90%.
+**Current (gate):** data_loader.py **78%** (1679 stmts, 364 missed). Need to cover ~185+ more statements to reach >=90%.
 
 **Added in this session:** Added `tests/test_bab_data_loader_campaign_d_final_push.py` with 65+ tests covering early helpers, normalize_index paths, exchange format, promotion/coercion, loaders/validate paths etc. Full gate remains GREEN. Coverage of data_loader did not reach >=90% yet - need more targeted tests for specific uncovered branches.
 
@@ -45,7 +45,7 @@ Drive `strategies/betting_against_beta/data_loader.py` from **79%** to **>=90%**
 ## CURRENT STATE (2026-11-05T02:43:30Z)
 - **Git:** Clean working tree on main, 8 commits ahead of origin/main (local commits preserved). Remote push pending due to app permissions (controller will retry).
 - **Gate:** GREEN (2779 passed, 18 skipped). All tests pass.
-- **Coverage:** data_loader.py **79%** → TARGET **>=90%** (need +11pp). Other modules have good coverage.
+- **Coverage:** data_loader.py **78%** → TARGET **>=90%** (need +12pp, ~196 stmts). Other modules have good coverage.
 - **Focus:** Campaign D is the ONLY mission until data_loader.py >=90% AND gate GREEN
 - **New tests:** Added comprehensive campaign D tests in `tests/test_bab_data_loader_campaign_d_final_push.py`
 
