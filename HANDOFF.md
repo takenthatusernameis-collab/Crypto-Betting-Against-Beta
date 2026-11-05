@@ -1,8 +1,8 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 
-**Timestamp (UTC):** 2026-11-05T18:58:13Z (refreshed this session)
+**Timestamp (UTC):** 2026-11-05T18:59:41Z (refreshed this session)
 **Repo:** `Crypto-Betting-Against-Beta` (`/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`)
-**Branch/SHA (verified):** `main` @ `cd6c483` (`chore(kilo): checkpoint agent session`). Working tree has transient `.coverage`/`.pytest_cache`/`.hypothesis` only; **no `.github/workflows/*` touched**. **Durable handoff:** **this file only** (`./HANDOFF.md`).
+**Branch/SHA (verified):** `main` @ `bff24cc` (`chore(kilo): checkpoint agent session`). Working tree clean; **no `.github/workflows/*` touched**. **Durable handoff:** **this file only** (`./HANDOFF.md`).
 **Priority (repo-name driven, non-negotiable):** **Crypto-Betting-Against-Beta → BAB only**: `strategies/betting_against_beta/` correctness, robustness, adversarial handling, and **measured** coverage. No infra/controller refactors, no workflow commits/pushes, no sidetracks.
 
 ## Recon re-verified (2026-11-05T18:58Z)
@@ -38,8 +38,9 @@ python3 -m coverage report --include='strategies/betting_against_beta/data_loade
 
 ## This session’s verified progress (BAB-only)
 
-- **Added Batch 7 tests** to `tests/test_bab_data_loader_coverage_gaps.py` (406 passed, 4 skipped in that file alone): `_normalize_index` numeric/object fallback/elementwise/dayfirst/duplicate/tz/numeric-magnitude branches; `_coerce_to_datetime_scalar` epoch/string/ISO/offset/dayfirst/numpy/datetime/date/zero/magnitude variants (preserving inspect-based caller-branch behavior — **no production changes**); `_detect_and_normalize_exchange_format` long symbol variants, OHLCV/adj-close/close-price/time heuristic, conservative string-date, epoch-ms promotion; `_promote_datetime_column` tz-aware index, 2-col date promotion, unparseable candidate `BABDataError`, unnamed/last-resort scan, epoch/snapped_at candidates; format loaders CSV empty/read-error, JSON split/index/table/jsonl/bad-line/missing, `load_returns` jsonl/dir/None dispatch, pickle dict/empty, parquet/hdf5 read/validate exception wrapping; `validate_returns_dataframe` type/None/empty/no-dt-index/min-rows/junk/inf/benchmark/no-finite/only-benchmark/insufficient-history/quality-off/case-insensitive; `_run_data_quality_campaign` bad-index/dups/allow-dups/implausible/gap/stale/min-finite-fraction/tz/clean; `normalize_schema` MultiIndex flatten, duplicate-header handling, junk-column drop, non-df/empty errors.
-- **Production code:** **unchanged**. Invariants preserved: no lookahead/lag semantics untouched; `BABDataError` contract preserved (no silent wrong success introduced); dollar-neutral/costs/slippage/public APIs untouched. **Did not break inspect-based caller branches in `_coerce_to_datetime_scalar`.**
+- **Batch 7 complete** → `tests/test_bab_data_loader_coverage_gaps.py` (406 passed, 4 skipped in that file alone): `_normalize_index`, `_coerce_to_datetime_scalar`, `_detect_and_normalize_exchange_format`, `_promote_datetime_column`, format loaders, `load_returns`, pickle/parquet/hdf5, `validate_returns_dataframe`, `_run_data_quality_campaign`, `normalize_schema`.
+- **Batch 8 starts now** → primary target `data_loader.py` **69% (526 miss / 1693 stmts) → ≥90%**.
+- **Production code:** **unchanged**. Invariants preserved: no lookahead/lag semantics untouched; `BABDataError` contract preserved; dollar-neutral/costs/slippage/public APIs untouched. **Did not break inspect-based caller branches in `_coerce_to_datetime_scalar`.**
 
 ## Sacred invariants (never regress)
 
@@ -72,7 +73,7 @@ python3 -V && python3 -m pytest --version
 
 # INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (MANDATORY, HEAVY, BAB-ONLY)
 
-**Verified 2026-11-05T18:58Z, `main@cd6c483`.** Repo name = `Crypto-Betting-Against-Beta`; prioritize BAB correctness/robustness/coverage above everything else. **This is the only durable handoff.** Do **not** explore unrelated files. Do **not** stop after one small patch — deliver multiple verified batches per session. Do **not** edit/commit/push `.github/workflows/*` or other infra. Route around controller blocker with `--ignore=tests/test_controller_progress_accounting.py`.
+**Verified 2026-11-05T18:59Z, `main@bff24cc`.** Repo name = `Crypto-Betting-Against-Beta`; prioritize BAB correctness/robustness/coverage above everything else. **This is the only durable handoff.** Do **not** explore unrelated files. Do **not** stop after one small patch — deliver multiple verified batches per session. Do **not** edit/commit/push `.github/workflows/*` or other infra. Route around controller blocker with `--ignore=tests/test_controller_progress_accounting.py`.
 
 ## 0) Recon — establish truth (run to completion; record key numbers)
 
