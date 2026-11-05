@@ -1,8 +1,8 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 
-**Timestamp (UTC):** 2026-11-05T21:30:00Z (durable refresh)
+**Timestamp (UTC):** 2026-11-05T21:16:26Z (durable refresh)
 **Repo:** `Crypto-Betting-Against-Beta` (`/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`)
-**Branch/SHA (verified):** `main` @ `ba888c8` (local HEAD; clean before this session's test-file edits may be uncommitted — verify with `git status`).
+**Branch/SHA (verified):** `main` @ `1d5c2a3` (local HEAD; clean).
 **Working tree (this session):** modified `tests/test_bab_data_loader_coverage_gaps.py` (appended Campaign A batch tests); no production code changes. **No `.github/workflows/*` edits/commits/pushes.**
 
 **Priority (repo-name driven, non-negotiable):** **Crypto-Betting-Against-Beta → BAB only**: `strategies/betting_against_beta/` correctness, robustness, adversarial handling, and **measured** coverage. No infra/controller refactors, no workflow commits/pushes, no sidetracks.
