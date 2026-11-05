@@ -1,6 +1,6 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 
-**Timestamp (UTC):** 2026-11-05T20:09:55Z (handoff durable refresh; BAB-only priority re-asserted)
+**Timestamp (UTC):** 2026-11-05T20:42:23Z (handoff durable refresh; BAB-only priority re-asserted)
 **Repo:** `Crypto-Betting-Against-Beta` (`/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`)
 **Branch/SHA (verified):** `main` @ `538e8b0` (`chore(kilo): checkpoint agent session`). **Working tree:** `M tests/test_bab_data_loader_coverage_gaps.py` (uncommitted BAB test additions from this session) + this `HANDOFF.md` update. **No production code changed. No `.github/workflows/*` edits/commits/pushes.** Ignore transient `.coverage`/`.pytest_cache/`/`.hypothesis/` if present.
 
@@ -80,7 +80,7 @@ python3 -V && python3 -m pytest --version
 
 # INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (MANDATORY, HEAVY, BAB-ONLY)
 
-**Verified 2026-11-05T20:09:55Z, `main@538e8b0`, handoff aggregate 630 passed/11 skipped; `data_loader.py` 76% (406 miss).** Repo name = `Crypto-Betting-Against-Beta`; prioritize BAB correctness/robustness/coverage above everything else. **This is the only durable handoff. Read it, run Step 0, then execute Campaign A immediately. Do not idle, do not explore unrelated files, do not stop after one small patch.**
+**Verified 2026-11-05T20:42:23Z, `main@538e8b0`, handoff aggregate 630 passed/11 skipped; `data_loader.py` 76% (406 miss).** Repo name = `Crypto-Betting-Against-Beta`; prioritize BAB correctness/robustness/coverage above everything else. **This is the only durable handoff. Read it, run Step 0, then execute Campaign A immediately. Do not idle, do not explore unrelated files, do not stop after one small patch.**
 
 ## Non-negotiable operating rules
 - **BAB-only scope.** Work only in `strategies/betting_against_beta/*`, BAB tests, and this handoff.
