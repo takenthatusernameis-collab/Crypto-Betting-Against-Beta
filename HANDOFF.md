@@ -1,27 +1,28 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 
-**Timestamp (UTC):** 2026-11-05T21:22:00Z (durable refresh, recon verified this session)
+**Timestamp (UTC):** 2026-11-05T21:53:23Z (durable refresh, recon verified this session)
 **Repo:** `Crypto-Betting-Against-Beta` (`/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`)
-**Branch/SHA (verified):** `main` @ `aa67706` (local HEAD; clean working tree at recon time).
-**Working tree (this session):** no production code changes; `HANDOFF.md` updated only. **No `.github/workflows/*` edits/commits/pushes.**
+**Branch/SHA (verified):** `main` @ `89457da` (local HEAD; clean working tree at recon time).
+**Working tree (this session):** no production code changes; `HANDOFF.md` updated only. **No `.github/workflows/*` edits/commits/pushes. No remote push claimed.**
 
 **Priority (repo-name driven, non-negotiable):** **Crypto-Betting-Against-Beta → BAB only**: `strategies/betting_against_beta/` correctness, robustness, adversarial handling, and **measured** coverage. No infra/controller refactors, no workflow commits/pushes, no sidetracks.
 
-## Recon verified (2026-11-05T21:22Z)
+## Recon verified (2026-11-05T21:53Z)
 
 - Env: Python 3.12.3, pytest 9.2.2, coverage. PATH/PYTHONPATH set to include `$PWD` and `/home/runner/work/_temp/kilo-home/.local/...`.
 - **Controller blocker (NOT BAB logic; agent cannot clear):** `tests/test_controller_progress_accounting.py` workflow-sync fails because `.github/workflows/main.yml` excludes are missing `*/.github/workflows/*` (must stay in lock-step with `scripts/controller_progress.py` `EXCLUDE_PATTERNS`). **Operator with `workflows` scope only.** **Mandatory route-around for BAB work:** `--ignore=tests/test_controller_progress_accounting.py`. **Never edit/commit/push `.github/workflows/*`.**
 - Inspect-sensitive suites preserved (fresh): `tests/test_bab_data_loader_campaign_d.py tests/test_bab_data_loader_campaign_d2.py tests/test_bab_data_loader_campaign_d3.py` → **44 passed, 5 warnings, RC 0**. `_coerce_to_datetime_scalar` inspect/caller branches preserved.
-- Fresh bounded BAB aggregate (completed): **794 passed, 11 skipped, 57 warnings, RC 0** (command in Step 0 below).
+- Fresh bounded BAB aggregate (completed): **794 passed, 11 skipped, 57 warnings, RC 0** (Step 0 command set).
+- Full-suite signal (informational, not BAB gate): **3616 passed, 2 failed, 25 skipped, 188 warnings**; the 2 failures are the known controller/workflow-sync tests above only.
 
-## Coverage — fresh completed aggregate (2026-11-05T21:22Z, bounded BAB set)
+## Coverage — fresh completed aggregate (2026-11-05T21:53Z, bounded BAB set)
 
 | Module | Stmts | Miss | Cover | Target |
 |---|---:|---:|---:|---|
 | `strategies/betting_against_beta/data_loader.py` | 1693 | 364 | **78%** | **≥90%** (Campaign A, mandatory, heavy) |
 | `strategies/betting_against_beta/cli.py` | 319 | 62 | **81%** | **≥85%** (low priority) |
 
-**Campaign A status:** NOT reached. Need ~**195** more covered statements on remaining misses (source of truth: `coverage report --show-missing` from Step 0).
+**Campaign A status:** NOT reached. **~195 more statements** must be covered (78%→90% over 1693 stmts). Source of truth: `coverage report --include='strategies/betting_against_beta/data_loader.py' --show-missing` from Step 0.
 
 ## Sacred invariants (never regress)
 
@@ -44,7 +45,7 @@
 
 # INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (MANDATORY, HEAVY, BAB-ONLY)
 
-**Verified 2026-11-05T21:22Z, `main@aa67706`. Bounded aggregate: 794 passed/11 skipped. `data_loader.py` 78% (364 miss / 1693 stmts).** Repo name = `Crypto-Betting-Against-Beta`; prioritize BAB correctness/robustness/coverage. **Read this handoff, run Step 0, then execute Campaign A immediately. Do not idle. Do not stop after one small patch. Do not claim completion until Campaign A reaches ≥90% in a fresh completed aggregate run.**
+**Verified 2026-11-05T21:53Z, `main@89457da`, clean tree. Bounded aggregate: 794 passed/11 skipped. `data_loader.py` 78% (364 miss / 1693 stmts).** Repo name = `Crypto-Betting-Against-Beta`; prioritize BAB correctness/robustness/coverage. **Read this handoff, run Step 0, then execute Campaign A immediately. Do not idle. Do not stop after one small patch. Do not claim completion until Campaign A reaches ≥90% in a fresh completed aggregate run.**
 
 ## Non-negotiable operating rules
 
@@ -79,8 +80,8 @@ python3 -m coverage report --include='strategies/betting_against_beta/data_loade
 
 **Method:** extend `tests/test_bab_data_loader_coverage_gaps.py` (or add focused deterministic BAB test files only when necessary) with batch classes; no comments. Use `monkeypatch`/`tmp_path`/`pytest.importorskip`. After each batch: focused run, aggregate+coverage, `campaign_d*` spot-check.
 
-**Concrete missing-line clusters to attack (verified 2026-11-05T21:22Z; recheck Step 0 before coding):**
-- **Coerce/epoch/inspect-adjacent fallbacks (careful — preserve campaign_d):** 40-44, 60-61, 84, 86-89, 92-93, 110-111, 128-130, 134, 141-155, 161, 171-176, 180, 188, 194, 196, 200-214, 227-247, 258, 260, 268-269, 285-289, 296-297.
+**Concrete missing-line clusters to attack (verified 2026-11-05T21:53Z; recheck Step 0 before coding):**
+- **Coerce/epoch/inspect-adjacent fallbacks (careful — preserve campaign_d):** 40-44, 60-61, 84, 86-89, 92-93, 110-111, 128-130, 134, 141-155, 161, 171-176, 180, 188, 194, 196, 200-201, 208-209, 213-214, 227-247, 258, 260, 268-269, 285-286, 289, 296-297.
 - **Index/normalize/datetime promotion:** 320-342, 351-352, 368-404, 479-483, 561, 564-565, 571, 582-586, 620, 623-633, 641-642.
 - **Exchange detect/normalize/pivot/OHLCV tails:** 664, 676-695, 708-714, 729-734, 757-771, 789-792, 804-805, 821-823, 832, 840-841, 859-868, 878-883, 890, 894, 901-918, 953, 982-983.
 - **Loaders (CSV/JSON/JSONL/Parquet/HDF5/Pickle) + detect/dispatch/wrappers:** 1030-1034, 1055-1056, 1082-1090, 1097-1098, 1110-1126, 1139, 1147, 1153-1154, 1163, 1174-1178, 1186-1189, 1198, 1202, 1207, 1221-1227, 1254-1258, 1293-1294, 1304-1320, 1345-1346, 1418-1419, 1443-1444, 1451-1452, 1474-1475, 1487-1490, 1530-1539, 1588-1592, 1612, 1620-1627, 1649, 1659-1664, 1686-1687, 1698-1699, 1757, 1764-1765, 1782-1783, 1792-1806, 1825-1826, 1869-1870, 1895, 1926-1929, 1937-1942.
