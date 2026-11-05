@@ -1,6 +1,6 @@
 # SINGLE DURABLE HANDOFF - Crypto-Betting-Against-Beta
 
-**Timestamp:** 2026-11-05T06:46:29Z
+**Timestamp:** 2026-11-05T06:46:51Z
 **Repo:** Crypto-Betting-Against-Beta (BAB)
 **PRIORITY (NON-NEGOTIABLE):** `strategies/betting_against_beta/` - ALL effort MUST go here. No sidetracks.
 
@@ -11,7 +11,7 @@
 
 ## INITIAL TASK MESSAGE (FOR NEXT AGENTIC SESSION - EXECUTE THIS FIRST)
 
-**Time:** 2026-11-05T06:46:29Z
+**Time:** 2026-11-05T06:46:51Z
 **DIRECTIVE (Repo-name driven):** This is a Betting Against Beta (Crypto) repo. Treat BAB as the sole product. Do NOT explore unrelated code. Every action must increase correctness/coverage of BAB modules while keeping the full gate GREEN. Build unrelenting momentum: close gaps, fix root causes, remove bottlenecks. If blocked, remove the blocker - do not idle.
 
 **MANDATORY FIRST ACTION (DO NOT SKIP):**
