@@ -1,19 +1,18 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 
-**Timestamp (UTC):** 2026-11-05T07:54:43Z
+**Timestamp (UTC):** 2026-11-05T08:13:27Z
 **Repo:** `Crypto-Betting-Against-Beta` — **BAB-only focus (non-negotiable).** Every action must increase `strategies/betting_against_beta/` correctness, robustness, adversarial handling, or coverage while keeping the gate GREEN. No sidetracks, no infra/controller detours, no history rewrites.
 
 ## Verified state (this session)
-- **Branch:** `main`, clean working tree, up to date with `origin/main` (HEAD `23eacd4`).
-- **Test inventory:** 2858 tests collected under `tests/` (includes BAB + controller/infra tests required by gate).
-- **BAB-scope smoke:** `python3 -m coverage run -m pytest tests/test_bab_*.py -q --tb=no` → **2264 passed, 0 failed** (118s).
-- **Full gate:** `bash scripts/bab_gate.sh` was launched for recon and may exceed 120s (runs full 2858-test suite + BAB coverage report). **Next agent MUST confirm gate is GREEN before/after edits:** `export PATH=/home/runner/work/_temp/kilo-home/.local/bin:$PATH PYTHONPATH=$PWD && bash scripts/bab_gate.sh 2>&1 | tail -15` (allow up to 10 min).
-- **BAB package coverage (from BAB-scope run, 4418 stmts, 87%):**
+- **Branch:** `main`, **working tree NOT clean** — one uncommitted bottleneck fix: `.github/workflows/main.yml` stage_safe_changes case list now includes `*/.github/workflows/*` to match Python `EXCLUDE_PATTERNS` in `scripts/controller_progress.py`. This was blocking the gate (2 RED controller tests). Commit it when authorized; do not leave it lingering.
+- **Test inventory:** 2858 tests collected under `tests/`.
+- **Gate:** **GREEN** — `bash scripts/bab_gate.sh` → EXIT=0, **2858 passed, 0 failed** (~4:14). Re-run after every meaningful batch: `export PATH=/home/runner/work/_temp/kilo-home/.local/bin:$PATH PYTHONPATH=$PWD && bash scripts/bab_gate.sh 2>&1 | tail -15` (allow up to 10 min).
+- **BAB package coverage (full gate run, 4418 stmts, 87%):**
   - `data_loader.py`: **79%** (1693 stmts, 352 missing) — **PRIMARY BOTTLENECK**
   - `cli.py`: **61%** (318 stmts, 124 missing) — **SECOND BOTTLENECK**
   - `backtest.py`: 80% (22 missing), `strategy.py`: 89% (32), `beta.py`: 92% (25), `signals.py`: 91% (11), `portfolio.py`: 93% (16), `sizing.py`: 98% (3)
   - `quality.py`/`shorting.py`/`data_sources.py`/`data.py`/`errors.py`/`attribution.py`: 100%; others >=98%
-- **No blockers found:** only `./HANDOFF.md`; no lock/stale files outside caches; `research_state/` has diagnostics only.
+- **BAB-scope smoke:** `tests/test_bab_*.py` → all pass (0 failed).
 
 ## Invariants (sacred)
 - Weights lagged by 1 day (no lookahead).
@@ -32,7 +31,7 @@ cd /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
 export PATH=/home/runner/work/_temp/kilo-home/.local/bin:$PATH PYTHONPATH=$PWD
 bash scripts/bab_gate.sh 2>&1 | tail -20
 ```
-If **RED**: diagnose root cause and fix. The gate is GREEN only when this command exits 0. Never leave RED.
+If **RED**: diagnose root cause and fix. The gate is GREEN only when this command exits 0. Never leave RED. (One uncommitted workflow fix in `.github/workflows/main.yml` is pending commit — commit it when authorized so the tree is clean.)
 
 ### 1) Campaign A — `strategies/betting_against_beta/data_loader.py` → target >= 90% (352 missing)
 Inspect actual missing lines, then hit highest-value branches via public loader APIs (`load_returns`, `load_prices`, `load_csv/json/jsonl/excel/parquet/pickle/hdf`, `validate_returns_dataframe`, coercion/normalization helpers if exercised publicly):
