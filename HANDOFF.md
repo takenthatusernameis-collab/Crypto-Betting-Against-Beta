@@ -1,27 +1,26 @@
 # SINGLE DURABLE HANDOFF - Crypto-Betting-Against-Beta
 
-**Timestamp:** 2026-11-05T04:25:00Z
+**Timestamp:** 2026-11-05T05:19:XXZ
 **Repo:** Crypto-Betting-Against-Beta (BAB)
 **PRIORITY (NON-NEGOTIABLE):** `strategies/betting_against_beta/` - ALL effort MUST go here
 
 ## INITIAL TASK MESSAGE (FOR NEXT AGENTIC SESSION - EXECUTE THIS FIRST)
 
-**Time:** 2026-11-05T04:25:00Z
-**DIRECTIVE:** Repository name IS the directive. You are here to harden and extend the Betting Against Beta strategy. There is NO sidetrack mission until BAB gate is satisfied. Build, test, and verify relentlessly. The gate is source of truth.
+**Time:** 2026-11-05T05:19:00Z
+**DIRECTIVE:** Repository name IS the directive. You are here to harden and extend the Betting Against Beta strategy. There is NO sidetrack mission until BAB gate is satisfied. Build, test, and verify relentlessly. The gate is source of truth. Do not deviate. Focus ALL compute/edits on BAB modules.
 
 ## STATE SNAPSHOT (CURRENT)
 
-- **Full BAB test suite:** 2583 passed (0 failures) - all tests in `tests/test_bab*.py` and `tests/test_betting_against_beta*.py` passing.
-- **Gate script:** `scripts/bab_gate.sh` runs all tests under `tests/` with coverage. With all deps installed (`pytest`, `coverage`, `numpy`, `pandas`, `scipy`, `scikit-learn`, `pyarrow`, `openpyxl`, `tables`, `hypothesis`), the gate should exit 0.
-- **Fixed in this session:**
-  - Made `load_returns_from_parquet`/`load_returns_from_hdf5` properly wrap non-BAB errors from `validate_returns_dataframe` into `BABDataError` (matching expected behavior).
-  - Added focused coverage tests for data_loader edge cases.
+- **Full BAB-related test suite:** 2220 passed (0 failures) in tests matching `test_bab*`.
+- **All tests under `tests/`:** Running full suite takes time; gate script covers everything under `tests/` with coverage.
+- **Gate script:** `scripts/bab_gate.sh` runs all tests under `tests/` with coverage of `strategies/betting_against_beta/`.
+- **Recent fixes:** data_loader error wrapping to `BABDataError` (parquet/hdf5), added coverage tests.
 
 ## BOTTLENECKS REMOVED (THIS SESSION)
 
-- Dependencies installed globally for the environment (including hypothesis for property tests)
-- Gate is runnable
-- Workflow pattern intact
+- Dependencies present (pytest, coverage, numpy, pandas, scipy, sklearn, pyarrow, openpyxl, tables, hypothesis)
+- Gate pattern correct - scans all `tests/test_*.py`
+- Clean state, HEAD intact, no history rewrites
 
 ## CURRENT FOCUS
 
@@ -30,9 +29,9 @@
 cd /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
 export PATH=/home/runner/work/_temp/kilo-home/.local/bin:$PATH
 export PYTHONPATH=$PWD
-bash scripts/bab_gate.sh 2>&1 | tail -5
+bash scripts/bab_gate.sh 2>&1 | tail -15
 ```
-If RED → STOP and fix immediately. Do not checkpoint/commit with RED.
+If RED → STOP and fix immediately. Do not checkpoint/commit with RED. Priority is `strategies/betting_against_beta/`. Remove bottlenecks if any emerge.
 
 ## HEAVY WORK CAMPAIGN (CONTINUE HARDENING)
 
@@ -57,4 +56,4 @@ Prioritize based on risk/coverage gaps in BAB strategy modules. Work in this ord
 6. No history rewriting (no reset/rebase/force-push). HEAD intact.
 7. Invariants: weights lagged by 1 day (no lookahead), handle NaN/inf/NaT explicitly, no breaking API changes
 
-**ACTION:** Run gate now to confirm GREEN. Then pick highest-value uncovered branches in BAB modules and relentlessly harden with adversarial tests until comprehensive coverage with zero regressions. Do not stop until gate is GREEN and hardening is thorough.
+**ACTION:** Run gate now to confirm GREEN. Then pick highest-value uncovered branches in BAB modules (start with data_loader, then strategy/backtest/beta/signals/portfolio, then CLI/metrics/attribution/regime/costs/quality/config) and relentlessly harden with adversarial tests until comprehensive coverage with zero regressions. Do not stop until gate is GREEN and hardening is thorough. Build the next focus campaign as you go - leave no obvious gap unaddressed. Remove any bottlenecks blocking significant progress. Prioritize based on repo name (BAB) - no sidetracks.
