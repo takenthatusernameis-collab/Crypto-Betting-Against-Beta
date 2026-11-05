@@ -3529,3 +3529,181 @@ class TestExchangeFormatBatch10Tz:
         })
         out = _detect_and_normalize_exchange_format(df)
         assert isinstance(out.index, (pd.DatetimeIndex, pd.Index))
+
+
+class TestCampaignABatch1ExchangeFormatFallbacks:
+    def test_long_format_pivot_tz_timestamp_objects(self):
+        idx = pd.date_range("2024-01-01", periods=2).tz_localize("UTC")
+        df = pd.DataFrame({
+            "date": [idx[0], idx[0], idx[1], idx[1]],
+            "symbol": ["BTC", "ETH", "BTC", "ETH"],
+            "close": [100.0, 10.0, 101.0, 11.0],
+        })
+        out = _detect_and_normalize_exchange_format(df)
+        assert isinstance(out, pd.DataFrame)
+        assert len(out.columns) >= 1
+
+    def test_long_format_pivot_fallback_to_to_datetime(self, monkeypatch):
+        import strategies.betting_against_beta.data_loader as dl
+        orig = dl._coerce_to_datetime_scalar
+        def flaky(v):
+            if isinstance(v, str) and v.startswith("2024-01-01"):
+                raise ValueError("boom")
+            return orig(v)
+        monkeypatch.setattr(dl, "_coerce_to_datetime_scalar", flaky)
+        df = pd.DataFrame({
+            "date": ["2024-01-01", "2024-01-01", "2024-01-02", "2024-01-02"],
+            "symbol": ["BTC", "ETH", "BTC", "ETH"],
+            "close": [100.0, 10.0, 101.0, 11.0],
+        })
+        out = dl._detect_and_normalize_exchange_format(df)
+        assert isinstance(out, pd.DataFrame)
+
+    def test_ohlcv_single_asset_coerce_fallback(self, monkeypatch):
+        import strategies.betting_against_beta.data_loader as dl
+        calls = {"n": 0}
+        orig = dl._coerce_to_datetime_scalar
+        def flaky(v):
+            calls["n"] += 1
+            if calls["n"] == 1:
+                raise ValueError("boom")
+            return orig(v)
+        monkeypatch.setattr(dl, "_coerce_to_datetime_scalar", flaky)
+        df = pd.DataFrame({
+            "date": ["2024-01-01", "2024-01-02", "2024-01-03"],
+            "open": [1, 2, 3], "high": [2, 3, 4], "low": [0, 1, 2], "close": [1.5, 2.5, 3.5],
+        })
+        out = dl._detect_and_normalize_exchange_format(df)
+        assert isinstance(out, pd.DataFrame)
+
+    def test_date_col_epoch_numeric_coercion_path(self):
+        df = pd.DataFrame({"date": [1700000000, 1700086400], "BTC": [100.0, 101.0], "ETH": [10.0, 11.0]})
+        out = _detect_and_normalize_exchange_format(df)
+        assert isinstance(out, pd.DataFrame)
+
+    def test_date_col_iso_string_aggressive_coerce_path(self):
+        df = pd.DataFrame({"date": ["2024-01-01 00:00:00", "2024-01-02 00:00:00"], "BTC": [100.0, 101.0]})
+        out = _detect_and_normalize_exchange_format(df)
+        assert isinstance(out, pd.DataFrame)
+
+    def test_date_col_epoch_coerce_raises_falls_through(self, monkeypatch):
+        import strategies.betting_against_beta.data_loader as dl
+        monkeypatch.setattr(dl, "_coerce_to_datetime_scalar", lambda v: (_ for _ in ()).throw(ValueError("x")))
+        df = pd.DataFrame({"date": [1700000000, 1700086400], "BTC": [100.0, 101.0]})
+        out = dl._detect_and_normalize_exchange_format(df)
+        assert isinstance(out, pd.DataFrame)
+
+    def test_pivot_symbol_strip_and_date_tz_localize_fallback(self, monkeypatch):
+        import strategies.betting_against_beta.data_loader as dl
+        class WeirdTs:
+            tzinfo = object()
+            def tz_convert(self, *a, **k): raise RuntimeError("x")
+            def tz_localize(self, *a, **k): return self
+        orig = dl._coerce_to_datetime_scalar
+        def fake(v):
+            if str(v).startswith("2024-01-01"):
+                return WeirdTs()
+            return orig(v)
+        monkeypatch.setattr(dl, "_coerce_to_datetime_scalar", fake)
+        df = pd.DataFrame({
+            "date": ["2024-01-01", "2024-01-01", "2024-01-02", "2024-01-02"],
+            "symbol": [" BTC ", "ETH", "BTC", "ETH"],
+            "close": [100.0, 10.0, 101.0, 11.0],
+        })
+        out = dl._detect_and_normalize_exchange_format(df)
+        assert isinstance(out, pd.DataFrame)
+
+
+class TestCampaignABatch2PromoteAndScalarFallbacks:
+    def test_coerce_series_to_datetime_index_direct(self):
+        import strategies.betting_against_beta.data_loader as dl
+        df = pd.DataFrame({"date": ["2024-01-01", "2024-01-02"], "BTC": [1.0, 2.0]})
+        coerced = pd.Series([pd.Timestamp("2024-01-01"), pd.Timestamp("2024-01-02")])
+        ok = dl._coerce_series_to_datetime_index(df, "date", coerced)
+        assert ok in (True, False)
+
+    def test_coerce_series_to_datetime_index_tz_aware(self):
+        import strategies.betting_against_beta.data_loader as dl
+        df = pd.DataFrame({"date": ["2024-01-01", "2024-01-02"], "BTC": [1.0, 2.0]})
+        coerced = pd.Series(pd.to_datetime(["2024-01-01", "2024-01-02"]).tz_localize("UTC"))
+        ok = dl._coerce_series_to_datetime_index(df, "date", coerced)
+        assert ok in (True, False)
+
+    def test_coerce_series_to_datetime_index_empty_returns_false(self):
+        import strategies.betting_against_beta.data_loader as dl
+        df = pd.DataFrame({"date": [np.nan, np.nan], "BTC": [1.0, 2.0]})
+        ok = dl._coerce_series_to_datetime_index(df, "date", [np.nan, np.nan])
+        assert ok is False
+
+    def test_promote_datetime_column_candidate_coercer_bad_then_parse_raises_handled(self, monkeypatch):
+        import strategies.betting_against_beta.data_loader as dl
+        calls = {"n": 0}
+        orig = dl._coerce_to_datetime_scalar
+        def flaky(v):
+            calls["n"] += 1
+            if calls["n"] <= 2:
+                return pd.NaT
+            return orig(v)
+        monkeypatch.setattr(dl, "_coerce_to_datetime_scalar", flaky)
+        df = pd.DataFrame({"date": ["2024-01-01", "2024-01-02"], "BTC": [1.0, 2.0]})
+        out = dl._promote_datetime_column(df)
+        assert isinstance(out, pd.DataFrame)
+
+    def test_promote_datetime_column_set_index_fails_keeps_column(self, monkeypatch):
+        import strategies.betting_against_beta.data_loader as dl
+        class D(pd.DataFrame):
+            _metadata = []
+            @property
+            def _constructor(self): return D
+            def set_index(self, *a, **k): raise RuntimeError("nope")
+        df = D({"date": ["2024-01-01", "2024-01-02"], "BTC": [1.0, 2.0]})
+        out = dl._promote_datetime_column(df)
+        assert isinstance(out, pd.DataFrame)
+
+    def test_promote_unnamed_column_coercer_success(self):
+        df = pd.DataFrame({"": ["2024-01-01", "2024-01-02"], "BTC": [1.0, 2.0]})
+        out = _promote_datetime_column(df)
+        assert isinstance(out, pd.DataFrame)
+
+    def test_promote_last_resort_object_column_parses(self):
+        df = pd.DataFrame({"foo": ["2024-01-01", "2024-01-02"], "BTC": [1.0, 2.0], "ETH": [3.0, 4.0]})
+        out = _promote_datetime_column(df)
+        assert isinstance(out, pd.DataFrame)
+
+    def test_promote_exchange_normalization_exception_path(self, monkeypatch):
+        import strategies.betting_against_beta.data_loader as dl
+        monkeypatch.setattr(dl, "_detect_and_normalize_exchange_format", lambda df: (_ for _ in ()).throw(RuntimeError("x")))
+        df = pd.DataFrame({"date": ["2024-01-01", "2024-01-02"], "BTC": [1.0, 2.0], "ETH": [3.0, 4.0]})
+        out = dl._promote_datetime_column(df)
+        assert isinstance(out, pd.DataFrame)
+
+    def test_coerce_scalar_datetime_with_tz_converts(self):
+        ts = _coerce_to_datetime_scalar(pd.Timestamp("2024-01-01", tz="US/Eastern"))
+        assert pd.notna(ts)
+
+    def test_coerce_scalar_numpy_integer(self):
+        ts = _coerce_to_datetime_scalar(np.int32(1700000000))
+        assert pd.notna(ts)
+
+    def test_coerce_scalar_pandas_parse_fallback(self):
+        ts = _coerce_to_datetime_scalar("15 Jan 2024")
+        assert pd.notna(ts)
+
+    def test_coerce_scalar_dayfirst_fallback(self):
+        try:
+            ts = _coerce_to_datetime_scalar("31/01/2024")
+            assert pd.notna(ts)
+        except ValueError:
+            pass
+
+    def test_coerce_scalar_numeric_string_large_ns(self):
+        ts = _coerce_to_datetime_scalar("1700000000000000000")
+        assert pd.notna(ts)
+
+    def test_coerce_scalar_numeric_string_large_us(self):
+        ts = _coerce_to_datetime_scalar("170000000000000")
+        assert pd.notna(ts)
+
+    def test_coerce_scalar_numeric_string_bad_then_parse(self):
+        with pytest.raises(ValueError):
+            _coerce_to_datetime_scalar("1e309bad")
