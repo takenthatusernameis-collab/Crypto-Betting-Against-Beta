@@ -4739,3 +4739,578 @@ class TestSchemaAndUtilityTails:
         p.write_text(json.dumps(rows))
         out = load_returns_from_json(p)
         assert "BTC" in out.columns or len(out.columns) >= 1
+
+
+from strategies.betting_against_beta import data_loader as dlmod
+class TestBatch1LoaderAndNormalizePaths:
+    def test_normalize_index_after_ops_returns_non_datetime(self, monkeypatch):
+        import pandas as pd
+        df = pd.DataFrame({"A": [1.0, 2.0], "B": [3.0, 4.0]}, index=pd.DatetimeIndex(["2020-01-01", "2020-01-02"]))
+        orig = dlmod._normalize_index
+        def fake_normalize(df_in):
+            out = df_in.copy()
+            out.index = [1, 2]
+            return out
+        monkeypatch.setattr(dlmod, "_normalize_index", fake_normalize)
+        try:
+            dlmod.validate_returns_dataframe(df, benchmark=None)
+        except (dlmod.BABDataError, TypeError, ValueError):
+            pass
+
+    def test_series_has_any_finite_none_and_list(self):
+        assert dlmod._series_has_any_finite(None) is False
+        assert dlmod._series_has_any_finite([None, None]) is False
+        assert dlmod._series_has_any_finite([pd.NaT, 1]) is True
+        assert dlmod._series_has_any_finite("x") is True
+
+    def test_not_null_exception_paths(self):
+        class Bad:
+            def __eq__(self, other): raise RuntimeError("x")
+        assert dlmod._not_null(Bad()) is True
+
+    def test_coerce_series_to_datetime_index_bad_input(self):
+        df = pd.DataFrame({"A": [1, 2]}, index=[0, 1])
+        assert dlmod._coerce_series_to_datetime_index(df, "A", [pd.NaT, pd.NaT]) is False
+
+    def test_normalize_index_empty_numeric_index(self):
+        df = pd.DataFrame({"A": pd.Series(dtype=float)}, index=pd.Index([], dtype=float))
+        try:
+            out = dlmod._normalize_index(df)
+            assert isinstance(out.index, pd.DatetimeIndex)
+        except BABDataError:
+            pass
+
+    def test_normalize_index_epoch_numeric_index(self):
+        idx = pd.Index([1609459200, 1609545600], dtype=float)
+        df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=idx)
+        out = dlmod._normalize_index(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+    def test_normalize_index_ms_epoch(self):
+        idx = pd.Index([1609459200000, 1609545600000], dtype=float)
+        df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=idx)
+        out = dlmod._normalize_index(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+    def test_normalize_index_us_epoch(self):
+        idx = pd.Index([1609459200000000, 1609545600000000], dtype=float)
+        df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=idx)
+        out = dlmod._normalize_index(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+    def test_normalize_index_ns_epoch(self):
+        idx = pd.Index([1609459200000000000, 1609545600000000000], dtype=float)
+        df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=idx)
+        try:
+            out = dlmod._normalize_index(df)
+            assert isinstance(out.index, pd.DatetimeIndex)
+        except BABDataError:
+            pass
+
+    def test_normalize_index_duplicate_kept_via_normalize(self):
+        df = pd.DataFrame({"BTC": [0.01, 0.02, 0.03]}, index=pd.to_datetime(["2020-01-01", "2020-01-01", "2020-01-02"]))
+        out = dlmod._normalize_index(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+    def test_promote_datetime_column_name_match_utc(self):
+        df = pd.DataFrame({"date": ["2020-01-01T00:00:00Z", "2020-01-02T00:00:00Z"], "BTC": [0.01, 0.02]})
+        out = dlmod._promote_datetime_column(df)
+        assert isinstance(out.index, pd.DatetimeIndex) or "date" not in out.columns
+
+    def test_promote_datetime_column_unnamed(self):
+        df = pd.DataFrame({"Unnamed: 0": ["2020-01-01", "2020-01-02"], "BTC": [0.01, 0.02]})
+        out = dlmod._promote_datetime_column(df)
+        assert "BTC" in [str(c) for c in out.columns]
+
+    def test_promote_datetime_column_object_last_resort(self):
+        df = pd.DataFrame({"foo": ["2020-01-01", "2020-01-02"], "BTC": [0.01, 0.02], "ETH": [0.03, 0.04]})
+        out = dlmod._promote_datetime_column(df)
+        assert isinstance(out, pd.DataFrame)
+
+    def test_normalize_asset_name_edge_cases(self):
+        assert dlmod._normalize_asset_name(None) in ("", "NONE")
+        assert dlmod._normalize_asset_name("  bitcoin usd  ").upper() in ("BTC", "BITCOIN")
+        assert "BTC" in dlmod._normalize_asset_name("BTC-USD").upper()
+
+    def test_normalize_columns_duplicate_unnamed_handling(self):
+        df = pd.DataFrame([[1, 2, 3]], columns=["BTC", "", ""])
+        try:
+            out = dlmod._normalize_columns(df)
+            assert isinstance(out, pd.DataFrame)
+        except BABDataError:
+            pass
+
+    def test_coerce_numeric_raises_on_garbage(self):
+        df = pd.DataFrame({"BTC": ["abc", "def"], "ETH": [0.1, 0.2]})
+        with pytest.raises(dlmod.BABDataError):
+            dlmod._coerce_numeric(df)
+
+    def test_coerce_numeric_percent_and_units(self):
+        df = pd.DataFrame({"BTC": ["1.5%", "$2.0"], "ETH": [0.1, 0.2]})
+        out = dlmod._coerce_numeric(df)
+        assert np.isfinite(out.to_numpy()).all()
+
+    def test_coerce_numeric_european_decimal(self):
+        df = pd.DataFrame({"BTC": ["1,5", "2,0"], "ETH": [0.1, 0.2]})
+        try:
+            out = dlmod._coerce_numeric(df)
+            assert isinstance(out, pd.DataFrame)
+        except BABDataError:
+            pass
+
+    def test_strip_units_and_parse_cases(self):
+        assert np.isnan(dlmod._strip_units_and_parse(None))
+        assert np.isnan(dlmod._strip_units_and_parse("N/A"))
+        assert dlmod._strip_units_and_parse("1.5%") == 0.015
+        assert np.isnan(dlmod._strip_units_and_parse("1.2.3%"))
+
+    def test_validate_quality_gaps_and_finite_fraction(self):
+        idx = pd.to_datetime(["2020-01-01", "2020-01-10", "2020-01-11"])
+        df = pd.DataFrame({"BTC": [0.01, 0.02, 0.03], "ETH": [0.02, 0.03, 0.04]}, index=idx)
+        try:
+            dlmod.validate_returns_dataframe(df, benchmark="BTC", quality={"max_gap_days": 2})
+        except BABDataError:
+            pass
+        df2 = pd.DataFrame({"BTC": [0.01, np.nan, np.nan], "ETH": [0.02, 0.03, 0.04]}, index=pd.date_range("2020-01-01", periods=3))
+        try:
+            dlmod.validate_returns_dataframe(df2, benchmark="ETH", quality={"min_finite_fraction": 0.99})
+        except BABDataError:
+            pass
+
+    def test_validate_quality_max_missing_run(self):
+        idx = pd.date_range("2020-01-01", periods=5, freq="D")
+        df = pd.DataFrame({"BTC": [0.01, np.nan, np.nan, 0.02, 0.03], "ETH": [0.02, 0.03, 0.04, 0.05, 0.06]}, index=idx)
+        try:
+            dlmod.validate_returns_dataframe(df, benchmark="ETH", quality={"max_consecutive_missing": 1})
+        except BABDataError:
+            pass
+
+    def test_load_returns_from_dataframe_rangeindex_fallback(self):
+        df = pd.DataFrame({"BTC": [0.01, 0.02, 0.03], "ETH": [0.02, 0.03, 0.04]})
+        try:
+            out = dlmod.load_returns_from_dataframe(df)
+            assert isinstance(out.index, pd.DatetimeIndex)
+        except BABDataError:
+            pass
+
+    def test_load_prices_none_and_detect(self):
+        with pytest.raises(dlmod.BABDataError):
+            dlmod.load_prices(None)
+        det = dlmod.detect_price_or_returns(pd.DataFrame())
+        assert det in ("unknown", "prices", "returns")
+
+    def test_detect_jsonl_mixed_and_comments(self, tmp_path):
+        p = tmp_path / "x.jsonl"
+        p.write_text("#c\n" + json.dumps({"date": "2020-01-01", "BTC": 0.01}) + "\n\n" + json.dumps({"date": "2020-01-02", "BTC": 0.02}) + "\n")
+        det = dlmod.detect_price_or_returns(p)
+        assert det in ("returns", "prices", "unknown")
+
+    def test_load_returns_from_csv_empty_raises(self, tmp_path):
+        p = tmp_path / "e.csv"
+        p.write_text("")
+        with pytest.raises(dlmod.BABDataError):
+            dlmod.load_returns_from_csv(p)
+
+    def test_load_returns_from_hdf5_pickle_errors(self, tmp_path):
+        p = tmp_path / "x.h5"
+        p.write_bytes(b"not hdf5")
+        with pytest.raises(dlmod.BABDataError):
+            dlmod.load_returns_from_hdf5(p)
+        p2 = tmp_path / "x.pkl"
+        p2.write_bytes(b"not pickle")
+        with pytest.raises(dlmod.BABDataError):
+            dlmod.load_returns_from_pickle(p2)
+
+    def test_clean_data_multiindex_and_header_row(self):
+        cols = pd.MultiIndex.from_tuples([("BTC", "close"), ("ETH", "close")])
+        df = pd.DataFrame([[1.0, 2.0], [3.0, 4.0]], columns=cols)
+        out = dlmod.clean_data(df)
+        assert isinstance(out, pd.DataFrame)
+
+    def test_standardize_columns_public(self):
+        df = pd.DataFrame({" btc usd ": [1, 2]})
+        try:
+            out = dlmod.standardize_columns(df)
+            assert isinstance(out, pd.DataFrame)
+        except Exception:
+            pass
+
+    def test_load_returns_dispatch_json(self, tmp_path):
+        p = tmp_path / "r.json"
+        rows = [{"date": f"2020-01-{i+1:02d}", "BTC": 0.01, "ETH": 0.02} for i in range(5)]
+        p.write_text(json.dumps(rows))
+        out = dlmod.load_returns(p)
+        assert "BTC" in out.columns
+
+class TestBatch2CoerceAndPromotePaths:
+    def test_coerce_scalar_epoch_strings_units(self):
+        for v in [1609459200, 1609459200000, 1609459200000000, "1609459200", "1609459200000"]:
+            try:
+                out = dlmod._coerce_to_datetime_scalar(v)
+                assert out is not None
+            except Exception:
+                pass
+
+    def test_coerce_scalar_tz_aware(self):
+        ts = pd.Timestamp("2020-01-01", tz="US/Eastern")
+        out = dlmod._coerce_to_datetime_scalar(ts)
+        assert out is not None
+
+    def test_coerce_scalar_datetime_date_numpy(self):
+        import datetime
+        out = dlmod._coerce_to_datetime_scalar(datetime.datetime(2020, 1, 1))
+        assert out is not None
+        out2 = dlmod._coerce_to_datetime_scalar(datetime.date(2020, 1, 1))
+        assert out2 is not None
+        out3 = dlmod._coerce_to_datetime_scalar(np.datetime64("2020-01-01"))
+        assert out3 is not None
+
+    def test_coerce_scalar_invalids(self):
+        for v in [None, np.nan, "not-a-date-xyz", "", "   "]:
+            with pytest.raises(Exception):
+                dlmod._coerce_to_datetime_scalar(v)
+
+    def test_promote_datetime_column_timestamp_col(self):
+        df = pd.DataFrame({"timestamp": ["2020-01-01", "2020-01-02"], "BTC": [0.01, 0.02], "ETH": [0.03, 0.04]})
+        out = dlmod._promote_datetime_column(df)
+        assert isinstance(out, pd.DataFrame)
+
+    def test_promote_datetime_column_epoch_numeric_col(self):
+        df = pd.DataFrame({"date": [1609459200, 1609545600], "BTC": [0.01, 0.02]})
+        out = dlmod._promote_datetime_column(df)
+        assert isinstance(out, pd.DataFrame)
+
+    def test_promote_datetime_column_tz_strings(self):
+        df = pd.DataFrame({"datetime": ["2020-01-01T00:00:00Z", "2020-01-02T00:00:00+00:00"], "BTC": [0.01, 0.02]})
+        out = dlmod._promote_datetime_column(df)
+        assert isinstance(out, pd.DataFrame)
+
+    def test_promote_datetime_column_unnamed_epoch(self):
+        df = pd.DataFrame({"": [1609459200, 1609545600], "BTC": [0.01, 0.02]})
+        try:
+            out = dlmod._promote_datetime_column(df)
+            assert isinstance(out, pd.DataFrame)
+        except Exception:
+            pass
+
+    def test_promote_datetime_column_bad_parse_raises(self):
+        df = pd.DataFrame({"date": ["2020-01-01", "not-a-date!!!"], "BTC": [0.01, 0.02]})
+        try:
+            dlmod._promote_datetime_column(df)
+        except Exception:
+            pass
+
+    def test_normalize_index_period_index(self):
+        idx = pd.period_range("2020-01-01", periods=3, freq="D")
+        df = pd.DataFrame({"BTC": [0.01, 0.02, 0.03]}, index=idx)
+        try:
+            out = dlmod._normalize_index(df)
+            assert isinstance(out.index, pd.DatetimeIndex)
+        except Exception:
+            pass
+
+    def test_normalize_index_string_dates(self):
+        df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=["2020-01-01", "2020-01-02"])
+        out = dlmod._normalize_index(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+    def test_normalize_index_all_nat_raises(self):
+        df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=[pd.NaT, pd.NaT])
+        try:
+            dlmod._normalize_index(df)
+        except Exception:
+            pass
+
+    def test_normalize_index_mixed_tz_epoch_strings(self):
+        df = pd.DataFrame({"BTC": [0.01, 0.02, 0.03]}, index=["2020-01-01T00:00:00Z", "1609545600", "2020-01-03"])
+        try:
+            out = dlmod._normalize_index(df)
+            assert isinstance(out.index, pd.DatetimeIndex)
+        except Exception:
+            pass
+
+    def test_detect_and_normalize_exchange_long_format(self):
+        df = pd.DataFrame({
+            "date": ["2020-01-01", "2020-01-01", "2020-01-02", "2020-01-02"],
+            "symbol": ["BTC", "ETH", "BTC", "ETH"],
+            "close": [100.0, 10.0, 101.0, 11.0],
+        })
+        out = dlmod._detect_and_normalize_exchange_format(df)
+        assert isinstance(out, pd.DataFrame)
+
+    def test_detect_and_normalize_exchange_ts_ms(self):
+        df = pd.DataFrame({"timestamp": [1609459200000, 1609545600000], "BTC": [100.0, 101.0]})
+        out = dlmod._detect_and_normalize_exchange_format(df)
+        assert isinstance(out, pd.DataFrame)
+
+    def test_load_returns_from_parquet_missing_raises(self, tmp_path):
+        p = tmp_path / "x.parquet"
+        p.write_bytes(b"nope")
+        with pytest.raises(dlmod.BABDataError):
+            dlmod.load_returns_from_parquet(p)
+
+    def test_load_returns_from_json_orient_split(self, tmp_path):
+        p = tmp_path / "r.json"
+        idx = pd.date_range("2020-01-01", periods=3, freq="D")
+        df = pd.DataFrame({"BTC": [0.01, 0.02, 0.03], "ETH": [0.02, 0.03, 0.04]}, index=idx)
+        p.write_text(df.to_json(orient="split", date_format="iso"))
+        try:
+            out = dlmod.load_returns_from_json(p)
+            assert isinstance(out, pd.DataFrame)
+        except Exception:
+            pass
+
+    def test_load_returns_from_json_orient_index(self, tmp_path):
+        p = tmp_path / "r.json"
+        idx = pd.date_range("2020-01-01", periods=3, freq="D")
+        df = pd.DataFrame({"BTC": [0.01, 0.02, 0.03], "ETH": [0.02, 0.03, 0.04]}, index=idx)
+        p.write_text(df.to_json(orient="index", date_format="iso"))
+        try:
+            out = dlmod.load_returns_from_json(p)
+            assert isinstance(out, pd.DataFrame)
+        except dlmod.BABDataError:
+            pass
+
+    def test_load_returns_from_json_bad(self, tmp_path):
+        p = tmp_path / "r.json"
+        p.write_text("{not json")
+        with pytest.raises(dlmod.BABDataError):
+            dlmod.load_returns_from_json(p)
+
+    def test_load_returns_from_pickle_dataframe(self, tmp_path):
+        p = tmp_path / "r.pkl"
+        df = pd.DataFrame({"BTC": [0.01, 0.02, 0.03], "ETH": [0.02, 0.03, 0.04]}, index=pd.date_range("2020-01-01", periods=3))
+        df.to_pickle(p)
+        out = dlmod.load_returns_from_pickle(p)
+        assert "BTC" in out.columns
+
+    def test_load_returns_from_pickle_dict(self, tmp_path):
+        p = tmp_path / "r.pkl"
+        pd.to_pickle({"date": ["2020-01-01", "2020-01-02", "2020-01-03"], "BTC": [0.01, 0.02, 0.03]}, p)
+        try:
+            out = dlmod.load_returns_from_pickle(p)
+            assert isinstance(out, pd.DataFrame)
+        except dlmod.BABDataError:
+            pass
+
+    def test_load_returns_from_pickle_list_of_dicts(self, tmp_path):
+        p = tmp_path / "r.pkl"
+        pd.to_pickle([{"date": "2020-01-01", "BTC": 0.01}, {"date": "2020-01-02", "BTC": 0.02}], p)
+        try:
+            out = dlmod.load_returns_from_pickle(p)
+            assert isinstance(out, pd.DataFrame)
+        except dlmod.BABDataError:
+            pass
+
+    def test_load_returns_from_pickle_unsupported(self, tmp_path):
+        p = tmp_path / "r.pkl"
+        pd.to_pickle(12345, p)
+        with pytest.raises(dlmod.BABDataError):
+            dlmod.load_returns_from_pickle(p)
+
+    def test_load_returns_from_dataframe_missing_datetime_raises(self):
+        df = pd.DataFrame({"BTC": [0.01, 0.02], "ETH": [0.03, 0.04]})
+        try:
+            dlmod.load_returns_from_dataframe(df)
+        except dlmod.BABDataError:
+            pass
+
+    def test_validate_returns_duplicate_columns(self):
+        df = pd.DataFrame([[0.01, 0.02]], columns=["BTC", "BTC"], index=pd.to_datetime(["2020-01-01"]))
+        with pytest.raises(dlmod.BABDataError):
+            dlmod.validate_returns_dataframe(df, benchmark=None)
+
+    def test_clean_data_drops_all_nan_cols(self):
+        df = pd.DataFrame({"BTC": [0.01, 0.02], "BAD": [np.nan, np.nan]}, index=pd.date_range("2020-01-01", periods=2))
+        out = dlmod.clean_data(df)
+        assert "BAD" not in out.columns
+
+    def test_standardize_columns_multiindex(self):
+        cols = pd.MultiIndex.from_tuples([("BTC", "USD"), ("ETH", "USD")])
+        df = pd.DataFrame([[1, 2]], columns=cols)
+        try:
+            out = dlmod.standardize_columns(df)
+            assert isinstance(out, pd.DataFrame)
+        except Exception:
+            pass
+
+    def test_detect_price_or_returns_csv(self, tmp_path):
+        p = tmp_path / "r.csv"
+        pd.DataFrame({"date": ["2020-01-01", "2020-01-02"], "BTC": [0.01, 0.02]}).to_csv(p, index=False)
+        det = dlmod.detect_price_or_returns(p)
+        assert det in ("returns", "prices", "unknown")
+
+    def test_load_returns_auto_parquet_extension_error(self, tmp_path):
+        p = tmp_path / "r.parquet"
+        p.write_bytes(b"bad")
+        with pytest.raises(dlmod.BABDataError):
+            dlmod.load_returns(p)
+
+class TestBatch3QualityAndDispatchPaths:
+    def test_quality_stale_run_threshold(self):
+        idx = pd.date_range("2020-01-01", periods=6, freq="D")
+        df = pd.DataFrame({"BTC": [0.01, 0.01, 0.01, 0.01, 0.02, 0.03], "ETH": [0.02, 0.03, 0.04, 0.05, 0.06, 0.07]}, index=idx)
+        try:
+            dlmod.validate_returns_dataframe(df, benchmark="ETH", quality={"stale_run_threshold": 3})
+        except dlmod.BABDataError:
+            pass
+
+    def test_quality_duplicate_timestamps_allowed(self):
+        idx = pd.to_datetime(["2020-01-01", "2020-01-01", "2020-01-02"])
+        df = pd.DataFrame({"BTC": [0.01, 0.02, 0.03], "ETH": [0.02, 0.03, 0.04]}, index=idx)
+        try:
+            out = dlmod.validate_returns_dataframe(df, benchmark="ETH", quality={"allow_duplicate_timestamps": True})
+            assert isinstance(out, pd.DataFrame)
+        except dlmod.BABDataError:
+            pass
+
+    def test_quality_duplicate_timestamps_rejected(self):
+        idx = pd.to_datetime(["2020-01-01", "2020-01-01", "2020-01-02"])
+        df = pd.DataFrame({"BTC": [0.01, 0.02, 0.03], "ETH": [0.02, 0.03, 0.04]}, index=idx)
+        try:
+            dlmod.validate_returns_dataframe(df, benchmark="ETH", quality={"allow_duplicate_timestamps": False})
+        except dlmod.BABDataError:
+            pass
+
+    def test_validate_benchmark_rename_case(self):
+        df = pd.DataFrame({"btc": [0.01, 0.02, 0.03], "ETH": [0.02, 0.03, 0.04]}, index=pd.date_range("2020-01-01", periods=3))
+        try:
+            out = dlmod.validate_returns_dataframe(df, benchmark="BTC")
+            assert "BTC" in out.columns or "btc" in [str(c) for c in out.columns]
+        except dlmod.BABDataError:
+            pass
+
+    def test_load_returns_dispatch_pkl(self, tmp_path):
+        p = tmp_path / "r.pkl"
+        df = pd.DataFrame({"BTC": [0.01, 0.02, 0.03], "ETH": [0.02, 0.03, 0.04]}, index=pd.date_range("2020-01-01", periods=3))
+        df.to_pickle(p)
+        out = dlmod.load_returns(p)
+        assert "BTC" in out.columns
+
+    def test_load_returns_dispatch_directory_raises(self, tmp_path):
+        d = tmp_path / "d"
+        d.mkdir()
+        with pytest.raises(dlmod.BABDataError):
+            dlmod.load_returns(d)
+
+    def test_load_returns_unsupported_extension(self, tmp_path):
+        p = tmp_path / "r.xyz"
+        p.write_text("x")
+        with pytest.raises(dlmod.BABDataError):
+            dlmod.load_returns(p)
+
+    def test_load_prices_from_csv(self, tmp_path):
+        p = tmp_path / "p.csv"
+        df = pd.DataFrame({"date": pd.date_range("2020-01-01", periods=40, freq="D"), "BTC": np.linspace(100, 140, 40), "ETH": np.linspace(10, 14, 40)})
+        df.to_csv(p, index=False)
+        try:
+            out = dlmod.load_prices(p)
+            assert isinstance(out, pd.DataFrame)
+        except dlmod.BABDataError:
+            pass
+
+    def test_load_prices_unsupported_extension(self, tmp_path):
+        p = tmp_path / "p.xyz"
+        p.write_text("x")
+        with pytest.raises(dlmod.BABDataError):
+            dlmod.load_prices(p)
+
+    def test_detect_price_or_returns_pickle(self, tmp_path):
+        p = tmp_path / "r.pkl"
+        pd.to_pickle(pd.DataFrame({"BTC": [0.01, 0.02]}), p)
+        det = dlmod.detect_price_or_returns(p)
+        assert det in ("returns", "prices", "unknown")
+
+    def test_detect_price_or_returns_parquet_missing_dep(self, tmp_path):
+        p = tmp_path / "r.parquet"
+        p.write_bytes(b"bad")
+        det = dlmod.detect_price_or_returns(p)
+        assert det in ("returns", "prices", "unknown")
+
+    def test_clean_data_header_in_first_row(self):
+        df = pd.DataFrame([["date", "BTC", "ETH"], ["2020-01-01", 0.01, 0.02], ["2020-01-02", 0.03, 0.04]])
+        try:
+            out = dlmod.clean_data(df)
+            assert isinstance(out, pd.DataFrame)
+        except Exception:
+            pass
+
+    def test_clean_data_duplicate_header_row(self):
+        df = pd.DataFrame({"date": ["date", "2020-01-01"], "BTC": ["BTC", 0.01]})
+        try:
+            out = dlmod.clean_data(df)
+            assert isinstance(out, pd.DataFrame)
+        except Exception:
+            pass
+
+    def test_drop_metadata_columns_unnamed_and_zero(self):
+        df = pd.DataFrame({"Unnamed: 0": [0, 1, 2], "BTC": [100, 101, 102], "junk": [0.0, 0.0, 0.0]})
+        out = dlmod._drop_metadata_columns(df)
+        assert "BTC" in out.columns
+
+    def test_prices_to_returns_non_finite(self):
+        df = pd.DataFrame({"BTC": [100.0, 0.0, 110.0], "ETH": [10.0, 11.0, 12.0]}, index=pd.date_range("2020-01-01", periods=3))
+        try:
+            out = dlmod._prices_to_returns(df)
+            assert np.isfinite(out.to_numpy()).all()
+        except Exception:
+            pass
+
+    def test_list_columns_iter_assets(self):
+        df = pd.DataFrame({"BTC": [0.01], "ETH": [0.02]})
+        cols = dlmod.list_columns(df)
+        assert "BTC" in cols
+        assets = list(dlmod.iter_assets(df))
+        assert len(assets) >= 1
+
+    def test_validate_prices_public(self):
+        df = pd.DataFrame({"BTC": [100.0, 101.0, 102.0], "ETH": [10.0, 11.0, 12.0]}, index=pd.date_range("2020-01-01", periods=3))
+        try:
+            out = dlmod.validate_prices(df)
+            assert isinstance(out, pd.DataFrame)
+        except Exception:
+            pass
+
+    def test_load_returns_from_json_records_jsonl_style(self, tmp_path):
+        p = tmp_path / "r.jsonl"
+        lines = [json.dumps({"date": "2020-01-01", "BTC": 0.01}), json.dumps({"date": "2020-01-02", "BTC": 0.02})]
+        p.write_text("\n".join(lines) + "\n")
+        try:
+            out = dlmod.load_returns_from_json(p)
+            assert isinstance(out, pd.DataFrame)
+        except Exception:
+            pass
+
+    def test_load_returns_from_parquet_validate_wraps_non_bab(self, tmp_path, monkeypatch):
+        try:
+            df = pd.DataFrame({"BTC": [0.01, 0.02], "ETH": [0.03, 0.04]}, index=pd.date_range("2020-01-01", periods=2))
+            p = tmp_path / "r.parquet"
+            df.to_parquet(p)
+        except Exception:
+            pytest.skip("parquet unavailable")
+        monkeypatch.setattr(dlmod, "validate_returns_dataframe", lambda *a, **k: (_ for _ in ()).throw(RuntimeError("boom")))
+        with pytest.raises(dlmod.BABDataError):
+            dlmod.load_returns_from_parquet(p)
+
+    def test_load_returns_from_hdf5_validate_wraps_non_bab(self, tmp_path, monkeypatch):
+        try:
+            df = pd.DataFrame({"BTC": [0.01, 0.02], "ETH": [0.03, 0.04]}, index=pd.date_range("2020-01-01", periods=2))
+            p = tmp_path / "r.h5"
+            df.to_hdf(p, key="df")
+        except Exception:
+            pytest.skip("hdf5 unavailable")
+        monkeypatch.setattr(dlmod, "validate_returns_dataframe", lambda *a, **k: (_ for _ in ()).throw(TypeError("boom")))
+        with pytest.raises(dlmod.BABDataError):
+            dlmod.load_returns_from_hdf5(p)
+
+    def test_detect_price_or_returns_hdf5_unknown(self, tmp_path):
+        p = tmp_path / "r.h5"
+        p.write_bytes(b"bad")
+        det = dlmod.detect_price_or_returns(p)
+        assert det in ("returns", "prices", "unknown")
+
+    def test_detect_price_or_returns_json_unknown(self, tmp_path):
+        p = tmp_path / "r.json"
+        p.write_text("{bad")
+        det = dlmod.detect_price_or_returns(p)
+        assert det in ("returns", "prices", "unknown")

@@ -1,26 +1,39 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 
-**Timestamp (UTC):** 2026-11-05T22:16:00Z (recon verified this session)
+**Timestamp (UTC):** 2026-11-05T22:57:25Z (verified this session)
 **Repo:** `Crypto-Betting-Against-Beta` — `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
-**Branch/SHA:** `main` @ `a9d30bb` (HEAD verified; `origin/main` at same SHA). Working tree: `HANDOFF.md` updated this session only. **No `.github/workflows/*` edits/commits/pushes. No remote push claimed.**
+**Branch/SHA:** `main` @ `ce6cb46` (HEAD verified). Working tree (local only, no commit/push claimed): `tests/test_bab_data_loader_coverage_gaps.py` modified (+Batch 1-3 Campaign A tests). **No `.github/workflows/*` edits/commits/pushes. No remote push claimed.**
 
 **Non-negotiable priority (repo-name driven):** **BAB only** — `strategies/betting_against_beta/` correctness, robustness, adversarial handling, and **measured** coverage. No infra/controller refactors. No sidetracks.
 
-## Recon verified (2026-11-05T22:16Z)
+## Recon verified (2026-11-05T22:57Z)
 
-- Env: Python 3.12.3, pytest 9.2.0, coverage. `PATH`/`PYTHONPATH` must include `$PWD` and `/home/runner/work/_temp/kilo-home/.local/...`.
+- Env: Python 3.12.3, pytest 9.2.0, coverage. `PATH=/home/runner/work/_temp/kilo-home/.local/bin:$PATH`, `PYTHONPATH=$PWD:/home/runner/work/_temp/kilo-home/.local/lib/python3.12/site-packages`.
 - **Controller blocker (NOT BAB; agent cannot clear):** `tests/test_controller_progress_accounting.py` workflow-sync fails because `.github/workflows/main.yml` is missing `*/.github/workflows/*` (must stay in lock-step with `scripts/controller_progress.py` `EXCLUDE_PATTERNS`). **Operator with `workflows` scope only.** **Mandatory route-around:** `--ignore=tests/test_controller_progress_accounting.py`. **Never edit/commit/push `.github/workflows/*`.**
 - Inspect-sensitive suites preserved: `tests/test_bab_data_loader_campaign_d.py tests/test_bab_data_loader_campaign_d2.py tests/test_bab_data_loader_campaign_d3.py` → **44 passed, 5 warnings, RC 0**. `_coerce_to_datetime_scalar` inspect/caller branches preserved.
-- Bounded BAB aggregate (Step 0 set): **794 passed, 11 skipped, 57 warnings, RC 0** (31.00s).
+- Full non-controller gate (route-around): `python3 -m pytest -q --tb=no --ignore=tests/test_controller_progress_accounting.py` → **3550 passed, 25 skipped, 188 warnings, RC 0** (102.22s).
+- Bounded BAB aggregate (Step 0 set + `miss_fill` + `campaign_d*`): **918 passed, 15 skipped, 66 warnings, RC 0** (32.21s).
 
-## Coverage — fresh completed aggregate (2026-11-05T22:16Z)
+## Coverage — fresh completed aggregate (2026-11-05T22:57Z)
 
-| Module | Stmts | Miss | Cover | Target |
-|---|---:|---:|---:|---|
-| `strategies/betting_against_beta/data_loader.py` | 1693 | 364 | **78%** | **≥90%** (Campaign A, mandatory, heavy) |
-| `strategies/betting_against_beta/cli.py` | 319 | 62 | **81%** | **≥85%** (Campaign B, low priority) |
+Command (completed): `coverage erase && coverage run --source=strategies.betting_against_beta -m pytest -q --tb=no --ignore=tests/test_controller_progress_accounting.py tests/test_bab_data_loader_coverage_gaps.py tests/test_bab_data_loader_robust.py tests/test_betting_against_beta_data_loader.py tests/test_bab_messy_data.py tests/test_bab_zero_silent_error.py tests/test_bab_data_loader_promote.py tests/test_bab_data_loader_miss_fill.py tests/test_bab_data_loader_campaign_d.py tests/test_bab_data_loader_campaign_d2.py tests/test_bab_data_loader_campaign_d3.py tests/test_bab_cli_coverage_campaign.py tests/test_bab_cli.py`
 
-**Campaign A status:** **NOT reached.** **~204 statements** still needed (78%→90% over 1693). Source of truth: `coverage report --include='strategies/betting_against_beta/data_loader.py' --show-missing` from Step 0.
+| Module | Stmts | Miss | Cover | Δ this session | Target |
+|---|---:|---:|---:|---:|---|
+| `strategies/betting_against_beta/data_loader.py` | 1693 | 353 | **79%** | **+1%** (358→353 miss) | **≥90%** (Campaign A, mandatory, heavy) |
+| `strategies/betting_against_beta/cli.py` | 319 | 62 | **81%** | 0 | **≥85%** (Campaign B, low priority) |
+
+**Campaign A status:** **NOT reached.** **~184 statements** still needed (79%→90% over 1693). Source of truth: `coverage report --include='*data_loader.py' --show-missing` from the fresh aggregate.
+
+## Progress this session (verified, test-first; no production code changes)
+
+Added deterministic coverage tests in `tests/test_bab_data_loader_coverage_gaps.py` (3 batches; each verified with focused run + `campaign_d*` guard + aggregate coverage):
+
+1. **Batch 1** (`TestBatch1LoaderAndNormalizePaths`, 29 tests): normalize/index promotion edges, epoch numeric index variants, asset/column normalization, coercion/parse helpers, quality/validation/error paths, loader dispatch/error paths, clean/standardize/list/iter/validate_prices smoke. Focused+guard: **73 passed, 5 warnings**.
+2. **Batch 2** (`TestBatch2CoerceAndPromotePaths`, 29 tests): datetime scalar coercion (epoch units/tz/types/invalids), promote-datetime-column variants (tz strings/epoch/unnamed/bad parse), normalize index period/string/NAT/mixed, exchange long/ts-ms normalization, JSON split/index/bad, pickle DataFrame/dict/list/unsupported, parquet missing, dispatch/clean/standardize/detect paths. Focused+guard: **73 passed, 9 warnings**.
+3. **Batch 3** (`TestBatch3QualityAndDispatchPaths`, 22 tests): quality stale-run/duplicate handling, benchmark rename case, load dispatch (pkl/dir/unsupported), prices CSV/unsupported, detect (pickle/parquet/hdf5/json), clean header/duplicate-header/metadata drop, `_prices_to_returns` non-finite, list/iter/validate_prices, JSONL loader, parquet/hdf5 validate-wrap non-BAB errors. Focused+guard: **64 passed, 2 skipped, 5 warnings**.
+
+**No contract-violating production fixes were required**; behavior preserved. **No silent wrong success introduced.** `BABDataError` semantics preserved.
 
 ## Sacred invariants (never regress)
 
@@ -36,19 +49,19 @@
 | # | Bottleneck | Owner | Action | Exit criteria |
 |---|------------|-------|--------|---------------|
 | 1 | Workflow/controller exclude-pattern sync blocks un-ignored full green | **Operator with `workflows` scope** | Add `*/.github/workflows/*` in workflow file only. Route BAB runs with `--ignore=tests/test_controller_progress_accounting.py`. | `pytest -q tests/test_controller_progress_accounting.py` passes; un-ignored full gate green |
-| 2 | `data_loader.py` **78% (364 miss / 1693 stmts)** — largest BAB risk/coverage surface | **Next BAB agent (immediate, non-optional, heavy)** | **Test-first per batch.** Target uncovered clusters from fresh `--show-missing`. Smallest correct fix only on proven contract violation. No broad refactor; never silent wrong success; preserve `BABDataError` contract and inspect-sensitive branches. **No comments in code.** | Measured `data_loader.py` **≥90%** in a **fresh completed aggregate** BAB run with zero regressions |
+| 2 | `data_loader.py` **79% (353 miss / 1693 stmts)** — largest BAB risk/coverage surface | **Next BAB agent (immediate, non-optional, heavy)** | **Test-first per batch.** Target uncovered clusters from fresh `--show-missing`. Smallest correct fix only on proven contract violation. No broad refactor; never silent wrong success; preserve `BABDataError` contract and inspect-sensitive branches. **No comments in code.** | Measured `data_loader.py` **≥90%** in a **fresh completed aggregate** BAB run with zero regressions |
 | 3 | `cli.py` **81%** | **Next BAB agent (low priority)** | Safe deterministic tests only if touching CLI behavior; prefer correctness over coverage churn. | Stable/no-regression; ≥85% in full scope |
 
 ---
 
 # INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (MANDATORY, HEAVY, BAB-ONLY)
 
-**Verified 2026-11-05T22:16Z, `main@a9d30bb`. Bounded aggregate: 794 passed/11 skipped/57 warnings, RC 0. `data_loader.py` 78% (364 miss / 1693 stmts), `cli.py` 81% (62 miss). Inspect-sensitive `campaign_d*` (44 tests) green.** Repo name = `Crypto-Betting-Against-Beta`; prioritize BAB correctness/robustness/coverage. **Read this handoff, run Step 0, then execute Campaign A immediately. Do not idle. Do not stop after one small patch. Do not claim completion until Campaign A reaches ≥90% in a fresh completed aggregate run.**
+**Verified 2026-11-05T22:57Z, `main@ce6cb46` (local test edits uncommitted). Non-controller gate: 3550 passed/25 skipped/188 warnings, RC 0. Bounded aggregate: 918 passed/15 skipped/66 warnings, RC 0. `data_loader.py` 79% (353 miss / 1693 stmts), `cli.py` 81% (62 miss). Inspect-sensitive `campaign_d*` (44 tests) green.** Repo name = `Crypto-Betting-Against-Beta`; prioritize BAB correctness/robustness/coverage. **Read this handoff, run Step 0, then execute Campaign A immediately. Do not idle. Do not stop after one small patch. Do not claim completion until Campaign A reaches ≥90% in a fresh completed aggregate run.**
 
 ## Non-negotiable operating rules
 
 - **BAB-only scope.** Work only in `strategies/betting_against_beta/*`, BAB tests, and this handoff.
-- **Heavy session required.** Deliver **≥3 verified batches** (more if stable). Each batch = tests added + focused run + aggregate+coverage delta + recorded numbers.
+- **Heavy session required.** Deliver **≥3 verified batches** (more if stable). Each batch = tests added + focused run + `campaign_d*` guard + aggregate+coverage delta + recorded numbers.
 - **No workflow/infra changes.** Route around controller blocker with `--ignore=tests/test_controller_progress_accounting.py`. **Never edit/commit/push `.github/workflows/*`.**
 - **Production code secondary.** Keep unchanged unless a **tested contract violation** requires the **smallest correct fix**. Never silent wrong success. Preserve `BABDataError` semantics and public APIs.
 - **Preserve inspect-sensitive behavior.** `_coerce_to_datetime_scalar` caller/inspect branches must keep `campaign_d`/`campaign_d2`/`campaign_d3` (and related) suites passing.
@@ -68,22 +81,24 @@ python3 -m coverage erase && python3 -m coverage run --source=strategies.betting
   tests/test_bab_data_loader_coverage_gaps.py tests/test_bab_data_loader_robust.py \
   tests/test_betting_against_beta_data_loader.py tests/test_bab_messy_data.py \
   tests/test_bab_zero_silent_error.py tests/test_bab_data_loader_promote.py \
+  tests/test_bab_data_loader_miss_fill.py \
+  tests/test_bab_data_loader_campaign_d.py tests/test_bab_data_loader_campaign_d2.py tests/test_bab_data_loader_campaign_d3.py \
   tests/test_bab_cli_coverage_campaign.py tests/test_bab_cli.py 2>&1 | tail -2
 python3 -m coverage report --include='strategies/betting_against_beta/data_loader.py' --include='strategies/betting_against_beta/cli.py' --show-missing
 ```
 
 ## Campaign A — `data_loader.py` (PRIMARY, HEAVY — DO NOT DEFER)
 
-**Baseline (fresh):** **78% (364 miss / 1693 stmts)**. **Campaign A is NOT done until `data_loader.py` ≥90% in a fresh completed aggregate run with zero regressions and `BABDataError` contract preserved.**
+**Baseline (fresh):** **79% (353 miss / 1693 stmts)**. **Campaign A is NOT done until `data_loader.py` ≥90% in a fresh completed aggregate run with zero regressions and `BABDataError` contract preserved.**
 
-**Method:** extend `tests/test_bab_data_loader_coverage_gaps.py` (or add focused deterministic BAB test files only when necessary) with batch classes; **no comments in code**. Use `monkeypatch`/`tmp_path`/`pytest.importorskip`. After each batch: focused run, aggregate+coverage, `campaign_d*` spot-check.
+**Method:** extend `tests/test_bab_data_loader_coverage_gaps.py` (or add focused deterministic BAB test files only when necessary) with batch classes; **no comments in code**. Use `monkeypatch`/`tmp_path`/`pytest.importorskip`. After each batch: focused run, `campaign_d*` guard, aggregate+coverage, record numbers.
 
 **Concrete next targets (start here, recheck Step 0 `--show-missing`):**
-1. **Coerce/epoch/inspect-adjacent fallbacks (careful — preserve campaign_d):** 40-44, 60-61, 84, 86-89, 92-93, 110-111, 128-130, 134, 141-143, 147-149, 153-155, 161, 171-176, 180, 188, 194, 196, 200-201, 208-209, 213-214, 227-247, 258, 260, 268-269, 285-286, 289, 296-297.
-2. **Index/normalize/datetime promotion:** 320-322, 324-328, 334-335, 338-342, 351-352, 368-372, 374-377, 381-382, 388-389, 395-396, 400-404, 479-483, 561, 564-565, 571, 582-586, 620, 623-626, 630, 632-633, 641-642.
+1. **Coerce/epoch/inspect-adjacent fallbacks (careful — preserve campaign_d):** 40-44, 60-61, 84, 86-89, 92-93, 110-111, 128-130, 134, 147-149, 153-155, 161, 171-176, 180, 188, 194, 196, 200-201, 208-209, 213-214, 227-247, 258, 260, 268-269, 285-286, 289, 296-297.
+2. **Index/normalize/datetime promotion:** 320-322, 326-328, 334-335, 338-342, 351-352, 368-372, 374-377, 381-382, 388-389, 395-396, 400-404, 479-483, 561, 564-565, 571, 582-586, 620, 623-626, 630, 632-633, 641-642.
 3. **Exchange detect/normalize/pivot/OHLCV tails:** 664, 676-684, 694-695, 708-714, 729-734, 757-758, 766-767, 770-771, 789-792, 804-805, 821-823, 832, 840-841, 859, 861-864, 867-868, 878-879, 882-883, 890, 894, 901-903, 908-914, 917-918, 953, 982-983.
-4. **Loaders (CSV/JSON/JSONL/Parquet/HDF5/Pickle) + detect/dispatch/wrappers:** 1030-1034, 1055-1056, 1082-1085, 1088-1090, 1097-1098, 1110, 1112, 1115, 1119-1122, 1126, 1139, 1147, 1153-1154, 1163, 1174-1175, 1177-1178, 1186, 1188-1189, 1198, 1202, 1207, 1221-1222, 1226-1227, 1254-1258, 1293-1294, 1304-1305, 1312-1313, 1319-1320, 1345-1346, 1418-1419, 1443-1444, 1451-1452, 1474-1475, 1487-1488, 1490, 1530-1531, 1533-1536, 1539, 1588-1592, 1612, 1620-1623, 1626-1627, 1649, 1659-1660, 1663-1664, 1686-1687, 1698-1699, 1757, 1764-1765, 1782-1783, 1792-1793, 1799-1806, 1825-1826, 1869-1870, 1895, 1926-1929, 1937-1938, 1942.
-5. **Schema/clean/validate/standardize/utility tails:** 1990, 1992-1993, 2010, 2022-2023, 2054-2055, 2061, 2068, 2087-2092, 2137-2138, 2160-2163, 2167-2168, 2173-2174, 2187-2189, 2192-2193, 2238-2239, 2241, 2247-2248.
+4. **Loaders (CSV/JSON/JSONL/Parquet/HDF5/Pickle) + detect/dispatch/wrappers:** 1030-1034, 1055-1056, 1082-1085, 1088-1090, 1097-1098, 1112, 1115, 1119-1122, 1139, 1147, 1163, 1174-1175, 1177-1178, 1186, 1188-1189, 1198, 1202, 1207, 1221-1222, 1226-1227, 1254-1258, 1293-1294, 1304-1305, 1312-1313, 1319-1320, 1345-1346, 1418-1419, 1443-1444, 1451-1452, 1474-1475, 1487-1488, 1490, 1530-1531, 1533-1536, 1588-1592, 1612, 1620-1623, 1626-1627, 1649, 1659-1660, 1663-1664, 1686-1687, 1698-1699, 1757, 1764-1765, 1782-1783, 1792-1793, 1799-1806, 1825-1826, 1869-1870, 1895, 1926-1929, 1937-1938, 1942.
+5. **Schema/clean/validate/standardize/utility tails:** 1990, 1992-1993, 2022-2023, 2054-2055, 2061, 2068, 2087-2092, 2137-2138, 2160-2163, 2167-2168, 2173-2174, 2187-2189, 2192-2193, 2238-2239, 2241, 2247-2248.
 
 **Required cadence (non-optional):** complete **≥3 batches** next session, measuring after each. If a branch is genuinely unreachable without unsafe production changes, document evidence here and move on—do not fabricate coverage.
 
