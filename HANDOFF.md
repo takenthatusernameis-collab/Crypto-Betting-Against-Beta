@@ -1,11 +1,15 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 
-**Timestamp (UTC):** 2026-11-05T18:49:42Z
+**Timestamp (UTC):** 2026-11-05T18:50:15Z (refreshed this session)
 **Repo:** `Crypto-Betting-Against-Beta` (`/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`)
-**Branch/SHA (verified):** `main` @ `0468569` (`chore(kilo): checkpoint agent session`). Working tree clean at start of this session except transient `.coverage`/`.pytest_cache`; **no `.github/workflows/*` touched**. **Durable handoff:** **this file only** (`./HANDOFF.md`).
+**Branch/SHA (verified):** `main` @ `1260d65` (`chore(kilo): checkpoint agent session`). Working tree has transient `.coverage`/`.pytest_cache`/`.hypothesis` only; **no `.github/workflows/*` touched**. **Durable handoff:** **this file only** (`./HANDOFF.md`).
 **Priority (repo-name driven, non-negotiable):** **Crypto-Betting-Against-Beta → BAB only**: `strategies/betting_against_beta/` correctness, robustness, adversarial handling, and **measured** coverage. No infra/controller refactors, no workflow commits/pushes, no sidetracks.
 
-## Verified state (2026-11-05T18:49Z, fresh measurement)
+## Recon re-verified (2026-11-05T18:50Z)
+- Env: Python 3.12.3, pytest 9.2.0.
+- Targeted loader recon (no coverage; completed): `--ignore=tests/test_controller_progress_accounting.py tests/test_bab_data_loader_coverage_gaps.py tests/test_bab_data_loader_robust.py tests/test_betting_against_beta_data_loader.py tests/test_bab_messy_data.py tests/test_bab_zero_silent_error.py tests/test_bab_data_loader_promote.py` → **404 passed, 10 skipped, 25 warnings**, RC 0.
+
+## Verified state (baseline from 2026-11-05T18:49Z fresh measurement; recon still green)
 
 - **Infra blocker (not BAB logic; agent cannot clear):** `tests/test_controller_progress_accounting.py` — `main.yml` missing `*/.github/workflows/*` vs `scripts/controller_progress.py`. **Operator with `workflows` scope only.** **Mandatory route-around:** `--ignore=tests/test_controller_progress_accounting.py` for all BAB verification. **No `.github/workflows/*` edits/commits/pushes.**
 - **BAB loader/CLI broad regression (fresh, completed):** `python3 -m pytest -q --tb=no --ignore=tests/test_controller_progress_accounting.py tests/test_bab_data_loader_*.py tests/test_betting_against_beta_data_loader*.py tests/test_bab_messy_data.py tests/test_bab_zero_silent_error.py tests/test_bab_cli.py tests/test_bab_cli_coverage_campaign.py` → **1602 passed, 19 skipped, 112 warnings**, RC 0.
