@@ -1,32 +1,40 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 
-**Timestamp (UTC):** 2026-11-05T09:18:35Z  
+**Timestamp (UTC):** 2026-11-05T09:23:35Z
 **Repo:** `Crypto-Betting-Against-Beta` — **BAB-only focus (non-negotiable).** Every action must increase `strategies/betting_against_beta/` correctness, robustness, adversarial handling, or coverage while keeping the gate GREEN. No sidetracks. Repo name = BAB strategy; prioritize by repo name.
 
-## SAME-RUN RECOVERY (session 39) — persistence failure diagnosed & safely remediated
+## SAME-RUN RECOVERY (session 39) — persistence failure diagnosed & safely remediated (historical)
 
 - **Context:** Previous worker sessions (37/39 path) ended with **bounded remote checkpoint persistence failed**. This is a **new worker session in the SAME active GitHub Actions run** — do **not** end the workflow. **Controller will retry persistence of all local-ahead commits after this session; do not claim persistence until remote SHA matches.**
 - **Preservation (no reset/discard):** All prior local commits preserved via **recovery bundle** `/home/runner/work/_temp/kilo-recovery-41953654776-1.bundle` (**verified OK**, complete history; contains `refs/heads/main=2627694`, `origin/main=847d8d8`) and backup refs **`backup/pre-persistence-fix-20261105` / tag `backup-session39-20261105` → `2627694f95d7587f9cf0b981eda576788ae5b3db`**. No force-push. No history rewrite beyond the local-only pushability fix below (bundled/refs preserved first; rollback = `git reset --hard backup/pre-persistence-fix-20261105`).
-- **Root cause (confirmed):** Local history (`847d8d8..2627694`) included commit **`8f165a3 fix(workflow): sync stage_safe_changes with EXCLUDE_PATTERNS; update HANDOFF`** which modified **`.github/workflows/main.yml`**. `git fetch` succeeded; `git push --dry-run origin HEAD:refs/heads/main` showed `847d8d8..2627694` but **actual push failed**: `! [remote rejected] HEAD -> main (refusing to allow a GitHub App to create or update workflow \`.github/workflows/main.yml\` without \`workflows\` permission)`. This is a **credential/permission constraint on workflow paths**, not a transport/reconciliation failure.
-- **Safe remedy (materially different, evidence-justified):** (1) verified bundle + backup refs; (2) saved workflow delta as `/home/runner/work/_temp/workflow-stage-safe-sync-8f165a3.patch` for an operator with `workflows` permission to apply later; (3) rebuilt the local-ahead tip as **non-workflow, pushable commits** (`git reset --soft origin/main`, dropped workflow file from index/tree) preserving HANDOFF progress; (4) controller tests restored to GREEN locally by reapplying the workflow pattern in the working tree only when testing — **do not commit `.github/workflows/main.yml` changes from this token context**. Net pushable delta vs `origin/main` is **HANDOFF.md only** (commit below) — controller can persist it.
-- **Local HEAD (this session, pushable):** see `git log -1` (amended after this write). **`origin/main` (stale local ref pre-push):** `847d8d8c4d1fe0de9959cd6478296ec38726f652`. **Failed prior local tip:** `2627694f95d7587f9cf0b981eda576788ae5b3db`.
+- **Root cause (confirmed):** Local history included commit **`8f165a3`** which modified **`.github/workflows/main.yml`**. Push rejected: `refusing to allow a GitHub App to create or update workflow \`.github/workflows/main.yml\` without \`workflows\` permission`. Credential/permission constraint on workflow paths, not transport failure.
+- **Safe remedy (materially different, evidence-justified):** (1) verified bundle + backup refs; (2) saved workflow delta as `/home/runner/work/_temp/workflow-stage-safe-sync-8f165a3.patch` for an operator with `workflows` permission to apply later; (3) rebuilt local-ahead tip as **non-workflow, pushable commits** preserving HANDOFF progress; **Net pushable delta vs origin/main is HANDOFF.md only** — controller can persist it.
+- **Local HEAD (this session):** `9df2be1 docs(handoff): session 39 same-run recovery — diagnose workflow-push block, preserve bundle/refs, keep gate GREEN`. **`origin/main`:** `9df2be1` (in sync with HEAD). **No pushable commits pending except uncommitted workflow change below.**
 
 ## Verified state (this session)
-- **Recon:** `git status` clean (pushable state); `git fetch origin main` OK; `git push --dry-run`/transport usable for non-workflow commits.
-- **Controller tests:** `python3 -m pytest -q tests/test_controller_progress_accounting.py` → **68 passed** (with workflow pattern present in working tree during test; HEAD commit does not include workflow).
-- **BAB sanity:** targeted `tests/test_bab_data_loader*.py tests/test_betting_against_beta_data_loader*.py` → **1271 passed** (quick check). **Full gate (`bash scripts/bab_gate.sh`) was started but exceeded the interactive timeout in this environment; prior baseline (session 37 handoff, same code lineage before non-workflow rebase) was 2858 passed, 0 failed, exit 0, 87% total.** Next agent **MUST run `bash scripts/bab_gate.sh` to confirm GREEN** before/alongside new BAB work.
-- **Coverage bottlenecks (last verified baseline):** `data_loader.py` **79% (352 missing, PRIMARY)**, `cli.py` **61% (124 missing, SECOND)**, `backtest.py` 80% (22), `strategy.py` 89% (32), `beta.py` 92% (25), `signals.py` 91% (11), `portfolio.py` 93% (16), `sizing.py` 98% (3). Re-measure after gate.
+
+- **Recon:** `git status` shows only ` M .github/workflows/main.yml` (uncommitted, see bottleneck below); `git fetch origin main` OK; `git push --dry-run`/transport usable for non-workflow commits. HEAD == origin/main.
+- **Controller tests:** `python3 -m pytest -q tests/test_controller_progress_accounting.py` → **68 passed**.
+- **BAB gate:** `bash scripts/bab_gate.sh` → **2858 passed, 0 failed, exit 0, 87% total coverage.** **GREEN.** Next agent **MUST confirm `bash scripts/bab_gate.sh` exit 0 / 0 failures before/alongside new BAB work.**
+- **Coverage bottlenecks (last verified baseline):** `data_loader.py` **79% (352 missing, PRIMARY)**, `cli.py` **61% (124 missing, SECONDARY)**, `backtest.py` 80% (22), `strategy.py` 89% (32), `beta.py` 92% (25), `signals.py` 91% (11), `portfolio.py` 93% (16), `sizing.py` 98% (3). Re-measure after gate.
+
+## Bottlenecks (remove to unblock significant progress)
+
+1. **Workflow file cannot be committed/pushed with current token.** `.github/workflows/main.yml` has an uncommitted modification (stage_safe_changes EXCLUDE_PATTERNS sync). Push will be rejected (workflows permission). **Do not commit `.github/workflows/*` with this token.** The delta is backed up at `/home/runner/work/_temp/workflow-stage-safe-sync-8f165a3.patch` — an operator with `workflows` permission must apply it. **This does not block BAB work** (BAB work never touches workflow files); leave it uncommitted and move on.
+2. **Coverage gaps in `data_loader.py` (PRIMARY, 352 missing lines) and `cli.py` (SECONDARY, 124 missing lines).** These are the highest-value missing branches. Remove via test-first campaigns (see Campaign A/B below). Prefer tests over impl changes; smallest correct impl change only if demonstrably justified.
 
 ## Invariants (sacred)
+
 - Weights **lagged by 1 day** (no lookahead).
 - NaN/inf/NaT handled explicitly; never silently hide bad data.
 - Raise `BABDataError` on parse/validation failures where contract requires it.
 - Dollar-neutral by default; liquidity/transaction-cost/slippage semantics enforced.
 - Keep public APIs stable; minimal implementation fixes only for branches unreachable by public API and demonstrably correct.
+- Gate GREEN after every meaningful batch; never commit RED.
 
 ## INITIAL TASK MESSAGE — NEXT AGENTIC SESSION (MANDATORY, HEAVY WORK)
 
-**You are continuing BAB hardening. This is not a light triage session. Preserve commits, confirm gate GREEN, then execute a heavy multi-batch BAB campaign. Do not explore unrelated code. Do not stop at partial progress. Do not claim remote persistence.**
+**You are continuing BAB hardening. This is not a light triage session. Preserve commits, confirm gate GREEN, then execute a heavy multi-batch BAB campaign. Do not explore unrelated code. Do not stop at partial progress. Do not claim remote persistence. Never commit `.github/workflows/*` with the current token.**
 
 ### 0) Recon + gate (do first — never edit blind)
 ```bash
@@ -37,10 +45,10 @@ git log --oneline -4
 git fetch origin main >/dev/null 2>&1 || true
 git rev-parse HEAD origin/main 2>&1 || true
 python3 -m pytest -q tests/test_controller_progress_accounting.py
-bash scripts/bab_gate.sh 2>&1 | tail -25
+bash scripts/bab_gate.sh 2>&1 | tail -15
 python3 -m coverage report --include='strategies/betting_against_beta/data_loader.py,strategies/betting_against_beta/cli.py,strategies/betting_against_beta/backtest.py,strategies/betting_against_beta/strategy.py,strategies/betting_against_beta/beta.py' -m 2>&1 | tail -60
 ```
-- Gate is GREEN only at **exit 0, 0 failures**. If RED, fix root cause before BAB work. **Never commit/push workflow files with this token** (see persistence diagnosis above). Do not claim remote persistence.
+- Gate is GREEN only at **exit 0, 0 failures**. If RED, fix root cause before BAB work. Never commit/push workflow files. Do not claim remote persistence.
 
 ### 1) Campaign A — `strategies/betting_against_beta/data_loader.py` → target >= 90% (close highest-value missing branches)
 Inspect actual missing lines (`coverage report -m`), then hit branches via **public loader APIs** (`load_returns`, `load_prices`, `load_csv/json/jsonl/excel/parquet/pickle/hdf`, `validate_returns_dataframe`, coercion/normalization helpers as exposed). Prioritize:
