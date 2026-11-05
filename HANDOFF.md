@@ -1,39 +1,29 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 
-**Timestamp (UTC):** 2026-11-05T22:57:25Z (verified this session)
+**Timestamp (UTC):** 2026-11-05T23:14:10Z (verified this session)
 **Repo:** `Crypto-Betting-Against-Beta` — `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
-**Branch/SHA:** `main` @ `ce6cb46` (HEAD verified). Working tree (local only, no commit/push claimed): `tests/test_bab_data_loader_coverage_gaps.py` modified (+Batch 1-3 Campaign A tests). **No `.github/workflows/*` edits/commits/pushes. No remote push claimed.**
+**Branch/SHA:** `main` @ `25587d9` (HEAD verified). **Working tree:** clean (`git status --short` empty) at handoff write time. **No `.github/workflows/*` edits/commits/pushes. No remote push claimed.**
 
 **Non-negotiable priority (repo-name driven):** **BAB only** — `strategies/betting_against_beta/` correctness, robustness, adversarial handling, and **measured** coverage. No infra/controller refactors. No sidetracks.
 
-## Recon verified (2026-11-05T22:57Z)
+## Recon verified (2026-11-05T23:14Z)
 
 - Env: Python 3.12.3, pytest 9.2.0, coverage. `PATH=/home/runner/work/_temp/kilo-home/.local/bin:$PATH`, `PYTHONPATH=$PWD:/home/runner/work/_temp/kilo-home/.local/lib/python3.12/site-packages`.
 - **Controller blocker (NOT BAB; agent cannot clear):** `tests/test_controller_progress_accounting.py` workflow-sync fails because `.github/workflows/main.yml` is missing `*/.github/workflows/*` (must stay in lock-step with `scripts/controller_progress.py` `EXCLUDE_PATTERNS`). **Operator with `workflows` scope only.** **Mandatory route-around:** `--ignore=tests/test_controller_progress_accounting.py`. **Never edit/commit/push `.github/workflows/*`.**
-- Inspect-sensitive suites preserved: `tests/test_bab_data_loader_campaign_d.py tests/test_bab_data_loader_campaign_d2.py tests/test_bab_data_loader_campaign_d3.py` → **44 passed, 5 warnings, RC 0**. `_coerce_to_datetime_scalar` inspect/caller branches preserved.
-- Full non-controller gate (route-around): `python3 -m pytest -q --tb=no --ignore=tests/test_controller_progress_accounting.py` → **3550 passed, 25 skipped, 188 warnings, RC 0** (102.22s).
-- Bounded BAB aggregate (Step 0 set + `miss_fill` + `campaign_d*`): **918 passed, 15 skipped, 66 warnings, RC 0** (32.21s).
+- Inspect-sensitive suites preserved: `tests/test_bab_data_loader_campaign_d.py tests/test_bab_data_loader_campaign_d2.py tests/test_bab_data_loader_campaign_d3.py` → **44 passed, 5 warnings, RC 0** (0.47s). `_coerce_to_datetime_scalar` inspect/caller branches preserved.
+- Full non-controller gate (route-around): `python3 -m pytest -q --tb=no --ignore=tests/test_controller_progress_accounting.py` → **3628 passed, 27 skipped, 192 warnings, RC 0** (103.30s).
+- Bounded BAB aggregate (Step 0 set): **918 passed, 15 skipped, 66 warnings, RC 0** (32.35s).
 
-## Coverage — fresh completed aggregate (2026-11-05T22:57Z)
+## Coverage — fresh completed aggregate (2026-11-05T23:14Z)
 
 Command (completed): `coverage erase && coverage run --source=strategies.betting_against_beta -m pytest -q --tb=no --ignore=tests/test_controller_progress_accounting.py tests/test_bab_data_loader_coverage_gaps.py tests/test_bab_data_loader_robust.py tests/test_betting_against_beta_data_loader.py tests/test_bab_messy_data.py tests/test_bab_zero_silent_error.py tests/test_bab_data_loader_promote.py tests/test_bab_data_loader_miss_fill.py tests/test_bab_data_loader_campaign_d.py tests/test_bab_data_loader_campaign_d2.py tests/test_bab_data_loader_campaign_d3.py tests/test_bab_cli_coverage_campaign.py tests/test_bab_cli.py`
 
-| Module | Stmts | Miss | Cover | Δ this session | Target |
-|---|---:|---:|---:|---:|---|
-| `strategies/betting_against_beta/data_loader.py` | 1693 | 353 | **79%** | **+1%** (358→353 miss) | **≥90%** (Campaign A, mandatory, heavy) |
-| `strategies/betting_against_beta/cli.py` | 319 | 62 | **81%** | 0 | **≥85%** (Campaign B, low priority) |
+| Module | Stmts | Miss | Cover | Target |
+|---|---:|---:|---:|---|
+| `strategies/betting_against_beta/data_loader.py` | 1693 | 353 | **79%** | **≥90%** (Campaign A, mandatory, heavy) |
+| `strategies/betting_against_beta/cli.py` | 319 | 62 | **81%** | **≥85%** (Campaign B, low priority) |
 
-**Campaign A status:** **NOT reached.** **~184 statements** still needed (79%→90% over 1693). Source of truth: `coverage report --include='*data_loader.py' --show-missing` from the fresh aggregate.
-
-## Progress this session (verified, test-first; no production code changes)
-
-Added deterministic coverage tests in `tests/test_bab_data_loader_coverage_gaps.py` (3 batches; each verified with focused run + `campaign_d*` guard + aggregate coverage):
-
-1. **Batch 1** (`TestBatch1LoaderAndNormalizePaths`, 29 tests): normalize/index promotion edges, epoch numeric index variants, asset/column normalization, coercion/parse helpers, quality/validation/error paths, loader dispatch/error paths, clean/standardize/list/iter/validate_prices smoke. Focused+guard: **73 passed, 5 warnings**.
-2. **Batch 2** (`TestBatch2CoerceAndPromotePaths`, 29 tests): datetime scalar coercion (epoch units/tz/types/invalids), promote-datetime-column variants (tz strings/epoch/unnamed/bad parse), normalize index period/string/NAT/mixed, exchange long/ts-ms normalization, JSON split/index/bad, pickle DataFrame/dict/list/unsupported, parquet missing, dispatch/clean/standardize/detect paths. Focused+guard: **73 passed, 9 warnings**.
-3. **Batch 3** (`TestBatch3QualityAndDispatchPaths`, 22 tests): quality stale-run/duplicate handling, benchmark rename case, load dispatch (pkl/dir/unsupported), prices CSV/unsupported, detect (pickle/parquet/hdf5/json), clean header/duplicate-header/metadata drop, `_prices_to_returns` non-finite, list/iter/validate_prices, JSONL loader, parquet/hdf5 validate-wrap non-BAB errors. Focused+guard: **64 passed, 2 skipped, 5 warnings**.
-
-**No contract-violating production fixes were required**; behavior preserved. **No silent wrong success introduced.** `BABDataError` semantics preserved.
+**Campaign A status:** **NOT reached.** **~184 statements** still needed (79%→90% over 1693). Source of truth: `coverage report --include='strategies/betting_against_beta/data_loader.py,strategies/betting_against_beta/cli.py' --show-missing` from the fresh aggregate.
 
 ## Sacred invariants (never regress)
 
@@ -56,7 +46,7 @@ Added deterministic coverage tests in `tests/test_bab_data_loader_coverage_gaps.
 
 # INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (MANDATORY, HEAVY, BAB-ONLY)
 
-**Verified 2026-11-05T22:57Z, `main@ce6cb46` (local test edits uncommitted). Non-controller gate: 3550 passed/25 skipped/188 warnings, RC 0. Bounded aggregate: 918 passed/15 skipped/66 warnings, RC 0. `data_loader.py` 79% (353 miss / 1693 stmts), `cli.py` 81% (62 miss). Inspect-sensitive `campaign_d*` (44 tests) green.** Repo name = `Crypto-Betting-Against-Beta`; prioritize BAB correctness/robustness/coverage. **Read this handoff, run Step 0, then execute Campaign A immediately. Do not idle. Do not stop after one small patch. Do not claim completion until Campaign A reaches ≥90% in a fresh completed aggregate run.**
+**Verified 2026-11-05T23:14Z, `main@25587d9`, clean tree. Non-controller gate: 3628 passed/27 skipped/192 warnings, RC 0. Bounded aggregate: 918 passed/15 skipped/66 warnings, RC 0. `data_loader.py` 79% (353 miss / 1693 stmts), `cli.py` 81% (62 miss). Inspect-sensitive `campaign_d*` (44 tests) green.** Repo name = `Crypto-Betting-Against-Beta`; prioritize BAB correctness/robustness/coverage. **Read this handoff, run Step 0, then execute Campaign A immediately. Do not idle. Do not stop after one small patch. Do not claim completion until Campaign A reaches ≥90% in a fresh completed aggregate run.**
 
 ## Non-negotiable operating rules
 
@@ -84,7 +74,7 @@ python3 -m coverage erase && python3 -m coverage run --source=strategies.betting
   tests/test_bab_data_loader_miss_fill.py \
   tests/test_bab_data_loader_campaign_d.py tests/test_bab_data_loader_campaign_d2.py tests/test_bab_data_loader_campaign_d3.py \
   tests/test_bab_cli_coverage_campaign.py tests/test_bab_cli.py 2>&1 | tail -2
-python3 -m coverage report --include='strategies/betting_against_beta/data_loader.py' --include='strategies/betting_against_beta/cli.py' --show-missing
+python3 -m coverage report --include='strategies/betting_against_beta/data_loader.py,strategies/betting_against_beta/cli.py' --show-missing
 ```
 
 ## Campaign A — `data_loader.py` (PRIMARY, HEAVY — DO NOT DEFER)
