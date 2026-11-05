@@ -1,18 +1,18 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 
-**Timestamp (UTC):** 2026-11-05T13:05:30Z
+**Timestamp (UTC):** 2026-11-05T13:07:05Z
 **Repo:** `Crypto-Betting-Against-Beta` (`/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`)
-**Branch/SHA (local, verified):** `main` @ `05d0b88` (`git status --short` clean at recon; 2026-11-05T13:05Z)
+**Branch/SHA (local, verified):** `main` @ `05d0b88` (`git status --short` clean at recon; 2026-11-05T13:07Z)
 **Durable handoff:** this file only (`./HANDOFF.md`). No duplicates.
 **Priority filter (non-negotiable):** repo name = **Crypto-Betting-Against-Beta** → focus **BAB only**: `strategies/betting_against_beta/` correctness, robustness, adversarial handling, and **measured** coverage. No infra/controller refactors, no workflow commits/pushes, no sidetracks.
 
-## Verified state (fresh recon, 2026-11-05T13:05Z)
+## Verified state (fresh recon, 2026-11-05T13:07Z)
 
 - **Infra blocker (not BAB logic; agent cannot clear):** `pytest -q tests/test_controller_progress_accounting.py --tb=no` → **2 failed, 66 passed** (0.23s).
   - `TestStageSafeChangesPatternSync::{test_python_patterns_are_subset_of_workflow,test_nested_workflow_pattern_is_present_in_workflow}`: `.github/workflows/main.yml` `stage_safe_changes()` missing `*/.github/workflows/*` while `scripts/controller_progress.py` `EXCLUDE_PATTERNS` includes it.
   - **Operator with `workflows` scope only:** add `*/.github/workflows/*|` adjacent to `.github/workflows/*|` in `main.yml` `stage_safe_changes()`; keep restore/clean/workflow-managed behavior consistent. **Agents without workflow permission must not edit/commit/push `.github/workflows/*`.**
   - **Route around (mandatory):** run BAB verification ignoring `tests/test_controller_progress_accounting.py`; this blocker must never stall BAB work.
-- **BAB verification (fresh, 2026-11-05T13:05Z):**
+- **BAB verification (fresh, 2026-11-05T13:07Z):**
   - `python3 -m pytest -q --ignore=tests/test_controller_progress_accounting.py tests/test_bab_data_loader_coverage_gaps.py tests/test_bab_cli.py` → **82 passed, 4 warnings** (6.26s), RC 0.
 - **Expanded slice (programmatic `coverage.Coverage`, source=`strategies.betting_against_beta`):** not re-run this session; carry forward last measured numbers.
   - `tests/test_bab_data_loader_coverage_gaps.py tests/test_bab_data_loader_robust.py tests/test_betting_against_beta_data_loader.py tests/test_bab_data_loader_promote.py tests/test_bab_messy_data.py tests/test_bab_zero_silent_error.py tests/test_bab_cli.py` → **162 passed, 6 skipped, 10 warnings, RC 0** (10.57s).
@@ -64,7 +64,7 @@ python3 -V && python3 -m pytest --version
 
 ## INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (MANDATORY, HEAVY, BAB-ONLY)
 
-**You are on BAB hardening duty (SHA `05d0b88`, 2026-11-05T13:05Z verified).** Repo name = `Crypto-Betting-Against-Beta`; prioritize BAB correctness/robustness/coverage above everything else. Do **not** explore unrelated files. Do **not** stop after one small patch. Do **not** edit/commit/push `.github/workflows/*` or other infra. Work in **verified batches** and record real output in this handoff. Bottleneck #1 (controller workflow pattern) is routed around — it must not stop BAB work.
+**You are on BAB hardening duty (SHA `05d0b88`, 2026-11-05T13:07Z verified).** Repo name = `Crypto-Betting-Against-Beta`; prioritize BAB correctness/robustness/coverage above everything else. Do **not** explore unrelated files. Do **not** stop after one small patch. Do **not** edit/commit/push `.github/workflows/*` or other infra. Work in **verified batches** and record real output in this handoff. Bottleneck #1 (controller workflow pattern) is routed around — it must not stop BAB work.
 
 ### 0) Recon — establish truth (run to completion; record key numbers)
 ```bash
