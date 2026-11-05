@@ -1,6 +1,6 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 
-**Timestamp (UTC):** 2026-11-05T19:45:38Z (refreshed this session)
+**Timestamp (UTC):** 2026-11-05T19:45:57Z (refreshed this session)
 **Repo:** `Crypto-Betting-Against-Beta` (`/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`)
 **Branch/SHA (verified):** `main` @ `c75a057` (`chore(kilo): checkpoint agent session`). Working tree: **`HANDOFF.md` updated (untracked/modified relative to HEAD state) as the single durable handoff**; **`tests/test_bab_data_loader_coverage_gaps.py` exists locally (499 passed, 5 skipped in isolation) and is included in the measured aggregate — verify persistence/commit state with `git status`/`git diff` before assuming it is in HEAD.** Transient `.coverage`/cache artifacts present locally; **no production code changed**; **no `.github/workflows/*` touched**.
 
