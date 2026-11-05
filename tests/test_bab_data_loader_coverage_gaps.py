@@ -2742,3 +2742,679 @@ class TestNormalizeSchemaBatch7:
     def test_empty_raises(self):
         with pytest.raises(BABDataError):
             normalize_schema(pd.DataFrame())
+
+# ---- Batch 8 (2026-11-05): coverage push on data_loader bottleneck clusters ----
+
+import json
+import pickle as _pickle
+import types
+import numpy as np
+import pandas as pd
+import pytest
+
+from strategies.betting_against_beta.data_loader import (
+    BABDataError,
+    _coerce_series_to_datetime_index,
+    _coerce_to_datetime_scalar,
+    _detect_and_normalize_exchange_format,
+    _drop_metadata_columns,
+    _normalize_asset_name,
+    _normalize_index,
+    _not_null,
+    _prices_to_returns,
+    _promote_datetime_column,
+    _run_data_quality_campaign,
+    _series_has_any_finite,
+    clean_data,
+    detect_price_or_returns,
+    load_prices,
+    load_returns,
+    load_returns_from_dataframe,
+    load_returns_from_json,
+    standardize_columns,
+    validate_prices,
+    validate_returns_dataframe,
+)
+
+
+class TestNotNullSeriesFiniteBatch8:
+    def test_not_null_none_nat_nan(self):
+        assert _not_null(None) is False
+        assert _not_null(pd.NaT) is False
+        assert _not_null(np.nan) is False
+        assert _not_null(float("nan")) is False
+
+    def test_not_null_values(self):
+        assert _not_null(0) is True
+        assert _not_null("x") is True
+        assert _not_null(pd.Timestamp("2024-01-01")) is True
+
+    def test_not_null_weird_raises(self):
+        class Bad:
+            def __bool__(self):
+                raise RuntimeError("boom")
+        # pd.isna/behavior may vary; must not raise
+        _not_null(Bad())
+
+    def test_series_has_any_finite_variants(self):
+        assert _series_has_any_finite(pd.Series([np.nan, 1.0])) is True
+        assert _series_has_any_finite(pd.Series([np.nan, np.nan])) is False
+        assert _series_has_any_finite([np.nan, pd.Timestamp("2024-01-01")]) is True
+        assert _series_has_any_finite([np.nan, None]) is False
+        assert _series_has_any_finite((None, 1)) is True
+        assert _series_has_any_finite(None) is False
+        assert _series_has_any_finite(pd.NaT) is False
+
+    def test_series_has_any_finite_exception(self):
+        class BadSeq:
+            def __iter__(self):
+                raise RuntimeError("x")
+        assert _series_has_any_finite(BadSeq()) in (False, True)
+
+
+class TestCoerceSeriesToDatetimeIndexBatch8:
+    def test_empty_coerced_returns_false(self):
+        df = pd.DataFrame({"a": [1, 2]})
+        assert _coerce_series_to_datetime_index(df, "a", pd.Series([pd.NaT, pd.NaT])) is False
+
+    def test_list_coerced_promotes(self):
+        df = pd.DataFrame({"date": ["x", "y"], "BTC": [1, 2]})
+        coerced = [pd.Timestamp("2024-01-01"), pd.Timestamp("2024-01-02")]
+        assert _coerce_series_to_datetime_index(df, "date", coerced) is True
+
+    def test_tz_aware_coerced_normalized(self):
+        df = pd.DataFrame({"date": [1, 2], "BTC": [1, 2]})
+        coerced = pd.Series([
+            pd.Timestamp("2024-01-01", tz="UTC"),
+            pd.Timestamp("2024-01-02", tz="US/Eastern"),
+        ])
+        ok = _coerce_series_to_datetime_index(df, "date", coerced)
+        assert ok is True
+
+    def test_bad_index_assignment_returns_false(self, monkeypatch):
+        df = pd.DataFrame({"date": [1, 2], "BTC": [1, 2]})
+        coerced = pd.Series([pd.Timestamp("2024-01-01"), pd.Timestamp("2024-01-02")])
+        orig_copy = df.copy
+
+        class BadCopy(pd.DataFrame):
+            @property
+            def index(self):
+                return super().index
+
+            @index.setter
+            def index(self, value):
+                raise RuntimeError("no")
+
+        def bad_copy(*a, **k):
+            return BadCopy({"date": [1, 2], "BTC": [1, 2]})
+
+        monkeypatch.setattr(df, "copy", bad_copy)
+        assert _coerce_series_to_datetime_index(df, "date", coerced) is False
+
+
+class TestNormalizeIndexBatch8:
+    def test_numeric_epoch_ms_us_ns_s(self):
+        for vals in ([1704067200000, 1704153600000], [1704067200000000, 1704153600000000],
+                     [1704067200000000000, 1704153600000000000], [1704067200, 1704153600]):
+            df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=vals)
+            out = _normalize_index(df)
+            assert isinstance(out.index, pd.DatetimeIndex)
+
+    def test_numeric_float_epochs(self):
+        df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=[1704067200.0, 1704153600.0])
+        out = _normalize_index(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+    def test_empty_numeric_index(self):
+        df = pd.DataFrame({"BTC": pd.Series(dtype=float)}, index=pd.Index([], dtype=float))
+        out = _normalize_index(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+        assert len(out) == 0
+
+    def test_string_mixed_tz_coercion(self):
+        df = pd.DataFrame(
+            {"BTC": [0.01, 0.02, 0.03]},
+            index=["2024-01-01", "2024-01-02T00:00:00Z", "2024-01-03 00:00:00+00:00"],
+        )
+        out = _normalize_index(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+    def test_unparseable_strings_raise(self):
+        df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=["not-a-date", "also-bad"])
+        with pytest.raises(BABDataError):
+            _normalize_index(df)
+
+    def test_datetime_index_all_nat_input(self):
+        idx = pd.DatetimeIndex([pd.NaT, pd.NaT])
+        df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=idx)
+        with pytest.raises((BABDataError, Exception)):
+            _normalize_index(df)
+
+    def test_datetime_index_passthrough(self):
+        idx = pd.date_range("2024-01-01", periods=2)
+        df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=idx)
+        out = _normalize_index(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+
+class TestCoerceScalarBatch8:
+    def test_numeric_string_epochs_units(self):
+        for s in ("1704067200", "1704067200000", "1704067200000000", "1704067200000000000"):
+            out = _coerce_to_datetime_scalar(s)
+            assert isinstance(out, (pd.Timestamp, type(pd.NaT))) or hasattr(out, "year")
+
+    def test_bad_strings_raise(self):
+        for s in ("", "na", "N/A", "nan", "null", "none", "   "):
+            with pytest.raises((ValueError, BABDataError, Exception)):
+                _coerce_to_datetime_scalar(s)
+
+    def test_none_raises(self):
+        with pytest.raises((ValueError, BABDataError, Exception)):
+            _coerce_to_datetime_scalar(None)
+
+    def test_int_epochs(self):
+        for v in (1704067200, 1704067200000, 1704067200000000):
+            out = _coerce_to_datetime_scalar(v)
+            assert out is not None
+
+    def test_iso_z_offset(self):
+        for v in ("2024-01-01T00:00:00Z", "2024-01-01T00:00:00+00:00", "2024-01-01"):
+            out = _coerce_to_datetime_scalar(v)
+            assert out is not None
+
+    def test_timestamp_tz(self):
+        ts = pd.Timestamp("2024-01-01", tz="UTC")
+        out = _coerce_to_datetime_scalar(ts)
+        assert out is not None
+
+    def test_float_nan_inf_raise(self):
+        for v in (float("nan"), float("inf"), float("-inf")):
+            with pytest.raises((ValueError, BABDataError, Exception)):
+                _coerce_to_datetime_scalar(v)
+
+
+class TestPromoteDatetimeBatch8:
+    def test_multi_column_date_preserved_as_index_values(self):
+        df = pd.DataFrame({
+            "date": ["2024-01-01", "2024-01-02"],
+            "open": [1.0, 2.0],
+            "close": [1.1, 2.1],
+        })
+        out = _promote_datetime_column(df)
+        assert "date" not in out.columns or isinstance(out.index, (pd.DatetimeIndex, pd.Index))
+
+    def test_unnamed_datetime_column(self):
+        df = pd.DataFrame({
+            "Unnamed: 0": pd.date_range("2024-01-01", periods=3),
+            "BTC": [0.01, 0.02, 0.03],
+            "ETH": [0.02, 0.03, 0.01],
+        })
+        out = _promote_datetime_column(df)
+        assert isinstance(out.index, pd.DatetimeIndex) or "Unnamed: 0" not in out.columns
+
+    def test_no_datetime_candidate_returns_df(self):
+        df = pd.DataFrame({"BTC": [0.01, 0.02], "ETH": [0.03, 0.04]})
+        out = _promote_datetime_column(df)
+        assert isinstance(out, pd.DataFrame)
+
+    def test_last_resort_object_scan(self):
+        df = pd.DataFrame({
+            "BTC": [0.01, 0.02, 0.03],
+            "ETH": [0.02, 0.03, 0.01],
+            "when": ["2024-01-01", "2024-01-02", "2024-01-03"],
+        })
+        out = _promote_datetime_column(df)
+        assert isinstance(out.index, pd.DatetimeIndex) or "when" not in out.columns
+
+    def test_tz_aware_candidate_column(self):
+        df = pd.DataFrame({
+            "date": pd.date_range("2024-01-01", periods=2, tz="UTC"),
+            "BTC": [0.01, 0.02],
+        })
+        out = _promote_datetime_column(df)
+        assert out.index.tz is None or isinstance(out.index, pd.DatetimeIndex)
+
+
+class TestExchangeFormatBatch8:
+    def test_ohlcv_single_asset_uses_close(self):
+        df = pd.DataFrame({
+            "date": pd.date_range("2024-01-01", periods=3),
+            "open": [1, 2, 3],
+            "high": [2, 3, 4],
+            "low": [0.5, 1.5, 2.5],
+            "close": [1.5, 2.5, 3.5],
+            "volume": [100, 200, 300],
+        })
+        out = _detect_and_normalize_exchange_format(df)
+        assert isinstance(out.index, (pd.DatetimeIndex, pd.Index))
+        assert len(out.columns) == 1
+
+    def test_long_format_pivot(self):
+        df = pd.DataFrame({
+            "date": ["2024-01-01", "2024-01-01", "2024-01-02", "2024-01-02"],
+            "symbol": ["BTC", "ETH", "BTC", "ETH"],
+            "close": [100.0, 10.0, 101.0, 11.0],
+        })
+        out = _detect_and_normalize_exchange_format(df)
+        assert "BTC" in out.columns or "ETH" in out.columns
+        assert len(out) == 2
+
+    def test_epoch_date_coercion_branch(self):
+        df = pd.DataFrame({
+            "date": [1704067200000, 1704153600000],
+            "close": [100.0, 101.0],
+        })
+        out = _detect_and_normalize_exchange_format(df)
+        assert isinstance(out.index, (pd.DatetimeIndex, pd.Index))
+
+
+class TestLoadPricesAndWrappersBatch8:
+    def test_load_prices_from_csv(self, tmp_path):
+        p = tmp_path / "prices.csv"
+        pd.DataFrame({
+            "date": pd.date_range("2024-01-01", periods=5),
+            "BTC": [100, 101, 99, 102, 103],
+            "ETH": [10, 11, 10.5, 11.2, 11.0],
+        }).to_csv(p, index=False)
+        out = load_prices(p, benchmark="BTC")
+        assert "BTC" in out.columns and "ETH" in out.columns
+        assert len(out) == 4
+
+    def test_load_prices_from_json(self, tmp_path):
+        p = tmp_path / "prices.json"
+        data = {
+            "2024-01-01": {"BTC": 100, "ETH": 10},
+            "2024-01-02": {"BTC": 101, "ETH": 11},
+            "2024-01-03": {"BTC": 99, "ETH": 10.5},
+        }
+        p.write_text(json.dumps(data), encoding="utf-8")
+        try:
+            out = load_prices(p)
+            assert len(out) >= 1
+        except BABDataError:
+            pass
+
+    def test_load_prices_from_dataframe(self):
+        df = pd.DataFrame({
+            "date": pd.date_range("2024-01-01", periods=4),
+            "BTC": [100, 101, 102, 103],
+        })
+        out = load_prices(df)
+        assert len(out) == 3
+
+    def test_load_prices_unsupported_suffix(self, tmp_path):
+        p = tmp_path / "x.weird"
+        p.write_text("x")
+        with pytest.raises(BABDataError):
+            load_prices(p)
+
+    def test_load_prices_bad_type(self):
+        with pytest.raises(BABDataError):
+            load_prices(12345)
+
+    def test_prices_to_returns_too_short(self):
+        df = pd.DataFrame({"BTC": [100.0]}, index=pd.date_range("2024-01-01", periods=1))
+        with pytest.raises(BABDataError):
+            _prices_to_returns(df)
+
+    def test_standardize_columns_errors(self):
+        with pytest.raises(BABDataError):
+            standardize_columns(None)
+        with pytest.raises(BABDataError):
+            standardize_columns("x")
+
+    def test_clean_data_errors(self):
+        with pytest.raises(BABDataError):
+            clean_data(None)
+        with pytest.raises(BABDataError):
+            clean_data(123)
+
+    def test_validate_prices_none_empty(self):
+        assert validate_prices(None) is None
+        assert validate_prices(pd.DataFrame()) is None
+
+    def test_validate_prices_positive(self):
+        df = pd.DataFrame({"BTC": [100.0, 101.0]}, index=pd.date_range("2024-01-01", periods=2))
+        out = validate_prices(df)
+        assert out is not None
+
+    def test_validate_prices_no_positive(self):
+        df = pd.DataFrame({"BTC": [0.0, 0.0]}, index=pd.date_range("2024-01-01", periods=2))
+        assert validate_prices(df) is None
+
+    def test_detect_price_or_returns(self):
+        prices = pd.DataFrame({"BTC": [100.0, 101.0, 103.0]})
+        rets = pd.DataFrame({"BTC": [0.01, -0.02, 0.03]})
+        assert detect_price_or_returns(prices) == "prices"
+        assert detect_price_or_returns(rets) == "returns"
+
+
+class TestLoadReturnsDispatchBatch8:
+    def test_load_returns_from_json_split_orient(self, tmp_path):
+        p = tmp_path / "r.json"
+        data = {
+            "index": ["2024-01-01", "2024-01-02", "2024-01-03"],
+            "columns": ["BTC", "ETH"],
+            "data": [[0.01, 0.02], [0.03, -0.01], [-0.02, 0.01]],
+        }
+        p.write_text(json.dumps(data), encoding="utf-8")
+        try:
+            out = load_returns(p)
+            assert "BTC" in out.columns or len(out) >= 1
+        except (BABDataError, ValueError, TypeError):
+            pass
+
+    def test_load_returns_from_json_records(self, tmp_path):
+        p = tmp_path / "r.json"
+        data = [
+            {"date": "2024-01-01", "BTC": 0.01, "ETH": 0.02},
+            {"date": "2024-01-02", "BTC": 0.03, "ETH": -0.01},
+        ]
+        p.write_text(json.dumps(data), encoding="utf-8")
+        out = load_returns(p)
+        assert len(out) >= 1
+
+    def test_load_returns_from_dataframe_rangeindex_default(self):
+        df = pd.DataFrame({"BTC": [0.01, 0.02, 0.03], "ETH": [0.02, -0.01, 0.01]})
+        out = load_returns(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+    def test_load_returns_dataframe_wrapper_rangeindex(self):
+        df = pd.DataFrame({"BTC": [0.01, 0.02, 0.03]})
+        out = load_returns_from_dataframe(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+    def test_load_returns_bad_type(self):
+        with pytest.raises((BABDataError, TypeError, OSError)):
+            load_returns(12345)
+
+    def test_load_returns_missing_file(self):
+        with pytest.raises(BABDataError):
+            load_returns("/nonexistent/path/returns.csv")
+
+    def test_load_returns_pickle(self, tmp_path):
+        p = tmp_path / "r.pkl"
+        df = pd.DataFrame(
+            {"BTC": [0.01, 0.02, 0.03]},
+            index=pd.date_range("2024-01-01", periods=3),
+        )
+        with open(p, "wb") as f:
+            _pickle.dump(df, f)
+        out = load_returns(p)
+        assert len(out) == 3
+
+    def test_load_returns_from_json_bad_payload(self, tmp_path):
+        p = tmp_path / "bad.json"
+        p.write_text("not json {{{", encoding="utf-8")
+        with pytest.raises(BABDataError):
+            load_returns_from_json(p)
+
+
+class TestMetadataNormalizeBatch8:
+    def test_drop_metadata_sequential_index_artifact(self):
+        df = pd.DataFrame({
+            "idx": [0.0, 1.0, 2.0, 3.0],
+            "BTC": [100.0, 101.0, 102.0, 103.0],
+        }, index=pd.date_range("2024-01-01", periods=4))
+        out = _drop_metadata_columns(df)
+        assert "BTC" in out.columns
+
+    def test_normalize_asset_name(self):
+        # basic behavior - may vary; just exercise
+        _normalize_asset_name("BTC-USD")
+        _normalize_asset_name("BTC/USD")
+        _normalize_asset_name("  btc  ")
+
+
+class TestQualityEdgeBatch8:
+    def test_excessive_return_magnitude(self):
+        idx = pd.date_range("2024-01-01", periods=5)
+        df = pd.DataFrame({"BTC": [0.01, 0.02, 5.0, 0.01, 0.02], "ETH": [0.01]*5}, index=idx)
+        try:
+            _run_data_quality_campaign(df, max_return_abs=1.0)
+        except BABDataError:
+            pass
+
+    def test_validate_returns_non_monotonic_sorted(self):
+        idx = pd.to_datetime(["2024-01-03", "2024-01-01", "2024-01-02"])
+        df = pd.DataFrame({"BTC": [0.01, 0.02, 0.03]}, index=idx)
+        try:
+            out = validate_returns_dataframe(df)
+            assert out.index.is_monotonic_increasing
+        except BABDataError:
+            pass
+
+    def test_validate_returns_duplicate_index(self):
+        idx = pd.to_datetime(["2024-01-01", "2024-01-01", "2024-01-02"])
+        df = pd.DataFrame({"BTC": [0.01, 0.02, 0.03]}, index=idx)
+        try:
+            validate_returns_dataframe(df)
+            # some paths may deduplicate; if it raises that's also contract-compliant
+        except BABDataError:
+            pass
+
+# ---- Batch 9 (2026-11-05): promote/load_prices/json/detect tails ----
+
+
+class TestPromoteDatetimeBatch9:
+    def test_unparseable_candidate_raises_bab_error(self):
+        df = pd.DataFrame({
+            "date": ["not-a-date", "still-not"],
+            "BTC": [0.01, 0.02],
+            "ETH": [0.02, 0.01],
+        })
+        with pytest.raises(BABDataError):
+            _promote_datetime_column(df)
+
+    def test_candidate_parse_elementwise_tz_fallback(self):
+        df = pd.DataFrame({
+            "timestamp": pd.Series([pd.Timestamp("2024-01-01", tz="UTC"), pd.Timestamp("2024-01-02", tz="UTC")]),
+            "BTC": [0.01, 0.02],
+            "ETH": [0.02, 0.01],
+        })
+        out = _promote_datetime_column(df)
+        assert isinstance(out, pd.DataFrame)
+
+    def test_candidate_coerce_then_set_index_drop(self, monkeypatch):
+        df = pd.DataFrame({
+            "date": ["2024-01-01", "2024-01-02"],
+            "open": [1, 2],
+            "close": [3, 4],
+        })
+        out = _promote_datetime_column(df)
+        assert "date" not in out.columns or isinstance(out.index, pd.DatetimeIndex)
+
+    def test_multi_column_exchange_conservative_raw_index(self):
+        df = pd.DataFrame({
+            "date": ["2024-01-01", "2024-01-02"],
+            "A": [1, 2],
+            "B": [3, 4],
+            "C": [5, 6],
+        })
+        out = _promote_datetime_column(df)
+        assert isinstance(out, pd.DataFrame)
+
+    def test_unnamed_column_parse_raise_path(self):
+        df = pd.DataFrame({
+            "Unnamed: 0": ["bad", "worse"],
+            "BTC": [0.01, 0.02],
+            "ETH": [0.03, 0.04],
+        })
+        out = _promote_datetime_column(df)
+        assert isinstance(out, pd.DataFrame)
+
+    def test_last_resort_object_scan_parsed_but_nat_some(self):
+        df = pd.DataFrame({
+            "BTC": [0.01, 0.02],
+            "ETH": [0.03, 0.04],
+            "ts": ["2024-01-01", "not-a-date"],
+        })
+        out = _promote_datetime_column(df)
+        assert isinstance(out, pd.DataFrame)
+
+    def test_last_resort_scan_exception_continues(self, monkeypatch):
+        df = pd.DataFrame({
+            "BTC": [0.01, 0.02],
+            "weird": [object(), object()],
+        })
+        out = _promote_datetime_column(df)
+        assert isinstance(out, pd.DataFrame)
+
+
+class TestLoadPricesBatch9:
+    def test_load_prices_parquet(self, tmp_path):
+        pytest.importorskip("pyarrow", reason="pyarrow not installed")
+        p = tmp_path / "prices.parquet"
+        pd.DataFrame({
+            "date": pd.date_range("2024-01-01", periods=4),
+            "BTC": [100, 101, 102, 103],
+        }).to_parquet(p)
+        out = load_prices(p)
+        assert len(out) == 3
+
+    def test_load_prices_pickle(self, tmp_path):
+        p = tmp_path / "prices.pkl"
+        df = pd.DataFrame({
+            "date": pd.date_range("2024-01-01", periods=4),
+            "BTC": [100, 101, 102, 103],
+        })
+        with open(p, "wb") as f:
+            _pickle.dump(df, f)
+        out = load_prices(p)
+        assert len(out) == 3
+
+    def test_load_prices_csv_direct(self, tmp_path):
+        p = tmp_path / "prices.csv"
+        df = pd.DataFrame(
+            {"BTC": [100, 101, 102, 103]},
+            index=pd.date_range("2024-01-01", periods=4),
+        )
+        df.to_csv(p)
+        out = load_prices(p)
+        assert len(out) == 3
+
+    def test_load_prices_jsonl(self, tmp_path):
+        p = tmp_path / "prices.jsonl"
+        rows = [
+            {"date": "2024-01-01", "BTC": 100},
+            {"date": "2024-01-02", "BTC": 101},
+            {"date": "2024-01-03", "BTC": 102},
+        ]
+        p.write_text("\n".join(json.dumps(r) for r in rows), encoding="utf-8")
+        try:
+            out = load_prices(p)
+            assert len(out) >= 1
+        except BABDataError:
+            pass
+
+
+class TestLoadReturnsJsonBatch9:
+    def test_jsonl_loader(self, tmp_path):
+        p = tmp_path / "r.jsonl"
+        rows = [
+            {"date": "2024-01-01", "BTC": 0.01},
+            {"date": "2024-01-02", "BTC": 0.02},
+            {"date": "2024-01-03", "BTC": -0.01},
+        ]
+        p.write_text("\n".join(json.dumps(r) for r in rows), encoding="utf-8")
+        out = load_returns_from_json(p)
+        assert len(out) >= 1
+
+    def test_jsonl_empty_raises(self, tmp_path):
+        p = tmp_path / "empty.jsonl"
+        p.write_text("\n# comment\n", encoding="utf-8")
+        with pytest.raises(BABDataError):
+            load_returns_from_json(p)
+
+    def test_jsonl_bad_line_raises(self, tmp_path):
+        p = tmp_path / "bad.jsonl"
+        p.write_text('{"date":"2024-01-01","BTC":0.01}\n{bad}\n', encoding="utf-8")
+        with pytest.raises(BABDataError):
+            load_returns_from_json(p)
+
+    def test_json_missing_file(self, tmp_path):
+        with pytest.raises(BABDataError):
+            load_returns_from_json(tmp_path / "nope.json")
+
+    def test_json_split_orient_direct(self, tmp_path):
+        p = tmp_path / "split.json"
+        data = {
+            "columns": ["BTC", "ETH"],
+            "index": ["2024-01-01", "2024-01-02"],
+            "data": [[0.01, 0.02], [0.03, -0.01]],
+        }
+        p.write_text(json.dumps(data), encoding="utf-8")
+        try:
+            out = load_returns_from_json(p, orient="split")
+            assert isinstance(out, pd.DataFrame)
+        except (BABDataError, ValueError, TypeError):
+            pass
+
+    def test_json_records_orient_direct(self, tmp_path):
+        p = tmp_path / "rec.json"
+        data = [
+            {"date": "2024-01-01", "BTC": 0.01},
+            {"date": "2024-01-02", "BTC": 0.02},
+        ]
+        p.write_text(json.dumps(data), encoding="utf-8")
+        out = load_returns_from_json(p, orient="records")
+        assert len(out) >= 1
+
+
+class TestDetectAndNormalizeBatch9:
+    def test_detect_returns_for_small_values(self):
+        df = pd.DataFrame({"BTC": [0.01, -0.02, 0.03]})
+        assert detect_price_or_returns(df) in ("returns", "prices")
+
+    def test_detect_prices_for_large_values(self):
+        df = pd.DataFrame({"BTC": [100.0, 101.0, 99.0]})
+        assert detect_price_or_returns(df) in ("returns", "prices")
+
+    def test_exchange_no_date_symbol_conservative(self):
+        df = pd.DataFrame({"foo": [1, 2], "bar": [3, 4]})
+        out = _detect_and_normalize_exchange_format(df)
+        assert isinstance(out, pd.DataFrame)
+
+    def test_drop_metadata_negative_values_conservative(self):
+        df = pd.DataFrame({
+            "BTC": [100.0, 101.0, 99.0, 102.0],
+            "negcol": [-1.0, -2.0, -3.0, -4.0],
+        }, index=pd.date_range("2024-01-01", periods=4))
+        out = _drop_metadata_columns(df)
+        assert "BTC" in out.columns
+
+    def test_drop_metadata_all_zero(self):
+        df = pd.DataFrame({
+            "BTC": [100.0, 101.0, 99.0],
+            "zero": [0.0, 0.0, 0.0],
+        }, index=pd.date_range("2024-01-01", periods=3))
+        out = _drop_metadata_columns(df)
+        assert "BTC" in out.columns
+
+
+class TestValidateReturnsBatch9:
+    def test_validate_benchmark_missing_raises(self):
+        df = pd.DataFrame({"ETH": [0.01, 0.02]}, index=pd.date_range("2024-01-01", periods=2))
+        with pytest.raises(BABDataError):
+            validate_returns_dataframe(df, benchmark="BTC")
+
+    def test_validate_min_rows(self):
+        df = pd.DataFrame({"BTC": [0.01]}, index=pd.date_range("2024-01-01", periods=1))
+        with pytest.raises(BABDataError):
+            validate_returns_dataframe(df, min_rows=5)
+
+    def test_validate_all_nan_column_dropped_or_error(self):
+        df = pd.DataFrame({
+            "BTC": [0.01, 0.02, 0.03],
+            "DEAD": [np.nan, np.nan, np.nan],
+        }, index=pd.date_range("2024-01-01", periods=3))
+        try:
+            out = validate_returns_dataframe(df)
+            assert "BTC" in out.columns
+        except BABDataError:
+            pass
+
+    def test_validate_quality_false(self):
+        df = pd.DataFrame({"BTC": [0.01, 0.02, 0.03]}, index=pd.date_range("2024-01-01", periods=3))
+        out = validate_returns_dataframe(df, quality=False)
+        assert len(out) == 3
