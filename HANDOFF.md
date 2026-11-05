@@ -1,19 +1,19 @@
 # SINGLE DURABLE HANDOFF - Crypto-Betting-Against-Beta
 
-**Timestamp:** 2026-11-05T06:11:36Z
+**Timestamp:** 2026-11-05T06:20:31Z
 **Repo:** Crypto-Betting-Against-Beta (BAB)
 **PRIORITY (NON-NEGOTIABLE):** `strategies/betting_against_beta/` - ALL effort MUST go here
 
-## BOTTLENOCK RESOLVED (2026-11-05T05:50:00Z)
+## BOTTLENECK RESOLVED (2026-11-05T06:18:00Z)
 
-The gate was RED due to 2 failures in `tests/test_controller_progress_accounting.py`:
+The gate was RED again due to 2 failures in `tests/test_controller_progress_accounting.py`:
 - `test_python_patterns_are_subset_of_workflow` and `test_nested_workflow_pattern_is_present_in_workflow`
-- Root cause: `.github/workflows/main.yml` `stage_safe_changes()` list was missing `*/.github/workflows/*` (present in Python `EXCLUDE_PATTERNS`).
-- Fix: added `*/.github/workflows/*` to the workflow case pattern at `.github/workflows/main.yml:1163`. All 68 controller tests now pass. Gate is GREEN.
+- Root cause: `.github/workflows/main.yml` `stage_safe_changes()` list (line 1163) was missing `*/.github/workflows/*`, which is present in Python `EXCLUDE_PATTERNS` (`scripts/controller_progress.py:28`).
+- Fix: added `*/.github/workflows/*` to the workflow case pattern at `.github/workflows/main.yml:1163`. All 68 controller tests now pass; full gate GREEN (2818 passed, exit 0).
 
 ## INITIAL TASK MESSAGE (FOR NEXT AGENTIC SESSION - EXECUTE THIS FIRST)
 
-**Time:** 2026-11-05T06:11:36Z
+**Time:** 2026-11-05T06:20:31Z
 **DIRECTIVE (Repo-name driven):** Betting Against Beta (crypto). Treat the BAB strategy as the sole product. No exploratory sidetracks. Every action must increase coverage/correctness of BAB modules and keep the gate green. Build momentum via targeted tests + minimal fixes. Do heavy, unrelenting work - close gaps until none obvious remain.
 
 **MANDATORY FIRST ACTION (DO NOT SKIP):**
@@ -21,13 +21,13 @@ The gate was RED due to 2 failures in `tests/test_controller_progress_accounting
 cd /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
 export PATH=/home/runner/work/_temp/kilo-home/.local/bin:$PATH
 export PYTHONPATH=$PWD
-bash scripts/bab_gate.sh 2>&1 | tail -20
+bash scripts/bab_gate.sh 2>&1 | tail -5
 ```
 If RED → fix immediately before anything else. Gate must stay GREEN.
 
 ## CURRENT BASELINE (VERIFIED)
 
-- **All tests under `tests/`:** Gate runs every `test_*.py` (302 files) with coverage of `strategies/betting_against_beta/`.
+- **All tests under `tests/`:** Gate runs every `test_*.py` (178 files, 2818 tests) with coverage of `strategies/betting_against_beta/`.
 - **Coverage (from latest run, 87% TOTAL):**
   - data_loader.py: 79% (1693 stmts, 356 missing) - HIGHEST ROI, large surface
   - cli.py: 61% (318 stmts, 124 missing) - second-largest gap
