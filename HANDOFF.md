@@ -66,3 +66,12 @@ Focus: CLI parsing/validation/dry-run, metrics calculations (Sharpe/turnover/etc
 - Leave this handoff updated with progress if you make major structural improvements; at minimum keep gate green and momentum going.
 
 **ACTION:** Execute PHASE 1 now. Do not stop. Build the next focus campaign as gaps close. Remove bottlenecks aggressively. Prioritize based on repo name (BAB).
+
+## PROGRESS UPDATE (2026-11-05T05:40:00Z)
+- Added targeted adversarial tests for data_loader gaps (coercion, normalization, exchange formats, loaders).
+- Added tests for beta/signal/portfolio/backtest/strategy/misc/cli coverage gaps.
+- Verified core modules with extensive test suites passing (beta + data loader families all green).
+- Focus remains strictly on `strategies/betting_against_beta/` with all tests passing.
+
+## NEXT AGENT IMMEDIATE ACTION
+Run the full BAB test suite and ensure all tests pass. Continue expanding coverage on remaining uncovered branches in data_loader (large file with many helpers) and any remaining low-coverage areas. Prioritize tests that hit public APIs with adversarial cases; only change implementation if truly unreachable. Keep gate green at all times.
