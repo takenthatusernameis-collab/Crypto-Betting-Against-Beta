@@ -1,15 +1,15 @@
 # SINGLE DURABLE HANDOFF - Crypto-Betting-Against-Beta
-**Timestamp:** 2026-11-05T01:27:22Z
+**Timestamp:** 2026-11-05T02:33:32Z
 **Repo:** Crypto-Betting-Against-Beta (BAB)
 **Priority:** strategies/betting_against_beta/ - HEAVY, relentless implementation and hardening
 
 ## INITIAL TASK MESSAGE (for next agentic session - EXECUTE FIRST)
-**Time:** 2026-11-05T01:27:22Z
+**Time:** 2026-11-05T02:33:32Z
 **MANDATE:** Repository name is directive. ALL work MUST advance BAB under `strategies/betting_against_beta/`. Do NOT deviate. Build a focus campaign future agents cannot dodge - heavy work only.
 
 ## SAME-RUN RECOVERY (BLOCKING CONTEXT)
 - **Run context:** NEW worker session inside the SAME active GitHub Actions run (previous session ended due to bounded remote checkpoint persistence failure).
-- **HEAD state:** Local HEAD `85905b3111a199136cb8e9837766b9e728cd298b` (ahead of origin/main by 4). Last known remote-tracking `1a585a3d7cf12009aa55c723d6cfc725c697e959`.
+- **HEAD state:** Local HEAD `f8946d34bc886f2f0eb76cf9f4e4d0818a48d06f` (ahead of origin/main by 7). Last known remote-tracking `1a585a3d7cf12009aa55c723d6cfc725c697e959`.
 - **Preserve:** ALL existing local commits and work. Do NOT reset/discard. No history rewrite unless confirmed root cause requires AND after preserving recovery bundle + rollback plan.
 - **Recovery artifacts:** Check `/home/runner/work/_temp/` for `kilo-recovery-*.bundle` and `kilo-recovery-status-*.txt` if present. Session logs showed push blocked by GitHub App missing `workflows` permission on workflow changes; controller will retry persistence of all local-ahead commits after this session - DO NOT claim persistence until remote SHA matches.
 - **Note:** Branch is `main...origin/main [ahead 4]` with clean tree.
@@ -26,13 +26,13 @@
 3. If RED in this session, fix gate FIRST - no feature work until GREEN. Never checkpoint with RED.
 
 ## STEP 1 (PRIMARY CAMPAIGN D - RELENTLESS, DO NOT STOP)
-Drive `strategies/betting_against_beta/data_loader.py` from **78%** to **>=90%** with:
+Drive `strategies/betting_against_beta/data_loader.py` from **79%** to **>=90%** with:
 - Zero API breaks
 - Zero test regressions
 - Gate GREEN after EVERY batch
 - Do not stop until >=90% AND gate GREEN
 
-**Current:** data_loader.py **78%** (1669 stmts, ~375 missing). Need to cover ~205+ more statements.
+**Current:** data_loader.py **79%** (1669 stmts, ~375 missing). Need to cover ~205+ more statements.
 
 ## MANDATORY GATE (LAW)
 1. IMMEDIATELY run: `bash scripts/bab_gate.sh` (full suite via gate)
@@ -41,9 +41,9 @@ Drive `strategies/betting_against_beta/data_loader.py` from **78%** to **>=90%**
 4. Gate is source of truth.
 
 ## CURRENT STATE (2026-11-05T01:27:22Z)
-- **Git:** Clean working tree on main, 4 commits ahead of origin/main (85905b3, ce40122, 42b7caf, 6cf5b1c). Remote push pending due to app permissions (controller will retry).
+- **Git:** Clean working tree on main, 7 commits ahead of origin/main. Remote push pending due to app permissions (controller will retry).
 - **Gate:** Run immediately if not confirmed; previously GREEN.
-- **Coverage:** data_loader.py **78%** → TARGET **>=90%** (966 passed, 13 skipped in data_loader tests)
+- **Coverage:** data_loader.py **79%** → TARGET **>=90%** (966 passed, 13 skipped in data_loader tests)
 - **Focus:** Campaign D is the ONLY mission until data_loader.py >=90% AND gate GREEN
 
 ## ATTACK STRATEGY - HIT EVERY UNCOVERED BRANCH
@@ -90,4 +90,4 @@ Focus areas (from current coverage gaps):
 - Heavy hardening - no shortcuts
 - Raise `BABDataError` on parse/validation failures
 
-**ACTION:** Gate is source of truth. Same-run recovery noted (push pending due to permissions; controller will retry). Campaign D is the ONLY mission. Drive data_loader.py from 78% to >=90% with zero regressions. Be relentless - do not stop until target met and gate GREEN.
+**ACTION:** Gate is source of truth. Same-run recovery noted (push pending due to permissions; controller will retry). Campaign D is the ONLY mission. Drive data_loader.py from 79% to >=90% with zero regressions. Be relentless - do not stop until target met and gate GREEN.
