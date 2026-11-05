@@ -1608,16 +1608,23 @@ def load_returns_from_parquet(
     try:
         try:
             df = pd.read_parquet(pq_path, **kwargs)
+        except BABDataError:
+            raise
         except Exception as exc:
             raise BABDataError(
                 f"Failed to read Parquet {pq_path}: {exc}. "
                 "Install 'pyarrow' or 'fastparquet' to enable parquet support."
             ) from exc
+        try:
+            return validate_returns_dataframe(df, benchmark=benchmark, min_rows=min_rows, quality=quality)
+        except BABDataError:
+            raise
+        except Exception as exc:
+            raise BABDataError(str(exc)) from exc
     except BABDataError:
         raise
     except (OSError, ValueError) as exc:
         raise BABDataError(f"Failed to read Parquet {pq_path}: {exc}") from exc
-    return validate_returns_dataframe(df, benchmark=benchmark, min_rows=min_rows, quality=quality)
 
 
 def load_returns_from_hdf5(
@@ -1638,16 +1645,23 @@ def load_returns_from_hdf5(
                 df = pd.read_hdf(h5_path, key=key, **kwargs)
             else:
                 df = pd.read_hdf(h5_path, **kwargs)
+        except BABDataError:
+            raise
         except Exception as exc:
             raise BABDataError(
                 f"Failed to read HDF5 {h5_path}: {exc}. "
                 "Install 'tables' to enable hdf5 support."
             ) from exc
+        try:
+            return validate_returns_dataframe(df, benchmark=benchmark, min_rows=min_rows, quality=quality)
+        except BABDataError:
+            raise
+        except Exception as exc:
+            raise BABDataError(str(exc)) from exc
     except BABDataError:
         raise
     except (OSError, ValueError) as exc:
         raise BABDataError(f"Failed to read HDF5 {h5_path}: {exc}") from exc
-    return validate_returns_dataframe(df, benchmark=benchmark, min_rows=min_rows, quality=quality)
 
 
 def load_returns_from_pickle(
