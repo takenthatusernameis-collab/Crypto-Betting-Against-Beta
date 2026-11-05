@@ -1,21 +1,21 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 
-**Timestamp (UTC):** 2026-11-05T11:11:57Z
+**Timestamp (UTC):** 2026-11-05T11:28:38Z
 **Repo:** `takenthatusernameis-collab/Crypto-Betting-Against-Beta`
-**Branch/SHA (local):** `main` @ `d74e2e6` (HEAD == `origin/main` at check; working tree clean except this handoff update in progress)
+**Branch/SHA (local):** `main` @ `682d8c7` (HEAD == `origin/main` at check; working tree clean except this handoff update in progress)
 **Non-negotiable focus:** **BAB only** — `strategies/betting_against_beta/` correctness, robustness, adversarial handling, and measured coverage. Repo name is the priority filter: every action must advance BAB quality. No infra/controller refactors, no workflow commits/pushes, no sidetracks.
 
 ## Verified state (this session)
 
 - **Tree:** no duplicate durable handoff files found (only `./HANDOFF.md`). Prior commits are checkpoint-only.
-- **Infra blocker (not BAB logic; agent cannot clear):** `pytest -q tests/test_controller_progress_accounting.py` → **2 failed, 66 passed** (0.25s).
+- **Infra blocker (not BAB logic; agent cannot clear):** `pytest -q tests/test_controller_progress_accounting.py` → **2 failed, 66 passed** (0.23s).
   - Failures: `TestStageSafeChangesPatternSync::test_python_patterns_are_subset_of_workflow` and `test_nested_workflow_pattern_is_present_in_workflow` — `.github/workflows/main.yml` `stage_safe_changes()` is missing `*/.github/workflows/*` while `scripts/controller_progress.py` `EXCLUDE_PATTERNS` includes it.
   - **Operator with `workflows` scope only:** add `*/.github/workflows/*|` adjacent to `.github/workflows/*|` in `main.yml` `stage_safe_changes()`; keep restore/clean/workflow-managed behavior consistent. **Agents without workflow permission must not edit/commit/push `.github/workflows/*`.**
-- **BAB subsets (measured):**
-  - `pytest -q tests/test_bab_data_loader*.py tests/test_bab_loader*.py tests/test_bab_messy_data.py tests/test_bab_zero_silent_error.py tests/test_bab_cli*.py tests/test_betting_against_beta_data_loader*.py` → **1445 passed, 15 skipped, 105 warnings** (62.77s).
+- **BAB subsets (measured, recon 2026-11-05T11:28:38Z):**
+  - `pytest -q tests/test_bab_data_loader*.py tests/test_bab_loader*.py tests/test_bab_messy_data.py tests/test_bab_zero_silent_error.py tests/test_bab_cli*.py tests/test_betting_against_beta_data_loader*.py` → **1445 passed, 15 skipped, 105 warnings** (61.45s).
   - `pytest -q tests/test_bab_backtest*.py tests/test_bab_beta*.py tests/test_bab_signals*.py tests/test_bab_portfolio*.py tests/test_bab_sizing*.py tests/test_bab_strategy*.py tests/test_betting_against_beta.py tests/test_betting_against_beta_costs.py tests/test_betting_against_beta_metrics*.py tests/test_betting_against_beta_quality.py tests/test_betting_against_beta_regime.py tests/test_betting_against_beta_shorting.py tests/test_betting_against_beta_sizing.py` → **709 passed, 14 warnings** (44–46s).
   - These subsets are green; warnings exist (runtime/numpy/runpy) — do not hide regressions behind warning noise.
-- **Targeted coverage (measured, `--source=strategies.betting_against_beta`, loader+CLI subset):** `data_loader.py` **1693 stmts, 343 miss, 80%**; `cli.py` **318 stmts, 124 miss, 61%**. Missing-line report is the live gap map (`coverage report -m`).
+- **Targeted coverage (measured, `--source=strategies.betting_against_beta`, loader+CLI subset):** `data_loader.py` **1693 stmts, 345 miss, 80%**; `cli.py` **318 stmts, 124 miss, 61%**. Missing-line report is the live gap map (`coverage report -m`).
 - **Full BAB-only suite with coverage:** **not yet completed to verified truth in this session**. Prior attempts timed out or produced no aggregate data in interrupted cross-process runs. **Do not claim GREEN/full BAB coverage without a fresh completed run and recorded tail + coverage table.**
 
 ## Sacred invariants (never regress)
@@ -40,7 +40,7 @@ python3 -V && python3 -m pytest --version
 | # | Bottleneck | Owner | Action | Exit criteria |
 |---|------------|-------|--------|---------------|
 | 1 | Workflow/controller exclude-pattern sync blocks full gate (`main.yml` missing `*/.github/workflows/*` in `stage_safe_changes`) | **Operator with `workflows` scope** | One-line-equivalent fix in workflow file; agents lacking workflow permission **must not touch it**. Route BAB work via `--ignore=tests/test_controller_progress_accounting.py`. | `pytest -q tests/test_controller_progress_accounting.py` passes; `bash scripts/bab_gate.sh` unblocked |
-| 2 | `data_loader.py` 80% targeted (343 miss, 1693 stmts) — largest BAB risk surface | **Next BAB agent (heavy, immediate)** | Test-first adversarial campaigns via public APIs; smallest correct fixes only when contract is violated. Do not refactor broadly. | Measured coverage **≥90%** for `data_loader.py` with zero regressions and `BABDataError` contract preserved |
+| 2 | `data_loader.py` 80% targeted (345 miss, 1693 stmts) — largest BAB risk surface | **Next BAB agent (heavy, immediate)** | Test-first adversarial campaigns via public APIs; smallest correct fixes only when contract is violated. Do not refactor broadly. | Measured coverage **≥90%** for `data_loader.py` with zero regressions and `BABDataError` contract preserved |
 | 3 | `cli.py` 61% targeted (124 miss, 318 stmts) | **Next BAB agent** | Arg combos/conflicts, dry-run no-side-effects, file I/O/errors, `--version`, exit codes, rendered errors. | Measured coverage **≥85%** |
 | 4 | Full BAB-only aggregate coverage truth unknown (long-running suite) | **Next BAB agent** | Run BAB-only coverage in bounded batches or one completed run; persist exact numbers in this handoff. | Completed coverage table recorded here (no timeout/incomplete claims) |
 
@@ -61,10 +61,11 @@ python3 -m coverage erase
 python3 -m coverage run --source=strategies.betting_against_beta -m pytest -q tests/test_bab_data_loader*.py tests/test_bab_loader*.py tests/test_bab_messy_data.py tests/test_bab_zero_silent_error.py tests/test_bab_cli*.py tests/test_betting_against_beta_data_loader*.py 2>&1 | tail -12
 python3 -m coverage report --include='strategies/betting_against_beta/data_loader.py,strategies/betting_against_beta/cli.py' -m 2>&1 | tail -120
 ```
+Baseline recorded 2026-11-05T11:28:38Z: loader/CLI subset **1445 passed, 15 skipped**; `data_loader.py` **80% (345 miss / 1693 stmts)**; `cli.py` **61% (124 miss / 318 stmts)**.
 If time permits in the same session, get full BAB aggregate truth with bounded scope: `python3 -m coverage run --append --source=strategies.betting_against_beta -m pytest -q -x --tb=no tests/test_bab*.py tests/test_betting_against_beta*.py 2>&1 | tail -20` then full `coverage report --include='strategies/betting_against_beta/*.py' -m`. If it exceeds budget, split into module batches and record partial-but-verified numbers.
 
 ### 1) Campaign A — `data_loader.py` (PRIMARY, heavy)
-Target current misses (343 lines / 80% targeted). **Test-first per batch:** add adversarial/branch tests → run targeted loader/CLI suites → apply smallest correct fix only if behavior violates contract → rerun coverage delta.
+Target current misses (345 lines / 80% targeted). **Test-first per batch:** add adversarial/branch tests → run targeted loader/CLI suites → apply smallest correct fix only if behavior violates contract → rerun coverage delta.
 - **Datetime/index coercion:** tz-aware/naive, epoch ns/us/ms/s, numeric strings/floats, ISO/Z/offsets, ambiguous/dayfirst, NaT/None/inf/nan/empty scalars, promotion/fallback paths, metadata-column drops.
 - **Shape/dispatch/benchmark:** exchange-qualified/long/wide detection, pivots, duplicate rows/cols, benchmark resolution/errors, extension routing, `DataFrame`/path dispatch.
 - **Formats/optional deps:** csv/json/jsonl/excel/parquet/pickle/hdf — mock missing deps and IO edge cases via `monkeypatch`/`tmp_path`; expect `BABDataError` on contract violations.
