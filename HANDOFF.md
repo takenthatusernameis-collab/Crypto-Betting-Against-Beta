@@ -1,8 +1,8 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 
-**Timestamp (UTC):** 2026-11-05T10:27:36Z
+**Timestamp (UTC):** 2026-11-05T10:43:22Z
 **Repo:** `takenthatusernameis-collab/Crypto-Betting-Against-Beta`
-**Branch/SHA:** `main` @ `3d082bf` (local == `origin/main`; clean working tree verified this session)
+**Branch/SHA:** `main` @ `0c26807` (local == `origin/main`; clean working tree verified this session)
 **Non-negotiable focus:** **BAB only** — `strategies/betting_against_beta/` correctness, robustness, adversarial handling, and measured coverage. No infra/controller refactors, no workflow edits, no sidetracks. Prioritize by repo name.
 
 ## Verified state (this session)
