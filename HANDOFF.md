@@ -1,6 +1,6 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 
-**Timestamp (UTC):** 2026-11-05T10:14:56Z
+**Timestamp (UTC):** 2026-11-05T10:16:43Z
 **Repo:** `Crypto-Betting-Against-Beta` — **BAB-only focus (non-negotiable).** Every action must increase `strategies/betting_against_beta/` correctness, robustness, adversarial handling, or coverage. No sidetracks. Prioritize by repo name.
 **Git:** `HEAD` = `origin/main` = `038cb1d7ebc2889f086a280bb0dc7c55e709072f` (`git status --short` clean). **No local-ahead commits. No uncommitted workflow diff detected this session.**
 
