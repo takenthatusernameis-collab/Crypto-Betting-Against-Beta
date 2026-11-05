@@ -1,18 +1,20 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 
-**Timestamp (UTC):** 2026-11-05T12:06:30Z
+**Timestamp (UTC):** 2026-11-05T12:07:30Z
 **Repo:** `Crypto-Betting-Against-Beta` (`/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`)
-**Branch/SHA (local, verified):** `main` @ `f71ab58` (`git status --short` clean at handoff write; local `origin/main` tracking)
+**Branch/SHA (local, verified):** `main` @ `0386c86` (`git status --short` clean at handoff write; local `origin/main` tracking)
 **Durable handoff:** this file only (`./HANDOFF.md`). No duplicates.
 **Non-negotiable focus:** **BAB only** — `strategies/betting_against_beta/` correctness, robustness, adversarial handling, and measured coverage. Repo name is the priority filter. No infra/controller refactors, no workflow commits/pushes, no sidetracks.
 
-## Verified state (fresh recon, 2026-11-05T12:06Z)
+## Verified state (fresh recon, 2026-11-05T12:07Z)
 
 - **Infra blocker (not BAB logic; agent cannot clear):** `pytest -q tests/test_controller_progress_accounting.py --tb=no` → **2 failed, 66 passed** (0.22s).
   - `TestStageSafeChangesPatternSync::{test_python_patterns_are_subset_of_workflow,test_nested_workflow_pattern_is_present_in_workflow}`: `.github/workflows/main.yml` `stage_safe_changes()` missing `*/.github/workflows/*` while `scripts/controller_progress.py` `EXCLUDE_PATTERNS` includes it.
   - **Operator with `workflows` scope only:** add `*/.github/workflows/*|` adjacent to `.github/workflows/*|` in `main.yml` `stage_safe_changes()`; keep restore/clean/workflow-managed behavior consistent. **Agents without workflow permission must not edit/commit/push `.github/workflows/*`.**
-- **BAB targeted verification (fresh):** `pytest -q tests/test_bab_cli.py -x --tb=no` → **27 passed** (14.66s).
-- **Coverage (from existing `.coverage` DB, `--source=strategies.betting_against_beta`; not a fresh full BAB aggregate claim):**
+  - **Route around:** run BAB verification ignoring `tests/test_controller_progress_accounting.py` so the blocker cannot stall BAB work.
+- **BAB targeted verification (fresh):** `pytest -q tests/test_bab_cli.py -x --tb=no` → **14 passed** (5.17s).
+- **Step-0 recon suite (fresh, 60.57s):** `pytest -q tests/test_bab_data_loader*.py tests/test_bab_loader*.py tests/test_bab_messy_data.py tests/test_bab_zero_silent_error.py tests/test_bab_cli*.py tests/test_betting_against_beta_data_loader*.py` → **1445 passed, 15 skipped**.
+- **Coverage (existing `.coverage` DB, `--source=strategies.betting_against_beta`; not a fresh full BAB aggregate claim):**
   - `strategies/betting_against_beta/data_loader.py` — **80%** (345 miss / 1693 stmts).
   - `strategies/betting_against_beta/cli.py` — **61%** (124 miss / 318 stmts).
   - Prior recorded targeted core snapshot (2026-11-05T11:38Z context): `backtest.py` 50%, `beta.py` 33%, `signals.py` 41%, `portfolio.py` 34%, `strategy.py` 38%; module-set TOTAL ~63% (3109 stmts, 1157 miss). **Full BAB-only aggregate coverage across all `strategies/betting_against_beta/*.py` remains unrecorded as final truth — do not claim full GREEN/coverage without a fresh completed run and recorded tail + table.**
@@ -48,7 +50,7 @@ python3 -V && python3 -m pytest --version
 
 ## INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (MANDATORY, HEAVY, BAB-ONLY)
 
-**You are on BAB hardening duty.** Repo name = `Crypto-Betting-Against-Beta`; prioritize BAB correctness/robustness/coverage above everything else. Do not explore unrelated files. Do not stop after one small patch. Do not edit/commit/push `.github/workflows/*` or other infra. Work in **verified batches** and record real output in this handoff.
+**You are on BAB hardening duty.** Repo name = `Crypto-Betting-Against-Beta`; prioritize BAB correctness/robustness/coverage above everything else. Do not explore unrelated files. Do not stop after one small patch. Do not edit/commit/push `.github/workflows/*` or other infra. Work in **verified batches** and record real output in this handoff. The blocker in row 1 is routed around — it must not stop BAB work.
 
 ### 0) Recon — establish truth (run to completion; record key numbers)
 ```bash
@@ -61,7 +63,7 @@ python3 -m coverage erase
 python3 -m coverage run --source=strategies.betting_against_beta -m pytest -q tests/test_bab_data_loader*.py tests/test_bab_loader*.py tests/test_bab_messy_data.py tests/test_bab_zero_silent_error.py tests/test_bab_cli*.py tests/test_betting_against_beta_data_loader*.py 2>&1 | tail -12
 python3 -m coverage report --include='strategies/betting_against_beta/data_loader.py,strategies/betting_against_beta/cli.py' -m 2>&1 | tail -120
 ```
-If budget allows, append core and report targeted modules (or run full BAB-only batches) and **persist exact numbers**.
+If budget allows, append core modules and report targeted modules (or run full BAB-only batches) and **persist exact numbers**.
 
 ### 1) Campaign A — `data_loader.py` (PRIMARY, heavy)
 Target current misses (345 lines in latest recon). **Test-first per batch:** add adversarial/branch tests → run targeted suites → apply smallest correct fix only if behavior violates contract → rerun coverage delta.
