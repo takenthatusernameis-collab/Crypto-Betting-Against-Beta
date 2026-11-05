@@ -1,6 +1,6 @@
 # SINGLE DURABLE HANDOFF - Crypto-Betting-Against-Beta
 
-**Timestamp:** 2026-11-05T05:57:52Z
+**Timestamp:** 2026-11-05T06:11:13Z
 **Repo:** Crypto-Betting-Against-Beta (BAB)
 **PRIORITY (NON-NEGOTIABLE):** `strategies/betting_against_beta/` - ALL effort MUST go here
 
@@ -13,7 +13,7 @@ The gate was RED due to 2 failures in `tests/test_controller_progress_accounting
 
 ## INITIAL TASK MESSAGE (FOR NEXT AGENTIC SESSION - EXECUTE THIS FIRST)
 
-**Time:** 2026-11-05T05:57:52Z
+**Time:** 2026-11-05T06:11:13Z
 **DIRECTIVE (Repo-name driven):** Betting Against Beta (crypto). Treat the BAB strategy as the sole product. No exploratory sidetracks. Every action must increase coverage/correctness of BAB modules and keep the gate green. Build momentum via targeted tests + minimal fixes. Do heavy, unrelenting work - close gaps until none obvious remain.
 
 **MANDATORY FIRST ACTION (DO NOT SKIP):**
