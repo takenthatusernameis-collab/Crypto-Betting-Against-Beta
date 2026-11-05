@@ -101,6 +101,14 @@ def _coerce_series_to_datetime_index(df: pd.DataFrame, col, coerced) -> bool:
 
 def _normalize_index(df: pd.DataFrame) -> pd.DataFrame:
     """Coerce the index to a sorted DatetimeIndex, raising on unparseable rows."""
+    orig_idx = df.index
+    input_was_datetime_index = isinstance(orig_idx, pd.DatetimeIndex)
+    input_all_nat = False
+    if input_was_datetime_index:
+        try:
+            input_all_nat = bool(getattr(orig_idx, 'isna', lambda: pd.Series(dtype=bool))().all())
+        except Exception:
+            input_all_nat = False
     if not isinstance(df.index, pd.DatetimeIndex):
         try:
             idx = df.index
@@ -289,6 +297,12 @@ def _normalize_index(df: pd.DataFrame) -> pd.DataFrame:
         pass
     if getattr(df.index, "has_duplicates", False):
         df = df[~df.index.duplicated(keep="first")]
+    # If the input was an all-NaT DatetimeIndex the frame is now empty; reject it.
+    # A numeric index that fails to parse to an empty DatetimeIndex is tolerated
+    # (callers may still surface it downstream), but an explicitly all-NaT
+    # DatetimeIndex is a clear caller error and must raise.
+    if isinstance(df.index, pd.DatetimeIndex) and len(df) == 0 and input_all_nat:
+        raise BABDataError("Index is entirely NaT; no valid datetime rows remain")
     return df
 
 
