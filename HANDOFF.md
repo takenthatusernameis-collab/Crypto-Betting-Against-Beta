@@ -1,6 +1,6 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 
-**Timestamp (UTC):** 2026-11-05T12:28:45Z
+**Timestamp (UTC):** 2026-11-05T12:30:20Z
 **Repo:** `Crypto-Betting-Against-Beta` (`/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`)
 **Branch/SHA (local, verified):** `main` @ `0d7d011` (`git status --short` clean at recon; 2026-11-05T12:27Z)
 **Durable handoff:** this file only (`./HANDOFF.md`). No duplicates.
