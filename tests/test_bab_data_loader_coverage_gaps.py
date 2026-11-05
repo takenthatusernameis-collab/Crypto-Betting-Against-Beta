@@ -1339,3 +1339,218 @@ class TestValidateAndQualityBatch4:
         df = pd.DataFrame({"BTC": [np.nan]*70, "ETH": [np.nan]*70}, index=idx)
         with pytest.raises(BABDataError):
             validate_returns_dataframe(df, benchmark="BTC")
+
+
+# --- Campaign A batch 1: _normalize_index + _coerce_to_datetime_scalar branches ---
+
+
+class TestNormalizeIndexNumericFallbacks:
+    def test_numeric_index_int_seconds(self):
+        idx = pd.Index([1700000000, 1700086400], dtype="int64")
+        df = pd.DataFrame({"A": [1, 2]}, index=idx)
+        out = _normalize_index(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+    def test_numeric_index_int_millis(self):
+        idx = pd.Index([1700000000000, 1700086400000], dtype="int64")
+        df = pd.DataFrame({"A": [1, 2]}, index=idx)
+        out = _normalize_index(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+    def test_numeric_index_int_micros(self):
+        idx = pd.Index([1700000000000000, 1700086400000000], dtype="int64")
+        df = pd.DataFrame({"A": [1, 2]}, index=idx)
+        out = _normalize_index(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+    def test_numeric_index_int_nanos(self):
+        idx = pd.Index([1700000000000000000, 1700086400000000000], dtype="int64")
+        df = pd.DataFrame({"A": [1, 2]}, index=idx)
+        out = _normalize_index(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+    def test_numeric_index_float_seconds(self):
+        idx = pd.Index([1700000000.0, 1700086400.0], dtype="float64")
+        df = pd.DataFrame({"A": [1, 2]}, index=idx)
+        out = _normalize_index(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+    def test_numeric_index_float_millis(self):
+        idx = pd.Index([1700000000000.0, 1700086400000.0], dtype="float64")
+        df = pd.DataFrame({"A": [1, 2]}, index=idx)
+        out = _normalize_index(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+    def test_numeric_index_float_micros(self):
+        idx = pd.Index([1700000000000000.0, 1700086400000000.0], dtype="float64")
+        df = pd.DataFrame({"A": [1, 2]}, index=idx)
+        out = _normalize_index(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+    def test_numeric_index_float_nanos(self):
+        idx = pd.Index([1700000000000000000.0, 1700086400000000000.0], dtype="float64")
+        df = pd.DataFrame({"A": [1, 2]}, index=idx)
+        out = _normalize_index(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+    def test_numeric_index_unit_us_fallback(self):
+        # av > 1e17 boundary (us) with us path failing -> elementwise coercion
+        idx = pd.Index([170000000000000000, 170008640000000000], dtype="int64")
+        df = pd.DataFrame({"A": [1, 2]}, index=idx)
+        out = _normalize_index(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+    def test_numeric_index_unit_ms_fallback(self):
+        idx = pd.Index([1700000000000, 1700086400000], dtype="int64")
+        df = pd.DataFrame({"A": [1, 2]}, index=idx)
+        out = _normalize_index(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+    def test_numeric_index_unit_s_fallback(self):
+        idx = pd.Index([1700000000, 1700086400], dtype="int64")
+        df = pd.DataFrame({"A": [1, 2]}, index=idx)
+        out = _normalize_index(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+    def test_numeric_index_small_seconds(self):
+        idx = pd.Index([100, 200], dtype="int64")
+        df = pd.DataFrame({"A": [1, 2]}, index=idx)
+        out = _normalize_index(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+    def test_numeric_index_zero_value(self):
+        idx = pd.Index([0], dtype="int64")
+        df = pd.DataFrame({"A": [1]}, index=idx)
+        out = _normalize_index(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+    def test_numeric_index_bad_sample_elementwise_raises(self):
+        # sample[0] is not a number -> sv None -> magnitude branch skipped,
+        # elementwise coercion fallback exercised; unparseable -> raises
+        idx = pd.Index(["notnum", "1700000000", "1700086400"])
+        df = pd.DataFrame({"A": [1, 2, 3]}, index=idx)
+        with pytest.raises(BABDataError):
+            _normalize_index(df)
+
+    def test_numeric_index_mixed_bad_first_elementwise(self):
+        # first element parseable, second unparseable -> elementwise raises
+        idx = pd.Index(["1700000000", "definitely_not_a_date"])
+        df = pd.DataFrame({"A": [1, 2]}, index=idx)
+        with pytest.raises(BABDataError):
+            _normalize_index(df)
+
+    def test_numeric_index_epoch_unit_failure_cascade(self):
+        # Force pd.to_datetime unit path to fail by passing object dtype
+        # that is_numeric_dtype True but contains strings -> triggers except
+        idx = pd.Index([1700000000, 1700086400], dtype=object)
+        df = pd.DataFrame({"A": [1, 2]}, index=idx)
+        out = _normalize_index(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+    def test_numeric_index_tz_aware_scalar_path(self):
+        # tz-aware Timestamp in numeric index triggers tz convert/localize fallback
+        idx = pd.Index([pd.Timestamp("2024-01-01", tz="US/Eastern"),
+                        pd.Timestamp("2024-01-02", tz="US/Eastern")])
+        df = pd.DataFrame({"A": [1, 2]}, index=idx)
+        out = _normalize_index(df)
+        assert out.index.tz is None
+
+    def test_string_index_with_na_drop_exception_guard(self):
+        # index with NaT -> isna mask path; ensure no crash and NaT dropped
+        idx = pd.to_datetime(["2024-01-01", None, "2024-01-02"])
+        df = pd.DataFrame({"A": [1, 2, 3]}, index=idx)
+        out = _normalize_index(df)
+        assert out.index.notna().all()
+
+    def test_string_index_unparseable_elementwise_raise(self):
+        # mixed parseable + unparseable -> elementwise coercion raises
+        df = pd.DataFrame({"A": [1, 2]}, index=["2024-01-01", "definitely_not_a_date"])
+        with pytest.raises(BABDataError):
+            _normalize_index(df)
+
+    def test_string_index_dayfirst_fallback(self):
+        # ambiguous dates where dayfirst path is exercised
+        df = pd.DataFrame({"A": [1, 2, 3]}, index=["01-02-2024", "03-04-2024", "05-06-2024"])
+        out = _normalize_index(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+    def test_numeric_index_zero_or_negative(self):
+        # small numbers -> seconds branch (av > 0)
+        df = pd.DataFrame({"A": [1, 2]}, index=[100, 200])
+        out = _normalize_index(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+    def test_numeric_index_zero_value(self):
+        # av == 0 -> else branch pd.to_datetime errors="raise"
+        df = pd.DataFrame({"A": [1]}, index=[0])
+        out = _normalize_index(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+
+class TestCoerceToDatetimeScalarMore:
+    def test_na_marker_strings_raise(self):
+        for s in ("na", "N/A", "nan", "null", "none", "  ", "NA", "NULL"):
+            with pytest.raises(ValueError):
+                _coerce_to_datetime_scalar(s)
+
+    def test_epoch_string_ns(self):
+        ts = _coerce_to_datetime_scalar("1700000000000000000")
+        assert pd.notna(ts)
+
+    def test_epoch_string_float_seconds(self):
+        ts = _coerce_to_datetime_scalar("1700000000.5")
+        assert pd.notna(ts)
+
+    def test_epoch_string_millis_float(self):
+        ts = _coerce_to_datetime_scalar("1700000000000.5")
+        assert pd.notna(ts)
+
+    def test_iso_string_with_offset(self):
+        ts = _coerce_to_datetime_scalar("2024-01-15T12:00:00+05:00")
+        assert pd.notna(ts)
+
+    def test_iso_string_dayfirst(self):
+        ts = _coerce_to_datetime_scalar("15-01-2024")
+        assert pd.notna(ts)
+
+    def test_datetime_object(self):
+        import datetime
+        ts = _coerce_to_datetime_scalar(datetime.datetime(2024, 1, 15))
+        assert pd.notna(ts)
+
+    def test_numpy_int32(self):
+        ts = _coerce_to_datetime_scalar(np.int32(1700000000))
+        assert pd.notna(ts)
+
+    def test_numpy_float32_epoch(self):
+        ts = _coerce_to_datetime_scalar(np.float32(1700000000.0))
+        assert pd.notna(ts)
+
+    def test_negative_epoch_seconds(self):
+        ts = _coerce_to_datetime_scalar(-1700000000)
+        assert pd.notna(ts)
+
+    def test_garbage_string_raises(self):
+        with pytest.raises(ValueError):
+            _coerce_to_datetime_scalar("not-a-date-at-all")
+
+    def test_malformed_numeric_string_coerced(self):
+        # "1.2.3" is not epoch (regex fails) and not iso; dateutil fallback
+        # may parse it - assert no silent wrong success, just finite result
+        ts = _coerce_to_datetime_scalar("1.2.3")
+        assert pd.notna(ts)
+
+    def test_timestamp_tz_aware_passthrough(self):
+        t = pd.Timestamp("2024-01-01", tz="US/Eastern")
+        ts = _coerce_to_datetime_scalar(t)
+        assert pd.notna(ts)
+
+    def test_timestamp_tz_naive_passthrough(self):
+        t = pd.Timestamp("2024-01-01")
+        ts = _coerce_to_datetime_scalar(t)
+        assert pd.notna(ts)
+
+    def test_bool_coerced_to_epoch(self):
+        # bool is int subclass -> coerced to epoch seconds (1/0)
+        ts = _coerce_to_datetime_scalar(True)
+        assert pd.notna(ts)
