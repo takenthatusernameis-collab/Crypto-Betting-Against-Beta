@@ -1,21 +1,20 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 
-**Timestamp (UTC):** 2026-11-05T10:21:21Z
-**Repo:** `takenthatusernameis-collab/Crypto-Betting-Against-Beta` — **BAB-only focus (non-negotiable).** Every action must increase `strategies/betting_against_beta/` correctness, robustness, adversarial handling, or coverage. No sidetracks. Prioritize by repo name.
-**Git:** `HEAD` = `origin/main` = `038cb1d7ebc2889f086a280bb0dc7c55e709072f` (`chore: capture completed workflow run diagnostics`). Working tree clean except this HANDOFF update.
+**Timestamp (UTC):** 2026-11-05T10:21:42Z
+**Repo:** `takenthatusernameis-collab/Crypto-Betting-Against-Beta`
+**Non-negotiable focus:** **BAB only**. Every action must increase `strategies/betting_against_beta/` correctness, robustness, adversarial handling, or coverage. No sidetracks. Prioritize by repo name.
+**Git:** clean tree at `038cb1d7ebc2889f086a280bb0dc7c55e709072f` (`origin/main` in sync). `git status --short` empty before this HANDOFF update.
 
-## Verified state (this session, 2026-11-05T10:20Z)
+## Verified state (this session)
 
-- **Recon:** Clean tree at `038cb1d`; `origin/main` in sync. Deps present in runner user site (`kilo-home/.local/lib/python3.12/site-packages`).
-- **BAB smoke:** `pytest -q tests/test_bab_data_loader_campaign_d_core.py tests/test_bab_cli.py tests/test_bab_beta_campaign.py tests/test_betting_against_beta.py` → **118 passed** (env below).
-- **Full repo gate (`scripts/bab_gate.sh`) is BLOCKED by infra, not by BAB code:** `tests/test_controller_progress_accounting.py::TestStageSafeChangesPatternSync` → **2 failed, 66 passed**. Root cause: Python `EXCLUDE_PATTERNS` in `scripts/controller_progress.py` includes `*/.github/workflows/*`, but committed `.github/workflows/main.yml` `stage_safe_changes` bash list (line ~1163) is missing `*/.github/workflows/*` (and the restore/clean logic also has a separate top-level workflow handling nuance — see `main.yml:1184-1185,1240`). **Operator with `workflows` permission must fix committed workflow and push** (add nested workflow exclude pattern consistently where the sync test expects). **This agent must NOT commit/push `.github/workflows/*`.**
-- **BAB-only gate (authoritative for strategy work while infra blocked):** run all `tests/test_*.py` **excluding** `tests/test_controller_progress_accounting.py` (or run BAB-targeted suites + full BAB module coverage). Full-suite BAB-only run with coverage is long (>120s in this shell with instrumentation); **next agent must run it to completion and record the true number**. Do not claim GREEN without the actual tail.
-- **Coverage snapshot (BAB modules, sampled this session — re-measure with full suite):**
-  - `data_loader.py` **44%** (1693 stmts, ~945 missing) — **PRIMARY CAMPAIGN TARGET** (many loader/parser/validation branches unhit in sampled run; full suite baseline previously higher—measure accurately).
-  - `cli.py` **56%** (~140 missing) — **SECONDARY**.
-  - `backtest.py` **50%**, `strategy.py` **37%**, `beta.py` **21%** (sampled), `signals.py` **41%**, `portfolio.py` **34%**, `sizing.py` **20%** in sampled targeted run — **full-suite numbers differ; re-measure before/after each campaign**.
+- **BAB smoke:** `pytest -q tests/test_bab_data_loader_campaign_d_core.py tests/test_bab_cli.py tests/test_bab_beta_campaign.py tests/test_betting_against_beta.py` → **118 passed**.
+- **Full gate blocked by infra (not BAB):** `tests/test_controller_progress_accounting.py` → **2 failed, 66 passed**.
+  - **Cause:** `.github/workflows/main.yml` `stage_safe_changes()` excludes `.github/workflows/*` but is missing nested `*/.github/workflows/*` in the `case` pattern list, while `scripts/controller_progress.py` `EXCLUDE_PATTERNS` includes both. Sync tests require parity.
+  - **Exact fix (operator with `workflows` scope only):** in `main.yml` `stage_safe_changes()` case pattern, prepend `*/.github/workflows/*|` after `.github/workflows/*|` (same pattern family as nested `.venv`/`__pycache__` entries). Keep restore/clean/workflow-managed behavior consistent. **This agent/token must not commit or push `.github/workflows/*`.**
+- **BAB-only quality truth not yet fully re-measured this session** (full `--ignore=tests/test_controller_progress_accounting.py` coverage run is long). **Next agent must run to completion and record real pass/fail/skip + coverage.** Do not claim GREEN without actual output.
+- **Known risk focus:** `data_loader.py` is the largest BAB robustness/coverage surface (parsing, index/datetime coercion, shape dispatch, exchange/long/wide detection, validation, optional formats, adversarial NaN/inf/NaT/epoch/tz/duplicates). `cli.py` needs flag/error/exit-code/`--dry-run`/`--from-prices` path coverage.
 
-## Environment (required)
+## Environment
 
 ```bash
 cd /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
@@ -24,57 +23,56 @@ export PYTHONPATH=$PWD:/home/runner/work/_temp/kilo-home/.local/lib/python3.12/s
 python3 -V && python3 -m pytest --version
 ```
 
-## Bottlenecks (remove to unblock significant progress)
+## Bottlenecks (remove in order)
 
-1. **Infra gate blocker (workflow permission):** `main.yml` missing `*/.github/workflows/*` in `stage_safe_changes` exclude list vs `scripts/controller_progress.py` → 2 controller sync failures break `bab_gate.sh`. **Action:** human/operator with workflow scope fixes `.github/workflows/main.yml` (align with Python patterns as tests require) and pushes. **Do not edit/commit workflow files with current token.** Record when fixed; then re-run full `bash scripts/bab_gate.sh`.
-2. **Coverage/robustness debt in BAB modules:** `data_loader.py` is the largest risk surface (parsing, index normalization, exchange/long/wide detection, format dispatch, validation, adversarial NaN/inf/NaT/epoch/tz/duplicates). Close gaps via **public APIs and real code paths** (test-first). `cli.py` needs flag/combo/error/exit-code coverage.
-3. **Noisy test runtime:** full suite + coverage is slow; use targeted campaigns, then broader BAB regression, then full BAB-only run, then (after workflow fix) full gate.
+| # | Bottleneck | Owner | Action | Done when |
+|---|------------|-------|--------|-----------|
+| 1 | Workflow/controller exclude-pattern sync | **Operator (workflow perm)** | Fix `main.yml` `stage_safe_changes` to include `*/.github/workflows/*`; push | `pytest -q tests/test_controller_progress_accounting.py` all pass; `bash scripts/bab_gate.sh` unblocked |
+| 2 | `data_loader.py` coverage/robustness debt | **Next agent** | Test-first campaigns via public APIs; adversarial inputs → `BABDataError` where contract requires | Measured full-suite BAB coverage ≥90% for `data_loader.py` (or documented justified exceptions) with zero regressions |
+| 3 | `cli.py` coverage | **Next agent** | Arg combos, dry-run, prices/returns, conflicts, output/version/errors | ≥85% full-suite coverage |
+| 4 | Core engine branch gaps | **Next agent** | `backtest/strategy/beta/signals/portfolio/sizing` invariants + edge branches | High-value gaps closed; no lookahead/dollar-neutral/cost semantics preserved |
 
-## Invariants (sacred — never regress)
+## Sacred invariants
 
-- **1-day lagged weights / no lookahead** in backtest/portfolio application.
-- **NaN/inf/NaT handled explicitly**; raise `BABDataError` on parse/validation failures per contract.
+- **1-day lagged weights / no lookahead**.
+- **NaN/inf/NaT handled explicitly**; invalid parse/validation → `BABDataError` per contract (never silent wrong success).
 - **Dollar-neutral by default**; transaction costs/slippage semantics preserved.
-- **Public APIs stable** (`BABStrategy.run`, loaders, config, CLI flags/behavior) unless a bug fix is required and tested.
-- Never claim remote persistence until remote SHA matches. No force-push/history rewrite.
-- **Never commit `.github/workflows/*`** with current token.
+- **Public APIs stable** (`BABStrategy.run`, loaders, config, CLI) unless a tested bug fix is required.
+- No force-push/history rewrite. **Never commit `.github/workflows/*`.** Never claim remote persistence without matching remote SHA.
 
-## INITIAL TASK MESSAGE — NEXT AGENTIC SESSION (MANDATORY, HEAVY WORK)
+---
 
-**Execute a BAB-only hardening marathon on `strategies/betting_against_beta/`. Do recon first, establish true numbers, then deliver multiple verified batches. Do not explore unrelated code. Do not stop at partial progress. Do not commit workflow files.**
+## INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (MANDATORY, HEAVY)
 
-### 0) Recon + establish truth (record actual outputs)
+**Mission:** Run a **BAB-only hardening marathon** in `strategies/betting_against_beta/`. Establish true test/coverage numbers first, then deliver **multiple verified batches** closing `data_loader.py` and `cli.py` gaps. Do not explore unrelated code. Do not stop after one small fix. Do not edit/commit workflow files.
+
+### Step 0 — Recon (capture real output)
 ```bash
 cd /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
 export PATH=/home/runner/work/_temp/kilo-home/.local/bin:$PATH
 export PYTHONPATH=$PWD:/home/runner/work/_temp/kilo-home/.local/lib/python3.12/site-packages
 git status --short && git log --oneline -3 && git rev-parse HEAD origin/main
-python3 -m pytest -q tests/test_controller_progress_accounting.py 2>&1 | tail -15
-# BAB-only regression (may take several minutes; do not background-poll; wait for completion):
-python3 -m coverage run --source=strategies/betting_against_beta -m pytest -q --ignore=tests/test_controller_progress_accounting.py tests 2>&1 | tail -30
-python3 -m coverage report --include='strategies/betting_against_beta/data_loader.py,strategies/betting_against_beta/cli.py,strategies/betting_against_beta/backtest.py,strategies/betting_against_beta/strategy.py,strategies/betting_against_beta/beta.py,strategies/betting_against_beta/signals.py,strategies/betting_against_beta/portfolio.py,strategies/betting_against_beta/sizing.py' -m 2>&1 | tail -80
+python3 -m pytest -q tests/test_controller_progress_accounting.py 2>&1 | tail -12
+python3 -m coverage erase
+python3 -m coverage run --source=strategies/betting_against_beta -m pytest -q --ignore=tests/test_controller_progress_accounting.py tests 2>&1 | tail -40
+python3 -m coverage report --include='strategies/betting_against_beta/*.py' -m 2>&1 | tail -120
 ```
-If workflow was fixed by operator, also run `bash scripts/bab_gate.sh` and record tail.
+After operator fixes workflow: also `bash scripts/bab_gate.sh 2>&1 | tail -60`.
 
-### 1) Campaign A — `data_loader.py` (PRIMARY) — target **≥90%** full-suite coverage
-Work in **small, verified batches** (each batch: add/adjust tests → targeted data_loader suites → relevant regression → coverage delta). Inspect missing lines from coverage and hit via **public/exposed APIs** (`load_returns`, `load_prices`, format loaders, validation/coercion helpers as exported/used):
-- Datetime/index: tz-aware/naive, epoch ns/us/ms/s and numeric strings/floats, ISO/Z/offsets, ambiguous/dayfirst, NaT/None/inf/nan/empty, scalar/object coercion fallbacks, index promotion from columns, metadata column drops.
-- Shape detection: exchange-qualified/long/wide heuristics, pivots, duplicate handling, benchmark resolution.
-- Dispatch/parsers: csv/json/jsonl/excel/parquet/pickle/hdf paths (mock optional deps with `monkeypatch`/`tmp_path` where appropriate), extension routing, malformed inputs → `BABDataError` (never silent wrong success).
-- `validate_returns_dataframe`: non-numeric coercion, all-NaN/all-NaT, insufficient rows/cols, benchmark presence/derivation edge cases.
-**Rules:** test-first; minimal implementation changes only for demonstrably correct behavior/contract; preserve public API; adversarial cases explicit.
+### Step 1 — Campaign A: `data_loader.py` (PRIMARY, test-first)
+For each batch: write failing/adversarial tests → implement smallest correct fix (if needed) → run targeted `test_bab*data_loader*`/related suites → record coverage delta. Hit missing branches via **public APIs**: `load_returns`, `load_prices`, format loaders, exported validation/coercion.
+- **Datetime/index:** tz-aware/naive, epoch ns/us/ms/s + numeric strings/floats, ISO/Z/offsets, ambiguous/dayfirst, NaT/None/inf/nan/empty, scalar coercion fallbacks, index promotion, metadata column drops.
+- **Shape/dispatch:** exchange-qualified/long/wide detection, pivots, duplicate rows/cols, benchmark resolution, extension routing, csv/json/jsonl/excel/parquet/pickle/hdf paths (mock optional deps via `monkeypatch`/`tmp_path`).
+- **Validation/adversarial:** non-numeric coercion, all-NaN/all-NaT, insufficient rows/cols, benchmark presence. Malformed inputs must raise `BABDataError` (never silent wrong success).
 
-### 2) Campaign B — `cli.py` (SECONDARY) — target **≥85%**
-Cover argparse combinations, `--dry-run` (no side effects/backtest), `--from-prices`/`--synthetic`/`--data` validation and mutual/conflict paths, `--universe`, output paths, exit codes, error messages, `--version`, config resolution. Use `capsys`/`tmp_path`/subprocess-style invocation only if consistent with existing tests.
+### Step 2 — Campaign B: `cli.py`
+Cover argparse combinations, `--dry-run` (no backtest/side effects), `--from-prices`/`--synthetic`/`--data` validation/conflicts, `--universe`, output paths, exit codes, errors, `--version`. Use `capsys`/`tmp_path`.
 
-### 3) Campaign C — core engines (close high-value branches)
-`backtest.py`, `strategy.py`, `beta.py`, `signals.py`, `portfolio.py`, `sizing.py`: target ≥90% where practical. Add invariant/property-style tests: 1-day lag/no-lookahead, dollar neutrality, NaN/inf propagation, costs/slippage, benchmark edge cases, empty/degenerate universes.
+### Step 3 — Campaign C: core engines
+Close high-value branches in `backtest.py`, `strategy.py`, `beta.py`, `signals.py`, `portfolio.py`, `sizing.py`. Add invariant/property-style checks: no lookahead/1-day lag, dollar neutrality, NaN/inf behavior, costs/slippage, empty/degenerate universes.
 
-### 4) Close-out (every session)
-- Run targeted suites for touched areas + BAB-only regression summary (or full gate after workflow fix). **Never claim GREEN without actual test output.**
-- Update **this HANDOFF**: UTC timestamp, true pass/fail/skip counts, coverage deltas per module, commits (if any), remaining blockers (including workflow), and the **next concrete command + target file/branches**. Keep it the single durable source of truth.
+### Step 4 — Close-out
+- Run targeted + BAB-only regression (or full gate after workflow fix). **Never claim GREEN without test output.**
+- Update **this HANDOFF** (UTC timestamp, true counts, coverage deltas, commits/SHAs if any, remaining blockers, next concrete command+targets). Keep this file the single durable source of truth.
 
-## Binding rules
-1. Recon first; never edit blind. 2. Report truth (infra blocker vs BAB failures). 3. BAB-only; no sidetracks. 4. Test-first; smallest correct change. 5. Zero regressions; preserve invariants/APIs. 6. No force-push/history rewrite. 7. **Never commit `.github/workflows/*`.** 8. Update this HANDOFF at session end.
-
-**Start now:** complete Step 0 with real numbers, then execute Campaign A batches on `data_loader.py` until measurable coverage/risk reduction is achieved.
+**Start at Step 0 now. Do heavy, verified BAB work.**
