@@ -1,6 +1,6 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 
-**Timestamp (UTC):** 2026-11-05T11:28:38Z
+**Timestamp (UTC):** 2026-11-05T11:30:47Z
 **Repo:** `takenthatusernameis-collab/Crypto-Betting-Against-Beta`
 **Branch/SHA (local):** `main` @ `682d8c7` (HEAD == `origin/main` at check; working tree clean except this handoff update in progress)
 **Non-negotiable focus:** **BAB only** — `strategies/betting_against_beta/` correctness, robustness, adversarial handling, and measured coverage. Repo name is the priority filter: every action must advance BAB quality. No infra/controller refactors, no workflow commits/pushes, no sidetracks.
@@ -11,7 +11,7 @@
 - **Infra blocker (not BAB logic; agent cannot clear):** `pytest -q tests/test_controller_progress_accounting.py` → **2 failed, 66 passed** (0.23s).
   - Failures: `TestStageSafeChangesPatternSync::test_python_patterns_are_subset_of_workflow` and `test_nested_workflow_pattern_is_present_in_workflow` — `.github/workflows/main.yml` `stage_safe_changes()` is missing `*/.github/workflows/*` while `scripts/controller_progress.py` `EXCLUDE_PATTERNS` includes it.
   - **Operator with `workflows` scope only:** add `*/.github/workflows/*|` adjacent to `.github/workflows/*|` in `main.yml` `stage_safe_changes()`; keep restore/clean/workflow-managed behavior consistent. **Agents without workflow permission must not edit/commit/push `.github/workflows/*`.**
-- **BAB subsets (measured, recon 2026-11-05T11:28:38Z):**
+- **BAB subsets (measured, recon 2026-11-05T11:30:47Z):**
   - `pytest -q tests/test_bab_data_loader*.py tests/test_bab_loader*.py tests/test_bab_messy_data.py tests/test_bab_zero_silent_error.py tests/test_bab_cli*.py tests/test_betting_against_beta_data_loader*.py` → **1445 passed, 15 skipped, 105 warnings** (61.45s).
   - `pytest -q tests/test_bab_backtest*.py tests/test_bab_beta*.py tests/test_bab_signals*.py tests/test_bab_portfolio*.py tests/test_bab_sizing*.py tests/test_bab_strategy*.py tests/test_betting_against_beta.py tests/test_betting_against_beta_costs.py tests/test_betting_against_beta_metrics*.py tests/test_betting_against_beta_quality.py tests/test_betting_against_beta_regime.py tests/test_betting_against_beta_shorting.py tests/test_betting_against_beta_sizing.py` → **709 passed, 14 warnings** (44–46s).
   - These subsets are green; warnings exist (runtime/numpy/runpy) — do not hide regressions behind warning noise.
@@ -61,7 +61,7 @@ python3 -m coverage erase
 python3 -m coverage run --source=strategies.betting_against_beta -m pytest -q tests/test_bab_data_loader*.py tests/test_bab_loader*.py tests/test_bab_messy_data.py tests/test_bab_zero_silent_error.py tests/test_bab_cli*.py tests/test_betting_against_beta_data_loader*.py 2>&1 | tail -12
 python3 -m coverage report --include='strategies/betting_against_beta/data_loader.py,strategies/betting_against_beta/cli.py' -m 2>&1 | tail -120
 ```
-Baseline recorded 2026-11-05T11:28:38Z: loader/CLI subset **1445 passed, 15 skipped**; `data_loader.py` **80% (345 miss / 1693 stmts)**; `cli.py` **61% (124 miss / 318 stmts)**.
+Baseline recorded 2026-11-05T11:30:47Z: loader/CLI subset **1445 passed, 15 skipped**; `data_loader.py` **80% (345 miss / 1693 stmts)**; `cli.py` **61% (124 miss / 318 stmts)**.
 If time permits in the same session, get full BAB aggregate truth with bounded scope: `python3 -m coverage run --append --source=strategies.betting_against_beta -m pytest -q -x --tb=no tests/test_bab*.py tests/test_betting_against_beta*.py 2>&1 | tail -20` then full `coverage report --include='strategies/betting_against_beta/*.py' -m`. If it exceeds budget, split into module batches and record partial-but-verified numbers.
 
 ### 1) Campaign A — `data_loader.py` (PRIMARY, heavy)
