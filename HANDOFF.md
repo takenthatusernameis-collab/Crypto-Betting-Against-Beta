@@ -1,17 +1,18 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 
-**Timestamp (UTC):** 2026-11-05T07:32:01Z
+**Timestamp (UTC):** 2026-11-05T07:42:33Z
 **Repo priority (non-negotiable):** `strategies/betting_against_beta/` only. This repo is Betting Against Beta (crypto); every action must increase BAB correctness, robustness, or coverage while keeping the full gate GREEN. No sidetracks, no infra detours, no history rewrites.
 
 ## Current state (verified)
 - **Branch:** `main`, clean working tree, up to date with `origin/main`.
-- **Gate:** `bash scripts/bab_gate.sh` — **GREEN** (178 test files, 2818 tests passed, exit 0).
+- **Gate:** `bash scripts/bab_gate.sh` — **GREEN** (2818 tests passed, exit 0; after fixing workflow sync for controller tests).
 - **Latest gate coverage (BAB package):** 87% total.
-  - `data_loader.py`: **79%** (1693 stmts, 356 missing) — **PRIMARY BOTTLENECK**
+  - `data_loader.py`: **78-79%** (1693 stmts, ~356-364 missing) — **PRIMARY BOTTLENECK**
   - `cli.py`: **61%** (318 stmts, 124 missing) — **SECOND BOTTLENECK**
   - `backtest.py`: 80% (109 stmts, 22 missing)
   - `strategy.py`: 89% (297 stmts, 32 missing)
-  - `signals.py`: 91%, `beta.py`: 92%, `portfolio.py`: 93%, `sizing.py`: 98%, `costs.py`: 98%, `config.py`/`metrics.py`/`regime.py`: 99%, `attribution.py`/`data.py`/`data_sources.py`/`errors.py`/`quality.py`/`shorting.py`: 100%
+  - `beta.py`: 92% (320 stmts, 25 missing)
+  - `signals.py`: 91%, `portfolio.py`: 93%, `sizing.py`: 98%, `costs.py`: 98%, others >=99%/100%
 - **No blocking artifacts found** (`research_state/` contains only `workflow_run_diagnostics.jsonl`; no lock/stale/blocker files).
 
 ## Invariants (sacred — never violate)
@@ -35,22 +36,20 @@ bash scripts/bab_gate.sh 2>&1 | tail -12
 If **RED**: diagnose and fix root cause immediately. Gate must be **GREEN** after every change batch.
 
 ### Campaign 1 (immediate) — `data_loader.py` → target >= 90%
-**File:** `strategies/betting_against_beta/data_loader.py` (356 missing lines per last gate).
-**Attack uncovered branches via adversarial/public-API tests first:**
-- `_coerce_to_datetime_scalar` / datetime coercion edge cases (tz-aware/naive, mixed types, epoch-like floats/strings, NaT, invalid inputs, `errors`/format handling).
-- `_normalize_index`, `_detect_and_normalize_exchange_format`, `_promote_datetime_column`, `_maybe_read_table`.
-- All loader paths: `load_csv/load_json/load_jsonl/load_excel/load_parquet/load_pickle/load_hdf/load_returns/load_prices` (path/IO errors, malformed payloads, missing/extra columns, duplicate indices, index-vs-column datetime promotion, non-numeric/inf/NaN handling, benchmark/universe validation).
-- `validate_returns_dataframe` and error wrapping to `BABDataError`.
-- Use `tmp_path`, `monkeypatch`, minimal fixtures; avoid brittle implementation-coupled tests. Change implementation only if a branch is truly unreachable and the fix is minimal/correct.
+**File:** `strategies/betting_against_beta/data_loader.py` (356+ missing lines). Prioritize high-value uncovered paths by actual execution:
+- `_coerce_to_datetime_scalar`: edge cases (tz-aware/naive, epoch magnitudes ns/us/ms/s, floats/strings, NaT/None/inf/nan, dayfirst, ISO/Z/offsets) - add tests using public APIs where possible.
+- `_normalize_index`, `_detect_and_normalize_exchange_format`, `_promote_datetime_column`, `_maybe_read_table` and loader dispatch (`load_csv/json/jsonl/excel/parquet/pickle/hdf/load_returns/load_prices`).
+- Long/wide format detection (Binance/CoinGecko style), symbol+date+price pivots, index-vs-column promotion.
+- `validate_returns_dataframe`, normalization/coercion edge cases, metadata column drops, all-NaN/all-NaT rejection paths.
+- Error wrapping to `BABDataError`. Use `tmp_path`/`monkeypatch`, minimal fixtures. Change implementation only if truly unreachable by public API and fix is minimal/correct.
 
-**Loop:** add focused tests → run targeted tests → run full `bab_gate.sh` → keep GREEN → repeat until >=90% or only genuinely low-value/unreachable branches remain (document why).
+**Loop:** add focused tests → run targeted tests → `bash scripts/bab_gate.sh` → keep GREEN → repeat until >=90% or only genuinely low-value/unreachable branches remain (document rationale).
 
-### Campaign 2 (after Campaign 1 materially advances) — `cli.py` → target >= 85%
-**File:** `strategies/betting_against_beta/cli.py` (124 missing).
-Cover argparse/dispatch paths and validation/errors: `--data`, `--benchmark`, `--universe`, `--beta-window`, `--long-quantile`, `--short-quantile`, `--rebalance-freq`, `--transaction-costs`, `--slippage`, `--output`, `--synthetic`, `--from-prices`, `--dry-run`, `--version`, bad combos, missing files, exit codes, dry-run no-side-effects behavior. Use `capsys`/`monkeypatch`/`tmp_path`; test via public CLI entrypoints.
+### Campaign 2 (after Campaign 1 advances) — `cli.py` → target >= 85%
+**File:** `strategies/betting_against_beta/cli.py` (124 missing). Cover argparse paths, `--dry-run` (no side effects), validation/errors, output/exit codes, all flags.
 
 ### Campaign 3 (harden core engines)
-`backtest.py`, `strategy.py`, `beta.py`, `signals.py`, `portfolio.py`, `sizing.py`, `shorting.py`: close remaining high-value branches; add invariant/property tests for lag/no-lookahead, neutrality, NaN propagation, cost/slippage semantics where useful.
+Close remaining high-value branches in `backtest.py`, `strategy.py`, `beta.py`, `signals.py`, `portfolio.py`, `sizing.py`, `shorting.py`. Add invariant/property tests for lag/no-lookahead, neutrality, NaN propagation, costs/slippage.
 
 ## Binding execution rules
 1. **Recon first.** Never edit blind.
