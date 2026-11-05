@@ -1,6 +1,6 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 
-**Timestamp (UTC):** 2026-11-05T17:38:27Z
+**Timestamp (UTC):** 2026-11-05T17:38:46Z
 **Repo:** `Crypto-Betting-Against-Beta` (`/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`)
 **Branch/SHA (verified 2026-11-05T17:37Z):** `main` @ `c9698a6` (`chore: capture completed workflow run diagnostics`). Working tree modified locally this session: `tests/test_bab_data_loader_coverage_gaps.py` (campaign A batches 2–4 added) + transient `.coverage`/`.hypothesis`/`.pytest_cache`. **Durable handoff:** **this file only** (`./HANDOFF.md`).
 **Priority (repo-name driven, non-negotiable):** **Crypto-Betting-Against-Beta → BAB only**: `strategies/betting_against_beta/` correctness, robustness, adversarial handling, and **measured** coverage. No infra/controller refactors, no workflow commits/pushes, no sidetracks.
