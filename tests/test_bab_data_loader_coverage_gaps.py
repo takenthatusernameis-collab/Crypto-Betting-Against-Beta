@@ -8426,3 +8426,72 @@ class TestBatch38MissingLineTargets:
         monkeypatch.setattr(pd.DatetimeIndex, "tz_convert", bad_convert)
         out = dlmod._promote_datetime_column(df)
         assert out is not None
+
+
+class TestBatch39MissingLineTargets:
+    # load_returns_from_parquet: read BABDataError passthrough (1620-1621)
+    def test_parquet_read_babdataerror_passthrough(self, tmp_path, monkeypatch):
+        p = tmp_path / "r.parquet"
+        p.write_bytes(b"")
+        monkeypatch.setattr(
+            dlmod.pd,
+            "read_parquet",
+            lambda *a, **k: (_ for _ in ()).throw(dlmod.BABDataError("sentinel")),
+        )
+        with pytest.raises(dlmod.BABDataError, match="sentinel"):
+            dlmod.load_returns_from_parquet(p)
+
+    # load_returns_from_parquet: validate non-BABDataError path (1622-1623)
+    def test_parquet_validate_non_bab_error(self, tmp_path, monkeypatch):
+        p = tmp_path / "r.parquet"
+        p.write_bytes(b"")
+        df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=pd.date_range("2024-01-01", periods=2))
+        monkeypatch.setattr(dlmod.pd, "read_parquet", lambda *a, **k: df)
+        monkeypatch.setattr(
+            dlmod,
+            "validate_returns_dataframe",
+            lambda *a, **k: (_ for _ in ()).throw(ValueError("boom")),
+        )
+        with pytest.raises(dlmod.BABDataError):
+            dlmod.load_returns_from_parquet(p)
+
+    # load_returns_from_hdf5: read BABDataError passthrough (1649)
+    def test_hdf5_read_babdataerror_passthrough(self, tmp_path, monkeypatch):
+        p = tmp_path / "r.h5"
+        p.write_bytes(b"")
+        monkeypatch.setattr(
+            dlmod.pd,
+            "read_hdf",
+            lambda *a, **k: (_ for _ in ()).throw(dlmod.BABDataError("sentinel")),
+        )
+        with pytest.raises(dlmod.BABDataError, match="sentinel"):
+            dlmod.load_returns_from_hdf5(p)
+
+    # load_returns_from_hdf5: validate non-BABDataError path (1659-1660)
+    def test_hdf5_validate_non_bab_error(self, tmp_path, monkeypatch):
+        p = tmp_path / "r.h5"
+        p.write_bytes(b"")
+        df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=pd.date_range("2024-01-01", periods=2))
+        monkeypatch.setattr(dlmod.pd, "read_hdf", lambda *a, **k: df)
+        monkeypatch.setattr(
+            dlmod,
+            "validate_returns_dataframe",
+            lambda *a, **k: (_ for _ in ()).throw(ValueError("boom")),
+        )
+        with pytest.raises(dlmod.BABDataError):
+            dlmod.load_returns_from_hdf5(p)
+
+    # load_returns_from_pickle: DataFrame construction exception (1698-1699)
+    def test_pickle_dataframe_construction_exception(self, tmp_path, monkeypatch):
+        import pickle
+
+        p = tmp_path / "r.pkl"
+        with p.open("wb") as f:
+            pickle.dump([{"a": 1}], f)
+        monkeypatch.setattr(
+            dlmod.pd,
+            "DataFrame",
+            lambda *a, **k: (_ for _ in ()).throw(RuntimeError("no df")),
+        )
+        with pytest.raises(dlmod.BABDataError):
+            dlmod.load_returns_from_pickle(p)
