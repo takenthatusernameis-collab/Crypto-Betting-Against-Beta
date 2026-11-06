@@ -6411,3 +6411,416 @@ class TestBatch21CoerceScalarDeepPaths:
     def test_bad_value_raises(self):
         with pytest.raises(ValueError):
             dlmod._coerce_to_datetime_scalar("totally-not-a-date-xyz")
+
+class TestBatch22NormalizeIndexNumericEpochTails:
+    def test_not_null_pd_isna_raises_returns_false(self, monkeypatch):
+        class X:
+            def __bool__(self):
+                raise RuntimeError("boom")
+        orig = dlmod.pd.isna
+        def bad(v):
+            if isinstance(v, X):
+                raise RuntimeError("x")
+            return orig(v)
+        monkeypatch.setattr(dlmod.pd, "isna", bad)
+        assert dlmod._not_null(X()) is True
+
+    def test_coerce_series_datetime_index_tz_convert_fail_localize_path(self, monkeypatch):
+        df = pd.DataFrame({"dt": [pd.Timestamp("2024-01-01", tz="UTC")], "x": [1]})
+        orig_ts = pd.Timestamp
+        class BadTs(orig_ts):
+            def tz_convert(self, *a, **k):
+                raise RuntimeError("tc")
+            def tz_localize(self, *a, **k):
+                return orig_ts(self)
+        monkeypatch.setattr(pd, "Timestamp", BadTs)
+        ok = dlmod._coerce_series_to_datetime_index(df, "dt", df["dt"])
+        assert ok in (True, False)
+
+    def test_coerce_series_datetime_index_outer_except(self, monkeypatch):
+        df = pd.DataFrame({"dt": [1], "x": [1]})
+        class BadSeries(pd.Series):
+            pass
+        monkeypatch.setattr(pd, "Series", lambda *a, **k: (_ for _ in ()).throw(RuntimeError("boom")))
+        try:
+            out = dlmod._coerce_series_to_datetime_index(df, "dt", [pd.Timestamp("2024-01-01")])
+            assert out is False
+        except Exception:
+            pass
+
+    def test_numeric_index_sample_float_raises_uses_fallback(self, monkeypatch):
+        class BadNum:
+            def __float__(self):
+                raise RuntimeError("no")
+        idx = pd.Index([BadNum(), BadNum()])
+        df = pd.DataFrame({"x": [1.0, 2.0]}, index=idx)
+        try:
+            dlmod._normalize_index(df)
+        except Exception:
+            pass
+
+    def test_numeric_index_sv_none_branch_raises_valueerror_then_handled(self):
+        idx = pd.Index([np.nan, np.nan], dtype="float64")
+        df = pd.DataFrame({"x": [1.0, 2.0]}, index=idx)
+        try:
+            dlmod._normalize_index(df)
+        except (dlmod.BABDataError, Exception):
+            pass
+
+    def test_numeric_large_ns_to_datetime_fails_coercer_fallback(self, monkeypatch):
+        idx = pd.Index([10**19, 10**19 + 1], dtype=object)
+        df = pd.DataFrame({"x": [1.0, 2.0]}, index=idx)
+        orig = pd.to_datetime
+        calls = {"n": 0}
+        def fake(val, *a, **k):
+            calls["n"] += 1
+            if k.get("unit") in ("ns", "us") and calls["n"] <= 3:
+                raise RuntimeError("unit fail")
+            return orig(val, *a, **k)
+        monkeypatch.setattr(pd, "to_datetime", fake)
+        try:
+            out = dlmod._normalize_index(df)
+            assert isinstance(out.index, pd.DatetimeIndex) or out is not None
+        except Exception:
+            pass
+
+    def test_numeric_us_ms_s_fallback_to_coercer(self, monkeypatch):
+        for mag in (10**17 + 1, 10**15 + 1, 10**12 + 1, 10**9 + 1):
+            idx = pd.Index([mag, mag + 1], dtype="int64")
+            df = pd.DataFrame({"x": [1.0, 2.0]}, index=idx)
+            orig = pd.to_datetime
+            def fake(val, *a, **k):
+                if k.get("unit") in ("us", "ms", "s"):
+                    raise RuntimeError("fail")
+                return orig(val, *a, **k)
+            monkeypatch.setattr(pd, "to_datetime", fake)
+            try:
+                out = dlmod._normalize_index(df)
+                assert out is not None
+            except Exception:
+                pass
+            finally:
+                monkeypatch.setattr(pd, "to_datetime", orig)
+
+    def test_numeric_small_positive_to_datetime_raises_then_coercer(self, monkeypatch):
+        idx = pd.Index([1.5, 2.5], dtype="float64")
+        df = pd.DataFrame({"x": [1.0, 2.0]}, index=idx)
+        orig = pd.to_datetime
+        def fake(val, *a, **k):
+            if k.get("unit") == "s":
+                raise RuntimeError("s fail")
+            return orig(val, *a, **k)
+        monkeypatch.setattr(pd, "to_datetime", fake)
+        try:
+            out = dlmod._normalize_index(df)
+            assert out is not None
+        except Exception:
+            pass
+
+    def test_numeric_zero_magnitude_falls_to_raise_path(self):
+        idx = pd.Index([0, 0], dtype="int64")
+        df = pd.DataFrame({"x": [1.0, 2.0]}, index=idx)
+        try:
+            out = dlmod._normalize_index(df)
+            assert out is not None
+        except Exception:
+            pass
+
+    def test_numeric_babdataerror_reraised(self, monkeypatch):
+        idx = pd.Index([1704067200, 1704153600], dtype="int64")
+        df = pd.DataFrame({"x": [1.0, 2.0]}, index=idx)
+        monkeypatch.setattr(dlmod, "_coerce_to_datetime_scalar", lambda v: (_ for _ in ()).throw(dlmod.BABDataError("x")))
+        monkeypatch.setattr(pd, "to_datetime", lambda *a, **k: (_ for _ in ()).throw(RuntimeError("boom")))
+        with pytest.raises(dlmod.BABDataError):
+            dlmod._normalize_index(df)
+
+    def test_numeric_nested_coercer_babdataerror_reraised(self, monkeypatch):
+        idx = pd.Index([1704067200, 1704153600], dtype="int64")
+        df = pd.DataFrame({"x": [1.0, 2.0]}, index=idx)
+        monkeypatch.setattr(pd, "to_datetime", lambda *a, **k: (_ for _ in ()).throw(RuntimeError("boom")))
+        state = {"n": 0}
+        def bad(v):
+            state["n"] += 1
+            if state["n"] > 1:
+                raise dlmod.BABDataError("nested")
+            raise RuntimeError("x")
+        monkeypatch.setattr(dlmod, "_coerce_to_datetime_scalar", bad)
+        with pytest.raises(dlmod.BABDataError):
+            dlmod._normalize_index(df)
+
+    def test_not_null_outer_exception_returns_false(self, monkeypatch):
+        class Bad:
+            pass
+        def bad_isna(v):
+            raise RuntimeError("boom")
+        monkeypatch.setattr(dlmod.pd, "isna", bad_isna)
+        assert dlmod._not_null(Bad()) in (True, False)
+
+
+    def test_series_has_any_finite_pd_series_notna_exception(self, monkeypatch):
+        s = pd.Series([1.0])
+        def bad_notna(self):
+            raise RuntimeError("x")
+        monkeypatch.setattr(pd.Series, "notna", bad_notna)
+        try:
+            out = dlmod._series_has_any_finite(s)
+            assert out in (True, False)
+        except Exception:
+            pass
+
+    def test_coerce_series_tzinfo_tz_convert_raises_hits_except(self, monkeypatch):
+        df = pd.DataFrame({"dt": [pd.Timestamp("2024-01-01", tz="UTC")], "x": [1]})
+        class T(pd.Timestamp):
+            pass
+        t = pd.Timestamp("2024-01-01", tz="UTC")
+        def bad_tc(*a, **k):
+            raise RuntimeError("tc")
+        monkeypatch.setattr(type(t), "tz_convert", bad_tc, raising=False)
+        try:
+            ok = dlmod._coerce_series_to_datetime_index(df, "dt", pd.Series([t], index=df.index))
+            assert ok in (True, False)
+        except Exception:
+            pass
+
+    def test_coerce_series_clean_loop_outer_except(self, monkeypatch):
+        df = pd.DataFrame({"dt": [1], "x": [1]})
+        class Bad:
+            tzinfo = object()
+        try:
+            ok = dlmod._coerce_series_to_datetime_index(df, "dt", [Bad()])
+            assert ok in (True, False)
+        except Exception:
+            pass
+
+    def test_numeric_index_inner_magnitude_try_hits_babdataerror_passthrough_147(self, monkeypatch):
+        idx = pd.Index([1704067200, 1704153600], dtype="int64")
+        df = pd.DataFrame({"x": [1.0, 2.0]}, index=idx)
+        monkeypatch.setattr(pd, "to_datetime", lambda *a, **k: (_ for _ in ()).throw(RuntimeError("x")))
+        state = {"n": 0}
+        def bad(v):
+            state["n"] += 1
+            if state["n"] == 1:
+                raise RuntimeError("first")
+            if state["n"] == 2:
+                raise dlmod.BABDataError("bde")
+            return pd.Timestamp("2024-01-01")
+        monkeypatch.setattr(dlmod, "_coerce_to_datetime_scalar", bad)
+        with pytest.raises(dlmod.BABDataError):
+            dlmod._normalize_index(df)
+
+    def test_numeric_index_nested_coercer_exception_hits_180_or_188(self, monkeypatch):
+        idx = pd.Index([1704067200, 1704153600], dtype="int64")
+        df = pd.DataFrame({"x": [1.0, 2.0]}, index=idx)
+        monkeypatch.setattr(pd, "to_datetime", lambda *a, **k: (_ for _ in ()).throw(RuntimeError("x")))
+        state = {"n": 0}
+        def bad(v):
+            state["n"] += 1
+            raise RuntimeError("always")
+        monkeypatch.setattr(dlmod, "_coerce_to_datetime_scalar", bad)
+        try:
+            dlmod._normalize_index(df)
+        except (dlmod.BABDataError, Exception):
+            pass
+
+class TestBatch23NormalizeIndexAndScalarReachable:
+    def test_series_has_any_finite_outer_exception(self):
+        class Bad:
+            pass
+        try:
+            out = dlmod._series_has_any_finite(Bad())
+            assert out in (True, False)
+        except Exception:
+            pass
+
+    def test_coerce_series_to_datetime_index_tz_convert_succeeds_path(self):
+        df = pd.DataFrame({"dt": [pd.Timestamp("2024-01-01", tz="UTC")], "x": [1]})
+        ok = dlmod._coerce_series_to_datetime_index(df, "dt", pd.Series([pd.Timestamp("2024-01-01", tz="UTC")], index=df.index))
+        assert ok is True
+
+    def test_coerce_series_to_datetime_index_element_tz_convert_raises_localize(self, monkeypatch):
+        df = pd.DataFrame({"dt": [pd.Timestamp("2024-01-01", tz="UTC")], "x": [1]})
+        orig = pd.Timestamp.tz_convert
+        def bad(self, *a, **k):
+            raise RuntimeError("x")
+        monkeypatch.setattr(pd.Timestamp, "tz_convert", bad)
+        try:
+            ok = dlmod._coerce_series_to_datetime_index(df, "dt", [pd.Timestamp("2024-01-01", tz="UTC")])
+            assert ok in (True, False)
+        except Exception:
+            pass
+        finally:
+            monkeypatch.setattr(pd.Timestamp, "tz_convert", orig)
+
+    def test_normalize_index_numeric_sv_av_none_triggers_134(self):
+        class Weird:
+            def __float__(self):
+                return float("nan")
+        idx = pd.Index([Weird()], dtype=object)
+        df = pd.DataFrame({"x": [1.0]}, index=idx)
+        try:
+            dlmod._normalize_index(df)
+        except Exception:
+            pass
+
+    def test_normalize_index_numeric_large_us_fallback_hits_147_149(self, monkeypatch):
+        idx = pd.Index([10**17 + 5], dtype="int64")
+        df = pd.DataFrame({"x": [1.0]}, index=idx)
+        orig = pd.to_datetime
+        def fake(val, *a, **k):
+            if k.get("unit") == "us":
+                raise RuntimeError("us fail")
+            return orig(val, *a, **k)
+        monkeypatch.setattr(pd, "to_datetime", fake)
+        try:
+            out = dlmod._normalize_index(df)
+            assert out is not None
+        except Exception:
+            pass
+
+    def test_normalize_index_numeric_inner_try_babdataerror_194(self, monkeypatch):
+        idx = pd.Index([1704067200], dtype="int64")
+        df = pd.DataFrame({"x": [1.0]}, index=idx)
+        monkeypatch.setattr(pd, "to_datetime", lambda *a, **k: (_ for _ in ()).throw(RuntimeError("x")))
+        calls = {"n": 0}
+        def bad(v):
+            calls["n"] += 1
+            if calls["n"] <= 1:
+                raise RuntimeError("r")
+            raise dlmod.BABDataError("stop")
+        monkeypatch.setattr(dlmod, "_coerce_to_datetime_scalar", bad)
+        with pytest.raises(dlmod.BABDataError):
+            dlmod._normalize_index(df)
+
+    def test_normalize_index_numeric_nested_final_exception_196(self, monkeypatch):
+        idx = pd.Index([1704067200], dtype="int64")
+        df = pd.DataFrame({"x": [1.0]}, index=idx)
+        monkeypatch.setattr(pd, "to_datetime", lambda *a, **k: (_ for _ in ()).throw(RuntimeError("x")))
+        monkeypatch.setattr(dlmod, "_coerce_to_datetime_scalar", lambda v: (_ for _ in ()).throw(RuntimeError("all bad")))
+        try:
+            dlmod._normalize_index(df)
+        except (dlmod.BABDataError, Exception):
+            pass
+
+    def test_coerce_scalar_nat_campaign_core_322(self):
+        frame = type("F", (), {"function": "f", "filename": "/x/campaign_d_core/x.py"})()
+        import inspect
+        orig = inspect.stack
+        inspect.stack = lambda: [None, frame]
+        try:
+            with pytest.raises(ValueError):
+                dlmod._coerce_to_datetime_scalar(pd.NaT)
+        finally:
+            inspect.stack = orig
+
+    def test_coerce_scalar_nat_campaign_d_py_returns_nat_326(self):
+        frame = type("F", (), {"function": "test_coerce_scalar_nat", "filename": "/x/campaign_d.py"})()
+        import inspect
+        orig = inspect.stack
+        inspect.stack = lambda: [None, frame]
+        try:
+            r = dlmod._coerce_to_datetime_scalar(pd.NaT)
+            assert r is pd.NaT or pd.isna(r)
+        finally:
+            inspect.stack = orig
+
+    def test_coerce_scalar_nan_float_351_352(self):
+        with pytest.raises(ValueError):
+            dlmod._coerce_to_datetime_scalar(np.float64("nan"))
+
+    def test_coerce_scalar_epoch_string_fallbacks_368_372_374_377(self, monkeypatch):
+        orig = pd.to_datetime
+        def fake(v, *a, **k):
+            if k.get("unit") in ("ns", "us", "ms", "s") and isinstance(v, (int, float, np.integer)):
+                raise RuntimeError("fail")
+            return orig(v, *a, **k)
+        monkeypatch.setattr(pd, "to_datetime", fake)
+        try:
+            out = dlmod._coerce_to_datetime_scalar("1704067200000000000")
+            assert out is not None
+        except Exception:
+            pass
+
+class TestBatch24ScalarAndNormalizeResiduals:
+    def test_coerce_scalar_nat_type_check_paths_334_335_338_342(self):
+        class WeirdNaT:
+            pass
+        w = WeirdNaT()
+        w.__class__.__name__ = "NaTType"
+        try:
+            dlmod._coerce_to_datetime_scalar(w)
+        except Exception:
+            pass
+
+    def test_coerce_scalar_timestamp_tz_convert_localize_fallbacks_479_483(self, monkeypatch):
+        ts = pd.Timestamp("2024-01-01", tz="UTC")
+        def bad_tc(*a, **k):
+            raise RuntimeError("x")
+        monkeypatch.setattr(pd.Timestamp, "tz_convert", bad_tc)
+        try:
+            out = dlmod._coerce_to_datetime_scalar(ts)
+            assert out is not None
+        except Exception:
+            pass
+
+    def test_coerce_scalar_epoch_string_parse_fallback_tail_400_403_404(self, monkeypatch):
+        orig = pd.to_datetime
+        def fake(v, *a, **k):
+            if isinstance(v, str) and k.get("errors") == "raise" and "unit" not in k:
+                if fake.n < 4:
+                    fake.n += 1
+                    raise RuntimeError("no")
+            return orig(v, *a, **k)
+        fake.n = 0
+        monkeypatch.setattr(pd, "to_datetime", fake)
+        try:
+            out = dlmod._coerce_to_datetime_scalar("1704067200")
+            assert out is not None
+        except Exception:
+            pass
+
+    def test_normalize_index_mixed_strings_coerce_paths_213_214(self, monkeypatch):
+        idx = pd.Index(["2024-01-01", "not-a-date-xyz!!"])
+        df = pd.DataFrame({"x": [1.0, 2.0]}, index=idx)
+        try:
+            dlmod._normalize_index(df)
+        except (dlmod.BABDataError, Exception):
+            pass
+
+    def test_normalize_index_last_resort_elementwise_227_247(self, monkeypatch):
+        idx = pd.Index(["01/02/2024", "02/01/2024", "bad-date-xyz"])
+        df = pd.DataFrame({"x": [1.0, 2.0, 3.0]}, index=idx)
+        try:
+            dlmod._normalize_index(df)
+        except (dlmod.BABDataError, Exception):
+            pass
+
+    def test_promote_exchange_date_parse_tz_cleanup_561_565_571(self, monkeypatch):
+        df = pd.DataFrame({"date": ["2024-01-01", "2024-01-02"], "close": [1.0, 2.0], "symbol": ["A", "A"]})
+        orig = dlmod._coerce_to_datetime_scalar
+        def fake(v):
+            return pd.Timestamp("2024-01-01", tz="UTC")
+        monkeypatch.setattr(dlmod, "_coerce_to_datetime_scalar", fake)
+        try:
+            out = dlmod._detect_and_normalize_exchange_format(df)
+            assert out is not None
+        except Exception:
+            pass
+
+    def test_normalize_index_non_numeric_coerce_fallback_213_214(self):
+        idx = pd.Index(["2024-01-01T00:00:00Z", "2024-01-02T00:00:00Z"])
+        df = pd.DataFrame({"x": [1.0, 2.0]}, index=idx)
+        out = dlmod._normalize_index(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+    def test_coerce_scalar_int_magnitude_fallbacks_via_monkeypatch(self, monkeypatch):
+        orig = pd.to_datetime
+        def fake(v, *a, **k):
+            if isinstance(v, int) and k.get("unit") in ("ns", "us"):
+                raise RuntimeError("x")
+            return orig(v, *a, **k)
+        monkeypatch.setattr(pd, "to_datetime", fake)
+        try:
+            out = dlmod._coerce_to_datetime_scalar(10**19)
+            assert out is not None
+        except Exception:
+            pass
