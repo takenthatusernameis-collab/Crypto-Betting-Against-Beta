@@ -1,6 +1,6 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 
-**Timestamp (UTC):** 2026-11-06T06:43:23Z
+**Timestamp (UTC):** 2026-11-06T06:54:33Z
 **Repo:** `Crypto-Betting-Against-Beta`
 **Path:** `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
 **Branch/SHA at handoff (verify before push claims):** `main` @ `3a54ee0` working tree dirty (uncommitted test additions; `git status` / `git rev-parse --short HEAD`). **No `.github/workflows/*` edits/commits/pushes. No remote push performed.**
