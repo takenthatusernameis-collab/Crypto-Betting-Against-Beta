@@ -1,6 +1,7 @@
 # Unreachable-branch proofs — data_loader.py remaining 96 miss lines
 
 Generated: 2026-11-06T20:55 UTC (post batch73/batch74, miss 107 -> 96).
+Refreshed: 2026-11-06T21:47 UTC — canonical aggregate now **1482 passed, 0 failed** (the 13 Batch32 failures were test bugs fixed in `tests/test_bab_data_loader_coverage_gaps.py::TestBatch32MissingLineTargets`; no source change, no coverage delta). Miss remains **96 / 1693 stmts (94%)**.
 Method: each cluster probed max once via direct canonical call (batch73/batch74). All gave 0 delta in the fresh canonical aggregate. Structural proof below, with file:line, function, code path, and why the branch cannot fire under any realistic pandas input.
 
 Scope: `strategies/betting_against_beta/data_loader.py` only. `campaign_d*` guard stays green (44 passed, 5 warnings).

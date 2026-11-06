@@ -7656,7 +7656,7 @@ class TestBatch32MissingLineTargets:
     # load_json: data is already a DataFrame (1757)
     def test_load_json_dataframe_payload(self, tmp_path):
         p = tmp_path / "r.json"
-        df_in = pd.DataFrame({"BTC": [0.01, 0.02]}, index=pd.date_range("2024-01-01", periods=2))
+        df_in = pd.DataFrame({"BTC": [0.01, 0.02], "ETH": [0.02, 0.03]}, index=pd.date_range("2024-01-01", periods=2))
         p.write_text(df_in.to_json(orient="split"))
         out = dlmod.load_returns_from_json(p, orient="split", benchmark="BTC")
         assert out is not None
@@ -7667,7 +7667,7 @@ class TestBatch32MissingLineTargets:
         import strategies.betting_against_beta.data_loader as dl
 
         p = tmp_path / "r.json"
-        p.write_text('[{"date": "2024-01-01", "BTC": 0.01}]')
+        p.write_text('[{"date": "2024-01-01", "BTC": 0.01, "ETH": 0.02}]')
         state = {"n": 0}
 
         def _raising(df):
@@ -7699,12 +7699,19 @@ class TestBatch32MissingLineTargets:
         import strategies.betting_against_beta.data_loader as dl
 
         p = tmp_path / "r.json"
-        p.write_text('{"columns": ["BTC"], "data": [[0.01]]}')
-        monkeypatch.setattr(
-            dl, "_promote_datetime_column", lambda df: (_ for _ in ()).throw(RuntimeError("boom"))
-        )
-        out = dlmod.load_returns_from_json(p, orient="split", benchmark="BTC")
+        p.write_text('{"BTC": [0.01, 0.02], "ETH": [0.02, 0.03]}')
+        state = {"n": 0}
+
+        def _raising(df):
+            state["n"] += 1
+            if state["n"] == 1:
+                raise RuntimeError("boom")
+            return df
+
+        monkeypatch.setattr(dl, "_promote_datetime_column", _raising)
+        out = dlmod.load_returns_from_json(p, orient="columns", benchmark="BTC")
         assert out is not None
+        assert state["n"] >= 2
 
     # load_returns: detect_price_or_returns exception (1853-1855)
     def test_load_returns_detect_exception(self, monkeypatch):
@@ -7721,9 +7728,11 @@ class TestBatch32MissingLineTargets:
             pass
 
     # load_returns: unsupported str path (1868-1870)
-    def test_load_returns_unsupported_str_raises(self):
+    def test_load_returns_unsupported_str_raises(self, tmp_path):
+        p = tmp_path / "returns.xyz"
+        p.write_text("garbage")
         with pytest.raises(dlmod.BABDataError, match="Unsupported"):
-            dlmod.load_returns("foo.xyz")
+            dlmod.load_returns(str(p))
 
     # _is_likely_returns: no numeric columns -> arr.size == 0 (1895)
     def test_is_likely_returns_no_numeric(self):
@@ -7762,7 +7771,7 @@ class TestBatch32MissingLineTargets:
         import strategies.betting_against_beta.data_loader as dl
 
         p = tmp_path / "p.parquet"
-        df = pd.DataFrame({"BTC": [1.0, 2.0, 3.0]}, index=pd.date_range("2024-01-01", periods=3))
+        df = pd.DataFrame({"BTC": [1.0, 2.0, 3.0], "ETH": [1.0, 2.0, 3.0]}, index=pd.date_range("2024-01-01", periods=3))
         monkeypatch.setattr(dl, "load_returns_from_parquet", lambda path, **k: df)
         out = dlmod.load_prices(p, benchmark="BTC")
         assert out is not None
@@ -7772,17 +7781,16 @@ class TestBatch32MissingLineTargets:
         import strategies.betting_against_beta.data_loader as dl
 
         p = tmp_path / "p.h5"
-        df = pd.DataFrame({"BTC": [1.0, 2.0, 3.0]}, index=pd.date_range("2024-01-01", periods=3))
+        df = pd.DataFrame({"BTC": [1.0, 2.0, 3.0], "ETH": [1.0, 2.0, 3.0]}, index=pd.date_range("2024-01-01", periods=3))
         monkeypatch.setattr(dl, "load_returns_from_hdf5", lambda path, **k: df)
         out = dlmod.load_prices(p, benchmark="BTC")
         assert out is not None
 
     # _is_likely_returns: exception path (2015)
     def test_is_likely_returns_exception(self, monkeypatch):
-        import strategies.betting_against_beta.data_loader as dl
-
-        monkeypatch.setattr(pd, "DataFrame", lambda *a, **k: (_ for _ in ()).throw(RuntimeError("boom")))
-        assert dlmod._is_likely_returns("not a df") is False
+        df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=pd.date_range("2024-01-01", periods=2))
+        monkeypatch.setattr(np, "nanmax", lambda *a, **k: (_ for _ in ()).throw(RuntimeError("boom")))
+        assert dlmod._is_likely_returns(df) is False
 
     # _is_likely_returns: absmax >= 10 -> prices (2022-2023)
     def test_is_likely_returns_prices(self):
@@ -7804,19 +7812,19 @@ class TestBatch32MissingLineTargets:
             _pickle.dump([1, 2, 3], fh)
         assert dlmod.detect_price_or_returns(p) in ("prices", "returns", "unknown")
 
-    # load_jsonl: bad json line skipped (2054-2055)
+    # load_jsonl: bad json line raises (jsonl lines are not silently skipped in the loader)
     def test_load_jsonl_bad_line(self, tmp_path):
         p = tmp_path / "r.jsonl"
         p.write_text("{bad json\n")
-        out = dlmod.load_returns_from_json(p, benchmark="BTC")
-        assert out is not None
+        with pytest.raises(dlmod.BABDataError):
+            dlmod.load_returns_from_json(p, benchmark="BTC")
 
     # load_json: scalar payload -> pd.DataFrame() (2068)
     def test_load_json_scalar_payload(self, tmp_path):
         p = tmp_path / "r.json"
         p.write_text("42")
-        out = dlmod.load_returns_from_json(p, benchmark="BTC")
-        assert out is not None
+        with pytest.raises((dlmod.BABDataError, ValueError)):
+            dlmod.load_returns_from_json(p, benchmark="BTC")
 
     # clean_data: outer exception path (2160-2163)
     def test_clean_data_outer_exception(self, monkeypatch):
@@ -7848,16 +7856,16 @@ class TestBatch32MissingLineTargets:
         except Exception:
             pass
 
-    # clean_data: normalize_index raises BABDataError -> re-raise (2173-2174)
+    # normalize_schema: _normalize_index raises BABDataError -> re-raise (2173-2174)
     def test_clean_data_normalize_index_raises(self, monkeypatch):
         import strategies.betting_against_beta.data_loader as dl
 
         monkeypatch.setattr(
             dl, "_normalize_index", lambda df: (_ for _ in ()).throw(dlmod.BABDataError("boom"))
         )
-        df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=pd.date_range("2024-01-01", periods=2))
+        df = pd.DataFrame({"BTC": [0.01, 0.02], "ETH": [0.02, 0.03]}, index=pd.date_range("2024-01-01", periods=2))
         with pytest.raises(dlmod.BABDataError):
-            dlmod.clean_data(df)
+            dlmod.normalize_schema(df)
 
     # clean_data: column test exception -> drop col (2187-2189)
     def test_clean_data_column_test_exception(self, monkeypatch):
@@ -7883,30 +7891,28 @@ class TestBatch32MissingLineTargets:
         except Exception:
             pass
 
-    # detect_price_or_returns: clean_data exception -> None (2238-2239)
-    def test_detect_price_or_returns_clean_exception(self, monkeypatch):
+    # detect_price_or_returns: csv read exception -> "unknown" (2041-2042)
+    def test_detect_price_or_returns_clean_exception(self, monkeypatch, tmp_path):
         import strategies.betting_against_beta.data_loader as dl
 
-        monkeypatch.setattr(dl, "clean_data", lambda df: (_ for _ in ()).throw(RuntimeError("boom")))
-        df = pd.DataFrame({"BTC": [1.0, 2.0]}, index=pd.date_range("2024-01-01", periods=2))
-        assert dlmod.detect_price_or_returns(df) is None
+        p = tmp_path / "r.csv"
+        p.write_text("garbage that is not really csv")
+        monkeypatch.setattr(pd, "read_csv", lambda *a, **k: (_ for _ in ()).throw(RuntimeError("boom")))
+        assert dlmod.detect_price_or_returns(p) == "unknown"
 
-    # detect_price_or_returns: cleaned empty -> None (2241)
-    def test_detect_price_or_returns_cleaned_empty(self, monkeypatch):
-        import strategies.betting_against_beta.data_loader as dl
+    # detect_price_or_returns: json read exception -> "unknown" (2069-2070)
+    def test_detect_price_or_returns_cleaned_empty(self, monkeypatch, tmp_path):
+        p = tmp_path / "r.json"
+        p.write_text("not json at all")
+        monkeypatch.setattr(json, "load", lambda *a, **k: (_ for _ in ()).throw(ValueError("bad")))
+        assert dlmod.detect_price_or_returns(p) == "unknown"
 
-        monkeypatch.setattr(dl, "clean_data", lambda df: pd.DataFrame())
-        df = pd.DataFrame({"BTC": [1.0, 2.0]}, index=pd.date_range("2024-01-01", periods=2))
-        assert dlmod.detect_price_or_returns(df) is None
-
-    # detect_price_or_returns: finite check exception -> None (2247-2248)
-    def test_detect_price_or_returns_finite_exception(self, monkeypatch):
-        import strategies.betting_against_beta.data_loader as dl
-
-        monkeypatch.setattr(dl, "clean_data", lambda df: pd.DataFrame({"BTC": [1.0, 2.0]}))
-        monkeypatch.setattr(np, "isfinite", lambda *a, **k: (_ for _ in ()).throw(RuntimeError("boom")))
-        df = pd.DataFrame({"BTC": [1.0, 2.0]}, index=pd.date_range("2024-01-01", periods=2))
-        assert dlmod.detect_price_or_returns(df) is None
+    # detect_price_or_returns: parquet read exception -> "unknown" (2074-2075)
+    def test_detect_price_or_returns_finite_exception(self, monkeypatch, tmp_path):
+        p = tmp_path / "r.parquet"
+        p.write_text("not parquet")
+        monkeypatch.setattr(pd, "read_parquet", lambda *a, **k: (_ for _ in ()).throw(RuntimeError("boom")))
+        assert dlmod.detect_price_or_returns(p) == "unknown"
 
 
 class TestBatch33MissingLineTargets:
