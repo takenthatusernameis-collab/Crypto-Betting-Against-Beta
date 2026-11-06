@@ -1,6 +1,6 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 
-**Timestamp (UTC):** 2026-11-06T04:20:00Z
+**Timestamp (UTC):** 2026-11-06T04:02:33Z
 **Repo:** `Crypto-Betting-Against-Beta` — `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
 **Branch/SHA:** `main` @ `9690c1a` (`chore(kilo): checkpoint agent session`). **Tree state now:** clean vs HEAD (`git status --short` shows no uncommitted changes). HEAD includes Batches 22–24 additions in `tests/test_bab_data_loader_coverage_gaps.py` and prior handoff updates (per `git show --name-only HEAD`). **No `.github/workflows/*` edits/commits/pushes. No remote push performed this session.**
 
@@ -43,7 +43,7 @@
 
 # INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (MANDATORY, HEAVY, BAB-ONLY)
 
-**Verified 2026-11-06T04:19:30Z, `main@9690c1a`, clean tree. Step 0 aggregate: inspect-sensitive `campaign_d*` = 44 passed/RC 0; BAB aggregate = 1091 passed/16 skipped/84 warnings/RC 0; `data_loader.py` = 84% (276 miss / 1693 stmts), `cli.py` = 81% (62 miss). Repo name = `Crypto-Betting-Against-Beta`; the only valid focus is BAB correctness, robustness, adversarial handling, and measured coverage. Read this handoff, run Step 0, then execute Campaign A immediately. No idling. No side quests. No infra/controller work. Stopping after <3 measured-delta batches is failure to follow handoff unless blocked by proven unreachable branches (document evidence). Do not claim completion until `data_loader.py` reaches ≥90% in a fresh completed aggregate BAB run with zero regressions and `BABDataError`/inspect-sensitive behavior preserved.**
+**Verified 2026-11-06T04:19:30Z, `main@7c6b76d`, clean tree. Step 0 aggregate: inspect-sensitive `campaign_d*` = 44 passed/RC 0; BAB aggregate = 1091 passed/16 skipped/84 warnings/RC 0; `data_loader.py` = 84% (276 miss / 1693 stmts), `cli.py` = 81% (62 miss). Repo name = `Crypto-Betting-Against-Beta`; the only valid focus is BAB correctness, robustness, adversarial handling, and measured coverage. Read this handoff, run Step 0, then execute Campaign A immediately. No idling. No side quests. No infra/controller work. Stopping after <3 measured-delta batches is failure to follow handoff unless blocked by proven unreachable branches (document evidence). Do not claim completion until `data_loader.py` reaches ≥90% in a fresh completed aggregate BAB run with zero regressions and `BABDataError`/inspect-sensitive behavior preserved.**
 
 ## Non-negotiable operating rules
 
@@ -106,7 +106,7 @@ Safe deterministic tests only if touching CLI behavior; prefer correctness over 
 
 ## Session state (this session)
 
-- **Action taken:** Verified Step 0 recon on `main@9690c1a` (clean tree). Confirmed `campaign_d*` inspect-sensitive guard green and BAB aggregate/coverage numbers. Updated this durable handoff with accurate state and heavy next-session campaign.
+- **Action taken:** Verified Step 0 recon on `main@7c6b76d` (clean tree). Confirmed `campaign_d*` inspect-sensitive guard green and BAB aggregate/coverage numbers. Updated this durable handoff with accurate state and heavy next-session campaign.
 - **Verified now:** `campaign_d*` = **44 passed, 5 warnings, RC 0**; BAB aggregate = **1091 passed, 16 skipped, 84 warnings, RC 0**; `data_loader.py` = **84% (276 miss / 1693 stmts)**; `cli.py` = **81% (62 miss)**. `HEAD` = `9690c1a`; working tree clean.
 - **Immediate next action (Batch 25, concrete):** In `tests/test_bab_data_loader_coverage_gaps.py`, add `TestBatch25ExchangeDetectPivotOhlcvTails` targeting `data_loader.py` lines **561, 564-565, 571, 582-586, 620, 623-624, 630, 641-642, 676-684, 694-695, 708-714** (recheck Step 0 `--show-missing`). Exercise `_detect_and_normalize_exchange_format` long/pivot tz-cleanup and parse-failure branches with minimal deterministic DataFrames and `monkeypatch` on `pd.to_datetime`/coercers where required. Verify: `python3 -m coverage run --source=strategies.betting_against_beta -m pytest -q tests/test_bab_data_loader_coverage_gaps.py::TestBatch25ExchangeDetectPivotOhlcvTails && python3 -m coverage report --include='strategies/betting_against_beta/data_loader.py' --show-missing`. Run `campaign_d*` guard, then full Step 0 aggregate; **record miss-count delta**. Continue immediately to Batches 26/27 with measured deltas.
 - **Campaign A remains mandatory/heavy until ≥90%.**
