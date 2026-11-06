@@ -1,9 +1,9 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 
-**Timestamp (UTC):** 2026-11-06T07:54:52Z (session verified state; re-verify fresh before coding)
+**Timestamp (UTC):** 2026-11-06T08:35:22Z (session verified state; re-verify fresh before coding)
 **Repo:** `Crypto-Betting-Against-Beta`
 **Path:** `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
-**Branch/SHA at handoff (verify before push claims):** `main` @ `d165e60` working tree **dirty** (uncommitted: `.coverage` artifact, `HANDOFF.md`, `tests/test_bab_data_loader_coverage_gaps.py` adds `TestBatch31/32/33/34/35`, +~800 lines). **No `.github/workflows/*` edits/commits/pushes. No remote push performed.**
+**Branch/SHA at handoff (verify before push claims):** `main` @ `f1106a1` working tree **dirty** (uncommitted: `.coverage` artifact, `HANDOFF.md`, `tests/test_bab_data_loader_coverage_gaps.py` adds `TestBatch31/32/33/34/35`, +~800 lines). **No `.github/workflows/*` edits/commits/pushes. No remote push performed.**
 
 ## Priority (repo-name-driven, non-negotiable)
 Repo name is **Crypto-Betting-Against-Beta** → **BAB only**: `strategies/betting_against_beta/data_loader.py` correctness, robustness, adversarial handling, and **measured** coverage. No infra/controller refactors. No sidetracks. Until Campaign A end condition is met, every session must produce **measured `data_loader.py` miss-count reduction** (or documented unreachable-branch proof **with file/line evidence while still moving to the next cluster**). **No early stop. No pivot to `cli.py`/other modules. No deferral.**
