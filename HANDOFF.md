@@ -1,6 +1,6 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 
-**Timestamp (UTC):** 2026-11-06T03:04:12Z
+**Timestamp (UTC):** 2026-11-06T03:42:44Z
 **Repo:** `Crypto-Betting-Against-Beta` — `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
 **Branch/SHA:** `main` @ `fdef573` (HEAD verified this session). **`git status --short`: clean** (Batches 14–19 in `tests/test_bab_data_loader_coverage_gaps.py` committed in `fdef573`/`47c9e2a` checkpoints). **No `.github/workflows/*` edits/commits/pushes. No remote push performed.**
 
@@ -43,7 +43,7 @@
 
 # INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (MANDATORY, HEAVY, BAB-ONLY)
 
-**Verified 2026-11-06T03:04:12Z, `main@fdef573`, tree clean. Last recon/aggregate (2026-11-06T02:48:29Z): inspect-sensitive `campaign_d*` = 44 passed/RC 0; BAB aggregate = 1000 passed/16 skipped/80 warnings/RC 0; `data_loader.py` = 81% (319 miss / 1693 stmts), `cli.py` = 81% (62 miss). Repo name = `Crypto-Betting-Against-Beta`; the only valid focus is BAB correctness, robustness, adversarial handling, and measured coverage. Read this handoff, run Step 0, then execute Campaign A immediately. No idling. No side quests. No infra/controller work. Stopping after <3 measured-delta batches is failure to follow handoff unless blocked by proven unreachable branches (document evidence). Do not claim completion until `data_loader.py` reaches ≥90% in a fresh completed aggregate BAB run with zero regressions and `BABDataError`/inspect-sensitive behavior preserved.**
+**Verified 2026-11-06T03:42:44Z, `main@039c6d5`, tree clean. Last recon/aggregate (2026-11-06T02:48:29Z): inspect-sensitive `campaign_d*` = 44 passed/RC 0; BAB aggregate = 1000 passed/16 skipped/80 warnings/RC 0; `data_loader.py` = 81% (319 miss / 1693 stmts), `cli.py` = 81% (62 miss). Repo name = `Crypto-Betting-Against-Beta`; the only valid focus is BAB correctness, robustness, adversarial handling, and measured coverage. Read this handoff, run Step 0, then execute Campaign A immediately. No idling. No side quests. No infra/controller work. Stopping after <3 measured-delta batches is failure to follow handoff unless blocked by proven unreachable branches (document evidence). Do not claim completion until `data_loader.py` reaches ≥90% in a fresh completed aggregate BAB run with zero regressions and `BABDataError`/inspect-sensitive behavior preserved.**
 
 ## Non-negotiable operating rules
 
