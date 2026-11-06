@@ -2,11 +2,11 @@
 
 > **This is the only durable handoff.** Read fully, then execute the **INITIAL TASK MESSAGE** below. No off-ramp, no sidetrack, no status-only session.
 
-**Handoff refreshed (UTC):** 2026-11-06T15:42:59Z
+**Handoff refreshed (UTC):** 2026-11-06T15:58:27Z
 **Last fresh canonical verification (UTC):** 2026-11-06T15:41:29Z (Step 0 rerun this session, includes `tests/test_bab_data_loader_batch54-57.py`)
 **Repo:** `Crypto-Betting-Against-Beta`
 **Path:** `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
-**Branch/SHA (pre-session, verify):** `main` @ `c10fde1` (recheck with `git rev-parse --short HEAD`). Working tree clean (batches 55-57 committed in `c10fde1`). **No `.github/workflows/*` edits/commits/pushes. No remote push performed.**
+**Branch/SHA (pre-session, verify):** `main` @ `efbfed1` (recheck with `git rev-parse --short HEAD`). Working tree clean (batches 55-57 committed). **No `.github/workflows/*` edits/commits/pushes. No remote push performed.**
 
 ---
 
