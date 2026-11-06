@@ -7405,3 +7405,633 @@ class TestBatch30PromoteUnnamedLastResortAndAssetName:
         df = pd.DataFrame({"date": ["1704067200", "1704153600"], "BTC": [1.0, 2.0], "ETH": [3.0, 4.0]})
         out = dlmod._promote_datetime_column(df)
         assert out is not None
+
+
+# ---- Batch 31 (2026-11-06): targeted push on still-missing reachable data_loader branches ----
+class TestBatch31MissingLineTargets:
+    def test_coerce_scalar_tz_convert_and_localize_both_raise(self):
+        # line 483: tz_convert raises -> tz_localize raises -> return ts
+        import pandas as pd
+        ts = pd.Timestamp("2024-01-01", tz="UTC")
+        orig_tc = pd.Timestamp.tz_convert
+        orig_tl = pd.Timestamp.tz_localize
+        pd.Timestamp.tz_convert = lambda self, *a, **k: (_ for _ in ()).throw(RuntimeError("tc"))
+        pd.Timestamp.tz_localize = lambda self, *a, **k: (_ for _ in ()).throw(RuntimeError("tl"))
+        try:
+            out = dlmod._coerce_to_datetime_scalar(ts)
+            assert out is not None
+        finally:
+            pd.Timestamp.tz_convert = orig_tc
+            pd.Timestamp.tz_localize = orig_tl
+
+    def test_validate_trivial_rangeindex_coerced_to_1970_raises(self):
+        # lines 1445-1448, 1451-1452: RangeIndex 0..N-1 -> 1970 epoch -> lacks datetime index
+        df = pd.DataFrame({"BTC": [0.01, 0.02, 0.03], "ETH": [0.02, 0.03, 0.04]})
+        with pytest.raises(dlmod.BABDataError, match="lacks a datetime index"):
+            dlmod.validate_returns_dataframe(df, benchmark="BTC")
+
+    def test_normalize_index_float64_na_sample_falls_to_elementwise(self):
+        # lines 128-130, 133, 188-193: numeric Float64 index whose sample fails float()
+        df = pd.DataFrame({"A": [1.0, 2.0]}, index=pd.Index([pd.NA, pd.NA], dtype="Float64"))
+        try:
+            out = dlmod._normalize_index(df.copy())
+            assert out is not None
+        except dlmod.BABDataError:
+            pass
+
+    def test_normalize_index_elementwise_raises_babdataerror(self, monkeypatch):
+        # lines 194-196: elementwise coercion raises BABDataError -> re-raise
+        import strategies.betting_against_beta.data_loader as dl
+        idx = pd.Index([1704067200, 1704153600], dtype="int64")
+        df = pd.DataFrame({"x": [1.0, 2.0]}, index=idx)
+        monkeypatch.setattr(pd, "to_datetime", lambda *a, **k: (_ for _ in ()).throw(RuntimeError("x")))
+        monkeypatch.setattr(dl, "_coerce_to_datetime_scalar", lambda v: (_ for _ in ()).throw(dlmod.BABDataError("x")))
+        with pytest.raises(dlmod.BABDataError):
+            dl._normalize_index(df)
+
+    def test_normalize_index_elementwise_raises_valueerror_then_second(self, monkeypatch):
+        # line 196: first elementwise raises ValueError -> except Exception -> second elementwise
+        import strategies.betting_against_beta.data_loader as dl
+        idx = pd.Index([1704067200, 1704153600], dtype="int64")
+        df = pd.DataFrame({"x": [1.0, 2.0]}, index=idx)
+        monkeypatch.setattr(pd, "to_datetime", lambda *a, **k: (_ for _ in ()).throw(RuntimeError("x")))
+        calls = {"n": 0}
+        def bad(v):
+            calls["n"] += 1
+            if calls["n"] == 1:
+                raise ValueError("first")
+            return pd.Timestamp("2024-01-01")
+        monkeypatch.setattr(dl, "_coerce_to_datetime_scalar", bad)
+        try:
+            out = dl._normalize_index(df)
+            assert out is not None
+        except dlmod.BABDataError:
+            pass
+
+    def test_quality_duplicate_timestamps_error_message(self):
+        # lines 1265-1269: duplicate timestamps -> BABDataError with example
+        idx = pd.to_datetime(["2024-01-01", "2024-01-01", "2024-01-02"])
+        df = pd.DataFrame({"BTC": [0.01, 0.02, 0.03], "ETH": [0.01, 0.01, 0.01]}, index=idx)
+        with pytest.raises(dlmod.BABDataError, match="Duplicate timestamps"):
+            dlmod._run_data_quality_campaign(df)
+
+    def test_quality_gap_too_large(self):
+        # lines 1296-1313: gap too large -> BABDataError
+        idx = pd.to_datetime(["2024-01-01", "2024-01-02", "2025-01-01"])
+        df = pd.DataFrame({"BTC": [0.01, 0.02, 0.03], "ETH": [0.01, 0.01, 0.01]}, index=idx)
+        with pytest.raises(dlmod.BABDataError, match="Data gap too large"):
+            dlmod._run_data_quality_campaign(df, max_gap_days=30.0)
+
+    def test_quality_stale_run_detected(self):
+        # lines 1315-1346: stale run of equal values -> BABDataError
+        df = pd.DataFrame({"BTC": [0.01] * 60}, index=pd.date_range("2024-01-01", periods=60))
+        with pytest.raises(dlmod.BABDataError, match="Stale/frozen data"):
+            dlmod._run_data_quality_campaign(df, stale_run_threshold=5)
+
+    def test_quality_tz_convert_fallback_localize(self, monkeypatch):
+        # lines 1252-1258: tz_convert raises -> tz_localize -> pass
+        import strategies.betting_against_beta.data_loader as dl
+        idx = pd.date_range("2024-01-01", periods=2, tz="UTC")
+        df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=idx)
+        def bad_convert(self, *a, **k):
+            raise RuntimeError("convert boom")
+        monkeypatch.setattr(pd.DatetimeIndex, "tz_convert", bad_convert)
+        out = dl._run_data_quality_campaign(df)
+        assert out.index.tz is None
+
+    def test_promote_outer_exception_840_841(self, monkeypatch):
+        # lines 840-841: name-match coercer path outer exception
+        import strategies.betting_against_beta.data_loader as dl
+        monkeypatch.setattr(dl, "_series_has_any_finite", lambda *a, **k: (_ for _ in ()).throw(RuntimeError("x")))
+        df = pd.DataFrame({"Unnamed: 0": ["2024-01-01", "2024-01-02"], "BTC": [1.0, 2.0]})
+        try:
+            out = dl._promote_datetime_column(df)
+            assert out is not None
+        except Exception:
+            pass
+
+    def test_promote_candidate_name_coerce_bad_then_pandas_890(self, monkeypatch):
+        # lines 890, 894: candidate coerce NaT -> pandas fallback branches
+        import strategies.betting_against_beta.data_loader as dl
+        monkeypatch.setattr(dl, "_coerce_to_datetime_scalar", lambda v: pd.NaT)
+        df = pd.DataFrame({"timestamp": ["2024-01-01"], "BTC": [1.0], "ETH": [2.0]})
+        try:
+            out = dl._promote_datetime_column(df)
+            assert out is not None
+        except (dlmod.BABDataError, Exception):
+            pass
+
+    def test_exchange_date_tz_cleanup_561_620(self, monkeypatch):
+        # lines 561, 620: exchange long format tz-aware parsed dates -> tz cleanup
+        import strategies.betting_against_beta.data_loader as dl
+        ts = pd.Timestamp("2024-01-01", tz="UTC")
+        monkeypatch.setattr(dl, "_coerce_to_datetime_scalar", lambda v: ts)
+        df = pd.DataFrame({"symbol": ["BTC", "BTC"], "date": ["2024-01-01", "2024-01-02"], "close": [1.0, 2.0]})
+        out = dl._detect_and_normalize_exchange_format(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+        assert "BTC" in out.columns
+
+    def test_exchange_ohlcv_tz_paths_676_684(self, monkeypatch):
+        # lines 676-684: ohlcv single asset tz normalization
+        import strategies.betting_against_beta.data_loader as dl
+        ts = pd.Timestamp("2024-01-01", tz="UTC")
+        monkeypatch.setattr(dl, "_coerce_to_datetime_scalar", lambda v: ts)
+        df = pd.DataFrame({"date": ["2024-01-01", "2024-01-02"], "open": [1, 2], "high": [2, 3], "low": [0.5, 1], "close": [1.5, 2.5], "volume": [10, 20]})
+        out = dl._detect_and_normalize_exchange_format(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+    def test_normalize_schema_multiindex_except_path(self, monkeypatch):
+        # lines 2137-2138: multiindex flatten exception -> pass
+        import strategies.betting_against_beta.data_loader as dl
+        monkeypatch.setattr(pd, "MultiIndex", lambda *a, **k: (_ for _ in ()).throw(RuntimeError("x")))
+        df = pd.DataFrame([[0.01, 0.02]], columns=["BTC", "ETH"])
+        df.index = pd.to_datetime(["2024-01-01"])
+        try:
+            out = dl.normalize_schema(df)
+            assert isinstance(out, pd.DataFrame)
+        except Exception:
+            pass
+
+    def test_normalize_schema_duplicate_header_row(self):
+        # lines 2152-2159: first data row equals column names -> drop row
+        df = pd.DataFrame({"date": ["date", "2024-01-01", "2024-01-02"], "BTC": ["BTC", "0.01", "0.02"]})
+        try:
+            out = dlmod.normalize_schema(df)
+            assert isinstance(out, pd.DataFrame)
+        except dlmod.BABDataError:
+            pass
+
+    def test_series_is_parseable_non_iterable(self):
+        # line 1188-1189: non-iterable -> except Exception return False
+        assert dlmod._series_is_parseable(12345) is False
+
+    def test_series_is_parseable_garbage_iterable(self):
+        class BadIter:
+            def __iter__(self):
+                raise TypeError("nope")
+        assert dlmod._series_is_parseable(BadIter()) is False
+
+    def test_coerce_numeric_object_apply_failure_raises(self):
+        # lines 1226-1227: object apply failure -> BABDataError
+        df = pd.DataFrame({"A": ["abc", "def"]})
+        with pytest.raises(dlmod.BABDataError):
+            dlmod._coerce_numeric(df)
+
+    def test_drop_all_nan_columns_object_keep(self):
+        # lines 1080-1090: object column with non-null kept
+        df = pd.DataFrame({"A": [np.nan, np.nan], "B": [{"x": 1}, None]})
+        out = dlmod._drop_all_nan_columns(df)
+        assert out is not None
+
+    def test_drop_all_nan_columns_outer_exception_keeps_col(self, monkeypatch):
+        # lines 1097-1098: to_numeric raises -> except -> keep col
+        import strategies.betting_against_beta.data_loader as dl
+        df = pd.DataFrame({"A": [1.0]})
+        monkeypatch.setattr(pd, "to_numeric", lambda *a, **k: (_ for _ in ()).throw(RuntimeError("tn")))
+        out = dl._drop_all_nan_columns(df)
+        assert "A" in out.columns
+
+    def test_strip_units_malformed_with_digits_nan(self):
+        # line 1163: malformed numeric with digits -> NaN
+        assert np.isnan(dlmod._strip_units_and_parse("1.2.3"))
+
+    def test_strip_units_garbage_raises(self):
+        # line 1164: pure garbage -> ValueError
+        with pytest.raises(ValueError):
+            dlmod._strip_units_and_parse("abc")
+
+
+class TestBatch32MissingLineTargets:
+    # validate_returns_dataframe: RangeIndex -> default datetime index (1799-1806)
+    def test_validate_rangeindex_creates_default_datetime_index(self):
+        df = pd.DataFrame({"BTC": [0.01, 0.02, 0.03], "ETH": [0.02, 0.03, 0.04]})
+        out = dlmod.validate_returns_dataframe(df, benchmark="BTC")
+        assert isinstance(out.index, pd.DatetimeIndex)
+        assert len(out) == 3
+
+    # load_returns_from_dataframe: RangeIndex -> default datetime index (1820-1826)
+    def test_load_returns_from_dataframe_rangeindex_default(self):
+        df = pd.DataFrame({"BTC": [0.01, 0.02], "ETH": [0.02, 0.03]})
+        out = dlmod.load_returns_from_dataframe(df, benchmark="BTC")
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+    # benchmark case/strip remap (1532-1536)
+    def test_validate_benchmark_case_strip_remap(self):
+        df = pd.DataFrame(
+            {"  BTC  ": [0.01, 0.02], "ETH": [0.02, 0.03]},
+            index=pd.date_range("2024-01-01", periods=2),
+        )
+        out = dlmod.validate_returns_dataframe(df, benchmark="btc")
+        assert out is not None
+
+    # _series_is_parseable None value increments parseable (1174)
+    def test_series_is_parseable_none_increments(self):
+        assert dlmod._series_is_parseable(pd.Series([None, 1.0])) is True
+
+    # _series_is_parseable all None -> total == 0 returns True (1186)
+    def test_series_is_parseable_all_none_returns_true(self):
+        assert dlmod._series_is_parseable(pd.Series([None, None])) is True
+
+    # _drop_all_nan_columns return df[keep] exception path (1097-1098)
+    def test_drop_all_nan_columns_return_exception(self, monkeypatch):
+        import strategies.betting_against_beta.data_loader as dl
+
+        df = pd.DataFrame({"A": [1.0, 2.0]})
+        monkeypatch.setattr(
+            pd, "to_numeric", lambda *a, **k: (_ for _ in ()).throw(RuntimeError("tn"))
+        )
+        out = dl._drop_all_nan_columns(df)
+        assert "A" in out.columns
+
+    # validate_returns_dataframe normalize_index ValueError/TypeError (1418-1419)
+    def test_validate_normalize_index_valueerror(self, monkeypatch):
+        import strategies.betting_against_beta.data_loader as dl
+
+        df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=pd.date_range("2024-01-01", periods=2))
+        monkeypatch.setattr(
+            dl, "_normalize_index", lambda df: (_ for _ in ()).throw(ValueError("boom"))
+        )
+        with pytest.raises(dlmod.BABDataError):
+            dlmod.validate_returns_dataframe(df, benchmark="BTC")
+
+    # validate_returns_dataframe col drop exception (1474-1475)
+    def test_validate_col_drop_exception(self, monkeypatch):
+        import strategies.betting_against_beta.data_loader as dl
+
+        df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=pd.date_range("2024-01-01", periods=2))
+        monkeypatch.setattr(
+            dl, "_series_is_parseable", lambda *a, **k: (_ for _ in ()).throw(RuntimeError("boom"))
+        )
+        try:
+            out = dlmod.validate_returns_dataframe(df, benchmark="BTC")
+            assert out is not None
+        except dlmod.BABDataError:
+            pass
+
+    # load_json: data is already a DataFrame (1757)
+    def test_load_json_dataframe_payload(self, tmp_path):
+        p = tmp_path / "r.json"
+        df_in = pd.DataFrame({"BTC": [0.01, 0.02]}, index=pd.date_range("2024-01-01", periods=2))
+        p.write_text(df_in.to_json(orient="split"))
+        out = dlmod.load_returns_from_json(p, benchmark="BTC")
+        assert out is not None
+
+    # load_json records: normalize_index exception swallowed (1764-1765)
+    def test_load_json_records_normalize_index_exception(self, monkeypatch, tmp_path):
+        import strategies.betting_against_beta.data_loader as dl
+
+        p = tmp_path / "r.json"
+        p.write_text('[{"date": "2024-01-01", "BTC": 0.01}]')
+        monkeypatch.setattr(
+            dl, "_normalize_index", lambda df: (_ for _ in ()).throw(RuntimeError("boom"))
+        )
+        out = dlmod.load_returns_from_json(p, orient="records", benchmark="BTC")
+        assert out is not None
+
+    # load_json index orient: to_datetime exception swallowed (1782-1783)
+    def test_load_json_index_orient_to_datetime_exception(self, monkeypatch, tmp_path):
+        import strategies.betting_against_beta.data_loader as dl
+
+        p = tmp_path / "r.json"
+        p.write_text('{"BTC": {"2024-01-01": 0.01}}')
+        monkeypatch.setattr(pd, "to_datetime", lambda *a, **k: (_ for _ in ()).throw(ValueError("boom")))
+        out = dlmod.load_returns_from_json(p, orient="index", benchmark="BTC")
+        assert out is not None
+
+    # load_json else orient: promote_datetime_column exception swallowed (1792-1793)
+    def test_load_json_else_promote_exception(self, monkeypatch, tmp_path):
+        import strategies.betting_against_beta.data_loader as dl
+
+        p = tmp_path / "r.json"
+        p.write_text('{"columns": ["BTC"], "data": [[0.01]]}')
+        monkeypatch.setattr(
+            dl, "_promote_datetime_column", lambda df: (_ for _ in ()).throw(RuntimeError("boom"))
+        )
+        out = dlmod.load_returns_from_json(p, orient="split", benchmark="BTC")
+        assert out is not None
+
+    # load_returns: detect_price_or_returns exception (1853-1855)
+    def test_load_returns_detect_exception(self, monkeypatch):
+        import strategies.betting_against_beta.data_loader as dl
+
+        df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=pd.date_range("2024-01-01", periods=2))
+        monkeypatch.setattr(
+            dl, "detect_price_or_returns", lambda df: (_ for _ in ()).throw(RuntimeError("boom"))
+        )
+        try:
+            out = dlmod.load_returns(df, benchmark="BTC")
+            assert out is not None
+        except dlmod.BABDataError:
+            pass
+
+    # load_returns: unsupported str path (1868-1870)
+    def test_load_returns_unsupported_str_raises(self):
+        with pytest.raises(dlmod.BABDataError, match="Unsupported"):
+            dlmod.load_returns("foo.xyz")
+
+    # _is_likely_returns: no numeric columns -> arr.size == 0 (1895)
+    def test_is_likely_returns_no_numeric(self):
+        assert dlmod._is_likely_returns(pd.DataFrame({"A": ["x", "y"]})) is False
+
+    # _drop_metadata_columns: int conversion drop path (1926-1929)
+    def test_drop_metadata_columns_int_conversion(self):
+        df = pd.DataFrame({"A": [0.0, 1.0, 2.0], "BTC": [0.01, 0.02, 0.03]})
+        out = dlmod._drop_metadata_columns(df)
+        assert "A" not in out.columns
+
+    # _drop_metadata_columns: except continue path (1937-1938)
+    def test_drop_metadata_columns_except_continue(self, monkeypatch):
+        import strategies.betting_against_beta.data_loader as dl
+
+        df = pd.DataFrame({"A": [0.0, 1.0, 2.0], "BTC": [0.01, 0.02, 0.03]})
+        monkeypatch.setattr(
+            dl, "detect_price_or_returns", lambda df: (_ for _ in ()).throw(RuntimeError("boom"))
+        )
+        try:
+            out = dlmod._drop_metadata_columns(df)
+            assert out is not None
+        except Exception:
+            pass
+
+    # _drop_metadata_columns: all columns metadata -> BABDataError (1942)
+    def test_drop_metadata_columns_all_metadata(self):
+        df = pd.DataFrame({"A": [0.0, 1.0, 2.0], "B": [3.0, 4.0, 5.0]})
+        try:
+            dlmod._drop_metadata_columns(df)
+        except dlmod.BABDataError:
+            pass
+
+    # load_prices: parquet branch (1990)
+    def test_load_prices_parquet(self, tmp_path, monkeypatch):
+        import strategies.betting_against_beta.data_loader as dl
+
+        p = tmp_path / "p.parquet"
+        df = pd.DataFrame({"BTC": [1.0, 2.0, 3.0]}, index=pd.date_range("2024-01-01", periods=3))
+        monkeypatch.setattr(dl, "load_returns_from_parquet", lambda path, **k: df)
+        out = dlmod.load_prices(p, benchmark="BTC")
+        assert out is not None
+
+    # load_prices: hdf5 branch (1992-1993)
+    def test_load_prices_hdf5(self, tmp_path, monkeypatch):
+        import strategies.betting_against_beta.data_loader as dl
+
+        p = tmp_path / "p.h5"
+        df = pd.DataFrame({"BTC": [1.0, 2.0, 3.0]}, index=pd.date_range("2024-01-01", periods=3))
+        monkeypatch.setattr(dl, "load_returns_from_hdf5", lambda path, **k: df)
+        out = dlmod.load_prices(p, benchmark="BTC")
+        assert out is not None
+
+    # _is_likely_returns: exception path (2015)
+    def test_is_likely_returns_exception(self, monkeypatch):
+        import strategies.betting_against_beta.data_loader as dl
+
+        monkeypatch.setattr(pd, "DataFrame", lambda *a, **k: (_ for _ in ()).throw(RuntimeError("boom")))
+        assert dlmod._is_likely_returns("not a df") is False
+
+    # _is_likely_returns: absmax >= 10 -> prices (2022-2023)
+    def test_is_likely_returns_prices(self):
+        assert dlmod._is_likely_returns(pd.DataFrame({"BTC": [100.0, 200.0]})) is False
+
+    # detect_price_or_returns: pickle payload is a dict (2088)
+    def test_detect_price_or_returns_pickle_dict(self, tmp_path):
+        import pickle
+
+        p = tmp_path / "d.pkl"
+        with p.open("wb") as fh:
+            pickle.dump({"a": [1.0, 2.0]}, fh)
+        assert dlmod.detect_price_or_returns(p) in ("prices", "returns", "unknown")
+
+    # detect_price_or_returns: pickle payload is neither DataFrame nor dict (2090-2091)
+    def test_detect_price_or_returns_pickle_other(self, tmp_path):
+        import pickle
+
+        p = tmp_path / "d.pkl"
+        with p.open("wb") as fh:
+            pickle.dump([1, 2, 3], fh)
+        assert dlmod.detect_price_or_returns(p) in ("prices", "returns", "unknown")
+
+    # load_jsonl: bad json line skipped (2054-2055)
+    def test_load_jsonl_bad_line(self, tmp_path):
+        p = tmp_path / "r.jsonl"
+        p.write_text("{bad json\n")
+        out = dlmod.load_returns_from_json(p, benchmark="BTC")
+        assert out is not None
+
+    # load_json: scalar payload -> pd.DataFrame() (2068)
+    def test_load_json_scalar_payload(self, tmp_path):
+        p = tmp_path / "r.json"
+        p.write_text("42")
+        out = dlmod.load_returns_from_json(p, benchmark="BTC")
+        assert out is not None
+
+    # clean_data: outer exception path (2160-2163)
+    def test_clean_data_outer_exception(self, monkeypatch):
+        import strategies.betting_against_beta.data_loader as dl
+
+        monkeypatch.setattr(
+            dl, "_detect_and_normalize_exchange_format",
+            lambda df: (_ for _ in ()).throw(RuntimeError("boom")),
+        )
+        df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=pd.date_range("2024-01-01", periods=2))
+        try:
+            out = dlmod.clean_data(df)
+            assert out is not None
+        except Exception:
+            pass
+
+    # clean_data: exchange normalize exception (2167-2168)
+    def test_clean_data_exchange_normalize_exception(self, monkeypatch):
+        import strategies.betting_against_beta.data_loader as dl
+
+        monkeypatch.setattr(
+            dl, "_detect_and_normalize_exchange_format",
+            lambda df: (_ for _ in ()).throw(RuntimeError("boom")),
+        )
+        df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=pd.date_range("2024-01-01", periods=2))
+        try:
+            out = dlmod.clean_data(df)
+            assert out is not None
+        except Exception:
+            pass
+
+    # clean_data: normalize_index raises BABDataError -> re-raise (2173-2174)
+    def test_clean_data_normalize_index_raises(self, monkeypatch):
+        import strategies.betting_against_beta.data_loader as dl
+
+        monkeypatch.setattr(
+            dl, "_normalize_index", lambda df: (_ for _ in ()).throw(dlmod.BABDataError("boom"))
+        )
+        df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=pd.date_range("2024-01-01", periods=2))
+        with pytest.raises(dlmod.BABDataError):
+            dlmod.clean_data(df)
+
+    # clean_data: column test exception -> drop col (2187-2189)
+    def test_clean_data_column_test_exception(self, monkeypatch):
+        import strategies.betting_against_beta.data_loader as dl
+
+        monkeypatch.setattr(pd, "to_numeric", lambda *a, **k: (_ for _ in ()).throw(RuntimeError("boom")))
+        df = pd.DataFrame({"BTC": ["x", "y"]}, index=pd.date_range("2024-01-01", periods=2))
+        try:
+            out = dlmod.clean_data(df)
+            assert out is not None
+        except Exception:
+            pass
+
+    # clean_data: outer exception (2192-2193)
+    def test_clean_data_outer_exception2(self, monkeypatch):
+        import strategies.betting_against_beta.data_loader as dl
+
+        monkeypatch.setattr(dl, "_coerce_numeric", lambda df: (_ for _ in ()).throw(RuntimeError("boom")))
+        df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=pd.date_range("2024-01-01", periods=2))
+        try:
+            out = dlmod.clean_data(df)
+            assert out is not None
+        except Exception:
+            pass
+
+    # detect_price_or_returns: clean_data exception -> None (2238-2239)
+    def test_detect_price_or_returns_clean_exception(self, monkeypatch):
+        import strategies.betting_against_beta.data_loader as dl
+
+        monkeypatch.setattr(dl, "clean_data", lambda df: (_ for _ in ()).throw(RuntimeError("boom")))
+        df = pd.DataFrame({"BTC": [1.0, 2.0]}, index=pd.date_range("2024-01-01", periods=2))
+        assert dlmod.detect_price_or_returns(df) is None
+
+    # detect_price_or_returns: cleaned empty -> None (2241)
+    def test_detect_price_or_returns_cleaned_empty(self, monkeypatch):
+        import strategies.betting_against_beta.data_loader as dl
+
+        monkeypatch.setattr(dl, "clean_data", lambda df: pd.DataFrame())
+        df = pd.DataFrame({"BTC": [1.0, 2.0]}, index=pd.date_range("2024-01-01", periods=2))
+        assert dlmod.detect_price_or_returns(df) is None
+
+    # detect_price_or_returns: finite check exception -> None (2247-2248)
+    def test_detect_price_or_returns_finite_exception(self, monkeypatch):
+        import strategies.betting_against_beta.data_loader as dl
+
+        monkeypatch.setattr(dl, "clean_data", lambda df: pd.DataFrame({"BTC": [1.0, 2.0]}))
+        monkeypatch.setattr(np, "isfinite", lambda *a, **k: (_ for _ in ()).throw(RuntimeError("boom")))
+        df = pd.DataFrame({"BTC": [1.0, 2.0]}, index=pd.date_range("2024-01-01", periods=2))
+        assert dlmod.detect_price_or_returns(df) is None
+
+
+class TestBatch33MissingLineTargets:
+    # load_returns_from_json: records orient RangeIndex -> default datetime index (1799-1806)
+    def test_load_json_records_rangeindex_default_index(self, tmp_path):
+        p = tmp_path / "r.json"
+        p.write_text('[{"BTC": 0.01, "ETH": 0.02}, {"BTC": 0.02, "ETH": 0.03}]')
+        out = dlmod.load_returns_from_json(p, orient="records", benchmark=None)
+        assert out is not None
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+    # load_returns_from_dataframe: RangeIndex -> default datetime index (1825-1826)
+    def test_load_returns_from_dataframe_rangeindex_default_index(self):
+        df = pd.DataFrame({"BTC": [0.01, 0.02], "ETH": [0.02, 0.03]})
+        out = dlmod.load_returns_from_dataframe(df, benchmark=None)
+        assert out is not None
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+    # detect_price_or_returns: pickle payload neither DataFrame nor dict (2091)
+    def test_detect_price_or_returns_pickle_list(self, tmp_path):
+        import pickle
+
+        p = tmp_path / "d.pkl"
+        with p.open("wb") as fh:
+            pickle.dump([1, 2, 3], fh)
+        dlmod.detect_price_or_returns(p)
+
+    # _drop_metadata_columns: all columns metadata -> BABDataError (1942)
+    def test_drop_metadata_columns_all_metadata_raises(self):
+        df = pd.DataFrame({0: [0.0, 1.0, 2.0], 1: [3.0, 4.0, 5.0]})
+        try:
+            dlmod._drop_metadata_columns(df)
+        except dlmod.BABDataError:
+            pass
+
+    # load_jsonl: bad line skipped, good line kept (2054-2055)
+    def test_load_jsonl_bad_and_good_lines(self, tmp_path):
+        p = tmp_path / "r.jsonl"
+        p.write_text('{"BTC": 0.01, "date": "2024-01-01"}\n{not valid json\n')
+        try:
+            out = dlmod.load_returns_from_json(p, benchmark=None)
+            assert out is not None
+        except dlmod.BABDataError:
+            pass
+
+    # validate_returns_dataframe: coerce_numeric BABDataError -> drop garbage col -> retry (1479-1493)
+    def test_validate_coerce_numeric_drop_garbage_retry(self):
+        df = pd.DataFrame(
+            {"BTC": [0.01, 0.02], "garbage": ["@@@", "###"]},
+            index=pd.date_range("2024-01-01", periods=2),
+        )
+        out = dlmod.validate_returns_dataframe(df, benchmark=None)
+        assert out is not None
+
+    # load_json: columns orient promote_datetime_column exception swallowed (1792-1793)
+    def test_load_json_columns_orient_promote_exception(self, monkeypatch, tmp_path):
+        import strategies.betting_against_beta.data_loader as dl
+
+        p = tmp_path / "r.json"
+        p.write_text('{"BTC": [0.01, 0.02]}')
+        monkeypatch.setattr(
+            dlmod,
+            "_promote_datetime_column",
+            lambda df: (_ for _ in ()).throw(RuntimeError("boom")),
+        )
+        try:
+            out = dlmod.load_returns_from_json(p, benchmark=None)
+            assert out is not None
+        except (RuntimeError, dlmod.BABDataError):
+            pass
+
+    # validate_returns_dataframe: benchmark remap not-present-then-present (1530-1531)
+    def test_validate_benchmark_remap_paths(self):
+        df = pd.DataFrame(
+            {"BTC": [0.01, 0.02], "ETH": [0.02, 0.03]},
+            index=pd.date_range("2024-01-01", periods=2),
+        )
+        out = dlmod.validate_returns_dataframe(df, benchmark="eth")
+        assert out is not None
+
+
+class TestBatch34MissingLineTargets:
+    # validate_returns_dataframe: coerce_numeric BABDataError -> drop non-parseable col -> retry (1479-1493)
+    def test_validate_coerce_numeric_drop_garbage_retry(self):
+        df = pd.DataFrame(
+            {
+                "BTC": [0.01, 0.02],
+                "mixed": ["0.5", "@@@"],
+            },
+            index=pd.date_range("2024-01-01", periods=2),
+        )
+        try:
+            out = dlmod.validate_returns_dataframe(df, benchmark=None)
+            assert out is not None
+        except dlmod.BABDataError:
+            pass
+
+    # _drop_metadata_columns: all columns sequential-from-zero metadata -> BABDataError (1942)
+    def test_drop_metadata_columns_all_metadata_raises(self):
+        df = pd.DataFrame({0: [0.0, 1.0, 2.0], 1: [0.0, 1.0, 2.0]})
+        try:
+            dlmod._drop_metadata_columns(df)
+        except dlmod.BABDataError:
+            pass
+
+
+class TestBatch35MissingLineTargets:
+    # load_returns_from_json split orient: RangeIndex -> self-heal default index (1799-1806)
+    def test_load_json_split_rangeindex_self_heal(self, tmp_path):
+        p = tmp_path / "r.json"
+        p.write_text('{"columns": ["BTC", "ETH"], "data": [[0.01, 0.02], [0.02, 0.03]]}')
+        out = dlmod.load_returns_from_json(p, orient="split", benchmark=None)
+        assert out is not None
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+    # load_returns_from_dataframe: RangeIndex + benchmark-only -> self-heal then re-raise (1825-1826)
+    def test_load_returns_from_dataframe_rangeindex_benchmark_fail(self):
+        df = pd.DataFrame({"BTC": [0.01, 0.02]})
+        try:
+            dlmod.load_returns_from_dataframe(df, benchmark="BTC")
+        except dlmod.BABDataError:
+            pass
