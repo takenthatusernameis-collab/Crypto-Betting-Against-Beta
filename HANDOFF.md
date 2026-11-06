@@ -2,11 +2,11 @@
 
 > **THIS IS THE SOLE DURABLE HANDOFF.** Prioritize `Crypto-Betting-Against-Beta` (BAB) ONLY. Read this file completely and execute the **INITIAL TASK MESSAGE** immediately. No off-ramps, no sidetracks, no status-only sessions, no planning-only sessions. Every session must do heavy measurable work.
 
-**Handoff refreshed (UTC):** 2026-11-06T22:51:25Z
-**Last fresh canonical verification (UTC):** 2026-11-06T22:51:25Z (batches 40-69, 71-74, 76; **0 failed**)
-**Branch/SHA:** `main` @ `085deff` (verify with `git rev-parse --short HEAD`). Working tree: clean except untracked `tests/test_bab_data_loader_batch76.py` (batch76, committed-not-pushed decision left to next session).
+**Handoff refreshed (UTC):** 2026-11-06T23:09:32Z
+**Last fresh canonical verification (UTC):** 2026-11-06T23:09:32Z (batches 40-69, 71-74, 76; **0 failed**)
+**Branch/SHA:** `main` @ `acf67fb` (verify with `git rev-parse --short HEAD`). Working tree: clean.
 **Repo:** `Crypto-Betting-Against-Beta` | **Path:** `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
-**Guard rechecked (UTC):** 2026-11-06T22:51:25Z — `campaign_d*` **44 passed, 5 warnings**. `docs/unreachable_proofs.md` present.
+**Guard rechecked (UTC):** 2026-11-06T23:09:32Z — `campaign_d*` **44 passed, 5 warnings**. `docs/unreachable_proofs.md` present.
 
 **CRITICAL:** No `.github/workflows/*` edits/commits/pushes. No remote push performed.
 
@@ -25,7 +25,7 @@ Repo name = **Crypto-Betting-Against-Beta** → **BAB strategy only**. **ONLY** 
 ## CURRENT VERIFIED STATE (2026-11-06T22:51:25Z)
 
 - **Env:** Python 3.12.3, deps in `/home/runner/work/_temp/kilo-home/.local/`. pyarrow/tables/fastparquet missing → monkeypatch parquet/hdf5/engine branches.
-- **Canonical aggregate (batches 40-69, 71-74 + batch76):** **1424 passed, 0 failed, 17 skipped.** Batch76 added `tests/test_bab_data_loader_batch76.py` (2 tests).
+- **Canonical aggregate (batches 40-69, 71-74 + batch76):** **1424 passed, 0 failed, 17 skipped.**
 - **`strategies/betting_against_beta/data_loader.py`: 1693 stmts, 96 miss, 94%.**
 - **Missing lines (exact, 96):** `43-44, 92-93, 194, 196, 227-247, 268-269, 285-286, 322, 326, 334-335, 338-342, 351-352, 403-404, 561, 620, 641-642, 679, 694-695, 713-714, 733-734, 791-792, 859, 861-862, 867-868, 901-903, 908-914, 953, 1226-1227, 1257-1258, 1319-1320, 1530-1531, 1533-1536, 1591-1592, 1626-1627, 1663-1664, 1926-1929, 2192-2193`
 - **All 96 clusters** documented as unreachable in `docs/unreachable_proofs.md` with exact file:line, function, code path, why unreachable, and evidence.
