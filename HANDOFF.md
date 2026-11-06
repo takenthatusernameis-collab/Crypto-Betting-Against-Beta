@@ -2,7 +2,7 @@
 
 > **THIS IS THE SOLE DURABLE HANDOFF.** Prioritize `Crypto-Betting-Against-Beta` (BAB) ONLY. Read this file completely, fix any environment bottleneck, then execute the **INITIAL TASK MESSAGE** immediately. No off-ramps, no sidetracks, no status-only sessions, no planning-only sessions. Every session must do heavy measurable work.
 
-**Handoff refreshed (UTC):** 2026-11-06T23:58:54Z
+**Handoff refreshed (UTC):** 2026-11-06T23:59:37Z
 **Last verified canonical (UTC):** 2026-11-06T23:58:54Z (batches 40-69, 71-74, 76-79; **1431 passed, 0 failed, 17 skipped**) — *fresh aggregate completed this session.*
 **Branch/SHA:** `main` @ `a41d713` (verify with `git rev-parse --short HEAD`). Uncommitted work in this session: `tests/test_bab_data_loader_batch79.py`, `docs/unreachable_proofs.md`, `HANDOFF.md`.
 **Repo:** `Crypto-Betting-Against-Beta` | **Path:** `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
@@ -70,7 +70,7 @@ Repo name = **Crypto-Betting-Against-Beta** → **BAB strategy only**. **ONLY** 
 
 ## INITIAL TASK MESSAGE FOR NEXT AGENTIC WORK SESSION (EXECUTE IMMEDIATELY)
 
-**Timestamp (UTC):** 2026-11-06T23:58:54Z
+**Timestamp (UTC):** 2026-11-06T23:59:37Z
 **Target:** Next coding agent working in this repo
 **Mode:** HEAVY WORK ONLY. No analysis-only, no planning-only, no status summaries without action.
 **Scope:** `strategies/betting_against_beta/data_loader.py` ONLY.
