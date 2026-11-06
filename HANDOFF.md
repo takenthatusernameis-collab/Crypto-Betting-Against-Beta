@@ -1,6 +1,6 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 
-**Timestamp (UTC):** 2026-11-06T03:48:00Z
+**Timestamp (UTC):** 2026-11-06T03:50:02Z
 **Repo:** `Crypto-Betting-Against-Beta` — `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
 **Branch/SHA:** `main` @ `1638857` (`git status --short`: **modified** `HANDOFF.md`, `tests/test_bab_data_loader_coverage_gaps.py` — Batch 20/21 additions stabilized this session; no commit/push performed). **No `.github/workflows/*` edits/commits/pushes. No remote push performed.**
 
