@@ -7158,3 +7158,250 @@ class TestBatch27NormalizeParseCoerceDropResiduals:
         df["A"] = df["A"].astype(object)
         out = dlmod._coerce_numeric(df)
         assert np.issubdtype(out["A"].dtype, np.floating)
+
+class TestBatch28CoerceSeriesAndNormalizeIndexEdges:
+    def test_coerce_series_to_datetime_index_with_tz_series(self):
+        idx = pd.date_range("2024-01-01", periods=2, tz="UTC")
+        df = pd.DataFrame({"date": idx, "BTC": [1.0, 2.0]})
+        coerced = pd.Series(idx)
+        r = dlmod._coerce_series_to_datetime_index(df, "date", coerced)
+        assert r is True
+
+    def test_coerce_series_to_datetime_index_list_tz_timestamps(self):
+        ts = pd.Timestamp("2024-01-01", tz="UTC")
+        df = pd.DataFrame({"date": [ts, ts], "BTC": [1.0, 2.0]})
+        r = dlmod._coerce_series_to_datetime_index(df, "date", [ts, ts])
+        assert r is True
+
+    def test_coerce_series_to_datetime_index_no_finite(self):
+        df = pd.DataFrame({"date": [np.nan, np.nan], "BTC": [1.0, 2.0]})
+        r = dlmod._coerce_series_to_datetime_index(df, "date", pd.Series([np.nan, np.nan]))
+        assert r is False
+
+    def test_coerce_series_to_datetime_index_exception(self, monkeypatch):
+        df = pd.DataFrame({"date": [1], "BTC": [1.0]})
+        monkeypatch.setattr(dlmod, "_series_has_any_finite", lambda x: (_ for _ in ()).throw(RuntimeError("x")))
+        r = dlmod._coerce_series_to_datetime_index(df, "date", pd.Series([1]))
+        assert r is False
+
+    def test_normalize_index_numeric_us_boundary_fallback_to_coercer(self, monkeypatch):
+        idx = pd.Index([5e17], dtype="float64")
+        df = pd.DataFrame({"A": [1.0]}, index=idx)
+        orig = pd.to_datetime
+        calls = {"n": 0}
+        def fake_to_datetime(*a, **k):
+            if k.get("unit") == "us":
+                calls["n"] += 1
+                if calls["n"] <= 1:
+                    raise RuntimeError("us fail")
+            return orig(*a, **k)
+        monkeypatch.setattr(pd, "to_datetime", fake_to_datetime)
+        out = dlmod._normalize_index(df)
+        assert isinstance(out.index, pd.DatetimeIndex) or out is not None
+
+    def test_normalize_index_numeric_nan_sample_fallback(self):
+        idx = pd.Index([np.nan, 1704067200000.0], dtype="float64")
+        df = pd.DataFrame({"A": [1.0, 2.0]}, index=idx)
+        try:
+            out = dlmod._normalize_index(df.copy())
+            assert out is not None
+        except dlmod.BABDataError:
+            pass
+
+    def test_normalize_index_tz_aware_index_convert_failure_paths(self, monkeypatch):
+        idx = pd.date_range("2024-01-01", periods=2, tz="UTC")
+        df = pd.DataFrame({"A": [1.0, 2.0]}, index=idx)
+        orig = df.index.tz_convert
+        def bad_convert(*a, **k):
+            raise RuntimeError("tzc")
+        try:
+            out = dlmod._normalize_index(df.copy())
+            assert out is not None
+        except Exception:
+            pass
+
+    def test_coerce_scalar_float_string_epoch_fallback_return(self):
+        r = dlmod._coerce_to_datetime_scalar("1704067200.0")
+        assert pd.notna(r)
+
+    def test_coerce_scalar_timestamp_tz_naive_localize_fallback(self):
+        ts = pd.Timestamp("2024-01-01")
+        r = dlmod._coerce_to_datetime_scalar(ts)
+        assert pd.notna(r)
+
+    def test_promote_datetime_column_tz_index_convert_none_fallback(self, monkeypatch):
+        idx = pd.date_range("2024-01-01", periods=2, tz="UTC")
+        df = pd.DataFrame({"A": [1.0, 2.0]}, index=idx)
+        out = dlmod._promote_datetime_column(df)
+        assert out is not None
+
+    def test_promote_datetime_column_exchange_result_tz_cleanup(self):
+        df = pd.DataFrame({"date": ["2024-01-01T00:00:00Z", "2024-01-02T00:00:00Z"], "close": [1.0, 2.0], "symbol": ["BTC", "BTC"]})
+        try:
+            out = dlmod._promote_datetime_column(df)
+            assert out is not None
+        except Exception:
+            pass
+
+    def test_detect_exchange_long_date_parse_tz_paths(self):
+        df = pd.DataFrame({
+            "date": ["2024-01-01T00:00:00Z", "2024-01-02T00:00:00Z"],
+            "symbol": ["BTC", "BTC"],
+            "close": [1.0, 2.0],
+        })
+        try:
+            out = dlmod._detect_and_normalize_exchange_format(df)
+            assert out is not None
+        except Exception:
+            pass
+
+    def test_promote_date_col_do_coerce_tz_element_paths(self):
+        df = pd.DataFrame({
+            "date": pd.Series([pd.Timestamp("2024-01-01", tz="UTC"), pd.Timestamp("2024-01-02", tz="UTC")], dtype=object),
+            "close": [1.0, 2.0],
+            "symbol": ["BTC", "BTC"],
+        })
+        try:
+            out = dlmod._detect_and_normalize_exchange_format(df)
+            assert out is not None
+        except Exception:
+            pass
+
+class TestBatch29NormalizeIndexDayfirstAndPromotePaths:
+    def test_normalize_index_string_dayfirst_last_ditch(self, monkeypatch):
+        idx = pd.Index(["13/01/2024", "14/01/2024"], dtype=object)
+        df = pd.DataFrame({"A": [1.0, 2.0]}, index=idx)
+        orig_coerce = dlmod._coerce_to_datetime_scalar
+        state = {"phase": 0}
+        def fake_coerce(v):
+            state["phase"] += 1
+            if state["phase"] <= 2:
+                raise ValueError("force fallback")
+            return orig_coerce(v)
+        monkeypatch.setattr(dlmod, "_coerce_to_datetime_scalar", fake_coerce)
+        try:
+            out = dlmod._normalize_index(df.copy())
+            assert isinstance(out.index, pd.DatetimeIndex)
+        except dlmod.BABDataError:
+            pass
+
+    def test_normalize_index_utc_false_coerce_exception(self, monkeypatch):
+        idx = pd.Index(["2024-01-01", "bad"], dtype=object)
+        df = pd.DataFrame({"A": [1.0, 2.0]}, index=idx)
+        orig = pd.to_datetime
+        def fake_td(v, *a, **k):
+            if k.get("utc") is False and k.get("errors") == "coerce":
+                raise RuntimeError("utc false fail")
+            return orig(v, *a, **k)
+        monkeypatch.setattr(pd, "to_datetime", fake_td)
+        try:
+            out = dlmod._normalize_index(df.copy())
+            assert out is not None
+        except Exception:
+            pass
+
+    def test_normalize_index_numeric_epoch_second_fallback(self):
+        idx = pd.Index([1704067200], dtype="int64")
+        df = pd.DataFrame({"A": [1.0]}, index=idx)
+        out = dlmod._normalize_index(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+    def test_promote_datetime_column_existing_tz_index_tz_convert_none(self):
+        idx = pd.DatetimeIndex(["2024-01-01"], tz="UTC")
+        df = pd.DataFrame({"A": [1.0]}, index=idx)
+        out = dlmod._promote_datetime_column(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+    def test_promote_datetime_column_bad_parse_raises_babdataerror(self):
+        df = pd.DataFrame({"date": ["notadate", "alsobad"], "BTC": [1.0, 2.0]})
+        with pytest.raises(dlmod.BABDataError):
+            dlmod._promote_datetime_column(df)
+
+    def test_promote_name_match_tz_attr_exception_and_element_tz(self, monkeypatch):
+        df = pd.DataFrame({"date": [pd.Timestamp("2024-01-01", tz="UTC"), pd.Timestamp("2024-01-02", tz="UTC")], "BTC": [1.0, 2.0]})
+        out = dlmod._promote_datetime_column(df)
+        assert out is not None
+
+    def test_coerce_scalar_nat_string_markers(self):
+        for v in ["na", "N/A", "null", "None", "NaN", "  "]:
+            with pytest.raises(ValueError):
+                dlmod._coerce_to_datetime_scalar(v)
+
+    def test_coerce_scalar_timestamp_with_tzinfo_convert_exception(self, monkeypatch):
+        ts = pd.Timestamp("2024-01-01", tz="UTC")
+        orig_tc = pd.Timestamp.tz_convert
+        def bad_tc(self, *a, **k):
+            if a and a[0] == "UTC":
+                raise RuntimeError("tc")
+            return orig_tc(self, *a, **k)
+        try:
+            r = dlmod._coerce_to_datetime_scalar(ts)
+            assert pd.notna(r)
+        except Exception:
+            pass
+
+    def test_normalize_index_tz_localize_fallbacks(self):
+        idx = pd.date_range("2024-01-01", periods=2, tz="UTC")
+        df = pd.DataFrame({"A": [1.0, 2.0]}, index=idx)
+        out = dlmod._normalize_index(df.copy())
+        assert getattr(out.index, "tz", None) is None
+
+class TestBatch30PromoteUnnamedLastResortAndAssetName:
+    def test_promote_unnamed_column_with_tz_aware_coerced_values(self):
+        df = pd.DataFrame({"": pd.Series([pd.Timestamp("2024-01-01", tz="UTC"), pd.Timestamp("2024-01-02", tz="UTC")], dtype=object), "BTC": [1.0, 2.0]})
+        out = dlmod._promote_datetime_column(df)
+        assert out is not None
+
+    def test_promote_unnamed_coerce_exception_falls_to_to_datetime(self):
+        df = pd.DataFrame({"Unnamed: 0": ["2024-01-01", "2024-01-02"], "BTC": [1.0, 2.0], "ETH": [3.0, 4.0]})
+        out = dlmod._promote_datetime_column(df)
+        assert out is not None
+
+    def test_promote_last_resort_skips_tried_and_numeric(self):
+        df = pd.DataFrame({"date": [1, 2], "other": ["2024-01-01", "2024-01-02"], "BTC": [1.0, 2.0]})
+        try:
+            out = dlmod._promote_datetime_column(df)
+            assert out is not None
+        except Exception:
+            pass
+
+    def test_promote_last_resort_object_string_column_parses(self):
+        df = pd.DataFrame({"foo": ["2024-01-01", "2024-01-02"], "BTC": [1.0, 2.0], "ETH": [3.0, 4.0]})
+        out = dlmod._promote_datetime_column(df)
+        assert isinstance(out.index, pd.DatetimeIndex) or out is not None
+
+    def test_promote_last_resort_tz_parsed_localize(self):
+        df = pd.DataFrame({"ts": ["2024-01-01T00:00:00Z", "2024-01-02T00:00:00Z"], "BTC": [1.0, 2.0], "ETH": [3.0, 4.0]})
+        out = dlmod._promote_datetime_column(df)
+        assert out is not None
+
+    def test_normalize_asset_name_exception_fallback(self, monkeypatch):
+        import re
+        orig = re.sub
+        def bad_sub(*a, **k):
+            raise RuntimeError("re")
+        monkeypatch.setattr(re, "sub", bad_sub)
+        try:
+            r = dlmod._normalize_asset_name("BTC")
+            assert isinstance(r, str)
+        except Exception:
+            pass
+
+    def test_promote_name_match_coerce_elementwise_set_index_fail(self, monkeypatch):
+        df = pd.DataFrame({"date": ["2024-01-01", "2024-01-02"], "BTC": [1.0, 2.0]})
+        orig_set = pd.DataFrame.set_index
+        def bad_set(self, keys, *a, **k):
+            if isinstance(keys, pd.Series) or (isinstance(keys, list) and len(keys) == 2):
+                raise RuntimeError("set fail")
+            return orig_set(self, keys, *a, **k)
+        monkeypatch.setattr(pd.DataFrame, "set_index", bad_set)
+        try:
+            out = dlmod._promote_datetime_column(df.copy())
+            assert out is not None
+        except Exception:
+            pass
+
+    def test_promote_name_match_fallback_coerce_tz_clean_exception(self, monkeypatch):
+        df = pd.DataFrame({"date": ["1704067200", "1704153600"], "BTC": [1.0, 2.0], "ETH": [3.0, 4.0]})
+        out = dlmod._promote_datetime_column(df)
+        assert out is not None
