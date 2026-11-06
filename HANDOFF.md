@@ -2,11 +2,11 @@
 
 > **This is the only durable handoff.** Read fully, then execute the **INITIAL TASK MESSAGE** below. No off-ramp, no sidetrack, no status-only session.
 
-**Handoff timestamp (UTC):** 2026-11-06T13:45:00Z (refreshed this session)
-**Verified state timestamp (UTC):** 2026-11-06T13:45:00Z (fresh canonical aggregate verified this session)
+**Handoff timestamp (UTC):** 2026-11-06T14:26:12Z (refreshed this session)
+**Verified state timestamp (UTC):** 2026-11-06T14:26:12Z (fresh canonical aggregate verified this session)
 **Repo:** `Crypto-Betting-Against-Beta`
 **Path:** `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
-**Branch/SHA:** `main` @ `5f5d7d0` (+ uncommitted `tests/test_bab_data_loader_batch50-53.py`). `origin/main` unchanged. **No `.github/workflows/*` edits/commits/pushes. No remote push performed.**
+**Branch/SHA:** `main` @ `24264a2`, working tree clean. `origin/main` unchanged. **No `.github/workflows/*` edits/commits/pushes. No remote push performed.** `tests/test_bab_data_loader_batch50-53.py` now committed.
 
 ---
 
@@ -17,7 +17,7 @@ Repo name is **Crypto-Betting-Against-Beta** → **BAB only**. The **only** prio
 - Every session must produce **measured `data_loader.py` miss-count reduction** in a **fresh completed canonical aggregate**, **or** a documented unreachable-branch proof **with file/line evidence** while immediately moving to the next reachable cluster.
 - A session that ends with "reviewed code", "ran baseline only", or "planned next steps" without measured delta/proof is a failed session.
 
-## FRESH VERIFIED STATE (2026-11-06T13:45:00Z)
+## FRESH VERIFIED STATE (2026-11-06T14:26:12Z)
 - **Env:** Python 3.12.3, deps in `/home/runner/work/_temp/kilo-home/.local/lib/python3.12/site-packages` (pandas/numpy/pytest/coverage). `PYTHONPATH=$PWD:/home/runner/work/_temp/kilo-home/.local/lib/python3.12/site-packages`.
 - **Canonical Step 0 aggregate (fresh, completed, includes batch40-53):** **1350 passed, 13 failed (pre-existing Batch32 only), 23 skipped, 93 warnings**.
 - **`strategies/betting_against_beta/data_loader.py`: 1693 stmts, 124 miss, 93%.**
@@ -51,10 +51,10 @@ python3 -m coverage report --include='*data_loader.py' --show-missing
 | 47 | 840-841,859/861-862/867-868,1530-1536,1591-1592,1926-1929,2160-2168 probes | 9 passed | 44 passed | 139→139 | 0 | Exercised handlers but not all reached in canonical context. Retarget next. |
 | 48 | 757-758,789-790,804-805,859/861-862 unnamed-tz probes (`_promote_datetime_column`) | 4 passed | 44 passed | 139→(included in 49+) | measured via 49 | Committed in `5f5d7d0`; contributed in aggregate. |
 | 49 | 1530-1531 rename fallback, 1591-1592 CSV empty-after-read, 1451-1452 trivial-1970 except (canonical flows) | 3 passed | 44 passed | 139→133 | **-6** | Committed in `5f5d7d0`. Canonical aggregate includes batch48+49. |
-| 50 | 766-767/770-771 dt-attr/dtype-tz, 791-792 outer tz-normalize, 840-841 name-match, 859/861-862/867-868 unnamed-tz, 1451-1452, 1530-1536 remap | 6 passed | 44 passed | 133→131 | **-2** | Uncommitted `batch50.py`. Covered `766-767,1221-1222,1451-1452` vs prior aggregate snapshot. |
-| 51 | 840-841 set_index ValueError, 1451-1452 RangeIndex year-raises, 1533-1536 rename fallback, 1591-1592 stateful empty, 1926-1929/2160-2168/2187-2193 clean_data probes | 7 passed | 44 passed | 131→127 (with 52) | **-4** (51+52 combined) | Uncommitted `batch51.py`; intermediate measured in combined erase+run. |
-| 52 | 770-771/791-792/840-841 promote handlers, 679/694-695/713-714/733-734 exchange/epoch/tz, 1226-1227/1257-1258 loaders, 1926-1929 price metadata | 6 passed | 44 passed | (see 51) | (see 51) | Uncommitted `batch52.py`. |
-| 53 | 770-771/791-792/840-841/859-868 promote handlers, 1530-1536 rename, 1591-1592 CSV empty (canonical-leaning probes) | 6 passed | 44 passed | 127→124 | **-3** | Uncommitted `batch53.py`. Covered `840-841,890,1226-1227` in final aggregate. |
+| 50 | 766-767/770-771 dt-attr/dtype-tz, 791-792 outer tz-normalize, 840-841 name-match, 859/861-862/867-868 unnamed-tz, 1451-1452, 1530-1536 remap | 6 passed | 44 passed | 133→131 | **-2** | Committed in `24264a2`. Covered `766-767,1221-1222,1451-1452` vs prior aggregate snapshot. |
+| 51 | 840-841 set_index ValueError, 1451-1452 RangeIndex year-raises, 1533-1536 rename fallback, 1591-1592 stateful empty, 1926-1929/2160-2168/2187-2193 clean_data probes | 7 passed | 44 passed | 131→127 (with 52) | **-4** (51+52 combined) | Committed in `24264a2`; intermediate measured in combined erase+run. |
+| 52 | 770-771/791-792/840-841 promote handlers, 679/694-695/713-714/733-734 exchange/epoch/tz, 1226-1227/1257-1258 loaders, 1926-1929 price metadata | 6 passed | 44 passed | (see 51) | (see 51) | Committed in `24264a2`. |
+| 53 | 770-771/791-792/840-841/859-868 promote handlers, 1530-1536 rename, 1591-1592 CSV empty (canonical-leaning probes) | 6 passed | 44 passed | 127→124 | **-3** | Committed in `24264a2`. Covered `840-841,890,1226-1227` in final aggregate. |
 
 **Total measured improvement (this session window):** 139 → **124 miss** (93%). Session contract satisfied (≥3 measured-delta batches: 49,50,(51+52),53).
 
@@ -70,16 +70,11 @@ python3 -m coverage report --include='*data_loader.py' --show-missing
 
 ## INITIAL TASK MESSAGE FOR NEXT AGENTIC SESSION (execute immediately — heavy work, mandatory)
 
-**Mission (Campaign A continuation):** Reduce `strategies/betting_against_beta/data_loader.py` miss count from **124** (verified 2026-11-06T13:45:00Z canonical) in a **fresh canonical aggregate**. **BAB `data_loader.py` only.** Every batch must yield a **measured miss-count delta** or a **documented unreachable-branch proof with file/line evidence**, then immediately move to the next reachable cluster. `campaign_d*` guard must stay green.
+**Timestamp (UTC):** 2026-11-06T14:26:12Z
 
-### Execution contract (non-optional)
-1. **Run Step 0 baseline first** (command above) and record actual `data_loader.py` miss count before changes. Recheck missing lines line-by-line.
-2. **Deliver ≥3 verified batches** in this session (`tests/test_bab_data_loader_batch48.py`, `batch49.py`, `batch50.py`, …) unless reachable clusters are exhausted with evidence. Zero-delta batches do not count toward the 3; retarget before continuing.
-3. For **each batch:** write minimal targeted tests → focused run → `campaign_d*` guard → **fresh canonical aggregate** → record before/after miss count and delta. Commit locally only if appropriate and safe; **do not push** unless explicitly requested.
-4. **Update this HANDOFF.md** at session end with: refreshed UTC timestamp, SHA, verified canonical result, batch ledger rows (delta or unreachable proof), remaining clusters, and the next initial task message. Keep it the single durable handoff.
-5. **No off-ramps:** do not stop at analysis, planning, or a single 0-delta probe without retargeting. If a cluster is context-sensitive, craft inputs that trigger it through canonical caller paths.
+**Mission (Campaign A continuation):** Reduce `strategies/betting_against_beta/data_loader.py` miss count from **124** (verified 2026-11-06T14:26:12Z canonical) in a **fresh canonical aggregate**. **BAB `data_loader.py` only.** Every batch must yield a **measured miss-count delta** or a **documented unreachable-branch proof with file/line evidence**, then immediately move to the next reachable cluster. `campaign_d*` guard must stay green.
 
-### Priority clusters (recheck; target measured delta)
+### Focus campaign (heavy work, no avoidance)
 1. **`770-771,791-792,859,861-862,867-868`** — `_promote_datetime_column` exception handlers (dtype-tz/elementwise-tz/unnamed-column). Trigger via **canonical caller context** (`validate_returns_dataframe`/loader/clean_data flows) with stateful monkeypatches visible to the full aggregate.
 2. **`1530-1531,1533-1536`** — `validate_returns_dataframe` benchmark-remap rename fallbacks. Use real validate flows; monkeypatch `pd.DataFrame.rename` at the exact call(s) under canonical path conditions.
 3. **`1591-1592`** — `load_returns_from_csv` defensive empty-after-read; craft a stateful `read_csv`/`df.empty` sequence that fires on the *second* empty check without breaking earlier checks in aggregate.
@@ -87,6 +82,13 @@ python3 -m coverage report --include='*data_loader.py' --show-missing
 5. **`679,694-695,713-714,733-734,1226-1227,1257-1258`** — exchange/epoch/tz normalization and loader error handlers.
 6. **`894,901-903,1084-1085,1097-1098,1112,1115,1293-1294,1304-1305,1312-1313,1319-1320`** — remaining normalize/index/loader defensive handlers (line-recheck before patching).
 7. **Triage early with evidence (max one probe pass each, then move on):** `227-247`, `908-914`, `1626-1627,1663-1664`, `43-44,84,92-93,194,196,268-269,285-286,322,326,334-335,338-342,351-352,400,403-404,561,620,641-642,953,1033-1034`. Produce counterexample attempt + canonical delta result or file/line unreachable proof.
+
+### Execution contract (non-optional)
+1. **Run Step 0 baseline first** (command above) and record actual `data_loader.py` miss count before changes. Recheck missing lines line-by-line.
+2. **Deliver ≥3 verified batches** in this session (`tests/test_bab_data_loader_batch54.py`, `batch55.py`, `batch56.py`, …) unless reachable clusters are exhausted with evidence. Zero-delta batches do not count toward the 3; retarget before continuing.
+3. For **each batch:** write minimal targeted tests → focused run → `campaign_d*` guard → **fresh canonical aggregate** → record before/after miss count and delta. Commit locally only if appropriate and safe; **do not push** unless explicitly requested.
+4. **Update this HANDOFF.md** at session end with: refreshed UTC timestamp, SHA, verified canonical result, batch ledger rows (delta or unreachable proof), remaining clusters, and the next initial task message. Keep it the single durable handoff.
+5. **No off-ramps:** do not stop at analysis, planning, or a single 0-delta probe without retargeting. If a cluster is context-sensitive, craft inputs that trigger it through canonical caller paths.
 
 ### Targets
 - **Session minimum:** miss **<124** with ≥3 measured-delta batches (or documented exhaustion with evidence).
