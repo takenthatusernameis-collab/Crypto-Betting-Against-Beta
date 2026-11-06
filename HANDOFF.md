@@ -2,11 +2,11 @@
 
 > **This is the only durable handoff.** Read fully, then execute the **INITIAL TASK MESSAGE** below immediately. No off-ramp, no sidetrack, no status-only session, no planning-only session.
 
-**Handoff refreshed (UTC):** 2026-11-06T18:04:55Z
+**Handoff refreshed (UTC):** 2026-11-06T19:11:10Z
 **Last fresh canonical verification (UTC):** 2026-11-06T18:04:55Z (Step 0 baseline re-run with batches 40-64; 1429 passed, 13 pre-existing Batch32 failures, 23 skipped, 102 warnings)
 **Guard rechecked (UTC):** 2026-11-06T18:04:55Z — `campaign_d*` **44 passed, 5 warnings**.
 **Repo:** `Crypto-Betting-Against-Beta` | **Path:** `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
-**Branch/SHA:** `main` @ `05d5bf1` (verify with `git rev-parse --short HEAD`). Working tree clean at handoff refresh (no tracked/untracked strategy/test changes observed). Batches 61-64 already committed; **batch65+ not yet created**. **No `.github/workflows/*` edits/commits/pushes. No remote push performed.**
+**Branch/SHA:** `main` @ `3b9b51e` (verify with `git rev-parse --short HEAD`). Working tree clean at handoff refresh (no tracked/untracked strategy/test changes observed). Batches 61-64 already committed; **batch65+ not yet created**. **No `.github/workflows/*` edits/commits/pushes. No remote push performed.**
 
 ---
 
@@ -92,7 +92,7 @@ python3 -m coverage report --include='*data_loader.py' --show-missing
 
 ## INITIAL TASK MESSAGE FOR NEXT AGENTIC SESSION (execute immediately — heavy work, mandatory)
 
-**Timestamp (UTC):** 2026-11-06T18:04:55Z
+**Timestamp (UTC):** 2026-11-06T19:11:10Z
 **Recipient:** next coding agent in this repo.
 **Mode:** HEAVY WORK ONLY. No analysis-only turn. No planning-only turn. No "next steps" summary without measured delta/proof.
 
