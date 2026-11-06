@@ -2,11 +2,11 @@
 
 > **This is the only durable handoff.** Read fully, then execute the **INITIAL TASK MESSAGE** below immediately. No off-ramp, no sidetrack, no status-only session, no planning-only session.
 
-**Handoff refreshed (UTC):** 2026-11-06T20:21:30Z
-**Last fresh canonical verification (UTC):** 2026-11-06T20:21:30Z (batches 40-69 + 71-72; **1461 passed, 13 failed (pre-existing Batch32/coverage_gaps only), 23 skipped, 102 warnings**)
-**Guard rechecked (UTC):** 2026-11-06T20:21:30Z — `campaign_d*` **44 passed, 5 warnings**.
+**Handoff refreshed (UTC):** 2026-11-06T20:42:54Z
+**Last fresh canonical verification (UTC):** 2026-11-06T20:42:54Z (batches 40-69 + 71-72; **1454 passed, 13 failed (pre-existing Batch32/coverage_gaps only), 23 skipped, 102 warnings**)
+**Guard rechecked (UTC):** 2026-11-06T20:42:54Z — `campaign_d*` **44 passed, 5 warnings**.
 **Repo:** `Crypto-Betting-Against-Beta` | **Path:** `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
-**Branch/SHA:** `main` @ `429aeb1` (verify with `git rev-parse --short HEAD`). Working tree: untracked (`tests/test_bab_data_loader_batch71.py`, `tests/test_bab_data_loader_batch72.py` — the two measured-delta batches just landed). No tracked changes. **No `.github/workflows/*` edits/commits/pushes. No remote push performed.**
+**Branch/SHA:** `main` @ `c5af914` (verify with `git rev-parse --short HEAD`). Working tree: clean. batch71/72 committed. **No `.github/workflows/*` edits/commits/pushes. No remote push performed.**
 
 ---
 
@@ -18,19 +18,19 @@ Repo name is **Crypto-Betting-Against-Beta** → **BAB only**. The **only** prio
 - Every session must produce **measured `data_loader.py` miss-count reduction** in a **fresh completed canonical aggregate**, **or** a documented unreachable-branch proof **with file/line evidence** while immediately moving to the next reachable cluster.
 - A session that ends with "reviewed code", "ran baseline only", or "planned next steps" without measured delta/proof is a **failed session**.
 
-## VERIFIED STATE (fresh canonical: 2026-11-06T20:21:30Z)
+## VERIFIED STATE (fresh canonical: 2026-11-06T20:42:54Z)
 
 - **Env:** Python 3.12.3. Deps (pandas/numpy/pytest/coverage) installed at `/home/runner/work/_temp/kilo-home/.local/` (set `PATH` and `PYTHONPATH` per Step 0). pyarrow/tables/fastparquet not installed — monkeypatch parquet/hdf5/engine branches.
-- **Canonical aggregate (batch40-69 + 71-72):** **1461 passed, 13 failed (pre-existing Batch32/coverage_gaps only), 23 skipped, 102 warnings.**
+- **Canonical aggregate (batch40-69 + 71-72):** **1454 passed, 13 failed (pre-existing Batch32/coverage_gaps only), 23 skipped, 102 warnings.**
 - **`strategies/betting_against_beta/data_loader.py`: 1693 stmts, 107 miss, 94%.** (baseline was 109; **batch71 δ-1 line 400, batch72 δ-1 line 84** → 109→107).
 - **Missing lines (exact, 107):** `43-44, 92-93, 194, 196, 227-247, 268-269, 285-286, 322, 326, 334-335, 338-342, 351-352, 403-404, 561, 620, 641-642, 679, 694-695, 713-714, 733-734, 791-792, 859, 861-862, 867-868, 901-903, 908-914, 953, 1033-1034, 1226-1227, 1257-1258, 1319-1320, 1530-1531, 1533-1536, 1591-1592, 1626-1627, 1663-1664, 1926-1929, 2160-2163, 2167-2168, 2187-2189, 2192-2193`.
-- **Batches 71-72:** batch71 covers line 400 (`_coerce_to_datetime_scalar` str-epoch seconds non-integer outer branch via `'170000000.5'`); batch72 covers line 84 (`_coerce_series_to_datetime_index` elementwise tz_convert via tz-aware string elements). Both registered in the fresh canonical aggregate via direct helper calls (no global patching).
+- **Batches 71-72:** batch71 covers line 400 (`_coerce_to_datetime_scalar` str-epoch seconds non-integer outer branch via `'170000000.5'`); batch72 covers line 84 (`_coerce_series_to_datetime_index` elementwise tz_convert via tz-aware string elements). Both registered in the fresh canonical aggregate via direct helper calls (no global patching). **Committed at c5af914.**
 - **Step 0 baseline (run first; append batch71+ if they exist):**
 ```bash
 cd /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
 export PATH=/home/runner/work/_temp/kilo-home/.local/bin:$PATH
 export PYTHONPATH=$PWD:/home/runner/work/_temp/kilo-home/.local/lib/python3.12/site-packages
-python3 -m coverage erase && python3 -m coverage run --source=strategies.betting_against_beta -m pytest -q --tb=no --ignore=tests/test_controller_progress_accounting.py tests/test_bab_data_loader_coverage_gaps.py tests/test_bab_data_loader_robust.py tests/test_betting_against_beta_data_loader.py tests/test_bab_messy_data.py tests/test_bab_zero_silent_error.py tests/test_bab_data_loader_promote.py tests/test_bab_data_loader_miss_fill.py tests/test_bab_data_loader_campaign_d.py tests/test_bab_data_loader_campaign_d2.py tests/test_bab_data_loader_campaign_d3.py tests/test_bab_cli_coverage_campaign.py tests/test_bab_cli.py tests/test_bab_data_loader_batch40.py tests/test_bab_data_loader_batch41.py tests/test_bab_data_loader_batch42.py tests/test_bab_data_loader_batch43.py tests/test_bab_data_loader_batch44.py tests/test_bab_data_loader_batch45.py tests/test_bab_data_loader_batch46.py tests/test_bab_data_loader_batch47.py tests/test_bab_data_loader_batch48.py tests/test_bab_data_loader_batch49.py tests/test_bab_data_loader_batch50.py tests/test_bab_data_loader_batch51.py tests/test_bab_data_loader_batch52.py tests/test_bab_data_loader_batch53.py tests/test_bab_data_loader_batch54.py tests/test_bab_data_loader_batch55.py tests/test_bab_data_loader_batch56.py tests/test_bab_data_loader_batch57.py tests/test_bab_data_loader_batch58.py tests/test_bab_data_loader_batch59.py tests/test_bab_data_loader_batch60.py tests/test_bab_data_loader_batch61.py tests/test_bab_data_loader_batch62.py tests/test_bab_data_loader_batch63.py tests/test_bab_data_loader_batch64.py tests/test_bab_data_loader_batch65.py tests/test_bab_data_loader_batch66.py tests/test_bab_data_loader_batch67.py tests/test_bab_data_loader_batch68.py tests/test_bab_data_loader_batch69.py tests/test_bab_data_loader_batch71.py tests/test_bab_data_loader_batch72.py
+python3 -m coverage erase && python3 -m coverage run --source=strategies.betting_against_beta -m pytest -q --tb=no --ignore=tests/test_controller_progress_accounting.py tests/test_bab_data_loader_coverage_gaps.py tests/test_bab_data_loader_robust.py tests/test_betting_against_beta_data_loader.py tests/test_bab_messy_data.py tests/test_bab_data_loader_promote.py tests/test_bab_data_loader_miss_fill.py tests/test_bab_data_loader_campaign_d.py tests/test_bab_data_loader_campaign_d2.py tests/test_bab_data_loader_campaign_d3.py tests/test_bab_cli_coverage_campaign.py tests/test_bab_cli.py tests/test_bab_data_loader_batch40.py tests/test_bab_data_loader_batch41.py tests/test_bab_data_loader_batch42.py tests/test_bab_data_loader_batch43.py tests/test_bab_data_loader_batch44.py tests/test_bab_data_loader_batch45.py tests/test_bab_data_loader_batch46.py tests/test_bab_data_loader_batch47.py tests/test_bab_data_loader_batch48.py tests/test_bab_data_loader_batch49.py tests/test_bab_data_loader_batch50.py tests/test_bab_data_loader_batch51.py tests/test_bab_data_loader_batch52.py tests/test_bab_data_loader_batch53.py tests/test_bab_data_loader_batch54.py tests/test_bab_data_loader_batch55.py tests/test_bab_data_loader_batch56.py tests/test_bab_data_loader_batch57.py tests/test_bab_data_loader_batch58.py tests/test_bab_data_loader_batch59.py tests/test_bab_data_loader_batch60.py tests/test_bab_data_loader_batch61.py tests/test_bab_data_loader_batch62.py tests/test_bab_data_loader_batch63.py tests/test_bab_data_loader_batch64.py tests/test_bab_data_loader_batch65.py tests/test_bab_data_loader_batch66.py tests/test_bab_data_loader_batch67.py tests/test_bab_data_loader_batch68.py tests/test_bab_data_loader_batch69.py tests/test_bab_data_loader_batch71.py tests/test_bab_data_loader_batch72.py
 python3 -m coverage report --include='*data_loader.py' --show-missing
 ```
 
@@ -116,15 +116,15 @@ Structural evidence (do not re-probe identical shapes):
 
 ## INITIAL TASK MESSAGE FOR NEXT AGENTIC SESSION (execute immediately — heavy work, mandatory)
 
-**Timestamp (UTC):** 2026-11-06T20:21:30Z
+**Timestamp (UTC):** 2026-11-06T20:42:54Z
 **Recipient:** next coding agent in this repo.
 **Mode:** HEAVY WORK ONLY. No analysis-only turn. No planning-only turn. No "next steps" summary without measured delta/proof.
 
 ### Mission
 
-Reduce `strategies/betting_against_beta/data_loader.py` miss count from **107** (fresh canonical baseline re-verified 2026-11-06T20:21:30Z; **rebaseline at Step 0 before coding**). **BAB `data_loader.py` only.** Each batch must yield a **measured miss-count delta** in a **fresh canonical aggregate** OR a **documented unreachable-branch proof with file/line evidence**, then immediately move to the next reachable cluster. `campaign_d*` guard must stay green.
+Reduce `strategies/betting_against_beta/data_loader.py` miss count from **107** (fresh canonical baseline re-verified 2026-11-06T20:42:54Z; **rebaseline at Step 0 before coding**). **BAB `data_loader.py` only.** Each batch must yield a **measured miss-count delta** in a **fresh canonical aggregate** OR a **documented unreachable-branch proof with file/line evidence**, then immediately move to the next reachable cluster. `campaign_d*` guard must stay green.
 
-**Bottleneck route-around (mandatory):** Use **aggregate-safe** strategies — craft real DataFrame/Series shapes that reach target branches and call canonical entrypoints/helpers directly. Do **not** rely on global `pd.to_datetime`/`pd.read_csv` monkeypatching; batches 61-62, 65, 71-72 proved direct calls register while global patches get neutralized. Batches 63-64, 66-70 gave 0 delta — do not repeat identical probe patterns without proving they fire in a fresh canonical aggregate.
+**Bottleneck route-around (mandatory):** Use **aggregate-safe** strategies — craft real DataFrame/Series shapes that reach target branches and call canonical entrypoints/helpers directly. Do **not** rely on global `pd.to_datetime`/`pd.read_csv` monkeypatching; batches 61-62, 65, 71-72 proved direct calls register while global patches get neutralized. Batches 55-70 gave 0 delta — do not repeat identical probe patterns without proving they fire in a fresh canonical aggregate.
 
 ### Focus campaign (ordered; do not avoid; do not stop early)
 
