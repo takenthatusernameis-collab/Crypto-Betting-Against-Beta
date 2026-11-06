@@ -1,7 +1,7 @@
 # Unreachable-branch proofs — data_loader.py remaining 96 miss lines
 
 Generated: 2026-11-06T20:55 UTC (post batch73/batch74, miss 107 -> 96).
-Refreshed: 2026-11-06T23:44:10Z (UTC) — canonical aggregate **1428 passed, 0 failed, 17 skipped** (batches 40-69,71-74,76-78). Miss **86 / 1693 stmts (95%)**. Batch78 covered **1530-1531, 1533-1536, 2192-2193** (delta -8) via tight monkeypatches (rename failure in `validate_returns_dataframe` benchmark remap; `DataFrame.drop` failure in `normalize_schema` metadata drop outer except).
+Refreshed: 2026-11-06T23:50:39Z (UTC) — canonical aggregate **1431 passed, 0 failed, 17 skipped** (batches 40-69,71-74,76-79). Miss **82 / 1693 stmts (95%)**. Batch79 covered **908-911** in `_promote_datetime_column` last-resort path (exotic non-candidate object date column promoted to DatetimeIndex; tz-normalization exception path exercised) via `tests/test_bab_data_loader_batch79.py` (delta **-4**). `901-903` remain reachable only under tz-aware parsed series + tz_convert failure (covered by focused probe) but may vary by aggregate context; 912-914 remain a defensive set_index fallback.
 Method: each cluster probed max once via direct canonical call (batches 73-77). Structural proof below with file:line, function, code path, and why the branch cannot fire under realistic pandas input. Batch77 found 1928-1929 reachable via forced `np.allclose` exception in `load_prices` metadata-drop inner try; 1926-1927 remain subsumed by 1915-1918.
 
 Scope: `strategies/betting_against_beta/data_loader.py` only. `campaign_d*` guard stays green (44 passed, 5 warnings).
@@ -89,6 +89,11 @@ Scope: `strategies/betting_against_beta/data_loader.py` only. `campaign_d*` guar
 ---
 
 ## `_promote_datetime_column` (lines 700-920)
+
+### 901-903, 908-911: **PARTIALLY COVERED (batch79)**
+- Function: `_promote_datetime_column`, last-resort object-column datetime promotion (895-914).
+- Code path: an object/string column whose name is not in `candidate_names` (e.g. `when_recorded`) and not consumed by `_detect_and_normalize_exchange_format` is parsed with `pd.to_datetime(errors='raise')`; batch79 hit the tz-normalization try/except and successful index assignment/drop/return (908-911/907 region). 901-903 (tz_convert path when parsed has `.tz`) and 912-914 (set_index fallback when `df2.index` is not DatetimeIndex after assignment) remain defensive/uncommon.
+- Evidence: `tests/test_bab_data_loader_batch79.py::test_last_resort_promotes_exotic_object_column`, `::test_last_resort_tz_normalization_exception_path`; canonical delta **86→82 (-4)**.
 
 ### 713-714, 733-734: tz conversion in index branch / exchange-format return
 - Function: `_promote_datetime_column`, lines 706-714 / 729-734.
@@ -207,9 +212,11 @@ Scope: `strategies/betting_against_beta/data_loader.py` only. `campaign_d*` guar
 
 ---
 
-## Summary of remaining clusters (86 lines, 2026-11-06T23:44Z)
-`43-44, 92-93, 194, 196, 227-247, 268-269, 285-286, 322, 326, 334-335, 338-342, 351-352, 403-404, 561, 620, 641-642, 679, 694-695, 713-714, 733-734, 791-792, 859, 861-862, 867-868, 901-903, 908-914, 953, 1226-1227, 1257-1258, 1319-1320, 1591-1592, 1626-1627, 1663-1664, 1926-1927`
+## Summary of remaining clusters (82 lines, 2026-11-06T23:50Z)
+`43-44, 92-93, 194, 196, 227-247, 268-269, 285-286, 322, 326, 334-335, 338-342, 351-352, 403-404, 561, 620, 641-642, 679, 694-695, 713-714, 733-734, 791-792, 859, 861-862, 867-868, 901-903, 912-914, 953, 1226-1227, 1257-1258, 1319-1320, 1591-1592, 1626-1627, 1663-1664, 1926-1927`
 
 **Batch78 delta:** 1530-1531, 1533-1536, 2192-2193 covered via `tests/test_bab_data_loader_batch78.py` (miss **94→86, -8**). Reachable when lowercase benchmark arg differs from normalized column case and/or when `DataFrame.rename`/`drop` throw under scoped monkeypatch.
 
-**Status:** miss **86/1693 (95%)**. Canonical **1428 passed, 0 failed, 17 skipped** (40-69,71-74,76-78). Guard **44 passed, 5 warnings**. Exhaustion hunt continues.
+**Batch79 delta:** 908-911 covered (aggregate miss **86→82, -4**) via `tests/test_bab_data_loader_batch79.py`. Reachable via last-resort promotion of an exotic non-candidate object date column (`when_recorded`) not consumed by exchange normalization/named-candidate paths.
+
+**Status:** miss **82/1693 (95%)**. Canonical **1431 passed, 0 failed, 17 skipped** (40-69,71-74,76-79). Guard **44 passed, 5 warnings**. Exhaustion hunt continues.
