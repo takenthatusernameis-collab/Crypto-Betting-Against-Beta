@@ -2,9 +2,9 @@
 
 > **THIS IS THE SOLE DURABLE HANDOFF.** Prioritize `Crypto-Betting-Against-Beta` (BAB) ONLY. Read this file completely and execute the **INITIAL TASK MESSAGE** immediately. No off-ramps, no sidetracks, no status-only sessions, no planning-only sessions. Every session must do heavy measurable work.
 
-**Handoff refreshed (UTC):** 2026-11-06T23:12:05Z
+**Handoff refreshed (UTC):** 2026-11-06T23:12:19Z
 **Last fresh canonical verification (UTC):** 2026-11-06T23:09:32Z (batches 40-69, 71-74, 76; **0 failed**)
-**Branch/SHA:** `main` @ `8a81103` (verify with `git rev-parse --short HEAD`). Working tree: clean.
+**Branch/SHA:** `main` @ `d2c7aa4` (verify with `git rev-parse --short HEAD`). Working tree: clean.
 **Repo:** `Crypto-Betting-Against-Beta` | **Path:** `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
 **Guard rechecked (UTC):** 2026-11-06T23:09:32Z — `campaign_d*` **44 passed, 5 warnings**. `docs/unreachable_proofs.md` present.
 
@@ -70,7 +70,7 @@ Repo name = **Crypto-Betting-Against-Beta** → **BAB strategy only**. **ONLY** 
 
 ## INITIAL TASK MESSAGE FOR NEXT AGENTIC WORK SESSION (EXECUTE IMMEDIATELY)
 
-**Timestamp (UTC):** 2026-11-06T23:12:05Z
+**Timestamp (UTC):** 2026-11-06T23:12:19Z
 **Target:** Next coding agent working in this repo
 **Mode:** HEAVY WORK ONLY. No analysis-only, no planning-only, no status summaries without action.
 **Scope:** `strategies/betting_against_beta/data_loader.py` ONLY.
