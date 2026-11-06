@@ -1,9 +1,9 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 
-**Timestamp (UTC):** 2026-11-06T05:46:23Z (session verified: campaign_d* guards green, coverage baseline read from `.coverage`)
+**Timestamp (UTC):** 2026-11-06T05:50:30Z (session verified: campaign_d* guards green, coverage baseline read from `.coverage`)
 **Repo:** `Crypto-Betting-Against-Beta`
 **Path:** `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
-**Branch/SHA at handoff:** `main` @ `28635d8` (verify with `git rev-parse --short HEAD`). **No `.github/workflows/*` edits/commits/pushes. No remote push performed by this agent.**
+**Branch/SHA at handoff:** `main` @ `78d429f` (verify with `git rev-parse --short HEAD`). **No `.github/workflows/*` edits/commits/pushes. No remote push performed by this agent.**
 
 ## Priority (repo-name-driven, non-negotiable)
 Repo name is **Crypto-Betting-Against-Beta** → **BAB only**: `strategies/betting_against_beta/` correctness, robustness, adversarial handling, and **measured** coverage. No infra/controller refactors. No sidetracks. Until Campaign A is complete, every session must produce **measured `data_loader.py` miss-count reduction**.
