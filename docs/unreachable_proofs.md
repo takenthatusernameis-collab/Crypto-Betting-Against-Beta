@@ -1,7 +1,7 @@
 # Unreachable-branch proofs — data_loader.py remaining 96 miss lines
 
 Generated: 2026-11-06T20:55 UTC (post batch73/batch74, miss 107 -> 96).
-Refreshed: 2026-11-06T23:18:00Z — canonical aggregate **1425 passed, 0 failed, 17 skipped** (batches 40-69,71-74,76,77). Miss **94 / 1693 stmts (94%)**. Batch77 covered 1928-1929 (delta -2).
+Refreshed: 2026-11-06T23:44:10Z (UTC) — canonical aggregate **1428 passed, 0 failed, 17 skipped** (batches 40-69,71-74,76-78). Miss **86 / 1693 stmts (95%)**. Batch78 covered **1530-1531, 1533-1536, 2192-2193** (delta -8) via tight monkeypatches (rename failure in `validate_returns_dataframe` benchmark remap; `DataFrame.drop` failure in `normalize_schema` metadata drop outer except).
 Method: each cluster probed max once via direct canonical call (batches 73-77). Structural proof below with file:line, function, code path, and why the branch cannot fire under realistic pandas input. Batch77 found 1928-1929 reachable via forced `np.allclose` exception in `load_prices` metadata-drop inner try; 1926-1927 remain subsumed by 1915-1918.
 
 Scope: `strategies/betting_against_beta/data_loader.py` only. `campaign_d*` guard stays green (44 passed, 5 warnings).
@@ -146,10 +146,10 @@ Scope: `strategies/betting_against_beta/data_loader.py` only. `campaign_d*` guar
 
 ## `validate_returns_dataframe` (lines 1351-1559)
 
-### 1530-1531, 1533-1536: benchmark remap excepts
+### 1530-1531, 1533-1536: **COVERED (batch78)**
 - Function: `validate_returns_dataframe`, lines 1527-1536.
-- Code path: benchmark column is normalized to exact `'benchmark'` earlier (`_normalize_columns`/validate flow); `bench_found != benchmark` at 1526 is False when names match, so the `rename` at 1527-1531 and the second `bench_map`/rename at 1533-1536 are not reached.
-- Evidence: benchmark normalized to exact name before remap checks.
+- Code path: when the caller passes a lowercase benchmark arg (e.g. `benchmark='btc'`) and `_normalize_columns` uppercases the column to `BTC`, `bench_found != benchmark` is True and the remap executes. Batch78 forced `rename` failures to hit the first except (`1530-1531`) and the unreachable-on-success second remap path (`1533-1536`).
+- Evidence: `tests/test_bab_data_loader_batch78.py::test_validate_benchmark_first_rename_exception_1530_1531`, `::test_validate_benchmark_second_remap_1533_1536`; canonical delta **94→86 (-8 total for batch78)**.
 
 ---
 
@@ -200,16 +200,16 @@ Scope: `strategies/betting_against_beta/data_loader.py` only. `campaign_d*` guar
 - Function: `normalize_schema`, lines 2152-2163 (covered by batch74 probe 2160-2161 via `_BadStr` first row; 2162-2163 via `_BadStr` column name).
 - Note: these ARE now covered (batch74). Remaining unreachable within this function: none additional beyond 2192-2193 below.
 
-### 2192-2193: `except Exception: pass` (metadata drop)
+### 2192-2193: **COVERED (batch78)**
 - Function: `normalize_schema`, lines 2176-2193.
-- Code path: reached only if an exception propagates out of the metadata-drop try (2176-2191). The loop's inner `except` at 2187-2188 catches column-level errors, and line 2190's drop is guarded. No exception escapes to 2192-2193 for realistic inputs. (batch73 probe targeted it but the drop condition `len(cols_to_drop) < len(columns)` is False when all columns are junk, so no exception; the except stays unentered.)
-- Evidence: column-level exceptions caught at 2187-2188; no exception reaches outer 2192-2193.
+- Code path: metadata junk column (`junk` with empty strings) is collected into `cols_to_drop`; batch78 monkeypatches `DataFrame.drop` to raise for that drop, escaping the inner drop try and entering the outer `except Exception: pass`.
+- Evidence: `tests/test_bab_data_loader_batch78.py::test_normalize_schema_metadata_drop_outer_except_2192_2193`; canonical delta included in batch78 (-8).
 
 ---
 
-## Summary of remaining clusters (94 lines, 2026-11-06T23:18Z)
-`43-44, 92-93, 194, 196, 227-247, 268-269, 285-286, 322, 326, 334-335, 338-342, 351-352, 403-404, 561, 620, 641-642, 679, 694-695, 713-714, 733-734, 791-792, 859, 861-862, 867-868, 901-903, 908-914, 953, 1226-1227, 1257-1258, 1319-1320, 1530-1531, 1533-1536, 1591-1592, 1626-1627, 1663-1664, 1926-1927, 2192-2193`
+## Summary of remaining clusters (86 lines, 2026-11-06T23:44Z)
+`43-44, 92-93, 194, 196, 227-247, 268-269, 285-286, 322, 326, 334-335, 338-342, 351-352, 403-404, 561, 620, 641-642, 679, 694-695, 713-714, 733-734, 791-792, 859, 861-862, 867-868, 901-903, 908-914, 953, 1226-1227, 1257-1258, 1319-1320, 1591-1592, 1626-1627, 1663-1664, 1926-1927`
 
-**Batch77 delta:** 1928-1929 covered via `tests/test_bab_data_loader_batch77.py` (miss 96→94). 1926-1927 remain subsumed by 1915-1918. 1591-1592 dead: `df.empty` evaluated at 1583 before 1586-1592 defensive try. 1530-1536 unreachable: `_normalize_columns` normalizes benchmark names before remap logic in `validate_returns_dataframe`.
+**Batch78 delta:** 1530-1531, 1533-1536, 2192-2193 covered via `tests/test_bab_data_loader_batch78.py` (miss **94→86, -8**). Reachable when lowercase benchmark arg differs from normalized column case and/or when `DataFrame.rename`/`drop` throw under scoped monkeypatch.
 
-**Status:** miss **94/1693 (94%)**. Canonical **1425 passed, 0 failed, 17 skipped** (40-69,71-74,76,77). Guard **44 passed, 5 warnings**. Exhaustion-proofing satisfied; floor improved by 2.
+**Status:** miss **86/1693 (95%)**. Canonical **1428 passed, 0 failed, 17 skipped** (40-69,71-74,76-78). Guard **44 passed, 5 warnings**. Exhaustion hunt continues.

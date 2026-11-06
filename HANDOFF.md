@@ -2,9 +2,9 @@
 
 > **THIS IS THE SOLE DURABLE HANDOFF.** Prioritize `Crypto-Betting-Against-Beta` (BAB) ONLY. Read this file completely, fix any environment bottleneck, then execute the **INITIAL TASK MESSAGE** immediately. No off-ramps, no sidetracks, no status-only sessions, no planning-only sessions. Every session must do heavy measurable work.
 
-**Handoff refreshed (UTC):** 2026-11-06T23:31:57Z
-**Last recorded canonical verification (UTC):** 2026-11-06T23:20:30Z (batches 40-69, 71-74, 76, 77; **1425 passed, 0 failed, 17 skipped**) — *from prior session state in this file; rebaseline required this session.*
-**Branch/SHA:** `main` @ `5ce0ce4` (verify with `git rev-parse --short HEAD`).
+**Handoff refreshed (UTC):** 2026-11-06T23:44:10Z
+**Last verified canonical (UTC):** 2026-11-06T23:44:10Z (batches 40-69, 71-74, 76-78; **1428 passed, 0 failed, 17 skipped**) — *fresh aggregate completed this session.*
+**Branch/SHA:** `main` @ `45c2a9b` (verify with `git rev-parse --short HEAD`).
 **Repo:** `Crypto-Betting-Against-Beta` | **Path:** `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
 
 **CRITICAL:** No `.github/workflows/*` edits/commits/pushes. No remote push performed. Do not commit unless explicitly requested.
@@ -21,16 +21,16 @@ Repo name = **Crypto-Betting-Against-Beta** → **BAB strategy only**. **ONLY** 
 
 ---
 
-## CURRENT VERIFIED STATE (rebaseline required)
+## CURRENT VERIFIED STATE (rebaseline if drift suspected)
 
-- **Recorded canonical (2026-11-06T23:20:30Z):** batches 40-69, 71-74, 76, 77 — **1425 passed, 0 failed, 17 skipped**.
-- **`strategies/betting_against_beta/data_loader.py`: 1693 stmts, 94 miss, 94%** (recorded).
-- **Missing lines (exact, 94):** `43-44, 92-93, 194, 196, 227-247, 268-269, 285-286, 322, 326, 334-335, 338-342, 351-352, 403-404, 561, 620, 641-642, 679, 694-695, 713-714, 733-734, 791-792, 859, 861-862, 867-868, 901-903, 908-914, 953, 1226-1227, 1257-1258, 1319-1320, 1530-1531, 1533-1536, 1591-1592, 1626-1627, 1663-1664, 1926-1927, 2192-2193`
-- **Batch77 (measured delta, recorded):** covered **1928-1929** via `tests/test_bab_data_loader_batch77.py::test_load_prices_metadata_drop_inner_exception_1928_1929` (forced `np.allclose` exception). **Miss 96→94 (-2)**.
-- **Exhaustion status:** 94 clusters documented in `docs/unreachable_proofs.md`. Batch77 proved exception-handler branches can be reachable via tight internal monkeypatches — keep hunting.
-- **`campaign_d*` guard (recorded):** 44 passed, 5 warnings.
+- **Verified canonical (2026-11-06T23:44:10Z):** batches 40-69, 71-74, 76-78 — **1428 passed, 0 failed, 17 skipped**.
+- **`strategies/betting_against_beta/data_loader.py`: 1693 stmts, 86 miss, 95%**.
+- **Missing lines (exact, 86):** `43-44, 92-93, 194, 196, 227-247, 268-269, 285-286, 322, 326, 334-335, 338-342, 351-352, 403-404, 561, 620, 641-642, 679, 694-695, 713-714, 733-734, 791-792, 859, 861-862, 867-868, 901-903, 908-914, 953, 1226-1227, 1257-1258, 1319-1320, 1591-1592, 1626-1627, 1663-1664, 1926-1927`
+- **Batch78 (measured delta, this session):** covered **1530-1531, 1533-1536, 2192-2193** via `tests/test_bab_data_loader_batch78.py` (tight `DataFrame.rename`/`drop` monkeypatches). **Miss 94→86 (-8)**.
+- **Exhaustion status:** 86 lines documented in `docs/unreachable_proofs.md`. Batch78 proved benchmark-remap and normalize_schema metadata-drop exception handlers reachable under case-mismatch/monkeypatch conditions — keep hunting.
+- **`campaign_d*` guard:** 44 passed, 5 warnings.
 
-**Measured improvement to date:** 139→94 miss (-45). Stop condition (miss < 107 with measured deltas + exhaustion-proofing) was SATISFIED at 94; **do not coast** — any newly reachable gap below 94 is required heavy work.
+**Measured improvement to date:** 139→86 miss (-53). Stop condition (miss < 107 with measured deltas + exhaustion-proofing) was SATISFIED; **do not coast** — any newly reachable gap below 86 is required heavy work.
 
 ---
 
@@ -39,8 +39,8 @@ Repo name = **Crypto-Betting-Against-Beta** → **BAB strategy only**. **ONLY** 
 | # | Bottleneck | Route-around | Status |
 |---|---|---|---|
 | 1 | Controller workflow-sync test | Always `--ignore=tests/test_controller_progress_accounting.py`. Never edit/commit/push `.github/workflows/*`. | Routed |
-| 2 | **Deps not on default Python path (observed 2026-11-06T23:31Z)** | Bootstrap once: `python3 -m pip install --target /home/runner/work/_temp/kilo-tmp/pylib pytest coverage numpy pandas scipy` then use `export PYTHONPATH=$PWD:/home/runner/work/_temp/kilo-tmp/pylib` for all test/coverage commands. If deps already exist elsewhere, prepend that path instead. | **Active — fix in Step 0** |
-| 3 | Remaining clusters largely unreachable | 94 clusters documented in `docs/unreachable_proofs.md`. Hunt *genuinely reachable* gaps via (a) real shapes, (b) subclass/attribute behavior, (c) tight scoped monkeypatches of `pd`/`np`/`data_loader` internals when control flow is plausible. Max 1 probe per cluster; 0 delta → document proof + move on. | Exhaustion-proofed / active hunt |
+| 2 | **Deps/bootstrap fragility** | Bootstrap once: `python3 -m pip install --target /home/runner/work/_temp/kilo-tmp/pylib pytest coverage numpy pandas scipy` then use `export PYTHONPATH=$PWD:/home/runner/work/_temp/kilo-tmp/pylib` (or explicit `sys.path.insert` in one-liners) for all test/coverage commands. In this session pandas import via env var was flaky in one probe but worked via explicit path insertion; prefer explicit `PYTHONPATH` + verify with `python3 -c "import pandas,pytest,coverage,numpy,scipy"`. | **Active — fix in Step 0** |
+| 3 | Remaining clusters largely unreachable | 86 lines documented in `docs/unreachable_proofs.md`. Hunt *genuinely reachable* gaps via (a) real shapes, (b) subclass/attribute behavior, (c) tight scoped monkeypatches of `pd`/`np`/`data_loader` internals when control flow is plausible. Max 1 probe per cluster; 0 delta → document proof + move on. | Exhaustion-proofed / active hunt |
 | 4 | Batch32 failures | Fixed as test bugs only. Canonical 0 failed. | Removed |
 | 5 | Missing parquet/hdf5 deps | Monkeypatch `pd.read_parquet/read_hdf` and engine call sites. | Routed |
 | 6 | Inspect-sensitive/campaign_d semantics | Preserve `_coerce_to_datetime_scalar` inspect behavior and campaign_d filename/function behavior. Guard must stay green. | Preserved |
@@ -62,22 +62,23 @@ Repo name = **Crypto-Betting-Against-Beta** → **BAB strategy only**. **ONLY** 
 | 75-probe | 1926-1929,901-903/908-914 (excluded) | 2 passed | 44 passed | 96→96 (0) | 0 delta, not in canonical |
 | 76 | lines 1853,1868 (`load_returns` price path) | 2 passed | 44 passed | 98→96 (-2) | Reachable price-detection branches |
 | 77 | lines 1928-1929 (`load_prices` metadata drop) | 1 passed | 44 passed | 96→94 (-2) | Forced `np.allclose` exception in 1923-1927 inner try; 1926-1927 subsumed |
+| 78 | lines 1530-1531,1533-1536,2192-2193 (`validate_returns_dataframe` benchmark remap; `normalize_schema` metadata-drop outer except) | 3 passed | 44 passed | 94→86 (-8) | Lowercase benchmark arg + normalized column case exposed remap; `rename`/`drop` monkeypatches hit exception handlers |
 
-**Total (recorded):** 139→94 miss (-45). Canonical (recorded): 1425 passed, 0 failed, 17 skipped. Guard green.
+**Total:** 139→86 miss (-53). Canonical (this session): 1428 passed, 0 failed, 17 skipped. Guard green.
 
 ---
 
 ## INITIAL TASK MESSAGE FOR NEXT AGENTIC WORK SESSION (EXECUTE IMMEDIATELY)
 
-**Timestamp (UTC):** 2026-11-06T23:31:57Z
+**Timestamp (UTC):** 2026-11-06T23:44:10Z
 **Target:** Next coding agent working in this repo
 **Mode:** HEAVY WORK ONLY. No analysis-only, no planning-only, no status summaries without action.
 **Scope:** `strategies/betting_against_beta/data_loader.py` ONLY.
 
 ### Mission Status
-`data_loader.py` miss reduced 139→94 (-45, recorded). 94 remaining clusters are documented as unreachable in `docs/unreachable_proofs.md`. **Environment blocker observed this refresh:** default python3 lacks pandas/pytest on path; Step 0 includes bootstrap. **Do not coast**: each session must either (1) produce a measured miss reduction below 94 in a fresh canonical aggregate, or (2) add a new, specific unreachable proof with file:line + exact entrypoint/shape/monkeypatch evidence and immediately probe the next cluster.
+`data_loader.py` miss reduced 139→86 (-53). 86 remaining lines are documented in `docs/unreachable_proofs.md`. **Do not coast**: each session must either (1) produce a measured miss reduction below 86 in a fresh canonical aggregate, or (2) add a new, specific unreachable proof with file:line + exact entrypoint/shape/monkeypatch evidence and immediately probe the next cluster.
 
-**Batch77 lesson:** a cluster can look unreachable by input shape yet be reachable when an internal library call throws (1928-1929). Probe exception handlers with tight, targeted monkeypatches only when the handler is plausibly entered.
+**Batch78 lesson:** case-mismatch between caller args and normalized columns can expose remap/exception paths (`1530-1536`), and `normalize_schema` metadata-drop outer except is reachable when `DataFrame.drop` throws (`2192-2193`). Keep probing plausible internal-throw paths, not only input-shape dead ends.
 
 ### MANDATORY: Heavy Work Campaign (do not stop at baseline)
 
@@ -90,16 +91,16 @@ export PYTHONPATH=$PWD:/home/runner/work/_temp/kilo-tmp/pylib:/home/runner/work/
 python3 -c "import pytest, coverage, pandas, numpy, scipy; print('deps ok')"
 git rev-parse --short HEAD
 rm -f .coverage .coverage.*
-python3 -m coverage run --source=strategies.betting_against_beta -m pytest -q --tb=no --ignore=tests/test_controller_progress_accounting.py tests/test_bab_data_loader_coverage_gaps.py tests/test_bab_data_loader_robust.py tests/test_bab_data_loader_promote.py tests/test_bab_data_loader_miss_fill.py tests/test_bab_data_loader_campaign_d.py tests/test_bab_data_loader_campaign_d2.py tests/test_bab_data_loader_campaign_d3.py tests/test_bab_cli_coverage_campaign.py tests/test_bab_cli.py tests/test_bab_data_loader_batch40.py tests/test_bab_data_loader_batch41.py tests/test_bab_data_loader_batch42.py tests/test_bab_data_loader_batch43.py tests/test_bab_data_loader_batch44.py tests/test_bab_data_loader_batch45.py tests/test_bab_data_loader_batch46.py tests/test_bab_data_loader_batch47.py tests/test_bab_data_loader_batch48.py tests/test_bab_data_loader_batch49.py tests/test_bab_data_loader_batch50.py tests/test_bab_data_loader_batch51.py tests/test_bab_data_loader_batch52.py tests/test_bab_data_loader_batch53.py tests/test_bab_data_loader_batch54.py tests/test_bab_data_loader_batch55.py tests/test_bab_data_loader_batch56.py tests/test_bab_data_loader_batch57.py tests/test_bab_data_loader_batch58.py tests/test_bab_data_loader_batch59.py tests/test_bab_data_loader_batch60.py tests/test_bab_data_loader_batch61.py tests/test_bab_data_loader_batch62.py tests/test_bab_data_loader_batch63.py tests/test_bab_data_loader_batch64.py tests/test_bab_data_loader_batch65.py tests/test_bab_data_loader_batch66.py tests/test_bab_data_loader_batch67.py tests/test_bab_data_loader_batch68.py tests/test_bab_data_loader_batch69.py tests/test_bab_data_loader_batch71.py tests/test_bab_data_loader_batch72.py tests/test_bab_data_loader_batch73.py tests/test_bab_data_loader_batch74.py tests/test_bab_data_loader_batch76.py tests/test_bab_data_loader_batch77.py
+python3 -m coverage run --source=strategies.betting_against_beta -m pytest -q --tb=no --ignore=tests/test_controller_progress_accounting.py tests/test_bab_data_loader_coverage_gaps.py tests/test_bab_data_loader_robust.py tests/test_bab_data_loader_promote.py tests/test_bab_data_loader_miss_fill.py tests/test_bab_data_loader_campaign_d.py tests/test_bab_data_loader_campaign_d2.py tests/test_bab_data_loader_campaign_d3.py tests/test_bab_cli_coverage_campaign.py tests/test_bab_cli.py tests/test_bab_data_loader_batch40.py tests/test_bab_data_loader_batch41.py tests/test_bab_data_loader_batch42.py tests/test_bab_data_loader_batch43.py tests/test_bab_data_loader_batch44.py tests/test_bab_data_loader_batch45.py tests/test_bab_data_loader_batch46.py tests/test_bab_data_loader_batch47.py tests/test_bab_data_loader_batch48.py tests/test_bab_data_loader_batch49.py tests/test_bab_data_loader_batch50.py tests/test_bab_data_loader_batch51.py tests/test_bab_data_loader_batch52.py tests/test_bab_data_loader_batch53.py tests/test_bab_data_loader_batch54.py tests/test_bab_data_loader_batch55.py tests/test_bab_data_loader_batch56.py tests/test_bab_data_loader_batch57.py tests/test_bab_data_loader_batch58.py tests/test_bab_data_loader_batch59.py tests/test_bab_data_loader_batch60.py tests/test_bab_data_loader_batch61.py tests/test_bab_data_loader_batch62.py tests/test_bab_data_loader_batch63.py tests/test_bab_data_loader_batch64.py tests/test_bab_data_loader_batch65.py tests/test_bab_data_loader_batch66.py tests/test_bab_data_loader_batch67.py tests/test_bab_data_loader_batch68.py tests/test_bab_data_loader_batch69.py tests/test_bab_data_loader_batch71.py tests/test_bab_data_loader_batch72.py tests/test_bab_data_loader_batch73.py tests/test_bab_data_loader_batch74.py tests/test_bab_data_loader_batch76.py tests/test_bab_data_loader_batch77.py tests/test_bab_data_loader_batch78.py
 python3 -m coverage report --include='*data_loader.py' --show-missing
 python3 -m pytest -q --tb=no --ignore=tests/test_controller_progress_accounting.py tests/test_bab_data_loader_campaign_d.py tests/test_bab_data_loader_campaign_d2.py tests/test_bab_data_loader_campaign_d3.py
 ```
-Record actual baseline (passed/failed/skipped/miss/guard). If miss != 94 or tests fail unexpectedly, investigate before hunting.
+Record actual baseline (passed/failed/skipped/miss/guard). If miss != 86 or tests fail unexpectedly, investigate before hunting.
 
 **Campaign Priority (ordered, HEAVY WORK):**
 1. **Unblock + rebaseline** (Step 0). No further work until deps import and baseline is recorded.
-2. **Hunt reachable clusters** (max 1 probe each, then decide): prioritize exception/defensive handlers plausibly reachable by monkeypatch or rare shapes — `2192-2193` (`normalize_schema` metadata-drop outer except: can `cleaned.drop` throw for duplicate/odd columns collected from `cleaned.columns`?), `1530-1536` (validate benchmark remap — can a path bypass `_normalize_columns` normalization?), `1626-1627`/`1663-1664` (outer OSError/ValueError handlers — can non-BABDataError OSError/ValueError escape inner structure?), `901-903/908-914` (last-resort date promotion), `_detect_and_normalize_exchange_format` tz branches (`561,620,641-642,679,694-695`) via crafted tz-aware scalar objects if coercer passthrough is possible. **Do not retarget `1591-1592`** (dead: `df.empty` checked at 1583).
-3. **If you find a reachable cluster:** create `tests/test_bab_data_loader_batch78.py` (next). Minimal targeted tests hitting the real path. Run focused test → campaign_d guard → **fresh canonical aggregate** (include ALL batch40+ files, including batch77 and batch78). If miss decreases, record before/after/delta, update HANDOFF.md + `docs/unreachable_proofs.md`, repeat (batch79+).
+2. **Hunt reachable clusters** (max 1 probe each, then decide): prioritize exception/defensive handlers plausibly reachable by monkeypatch or rare shapes — `1626-1627`/`1663-1664` (parquet/hdf5 outer `OSError`/`ValueError` handlers: can monkeypatch `pd.read_parquet`/`pd.read_hdf` or validation path to raise `OSError`/`ValueError` that escapes inner `except Exception`? inner catches `Exception` including OSError/ValueError and wraps as BABDataError, so likely dead — prove with targeted attempt), `901-903/908-914` (last-resort object-column datetime promotion after earlier candidate-name promotion failed/was skipped), `791-792`/`859,861-862,867-868` (tz conversion internals on odd scalar types), `561,620,641-642,679,694-695` (`_detect_and_normalize_exchange_format` tz-aware Timestamp branches where `pd.Timestamp(pdv)` becomes tz-aware from coercer output?), `194,196,227-247` (numeric/string last-ditch dayfirst/elementwise index coercion), `1226-1227,1257-1258,1319-1320,1591-1592` (defensive outer excepts — likely dead but require proof attempts where plausible). **Do not retarget** covered lines or clearly dead paths without a new mechanism.
+3. **If you find a reachable cluster:** create `tests/test_bab_data_loader_batch79.py` (next). Minimal targeted tests hitting the real path. Run focused test → campaign_d guard → **fresh canonical aggregate** (include ALL batch40+ files, including batch78 and batch79). If miss decreases, record before/after/delta, update HANDOFF.md + `docs/unreachable_proofs.md`, repeat (batch80+).
 4. **If a probe gives 0 delta:** do NOT keep the batch in canonical unless it adds value; document proof (file:line, function, entrypoint, shape/monkeypatch tried, why unreachable/dead) in `docs/unreachable_proofs.md` and update HANDOFF.md. Move to next cluster immediately.
 
 **Execution Contract (NON-NEGOTIABLE):**
@@ -113,11 +114,11 @@ Record actual baseline (passed/failed/skipped/miss/guard). If miss != 94 or test
 - BAB `data_loader.py` ONLY. No infra/controller refactors, no cli.py/other-module pivot.
 - `--ignore=tests/test_controller_progress_accounting.py` ALWAYS. Never edit/commit/push `.github/workflows/*`.
 - Smallest correct fix only if proven contract violation. No comments. No push unless explicitly requested.
-- Batch numbers sequential starting at batch78.
+- Batch numbers sequential starting at batch79.
 - Zero-delta batches do not count — retarget immediately.
 
 ### Stop Criteria
-- **Success:** miss < 94 with measured deltas in a fresh canonical aggregate, OR additional clusters have documented unreachable proofs with file:line evidence beyond current docs (and handoff is stronger/clearer).
+- **Success:** miss < 86 with measured deltas in a fresh canonical aggregate, OR additional clusters have documented unreachable proofs with file:line evidence beyond current docs (and handoff is stronger/clearer).
 - **Required output:** Updated HANDOFF.md as single durable handoff with refreshed timestamp and clear next task message.
 
-**BEGIN HEAVY WORK NOW. Unblock deps, rebaseline, then hunt for reachable gaps below 94 or add new exhaustive proofs. Leave the handoff better than you found it.**
+**BEGIN HEAVY WORK NOW. Unblock deps, rebaseline, then hunt for reachable gaps below 86 or add new exhaustive proofs. Leave the handoff better than you found it.**
