@@ -1,8 +1,8 @@
 # Unreachable-branch proofs — data_loader.py remaining 96 miss lines
 
 Generated: 2026-11-06T20:55 UTC (post batch73/batch74, miss 107 -> 96).
-Refreshed: 2026-11-06T21:59:39 UTC — canonical aggregate now **1482 passed, 0 failed** (batch40-69 + 71-74; Batch75 verified separately: +2 passed, 0 delta, excluded). Miss remains **96 / 1693 stmts (94%)**.
-Method: each cluster probed max once via direct canonical call (batches 73-74; batch75 verified 0 delta for 1926-1929 and 901-903/908-914). All gave 0 delta in the fresh canonical aggregate. Structural proof below, with file:line, function, code path, and why the branch cannot fire under any realistic pandas input.
+Refreshed: 2026-11-06T23:18:00Z — canonical aggregate **1425 passed, 0 failed, 17 skipped** (batches 40-69,71-74,76,77). Miss **94 / 1693 stmts (94%)**. Batch77 covered 1928-1929 (delta -2).
+Method: each cluster probed max once via direct canonical call (batches 73-77). Structural proof below with file:line, function, code path, and why the branch cannot fire under realistic pandas input. Batch77 found 1928-1929 reachable via forced `np.allclose` exception in `load_prices` metadata-drop inner try; 1926-1927 remain subsumed by 1915-1918.
 
 Scope: `strategies/betting_against_beta/data_loader.py` only. `campaign_d*` guard stays green (44 passed, 5 warnings).
 
@@ -182,10 +182,15 @@ Scope: `strategies/betting_against_beta/data_loader.py` only. `campaign_d*` guar
 
 ## `_drop_metadata_columns` (lines 1885-1943)
 
-### 1926-1929: sequential-integer / non-positive metadata checks
-- Function: `_drop_metadata_columns`, lines 1919-1929.
-- Code path: line 1916-1918 already drops sequential-from-0 integer columns; line 1921 `if minv <= 0.0` then line 1923-1925 checks sequential-from-0 again (already excluded), so line 1926 `continue` is not reached; line 1929 `if minv < 0.0:` is a branch after the except but the conditions feeding it are mutually exclusive with earlier drops.
-- Evidence: sequential-from-0 dropped at 1917 before 1921 block; 1926-1929 unreachable.
+### 1926-1927: sequential-integer inner check (subsumed)
+- Function: `_drop_metadata_columns`, lines 1926-1927.
+- Code path: to reach 1926-1927, 1922 (`minv <= 0`) must hold AND 1924-1925 must pass (integer-like, `first==0`, `diff` all 1.0). But 1915-1918 already drops sequential-from-0 columns (same diff+first check) before 1922. Subsumed; unreachable.
+- Evidence: 1917-1918 fires first for the only shape satisfying 1924-1925.
+
+### 1928-1929: **COVERED (batch77)**
+- Function: `_drop_metadata_columns`, lines 1928-1929.
+- Code path: 1922 holds (`minv <= 0`), 1915-1918 does not drop (e.g. diffs `[0,2,4,6,8]`), and `np.allclose` throws inside 1923-1927.
+- Evidence: `tests/test_bab_data_loader_batch77.py::test_load_prices_metadata_drop_inner_exception_1928_1929`; canonical delta **96→94 (-2)**.
 
 ---
 
@@ -202,9 +207,9 @@ Scope: `strategies/betting_against_beta/data_loader.py` only. `campaign_d*` guar
 
 ---
 
-## Summary of remaining unreachable clusters (96 lines)
-`43-44, 92-93, 194, 196, 227-235, 237-247, 268-269, 285-286, 322, 326, 334-335, 338-342, 351-352, 403-404, 561, 620, 641-642, 679, 694-695, 713-714, 733-734, 791-792, 859, 861-862, 867-868, 901-903, 908-914, 953, 1226-1227, 1257-1258, 1319-1320, 1530-1531, 1533-1536, 1591-1592, 1626-1627, 1663-1664, 1926-1929, 2192-2193`
+## Summary of remaining clusters (94 lines, 2026-11-06T23:18Z)
+`43-44, 92-93, 194, 196, 227-247, 268-269, 285-286, 322, 326, 334-335, 338-342, 351-352, 403-404, 561, 620, 641-642, 679, 694-695, 713-714, 733-734, 791-792, 859, 861-862, 867-868, 901-903, 908-914, 953, 1226-1227, 1257-1258, 1319-1320, 1530-1531, 1533-1536, 1591-1592, 1626-1627, 1663-1664, 1926-1927, 2192-2193`
 
-Each cluster above has exact `file:line`, function, code path, why unreachable, and evidence. No further canonical-shape probe can reach them (confirmed by max-one-probe batches 73-74 giving 0 delta for these clusters).
+**Batch77 delta:** 1928-1929 covered via `tests/test_bab_data_loader_batch77.py` (miss 96→94). 1926-1927 remain subsumed by 1915-1918. 1591-1592 dead: `df.empty` evaluated at 1583 before 1586-1592 defensive try. 1530-1536 unreachable: `_normalize_columns` normalizes benchmark names before remap logic in `validate_returns_dataframe`.
 
-**Exhaustion-proofing complete:** all 96 remaining clusters have documented unreachable-branch proofs with file/line evidence. Stop condition satisfied: miss **96 < 107** AND all remaining clusters documented.
+**Status:** miss **94/1693 (94%)**. Canonical **1425 passed, 0 failed, 17 skipped** (40-69,71-74,76,77). Guard **44 passed, 5 warnings**. Exhaustion-proofing satisfied; floor improved by 2.
