@@ -2,11 +2,11 @@
 
 > **This is the only durable handoff.** Read fully, then execute the **INITIAL TASK MESSAGE** below. No off-ramp, no sidetrack, no status-only session.
 
-**Handoff refreshed (UTC):** 2026-11-06T15:36:26Z
-**Last fresh canonical verification (UTC):** 2026-11-06T15:36:26Z (Step 0 rerun this session, includes `tests/test_bab_data_loader_batch54-57.py`)
+**Handoff refreshed (UTC):** 2026-11-06T15:41:29Z
+**Last fresh canonical verification (UTC):** 2026-11-06T15:41:29Z (Step 0 rerun this session, includes `tests/test_bab_data_loader_batch54-57.py`)
 **Repo:** `Crypto-Betting-Against-Beta`
 **Path:** `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
-**Branch/SHA (pre-session, verify):** `main` @ `960c0e8` (recheck with `git rev-parse --short HEAD`). Working tree includes `HANDOFF.md` update + new `tests/test_bab_data_loader_batch55.py`, `batch56.py`, `batch57.py` (uncommitted). **No `.github/workflows/*` edits/commits/pushes. No remote push performed.**
+**Branch/SHA (pre-session, verify):** `main` @ `c10fde1` (recheck with `git rev-parse --short HEAD`). Working tree clean (batches 55-57 committed in `c10fde1`). **No `.github/workflows/*` edits/commits/pushes. No remote push performed.**
 
 ---
 
@@ -17,7 +17,7 @@ Repo name is **Crypto-Betting-Against-Beta** → **BAB only**. The **only** prio
 - Every session must produce **measured `data_loader.py` miss-count reduction** in a **fresh completed canonical aggregate**, **or** a documented unreachable-branch proof **with file/line evidence** while immediately moving to the next reachable cluster.
 - A session that ends with "reviewed code", "ran baseline only", or "planned next steps" without measured delta/proof is a failed session.
 
-## VERIFIED STATE (fresh canonical: 2026-11-06T15:36:26Z)
+## VERIFIED STATE (fresh canonical: 2026-11-06T15:41:29Z)
 - **Env:** Python 3.12.3. Deps in `/home/runner/work/_temp/kilo-home/.local/lib/python3.12/site-packages` (pandas/numpy/pytest/coverage present). pyarrow/tables/fastparquet not installed — monkeypatch parquet/hdf5/engine branches.
 - **Canonical aggregate (batch40-57 included):** **1384 passed, 13 failed (pre-existing Batch32/coverage_gaps only), 23 skipped, 93 warnings**.
 - **`strategies/betting_against_beta/data_loader.py`: 1693 stmts, 114 miss, 93%.** **No canonical delta this session** (114→114); batches 55-57 added regression probes but did not hit the remaining missing lines in aggregate.
@@ -81,12 +81,12 @@ python3 -m coverage report --include='*data_loader.py' --show-missing
 
 ## INITIAL TASK MESSAGE FOR NEXT AGENTIC SESSION (execute immediately — heavy work, mandatory)
 
-**Timestamp (UTC):** 2026-11-06T15:36:26Z
+**Timestamp (UTC):** 2026-11-06T15:41:29Z
 **Recipient:** next coding agent in this repo.
 **Mode:** HEAVY WORK ONLY. No analysis-only turn. No planning-only turn.
 
 ### Mission
-Reduce `strategies/betting_against_beta/data_loader.py` miss count from **114** (fresh canonical 2026-11-06T15:36:26Z; **rebaseline at Step 0**) in a **fresh canonical aggregate**. **BAB `data_loader.py` only.** Every batch must yield a **measured miss-count delta** or a **documented unreachable-branch proof with file/line evidence**, then immediately move to the next reachable cluster. `campaign_d*` guard must stay green.
+Reduce `strategies/betting_against_beta/data_loader.py` miss count from **114** (fresh canonical 2026-11-06T15:41:29Z; **rebaseline at Step 0**) in a **fresh canonical aggregate**. **BAB `data_loader.py` only.** Every batch must yield a **measured miss-count delta** or a **documented unreachable-branch proof with file/line evidence**, then immediately move to the next reachable cluster. `campaign_d*` guard must stay green.
 
 ### Focus campaign (ordered; do not avoid)
 1. **`791-792,859,861-862,867-868,894,901-903,908-914`** — `_promote_datetime_column` handlers. Use canonical callers (`validate_returns_dataframe`/`load_returns*`/`clean_data` paths) and stateful `pd.to_datetime`/`DataFrame.set_index`/module attribute patches that fire in aggregate. Target exact object shapes (parsed with `apply` raising; unnamed coerced tz-aware elements; last-resort parsed tz/DatatimeIndex coercion failures).
