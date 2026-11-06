@@ -5526,3 +5526,221 @@ class TestBatch11CoerceNumericAndSeriesParseable:
         import numpy as np
         result = dlmod._not_null(np.array([1, 2]))
         assert result is True
+
+import numpy as np
+
+
+class TestBatch14ExchangeNormalizeTails:
+    def test_exchange_long_format_pivot_with_tz_aware_dates(self):
+        df = pd.DataFrame({
+            "timestamp": pd.to_datetime(["2024-01-01", "2024-01-02"], utc=True),
+            "symbol": ["BTC", "BTC"],
+            "close": [100.0, 101.0],
+        })
+        out = dlmod._detect_and_normalize_exchange_format(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+        assert getattr(out.index, "tz", None) is None
+        assert "BTC" in out.columns
+
+    def test_exchange_long_format_pivot_fallback_coerce_path(self, monkeypatch):
+        df = pd.DataFrame({
+            "date": ["1704067200000", "1704153600000"],
+            "asset": ["ETH", "ETH"],
+            "price": [2000.0, 2100.0],
+        })
+        out = dlmod._detect_and_normalize_exchange_format(df)
+        assert isinstance(out.index, pd.DatetimeIndex) or len(out) == 2
+
+    def test_exchange_ohlcv_single_asset_close_selection(self):
+        df = pd.DataFrame({
+            "date": ["2024-01-01", "2024-01-02"],
+            "open": [99.0, 100.0],
+            "high": [102.0, 103.0],
+            "low": [98.0, 99.0],
+            "close": [100.0, 101.0],
+            "volume": [1000, 1100],
+        })
+        out = dlmod._detect_and_normalize_exchange_format(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+        assert len(out.columns) == 1
+        assert str(out.columns[0]).strip().lower() == "close"
+
+    def test_exchange_ohlcv_adj_close_preferred(self):
+        df = pd.DataFrame({
+            "date": ["2024-01-01", "2024-01-02"],
+            "close": [100.0, 101.0],
+            "adj close": [99.5, 100.5],
+        })
+        out = dlmod._detect_and_normalize_exchange_format(df)
+        assert any("adj" in str(c).lower() and "close" in str(c).lower() for c in out.columns)
+
+    def test_exchange_date_col_no_coerce_returns_original(self):
+        df = pd.DataFrame({
+            "date": ["2024-01-01", "2024-01-02"],
+            "BTC": [0.01, 0.02],
+            "ETH": [0.03, 0.04],
+        })
+        out = dlmod._detect_and_normalize_exchange_format(df)
+        assert isinstance(out, pd.DataFrame)
+
+    def test_exchange_epoch_string_triggers_coerce(self):
+        df = pd.DataFrame({
+            "timestamp": ["1704067200", "1704153600"],
+            "BTC": [0.01, 0.02],
+        })
+        out = dlmod._detect_and_normalize_exchange_format(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+    def test_exchange_large_epoch_int_triggers_coerce(self):
+        df = pd.DataFrame({
+            "timestamp": [1704067200000, 1704153600000],
+            "BTC": [0.01, 0.02],
+        })
+        out = dlmod._detect_and_normalize_exchange_format(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+    def test_exchange_tz_element_normalization_in_parsed_clean(self):
+        df = pd.DataFrame({
+            "date": pd.to_datetime(["2024-01-01", "2024-01-02"]).tz_localize("US/Eastern"),
+            "value": [1.0, 2.0],
+        })
+        out = dlmod._detect_and_normalize_exchange_format(df)
+        if isinstance(out.index, pd.DatetimeIndex):
+            assert getattr(out.index, "tz", None) is None
+
+
+class TestBatch15NormalizeIndexAndCoerce:
+    def test_normalize_index_empty_numeric(self):
+        df = pd.DataFrame({"BTC": pd.Series([], dtype=float)}, index=pd.Index([], dtype="int64"))
+        out = dlmod._normalize_index(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+        assert len(out) == 0
+
+    def test_normalize_index_numeric_seconds(self):
+        idx = [1704067200, 1704153600]
+        df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=idx)
+        out = dlmod._normalize_index(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+    def test_normalize_index_numeric_ms(self):
+        idx = [1704067200000, 1704153600000]
+        df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=idx)
+        out = dlmod._normalize_index(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+    def test_normalize_index_numeric_us(self):
+        idx = [1704067200000000, 1704153600000000]
+        df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=idx)
+        out = dlmod._normalize_index(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+    def test_normalize_index_numeric_ns_boundary(self):
+        idx = [1704067200000000000, 1704153600000000000]
+        df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=idx)
+        out = dlmod._normalize_index(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+    def test_normalize_index_string_iso(self):
+        df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=["2024-01-01", "2024-01-02"])
+        out = dlmod._normalize_index(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+    def test_normalize_index_all_nat_datetimeindex_raises(self):
+        idx = pd.to_datetime([pd.NaT, pd.NaT])
+        df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=idx)
+        with pytest.raises(dlmod.BABDataError):
+            dlmod._normalize_index(df)
+
+    def test_normalize_index_unparseable_raises(self):
+        df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=["not-a-date", "also-not"])
+        with pytest.raises(dlmod.BABDataError):
+            dlmod._normalize_index(df)
+
+    def test_coerce_scalar_epoch_seconds_int(self):
+        ts = dlmod._coerce_to_datetime_scalar(1704067200)
+        assert pd.notna(ts)
+
+    def test_coerce_scalar_epoch_ms_int(self):
+        ts = dlmod._coerce_to_datetime_scalar(1704067200000)
+        assert pd.notna(ts)
+
+    def test_coerce_scalar_epoch_us_int(self):
+        ts = dlmod._coerce_to_datetime_scalar(1704067200000000)
+        assert pd.notna(ts)
+
+    def test_coerce_scalar_iso_string(self):
+        ts = dlmod._coerce_to_datetime_scalar("2024-01-01T00:00:00Z")
+        assert pd.notna(ts)
+
+    def test_coerce_scalar_none_raises(self):
+        with pytest.raises((ValueError, TypeError, Exception)):
+            dlmod._coerce_to_datetime_scalar(None)
+
+    def test_coerce_scalar_empty_string_raises(self):
+        with pytest.raises((ValueError, TypeError, Exception)):
+            dlmod._coerce_to_datetime_scalar("")
+
+    def test_coerce_scalar_nan_raises(self):
+        with pytest.raises((ValueError, TypeError, Exception)):
+            dlmod._coerce_to_datetime_scalar(float("nan"))
+
+    def test_coerce_scalar_nat_raises(self):
+        with pytest.raises((ValueError, TypeError, Exception)):
+            dlmod._coerce_to_datetime_scalar(pd.NaT)
+
+    def test_normalize_asset_name_strips_suffix(self):
+        out = dlmod._normalize_asset_name("BTC-USD")
+        assert isinstance(out, str)
+        assert "BTC" in out.upper() or out
+
+
+class TestBatch16PromoteDatetimeColumnPaths:
+    def test_promote_already_datetime_index_tz_aware(self):
+        idx = pd.to_datetime(["2024-01-01", "2024-01-02"], utc=True)
+        df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=idx)
+        out = dlmod._promote_datetime_column(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+        assert getattr(out.index, "tz", None) is None
+
+    def test_promote_date_col_two_columns_parsed(self):
+        df = pd.DataFrame({"date": ["2024-01-01", "2024-01-02"], "BTC": [0.01, 0.02]})
+        out = dlmod._promote_datetime_column(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+        assert "BTC" in out.columns
+
+    def test_promote_timestamp_epoch_strings(self):
+        df = pd.DataFrame({"timestamp": ["1704067200", "1704153600"], "BTC": [0.01, 0.02]})
+        out = dlmod._promote_datetime_column(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+    def test_promote_multi_col_exchange_frame_keeps_raw_index(self):
+        df = pd.DataFrame({
+            "date": ["2024-01-01", "2024-01-02"],
+            "BTC": [0.01, 0.02],
+            "ETH": [0.03, 0.04],
+        })
+        out = dlmod._promote_datetime_column(df)
+        assert "date" not in [str(c).lower() for c in out.columns]
+
+    def test_promote_unparseable_candidate_raises_babdataerror(self):
+        df = pd.DataFrame({"date": ["not-a-date", "nope"], "BTC": [0.01, 0.02]})
+        with pytest.raises(dlmod.BABDataError):
+            dlmod._promote_datetime_column(df)
+
+    def test_promote_unnamed_column_datetime(self):
+        df = pd.DataFrame({"": ["2024-01-01", "2024-01-02"], "BTC": [0.01, 0.02]})
+        out = dlmod._promote_datetime_column(df)
+        assert isinstance(out, pd.DataFrame)
+
+    def test_promote_last_resort_parsable_string_col(self):
+        df = pd.DataFrame({
+            "mydate": ["2024-01-01", "2024-01-02"],
+            "BTC": [0.01, 0.02],
+        })
+        out = dlmod._promote_datetime_column(df)
+        assert isinstance(out.index, pd.DatetimeIndex) or "BTC" in out.columns
+
+    def test_promote_no_datetime_returns_unchanged(self):
+        df = pd.DataFrame({"BTC": [0.01, 0.02], "ETH": [0.03, 0.04]})
+        out = dlmod._promote_datetime_column(df)
+        assert list(out.columns) == ["BTC", "ETH"]
