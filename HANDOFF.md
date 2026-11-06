@@ -2,11 +2,11 @@
 
 > **This is the only durable handoff.** Read fully, then execute the **INITIAL TASK MESSAGE** below immediately. No off-ramp, no sidetrack, no status-only session, no planning-only session.
 
-**Handoff refreshed (UTC):** 2026-11-06T19:11:10Z
-**Last fresh canonical verification (UTC):** 2026-11-06T18:04:55Z (Step 0 baseline re-run with batches 40-64; 1429 passed, 13 pre-existing Batch32 failures, 23 skipped, 102 warnings)
-**Guard rechecked (UTC):** 2026-11-06T18:04:55Z — `campaign_d*` **44 passed, 5 warnings**.
+**Handoff refreshed (UTC):** 2026-11-06T19:11:25Z
+**Last fresh canonical verification (UTC):** 2026-11-06T19:11:00Z (Step 0 baseline re-run with batches 40-66; 1436 passed, 13 pre-existing Batch32 failures, 23 skipped, 102 warnings)
+**Guard rechecked (UTC):** 2026-11-06T19:11:00Z — `campaign_d*` **44 passed, 5 warnings**.
 **Repo:** `Crypto-Betting-Against-Beta` | **Path:** `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
-**Branch/SHA:** `main` @ `3b9b51e` (verify with `git rev-parse --short HEAD`). Working tree clean at handoff refresh (no tracked/untracked strategy/test changes observed). Batches 61-64 already committed; **batch65+ not yet created**. **No `.github/workflows/*` edits/commits/pushes. No remote push performed.**
+**Branch/SHA:** `main` @ `6622e0f` (verify with `git rev-parse --short HEAD`). Working tree: 2 untracked files (`tests/test_bab_data_loader_batch65.py`, `tests/test_bab_data_loader_batch66.py`), no tracked changes. **No `.github/workflows/*` edits/commits/pushes. No remote push performed.**
 
 ---
 
@@ -18,19 +18,19 @@ Repo name is **Crypto-Betting-Against-Beta** → **BAB only**. The **only** prio
 - Every session must produce **measured `data_loader.py` miss-count reduction** in a **fresh completed canonical aggregate**, **or** a documented unreachable-branch proof **with file/line evidence** while immediately moving to the next reachable cluster.
 - A session that ends with "reviewed code", "ran baseline only", or "planned next steps" without measured delta/proof is a **failed session**.
 
-## VERIFIED STATE (fresh canonical: 2026-11-06T17:42:08Z)
+## VERIFIED STATE (fresh canonical: 2026-11-06T19:11:00Z)
 
 - **Env:** Python 3.12.3. Deps (pandas/numpy/pytest/coverage) installed at `/home/runner/work/_temp/kilo-home/.local/` (set `PATH` and `PYTHONPATH` per Step 0). pyarrow/tables/fastparquet not installed — monkeypatch parquet/hdf5/engine branches.
-- **Canonical aggregate (batch40-64):** **1429 passed, 13 failed (pre-existing Batch32/coverage_gaps only), 23 skipped, 102 warnings.**
-- **`strategies/betting_against_beta/data_loader.py`: 1693 stmts, 111 miss, 93%.** (baseline 114 at Step 0; batches 61-64 contributed -3)
-- **Missing lines (exact, 111):** `43-44, 84, 92-93, 194, 196, 227-247, 268-269, 285-286, 322, 326, 334-335, 338-342, 351-352, 400, 403-404, 561, 620, 641-642, 679, 694-695, 713-714, 733-734, 791-792, 859, 861-862, 867-868, 901-903, 908-914, 953, 1033-1034, 1226-1227, 1257-1258, 1293-1294, 1319-1320, 1530-1531, 1533-1536, 1591-1592, 1626-1627, 1663-1664, 1926-1929, 2160-2163, 2167-2168, 2187-2189, 2192-2193`.
-- **Newly covered since 114-baseline:** `894` (batch61), `1097-1098` (batch62). Batches 63-64 gave 0 delta individually and in aggregate.
+- **Canonical aggregate (batch40-66):** **1436 passed, 13 failed (pre-existing Batch32/coverage_gaps only), 23 skipped, 102 warnings.**
+- **`strategies/betting_against_beta/data_loader.py`: 1693 stmts, 109 miss, 94%.** (baseline 114 at Step 0; batches 61-65 contributed -5; batch66 0 delta)
+- **Missing lines (exact, 109):** `43-44, 84, 92-93, 194, 196, 227-247, 268-269, 285-286, 322, 326, 334-335, 338-342, 351-352, 400, 403-404, 561, 620, 641-642, 679, 694-695, 713-714, 733-734, 791-792, 859, 861-862, 867-868, 901-903, 908-914, 953, 1033-1034, 1226-1227, 1257-1258, 1319-1320, 1530-1531, 1533-1536, 1591-1592, 1626-1627, 1663-1664, 1926-1929, 2160-2163, 2167-2168, 2187-2189, 2192-2193`.
+- **Newly covered since 114-baseline:** `894` (batch61), `1097-1098` (batch62), `1293-1294` (batch65). Batches 63, 64, 66 gave 0 delta individually and in aggregate.
 - **Step 0 baseline (run first; append batch65+ if they exist):**
 ```bash
 cd /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
 export PATH=/home/runner/work/_temp/kilo-home/.local/bin:$PATH
 export PYTHONPATH=$PWD:/home/runner/work/_temp/kilo-home/.local/lib/python3.12/site-packages
-python3 -m coverage erase && python3 -m coverage run --source=strategies.betting_against_beta -m pytest -q --tb=no --ignore=tests/test_controller_progress_accounting.py tests/test_bab_data_loader_coverage_gaps.py tests/test_bab_data_loader_robust.py tests/test_betting_against_beta_data_loader.py tests/test_bab_messy_data.py tests/test_bab_zero_silent_error.py tests/test_bab_data_loader_promote.py tests/test_bab_data_loader_miss_fill.py tests/test_bab_data_loader_campaign_d.py tests/test_bab_data_loader_campaign_d2.py tests/test_bab_data_loader_campaign_d3.py tests/test_bab_cli_coverage_campaign.py tests/test_bab_cli.py tests/test_bab_data_loader_batch40.py tests/test_bab_data_loader_batch41.py tests/test_bab_data_loader_batch42.py tests/test_bab_data_loader_batch43.py tests/test_bab_data_loader_batch44.py tests/test_bab_data_loader_batch45.py tests/test_bab_data_loader_batch46.py tests/test_bab_data_loader_batch47.py tests/test_bab_data_loader_batch48.py tests/test_bab_data_loader_batch49.py tests/test_bab_data_loader_batch50.py tests/test_bab_data_loader_batch51.py tests/test_bab_data_loader_batch52.py tests/test_bab_data_loader_batch53.py tests/test_bab_data_loader_batch54.py tests/test_bab_data_loader_batch55.py tests/test_bab_data_loader_batch56.py tests/test_bab_data_loader_batch57.py tests/test_bab_data_loader_batch58.py tests/test_bab_data_loader_batch59.py tests/test_bab_data_loader_batch60.py tests/test_bab_data_loader_batch61.py tests/test_bab_data_loader_batch62.py tests/test_bab_data_loader_batch63.py tests/test_bab_data_loader_batch64.py
+python3 -m coverage erase && python3 -m coverage run --source=strategies.betting_against_beta -m pytest -q --tb=no --ignore=tests/test_controller_progress_accounting.py tests/test_bab_data_loader_coverage_gaps.py tests/test_bab_data_loader_robust.py tests/test_betting_against_beta_data_loader.py tests/test_bab_messy_data.py tests/test_bab_zero_silent_error.py tests/test_bab_data_loader_promote.py tests/test_bab_data_loader_miss_fill.py tests/test_bab_data_loader_campaign_d.py tests/test_bab_data_loader_campaign_d2.py tests/test_bab_data_loader_campaign_d3.py tests/test_bab_cli_coverage_campaign.py tests/test_bab_cli.py tests/test_bab_data_loader_batch40.py tests/test_bab_data_loader_batch41.py tests/test_bab_data_loader_batch42.py tests/test_bab_data_loader_batch43.py tests/test_bab_data_loader_batch44.py tests/test_bab_data_loader_batch45.py tests/test_bab_data_loader_batch46.py tests/test_bab_data_loader_batch47.py tests/test_bab_data_loader_batch48.py tests/test_bab_data_loader_batch49.py tests/test_bab_data_loader_batch50.py tests/test_bab_data_loader_batch51.py tests/test_bab_data_loader_batch52.py tests/test_bab_data_loader_batch53.py tests/test_bab_data_loader_batch54.py tests/test_bab_data_loader_batch55.py tests/test_bab_data_loader_batch56.py tests/test_bab_data_loader_batch57.py tests/test_bab_data_loader_batch58.py tests/test_bab_data_loader_batch59.py tests/test_bab_data_loader_batch60.py tests/test_bab_data_loader_batch61.py tests/test_bab_data_loader_batch62.py tests/test_bab_data_loader_batch63.py tests/test_bab_data_loader_batch64.py tests/test_bab_data_loader_batch65.py tests/test_bab_data_loader_batch66.py
 python3 -m coverage report --include='*data_loader.py' --show-missing
 ```
 
@@ -39,7 +39,7 @@ python3 -m coverage report --include='*data_loader.py' --show-missing
 | # | Bottleneck | Route-around (mandatory) | Exit |
 |---|---|---|---|
 | 1 | Controller workflow-sync test | Always `--ignore=tests/test_controller_progress_accounting.py`. **Never edit/commit/push `.github/workflows/*`.** | Operator fixes workflow. |
-| 2 | 111 miss remains; batches 55-60 gave 0 delta | **ROUTED.** Batches 61-64 proved **direct canonical-entrypoint calls with real DataFrame/Series shapes** (no global `pd.to_datetime`/`pd.read_csv` patching) register in a fresh canonical aggregate: batch61 δ1 (line 894), batch62 δ2 (lines 1097-1098), combined 61-64 δ3 (114→111). Next session must use this aggregate-safe strategy; global monkeypatch patches are overwritten/neutralized in canonical order. | miss <111 (target ≤108, stretch ≤105). |
+| 2 | 109 miss remains; batches 63-64 and 66 gave 0 delta | **ROUTED.** Batches 61-62 and 65 proved **direct canonical-entrypoint calls with real DataFrame/Series shapes** (no global `pd.to_datetime`/`pd.read_csv` patching) register in a fresh canonical aggregate: batch61 δ1 (line 894), batch62 δ2 (lines 1097-1098), batch65 δ2 (lines 1293-1294). Next session must use this aggregate-safe strategy; global monkeypatch patches are overwritten/neutralized in canonical order. | miss <109 (target ≤108, stretch ≤105). |
 | 3 | 13 pre-existing Batch32/coverage_gaps failures | Ignore; miss delta is authoritative. | Documented. |
 | 4 | pyarrow/tables/fastparquet missing | Monkeypatch `pd.read_parquet/read_hdf` and engine call sites. | Covered/route-around. |
 | 5 | Inspect-sensitive / campaign_d semantics | Preserve `_coerce_to_datetime_scalar` inspect behavior and campaign_d filename/function behavior. Guard must stay green. | Guard green. |
@@ -66,64 +66,72 @@ python3 -m coverage report --include='*data_loader.py' --show-missing
 | 55 | name-match/unnamed-tz/last-resort/benchmark remap/CSV defensive/exchange epoch/clean_data probes | 10 passed | 44 passed | 114→114 (0) | 0 delta — retarget |
 | 56 | flaky remap, stateful CSV empty, duplicate header, exchange open_time epoch, detect unknown, parquet engine fallback | 6 passed | 44 passed | 114→114 (0) | 0 delta |
 | 57 | coerce_series tz, clean_data junk drop, DatetimeIndex tz norm, exchange normalize, benchmark case, hdf5 fallback | 6 passed | 44 passed | 114→114 (0) | 0 delta |
-| 58 | name-match tz elementwise/apply-raise, unnamed tz/inner except, last-resort tz/set_index, benchmark remap flaky rename, CSV stateful empty | 7 passed | 44 passed | 114→114 (0) | 0 delta — aggregate-context sensitivity |
+| 58 | name-match tz elementwise/apply-raise, unnamed tz/inner except, last-resort tz/set_index, benchmark remap/`__contains__` fallback, CSV stateful empty | 7 passed | 44 passed | 114→114 (0) | 0 delta — aggregate-context sensitivity |
 | 59 | name-match outer except, unnamed coercer tz/inner except, last-resort tz+set_index fallback/result-not-DatetimeIndex, benchmark remap/`__contains__` fallback, CSV stateful empty | 6 passed | 44 passed | 114→114 (0) | 0 delta |
 | 60 | name-match tz attr shape, exchange epoch via `clean_data`, coerce/detect/QA through validate, clean_data defensive/junk/dup, benchmark second remap | 5 passed | 44 passed | 114→114 (0) | 0 delta |
 | 61 | real-data probes for promote/normalize (894, 901-903, 867-868, 859, 1530, 1533-1536) | 7 passed | 44 passed | 114→113 (**-1**) | line 894 newly covered; direct canonical entrypoint, no global patch |
 | 62 | real-data probes metadata/normalize/parquet/hdf5 (1926-1929, 2160-2163, 2167-2168, 2187-2189, 2192-2193, 1097-1098) | 6 passed | 44 passed | 114→112 (**-2**) | lines 1097-1098 newly covered; direct canonical entrypoint |
 | 63 | direct `_promote_datetime_column` probes (791-792, 859, 867-868, 901-903) | 7 passed | 44 passed | 114→114 (0) | 0 delta — retarget |
 | 64 | targeted probes remaining clusters (1626-1627, 1663-1664, 791-792, 1530-1531, 1533-1536, 1591-1592) | 6 passed | 44 passed | 114→114 (0) | 0 delta — retarget |
+| 65 | QA handlers / coerce fallbacks (`_run_data_quality_campaign`, `_coerce_numeric`) | 7 passed | 44 passed | 111→109 (**-2**) | lines 1293-1294 newly covered; direct canonical entrypoint |
+| 66 | `_drop_metadata_columns` sequential-with-NaN, `normalize_schema` dup-header, `_run_data_quality_campaign` tz/coerce | 3 passed | 44 passed | 109→109 (0) | 0 delta — retarget; `test_1926_1927` removed (line 1926 unreachable: line 1916 identical condition fires first) |
 
-**Measured improvement (historical): 139 → 111 miss (93%). Current session baseline/end:** 111 miss (batches 61-64: **-3**, lines 894 and 1097-1098). Guard green (44 passed).
+**Measured improvement (historical): 139 → 109 miss (94%). Current session baseline/end:** 109 miss (batches 65-66: **-2**, line 1293-1294). Guard green (44 passed).
 
-## LIKELY-HARD / CAUTION (attempt via canonical path; if still 0, produce file/line unreachable proof and move on)
+## LIKELY-HARD / UNREACHABLE — EVIDENCE (attempt via canonical path once; if still 0, document proof and move on)
 
-- `791-792` — name-match elementwise tz outer catch (`_promote_datetime_column`, ~780-792). batch63/64 probes gave 0 delta. Try data where parsed elements are tz-aware objects but `dt_attr`/dtype-tz detection fails only via realistic pandas behavior through `validate_returns_dataframe`.
-- `859, 861-862, 867-868, 901-903, 908-914` — unnamed/last-resort promote handlers (~843-919). Drive through `validate_returns_dataframe`/`load_returns*`/`clean_data` with unpatched module globals where possible.
-- `1530-1531, 1533-1536` — `validate_returns_dataframe` benchmark remap fallbacks (~1515-1536). batch61 case-insensitive bench covered but remap-fallback branches still missing; need `bench_found != benchmark` with first rename raising.
-- `1591-1592` — `load_returns_from_csv` second empty-check defensive (~1585-1592). Stateful `empty` across checks is hard; try inputs that raise only at the 1587 boundary, or prove unreachable.
-- `679, 694-695, 713-714, 733-734` — exchange epoch/tz normalization (~660-734).
-- `1926-1929, 2160-2163, 2167-2168, 2187-2189, 2192-2193` — `clean_data`/`normalize_schema` duplicate-header/junk/drop defensive branches. batch62 gave 0 delta; try canonical `normalize_schema`/`_drop_metadata_columns` shapes that reach the except/drop paths.
-- `1226-1227, 1257-1258, 1293-1294, 1319-1320, 1033-1034, 953` — coerce/detect/QA handlers through canonical APIs.
-- `1626-1627, 1663-1664` — parquet/hdf5 missing-file (`load_returns_from_parquet/hdf5` nonexistent path). batch64 gave 0 delta; verify exact raise path.
-- `227-247, 43-44, 84, 92-93, 194, 196, 268-269, 285-286, 322, 326, 334-335, 338-342, 351-352, 400, 403-404, 561, 620, 641-642` — inspect/defensive/rare branches; max one probe pass each, then file/line evidence if unreachable.
+Structural evidence (do not re-probe identical shapes):
 
----
+- **`791-792, 859, 861-862, 867-868`** — `_promote_datetime_column`. `_coerce_to_datetime_scalar` (line 309) always returns a `Timestamp` (tz-aware for epochs/ISO, tz-naive for naive input) or raises `ValueError("bad")`; it never returns a raw tz-carrying scalar that is `tzinfo`-less while `pd.Timestamp(x)` is tz-aware. So the "else → pd.Timestamp(pdv) tz-aware" branches (859, 861-862) and the elementwise-tz outer catch (791-792) are not fired by real data through `validate_returns_dataframe`. batches 63-64 confirmed 0 delta.
+- **`901-903`** — last-resort tz_convert. `pd.to_datetime(df[col], errors='raise')` on a **Series** returns a Series whose `.tz` is `None` even when elements are tz-aware, so line 900 `getattr(parsed, "tz", None)` is `None` and the tz_convert block is skipped. Confirmed 0 delta via `validate_returns_dataframe` (test_901_903, batch65).
+- **`908-914`** — last-resort `set_index` fallback. `parsed` from `pd.to_datetime(Series)` is converted via `df2.index = parsed`; when the result is a `DatetimeIndex` line 906 returns at 907 before the fallback, and batch65's direct path did not register 908-914 in aggregate (junk-drop at line 1469-1470 removes parseable string columns before/around promotion in `validate_returns_dataframe` flow).
+- **`1530-1531, 1533-1536`** — benchmark remap. `validate_returns_dataframe` calls `_normalize_columns` at line 1413 (before the benchmark check at 1515), and `_normalize_asset_name` (line 961-981) uppercases any case-insensitive benchmark match to exactly `benchmark`, so `bench_found != benchmark` at line 1526 is never True. batches 61-64 confirmed 0 delta.
+- **`1591-1592`** — `load_returns_from_csv` defensive empty-after-read. `df` from `pd.read_csv` is a DataFrame; `df.empty` is identical at lines 1583 and 1587, so line 1587 is never reached with a non-`BABDataError` exception; line 1591-1592 only catches non-`BABDataError` exceptions from a branch that cannot raise.
+- **`1926-1927`** — `_drop_metadata_columns` sequential-integer drop. Line 1916 (`diffs all 1.0 and first==0.0`) has an identical condition to line 1925 and fires first under `finite.all()`; line 1925 is only reached when line 1916 is False, i.e. when 1925 is also False → dead. batch66 test removed (0 delta).
+- **`953`** — `_normalize_asset_name` `if not tok_clean: continue`. `str.split()` never yields empty tokens, so `tok_clean` is never falsy → dead.
+- **`43-44`** — `_not_null` outer except. The only statements in the outer try outside the inner `pd.isna` try are `v is None` (never raises) and `return True` → outer except never fires → dead.
+- **`1033-1034`** — `_normalize_columns` `except Exception` append fallback. `_normalize_asset_name` never raises (catches all at line 982-983) → dead.
+- **`1226-1227`** — `_coerce_numeric` outer `(ValueError,TypeError,AttributeError)` except. The inner loop try (line 1220-1222) catches `Exception` and re-raises as `BABDataError`, which line 1224 re-raises → line 1226 never reached.
+- **`1257-1258`** — `_run_data_quality_campaign` tz_localize except. Requires `tz_convert` to raise (line 1253) then `tz_localize(None)` to raise (line 1255) on a tz-aware index — not produced by realistic pandas input.
+- **`1319-1320`** — `_run_data_quality_campaign` coerce fallback. `pd.to_numeric(..., errors="coerce")` does not raise for any input → line 1319 never executed. batch66 confirmed 0 delta.
+- **`2187-2189, 2192-2193`** — `load_prices` junk-drop excepts. `pd.to_numeric(..., errors="coerce")` (line 2183) never raises → line 2187-2188 dead; outer try (2176-2193) has no escaping exception → 2192-2193 dead.
+- **`1626-1627, 1663-1664`** — parquet/hdf5 missing-file OSError/ValueError paths. Without pyarrow/tables, `pd.read_parquet/read_hdf` raises `ImportError`/`ModuleNotFoundError`, caught at lines 1613-1617/1650-1654 → `BABDataError`, so lines 1624-1627/1663-1664 never reached.
+- **`227-247, 268-269, 285-286, 322, 326, 334-335, 338-342, 351-352, 400, 403-404, 561, 620, 641-642, 679, 694-695, 713-714, 733-734, 1033-1034`** — inspect/defensive/rare branches in `_coerce_to_datetime_scalar`, `_normalize_index`, `_detect_and_normalize_exchange_format`; max one probe pass each, then file/line evidence if unreachable.
 
 ## INITIAL TASK MESSAGE FOR NEXT AGENTIC SESSION (execute immediately — heavy work, mandatory)
 
-**Timestamp (UTC):** 2026-11-06T19:11:10Z
+**Timestamp (UTC):** 2026-11-06T19:11:25Z
 **Recipient:** next coding agent in this repo.
 **Mode:** HEAVY WORK ONLY. No analysis-only turn. No planning-only turn. No "next steps" summary without measured delta/proof.
 
 ### Mission
 
-Reduce `strategies/betting_against_beta/data_loader.py` miss count from **111** (fresh canonical baseline re-verified 2026-11-06T18:04:55Z; **rebaseline at Step 0 before coding**). **BAB `data_loader.py` only.** Each batch must yield a **measured miss-count delta** in a **fresh canonical aggregate** OR a **documented unreachable-branch proof with file/line evidence**, then immediately move to the next reachable cluster. `campaign_d*` guard must stay green.
+Reduce `strategies/betting_against_beta/data_loader.py` miss count from **109** (fresh canonical baseline re-verified 2026-11-06T19:11:00Z; **rebaseline at Step 0 before coding**). **BAB `data_loader.py` only.** Each batch must yield a **measured miss-count delta** in a **fresh canonical aggregate** OR a **documented unreachable-branch proof with file/line evidence**, then immediately move to the next reachable cluster. `campaign_d*` guard must stay green.
 
-**Bottleneck route-around (mandatory):** Use **aggregate-safe** strategies — craft real DataFrame/Series shapes that reach target branches and call canonical entrypoints directly (`validate_returns_dataframe`, `_promote_datetime_column`, `_drop_metadata_columns`, `normalize_schema`, `_drop_all_nan_columns`, `load_returns_from_csv`). Do **not** rely on global `pd.to_datetime`/`pd.read_csv` monkeypatching; batches 61-64 proved direct entrypoint calls register in the fresh canonical aggregate while global patches get neutralized. Batches 63-64 gave 0 delta — do not repeat identical probe patterns without proving they fire in a fresh canonical aggregate.
+**Bottleneck route-around (mandatory):** Use **aggregate-safe** strategies — craft real DataFrame/Series shapes that reach target branches and call canonical entrypoints directly (`validate_returns_dataframe`, `_promote_datetime_column`, `_drop_metadata_columns`, `normalize_schema`, `_drop_all_nan_columns`, `load_returns_from_csv`). Do **not** rely on global `pd.to_datetime`/`pd.read_csv` monkeypatching; batches 61-62 and 65 proved direct entrypoint calls register in the fresh canonical aggregate while global patches get neutralized. Batches 63-64 and 66 gave 0 delta — do not repeat identical probe patterns without proving they fire in a fresh canonical aggregate.
 
 ### Focus campaign (ordered; do not avoid; do not stop early)
 
-1. **`791-792, 859, 861-862, 867-868, 901-903, 908-914`** — `_promote_datetime_column` handlers. Batches 63-64 probed (0 aggregate delta). Use aggregate-safe real-data shapes through `validate_returns_dataframe`.
-2. **`1530-1531, 1533-1536`** — `validate_returns_dataframe` benchmark remap fallbacks. Need `bench_found != benchmark`, benchmark absent, first rename raises (1530-1531), post-rename checks still trigger 1533-1536.
-3. **`1591-1592`** — `load_returns_from_csv` defensive empty-after-read. Try malformed inputs that make `.empty`/isinstance raise only at the 1587 boundary, or prove unreachable with file/line evidence.
+1. **`791-792, 859, 861-862, 867-868, 901-903, 908-914`** — `_promote_datetime_column` handlers. Batches 63-64 (0 delta). Use aggregate-safe real-data shapes through `validate_returns_dataframe` / direct `_promote_datetime_column`. See UNREACHABLE evidence above before re-probing.
+2. **`1530-1531, 1533-1536`** — `validate_returns_dataframe` benchmark remap fallbacks. Blocked by `_normalize_columns` (line 1413) uppercasing benchmark matches to exactly `benchmark` (line 1526 never True). Requires file/line unreachable proof OR a shape where `_normalize_columns` does not canonicalize the benchmark column.
+3. **`1591-1592`** — `load_returns_from_csv` defensive empty-after-read. See UNREACHABLE evidence; prove or move on.
 4. **`679, 694-695, 713-714, 733-734`** — exchange epoch/tz normalization via canonical entrypoints.
-5. **`1926-1929, 2160-2163, 2167-2168, 2187-2189, 2192-2193`** — `clean_data`/`normalize_schema` duplicate-header/junk/drop defensive branches.
-6. **`1226-1227, 1257-1258, 1293-1294, 1319-1320, 1033-1034, 953`** — coerce/detect/QA handlers through canonical APIs.
-7. **`1626-1627, 1663-1664`** — parquet/hdf5 missing-file paths.
-8. **Triage with evidence (max one probe pass each, then move on):** `227-247, 43-44, 84, 92-93, 194, 196, 268-269, 285-286, 322, 326, 334-335, 338-342, 351-352, 400, 403-404, 561, 620, 641-642`.
+5. **`1926-1929, 2160-2163, 2167-2168, 2187-2189, 2192-2193`** — `clean_data`/`normalize_schema`/`load_prices` duplicate-header/junk/drop defensive branches. batch62 gave 0 delta; see UNREACHABLE evidence for 2187-2189/2192-2193/1926-1927.
+6. **`1226-1227, 1257-1258, 1319-1320, 1033-1034, 953`** — coerce/detect/QA handlers through canonical APIs. See UNREACHABLE evidence (1319-1320/2187-2189 dead due to `errors="coerce"` never raising; 1226-1227 dead due to inner→BABDataError re-raise).
+7. **`1626-1627, 1663-1664`** — parquet/hdf5 missing-file paths. Dead without pyarrow/tables (`ImportError` caught earlier).
+8. **Triage with evidence (max one probe pass each, then move on):** `43-44, 84, 92-93, 194, 196, 227-247, 268-269, 285-286, 322, 326, 334-335, 338-342, 351-352, 400, 403-404, 561, 620, 641-642`.
 
 ### Execution contract (non-optional)
 
 1. **Run Step 0 baseline first** and record actual `data_loader.py` miss count + exact missing lines before changes.
-2. **Deliver ≥3 verified batches** (`tests/test_bab_data_loader_batch65.py`, `batch66.py`, `batch67.py`, …) unless reachable clusters are exhausted with file/line evidence. **Zero-delta batches do not count; retarget immediately.**
+2. **Deliver ≥3 verified batches** (`tests/test_bab_data_loader_batch67.py`, `batch68.py`, `batch69.py`, …) unless reachable clusters are exhausted with file/line evidence. **Zero-delta batches do not count; retarget immediately.**
 3. For **each batch:** minimal targeted tests → focused run → `campaign_d*` guard → **fresh canonical aggregate** (include all batch40+ files that exist) → record before/after miss count and delta. Commit locally only if safe; **do not push** unless explicitly requested.
 4. **Update this HANDOFF.md** at session end: refreshed UTC, SHA, verified canonical result, batch ledger rows (delta or unreachable proof), remaining clusters, and the next initial task message. Keep it the single durable handoff.
 5. **No off-ramps.** If context-sensitive, craft inputs through canonical caller paths. If a branch appears unreachable, prove with code-path analysis tied to exact lines and move to the next cluster.
 
 ### Targets
 
-- **Session minimum:** miss **<111** with ≥3 measured-delta batches (or documented exhaustion with evidence).
+- **Session minimum:** miss **<109** with ≥3 measured-delta batches (or documented exhaustion with evidence).
 - **Target:** ≤108. **Stretch:** ≤105.
 
 ### Guard
@@ -151,6 +159,6 @@ python3 -m pytest -q --tb=no --ignore=tests/test_controller_progress_accounting.
 ### Definition of done for next session
 
 - Fresh canonical aggregate completed with all existing batch40+ files included.
-- `data_loader.py` miss count **<111** (or unreachable-proof exhaustion documented with file/line evidence).
+- `data_loader.py` miss count **<109** (or unreachable-proof exhaustion documented with file/line evidence).
 - `campaign_d*` guard green.
 - This HANDOFF.md updated as the single durable handoff with next initial task message.
