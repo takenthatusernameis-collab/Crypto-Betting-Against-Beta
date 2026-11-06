@@ -1,6 +1,6 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 
-**Timestamp (UTC):** 2026-11-06T12:34:02Z
+**Timestamp (UTC):** 2026-11-06T12:38:40Z (verified this session)
 **Repo:** `Crypto-Betting-Against-Beta`
 **Path:** `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
 **Branch/SHA (verified):** `main` @ `6e41392`. Working tree clean. `origin/main` unchanged. **No `.github/workflows/*` edits/commits/pushes. No remote push performed.**
@@ -8,17 +8,18 @@
 ## Priority (repo-name-driven, non-negotiable)
 Repo name is **Crypto-Betting-Against-Beta** → **BAB only**. The **only** priority is `strategies/betting_against_beta/data_loader.py`: correctness, robustness, adversarial handling, and **measured** coverage improvement. **No infra/controller refactors. No sidetracks. No pivot to `cli.py`/other modules.** Every session must produce **measured `data_loader.py` miss-count reduction** in a **fresh completed canonical aggregate** (or documented unreachable-branch proof **with file/line evidence while immediately moving to the next reachable cluster**).
 
-## Fresh verified state (2026-11-06T12:33:21Z)
+## Fresh verified state (2026-11-06T12:38:40Z, this session)
 - **Env:** Python 3.12.3, deps in `/home/runner/work/_temp/kilo-home/.local/lib/python3.12/site-packages` (pandas/numpy/pytest/coverage). `PYTHONPATH=$PWD:/home/runner/work/_temp/kilo-home/.local/lib/python3.12/site-packages`.
-- **`campaign_d*` guard (fresh):** `pytest -q --tb=no --ignore=tests/test_controller_progress_accounting.py tests/test_bab_data_loader_campaign_d.py tests/test_bab_data_loader_campaign_d2.py tests/test_bab_data_loader_campaign_d3.py` → **44 passed, 5 warnings**.
-- **Canonical Step 0 aggregate (fresh, completed, includes batch40-47):**
+- **Canonical Step 0 aggregate (fresh, completed, includes batch40-47):** **1317 passed, 13 failed (pre-existing Batch32 only), 23 skipped, 88 warnings**; **`strategies/betting_against_beta/data_loader.py` — 1693 stmts, 139 miss, 92%**.
+- **Missing lines (exact, from coverage JSON):** `43-44,84,92-93,194,196,227-247,268-269,285-286,322,326,334-335,338-342,351-352,400,403-404,561,620,641-642,679,694-695,713-714,733-734,757-758,766-767,770-771,789-792,804-805,840-841,859,861-862,867-868,890,894,901-903,908-914,953,1033-1034,1084-1085,1097-1098,1112,1115,1221-1222,1226-1227,1257-1258,1293-1294,1304-1305,1312-1313,1319-1320,1451-1452,1530-1531,1533-1536,1591-1592,1626-1627,1663-1664,1926-1929,2160-2163,2167-2168,2187-2189,2192-2193`.
+- **Canonical command (baseline = run this first; include all prior batch files):**
 ```bash
 cd /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
 export PATH=/home/runner/work/_temp/kilo-home/.local/bin:$PATH
 export PYTHONPATH=$PWD:/home/runner/work/_temp/kilo-home/.local/lib/python3.12/site-packages
 python3 -m coverage erase && python3 -m coverage run --source=strategies.betting_against_beta -m pytest -q --tb=no --ignore=tests/test_controller_progress_accounting.py tests/test_bab_data_loader_coverage_gaps.py tests/test_bab_data_loader_robust.py tests/test_betting_against_beta_data_loader.py tests/test_bab_messy_data.py tests/test_bab_zero_silent_error.py tests/test_bab_data_loader_promote.py tests/test_bab_data_loader_miss_fill.py tests/test_bab_data_loader_campaign_d.py tests/test_bab_data_loader_campaign_d2.py tests/test_bab_data_loader_campaign_d3.py tests/test_bab_cli_coverage_campaign.py tests/test_bab_cli.py tests/test_bab_data_loader_batch40.py tests/test_bab_data_loader_batch41.py tests/test_bab_data_loader_batch42.py tests/test_bab_data_loader_batch43.py tests/test_bab_data_loader_batch44.py tests/test_bab_data_loader_batch45.py tests/test_bab_data_loader_batch46.py tests/test_bab_data_loader_batch47.py
+python3 -m coverage report --include='*data_loader.py' --show-missing
 ```
-- **Current canonical result:** **1317 passed, 13 failed (pre-existing Batch32 only), 23 skipped, 88 warnings**; **`strategies/betting_against_beta/data_loader.py` — 1693 stmts, 139 miss, 92%**. Baseline before this session’s measured work: **153 miss** (with batch40-44 included in prior baseline context per handoff; batch45+46 delivered measured delta). Do **not** reuse older numbers.
 
 ## This session batch ledger (measured)
 | Batch | Targets | Focused | Guard | Canonical (before→after data_loader miss) | Delta | Notes |
@@ -51,23 +52,23 @@ python3 -m coverage erase && python3 -m coverage run --source=strategies.betting
 
 ## INITIAL TASK MESSAGE FOR NEXT AGENTIC SESSION (execute immediately — heavy work, no off-ramp)
 
-**Mission (Campaign A continuation):** Reduce `strategies/betting_against_beta/data_loader.py` miss count from **139** in a **fresh canonical aggregate**. **BAB `data_loader.py` only.** Heavy working required — every batch must yield a measured miss-count delta or a documented unreachable-branch proof with file/line evidence, then immediately move to the next reachable cluster. `campaign_d*` guard must stay green.
+**Mission (Campaign A continuation):** Reduce `strategies/betting_against_beta/data_loader.py` miss count from **139** (verified 2026-11-06T12:38:40Z canonical) in a **fresh canonical aggregate**. **BAB `data_loader.py` only.** Every batch must yield a measured miss-count delta **or** a documented unreachable-branch proof with file/line evidence, then immediately move to the next reachable cluster. `campaign_d*` guard must stay green.
 
-**Target:** miss **<139** (stretch ≤135, hard floor ≤130). Do not reuse older numbers; baseline = fresh canonical aggregate at session start.
+**Baseline (run first):** fresh canonical aggregate = 1317 passed, 13 failed (pre-existing Batch32), 23 skipped → **139 miss / 1693 stmts / 92%**. Do not reuse older numbers.
 
-**Priority clusters to attack (recheck line-by-line; target measured delta):**
-1. **`757-758,766-767,770-771,789-792,804-805,840-841,859,861-862,867-868`** — `_promote_datetime_column` exception handlers (tz-normalize/element-wise/unnamed-column paths). Design tests that flow through canonical loader/validation entrypoints (replicate exact caller context) so handlers trigger in aggregate, not isolated unit calls.
-2. **`1451-1452,1530-1531,1533-1536`** — `validate_returns_dataframe` trivial 1970 path and benchmark remap rename fallbacks. Use real validate flows; monkeypatch `pd.DataFrame.rename`/index normalization carefully.
+**Target:** miss **<139** (stretch ≤135, hard floor ≤130).
+
+**Priority clusters (recheck line-by-line; target measured delta):**
+1. **`757-758,766-767,770-771,789-792,804-805,840-841,859,861-862,867-868`** — `_promote_datetime_column` exception handlers (tz-normalize/element-wise/unnamed-column). Trigger via **canonical caller context** (real `validate_returns_dataframe`/loader flows), not isolated unit calls.
+2. **`1451-1452,1530-1531,1533-1536`** — `validate_returns_dataframe` trivial-1970 / benchmark-remap rename fallbacks. Use real validate flows; monkeypatch `pd.DataFrame.rename`/index normalization at the call sites used by canonical paths.
 3. **`1591-1592`** — `load_returns_from_csv` defensive empty-after-read; stateful `read_csv`/`df.empty` monkeypatch compatible with prior checks.
-4. **`1926-1929,2160-2163,2167-2168,2187-2189,2192-2193`** — `clean_data`/metadata defensive branches; patch at exact `dlmod` symbols and pandas methods used inside those blocks.
-5. **`679,694-695,713-714,733-734`** — exchange/epoch/tz normalization handlers still missing.
-6. **Triage `227-247,908-914,1626-1627,1663-1664` early:** produce file/line unreachable proof with counterexample attempt + delta evidence, then stop spending time there.
+4. **`1926-1929,2160-2163,2167-2168,2187-2189,2192-2193`** — `clean_data`/metadata defensive branches; patch exact `dlmod` symbols and pandas methods inside those blocks.
+5. **`679,694-695,713-714,733-734`** — exchange/epoch/tz normalization handlers.
+6. **Triage early with evidence:** `227-247` (dayfirst elementwise fallback), `908-914` (_promote_datetime_column last resort), `1626-1627,1663-1664` (inner `BABDataError` may convert before outer handlers). Produce file/line unreachable proof (counterexample attempt + delta) or hit them; do not linger without evidence.
 
-**Hard rules:**
-- **BAB `data_loader.py` only.** No infra/controller refactors, no pivot to `cli.py`/other modules.
-- **No progress count without fresh canonical aggregate measured miss-count delta** OR **unreachable proof with file/line evidence + immediate move to next reachable cluster**.
-- **Minimum throughput:** deliver **≥3 verified batches with measured delta** this session unless reachable clusters exhausted with evidence. Each batch = focused tests (`tests/test_bab_data_loader_batch48.py` etc.) → `campaign_d*` guard (`--ignore=tests/test_controller_progress_accounting.py`) → **canonical Step 0 aggregate** → recorded delta. If delta 0, retarget before continuing.
-- Ignore `TestBatch32` pre-existing failures (13). Never edit/commit/push `.github/workflows/*`. Preserve `BABDataError` contract, inspect-sensitive behavior, campaign_d semantics. Smallest correct fix only for proven contract violations. **No comments.** No push unless explicitly requested.
+**Throughput (enforced):** deliver **≥3 verified batches with measured delta** this session unless reachable clusters exhausted with evidence. Each batch = `tests/test_bab_data_loader_batch48.py` (etc.) → focused run → `campaign_d*` guard (`pytest -q --tb=no --ignore=tests/test_controller_progress_accounting.py tests/test_bab_data_loader_campaign_d.py tests/test_bab_data_loader_campaign_d2.py tests/test_bab_data_loader_campaign_d3.py`) → **canonical Step 0 aggregate** → record delta in commit/handoff note. If delta 0, retarget before continuing.
+
+**Hard rules:** BAB `data_loader.py` only. No infra/controller refactors, no `cli.py`/other-module pivot. Ignore 13 pre-existing Batch32 failures. Never edit/commit/push `.github/workflows/*`. Preserve `BABDataError` contract, inspect-sensitive behavior (`_coerce_to_datetime_scalar`), campaign_d semantics, no-lookahead, dollar-neutral defaults, public APIs. Smallest correct fix only for proven contract violations. **No comments.** No push unless explicitly requested.
 
 **Bottlenecks removed / route-around (confirmed):**
 - Controller `TestControllerProgressAccounting` → always `--ignore=tests/test_controller_progress_accounting.py`; never touch `.github/workflows/*`.
