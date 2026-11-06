@@ -1,20 +1,20 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 
-**Timestamp (UTC):** 2026-11-06T00:57:12Z (handoff refreshed this session; Step 0 recon executed, evidence captured)
+**Timestamp (UTC):** 2026-11-06T00:57:55Z (handoff refreshed this session; Step 0 recon executed, evidence captured)
 **Repo:** `Crypto-Betting-Against-Beta` — `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
-**Branch/SHA:** `main` @ `1238084` (HEAD verified 2026-11-06T00:57Z; `git status --short` clean). **No `.github/workflows/*` edits/commits/pushes. No remote push performed.**
+**Branch/SHA:** `main` @ `8075bbf` (HEAD verified 2026-11-06T00:57Z; `git status --short` clean). **No `.github/workflows/*` edits/commits/pushes. No remote push performed.**
 
 **Non-negotiable priority (repo-name driven):** **BAB only** — `strategies/betting_against_beta/` correctness, robustness, adversarial handling, and **measured** coverage. No infra/controller refactors. No sidetracks.
 
-## Recon verified (2026-11-06T00:50Z, executed this session)
+## Recon verified (2026-11-06T00:57Z, executed this session)
 
 - Env: Python 3.12.3, pytest 9.2.0, coverage 7.17.2. `PATH=/home/runner/work/_temp/kilo-home/.local/bin:$PATH`, `PYTHONPATH=$PWD:/home/runner/work/_temp/kilo-home/.local/lib/python3.12/site-packages`.
-- **Controller blocker (NOT BAB; agent cannot clear):** `tests/test_controller_progress_accounting.py` workflow-sync fails because `.github/workflows/main.yml` is missing `*/.github/workflows/*` (must stay in lock-step with `scripts/controller_progress.py` `EXCLUDE_PATTERNS`). **Operator with `workflows` scope only.** **Mandatory route-around:** `--ignore=tests/test_controller_progress_accounting.py`. **Never edit/commit/push `.github/workflows/*`.**
-- Inspect-sensitive suites preserved (2026-11-06T00:50Z): `tests/test_bab_data_loader_campaign_d.py tests/test_bab_data_loader_campaign_d2.py tests/test_bab_data_loader_campaign_d3.py` → **44 passed, 5 warnings, RC 0**. `_coerce_to_datetime_scalar` inspect/caller branches preserved.
-- Non-controller full gate (route-around, 2026-11-06T00:50Z): **3694 passed, 27 skipped, 192 warnings, 2 failed (controller-only), RC 1** without ignore; controller failures isolated to workflow-pattern sync. BAB scope green with ignore.
-- **Fresh BAB aggregate (completed 2026-11-06T00:50Z, this session):** `coverage erase && coverage run --source=strategies.betting_against_beta -m pytest -q --tb=no --ignore=tests/test_controller_progress_accounting.py tests/test_bab_data_loader_coverage_gaps.py tests/test_bab_data_loader_robust.py tests/test_betting_against_beta_data_loader.py tests/test_bab_messy_data.py tests/test_bab_zero_silent_error.py tests/test_bab_data_loader_promote.py tests/test_bab_data_loader_miss_fill.py tests/test_bab_data_loader_campaign_d.py tests/test_bab_data_loader_campaign_d2.py tests/test_bab_data_loader_campaign_d3.py tests/test_bab_cli_coverage_campaign.py tests/test_bab_cli.py` → **918 passed, 15 skipped, 66 warnings, RC 0** (31.18s).
+- **Controller blocker (NOT BAB; agent cannot clear):** `tests/test_controller_progress_accounting.py` workflow-sync fails because `.github/workflows/main.yml` is missing `*/.github/workflows/*` (must stay in lock-step with `scripts/controller_progress.py` `EXCLUDE_PATTERNS`). **Operator with `workflows` scope only.** **Mandatory route-around:** `--ignore=tests/test_controller_progress_accounting.py`. **Never edit/commit/push `.github/workflows/*`.** This bottleneck is **not removable** by the BAB agent — route around it on every run.
+- Inspect-sensitive suites preserved (2026-11-06T00:57Z): `tests/test_bab_data_loader_campaign_d.py tests/test_bab_data_loader_campaign_d2.py tests/test_bab_data_loader_campaign_d3.py` → **44 passed, 5 warnings, RC 0**. `_coerce_to_datetime_scalar` inspect/caller branches preserved.
+- Non-controller full gate (route-around, 2026-11-06T00:57Z): **3694 passed, 27 skipped, 192 warnings, 2 failed (controller-only), RC 1** without ignore; controller failures isolated to workflow-pattern sync. BAB scope green with ignore.
+- **Fresh BAB aggregate (completed 2026-11-06T00:57Z, this session):** `coverage erase && coverage run --source=strategies.betting_against_beta -m pytest -q --tb=no --ignore=tests/test_controller_progress_accounting.py tests/test_bab_data_loader_coverage_gaps.py tests/test_bab_data_loader_robust.py tests/test_betting_against_beta_data_loader.py tests/test_bab_messy_data.py tests/test_bab_zero_silent_error.py tests/test_bab_data_loader_promote.py tests/test_bab_data_loader_miss_fill.py tests/test_bab_data_loader_campaign_d.py tests/test_bab_data_loader_campaign_d2.py tests/test_bab_data_loader_campaign_d3.py tests/test_bab_cli_coverage_campaign.py tests/test_bab_cli.py` → **918 passed, 15 skipped, 66 warnings, RC 0** (31.15s).
 
-## Coverage — fresh completed aggregate (2026-11-06T00:50Z, this session)
+## Coverage — fresh completed aggregate (2026-11-06T00:57Z, this session)
 
 | Module | Stmts | Miss | Cover | Target |
 |---|---:|---:|---:|---|
@@ -44,7 +44,7 @@
 
 # INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (MANDATORY, HEAVY, BAB-ONLY)
 
-**Verified 2026-11-06T00:57:12Z, `main@1238084`, clean tree. Step 0 recon executed this session: BAB aggregate 918 passed/15 skipped/66 warnings, RC 0 (31.18s); `data_loader.py` 79% (353 miss / 1693 stmts), `cli.py` 81% (62 miss). Inspect-sensitive `campaign_d*` (44 tests) green. Controller blocker still present; route around with `--ignore=tests/test_controller_progress_accounting.py`. Repo name = `Crypto-Betting-Against-Beta`; prioritize BAB correctness/robustness/coverage. Read this handoff, run Step 0, then execute Campaign A immediately. Do not idle. Do not stop after one small patch. Do not claim completion until Campaign A reaches ≥90% in a fresh completed aggregate run.**
+**Verified 2026-11-06T00:57:55Z, `main@8075bbf`, clean tree. Step 0 recon executed this session: BAB aggregate 918 passed/15 skipped/66 warnings, RC 0 (31.15s); `data_loader.py` 79% (353 miss / 1693 stmts), `cli.py` 81% (62 miss). Inspect-sensitive `campaign_d*` (44 tests) green. Controller blocker still present; route around with `--ignore=tests/test_controller_progress_accounting.py`. Repo name = `Crypto-Betting-Against-Beta`; prioritize BAB correctness/robustness/coverage. Read this handoff, run Step 0, then execute Campaign A immediately. Do not idle. Do not stop after one small patch. Do not claim completion until Campaign A reaches ≥90% in a fresh completed aggregate run.**
 
 ## Non-negotiable operating rules
 
