@@ -5744,3 +5744,238 @@ class TestBatch16PromoteDatetimeColumnPaths:
         df = pd.DataFrame({"BTC": [0.01, 0.02], "ETH": [0.03, 0.04]})
         out = dlmod._promote_datetime_column(df)
         assert list(out.columns) == ["BTC", "ETH"]
+
+class TestBatch17ExchangeFormatTzAndCoerceBranches:
+    def test_detect_exchange_tzaware_date_and_close(self):
+        df = pd.DataFrame({
+            "Date": pd.to_datetime(["2024-01-01", "2024-01-02"], utc=True),
+            "Close": [100.0, 101.0],
+        })
+        out = dlmod._detect_and_normalize_exchange_format(df)
+        assert isinstance(out, pd.DataFrame)
+
+    def test_detect_exchange_tzaware_timestamp_tz_convert_raises(self, monkeypatch):
+        df = pd.DataFrame({
+            "Date": pd.to_datetime(["2024-01-01", "2024-01-02"], utc=True),
+            "Close": [100.0, 101.0],
+        })
+        class BadTs:
+            tzinfo = object()
+            def tz_convert(self, *a, **k):
+                raise RuntimeError("boom")
+            def tz_localize(self, *a, **k):
+                raise RuntimeError("boom")
+        orig_coerce = dlmod._coerce_to_datetime_scalar
+        def fake_coerce(v):
+            return BadTs()
+        monkeypatch.setattr(dlmod, "_coerce_to_datetime_scalar", fake_coerce)
+        out = dlmod._detect_and_normalize_exchange_format(df)
+        assert isinstance(out, pd.DataFrame)
+
+    def test_detect_exchange_numeric_epoch_coerce_path(self):
+        df = pd.DataFrame({
+            "Date": [1704067200, 1704153600],
+            "BTC": [0.01, 0.02],
+        })
+        out = dlmod._detect_and_normalize_exchange_format(df)
+        assert isinstance(out, pd.DataFrame)
+
+    def test_detect_exchange_string_digit_epoch_coerce(self):
+        df = pd.DataFrame({
+            "Date": ["1704067200", "1704153600"],
+            "BTC": [0.01, 0.02],
+        })
+        out = dlmod._detect_and_normalize_exchange_format(df)
+        assert isinstance(out, pd.DataFrame)
+
+    def test_detect_exchange_small_float_no_coerce_returns_df(self):
+        df = pd.DataFrame({
+            "Date": [1.5, 2.5],
+            "BTC": [0.01, 0.02],
+        })
+        out = dlmod._detect_and_normalize_exchange_format(df)
+        assert isinstance(out, pd.DataFrame)
+
+    def test_detect_exchange_iso_string_with_colon_coerce(self):
+        df = pd.DataFrame({
+            "Date": ["2024-01-01 00:00:00", "2024-01-02 00:00:00"],
+            "BTC": [0.01, 0.02],
+        })
+        out = dlmod._detect_and_normalize_exchange_format(df)
+        assert isinstance(out, pd.DataFrame)
+
+    def test_detect_exchange_coerce_apply_raises_outer_catch(self, monkeypatch):
+        df = pd.DataFrame({
+            "Date": [1704067200000, 1704153600000],
+            "BTC": [0.01, 0.02],
+        })
+        def boom(*a, **k):
+            raise RuntimeError("apply boom")
+        monkeypatch.setattr(pd.Series, "apply", boom)
+        out = dlmod._detect_and_normalize_exchange_format(df)
+        assert isinstance(out, pd.DataFrame)
+
+    def test_detect_exchange_parsed_tz_convert_path(self, monkeypatch):
+        df = pd.DataFrame({
+            "Date": pd.to_datetime(["2024-01-01", "2024-01-02"], utc=True),
+            "Close": [100.0, 101.0],
+        })
+        orig = dlmod._coerce_to_datetime_scalar
+        def coerce_ret_naive(v):
+            try:
+                return pd.Timestamp(v).tz_localize(None)
+            except Exception:
+                return orig(v)
+        monkeypatch.setattr(dlmod, "_coerce_to_datetime_scalar", coerce_ret_naive)
+        out = dlmod._detect_and_normalize_exchange_format(df)
+        assert isinstance(out, pd.DataFrame)
+
+    def test_detect_exchange_negative_epoch_string(self):
+        df = pd.DataFrame({
+            "Date": ["-1704067200", "1704153600"],
+            "BTC": [0.01, 0.02],
+        })
+        out = dlmod._detect_and_normalize_exchange_format(df)
+        assert isinstance(out, pd.DataFrame)
+
+class TestBatch18PromoteDatetimeTzAndCoercerBranches:
+    def test_promote_exchange_returns_tz_index_normalized(self, monkeypatch):
+        idx = pd.to_datetime(["2024-01-01", "2024-01-02"], utc=True)
+        df2 = pd.DataFrame({"A": [1, 2], "B": [3, 4], "C": [5, 6]}, index=idx)
+        monkeypatch.setattr(dlmod, "_detect_and_normalize_exchange_format", lambda d: df2)
+        df = pd.DataFrame({"X": [1, 2], "Y": [3, 4], "Z": [5, 6]})
+        out = dlmod._promote_datetime_column(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+    def test_promote_exchange_tz_convert_raises(self, monkeypatch):
+        class BadIdx(pd.DatetimeIndex):
+            @property
+            def tz(self):
+                return "UTC"
+            def tz_convert(self, *a, **k):
+                raise RuntimeError("boom")
+            def tz_localize(self, *a, **k):
+                raise RuntimeError("boom2")
+        idx = BadIdx(pd.to_datetime(["2024-01-01", "2024-01-02"]))
+        df2 = pd.DataFrame({"A": [1, 2], "B": [3, 4], "C": [5, 6]})
+        df2.index = idx
+        monkeypatch.setattr(dlmod, "_detect_and_normalize_exchange_format", lambda d: df2)
+        df = pd.DataFrame({"X": [1, 2], "Y": [3, 4], "Z": [5, 6]})
+        out = dlmod._promote_datetime_column(df)
+        assert isinstance(out, pd.DataFrame)
+
+    def test_promote_name_match_coercer_returns_nat_bad_path(self, monkeypatch):
+        df = pd.DataFrame({"date": ["2024-01-01", "2024-01-02"], "BTC": [1, 2]})
+        orig = dlmod._coerce_to_datetime_scalar
+        def flaky(v):
+            if str(v).startswith("2024-01-02"):
+                return pd.NaT
+            return orig(v)
+        monkeypatch.setattr(dlmod, "_coerce_to_datetime_scalar", flaky)
+        out = dlmod._promote_datetime_column(df)
+        assert isinstance(out, pd.DataFrame)
+
+    def test_promote_name_match_coercer_raises_falls_to_pandas(self, monkeypatch):
+        df = pd.DataFrame({"date": ["2024-01-01", "2024-01-02"], "BTC": [1, 2]})
+        monkeypatch.setattr(dlmod, "_coerce_to_datetime_scalar", lambda v: (_ for _ in ()).throw(RuntimeError("x")))
+        out = dlmod._promote_datetime_column(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+    def test_promote_name_match_tzaware_series_tz_convert(self):
+        df = pd.DataFrame({
+            "timestamp": pd.to_datetime(["2024-01-01", "2024-01-02"], utc=True),
+            "BTC": [1, 2],
+            "ETH": [3, 4],
+        })
+        out = dlmod._promote_datetime_column(df)
+        assert isinstance(out, pd.DataFrame)
+
+    def test_promote_name_match_tzaware_element_apply_path(self, monkeypatch):
+        df = pd.DataFrame({"date": ["2024-01-01", "2024-01-02"], "BTC": [1, 2]})
+        orig = dlmod._coerce_to_datetime_scalar
+        def tz_coerce(v):
+            return pd.Timestamp(v, tz="UTC")
+        monkeypatch.setattr(dlmod, "_coerce_to_datetime_scalar", tz_coerce)
+        out = dlmod._promote_datetime_column(df)
+        assert isinstance(out, pd.DataFrame)
+
+    def test_promote_name_match_set_index_raises_returns_df(self, monkeypatch):
+        df = pd.DataFrame({"date": ["2024-01-01", "2024-01-02"], "BTC": [1, 2]})
+        orig_set = pd.DataFrame.set_index
+        def bad_set(self, *a, **k):
+            raise RuntimeError("set_index boom")
+        monkeypatch.setattr(pd.DataFrame, "set_index", bad_set)
+        out = dlmod._promote_datetime_column(df)
+        assert isinstance(out, pd.DataFrame)
+
+    def test_promote_name_match_pandas_parse_raises_babdataerror(self):
+        df = pd.DataFrame({"date": ["x", "y", "z"], "BTC": [1, 2, 3], "ETH": [4, 5, 6]})
+        with pytest.raises(dlmod.BABDataError):
+            dlmod._promote_datetime_column(df)
+
+    def test_promote_pandas_tz_convert_after_raise_path(self, monkeypatch):
+        df = pd.DataFrame({"date": ["2024-01-01", "2024-01-02"], "BTC": [1, 2], "ETH": [3, 4]})
+        orig = dlmod._coerce_to_datetime_scalar
+        monkeypatch.setattr(dlmod, "_coerce_to_datetime_scalar", lambda v: (_ for _ in ()).throw(RuntimeError("x")))
+        out = dlmod._promote_datetime_column(df)
+        assert isinstance(out, pd.DataFrame)
+
+    def test_promote_multi_col_sets_raw_index_strings(self):
+        df = pd.DataFrame({"date": ["2024-01-01", "2024-01-02"], "BTC": [1, 2], "ETH": [3, 4]})
+        out = dlmod._promote_datetime_column(df)
+        assert "date" not in [str(c).lower() for c in out.columns]
+
+class TestBatch19PromoteUnnamedAndLastResortBranches:
+    def test_promote_unnamed_col_with_coercer_success(self):
+        df = pd.DataFrame({"": ["2024-01-01", "2024-01-02"], "BTC": [0.01, 0.02]})
+        out = dlmod._promote_datetime_column(df)
+        assert isinstance(out, pd.DataFrame)
+        assert "BTC" in out.columns
+
+    def test_promote_unnamed_col_tzaware_coerced(self, monkeypatch):
+        df = pd.DataFrame({"": ["2024-01-01", "2024-01-02"], "BTC": [0.01, 0.02]})
+        monkeypatch.setattr(dlmod, "_coerce_to_datetime_scalar", lambda v: pd.Timestamp(v, tz="UTC"))
+        out = dlmod._promote_datetime_column(df)
+        assert isinstance(out, pd.DataFrame)
+
+    def test_promote_unnamed_col_coercer_raises_falls_to_pandas(self, monkeypatch):
+        df = pd.DataFrame({"Unnamed: 0": ["2024-01-01", "2024-01-02"], "BTC": [0.01, 0.02]})
+        monkeypatch.setattr(dlmod, "_coerce_to_datetime_scalar", lambda v: (_ for _ in ()).throw(RuntimeError("x")))
+        out = dlmod._promote_datetime_column(df)
+        assert isinstance(out, pd.DataFrame)
+
+    def test_promote_unnamed_col_unparseable_falls_through(self):
+        df = pd.DataFrame({"Unnamed: 0": ["nope", "nah"], "BTC": [0.01, 0.02]})
+        out = dlmod._promote_datetime_column(df)
+        assert isinstance(out, pd.DataFrame)
+
+    def test_promote_last_resort_parses_datetime_string_col(self):
+        df = pd.DataFrame({"when": ["2024-01-01", "2024-01-02"], "BTC": [0.01, 0.02]})
+        out = dlmod._promote_datetime_column(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+    def test_promote_last_resort_object_tz_strings(self):
+        df = pd.DataFrame({"when": ["2024-01-01T00:00:00Z", "2024-01-02T00:00:00Z"], "BTC": [0.01, 0.02]})
+        out = dlmod._promote_datetime_column(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+    def test_promote_last_resort_skips_numeric_dtype(self):
+        df = pd.DataFrame({"nums": [20240101, 20240102], "BTC": [0.01, 0.02]})
+        out = dlmod._promote_datetime_column(df)
+        assert isinstance(out, pd.DataFrame)
+
+    def test_promote_last_resort_skips_na_values(self):
+        df = pd.DataFrame({"when": ["2024-01-01", None], "BTC": [0.01, 0.02]})
+        out = dlmod._promote_datetime_column(df)
+        assert isinstance(out, pd.DataFrame)
+
+    def test_promote_last_resort_unparseable_continues(self):
+        df = pd.DataFrame({"when": ["nope", "nah"], "BTC": [0.01, 0.02]})
+        out = dlmod._promote_datetime_column(df)
+        assert isinstance(out, pd.DataFrame)
+
+    def test_promote_unnamed_outer_exception_caught(self, monkeypatch):
+        df = pd.DataFrame({"Unnamed: 0": ["2024-01-01", "2024-01-02"], "BTC": [0.01, 0.02]})
+        monkeypatch.setattr(dlmod, "_series_has_any_finite", lambda *a, **k: (_ for _ in ()).throw(RuntimeError("x")))
+        out = dlmod._promote_datetime_column(df)
+        assert isinstance(out, pd.DataFrame)
