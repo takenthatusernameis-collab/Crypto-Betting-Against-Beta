@@ -1,6 +1,6 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 
-**Timestamp (UTC):** 2026-11-06T08:46:33Z (session-verified state; re-verify fresh before coding)
+**Timestamp (UTC):** 2026-11-06T08:48:05Z (session-verified state; re-verify fresh before coding)
 **Repo:** `Crypto-Betting-Against-Beta`
 **Path:** `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
 **Branch/SHA at handoff (verify before push claims):** `main` @ `455d752` working tree has **local uncommitted test edits** in `tests/test_bab_data_loader_coverage_gaps.py` (TestBatch36-38 added; minor pre-existing pickle/indentation fixes in earlier Batch4/5 helpers; `.coverage` artifact may appear locally). **No `.github/workflows/*` edits/commits/pushes. No remote push performed.**
