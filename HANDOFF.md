@@ -1,9 +1,9 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 
-**Timestamp (UTC):** 2026-11-06T06:33:05Z
+**Timestamp (UTC):** 2026-11-06T06:35:00Z
 **Repo:** `Crypto-Betting-Against-Beta`
 **Path:** `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
-**Branch/SHA at handoff:** `main` @ `9582db4` (verify: `git rev-parse --short HEAD`). **No `.github/workflows/*` edits/commits/pushes. No remote push performed.**
+**Branch/SHA at handoff:** `main` @ `3a54ee0` (verify: `git rev-parse --short HEAD`). **No `.github/workflows/*` edits/commits/pushes. No remote push performed.**
 
 ## Priority (repo-name-driven, non-negotiable)
 Repo name is **Crypto-Betting-Against-Beta** → **BAB only**: `strategies/betting_against_beta/` correctness, robustness, adversarial handling, and **measured** coverage. No infra/controller refactors. No sidetracks. Until Campaign A end condition is met, every session must produce **measured `data_loader.py` miss-count reduction** (or documented unreachable-branch proof **with file/line evidence while still moving to the next cluster**).
@@ -12,7 +12,7 @@ Repo name is **Crypto-Betting-Against-Beta** → **BAB only**: `strategies/betti
 - **Env:** Python 3.12.3, pytest 9.2.0, coverage 7.17.2.
   - `export PATH=/home/runner/work/_temp/kilo-home/.local/bin:$PATH`
   - `export PYTHONPATH=$PWD:/home/runner/work/_temp/kilo-home/.local/lib/python3.12/site-packages`
-- **`campaign_d*` guards:** `tests/test_bab_data_loader_campaign_d{,2,3}.py` → **44 passed, 5 warnings, RC 0** (verified 2026-11-06T06:33Z).
+- **`campaign_d*` guards:** `tests/test_bab_data_loader_campaign_d{,2,3}.py` → **44 passed, 5 warnings, RC 0** (verified 2026-11-06T06:33Z; **re-verified green 2026-11-06T06:35Z**).
 - **Step 0 aggregate (last completed 2026-11-06T06:33Z, 1127 passed / 16 skipped / 84 warnings):** `strategies/betting_against_beta/data_loader.py` — **1693 stmts, 243 miss, 86%** (gap to ≥90%: **74 stmts**, target **≤169 miss**). `cli.py` — **319 stmts, 62 miss, 81%** (defer). **Source of truth:** rerun Step 0 fresh before coding and after **every** batch; do not reuse stale numbers.
 - **Test layout:** BAB tests `tests/test_bab_*`, `tests/test_betting_against_beta_*`; coverage-gaps suite ends at `TestBatch27NormalizeParseCoerceDropResiduals` (`tests/test_bab_data_loader_coverage_gaps.py:7077`). **Next batch: `TestBatch28`.**
 
