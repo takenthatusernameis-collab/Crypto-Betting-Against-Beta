@@ -1,8 +1,8 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 
-**Timestamp (UTC):** 2026-11-06T00:49:26Z (handoff updated this session; HEAD verified, working tree clean)
+**Timestamp (UTC):** 2026-11-06T00:50:12Z (handoff updated this session; HEAD verified, working tree clean)
 **Repo:** `Crypto-Betting-Against-Beta` — `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
-**Branch/SHA:** `main` @ `0a82ff5` (HEAD verified, 2 commits ahead of prior `8ce0cea`). **Working tree:** clean at verification (`git status --short` empty). **No `.github/workflows/*` edits/commits/pushes. No remote push performed.**
+**Branch/SHA:** `main` @ `0d884a8` (HEAD verified, working tree clean). **No `.github/workflows/*` edits/commits/pushes. No remote push performed.**
 
 **Non-negotiable priority (repo-name driven):** **BAB only** — `strategies/betting_against_beta/` correctness, robustness, adversarial handling, and **measured** coverage. No infra/controller refactors. No sidetracks.
 
@@ -44,7 +44,7 @@
 
 # INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (MANDATORY, HEAVY, BAB-ONLY)
 
-**Verified 2026-11-06T00:49:26Z, `main@0a82ff5`, clean tree. BAB aggregate: 918 passed/15 skipped/66 warnings, RC 0 (last fresh completed aggregate 2026-11-05T23:20Z). `data_loader.py` 79% (353 miss / 1693 stmts), `cli.py` 81% (62 miss). Inspect-sensitive `campaign_d*` (44 tests) green. Controller blocker still present; route around with `--ignore=tests/test_controller_progress_accounting.py`. Repo name = `Crypto-Betting-Against-Beta`; prioritize BAB correctness/robustness/coverage. Read this handoff, run Step 0, then execute Campaign A immediately. Do not idle. Do not stop after one small patch. Do not claim completion until Campaign A reaches ≥90% in a fresh completed aggregate run.**
+**Verified 2026-11-06T00:50:12Z, `main@0d884a8`, clean tree. BAB aggregate: 918 passed/15 skipped/66 warnings, RC 0 (last fresh completed aggregate 2026-11-05T23:20Z). `data_loader.py` 79% (353 miss / 1693 stmts), `cli.py` 81% (62 miss). Inspect-sensitive `campaign_d*` (44 tests) green. Controller blocker still present; route around with `--ignore=tests/test_controller_progress_accounting.py`. Repo name = `Crypto-Betting-Against-Beta`; prioritize BAB correctness/robustness/coverage. Read this handoff, run Step 0, then execute Campaign A immediately. Do not idle. Do not stop after one small patch. Do not claim completion until Campaign A reaches ≥90% in a fresh completed aggregate run.**
 
 ## Non-negotiable operating rules
 
