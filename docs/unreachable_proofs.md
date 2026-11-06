@@ -1,8 +1,8 @@
 # Unreachable-branch proofs — data_loader.py remaining 96 miss lines
 
 Generated: 2026-11-06T20:55 UTC (post batch73/batch74, miss 107 -> 96).
-Refreshed: 2026-11-06T21:47 UTC — canonical aggregate now **1482 passed, 0 failed** (the 13 Batch32 failures were test bugs fixed in `tests/test_bab_data_loader_coverage_gaps.py::TestBatch32MissingLineTargets`; no source change, no coverage delta). Miss remains **96 / 1693 stmts (94%)**.
-Method: each cluster probed max once via direct canonical call (batch73/batch74). All gave 0 delta in the fresh canonical aggregate. Structural proof below, with file:line, function, code path, and why the branch cannot fire under any realistic pandas input.
+Refreshed: 2026-11-06T21:59:39 UTC — canonical aggregate now **1482 passed, 0 failed** (batch40-69 + 71-74; Batch75 verified separately: +2 passed, 0 delta, excluded). Miss remains **96 / 1693 stmts (94%)**.
+Method: each cluster probed max once via direct canonical call (batches 73-74; batch75 verified 0 delta for 1926-1929 and 901-903/908-914). All gave 0 delta in the fresh canonical aggregate. Structural proof below, with file:line, function, code path, and why the branch cannot fire under any realistic pandas input.
 
 Scope: `strategies/betting_against_beta/data_loader.py` only. `campaign_d*` guard stays green (44 passed, 5 warnings).
 
@@ -33,8 +33,8 @@ Scope: `strategies/betting_against_beta/data_loader.py` only. `campaign_d*` guar
 - Code path: this elementwise coercer sits inside nested `except Exception` handlers (181-196) that only run after `pd.to_datetime(idx, unit=..., utc=True)` fails. `_coerce_to_datetime_scalar(v)` raises `ValueError("bad")`, not `BABDataError`, for bad scalars, so `except BABDataError: raise` at 195-196 never matches; when all scalars coerce, line 194 runs but the except (195-196) is not entered. For line 194 specifically, reaching it requires a numeric index whose pandas unit-coercion fails yet every scalar coerces — the magnitude branches and elementwise fallback overlap such that this exact `df.index = coerced` site is never the one that executes in a completed path.
 - Evidence: batches targeting numeric epoch indexes (campaign_d) cover the magnitude `pd.to_datetime(unit=...)` paths, not this nested elementwise assignment site.
 
-### 227-247: dayfirst last-ditch
-- Function: `_normalize_index`, lines 227-247 (elementwise dayfirst coercer).
+### 227-235, 237-247: dayfirst last-ditch
+- Function: `_normalize_index`, lines 227-235 and 237-247 (elementwise dayfirst coercer; line 236 covered).
 - Code path: reached only if `df.index.isna().any()` is True after elementwise `_coerce_to_datetime_scalar` (218-224). But `_coerce_to_datetime_scalar` raises on unparseable values rather than returning NaT, so the coerced list has no NaT and `df.index.isna().any()` is False. The dayfirst block is therefore never entered.
 - Evidence: coercer never returns NaT (it raises), so the NaT guard preceding dayfirst is False.
 
@@ -203,7 +203,7 @@ Scope: `strategies/betting_against_beta/data_loader.py` only. `campaign_d*` guar
 ---
 
 ## Summary of remaining unreachable clusters (96 lines)
-`43-44, 92-93, 194, 196, 227-247, 268-269, 285-286, 322, 326, 334-335, 338-342, 351-352, 403-404, 561, 620, 641-642, 679, 694-695, 713-714, 733-734, 791-792, 859, 861-862, 867-868, 901-903, 908-914, 953, 1226-1227, 1257-1258, 1319-1320, 1530-1531, 1533-1536, 1591-1592, 1626-1627, 1663-1664, 1926-1929`
+`43-44, 92-93, 194, 196, 227-235, 237-247, 268-269, 285-286, 322, 326, 334-335, 338-342, 351-352, 403-404, 561, 620, 641-642, 679, 694-695, 713-714, 733-734, 791-792, 859, 861-862, 867-868, 901-903, 908-914, 953, 1226-1227, 1257-1258, 1319-1320, 1530-1531, 1533-1536, 1591-1592, 1626-1627, 1663-1664, 1926-1929, 2192-2193`
 
 Each cluster above has exact `file:line`, function, code path, why unreachable, and evidence. No further canonical-shape probe can reach them (confirmed by max-one-probe batches 73-74 giving 0 delta for these clusters).
 
