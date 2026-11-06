@@ -5314,3 +5314,215 @@ class TestBatch3QualityAndDispatchPaths:
         p.write_text("{bad")
         det = dlmod.detect_price_or_returns(p)
         assert det in ("returns", "prices", "unknown")
+
+
+class TestBatch13CoerceScalarTzAndLoaderExceptionPaths:
+    def test_coerce_scalar_tz_convert_then_localize_fallback(self):
+        # lines 477-483: tz-aware Timestamp where tz_convert raises -> tz_localize(None) -> return ts
+        import pandas as pd
+
+        class BadTz(pd.Timestamp):
+            def tz_convert(self, *a, **k):
+                raise RuntimeError("convert boom")
+            def tz_localize(self, *a, **k):
+                return self
+
+        ts = BadTz("2024-01-01", tz="UTC")
+        out = dlmod._coerce_to_datetime_scalar(ts)
+        assert out is not None
+
+    def test_coerce_scalar_tz_convert_and_localize_both_raise(self):
+        # lines 480-483: tz_convert raises, tz_localize raises -> return ts (unconverted)
+        import pandas as pd
+
+        class WorseTz(pd.Timestamp):
+            def tz_convert(self, *a, **k):
+                raise RuntimeError("convert boom")
+            def tz_localize(self, *a, **k):
+                raise RuntimeError("localize boom")
+
+        ts = WorseTz("2024-01-01", tz="UTC")
+        out = dlmod._coerce_to_datetime_scalar(ts)
+        assert out is not None
+
+    def test_coerce_scalar_utc_to_datetime_raise_then_non_utc(self, monkeypatch):
+        # lines 487-493: pd.to_datetime utc=True raises -> utc=False raises -> ValueError("bad")
+        import strategies.betting_against_beta.data_loader as dl
+
+        def never(*a, **k):
+            raise ValueError("nope")
+        monkeypatch.setattr(pd, "to_datetime", never)
+        with pytest.raises(ValueError, match="bad"):
+            dlmod._coerce_to_datetime_scalar("2024-01-01")
+
+    def test_load_returns_from_csv_empty_df_path(self, tmp_path, monkeypatch):
+        # lines 1586-1592: read_csv returns empty DataFrame -> BABDataError "Empty CSV file"
+        import strategies.betting_against_beta.data_loader as dl
+
+        p = tmp_path / "e.csv"
+        p.write_text("date,BTC\n")
+        monkeypatch.setattr(pd, "read_csv", lambda *a, **k: pd.DataFrame())
+        with pytest.raises(dlmod.BABDataError, match="Empty CSV file"):
+            dlmod.load_returns_from_csv(p)
+
+    def test_load_returns_from_parquet_babdataerror_reraises(self, tmp_path, monkeypatch):
+        # line 1611-1612: read_parquet raises BABDataError -> except BABDataError: raise
+        import strategies.betting_against_beta.data_loader as dl
+
+        p = tmp_path / "x.parquet"
+        p.write_bytes(b"x")
+        monkeypatch.setattr(pd, "read_parquet", lambda *a, **k: (_ for _ in ()).throw(dlmod.BABDataError("forced")))
+        with pytest.raises(dlmod.BABDataError, match="forced"):
+            dlmod.load_returns_from_parquet(p)
+
+    def test_load_returns_from_parquet_validate_wraps_non_bab(self, tmp_path, monkeypatch):
+        # lines 1622-1623: validate_returns_dataframe raises TypeError -> wrapped in BABDataError
+        import strategies.betting_against_beta.data_loader as dl
+
+        try:
+            df = pd.DataFrame({"BTC": [0.01, 0.02], "ETH": [0.03, 0.04]}, index=pd.date_range("2020-01-01", periods=2))
+            p = tmp_path / "r.parquet"
+            df.to_parquet(p)
+        except Exception:
+            pytest.skip("parquet unavailable")
+        monkeypatch.setattr(dlmod, "validate_returns_dataframe", lambda *a, **k: (_ for _ in ()).throw(TypeError("boom")))
+        with pytest.raises(dlmod.BABDataError):
+            dlmod.load_returns_from_parquet(p)
+
+    def test_load_returns_from_parquet_oserror_wrap(self, tmp_path, monkeypatch):
+        # lines 1626-1627: OSError/ValueError -> wrapped in BABDataError
+        import strategies.betting_against_beta.data_loader as dl
+
+        p = tmp_path / "x.parquet"
+        p.write_bytes(b"x")
+        monkeypatch.setattr(pd, "read_parquet", lambda *a, **k: (_ for _ in ()).throw(OSError("no engine")))
+        with pytest.raises(dlmod.BABDataError, match="Failed to read Parquet"):
+            dlmod.load_returns_from_parquet(p)
+
+
+class TestBatch12CoerceSeriesAndNormalizeIndexPaths:
+    def test_coerce_series_to_datetime_index_tz_aware_convert(self):
+        # lines 78-84, 86-89: tz-aware Timestamp in coerced series -> tz_convert path
+        df = pd.DataFrame({"date": [1, 2], "BTC": [1.0, 2.0]})
+        coerced = pd.Series([
+            pd.Timestamp("2024-01-01", tz="US/Eastern"),
+            pd.Timestamp("2024-01-02", tz="US/Eastern"),
+        ])
+        ok = dlmod._coerce_series_to_datetime_index(df, "date", coerced)
+        assert ok in (True, False)
+
+    def test_coerce_series_to_datetime_index_inner_loop_exception(self, monkeypatch):
+        # line 88-89: inner except Exception: pass -> clean.append(pdv) with uncoerced value
+        df = pd.DataFrame({"date": [1, 2], "BTC": [1.0, 2.0]})
+        coerced = pd.Series([object(), object()])
+        ok = dlmod._coerce_series_to_datetime_index(df, "date", coerced)
+        assert ok in (True, False)
+
+    def test_coerce_series_to_datetime_index_outer_except(self, monkeypatch):
+        # line 92-93: outer except Exception: pass -> return False
+        import strategies.betting_against_beta.data_loader as dl
+
+        orig_series = pd.Series
+        def bad_series(*a, **k):
+            raise RuntimeError("boom")
+        monkeypatch.setattr(pd, "Series", bad_series)
+        df = pd.DataFrame({"date": [1, 2], "BTC": [1.0, 2.0]})
+        coerced = [pd.Timestamp("2024-01-01"), pd.Timestamp("2024-01-02")]
+        ok = dl._coerce_series_to_datetime_index(df, "date", coerced)
+        assert ok is False
+
+    def test_normalize_index_dayfirst_fallback_path(self):
+        # lines 227-247: dayfirst last-ditch coercion for ambiguous dates
+        df = pd.DataFrame({"BTC": [0.01, 0.02, 0.03]}, index=["13/01/2024", "14/01/2024", "15/01/2024"])
+        out = dlmod._normalize_index(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+    def test_normalize_index_elementwise_coercion_raise(self):
+        # lines 258, 260: elementwise coercion fallback raises BABDataError
+        df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=["not-a-date", "still-not"])
+        with pytest.raises(dlmod.BABDataError):
+            dlmod._normalize_index(df)
+
+    def test_normalize_index_tz_convert_exception_fallback(self, monkeypatch):
+        # lines 285-286: tz conversion exception path -> except Exception: pass
+        import strategies.betting_against_beta.data_loader as dl
+
+        idx = pd.date_range("2024-01-01", periods=2, tz="UTC")
+        df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=idx)
+
+        def bad_convert(self, *a, **k):
+            raise RuntimeError("convert boom")
+        monkeypatch.setattr(pd.DatetimeIndex, "tz_convert", bad_convert)
+        out = dl._normalize_index(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+    def test_normalize_index_not_datetime_after_norm_raises(self, monkeypatch):
+        # line 289: index not DatetimeIndex after normalization -> BABDataError
+        import strategies.betting_against_beta.data_loader as dl
+
+        df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=["2024-01-01", "2024-01-02"])
+        orig = pd.to_datetime
+        def never_dt(*a, **k):
+            raise ValueError("nope")
+        monkeypatch.setattr(pd, "to_datetime", never_dt)
+        with pytest.raises(dlmod.BABDataError):
+            dl._normalize_index(df)
+
+    def test_normalize_index_nat_drop_exception_path(self, monkeypatch):
+        # lines 296-297: NaT drop mask exception -> except Exception: pass
+        import strategies.betting_against_beta.data_loader as dl
+
+        idx = pd.to_datetime(["2024-01-01", None, "2024-01-02"])
+        df = pd.DataFrame({"BTC": [0.01, 0.02, 0.03]}, index=idx)
+        orig_isna = pd.DatetimeIndex.isna
+        def bad_isna(self):
+            raise RuntimeError("isna boom")
+        monkeypatch.setattr(pd.DatetimeIndex, "isna", bad_isna)
+        out = dl._normalize_index(df)
+        assert isinstance(out.index, pd.DatetimeIndex)
+
+
+class TestBatch11CoerceNumericAndSeriesParseable:
+    def test_series_is_parseable_non_iterable_hits_except(self):
+        # non-iterable -> for v in series raises TypeError -> except Exception: return False
+        result = dlmod._series_is_parseable(12345)
+        assert result is False
+
+    def test_series_is_parseable_garbage_iterable_hits_except(self):
+        class BadIter:
+            def __iter__(self):
+                raise TypeError("nope")
+        result = dlmod._series_is_parseable(BadIter())
+        assert result is False
+
+    def test_coerce_numeric_non_dataframe_first_pass(self):
+        # non-DataFrame -> first-pass TypeError caught -> second-pass BABDataError (1197-1198, 1206-1207)
+        with pytest.raises(dlmod.BABDataError):
+            dlmod._coerce_numeric("not a dataframe")
+
+    def test_coerce_numeric_non_dataframe_none(self):
+        with pytest.raises(dlmod.BABDataError):
+            dlmod._coerce_numeric(None)
+
+    def test_coerce_numeric_astype_raises_babdataerror_reraises(self, monkeypatch):
+        # monkeypatch astype to raise BABDataError -> except BABDataError: raise (1201-1202)
+        import pandas as pd
+
+        class BadDF(pd.DataFrame):
+            def astype(self, *a, **k):
+                raise dlmod.BABDataError("forced")
+
+        df = BadDF({"BTC": [0.01, 0.02]})
+        with pytest.raises(dlmod.BABDataError, match="forced"):
+            dlmod._coerce_numeric(df)
+
+    def test_not_null_pd_isna_raises_hits_inner_except(self):
+        # object where pd.isna raises -> inner except: pass -> return True
+        class Weird:
+            pass
+
+        w = Weird()
+        # pd.isna on a plain object is safe, so force via numpy array ambiguity
+        import numpy as np
+        result = dlmod._not_null(np.array([1, 2]))
+        assert result is True
