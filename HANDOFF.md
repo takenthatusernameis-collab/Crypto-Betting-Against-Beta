@@ -1,9 +1,9 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 
-**Timestamp (UTC):** 2026-11-06T12:33:21Z
+**Timestamp (UTC):** 2026-11-06T12:34:02Z
 **Repo:** `Crypto-Betting-Against-Beta`
 **Path:** `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
-**Branch/SHA (verified):** `main` @ `689cb5c`. Working tree has **uncommitted** additions: `tests/test_bab_data_loader_batch40.py`..`batch47.py` (**do not commit/push unless explicitly requested**). `origin/main` unchanged. **No `.github/workflows/*` edits/commits/pushes. No remote push performed.**
+**Branch/SHA (verified):** `main` @ `6e41392`. Working tree clean. `origin/main` unchanged. **No `.github/workflows/*` edits/commits/pushes. No remote push performed.**
 
 ## Priority (repo-name-driven, non-negotiable)
 Repo name is **Crypto-Betting-Against-Beta** → **BAB only**. The **only** priority is `strategies/betting_against_beta/data_loader.py`: correctness, robustness, adversarial handling, and **measured** coverage improvement. **No infra/controller refactors. No sidetracks. No pivot to `cli.py`/other modules.** Every session must produce **measured `data_loader.py` miss-count reduction** in a **fresh completed canonical aggregate** (or documented unreachable-branch proof **with file/line evidence while immediately moving to the next reachable cluster**).
@@ -50,21 +50,29 @@ python3 -m coverage erase && python3 -m coverage run --source=strategies.betting
 - `1451-1452,1530-1531,1533-1536,1591-1592,1926-1929,2160-2163,2167-2168,2187-2189,2192-2193` — defensive handlers; need precise monkeypatching at `dlmod`/pandas call sites visible to canonical paths.
 
 ## INITIAL TASK MESSAGE FOR NEXT AGENTIC SESSION (execute immediately — heavy work, no off-ramp)
-**Mission (Campaign A continuation):** Reduce `strategies/betting_against_beta/data_loader.py` miss count from **139** in a **fresh canonical aggregate**. **BAB `data_loader.py` only. Heavy working required.** Uncommitted batch files 40-47 exist. `campaign_d*` guard must stay green.
+
+**Mission (Campaign A continuation):** Reduce `strategies/betting_against_beta/data_loader.py` miss count from **139** in a **fresh canonical aggregate**. **BAB `data_loader.py` only.** Heavy working required — every batch must yield a measured miss-count delta or a documented unreachable-branch proof with file/line evidence, then immediately move to the next reachable cluster. `campaign_d*` guard must stay green.
+
+**Target:** miss **<139** (stretch ≤135, hard floor ≤130). Do not reuse older numbers; baseline = fresh canonical aggregate at session start.
 
 **Priority clusters to attack (recheck line-by-line; target measured delta):**
-1. **`757-758,766-767,770-771,789-792,804-805,840-841,859,861-862,867-868`** — `_promote_datetime_column` exception handlers. Design tests that flow through canonical loader/validation entrypoints (or replicate their exact call context) so handlers trigger in aggregate.
-2. **`1451-1452,1530-1531,1533-1536`** — validate_returns trivial 1970 path and benchmark remap rename fallbacks. Use real validate flows; monkeypatch `pd.DataFrame.rename`/index normalization carefully to avoid breaking unrelated paths.
-3. **`1591-1592`** — `load_returns_from_csv` defensive empty-after-read; use stateful `read_csv`/df.empty monkeypatch compatible with prior checks.
+1. **`757-758,766-767,770-771,789-792,804-805,840-841,859,861-862,867-868`** — `_promote_datetime_column` exception handlers (tz-normalize/element-wise/unnamed-column paths). Design tests that flow through canonical loader/validation entrypoints (replicate exact caller context) so handlers trigger in aggregate, not isolated unit calls.
+2. **`1451-1452,1530-1531,1533-1536`** — `validate_returns_dataframe` trivial 1970 path and benchmark remap rename fallbacks. Use real validate flows; monkeypatch `pd.DataFrame.rename`/index normalization carefully.
+3. **`1591-1592`** — `load_returns_from_csv` defensive empty-after-read; stateful `read_csv`/`df.empty` monkeypatch compatible with prior checks.
 4. **`1926-1929,2160-2163,2167-2168,2187-2189,2192-2193`** — `clean_data`/metadata defensive branches; patch at exact `dlmod` symbols and pandas methods used inside those blocks.
 5. **`679,694-695,713-714,733-734`** — exchange/epoch/tz normalization handlers still missing.
-6. **Triage `227-247,908-914,1626-1627,1663-1664`** early: produce file/line unreachable proof with counterexample attempt+delta evidence, then stop spending time there.
+6. **Triage `227-247,908-914,1626-1627,1663-1664` early:** produce file/line unreachable proof with counterexample attempt + delta evidence, then stop spending time there.
 
 **Hard rules:**
 - **BAB `data_loader.py` only.** No infra/controller refactors, no pivot to `cli.py`/other modules.
 - **No progress count without fresh canonical aggregate measured miss-count delta** OR **unreachable proof with file/line evidence + immediate move to next reachable cluster**.
 - **Minimum throughput:** deliver **≥3 verified batches with measured delta** this session unless reachable clusters exhausted with evidence. Each batch = focused tests (`tests/test_bab_data_loader_batch48.py` etc.) → `campaign_d*` guard (`--ignore=tests/test_controller_progress_accounting.py`) → **canonical Step 0 aggregate** → recorded delta. If delta 0, retarget before continuing.
-- Ignore `TestBatch32` pre-existing failures (13). Never edit/commit/push `.github/workflows/*`. Preserve `BABDataError` contract, inspect-sensitive behavior, campaign_d semantics. Smallest correct fix only for proven contract violations. No comments. No push unless explicitly requested.
+- Ignore `TestBatch32` pre-existing failures (13). Never edit/commit/push `.github/workflows/*`. Preserve `BABDataError` contract, inspect-sensitive behavior, campaign_d semantics. Smallest correct fix only for proven contract violations. **No comments.** No push unless explicitly requested.
+
+**Bottlenecks removed / route-around (confirmed):**
+- Controller `TestControllerProgressAccounting` → always `--ignore=tests/test_controller_progress_accounting.py`; never touch `.github/workflows/*`.
+- pyarrow/tables/fastparquet not installed → monkeypatch parquet/hdf5/engine branches (covered).
+- Inspect-sensitive / campaign_d semantics → preserve `_coerce_to_datetime_scalar`/inspect behavior and campaign_d filename/function behavior (guard stays green).
 
 **Verification commands:**
 ```bash
