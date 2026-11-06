@@ -2,7 +2,7 @@
 
 > **This is the only durable handoff.** Read fully, then execute the **INITIAL TASK MESSAGE** below immediately. No off-ramp, no sidetrack, no status-only session, no planning-only session.
 
-**Handoff refreshed (UTC):** 2026-11-06T16:42:22Z
+**Handoff refreshed (UTC):** 2026-11-06T17:41:49Z
 **Last fresh canonical verification (UTC):** 2026-11-06T16:40:43Z (Step 0 + aggregate with batch58-60 this session)
 **Repo:** `Crypto-Betting-Against-Beta` | **Path:** `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
 **Branch/SHA:** `main` @ `e6bfdcf` (verify with `git rev-parse --short HEAD`). Working tree has untracked probe files added this session: `tests/test_bab_data_loader_batch58.py`, `tests/test_bab_data_loader_batch59.py`, `tests/test_bab_data_loader_batch60.py` (kept for retarget evidence; no production code changes). **No `.github/workflows/*` edits/commits/pushes. No remote push performed.**
