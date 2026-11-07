@@ -21,3 +21,6 @@ env/
 .idea/
 .vscode/
 *.swp
+# Local scratch / probing artifacts
+diag*.py
+_recon_cov.py
