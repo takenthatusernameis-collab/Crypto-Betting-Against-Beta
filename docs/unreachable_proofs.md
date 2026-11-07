@@ -715,3 +715,23 @@ Canonical (fresh, rcfile=/dev/null): miss **36/1683 (98%)**, **1466 passed, 0 fa
 **Cluster disposition (unchanged):** structural-dead/handler-order dead (`43-44,268-269,334-342,403-404,641-695,791-792`), coercer-determinism/NaT-gate dead (`234-247`), construction-unreachable (`953`), inspect-gated guard-relevant **do not alter** (`322,326`), pathological semantic-only **do not change semantics** (`351-352`).
 
 **Conclusion:** 36-miss floor remains mechanism-closed. Batch117 only on a genuinely new, concretely demonstrated, production-realistic mechanism satisfying all four criteria; otherwise maintain proofs and rebaseline with `--rcfile=/dev/null`.
+
+---
+
+## Batch 117 (2026-11-07T19:18Z, SHA 4dbcd7b, fresh rebaseline + strict 4-criteria assessment + targeted probes, 0 delta)
+
+**Canonical (fresh, `--rcfile=/dev/null` run+report, 2026-11-07T19:18Z):** **1466 passed, 0 failed, 17 skipped, 107 warnings** (45.31s). Coverage: **36 miss / 1683 stmts / 98%** (`--include='strategies/betting_against_beta/data_loader.py'`). Missing exactly `43-44, 234-244, 246-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953`. Guard **44 passed, 5 warnings**. `data_loader.py` unchanged at HEAD (`4dbcd7b` local). No production/test changes added.
+
+**Fresh probes (production-shaped where possible; no semantic changes):**
+- **268-269** (`_normalize_index`): monkeypatched `data_loader.pd.to_datetime` to raise plain `TypeError('plain TE')` on a normal string index (`['2024-01-01','2024-01-02']`). Observed: 261 caught `Exception`, 262-265 converted to `BABDataError("Index could not be parsed as datetime")`, 266 (`except BABDataError: raise`) re-raised **before** 268 (`except (ValueError,TypeError)`), yielding `BABDataError` to caller. Confirms handler-order/MRO gate: `BABDataError` subclasses `ValueError`; 268-269 unreachable when inner path converts to `BABDataError`. No production-realistic plain `VE/TE` escape demonstrated.
+- **246-247** (`_normalize_index` dayfirst 227-247): probe attempting to force 245 assignment failure was harness-malformed (`AxisProperty` attribute error in custom subclass) and **not** evidence of a production-realistic mechanism. Prior batches 94/97/98 remain authoritative: 232 coercer determinism blocks 234-244; 245/246-247 not reached by demonstrated assignment-failure mechanisms under outer recovery. **No new production-realistic path.**
+- **351-352** (`_coerce_to_datetime_scalar` float NaN/inf guards): `float` subclass (`WeirdFloat(1704067200.0)`) coerces normally; breaking `np.isnan`/numeric behavior requires pathological `__float__`/`np` interaction — semantic/pathological, disallowed.
+- **641-642, 694-695** (`_detect_and_normalize_exchange_format` outer handlers): production-realistic OHLCV-wide (`Open time/Open/High/Low/Close/Volume`) and epoch-ms date+close frames normalized successfully to `DataFrame`; outer exception handlers not triggered. Confirms inner-swallow/guarded-setup closure for normal inputs.
+
+**Strict batch117 entry criteria (all 4 required) — none satisfied:**
+1. **Target+current code:** 36 misses verified at HEAD against `data_loader.py` (1683 stmts). Historic `1626-1627,1663-1664` stale.
+2. **New mechanism:** none identified beyond batches 103–116 proofs.
+3. **Production-realistic:** no real frame/index/dtype + plausible pandas/library behavior demonstrated to reach 43-44,234-247,268-269,334-342,351-352,403-404,641-695,791-792,953 through unguarded seams without semantic change/pathological harness. `322,326` inspect-gated (guard-relevant).
+4. **Expected path:** cannot be stated.
+
+**Conclusion:** 36-miss floor remains mechanism-closed. **Batch118 only** on a genuinely new, concretely demonstrated, production-realistic control-flow mechanism satisfying all four criteria (no semantic change, no pathological harness, no repeat probe). Maintain proofs; preserve `322,326`; use `--rcfile=/dev/null` for canonical coverage run+report.
