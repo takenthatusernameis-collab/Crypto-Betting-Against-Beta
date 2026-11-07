@@ -311,3 +311,19 @@ Scope: `strategies/betting_against_beta/data_loader.py` only. `campaign_d*` guar
 - **641-642, 694-695, 1626-1627, 1663-1664, 1926-1927**: batch90 structural proofs unchanged; no bypass mechanism found. **Proof-only.**
 
 **Status:** miss **54/1693 (97%)**. Canonical **1460 passed, 0 failed, 17 skipped** (40-69,71-74,76-89). Guard **44 passed, 5 warnings**. Remaining clusters structural-dead / inspect-gated (`322,326`) / no-known-realistic-mechanism. Next batch: **92**.
+
+---
+
+## Batch 92 (2026-11-07T06:36Z, SHA 5b2d7ac, canonical rebaseline 54 miss / 1460 passed)
+
+**Canonical (reverified this session):** miss **54/1693 (97%)**, **1460 passed, 0 failed, 17 skipped, 105 warnings** (batches 40-69,71-74,76-89). Guard **44 passed, 5 warnings**. Deps confirmed at `/home/runner/work/_temp/kilo-tmp/pylib`. No miss reduction (0 delta). No production-semantics changes made.
+
+### Evidence refresh (direct module probes, PYTHONPATH set)
+- **227-247** (`_normalize_index` dayfirst last-ditch): direct probe of `_coerce_to_datetime_scalar` confirms production contract — `['not-a-date','',None,NaN,'31/13/2021']` all raise `ValueError`; `'2021-01-01'` returns a tz-aware `Timestamp` (`2021-01-01 00:00:00+00:00`, `isna=False`). Therefore 216-224 elementwise coercion raises on any unparseable scalar before 225, and `df.index.isna().any()` cannot become True for a realistic string index that required dayfirst. **Mechanism closed** unless coercer is changed to return NaT (disallowed). Keep proof-only.
+- **791-792** (`_promote_datetime_column` outer except, 760-792): reconfirmed all inner statements guarded (`getattr` defaults at 763-771, tz_convert/localize try/except 773-779, elementwise apply try/except 782-790); Python 3 `hasattr` swallows property exceptions. No uncaught statement exists inside 760-790. **Structurally dead.**
+- **641-642 / 694-695** (`_detect_and_normalize_exchange_format`): outer handlers remain subsumed by inner `except Exception: pass` blocks (639-640, 690-691) and safe setup. **Structurally dead.**
+- **1626-1627 / 1663-1664** (parquet/hdf5 outer handlers): read/validate paths convert all exceptions to `BABDataError` inside inner handlers; outer `(OSError,ValueError)` cannot propagate. **Structurally dead.**
+- **1926-1927** (`_drop_metadata_columns`): 1915-1918 and 1924-1925 share identical `first==0` + `allclose(diffs,1)` predicate on `vals[finite]`; 1917-1918 executes/continues first. **Subsumed.**
+- **Inspect-gated / previously closed:** `322,326` (campaign_d stack inspection — guard-relevant, do not alter), `43-44,92-93,334-335,338-342,351-352,403-404,953,1319-1320` (re-raise/generic-except/subsumed per prior entries). No new mechanism found.
+
+**Status:** miss **54/1693 (97%)**. Canonical **1460 passed, 0 failed, 17 skipped** (40-69,71-74,76-89). Guard **44 passed, 5 warnings**. All remaining lines are structural-dead, inspect-gated, or would require production-semantics change to reach (disallowed). Future work: only pursue if a **new, production-realistic control-flow mechanism** is demonstrated; otherwise maintain proofs and baseline. Next batch: **93**.
