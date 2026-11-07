@@ -34,10 +34,19 @@ Scope: `strategies/betting_against_beta/data_loader.py` only. `campaign_d*` guar
 - Code path: this elementwise coercer sits inside nested `except Exception` handlers (181-196) that only run after `pd.to_datetime(idx, unit=..., utc=True)` fails. `_coerce_to_datetime_scalar(v)` raises `ValueError("bad")`, not `BABDataError`, for bad scalars, so `except BABDataError: raise` at 195-196 never matches; when all scalars coerce, line 194 runs but the except (195-196) is not entered. For line 194 specifically, reaching it requires a numeric index whose pandas unit-coercion fails yet every scalar coerces — the magnitude branches and elementwise fallback overlap such that this exact `df.index = coerced` site is never the one that executes in a completed path.
 - Evidence: batches targeting numeric epoch indexes (campaign_d) cover the magnitude `pd.to_datetime(unit=...)` paths, not this nested elementwise assignment site.
 
-### 227-235, 237-247: dayfirst last-ditch
-- Function: `_normalize_index`, lines 227-235 and 237-247 (elementwise dayfirst coercer; line 236 covered).
-- Code path: reached only if `df.index.isna().any()` is True after elementwise `_coerce_to_datetime_scalar` (218-224). But `_coerce_to_datetime_scalar` raises on unparseable values rather than returning NaT, so the coerced list has no NaT and `df.index.isna().any()` is False. The dayfirst block is therefore never entered.
-- Evidence: coercer never returns NaT (it raises), so the NaT guard preceding dayfirst is False.
+### 227-233, 245: **COVERED (batch93)** — dayfirst last-ditch entry
+- Function: `_normalize_index`, lines 227-233, 245 (dayfirst block entered; coerced assigned). 234-244, 246-247 remain missing (see below).
+- Code path: `_coerce_to_datetime_scalar` returns `pd.NaT` (no raise) for `np.datetime64('NaT')` while raising for `pd.NaT`/`None`/unparseable strings. An object index mixing valid ISO dates with `np.datetime64('NaT')` passes 218-224 (coercer returns NaT for the NaT element), leaves `df.index.isna().any()` True at 225, and enters 227-245; 232 succeeds for all elements (deterministic coercer) so 234-244 never fire, 245 assigns, and 291-295 drops NaT rows.
+- Evidence: `tests/test_bab_data_loader_batch93.py::test_227_245_dayfirst_block_via_np_datetime64_nat`, `::test_coercer_nat_passthrough_contract`. Canonical delta **54→44 (-10)**.
+
+### 234-244, 246-247: dayfirst per-element fallback + `ValueError("unparseable")` — **structurally dead** (batch94 mechanism-closure)
+- Function: `_normalize_index`, lines 234-235 (`except/pass` after 232 coercer call), 237-244 (dayfirst `pd.to_datetime(..., dayfirst=True, utc=True/False)` fallbacks + re-raise), 246-247 (`except Exception: raise ValueError("unparseable")`).
+- Code path / mechanism closure:
+  - **Reachability gate (216-225):** 227-247 is entered only if 225 is true (`df.index.isna().any()` after 216-224). 216-224 calls `_coerce_to_datetime_scalar(v)` for each index element and does `except Exception: raise` at 222-223 — so 224/225 execute only when *every* element either returns a value or returns `pd.NaT` (np.datetime64 NaT case). Any element that makes the coercer raise (unparseable string, `pd.NaT`, `None`, `NaN`, `''`, etc.) is intercepted at 223 and control jumps to 248, **never reaching 225/227**.
+  - **232 determinism:** inside 227-247, 231-233 calls the same deterministic `_coerce_to_datetime_scalar(v)` on the same `idx` elements. For all elements that survived 216-224, 232 returns the same result (verified: coercer is pure/deterministic; `np.datetime64('NaT')`→`pd.NaT` no-raise, valid ISO/`31/12/2020`→Timestamp, all bad inputs raise). Therefore 232 never raises for any element that can reach 227, `continue` always fires at 233, and **234-244 (dayfirst fallbacks) never execute**.
+  - **245/246-247:** `df.index = coerced` at 245 assigns a plain Python list/sequence of Timestamps/NaT on a normal `pd.DataFrame` (assignment is safe; 224 performs the same kind of assignment). No realistic path makes 245 raise while 224 succeeded on an equivalent coerced shape. 246-247 would only run if 245 (or an exception escaping the loop, which cannot happen given 232 determinism + 243 re-raise only reachable via 234-242 — themselves unreachable) raised.
+- Evidence (2026-11-07T09:35Z, direct trace, PYTHONPATH set): `sys.settrace` over `_normalize_index` with `idx=[np.datetime64('NaT'), 'zzzznotadate999']` hit 217-223 then 248-259 (223 raised on the unparseable element) and **never hit 224-247**; confirms 223 intercept prevents 227 entry for mixed NaT+unparseable shapes. Coercer determinism verified: repeated calls return identical outcomes/exception types. Coverage probe (separate process) reported 234-244,246-247 MISS under the same shape.
+- Conclusion: 234-244,246-247 are **structurally unreachable without changing coercer semantics or injecting a non-deterministic/production-unrealistic index-assignment failure** (both disallowed). Proof-only.
 
 ### 268-269: `except (ValueError, TypeError)`
 - Function: `_normalize_index`, line 268 `except (ValueError, TypeError) as exc:` / 269 `raise BABDataError(...)`.
@@ -106,10 +115,10 @@ Scope: `strategies/betting_against_beta/data_loader.py` only. `campaign_d*` guar
 - Code path: requires `df2.index` assigned a non-DatetimeIndex value (so 906-907 does not return early) and `df2.set_index(df2.index)` raising (908-911). Batch85 monkeypatched `pd.to_datetime` to return a `_StrSeries` of plain strings for the renamed `mystery`/`MYSTERY` column and `pd.DataFrame.set_index` to raise — reaching the object Index, the `set_index` raise at 908-912, `pass` at 913, and `return df2` at 914.
 - Evidence: `tests/test_bab_data_loader_batch85.py::test_912_914_last_resort_set_index_raise_not_dtindex`. Canonical delta included in batch85 (74 -> 62 total).
 
-### 791-792: elementwise tz normalization in candidate-name promote
-- Function: `_promote_datetime_column`, lines 760-792.
-- Code path: the outer try at 760-792 wraps `dt_attr = getattr(parsed, "tz", None)` (caught at 766-767), the dtype.tz read (caught at 770-771), the Series-level tz convert (773-779), and the elementwise apply (782-790). Every statement inside has its own handler; batch85 probed a `_TzRaisingSeries` whose `.tz` property raises but it is caught at 766-767 (`dt_attr = None`), so the outer except at 791-792 never fires.
-- Evidence: focused batch85 probe `test_791_792_promote_tz_property_escape` produced zero delta; outer except is dead because all inner statements are individually caught.
+### 791-792: elementwise tz normalization in candidate-name promote — **structurally dead** (batch94 closure)
+- Function: `_promote_datetime_column`, lines 760-792 (candidate promotion tz-normalization), outer `except Exception: pass` at 791-792.
+- Code path: 760 opens `try`, 791-792 is the only outer `except`. Every statement inside 760-790 is individually guarded: 764-767 wraps `getattr(parsed,"tz",None)`; 768-771 wraps dtype.tz lookup; 773-779 wraps `tz_convert/tz_localize` chain; 782-790 wraps `hasattr(parsed,"apply")` + `parsed.apply(...)`. Python 3 `hasattr` swallows descriptor/property exceptions, and `apply` exceptions are caught at 789-790. No uncaught statement exists between 760-790 that can propagate to 791.
+- Evidence: batch85 probe `test_791_792_promote_tz_property_escape` (0 delta), batch87 probes (tz property raising / apply raising / forced else-branch) all swallowed by inner handlers; batch91 subclass probe left index as string with 791-792 not hit; batch94 static verification confirms all 760-790 statements are inside inner try/except or are exception-free conditionals. **Structurally dead without production control-flow change.**
 
 ### 859, 861-862: **COVERED (batch85)** — unnamed-column tz normalization
 - Function: `_promote_datetime_column`, lines 852-862 (unnamed column coercer/clean).
@@ -223,10 +232,11 @@ Scope: `strategies/betting_against_beta/data_loader.py` only. `campaign_d*` guar
 
 ---
 
-## Summary of remaining clusters (44 miss lines, 2026-11-07T07:40Z rebaseline)
+## Summary of remaining clusters (44 miss lines, 2026-11-07T09:35Z batch94 rebaseline/proof-refresh)
+
 `43-44, 234-244, 246-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953, 1319-1320, 1626-1627, 1663-1664, 1926-1927`
 
-**Batch93 delta:** **-10** (54→44). Covered `92-93` (`_coerce_series_to_datetime_index` outer except via `BadIter` pd.Series subclass whose `__iter__` raises — `tests/test_bab_data_loader_batch93.py::test_92_93_outer_except_via_series_iter_raises`) and `227-233`/`245` (`_normalize_index` dayfirst last-ditch entered via `np.datetime64('NaT')` passthrough through `_coerce_to_datetime_scalar` — `tests/test_bab_data_loader_batch93.py::test_227_245_dayfirst_block_via_np_datetime64_nat` + `::test_coercer_nat_passthrough_contract`). Canonical **1463 passed, 0 failed, 17 skipped, 107 warnings**. Guard **44 passed, 5 warnings**. All remaining lines have structural-death entries above (or are inspect-gated campaign_d / guard-relevant lines 322/326); no production-semantics change can reach them. Next batch: **94**.
+**Batch94 (0 delta, proof-refresh):** canonical reverified **1463 passed, 0 failed, 17 skipped, 107 warnings** (40-69,71-74,76-89,93; batch75 excluded from canonical per ledger, batch94 transient beta-targeting probe removed), miss **44/1693 (97%)**, guard **44 passed, 5 warnings**. Strengthened mechanism-closure proofs: **234-244,246-247** — 227-247 is entered only when 216-224 completes without coercer raise; 232 uses the same deterministic coercer on the same elements, so `continue` always fires and dayfirst fallbacks/`ValueError("unparseable")` are unreachable (trace evidence shows 223→248 for mixed NaT+unparseable; coercer deterministic). **791-792** — all 760-790 statements individually guarded; outer except structurally dead. **641-642,694-695,1626-1627,1663-1664,1926-1927** retained as structural-dead/subsumed (batch90). **322,326** inspect-gated (guard-relevant, do not alter). No production-semantics change can reach remaining lines. Next batch: **95**.
 
 ---
 
