@@ -653,3 +653,23 @@ All 40 remaining lines `43-44, 234-244, 246-247, 268-269, 322, 326, 334-335, 338
 - **234-244,246-247,322,326,334-335,338-342,351-352,641-642,694-695,791-792,953**: unchanged from prior mechanism-closure proofs (coercer determinism/gate, inspect-gated guard-relevant, re-raise-before-generic-pass, pathological semantic-only 351-352, exchange/promote structural-dead, `str.split()` construction-unreachable). **Do not alter 322,326; do not change production semantics solely for coverage.**
 
 **Batch115 entry:** only if a *genuinely new, concretely demonstrated, production-realistic* control-flow mechanism is identified (state: target lines, new mechanism not disproven by 103–114/unreachable_proofs, production-realistic shape/library behavior, expected path). Otherwise maintain proofs/baseline.
+
+---
+
+## Batch 114 (2026-11-07T18:31Z, SHA cfe353d → rebaseline @ e945fde, proof-strengthen / 0 delta)
+Canonical (fresh, rcfile=/dev/null): miss **36/1683 (98%)**, **1466 passed, 0 failed, 17 skipped, 107 warnings** (45.17s). Guard **44 passed, 5 warnings**. `data_loader.py` differs at HEAD vs 311656a; prior `1626-1627,1663-1664` no longer in miss set. No production semantics changed.
+
+### Strengthened mechanism-closure (remaining 36)
+- **43-44** (`_not_null`): identity `v is None` (line ~35), inner `pd.isna` wrapped by `try/except Exception: pass` (37-41), body returns `True` at 42. No unwrapped fallible statement in outer try (34-44); outer `except Exception: return False` unreachable.
+- **234-244,246-247** (`_normalize_index` dayfirst last-ditch 227-247): entered only if 216-224 elementwise coercion leaves NaT (`df.index.isna().any()` true). Coercer `_coerce_to_datetime_scalar` is deterministic; for elements that survived 216-224 it does not raise, so 232 `continue`s always, 234-244 never execute. 245 assignment safe; 246-247 unreachable without coercer semantics change or pathological assignment failure escaping all recovery (disallowed). Trace: mixed NaT+unparseable → 223 raises before 227.
+- **268-269** (`_normalize_index` outer 268-269): handler order 266 `except BABDataError: raise` precedes 268 `except (ValueError,TypeError)`. `BABDataError` subclasses `ValueError`; all inner handlers (261-265 convert Exception→BABDataError, 259 re-raises BABDataError) ensure BABDataError caught first. Plain VE/TE cannot escape 161-265 to reach 268-269 in production paths.
+- **334-335,338-342** (`_coerce_to_datetime_scalar`): `ValueError("bad")` raised inside try caught by immediately preceding `except ValueError: raise` (re-raise exits) so generic `except Exception: pass` never reached.
+- **351-352**: float NaN/inf guard - `np.isnan/np.isinf` wrapped; pathological float subclass where `__float__` raises inside NaN check - semantic-only fix, disallowed (must not change semantics solely for coverage).
+- **403-404** (`_coerce_to_datetime_scalar` epoch outer except): 364 `av = abs(numf)` is only unwrapped stmt in 362-402 but safe for builtin float from regex-admitted numeric strings; all 365-402 branches individually guarded; outer except unreachable for normal str input.
+- **641-642** (`_detect_and_normalize_exchange_format` OHLCV outer): 598-642 setup has no fallible unguarded stmts; inner 608-640 fully wrapped by 639-640 swallows all exceptions → outer except unreachable.
+- **694-695** (date-coercion outer): 649-667 safe ops on resolved column; 668-691 swallowed by 690-691; 692-693 safe return → outer except unreachable.
+- **791-792** (`_promote_datetime_column` candidate tz): all 760-790 individually guarded (getattr defaults, tz_convert/localize try/except, apply try/except); hasattr swallows descriptor exceptions → outer except unreachable.
+- **953** (`_normalize_asset_name`): `str.split()` never yields empty token; `tok_clean = tok.strip()` on split tokens never empty → `if not tok_clean: continue` (953) unreachable by construction.
+- **322,326**: inspect-gated by caller filename/stack (campaign_d) — guard-relevant, DO NOT ALTER.
+
+**Conclusion:** all 36 remaining lines are mechanism-closed (structural-dead/handler-order-gated/construction-unreachable/inspect-gated/pathological-semantic-only). No production-realistic control-flow mechanism found without semantic changes.
