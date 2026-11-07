@@ -403,3 +403,15 @@ All remaining lines are structural-dead, inspect-gated (`322,326`), or blocked b
 - **953** (`_normalize_asset_name`): `s.split()` with no separator never yields empty strings; `tok_clean = tok.strip()` on a split token is never empty. **Unreachable by construction.**
 
 - **322, 326** (inspect-gated/campaign_d; **guard-relevant, DO NOT ALTER**), **334-335, 338-342, 351-352** (re-raise-before-generic-pass), **641-642, 694-695** (inner handlers swallow all `Exception`), **791-792** (all 760-790 individually guarded), **1626-1627, 1663-1664** (inner read/validate convert to `BABDataError`): unchanged from prior proofs (batch90/94/96/97). No new production-realistic mechanism found.
+
+## Batch 99 — 2026-11-07T10:55Z (SHA a7468e0, proof-only / 0 delta)
+
+**Baseline (fresh canonical):** 40 miss / 1693 stmts (98%); 1466 passed, 0 failed, 17 skipped, 107 warnings (40-69,71-74,76-89,93,95,96); guard 44 passed. No production-semantics changes.
+
+| Lines | Function | Evidence |
+|---|---|---|
+| 234-244,246-247 | `_normalize_index` dayfirst last-ditch (227-247) | 234-244: 232 uses same deterministic `_coerce_to_datetime_scalar` on elements that survived 216-224; `continue` at 233 always fires for non-raising results → **unreachable**. 245/246-247: module-isolated probes with `np.datetime64('NaT')` (grants 227 entry) and forced `__setattr__('index')` failures showed (1) NaT-robust 248-257 fallbacks (`pd.to_datetime`/`_coerce_to_datetime_scalar` on original `idx`) recover to valid `DatetimeIndex` (246-247 not hit), or (2) when 246-247 `ValueError("unparseable")` fires and fallbacks exhaust, 257 bare-raises plain `ValueError` caught by 268 (`except (ValueError,TypeError)`) → `BABDataError` (not a canonical 246-247/268-269 miss reduction). No production-realistic index-assignment/fallback-exhaustion mechanism demonstrated. |
+| 268-269 | `_normalize_index` outer `(ValueError,TypeError)` (160-271) | 266 `except BABDataError: raise` precedes 268; `BABDataError` subclasses `ValueError` (batch97). 268 can catch a plain `ValueError` only if it escapes 161-265 as non-`BABDataError`. Demonstrated source was 257 re-raise of 246-247's `ValueError` after non-realistic fallback exhaustion (NaT-robust fallbacks prevent it for 227-entry case). Other 161-265 exceptions converted/wrapped before 268. **Proof-first: handler order + BABDataError wrapping + NaT-robust fallbacks.** |
+| 334-335,338-342,351-352 | `_coerce_to_datetime_scalar` | `except ValueError: raise` passes intended `ValueError("bad")`; `except Exception: pass` unreachable without a non-ValueError exception from `type().__name__` compare, `is pd.NaT` identity, or `np.isnan/np.isinf` on already-typed `float`. No production-realistic exception source. |
+| 43-44,403-404,641-642,694-695,791-792,953,1626-1627,1663-1664 | misc | unchanged structural-dead/construction-unreachable/conversion-gated (prior batches). |
+| 322,326 | `_coerce_to_datetime_scalar` inspect-gated | **guard-relevant; DO NOT ALTER.** |
