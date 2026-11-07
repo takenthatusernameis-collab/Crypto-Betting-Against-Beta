@@ -811,3 +811,17 @@ Canonical (fresh, rcfile=/dev/null): miss **36/1683 (98%)**, **1466 passed, 0 fa
 4. **Expected path:** cannot be stated consistently with (2)-(3).
 
 **Conclusion:** **36-miss floor remains mechanism-closed at `eab0c8d`.** No genuinely new production-realistic mechanism identified; no test/probe added. Proof strengthened (re-verified line-to-code + criteria). **Batch122 only** on a concretely demonstrated, production-realistic control-flow mechanism satisfying all four criteria. Preserve `322,326`; no semantic changes for coverage; do not commit unless explicitly requested. Use `--rcfile=/dev/null` for canonical coverage run+report.
+
+---
+
+## Batch 122 — fresh rebaseline @ 927c2d7 (2026-11-07T20:19:36Z)
+
+**Rebaseline:** canonical aggregate → **1466 passed, 0 failed, 17 skipped, 107 warnings** (45.58s); **36 miss / 1683 stmts / 98%** (`--rcfile=/dev/null`, run+report); missing exactly `43-44, 234-244, 246-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953`. Guard **44 passed, 5 warnings**. SHA `927c2d7` (checkpoint). `data_loader.py` unchanged vs `b4fdaf5` (line→code re-verified; miss set identical).
+
+**Strict batch122 entry criteria (re-assessed, all 36 lines):**
+1. Exact target lines + current code: re-verified unchanged; all 36 lines map to the same closed mechanisms as batch121.
+2. New mechanism not disproven: none — coercer determinism/223 intercept (234-247), `Exception→BABDataError` + handler-order/MRO (268-269), re-raise-before-generic-pass (334-342), builtin `float(s)`/guarded epoch (403-404), identity+guarded `pd.isna` (43-44), inner-swallow/guarded setup (641-695), fully-guarded promote (791-792), `str.split()` tokens (953), pathological `__float__` (351-352), inspect-gated (322,326) all remain closed.
+3. Production-realistic: no real `pd.DataFrame`/index/dtype/column labels + plausible pandas/library behavior demonstrated to reach any remaining handler without semantic change or pathological harness.
+4. Expected path: cannot be stated consistently with (2)-(3).
+
+**Conclusion:** **36-miss floor remains mechanism-closed at `927c2d7`.** No genuinely new production-realistic mechanism identified; no test/probe added. Proof strengthened (re-verified line-to-code + criteria). **Batch123 only** on a concretely demonstrated, production-realistic control-flow mechanism satisfying all four criteria. Preserve `322,326`; no semantic changes for coverage; do not commit unless explicitly requested. Use `--rcfile=/dev/null` for canonical coverage run+report.
