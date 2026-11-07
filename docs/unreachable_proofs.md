@@ -673,3 +673,26 @@ Canonical (fresh, rcfile=/dev/null): miss **36/1683 (98%)**, **1466 passed, 0 fa
 - **322,326**: inspect-gated by caller filename/stack (campaign_d) — guard-relevant, DO NOT ALTER.
 
 **Conclusion:** all 36 remaining lines are mechanism-closed (structural-dead/handler-order-gated/construction-unreachable/inspect-gated/pathological-semantic-only). No production-realistic control-flow mechanism found without semantic changes.
+
+---
+
+## Batch 115 (2026-11-07T19:07Z, SHA 074753a, proof refinement / 0 delta, no new mechanism)
+
+**Canonical (fresh, `--rcfile=/dev/null` for run+report):** **1466 passed, 0 failed, 17 skipped, 107 warnings**. Coverage: **36 miss / 1683 stmts / 98%** (`--include='strategies/betting_against_beta/data_loader.py'`). Missing exactly `43-44, 234-244, 246-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953`. Guard **44 passed, 5 warnings**. No production code changes; no test added.
+
+**Line-map reconciliation (material):** Prior proofs referenced `1626-1627`/`1663-1664` as parquet/HDF5 outer `(OSError,ValueError)` handlers @ older SHAs; at HEAD `074753a` (stmt count 1683) those line numbers are **not** in the canonical miss set. `load_returns_from_parquet` spans ~1597-1622 and `load_returns_from_hdf5` ~1625-1654 (see `inspect.getsourcelines`); their read/validate paths convert/wrap exceptions to `BABDataError` and re-raise — no current outer-handler miss remains for those functions. Future sessions must re-check line→code before targeting historic line refs.
+
+**Strict batch115 entry-criteria assessment (all 4 required; none satisfied for any cluster):** (1) targets known, but (2) no mechanism identified not disproven by batches 103–114/current proofs, (3) no production-realistic control-flow path demonstrated (real `pd.DataFrame`/index/dtype + plausible pandas/library behavior) that reaches an unguarded seam, (4) no expected path stated that survives handler-structure/guard proofs. Reviewed:
+- `43-44` `_not_null`: `is None` identity, `pd.isna` wrapped (40-41), `return True` (42); no unwrapped fallible stmt in outer try.
+- `234-244,246-247` `_normalize_index` 227-247: 227 entered only if 216-224 left NaT; 232 uses same deterministic `_coerce_to_datetime_scalar` on 216-224 survivors → `continue` 233 always; 245 same-length list assignment to `df.index` safe on normal frame; 246-247 unreachable without coercer/assignment semantics change (disallowed).
+- `268-269` `_normalize_index`: 259 re-raises `BABDataError`; 261 catches `Exception` and 262-265 always raise `BABDataError`; 266 `except BABDataError: raise` precedes 268 `except (ValueError,TypeError)`; `BABDataError` subclasses `ValueError`. Handler-order/conversion dead.
+- `322,326` `_coerce_to_datetime_scalar`: inspect-gated campaign_d guards — **guard-relevant, DO NOT ALTER**.
+- `334-335,338-342` `_coerce_to_datetime_scalar`: `ValueError("bad")` raised then immediately re-raised by preceding `except ValueError: raise` handlers; generic `except Exception: pass` unreachable.
+- `351-352` `_coerce_to_datetime_scalar`: requires pathological `np.isnan`/`float.__float__` interaction (semantic slip); fixing changes semantics solely for coverage — **disallowed**.
+- `403-404` `_coerce_to_datetime_scalar`: regex 361 admits numeric `str`; `float(s)` (363) returns builtin `float` (`inf` on overflow, never raises for `str`); `abs` (364) safe for builtin float; all 365-402 `int/datetime` ops individually guarded; outer except unreachable for regex-admitted `str`.
+- `641-642` `_detect_and_normalize_exchange_format` 598-642: setup 599-607 pure assignments/lookups/`if`s; inner 608-640 `try` fully swallowed at 639-640; no unguarded fallible stmt reaches outer except on production-realistic inputs.
+- `694-695` `_detect_and_normalize_exchange_format` 648-695: 649-667 guarded `iloc[0]`/type checks/safe casts on normal df values; inner 668-691 swallowed at 690-691; `not do_coerce` returns 693; outer except unreachable for production-realistic inputs.
+- `791-792` `_promote_datetime_column` 760-792: all 760-790 guarded (`getattr` defaults, wrapped tz ops, `hasattr`+wrapped `apply`); Python `hasattr` swallows descriptor exceptions; 793+ outside try. Structural-dead.
+- `953` `_normalize_asset_name`: `str.split()` (no separator) yields no empty strings; `tok.strip()` on split tokens non-empty → `if not tok_clean: continue` unreachable.
+
+**Conclusion:** 36-miss floor remains mechanism-closed at HEAD `074753a`. **No batch116 probe/test** unless a genuinely new, concretely demonstrated, production-realistic control-flow mechanism satisfies all four entry criteria without semantic change or pathological harness. Maintain proofs, preserve `322,326`, and keep `--rcfile=/dev/null` in canonical coverage runs in this environment.
