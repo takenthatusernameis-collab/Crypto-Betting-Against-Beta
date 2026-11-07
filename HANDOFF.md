@@ -96,9 +96,9 @@ Next batch number: **123** (only on a concretely demonstrated, genuinely new pro
 
 ---
 
-## INITIAL TASK MESSAGE — 2026-11-07T20:27:11Z (batch123 rebaseline) — EXECUTE IMMEDIATELY (HEAVY WORK, NO ESCAPE HATCHES)
+## INITIAL TASK MESSAGE — 2026-11-07T21:07:32Z (batch124 rebaseline) — EXECUTE IMMEDIATELY (HEAVY WORK, NO ESCAPE HATCHES)
 
-**Timestamp (UTC):** 2026-11-07T20:27:11Z (batch123; 36-miss mechanism-closed under `--rcfile=/dev/null`). **SHA at handoff:** `f3dbe22` (run `git rev-parse --short HEAD` in Step 0 and record actual SHA).
+**Timestamp (UTC):** 2026-11-07T21:07:32Z (batch124; 36-miss mechanism-closed under `--rcfile=/dev/null`). **SHA at handoff:** `82863fd` (run `git rev-parse --short HEAD` in Step 0 and record actual SHA).
 **Mode:** HEAVY WORK ONLY. Every minute must move coverage or proof quality. Ambiguity is not an escape hatch — this message is explicit and non-negotiable. **The 36-miss floor is mechanism-closed** (batches 103–123-prep). Only a *genuinely new, concretely demonstrated, production-realistic* control-flow mechanism (not semantic change, not pathological harness, not repeat probe) may justify batch123 tests/proofs.
 
 ### Mission (mandatory, binary)
