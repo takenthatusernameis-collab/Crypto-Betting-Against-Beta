@@ -1,9 +1,9 @@
 # Unreachable-branch proofs — data_loader.py remaining miss lines
 
 Generated: 2026-11-06T20:55 UTC (post batch73/batch74, miss 107 -> 96).
-Refreshed: 2026-11-07T02:46Z UTC (post batch85, miss 74 -> 62).
-Canonical aggregate (fresh, 2026-11-07T02:46Z): **1449 passed, 0 failed, 17 skipped** (batches 40-69, 71-74, 76-84, 85), guard **44 passed, 5 warnings**. Miss **62 / 1693 stmts (96%)**, delta **-12 vs 74**.
-Method: each cluster probed max once via direct canonical call (batches 73-77). Structural proof below with file:line, function, code path, and why the branch cannot fire under realistic pandas input. Batch77 found 1928-1929 reachable via forced `np.allclose` exception in `load_prices` metadata-drop inner try; 1926-1927 remain subsumed by 1915-1918.
+Refreshed: 2026-11-07T03:49Z UTC (post batch86, miss 62 -> 59).
+Canonical aggregate (fresh, 2026-11-07T03:49Z): **1450 passed, 0 failed, 17 skipped** (batches 40-69, 71-74, 76-85, 86), guard **44 passed, 5 warnings**. Miss **59 / 1693 stmts (97%)**, delta **-3 vs 62**.
+Method: each cluster probed max once via direct canonical call. Structural proof below with file:line, function, code path, and why the branch cannot fire under realistic pandas input. Batch77 found 1928-1929 reachable via forced `np.allclose` exception in `load_prices` metadata-drop inner try; 1926-1927 remain subsumed by 1915-1918. Batch86 covered 901-903 via a `pd.Series` subclass whose `.tz` is truthy and whose `tz_convert` raises, fed through monkeypatched `pd.to_datetime` in the last-resort object-column loop.
 
 Scope: `strategies/betting_against_beta/data_loader.py` only. `campaign_d*` guard stays green (44 passed, 5 warnings).
 
@@ -91,10 +91,10 @@ Scope: `strategies/betting_against_beta/data_loader.py` only. `campaign_d*` guar
 
 ## `_promote_datetime_column` (lines 700-920)
 
-### 901-903, 908-911: **PARTIALLY COVERED (batch79)**
-- Function: `_promote_datetime_column`, last-resort object-column datetime promotion (895-914).
-- Code path: an object/string column whose name is not in `candidate_names` (e.g. `when_recorded`) and not consumed by `_detect_and_normalize_exchange_format` is parsed with `pd.to_datetime(errors='raise')`; batch79 hit the tz-normalization try/except and successful index assignment/drop/return (908-911/907 region). 901-903 (tz_convert path when parsed has `.tz`) and 912-914 (set_index fallback when `df2.index` is not DatetimeIndex after assignment) remain defensive/uncommon.
-- Evidence: `tests/test_bab_data_loader_batch79.py::test_last_resort_promotes_exotic_object_column`, `::test_last_resort_tz_normalization_exception_path`; canonical delta **86→82 (-4)**.
+### 901-903: **COVERED (batch86)** — last-resort tz conversion body + except/pass
+- Function: `_promote_datetime_column`, lines 900-903 (last-resort loop).
+- Code path: requires `pd.to_datetime(df[col], errors="raise")` to return an object with a truthy `.tz` whose `tz_convert` raises, while `parsed.isna().any()` is False and `_series_has_any_finite(parsed)` is True. Batch86 monkeypatched `pd.to_datetime` to return a `pd.Series` subclass (`TzSeries`) with a truthy `.tz` property and a raising `tz_convert` for the non-candidate object column `mystery`. `getattr(parsed, "tz", None)` is truthy → line 901 body `parsed.tz_convert("UTC").tz_localize(None)` executes and raises → caught by `except Exception` (902) / `pass` (903).
+- Evidence: `tests/test_bab_data_loader_batch86.py::test_901_903_tz_convert_raises_in_last_resort`. Canonical delta **62→59 (-3)**.
 
 ### 713-714, 733-734: tz conversion in index branch / exchange-format return
 - Function: `_promote_datetime_column`, lines 706-714 / 729-734.
@@ -223,15 +223,15 @@ Scope: `strategies/betting_against_beta/data_loader.py` only. `campaign_d*` guar
 
 ---
 
-## Summary of remaining clusters (42 lines, 2026-11-07T02:46Z)
-`43-44, 92-93, 196, 227-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 867-868, 901-903, 953, 1226-1227, 1319-1320, 1626-1627, 1663-1664, 1926-1927`
+## Summary of remaining clusters (59 miss lines, 2026-11-07T03:49Z)
+`43-44, 92-93, 196, 227-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 867-868, 953, 1226-1227, 1319-1320, 1626-1627, 1663-1664, 1926-1927`
 
 **Batch80 delta:** 1257-1258 covered via `tests/test_bab_data_loader_batch80.py::test_dq_campaign_tz_localize_fallback_1257_1258` (miss **82→80, -2**). Reachable via a tz-aware DatetimeIndex where both `tz_convert("UTC")` and `tz_localize(None)` raise under a tight scoped monkeypatch.
 
-**Batch85 delta:** 1257-1258 (re-confirmed in fresh canonical), **912-914, 859, 861-862, 561, 620, 679** covered via `tests/test_bab_data_loader_batch85.py` (miss **74→62, -12** total vs the 2026-11-07T02:44Z baseline). Batch85 zero-delta probes (documented, not adding canonical value beyond the hits above): `791-792` (outer except dead — all inner statements caught), `867-868` (per-element loop never propagates), `196`, `268-269`, `227-247` (dayfirst block never entered — elementwise coercer raises rather than returning NaT), `641-642`, `694-695` (outer excepts over internally-handled blocks).
+**Batch85 delta:** 1257-1258 (re-confirmed in fresh canonical), **912-914, 859, 861-862, 561, 620, 679** covered via `tests/test_bab_data_loader_batch85.py` (miss **74→62, -12** total vs the 2026-11-07T02:44Z baseline). Batch85 zero-delta probes (documented, not adding canonical value beyond the hits above): `791-792` (outer except dead — all inner statements caught), `867-868` (per-element loop never propagates — the only uncaught statement inside the loop is `coerced_clean.append(pdv)` on a fresh `[]`, which cannot raise), `196`, `268-269`, `227-247` (dayfirst block never entered — elementwise coercer raises rather than returning NaT), `641-642`, `694-695` (outer excepts over internally-handled blocks).
 
 **Batch80 zero-delta probes (documented, not added to canonical):**
-- `901-903`: `getattr(parsed, "tz")` is never truthy for a `pd.to_datetime(Series)` result — a Series has no `.tz` attribute (only `.dtype.tz`). Probed by monkeypatching `pd.to_datetime` to return a tz-aware `DatetimeIndex` for the last-resort column; the spy never intercepts because `_normalize_columns` uppercases the column name to `WHEN RECORDED` and the `getattr(parsed, "tz", None)` check reads `None` from the Series. Dead.
+- `901-903`: **NOW COVERED (batch86)** — prior probe dead because `pd.to_datetime(Series)` has no `.tz`; batch86 used a `pd.Series` subclass with a truthy `.tz` property and a raising `tz_convert`, fed via monkeypatched `pd.to_datetime` in the last-resort loop. See `tests/test_bab_data_loader_batch86.py`.
 - `1319-1320`: `pd.to_numeric(..., errors="coerce")` is exception-free by design; monkeypatching `pd.to_numeric` to raise for the `ETH` column produces a `BABDataError` from the stale-run check, never reaching the outer except. Dead.
 - `953`: every non-empty input yields a non-empty `su` return; `not s2` is never true (probed `USD USDT`, `USD EUR`, `usd`, `USDT USDC BUSD`). Dead.
 - `1226-1227`: `BadDf.astype` raises `RuntimeError` -> caught by the `isinstance` guard at 1206-1207 -> `BABDataError`; `to_numeric` monkeypatch raises `AttributeError` -> caught by the second-pass `except (ValueError, TypeError)` at 1216 -> `BABDataError`. Outer except dead.
@@ -239,4 +239,4 @@ Scope: `strategies/betting_against_beta/data_loader.py` only. `campaign_d*` guar
 - `1626-1627`, `1663-1664`: parquet/hdf5 `ImportError` (missing engine) is caught by the inner `except Exception` and re-raised as `BABDataError`; no `OSError`/`ValueError` escapes to the outer handler. Dead.
 - `1926-1927`: `np.allclose(diffs, 1.0, rtol=0, atol=1e-9)` at 1915-1918 fires first for the only shape satisfying 1924-1925; instrumented with an `np.allclose` spy confirming only the 1915-1918 call executes. Subsumed.
 
-**Status:** miss **62/1693 (96%)**. Canonical **1449 passed, 0 failed, 17 skipped** (40-69,71-74,76-84,85). Guard **44 passed, 5 warnings**. All remaining lines have structural-death entries above; exhaustion hunt continues at batch86.
+**Status:** miss **59/1693 (97%)**. Canonical **1450 passed, 0 failed, 17 skipped** (40-69,71-74,76-85,86). Guard **44 passed, 5 warnings**. All remaining lines have structural-death entries above (or are inspect-gated campaign_d / guard-relevant lines 322/326); no production-semantics change can reach them. Next batch: **87**.
