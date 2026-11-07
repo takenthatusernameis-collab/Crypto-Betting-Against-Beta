@@ -2,7 +2,7 @@
 
 > **THIS IS THE SOLE DURABLE HANDOFF.** Prioritize `Crypto-Betting-Against-Beta` (BAB) ONLY. Read completely, rebaseline, then execute the **INITIAL TASK MESSAGE** immediately. No off-ramps, no sidetracks, no status-only sessions, no planning-only sessions, no "review-only" exits. Every session must produce measurable heavy work: **miss reduction in a fresh canonical aggregate** OR **new high-confidence file:line unreachable-proof evidence** added to `docs/unreachable_proofs.md` while immediately moving to the next cluster.
 
-**Handoff refreshed (UTC):** 2026-11-07T10:26:00Z
+**Handoff refreshed (UTC):** 2026-11-07T10:27:56Z
 **Repo:** `Crypto-Betting-Against-Beta` | **Path:** `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
 **Branch/SHA:** `main` @ `a0d93f4` (`chore(kilo): checkpoint agent session`) — **working tree clean** (untracked `debug_beta*.py`/`probe*.py` scratch; canonical tests unaffected)
 **Measured baseline (fresh canonical, 2026-11-07T10:26Z, batch 95 session):** batches 40-69,71-74,76-89,93,95 — **1465 passed, 0 failed, 17 skipped, 107 warnings**. Guard (`campaign_d*`) **44 passed, 5 warnings**.
@@ -83,9 +83,9 @@ Next batch number: **96**.
 
 ---
 
-## INITIAL TASK MESSAGE — 2026-11-07T10:26:00Z — EXECUTE IMMEDIATELY (HEAVY WORK, NO ESCAPE HATCHES)
+## INITIAL TASK MESSAGE — 2026-11-07T10:27:56Z — EXECUTE IMMEDIATELY (HEAVY WORK, NO ESCAPE HATCHES)
 
-**Timestamp (UTC):** 2026-11-07T10:26:00Z
+**Timestamp (UTC):** 2026-11-07T10:27:56Z
 **SHA at handoff:** `a0d93f4` (main; working tree clean with untracked scratch only)
 **Mode:** HEAVY WORK ONLY. Every minute must move coverage or proof quality. Future agents cannot avoid heavy work by claiming ambiguity — this message is explicit.
 
