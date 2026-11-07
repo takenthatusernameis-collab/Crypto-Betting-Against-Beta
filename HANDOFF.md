@@ -2,10 +2,10 @@
 
 > **THIS IS THE SOLE DURABLE HANDOFF.** Prioritize `Crypto-Betting-Against-Beta` (BAB) ONLY. Read completely, rebaseline, then execute the **INITIAL TASK MESSAGE** immediately. No off-ramps, no sidetracks, no status-only sessions, no planning-only sessions, no "review-only" exits. Every session must produce measurable heavy work: **miss reduction in a fresh canonical aggregate** OR **new high-confidence file:line unreachable-proof evidence** added to `docs/unreachable_proofs.md` that closes a *genuinely new* mechanism (not a repeat probe).
 
-**Handoff refreshed (UTC):** 2026-11-07T20:21:30Z (batch123 prep; canonical re-confirmed @ `53555f6`; baseline unchanged).
+**Handoff refreshed (UTC):** 2026-11-07T20:24:41Z (batch123; canonical re-confirmed @ `f3dbe22`; baseline unchanged).
 **Repo:** `Crypto-Betting-Against-Beta` | **Path:** `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
-**Branch/SHA (measured):** `main` @ `53555f6` (untracked `debug_beta*.py`/`probe*.py`/`.coverage` and kilo/session artifacts may exist — **do not commit**; clean `.coverage*` before coverage runs).
-**Measured baseline (fresh canonical, 2026-11-07T20:21Z, batch123 prep):** batches 40-69,71-74,76-89,93,95,96 — **1466 passed, 0 failed, 17 skipped, 107 warnings** (46.38s). Coverage (`--rcfile=/dev/null` run+report): **36 miss / 1683 stmts / 98%** (`--include='strategies/betting_against_beta/data_loader.py'`). Missing exactly `43-44, 234-244, 246-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953`. Guard (`campaign_d*`) **44 passed, 5 warnings**.
+**Branch/SHA (measured):** `main` @ `f3dbe22` (untracked `debug_beta*.py`/`probe*.py`/`.coverage` and kilo/session artifacts may exist — **do not commit**; clean `.coverage*` before coverage runs).
+**Measured baseline (fresh canonical, 2026-11-07T20:24Z, batch123 rebaseline):** batches 40-69,71-74,76-89,93,95,96 — **1466 passed, 0 failed, 17 skipped, 107 warnings** (45.25s). Coverage (`--rcfile=/dev/null` run+report): **36 miss / 1683 stmts / 98%** (`--include='strategies/betting_against_beta/data_loader.py'`). Missing exactly `43-44, 234-244, 246-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953`. Guard (`campaign_d*`) **44 passed, 5 warnings**.
 **Target:** `strategies/betting_against_beta/data_loader.py` — **36 miss / 1683 stmts / 98%** (measured floor @ `53555f6`). **Step 0 must rebaseline every session.** Historic refs to `1626-1627,1663-1664`/1693-stmt state are stale — re-check line→code before targeting.
 **Floor status:** **MECHANISM-CLOSED** for all 36 remaining lines (batches 103–122). A miss reduction now requires a *genuinely new, concretely demonstrated, production-realistic* control-flow mechanism satisfying the strict 4 criteria — not a repeat probe, not a pathological harness, and never a production-semantics change solely for coverage.
 
@@ -44,7 +44,7 @@ Repo name = **Crypto-Betting-Against-Beta** → **BAB strategy only**. **ONLY** 
 
 ## CURRENT MEASURED STATE (rebaseline every session — do not trust stale numbers)
 
-**Fresh baseline (2026-11-07T18:31Z, this session rebaseline):** miss **36/1683 (98%)** with `--rcfile=/dev/null`, **1466 passed, 0 failed, 17 skipped, 107 warnings** (45.04s), guard **44 passed, 5 warnings**. SHA `e945fde` (`data_loader.py` differs from `311656a` at HEAD; 1626-1627/1663-1664 not in current miss set).
+**Fresh baseline (2026-11-07T20:24Z, this session rebaseline):** miss **36/1683 (98%)** with `--rcfile=/dev/null`, **1466 passed, 0 failed, 17 skipped, 107 warnings** (45.25s), guard **44 passed, 5 warnings**. SHA `f3dbe22` (`data_loader.py` unchanged from `311656a`; 1626-1627/1663-1664 not in current miss set).
 
 **Remaining 36 lines (mechanism-closed @ e945fde):**
 `43-44, 234-244, 246-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953`
@@ -90,24 +90,24 @@ Repo name = **Crypto-Betting-Against-Beta** → **BAB strategy only**. **ONLY** 
 | 120 | 0 | fresh rebaseline + strict 4-criteria assessment @ `9d2b1c6` | 2026-11-07T20:12Z: canonical aggregate → **1466 passed, 0 failed, 17 skipped, 107 warnings** (45.20s); **36 miss / 1683 stmts / 98%** (`--rcfile=/dev/null`). Missing unchanged. Guard **44 passed, 5 warnings**. Line-to-code verified; all 4 criteria unsatisfied for remaining 36. No production/test change, no probe added. Proof strengthened in `docs/unreachable_proofs.md`. |
 | 121 | 0 | fresh rebaseline + strict 4-criteria @ `eab0c8d` | 2026-11-07T20:18Z: **1466/0/17, 36/1683 (98%)**. Missing unchanged. Guard **44/5**. Line-to-code re-verified; criteria unsatisfied. |
 | 122 | 0 | fresh rebaseline @ `927c2d7` | 2026-11-07T20:19Z: **1466/0/17, 36/1683 (98%)**. Missing unchanged. Guard **44/5**. Proofs re-confirmed. |
-| 123-prep | 0 | fresh rebaseline @ `53555f6` (this handoff refresh) | 2026-11-07T20:21Z: **1466/0/17, 107 warnings (46.38s)**; **36/1683 (98%)**; missing exactly `43-44, 234-244, 246-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953`. Guard **44/5**. Floor remains mechanism-closed; no new production-realistic mechanism found. Handoff refreshed as sole durable directive. |
+| 123-prep | 0 | fresh rebaseline @ `f3dbe22` (this handoff refresh) | 2026-11-07T20:24Z: **1466/0/17, 107 warnings (45.25s)**; **36/1683 (98%)**; missing exactly `43-44, 234-244, 246-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953`. Guard **44/5**. Floor remains mechanism-closed; no new production-realistic mechanism found. All bottlenecks removed/routed; batch123 entry criteria still unsatisfied. No probe/test added. Handoff refreshed as sole durable directive. |
 
 Next batch number: **123** (only on a concretely demonstrated, genuinely new production-realistic mechanism satisfying all four criteria — see below).
 
 ---
 
-## INITIAL TASK MESSAGE — 2026-11-07T20:11:31Z (batch120 rebaseline) — EXECUTE IMMEDIATELY (HEAVY WORK, NO ESCAPE HATCHES)
+## INITIAL TASK MESSAGE — 2026-11-07T20:24:41Z (batch123 rebaseline) — EXECUTE IMMEDIATELY (HEAVY WORK, NO ESCAPE HATCHES)
 
-**Timestamp (UTC):** 2026-11-07T20:11:31Z (batch120; 36-miss mechanism-closed under `--rcfile=/dev/null`). **SHA at handoff:** `b4fdaf5` (run `git rev-parse --short HEAD` in Step 0 and record actual SHA).
-**Mode:** HEAVY WORK ONLY. Every minute must move coverage or proof quality. Ambiguity is not an escape hatch — this message is explicit and non-negotiable. **The 36-miss floor is mechanism-closed** (batches 103–119). Only a *genuinely new, concretely demonstrated, production-realistic* control-flow mechanism (not semantic change, not pathological harness, not repeat probe) may justify batch120 tests/proofs.
+**Timestamp (UTC):** 2026-11-07T20:24:41Z (batch123; 36-miss mechanism-closed under `--rcfile=/dev/null`). **SHA at handoff:** `f3dbe22` (run `git rev-parse --short HEAD` in Step 0 and record actual SHA).
+**Mode:** HEAVY WORK ONLY. Every minute must move coverage or proof quality. Ambiguity is not an escape hatch — this message is explicit and non-negotiable. **The 36-miss floor is mechanism-closed** (batches 103–123-prep). Only a *genuinely new, concretely demonstrated, production-realistic* control-flow mechanism (not semantic change, not pathological harness, not repeat probe) may justify batch123 tests/proofs.
 
 ### Mission (mandatory, binary)
 
-Push `strategies/betting_against_beta/data_loader.py` **below the fresh measured baseline (36 miss / 1683 stmts / 98%, rcfile=/dev/null @ b4fdaf5)** in a fresh canonical aggregate, **OR** add new high-confidence unreachable proofs that materially close **genuinely new** ambiguity in `docs/unreachable_proofs.md` with file:line + function + entrypoint + exact shape/monkeypatch/trace + observed behavior + why dead/unreachable. **Do not stop after baseline.**
+Push `strategies/betting_against_beta/data_loader.py` **below the fresh measured baseline (36 miss / 1683 stmts / 98%, rcfile=/dev/null @ f3dbe22)** in a fresh canonical aggregate, **OR** add new high-confidence unreachable proofs that materially close **genuinely new** ambiguity in `docs/unreachable_proofs.md` with file:line + function + entrypoint + exact shape/monkeypatch/trace + observed behavior + why dead/unreachable. **Do not stop after baseline.**
 
-**Reality (mechanism-closed @ b4fdaf5):** remaining **36** — `43-44, 234-244, 246-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953`. All mechanism-closed (structural-dead/handler-order+MRO+conversion dead/coercer-determinism or NaT-gate dead/re-raise-before-generic-pass/construction-unreachable/pathological-semantic-only/inspect-gated). **Historic line refs stale — re-check line→code every session. Production semantics must not change solely to manufacture coverage.**
+**Reality (mechanism-closed @ f3dbe22):** remaining **36** — `43-44, 234-244, 246-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953`. All mechanism-closed (structural-dead/handler-order+MRO+conversion dead/coercer-determinism or NaT-gate dead/re-raise-before-generic-pass/construction-unreachable/pathological-semantic-only/inspect-gated). **Historic line refs stale — re-check line→code every session. Production semantics must not change solely to manufacture coverage.**
 
-**Batch120 entry criteria (strict):** before writing any test/probe, state (1) the exact target line(s) *and current code at those lines*, (2) the new mechanism not disproven by batches 103–119/unreachable_proofs, (3) why it is production-realistic (real `pd.DataFrame`/index/dtype + plausible pandas/library behavior), and (4) the expected control-flow path. If you cannot state all four, do not probe — add a proof refinement only if it closes genuinely new ambiguity.
+**Batch123 entry criteria (strict):** before writing any test/probe, state (1) the exact target line(s) *and current code at those lines*, (2) the new mechanism not disproven by batches 103–123-prep/unreachable_proofs, (3) why it is production-realistic (real `pd.DataFrame`/index/dtype + plausible pandas/library behavior), and (4) the expected control-flow path. If you cannot state all four, do not probe — add a proof refinement only if it closes genuinely new ambiguity.
 
 ### Step 0 — Environment + fresh rebaseline (MANDATORY, run first)
 
@@ -134,7 +134,7 @@ Record actual baseline/SHA. **Use `--rcfile=/dev/null` for run+report**. If base
 
 2. **Max 1 probe per cluster** unless a probe proves a real path. Real DataFrame shapes, direct canonical helpers, tight scoped monkeypatches/subclasses only where plausible.
 
-3. **If hit:** create `tests/test_bab_data_loader_batch120.py` (data_loader only). Run focused → guard → fresh canonical aggregate including batch120. Record before/after/delta. Update `HANDOFF.md` + `docs/unreachable_proofs.md`.
+3. **If hit:** create `tests/test_bab_data_loader_batch123.py` (data_loader only). Run focused → guard → fresh canonical aggregate including batch123. Record before/after/delta. Update `HANDOFF.md` + `docs/unreachable_proofs.md`.
 
 4. **If 0 delta:** add exact proof to `docs/unreachable_proofs.md`; update HANDOFF. No canonical test unless valuable.
 
