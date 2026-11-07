@@ -2,9 +2,9 @@
 
 > **THIS IS THE SOLE DURABLE HANDOFF.** Prioritize `Crypto-Betting-Against-Beta` (BAB) ONLY. Read completely, rebaseline, then execute the **INITIAL TASK MESSAGE** immediately. No off-ramps, no sidetracks, no status-only sessions, no planning-only sessions, no "review-only" exits. Every session must produce measurable heavy work (miss reduction **or** new file:line unreachable proof evidence).
 
-**Handoff refreshed (UTC):** 2026-11-07T07:40:01Z
+**Handoff refreshed (UTC):** 2026-11-07T08:25:47Z
 **Repo:** `Crypto-Betting-Against-Beta` | **Path:** `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
-**Branch/SHA:** `main` @ `479db53` (working tree clean)
+**Branch/SHA:** `main` @ `ba77a6a` (working tree clean)
 **Measured anchor (fresh rebaseline, 2026-11-07T07:40Z):** batches 40-69,71-74,76-89,93 — **1463 passed, 0 failed, 17 skipped, 107 warnings**. Guard **44 passed, 5 warnings**.
 **Target:** `strategies/betting_against_beta/data_loader.py` — **44 miss, 1693 stmts, 97%** (batch 93 delta -10; re-verified this session).
 
@@ -84,12 +84,12 @@ Next batch number: **94**.
 
 ## INITIAL TASK MESSAGE — EXECUTE IMMEDIATELY (HEAVY WORK, NO ESCAPE HATCHES)
 
-**Timestamp (UTC):** 2026-11-07T07:40:01Z
+**Timestamp (UTC):** 2026-11-07T08:25:47Z
 **Mode:** HEAVY WORK ONLY. Every minute must move coverage or proof quality. Future agents cannot avoid heavy work by claiming ambiguity — this message is explicit.
 
 ### Mission (mandatory)
 
-Push `strategies/betting_against_beta/data_loader.py` **below the fresh measured baseline (44 miss / 1693 stmts / 97%, SHA 479db53, 1463 passed, guard 44 passed)** in a fresh canonical aggregate, OR add new high-confidence unreachable proofs that close remaining ambiguity in `docs/unreachable_proofs.md`. **Do not stop after baseline.** The session is not done until miss decreases **or** proofs gain new file:line evidence with entrypoint + shape/monkeypatch for clusters touched.
+Push `strategies/betting_against_beta/data_loader.py` **below the fresh measured baseline (44 miss / 1693 stmts / 97%, SHA ba77a6a, 1463 passed, guard 44 passed)** in a fresh canonical aggregate, OR add new high-confidence unreachable proofs that close remaining ambiguity in `docs/unreachable_proofs.md`. **Do not stop after baseline.** The session is not done until miss decreases **or** proofs gain new file:line evidence with entrypoint + shape/monkeypatch for clusters touched.
 
 **Reality (batch93):** batch 93 covered `92-93` (outer except in `_coerce_series_to_datetime_index` via `BadIter` pd.Series subclass `__iter__` raise) and `227-233`/`245` (dayfirst last-ditch entered via `np.datetime64('NaT')` passthrough through `_coerce_to_datetime_scalar`). Miss dropped **54→44 (-10)**. Every remaining miss line is structural-dead, inspect-gated (`322,326`), or blocked by production contracts. **Production semantics must not change solely to manufacture coverage.** If no *genuinely new, production-realistic* control-flow mechanism is found, strengthen proofs with exact mechanism-closure evidence; do not fake delta.
 
