@@ -784,3 +784,30 @@ Canonical (fresh, rcfile=/dev/null): miss **36/1683 (98%)**, **1466 passed, 0 fa
 4. **Expected path:** cannot be stated consistently with (2)-(3).
 
 **Conclusion:** **36-miss floor remains mechanism-closed at HEAD `9d2b1c6`.** No genuinely new production-realistic mechanism identified; no test/probe added (no canonical batch120 test). Session produces proof refinement only — does **not** achieve measured miss reduction below baseline. Per contract: if floor mechanism-closed with no new mechanism, must strengthen proofs and update handoff; session outcome is **proof-strengthened, no delta**.
+
+---
+
+## Batch 121 (2026-11-07T20:18Z, SHA eab0c8d, fresh rebaseline + strict 4-criteria assessment, 0 delta)
+
+**Canonical (fresh, `--rcfile=/dev/null` run+report, 2026-11-07T20:18Z):** **1466 passed, 0 failed, 17 skipped, 107 warnings** (45.11s). Coverage: **36 miss / 1683 stmts / 98%** (`--include='strategies/betting_against_beta/data_loader.py'`). Missing exactly `43-44, 234-244, 246-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953`. Guard **44 passed, 5 warnings**. Baseline re-confirmed at HEAD `eab0c8d` (miss set/count unchanged vs batch120).
+
+**Line-to-code verification (live, eab0c8d):**
+- `43-44` (`_not_null`): identity `is None` + inner `pd.isna` fully guarded (40-41 swallows) + unconditional `return True`; no unwrapped fallible statement. Structural-dead.
+- `234-244,246-247` (`_normalize_index` dayfirst 227-247): 223 re-raises on element coercer failure (blocks mixed NaT+unparseable entry to 227-247). 232 uses same `_coerce_to_datetime_scalar` as 216-224 on post-224 survivors → deterministic `continue`; 234-244 never reached. 245 same-length assignment safe for list; 246-247 not reached by production-realistic shapes. Coercer-determinism/223-intercept/NaT-gate closure (batches 94/97/98/110/117-120).
+- `268-269` (`_normalize_index`): 261-265 catches any `Exception` and re-raises as `BABDataError` (`BABDataError` subclasses `ValueError`); 266 `except BABDataError: raise` executes before 268 `except (ValueError, TypeError)`. Handler-order + conversion + MRO gate. Plain `TypeError` from `pd.to_datetime` probe confirms (batch117/119).
+- `322,326` (`_coerce_to_datetime_scalar`): inspect-gated/campaign_d NaT guards — **guard-relevant, DO NOT ALTER**.
+- `334-335,338-342`: explicit `ValueError("bad")` re-raised before generic `except Exception: pass`; checks use non-overridable identity/`type().__name__`. Re-raise-before-generic-pass structural-dead.
+- `351-352`: pathological `float` subclass where `np.isnan`/numeric path triggers `__float__` raising → NaN-guard slip; semantic change required, disallowed.
+- `403-404` (epoch outer except): regex admits numeric strings; `float(s)` returns builtin `float` (overflow→`inf`, never raises for regex-admitted `str`). `int(inf)`/datetime ops only inside individually guarded branches 365-402. Structural-dead for regex-admitted `str`.
+- `641-642` (`_detect_and_normalize_exchange_format` 598-642): setup 599-607 is pure dict/list/`str.lower()` on production-realistic frame labels; inner 608-640 swallows all exceptions. Outer handler unreachable for production-realistic inputs.
+- `694-695` (649-695): 649-667 epoch/date parse paths individually guarded; inner 668-691 swallows. Structural-dead production-realistic.
+- `791-792` (`_promote_datetime_column` 760-794): all 760-790 individually guarded; Python 3 `hasattr` swallows descriptor exceptions; 793+ outside try. Structural-dead.
+- `953` (`_normalize_asset_name`): `str.split()` never yields empty token. Construction-unreachable.
+
+**Strict batch121 entry criteria (all 4 required) — none satisfied:**
+1. **Target+current code:** 36 misses verified against live `data_loader.py` (1683 stmts) at `eab0c8d`. Historic `1626-1627,1663-1664` stale.
+2. **New mechanism not disproven:** none identified beyond batches 103–120 proofs (no unguarded seam, no handler-order escape, no plausible coercer divergence for survivors, no builtin-float raise path, no production-realistic column/shape trigger for 641-695).
+3. **Production-realistic:** no real `pd.DataFrame`/index/dtype/column labels + plausible pandas/library behavior demonstrated to reach remaining handlers without semantic change or pathological harness. Pathological `__float__` (351-352) and non-`str` column `__str__`-raising labels (641-642 probe note, batch119) remain disallowed/non-production-realistic.
+4. **Expected path:** cannot be stated consistently with (2)-(3).
+
+**Conclusion:** **36-miss floor remains mechanism-closed at `eab0c8d`.** No genuinely new production-realistic mechanism identified; no test/probe added. Proof strengthened (re-verified line-to-code + criteria). **Batch122 only** on a concretely demonstrated, production-realistic control-flow mechanism satisfying all four criteria. Preserve `322,326`; no semantic changes for coverage; do not commit unless explicitly requested. Use `--rcfile=/dev/null` for canonical coverage run+report.

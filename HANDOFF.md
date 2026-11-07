@@ -2,10 +2,10 @@
 
 > **THIS IS THE SOLE DURABLE HANDOFF.** Prioritize `Crypto-Betting-Against-Beta` (BAB) ONLY. Read completely, rebaseline, then execute the **INITIAL TASK MESSAGE** immediately. No off-ramps, no sidetracks, no status-only sessions, no planning-only sessions, no "review-only" exits. Every session must produce measurable heavy work: **miss reduction in a fresh canonical aggregate** OR **new high-confidence file:line unreachable-proof evidence** added to `docs/unreachable_proofs.md` that closes a *genuinely new* mechanism (not a repeat probe).
 
-**Handoff refreshed (UTC):** 2026-11-07T20:12:25Z (batch120; canonical re-confirmed @ `9d2b1c6`; baseline unchanged).
+**Handoff refreshed (UTC):** 2026-11-07T20:18:36Z (batch121; canonical re-confirmed @ `eab0c8d`; baseline unchanged).
 **Repo:** `Crypto-Betting-Against-Beta` | **Path:** `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
-**Branch/SHA (measured):** `main` @ `9d2b1c6` (untracked `debug_beta*.py`/`probe*.py`/`.coverage` and kilo/session artifacts may exist — **do not commit**; clean `.coverage*` before coverage runs).
-**Measured baseline (fresh canonical, 2026-11-07T20:12Z, batch120):** batches 40-69,71-74,76-89,93,95,96 — **1466 passed, 0 failed, 17 skipped, 107 warnings** (45.20s). Coverage (`--rcfile=/dev/null` run+report): **36 miss / 1683 stmts / 98%** (`--include='strategies/betting_against_beta/data_loader.py'`). Missing exactly `43-44, 234-244, 246-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953`. Guard (`campaign_d*`) **44 passed, 5 warnings**.
+**Branch/SHA (measured):** `main` @ `eab0c8d` (untracked `debug_beta*.py`/`probe*.py`/`.coverage` and kilo/session artifacts may exist — **do not commit**; clean `.coverage*` before coverage runs).
+**Measured baseline (fresh canonical, 2026-11-07T20:18Z, batch121):** batches 40-69,71-74,76-89,93,95,96 — **1466 passed, 0 failed, 17 skipped, 107 warnings** (45.11s). Coverage (`--rcfile=/dev/null` run+report): **36 miss / 1683 stmts / 98%** (`--include='strategies/betting_against_beta/data_loader.py'`). Missing exactly `43-44, 234-244, 246-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953`. Guard (`campaign_d*`) **44 passed, 5 warnings**.
 **Target:** `strategies/betting_against_beta/data_loader.py` — **36 miss / 1683 stmts / 98%** (measured floor @ `b4fdaf5`). **Step 0 must rebaseline every session.** Historic refs to `1626-1627,1663-1664`/1693-stmt state are stale — re-check line→code before targeting.
 
 **CRITICAL:** No `.github/workflows/*` edits/commits/pushes. No remote push performed. `--ignore=tests/test_controller_progress_accounting.py` ALWAYS. Do not commit unless explicitly requested. Production semantics must not change solely to manufacture coverage.
@@ -88,7 +88,7 @@ Repo name = **Crypto-Betting-Against-Beta** → **BAB strategy only**. **ONLY** 
 | 119 | 0 | fresh rebaseline + strict 4-criteria probes @ `b4fdaf5` | 2026-11-07T20:08Z: canonical aggregate → **1466 passed, 0 failed, 17 skipped, 107 warnings** (46.11s); **36 miss / 1683 stmts / 98%** (`--rcfile=/dev/null`). Missing unchanged. Guard **44 passed, 5 warnings**. NaT-shape + 268-269 conversion/order probes + exchange-column pathological note: strict 4-criteria unsatisfied (no production-realistic new mechanism). No production/test change. Proof appended to `docs/unreachable_proofs.md`. |
 | 120 | 0 | fresh rebaseline + strict 4-criteria assessment @ `9d2b1c6` | 2026-11-07T20:12Z: canonical aggregate → **1466 passed, 0 failed, 17 skipped, 107 warnings** (45.20s); **36 miss / 1683 stmts / 98%** (`--rcfile=/dev/null`). Missing unchanged. Guard **44 passed, 5 warnings**. Line-to-code verified; all 4 criteria unsatisfied for remaining 36. No production/test change, no probe added. Proof strengthened in `docs/unreachable_proofs.md`. |
 
-Next batch number: **121** (only on a concretely demonstrated, genuinely new production-realistic mechanism satisfying all four criteria — see batch120 assessment).
+Next batch number: **122** (only on a concretely demonstrated, genuinely new production-realistic mechanism satisfying all four criteria — see batch120 assessment).
 
 ---
 
