@@ -2,9 +2,9 @@
 
 > **THIS IS THE SOLE DURABLE HANDOFF.** Prioritize `Crypto-Betting-Against-Beta` (BAB) ONLY. Read completely, rebaseline, then execute the **INITIAL TASK MESSAGE** immediately. No off-ramps, no sidetracks, no status-only sessions, no planning-only sessions, no "review-only" exits. Every session must produce measurable heavy work: **miss reduction in a fresh canonical aggregate** OR **new high-confidence file:line unreachable-proof evidence** added to `docs/unreachable_proofs.md` while immediately moving to the next cluster.
 
-**Handoff refreshed (UTC):** 2026-11-07T13:16:38Z (batch104 heavy-work rebaseline + mechanism probes; mechanism-closed floor maintained)
+**Handoff refreshed (UTC):** 2026-11-07T14:26:48Z (batch105 rebaseline + handoff refresh; mechanism-closed floor maintained)
 **Repo:** `Crypto-Betting-Against-Beta` | **Path:** `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
-**Branch/SHA:** `main` @ `22ce50a` — working tree has only this handoff refresh (untracked `debug_beta*.py`/`probe*.py` pre-existing; do not commit). Canonical rebaseline verified fresh at 2026-11-07T12:27Z.
+**Branch/SHA:** `main` @ `93f4d0c` — working tree has only this handoff refresh (untracked `debug_beta*.py`/`probe*.py` pre-existing; do not commit). Canonical rebaseline verified fresh at 2026-11-07T12:27Z.
 **Measured baseline (fresh canonical, 2026-11-07T12:27Z):** batches 40-69,71-74,76-89,93,95,96 — **1466 passed, 0 failed, 17 skipped, 107 warnings** (44.85s). Coverage: **40 miss / 1693 stmts / 98%** (`--include='*data_loader.py'`). Guard (`campaign_d*`) **44 passed, 5 warnings**.
 **Target:** `strategies/betting_against_beta/data_loader.py` — **40 miss / 1693 stmts / 98%**. **Delta: 0 (batch104 proof/probe-only). Step 0 must rebaseline before hunting.**
 
@@ -75,10 +75,10 @@ Next batch number: **105**.
 
 ---
 
-## INITIAL TASK MESSAGE — 2026-11-07T13:16:38Z — EXECUTE IMMEDIATELY (HEAVY WORK, NO ESCAPE HATCHES)
+## INITIAL TASK MESSAGE — 2026-11-07T14:26:48Z — EXECUTE IMMEDIATELY (HEAVY WORK, NO ESCAPE HATCHES)
 
-**Timestamp (UTC):** 2026-11-07T13:16:38Z
-**SHA at handoff/rebaseline:** `22ce50a` baseline context; run `git rev-parse --short HEAD` in Step 0 and record actual SHA.
+**Timestamp (UTC):** 2026-11-07T14:26:48Z
+**SHA at handoff/rebaseline:** `93f4d0c` baseline context; run `git rev-parse --short HEAD` in Step 0 and record actual SHA.
 **Mode:** HEAVY WORK ONLY. Every minute must move coverage or proof quality. Future agents cannot avoid heavy work by claiming ambiguity — this message is explicit. Batch 104 completed fresh rebaseline + probe refinement (0 delta); batch 105 only proceeds if a genuinely new production-realistic mechanism is identified.
 
 ### Mission (mandatory, binary)
