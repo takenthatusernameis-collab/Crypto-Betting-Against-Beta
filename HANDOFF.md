@@ -2,11 +2,11 @@
 
 > **THIS IS THE SOLE DURABLE HANDOFF.** Prioritize `Crypto-Betting-Against-Beta` (BAB) ONLY. Read completely, rebaseline, then execute the **INITIAL TASK MESSAGE** immediately. No off-ramps, no sidetracks, no status-only sessions, no planning-only sessions, no "review-only" exits. Every session must produce measurable heavy work (miss reduction **or** new file:line unreachable proof evidence).
 
-**Handoff refreshed (UTC):** 2026-11-07T05:02Z
+**Handoff refreshed (UTC):** 2026-11-07T05:25Z
 **Repo:** `Crypto-Betting-Against-Beta` | **Path:** `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
-**Branch/SHA:** `main` @ `145e9cd` (verify with `git rev-parse --short HEAD`; working tree has uncommitted batch88 test/proof/handoff updates unless committed by explicit user request)
-**Measured anchor (fresh, 2026-11-07T05:02Z):** batches 40-69,71-74,76-88 — **1459 passed, 0 failed, 17 skipped, 105 warnings**. Guard **44 passed, 5 warnings**.
-**Target:** `strategies/betting_against_beta/data_loader.py` — **56 miss, 1693 stmts, 97%** (re-verify before hunting).
+**Branch/SHA:** `main` @ `afb5137` (verify with `git rev-parse --short HEAD`; working tree has uncommitted batch89 test/proof/handoff updates unless committed by explicit user request)
+**Measured anchor (fresh, 2026-11-07T05:25Z):** batches 40-69,71-74,76-89 — **1460 passed, 0 failed, 17 skipped, 105 warnings**. Guard **44 passed, 5 warnings**.
+**Target:** `strategies/betting_against_beta/data_loader.py` — **54 miss, 1693 stmts, 97%** (re-verify before hunting).
 
 **CRITICAL:** No `.github/workflows/*` edits/commits/pushes. No remote push performed. `--ignore=tests/test_controller_progress_accounting.py` ALWAYS. Do not commit unless explicitly requested.
 
@@ -41,20 +41,20 @@ Repo name = **Crypto-Betting-Against-Beta** → **BAB strategy only**. **ONLY** 
 
 ## CURRENT MEASURED STATE (rebaseline every session — do not trust stale numbers)
 
-**Anchor (2026-11-07T05:02Z):** miss **56/1693 (97%)**, **1459 passed, 0 failed, 17 skipped** (40-69,71-74,76-88), guard **44 passed, 5 warnings**.
+**Anchor (2026-11-07T05:25Z):** miss **54/1693 (97%)**, **1460 passed, 0 failed, 17 skipped** (40-69,71-74,76-89), guard **44 passed, 5 warnings**.
 
-**Remaining 56 lines (current aggregate anchor):**
-`43-44, 92-93, 227-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953, 1226-1227, 1319-1320, 1626-1627, 1663-1664, 1926-1927`
+**Remaining 54 lines (current aggregate anchor):**
+`43-44, 92-93, 227-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953, 1319-1320, 1626-1627, 1663-1664, 1926-1927`
 
 **Cluster map / required attack order (plausibility first):**
-1. **`791-792`** — candidate-name promotion tz-normalization outer `except` (760-792). Batch87/88: `BadParsed.tz`/`apply`/`hasattr`-exception probes did not hit in aggregate; all inner statements individually guarded and `hasattr` swallows exceptions in Python. **Proof-first**; only attempt if a concrete uncaught statement is identified.
-2. **`641-642, 694-695`** — `_detect_and_normalize_exchange_format` outer handlers (OHLCV/epoch promotion blocks). 597-642 risky work is inside 608-640 (639-640 swallows) so 641-642 structurally unreachable; 694-695 only plausible via pathological `float()`/sample setup exceptions in 649-667 — no realistic fixture found. **Proof-first**.
-3. **`1226-1227`** — `_coerce_numeric` outer `except (ValueError,TypeError,AttributeError)`. Per-column failures converted to `BABDataError` and re-raised at 1224-1225; batch88 `copy()` TypeError probe did not exercise wrapped path as modeled. **Proof-first** unless a concrete escaping exception is demonstrated.
+1. **`1926-1927`** — `load_prices` metadata-drop inner `except Exception: pass` (1920-1927). Batch89 probe: `np.allclose` raised on 2nd call (1921) with `JUNK=[0,0,0]`; 1921/1922 executed but 1926-1927 not hit in that harness (exception propagation/trigger not isolated). **Refine with a concrete escaping exception source inside 1920-1925** (e.g., non-`allclose` op or shape forcing 1921/1922 expression to raise past the `if` in a way coverage marks 1926-1927), else proof.
+2. **`791-792`** — candidate-name promotion tz-normalization outer `except` (760-792). All inner statements individually guarded; batch85 probe zero-delta. **Proof-first**.
+3. **`641-642, 694-695`** — `_detect_and_normalize_exchange_format` outer handlers (OHLCV/epoch promotion blocks). 597-642 risky work inside 608-640 (639-640 swallows) so 641-642 structurally unreachable; 694-695 only plausible via pathological `float()`/sample setup exceptions in 649-667. **Proof-first**.
 4. **`1626-1627, 1663-1664`** — parquet/hdf5 outer `OSError/ValueError`. Inner handlers catch read `ImportError/Exception` and re-raise `BABDataError`; monkeypatched `OSError` converted in prior probe. Find bypass-of-inner-catch mechanism or proof.
 5. **`227-247`** — dayfirst last-ditch. Elementwise coercer raises (not NaT) so NaN guard is false; structurally dead unless a new NaT-producing coercion path is introduced (do **not** change production semantics just for coverage).
-6. **`43-44, 92-93, 322, 326, 334-335, 338-342, 351-352, 403-404, 953, 1319-1320, 1926-1927`** — documented dead/subsumed/inspect-gated. **Do not re-probe without a genuinely new mechanism.** Convert remaining ambiguity into explicit proof entries. (`322`, `326` are campaign_d inspect-gating — guard-relevant, do not alter.)
+6. **`43-44, 92-93, 322, 326, 334-335, 338-342, 351-352, 403-404, 953, 1319-1320`** — documented dead/subsumed/inspect-gated. **Do not re-probe without a genuinely new mechanism.** (`322`, `326` campaign_d inspect-gating — guard-relevant, do not alter.)
 
-**Known covered context:** `1257-1258, 912-914, 859, 861-862, 561, 620, 679, 901-903, 867-868, 196` covered by prior batches/batch88. Zero-delta probes recorded in `docs/unreachable_proofs.md`; do not repeat without a new mechanism.
+**Known covered context:** `1226-1227, 1257-1258, 912-914, 859, 861-862, 561, 620, 679, 901-903, 867-868, 196` covered. Zero-delta probes recorded in `docs/unreachable_proofs.md`; do not repeat without a new mechanism.
 
 ---
 
@@ -74,19 +74,20 @@ Repo name = **Crypto-Betting-Against-Beta** → **BAB strategy only**. **ONLY** 
 | 86 | -3 | measured | last-resort tz body + except/pass (901-903); 62→59 |
 | 87 | -2 | measured | unnamed-column per-element loop except/pass (867-868); 59→57 |
 | 88 | -1 | measured | numeric-index BABDataError re-raise (`_normalize_index` line 196); 57→56 |
-| **Total (vs 139 start)** | **-83** | **56 miss** | **1459 passed, 0 failed, 17 skipped; guard 44 passed** |
+| 89 | -2 | measured | `_coerce_numeric` copy/astype escape → outer `BABDataError` wrap (1226-1227); 56→54. `1926-1927` probe inconclusive (see proofs). |
+| **Total (vs 139 start)** | **-85** | **54 miss** | **1460 passed, 0 failed, 17 skipped; guard 44 passed** |
 
-Next batch number: **89**.
+Next batch number: **90**.
 
 ---
 
 ## INITIAL TASK MESSAGE — EXECUTE IMMEDIATELY (HEAVY WORK, NO ESCAPE HATCHES)
 
-**Timestamp (UTC):** 2026-11-07T05:02Z
+**Timestamp (UTC):** 2026-11-07T05:25Z
 **Mode:** HEAVY WORK ONLY. Every minute must move coverage or proof quality. Future agents cannot avoid heavy work by claiming ambiguity — this message is explicit.
 
 ### Mission (mandatory)
-Push `strategies/betting_against_beta/data_loader.py` **below the fresh measured baseline (56 miss / 1693 stmts / 97%)** in a fresh canonical aggregate, OR add new high-confidence unreachable proofs that close remaining ambiguity in `docs/unreachable_proofs.md`. **Do not stop after baseline.** The session is not done until miss decreases **or** proofs gain new file:line evidence with entrypoint + shape/monkeypatch for clusters touched. Many remaining lines carry structural-death/probe evidence; any further delta requires a genuinely new mechanism — production semantics must not change solely to manufacture coverage.
+Push `strategies/betting_against_beta/data_loader.py` **below the fresh measured baseline (54 miss / 1693 stmts / 97%)** in a fresh canonical aggregate, OR add new high-confidence unreachable proofs that close remaining ambiguity in `docs/unreachable_proofs.md`. **Do not stop after baseline.** The session is not done until miss decreases **or** proofs gain new file:line evidence with entrypoint + shape/monkeypatch for clusters touched. Many remaining lines carry structural-death/probe evidence; any further delta requires a genuinely new mechanism — production semantics must not change solely to manufacture coverage.
 
 ### Step 0 — Environment + fresh rebaseline (MANDATORY, run first)
 ```bash
@@ -95,27 +96,27 @@ export PYTHONPATH=$PWD:/home/runner/work/_temp/kilo-tmp/pylib
 python3 -c "import pytest, coverage, pandas, numpy, scipy; print('deps ok')" || (python3 -m pip install --target /home/runner/work/_temp/kilo-tmp/pylib pytest coverage numpy pandas scipy && export PYTHONPATH=$PWD:/home/runner/work/_temp/kilo-tmp/pylib)
 git rev-parse --short HEAD
 rm -f .coverage .coverage.*
-python3 -m coverage run --source=strategies.betting_against_beta -m pytest -q --tb=no --ignore=tests/test_controller_progress_accounting.py tests/test_bab_data_loader_coverage_gaps.py tests/test_bab_data_loader_robust.py tests/test_bab_data_loader_promote.py tests/test_bab_data_loader_miss_fill.py tests/test_bab_data_loader_campaign_d.py tests/test_bab_data_loader_campaign_d2.py tests/test_bab_data_loader_campaign_d3.py tests/test_bab_cli_coverage_campaign.py tests/test_bab_cli.py tests/test_bab_data_loader_batch{40..69}.py tests/test_bab_data_loader_batch{71..74}.py tests/test_bab_data_loader_batch{76..88}.py
+python3 -m coverage run --source=strategies.betting_against_beta -m pytest -q --tb=no --ignore=tests/test_controller_progress_accounting.py tests/test_bab_data_loader_coverage_gaps.py tests/test_bab_data_loader_robust.py tests/test_bab_data_loader_promote.py tests/test_bab_data_loader_miss_fill.py tests/test_bab_data_loader_campaign_d.py tests/test_bab_data_loader_campaign_d2.py tests/test_bab_data_loader_campaign_d3.py tests/test_bab_cli_coverage_campaign.py tests/test_bab_cli.py tests/test_bab_data_loader_batch{40..69}.py tests/test_bab_data_loader_batch{71..74}.py tests/test_bab_data_loader_batch{76..89}.py
 python3 -m coverage report --include='*data_loader.py' --show-missing
 python3 -m pytest -q --tb=no --ignore=tests/test_controller_progress_accounting.py tests/test_bab_data_loader_campaign_d.py tests/test_bab_data_loader_campaign_d2.py tests/test_bab_data_loader_campaign_d3.py
 ```
-Record actual baseline. If different from anchor (56 miss, 1459/0/17, guard 44), reconcile before hunting.
+Record actual baseline. If different from anchor (54 miss, 1460/0/17, guard 44), reconcile before hunting.
 
 ### Campaign loop (repeat until measurable success — no early exit)
-1. Pick highest-plausibility cluster: **791-792** (refine mechanism, else proof) → **641-642, 694-695** → **1226-1227** → **1626-1627, 1663-1664** → **227-247** → proof clusters (`43-44, 92-93, 322, 326, 334-335, 338-342, 351-352, 403-404, 953, 1319-1320, 1926-1927`). (`196, 867-868, 901-903, 1257-1258, 912-914, 859, 861-862, 561, 620, 679` covered — do not retarget.)
+1. Pick highest-plausibility cluster: **1926-1927** (refine: find escaping exception inside 1920-1925 not swallowed by expression evaluation as probed, else proof) → **791-792** (proof-first) → **641-642, 694-695** → **1626-1627, 1663-1664** → **227-247** → proof clusters (`43-44, 92-93, 322, 326, 334-335, 338-342, 351-352, 403-404, 953, 1319-1320`). (`1226-1227, 196, 867-868, 901-903, 1257-1258, 912-914, 859, 861-862, 561, 620, 679` covered — do not retarget.)
 2. **Max 1 probe per cluster** unless a probe proves a real path and needs a minimal focused harness. Use real DataFrame shapes, direct canonical helper entrypoints, and tight scoped monkeypatches/subclasses only where control flow is plausible.
-3. **If hit:** create `tests/test_bab_data_loader_batch89.py` (next sequential). Minimal deterministic tests. Run focused → guard → fresh canonical aggregate including batch89. Record before/after/delta. If miss decreased, update HANDOFF + proofs and continue hunting.
+3. **If hit:** create `tests/test_bab_data_loader_batch90.py` (next sequential). Minimal deterministic tests. Run focused → guard → fresh canonical aggregate including batch90. Record before/after/delta. If miss decreased, update HANDOFF + proofs and continue hunting.
 4. **If 0 delta:** do not add to canonical unless valuable. Add exact proof to `docs/unreachable_proofs.md` (file:line, function, entrypoint, shape/monkeypatch tried, observed behavior, why dead/unreachable in current aggregate). Update HANDOFF cluster map. Move on immediately.
 5. **Never** retarget already-covered/dead lines without a new mechanism. **Never** touch workflows. **Never** coast. **Never** change production semantics solely to manufacture coverage.
 
 ### Execution contract
 - BAB `data_loader.py` only; smallest correct fix only if a proven contract violation.
 - `--ignore=tests/test_controller_progress_accounting.py` always.
-- Canonical aggregate must include all relevant batch files (40-69,71-74,76-88, plus any new batch). `rm -f .coverage .coverage.*` before coverage.
+- Canonical aggregate must include all relevant batch files (40-69,71-74,76-89, plus any new batch). `rm -f .coverage .coverage.*` before coverage.
 - Preserve invariants: no lookahead, `BABDataError` on bad data, dollar-neutral/costs behavior preserved, inspect-sensitive/campaign_d behavior preserved, public APIs stable.
 - Update **this HANDOFF.md** at end: refreshed UTC, SHA, actual baseline/canonical/guard, ledger, remaining miss/proof summary, next initial task message. Keep it the single durable handoff.
 
 ### Required session outcome (binary)
-**Success =** measured miss below fresh baseline (below 56 miss) in a fresh canonical aggregate **OR** new high-confidence unreachable proofs with evidence that materially improve `docs/unreachable_proofs.md` and this handoff. Anything less is failure.
+**Success =** measured miss below fresh baseline (below 54 miss) in a fresh canonical aggregate **OR** new high-confidence unreachable proofs with evidence that materially improve `docs/unreachable_proofs.md` and this handoff. Anything less is failure.
 
 **BEGIN HEAVY WORK NOW. Rebaseline, then reduce miss or strengthen proofs — no status-only output.**
