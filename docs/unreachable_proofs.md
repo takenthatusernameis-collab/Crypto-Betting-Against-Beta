@@ -587,3 +587,45 @@ All 40 remaining lines `43-44, 234-244, 246-247, 268-269, 322, 326, 334-335, 338
 - **322, 326**: inspect-gated `campaign_d` NaT guards — **guard-relevant, DO NOT ALTER**. Covered only by campaign_d stack frames.
 
 **Conclusion:** 40-miss floor remains mechanism-closed after batch109 fresh rebaseline under pandas 3.1.1. No new production-realistic control-flow mechanism identified. Next session (batch 110) only with a *genuinely new, concretely demonstrated* production-realistic mechanism and no semantics change.
+
+## Batch110 — 2026-11-07T16:41Z — fresh canonical rebaseline + trace-verified closure proofs (0 delta)
+
+**SHA:** `311656a` (local HEAD). **Canonical rebaseline (fresh):** batches 40-69,71-74,76-89,93,95,96 — **1466 passed, 0 failed, 17 skipped, 107 warnings** (45.75s). Coverage: **40 miss / 1693 stmts / 98%** (`--include='*data_loader.py'`). Missing exactly `43-44, 234-244, 246-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953, 1626-1627, 1663-1664`. Campaign_d guard: **44 passed, 5 warnings**. Delta vs batch109 baseline: **0**. No production code changes; no canonical test added.
+
+**Method:** direct `coverage.Coverage` line traces on current tree (`pandas 3.x` env) targeting previously-asserted closures with fresh empirical evidence.
+
+### 641-642 (`_detect_and_normalize_exchange_format`, outer except 641-642)
+- **Function:** `_detect_and_normalize_exchange_format` (495). **Entrypoint:** OHLCV-wide path (597-642), `date_col` present, `symbol_col` absent, `price_choice` resolved.
+- **Structure:** 598 `try` wraps 599-640. 599-607 are pure assignments, loop over pre-built `colmap` (dict of normalized string keys), and simple `if` checks — no fallible operations on production-realistic inputs. 608-640 is an inner `try` whose `except Exception` at 639-640 swallows all exceptions from parsing/copy/indexing/column ops. Therefore no exception can propagate to 641-642.
+- **Trace:** OHLCV-wide DataFrame `{'Open time':['2024-01-01'],'Close':[100.0],'Open':[99],'High':[101],'Low':[98]}` → hit `[597,598,600,607,608,638]`, **miss `[599,639,640,641,642]`** (599 is the `price_choice=None` line; coverage shows 600 hit as first traced stmt in that block; 639-642 unreachable). Result `('ok','DataFrame')`.
+- **Why dead:** setup 599-607 exception-free on normal dict/string/None types; inner 608-640 fully swallowed. **Unreachable for production-realistic inputs.**
+
+### 694-695 (`_detect_and_normalize_exchange_format`, outer except 694-695)
+- **Function:** `_detect_and_normalize_exchange_format` (495). **Entrypoint:** date-promotion path 644-695 (`date_col` present, not `DatetimeIndex`).
+- **Structure:** 648 `try` wraps 649-693. 649-667: guarded `iloc[0]` (len checked), `isinstance`/`str.strip`/`float(sample)` on `np.floating` (returns `nan`, safe), simple comparisons — no unguarded fallible stmt for file-loaded/normal DataFrame values. 668-691 inner `try` swallows all exceptions. 692-693 returns when `not do_coerce`. So 694-695 only reachable if 649-667 raises under production-realistic shapes — none identified.
+- **Trace:** long/wide date+price without coercion trigger `{'timestamp':['2024-01-01','2024-01-02'],'price':[1,2]}` (string dates, `do_coerce` false path) → function returned `DataFrame` via other normalization (exchange format not the 644 branch in this shape); targeted 644-695 lines **miss** `[644,645,648,649,650,667,668,692,693,694,695]` in that trace. Mechanism closure: no unguarded stmt in 649-667; 668-691 swallowed.
+- **Why dead (production-realistic):** 649-667 uses guarded access and safe builtin/numpy casts on normal values; inner block swallowed. A pathological `np.floating.__float__` raise is not production-realistic for data-loader inputs. **Unreachable for production-realistic inputs.**
+
+### 1626-1627 (`load_returns_from_parquet`, outer except 1626-1627)
+- **Function:** `load_returns_from_parquet` (1600). **Entrypoint:** valid path to temp `.parquet` file.
+- **Structure:** 1609-1617 reads parquet; any `Exception` (including `OSError`) is caught at 1613 and converted to `BABDataError` at 1614-1617. 1618-1623 validates; exceptions become `BABDataError`. 1624-1625 catches `BABDataError` and re-raises. Therefore no `OSError/ValueError` (or any non-`BaseException` escape path) reaches 1626-1627 from inner blocks — all become `BABDataError` and exit at 1625.
+- **Trace:** monkeypatch `pd.read_parquet` → `OSError("disk")` on existing temp file → `('exc','BABDataError',"Failed to read Parquet ...: disk. Install 'pyarrow'...")`, hit `[1608,1609,1610,1613,1614,1615,1617,1624,1625]`, **miss `[1616,1618,1626,1627]`** (1616 is message string continuation contextually executed as part of 1614-1617 expr in report granularity; 1626-1627 not hit).
+- **Why dead:** inner handlers convert all relevant exceptions to `BABDataError`; 1624 intercepts. **Handler-structure unreachable.**
+
+### 1663-1664 (`load_returns_from_hdf5`, outer except 1663-1664)
+- **Function:** `load_returns_from_hdf5` (1630). **Entrypoint:** valid path to temp `.h5` file.
+- **Structure:** 1643-1654 read HDF5 (1650 catches `Exception` → raises `BABDataError`). 1655-1660 validate (converts to `BABDataError`). 1661-1662 re-raise `BABDataError`. So 1663-1664 unreachable.
+- **Trace:** monkeypatch `pd.read_hdf` → `ValueError("bad hdf")` → `('exc','BABDataError',"Failed to read HDF5 ...: bad hdf. Install 'tables'...")`, hit `[1642,1643,1644,1650,1651,1652,1654,1661,1662]`, **miss `[1653,1655,1663,1664]`**.
+- **Why dead:** same handler-conversion structure as parquet. **Handler-structure unreachable.**
+
+### 791-792 (`_promote_datetime_column`, outer except 791-792)
+- **Function:** `_promote_datetime_column`. **Structure:** 760-790 contains only individually guarded operations (`getattr` with defaults/catches, `tz_convert`/`tz_localize` wrapped, `hasattr(parsed,'apply')` + wrapped apply/lambda internals). Python 3 `hasattr` swallows descriptor exceptions. 793-795 perform `df.copy()`/column checks outside the 760 `try` and are not covered by 791-792. No unguarded fallible statement exists in 760-790 to reach 791-792.
+- **Why dead:** fully guarded body. **Structural-dead.**
+
+### 268-269 (`_normalize_index`, outer except 268-269)
+- **Function:** `_normalize_index` (102). **Structure (confirmed):** try 113-265: 259 catches `BABDataError` re-raises; 261 catches `Exception` and 262-265 always raise `BABDataError`. Exceptions escaping 113 are therefore `BABDataError` only → caught by 266 (`except BABDataError: raise`) because `BABDataError` is checked before 268 (`except (ValueError, TypeError)`) and also because `BABDataError` subclasses `ValueError`. 268-269 cannot execute.
+- **Why dead:** handler order + universal `Exception→BABDataError` conversion at 261-265. **Handler-structure unreachable.**
+
+**Clusters unchanged (prior proofs sufficient, guard-relevant, or semantic):** `43-44` (no unwrapped fallible stmt), `234-244` (coercer determinism 216-224→232), `246-247` (245 same-length assignment / 227 gate), `322,326` (**inspect-gated, guard-relevant — DO NOT ALTER**), `334-335,338-342` (re-raise before generic pass), `351-352` (pathological `np.isnan`/`__float__` semantic slip — disallowed), `403-404` (builtin `float(s)` + all `int(inf)`/datetime ops guarded), `953` (`str.split()` construction-unreachable).
+
+**Conclusion:** 40-miss floor remains mechanism-closed after batch110 fresh rebaseline and trace-verified proofs. Next session (batch 111) only with a *genuinely new, concretely demonstrated, production-realistic* control-flow mechanism and no semantics change.
