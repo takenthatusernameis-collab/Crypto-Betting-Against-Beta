@@ -1606,25 +1606,20 @@ def load_returns_from_parquet(
     if not pq_path.exists():
         raise BABDataError(f"Parquet file not found: {pq_path}")
     try:
-        try:
-            df = pd.read_parquet(pq_path, **kwargs)
-        except BABDataError:
-            raise
-        except Exception as exc:
-            raise BABDataError(
-                f"Failed to read Parquet {pq_path}: {exc}. "
-                "Install 'pyarrow' or 'fastparquet' to enable parquet support."
-            ) from exc
-        try:
-            return validate_returns_dataframe(df, benchmark=benchmark, min_rows=min_rows, quality=quality)
-        except BABDataError:
-            raise
-        except Exception as exc:
-            raise BABDataError(str(exc)) from exc
+        df = pd.read_parquet(pq_path, **kwargs)
     except BABDataError:
         raise
-    except (OSError, ValueError) as exc:
-        raise BABDataError(f"Failed to read Parquet {pq_path}: {exc}") from exc
+    except Exception as exc:
+        raise BABDataError(
+            f"Failed to read Parquet {pq_path}: {exc}. "
+            "Install 'pyarrow' or 'fastparquet' to enable parquet support."
+        ) from exc
+    try:
+        return validate_returns_dataframe(df, benchmark=benchmark, min_rows=min_rows, quality=quality)
+    except BABDataError:
+        raise
+    except Exception as exc:
+        raise BABDataError(str(exc)) from exc
 
 
 def load_returns_from_hdf5(
@@ -1640,28 +1635,23 @@ def load_returns_from_hdf5(
     if not h5_path.exists():
         raise BABDataError(f"HDF5 file not found: {h5_path}")
     try:
-        try:
-            if key is not None:
-                df = pd.read_hdf(h5_path, key=key, **kwargs)
-            else:
-                df = pd.read_hdf(h5_path, **kwargs)
-        except BABDataError:
-            raise
-        except Exception as exc:
-            raise BABDataError(
-                f"Failed to read HDF5 {h5_path}: {exc}. "
-                "Install 'tables' to enable hdf5 support."
-            ) from exc
-        try:
-            return validate_returns_dataframe(df, benchmark=benchmark, min_rows=min_rows, quality=quality)
-        except BABDataError:
-            raise
-        except Exception as exc:
-            raise BABDataError(str(exc)) from exc
+        if key is not None:
+            df = pd.read_hdf(h5_path, key=key, **kwargs)
+        else:
+            df = pd.read_hdf(h5_path, **kwargs)
     except BABDataError:
         raise
-    except (OSError, ValueError) as exc:
-        raise BABDataError(f"Failed to read HDF5 {h5_path}: {exc}") from exc
+    except Exception as exc:
+        raise BABDataError(
+            f"Failed to read HDF5 {h5_path}: {exc}. "
+            "Install 'tables' to enable hdf5 support."
+        ) from exc
+    try:
+        return validate_returns_dataframe(df, benchmark=benchmark, min_rows=min_rows, quality=quality)
+    except BABDataError:
+        raise
+    except Exception as exc:
+        raise BABDataError(str(exc)) from exc
 
 
 def load_returns_from_pickle(
