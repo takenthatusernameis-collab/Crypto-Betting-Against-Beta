@@ -298,3 +298,16 @@ Scope: `strategies/betting_against_beta/data_loader.py` only. `campaign_d*` guar
 - **227-247** (`_normalize_index` dayfirst last-ditch): elementwise coercer raises rather than returning NaT, so NaT guard is false (prior evidence). No new NaT-producing path without production change.
 
 **Status:** miss **54/1693 (97%)**. Canonical **1460 passed, 0 failed, 17 skipped** (40-69,71-74,76-89). Guard **44 passed, 5 warnings**. Remaining clusters are documented structural-dead / inspect-gated (`322,326`) / no-known-realistic-mechanism; do not change production semantics solely for coverage. Next batch: **91**.
+
+---
+
+## Batch 91 (2026-11-07T06:29Z, SHA 7a5b48b, canonical rebaseline 54 miss / 1460 passed)
+
+**Canonical (reverified):** miss **54/1693 (97%)**, **1460 passed, 0 failed, 17 skipped, 105 warnings** (batches 40-69,71-74,76-89). Guard **44 passed, 5 warnings**. Deps: `/home/runner/work/_temp/kilo-tmp/pylib` (pytest/coverage/pandas/numpy/scipy present). No miss reduction (0 delta).
+
+### Probed / strengthened proofs (0 delta)
+- **227-247** (`_normalize_index`, non-numeric string index dayfirst last-ditch): entered only when `df.index.isna().any()` remains true after 216-224 elementwise `_coerce_to_datetime_scalar`. Production coercer raises `ValueError` (not `NaT`) for unparseable values (verified: `'not-a-date'`, `''`, `None`, `NaN`, `'31/13/2021'` all raise) so 218-224 raises before 225/227. Probe (direct `_normalize_index`, `idx=["31/12/2020","01/13/2021","not-a-date"]`, monkeypatched coercer to return `pd.NaT` on failure): NaN guards reached but harness fell through 248-258 fallback producing row-drop/NaT-index behavior (2 rows, no confirmed 227-247 assignment) — **not stable/production-realistic**; altering coercer semantics is disallowed. **Proof-first; no realistic NaT-producing mechanism without semantics change.**
+- **791-792** (`_promote_datetime_column` candidate tz-normalization outer `except`, 760-792): prior batch85/87 evidence retained; batch91 probe (pd.Series subclass with `.tz` property raising under `pd.Series.apply` patch) left index as string, 791-792 not hit. Inner statements individually guarded / `hasattr` swallowed. **Structurally dead without uncaught statement.**
+- **641-642, 694-695, 1626-1627, 1663-1664, 1926-1927**: batch90 structural proofs unchanged; no bypass mechanism found. **Proof-only.**
+
+**Status:** miss **54/1693 (97%)**. Canonical **1460 passed, 0 failed, 17 skipped** (40-69,71-74,76-89). Guard **44 passed, 5 warnings**. Remaining clusters structural-dead / inspect-gated (`322,326`) / no-known-realistic-mechanism. Next batch: **92**.
