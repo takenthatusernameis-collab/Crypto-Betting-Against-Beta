@@ -2,11 +2,11 @@
 
 > **THIS IS THE SOLE DURABLE HANDOFF.** Prioritize `Crypto-Betting-Against-Beta` (BAB) ONLY. Read completely, rebaseline, then execute the **INITIAL TASK MESSAGE** immediately. No off-ramps, no sidetracks, no status-only sessions, no planning-only sessions, no "review-only" exits. Every session must produce measurable heavy work: **miss reduction in a fresh canonical aggregate** OR **new high-confidence file:line unreachable-proof evidence** added to `docs/unreachable_proofs.md` while immediately moving to the next cluster.
 
-**Handoff refreshed (UTC):** 2026-11-07T09:40:27Z
+**Handoff refreshed (UTC):** 2026-11-07T09:52:00Z
 **Repo:** `Crypto-Betting-Against-Beta` | **Path:** `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
-**Branch/SHA:** `main` @ `a1cff65` (`chore(kilo): checkpoint agent session`) — **working tree dirty** (untracked `debug_beta*.py`, `probe*.py` scratch; removed transient `tests/test_bab_data_loader_batch94.py` beta-targeting probe; canonical tests unaffected)
-**Measured baseline (fresh canonical, 2026-11-07T09:38Z, batch 94 session):** batches 40-69,71-74,76-89,93 — **1463 passed, 0 failed, 17 skipped, 107 warnings**. Guard (`campaign_d*`) **44 passed, 5 warnings**.
-**Target:** `strategies/betting_against_beta/data_loader.py` — **44 miss / 1693 stmts / 97%** (`--source=strategies.betting_against_beta`, `--include='*data_loader.py'`). **Delta this session: 0 (proof-refresh). Step 0 must rebaseline before hunting.**
+**Branch/SHA:** `main` @ `aa5944c` (`chore(kilo): checkpoint agent session`) — **working tree dirty** (untracked `debug_beta*.py`, `probe*.py` scratch; new canonical `tests/test_bab_data_loader_batch95.py`; canonical tests unaffected)
+**Measured baseline (fresh canonical, 2026-11-07T09:52Z, batch 95 session):** batches 40-69,71-74,76-89,93,95 — **1465 passed, 0 failed, 17 skipped, 107 warnings**. Guard (`campaign_d*`) **44 passed, 5 warnings**.
+**Target:** `strategies/betting_against_beta/data_loader.py` — **42 miss / 1693 stmts / 98%** (`--source=strategies.betting_against_beta`, `--include='*data_loader.py'`). **Delta this session: -2 (measured). Step 0 must rebaseline before hunting.**
 
 **CRITICAL:** No `.github/workflows/*` edits/commits/pushes. No remote push performed. `--ignore=tests/test_controller_progress_accounting.py` ALWAYS. Do not commit unless explicitly requested.
 
@@ -44,16 +44,15 @@ Repo name = **Crypto-Betting-Against-Beta** → **BAB strategy only**. **ONLY** 
 
 **Fresh baseline (2026-11-07T09:38Z):** miss **44/1693 (97%)**, **1463 passed, 0 failed, 17 skipped, 107 warnings** (40-69,71-74,76-89,93), guard **44 passed, 5 warnings**.
 
-**Remaining 44 lines:**
-`43-44, 234-244, 246-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953, 1319-1320, 1626-1627, 1663-1664, 1926-1927`
+**Remaining 42 lines:**
+`43-44, 234-244, 246-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953, 1319-1320, 1626-1627, 1663-1664`
 
 **Cluster map / required attack order (plausibility first):**
 1. **`234-244, 246-247`** — `_normalize_index` dayfirst last-ditch remainder. **Batch94 mechanism-closure (proof-only):** 227-247 is reachable only when 216-224 completes (no coercer raise → 224/225 execute). 232 calls the same deterministic `_coerce_to_datetime_scalar` on the same `idx`; elements that survived 216-224 therefore return the same result at 232, `continue` fires at 233, and 234-244/246-247 never execute. Trace evidence: mixed `np.datetime64('NaT') + unparseable` took 223→248 (223 raise intercepted before 225). 245 assignment is equivalent to 224. **Structurally unreachable without coercer-semantics change or non-deterministic/prod-unrealistic failure (disallowed).**
 2. **`791-792`** — `_promote_datetime_column` outer `except` (760-792). **Batch94 closure:** all 760-790 statements individually guarded; Python 3 `hasattr` swallows descriptor exceptions; no uncaught statement can propagate. **Structurally dead.**
 3. **`641-642, 694-695`** — `_detect_and_normalize_exchange_format` outer handlers. Batch90: inner handlers swallow all `Exception`. **Structurally dead.**
 4. **`1626-1627, 1663-1664`** — parquet/hdf5 outer `OSError/ValueError`. Batch90: inner read/validate handlers convert to `BABDataError`. **Structurally dead.**
-5. **`1926-1927`** — `_drop_metadata_columns` sequential-int inner check. Batch90: subsumed by 1915-1918 (`first==0` + `allclose(diffs,1)` on same `vals[finite]`). **Subsumed/dead.**
-6. **`43-44, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 953, 1319-1320`** — documented dead/subsumed/inspect-gated. **Do not re-probe without a genuinely new mechanism.** `322,326` campaign_d inspect-gating is guard-relevant — **do not alter**.
+5. **`43-44, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 953, 1319-1320`** — documented dead/subsumed/inspect-gated. **Do not re-probe without a genuinely new mechanism.** `322,326` campaign_d inspect-gating is guard-relevant — **do not alter**.
 
 ---
 
