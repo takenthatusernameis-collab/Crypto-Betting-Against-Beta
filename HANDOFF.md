@@ -2,10 +2,10 @@
 
 > **THIS IS THE SOLE DURABLE HANDOFF.** Prioritize `Crypto-Betting-Against-Beta` (BAB) ONLY. Read completely, rebaseline, then execute the **INITIAL TASK MESSAGE** immediately. No off-ramps, no sidetracks, no status-only sessions, no planning-only sessions, no "review-only" exits. Every session must produce measurable heavy work (miss reduction **or** new file:line unreachable proof evidence).
 
-**Handoff refreshed (UTC):** 2026-11-07T05:52Z
+**Handoff refreshed (UTC):** 2026-11-07T06:26:02Z
 **Repo:** `Crypto-Betting-Against-Beta` | **Path:** `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
-**Branch/SHA:** `main` @ `d2e5a74` (working tree: HANDOFF + unreachable_proofs updated by batch90; no batch90 test added after 0-delta probe; verify with `git status --short`)
-**Measured anchor (fresh, 2026-11-07T05:52Z):** batches 40-69,71-74,76-89 — **1460 passed, 0 failed, 17 skipped, 105 warnings**. Guard **44 passed, 5 warnings**.
+**Branch/SHA:** `main` @ `cef0c43` (working tree: this handoff refreshed; rebaseline confirmed)
+**Measured anchor (fresh, 2026-11-07T06:26:02Z):** batches 40-69,71-74,76-89 — **1460 passed, 0 failed, 17 skipped, 105 warnings**. Guard **44 passed, 5 warnings**.
 **Target:** `strategies/betting_against_beta/data_loader.py` — **54 miss, 1693 stmts, 97%** (re-verify before hunting).
 
 **CRITICAL:** No `.github/workflows/*` edits/commits/pushes. No remote push performed. `--ignore=tests/test_controller_progress_accounting.py` ALWAYS. Do not commit unless explicitly requested.
@@ -84,11 +84,11 @@ Next batch number: **91**.
 
 ## INITIAL TASK MESSAGE — EXECUTE IMMEDIATELY (HEAVY WORK, NO ESCAPE HATCHES)
 
-**Timestamp (UTC):** 2026-11-07T05:52Z
+**Timestamp (UTC):** 2026-11-07T06:26:02Z
 **Mode:** HEAVY WORK ONLY. Every minute must move coverage or proof quality. Future agents cannot avoid heavy work by claiming ambiguity — this message is explicit.
 
 ### Mission (mandatory)
-Push `strategies/betting_against_beta/data_loader.py` **below the fresh measured baseline (54 miss / 1693 stmts / 97%)** in a fresh canonical aggregate, OR add new high-confidence unreachable proofs that close remaining ambiguity in `docs/unreachable_proofs.md`. **Do not stop after baseline.** The session is not done until miss decreases **or** proofs gain new file:line evidence with entrypoint + shape/monkeypatch for clusters touched. Many remaining lines carry structural-death/probe evidence; any further delta requires a genuinely new mechanism — **production semantics must not change solely to manufacture coverage**.
+Push `strategies/betting_against_beta/data_loader.py` **below the fresh measured baseline (54 miss / 1693 stmts / 97%)** in a fresh canonical aggregate, OR add new high-confidence unreachable proofs that close remaining ambiguity in `docs/unreachable_proofs.md`. **Do not stop after baseline.** The session is not done until miss decreases **or** proofs gain new file:line evidence with entrypoint + shape/monkeypatch for clusters touched. Many remaining lines carry structural-death/probe evidence; any further delta requires a genuinely new mechanism — **production semantics must not change solely to manufacture coverage**. Leave the single most relevant inferred timestamped clear initial task message for the next agentic work session in this durable handoff if you cannot achieve measurable progress now. Remove any bottlenecks blocking efficient forward progress.
 
 ### Step 0 — Environment + fresh rebaseline (MANDATORY, run first)
 ```bash
