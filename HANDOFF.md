@@ -4,9 +4,9 @@
 
 **Handoff refreshed (UTC):** 2026-11-07T15:20Z (batch106 handoff refresh: prioritized BAB-only; 40-miss mechanism-closed floor reaffirmed; no new production-realistic mechanism; next session must reduce miss below 40 OR add genuinely new file:line unreachable proof)
 **Repo:** `Crypto-Betting-Against-Beta` | **Path:** `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
-**Branch/SHA:** `main` @ `82500cd` at session start (dirty from local checkpoints; this session modified only `HANDOFF.md` + appended to `docs/unreachable_proofs.md`; untracked `debug_beta*.py`/`probe*.py` pre-existing — do not commit).
-**Measured baseline (fresh canonical, 2026-11-07T14:29Z, batch105):** batches 40-69,71-74,76-89,93,95,96 — **1466 passed, 0 failed, 17 skipped, 107 warnings** (46.78s). Coverage: **40 miss / 1693 stmts / 98%** (`--include='*data_loader.py'`). Guard (`campaign_d*`) **44 passed, 5 warnings**.
-**Target:** `strategies/betting_against_beta/data_loader.py` — **40 miss / 1693 stmts / 98%**. **Delta: 0 (batch105 proof/trace-only). Step 0 must rebaseline before hunting.**
+**Branch/SHA:** `main` @ `2a5d0e5` at session start (dirty from local checkpoints; this session modified only `HANDOFF.md` + appended to `docs/unreachable_proofs.md`; untracked `debug_beta*.py`/`probe*.py` pre-existing — do not commit).
+**Measured baseline (fresh canonical, 2026-11-07T15:20Z, batch106):** batches 40-69,71-74,76-89,93,95,96 — **1466 passed, 0 failed, 17 skipped, 107 warnings** (45.00s). Coverage: **40 miss / 1693 stmts / 98%** (`--include='*data_loader.py'`). Guard (`campaign_d*`) **44 passed, 5 warnings**.
+**Target:** `strategies/betting_against_beta/data_loader.py` — **40 miss / 1693 stmts / 98%**. **Delta: 0 (batch106 proof/trace-only). Step 0 must rebaseline before hunting.**
 
 **CRITICAL:** No `.github/workflows/*` edits/commits/pushes. No remote push performed. `--ignore=tests/test_controller_progress_accounting.py` ALWAYS. Do not commit unless explicitly requested. Production semantics must not change solely to manufacture coverage.
 
@@ -43,7 +43,7 @@ Repo name = **Crypto-Betting-Against-Beta** → **BAB strategy only**. **ONLY** 
 
 ## CURRENT MEASURED STATE (rebaseline every session — do not trust stale numbers)
 
-**Fresh baseline (2026-11-07T12:27Z, batch104 executed):** miss **40/1693 (98%)**, **1466 passed, 0 failed, 17 skipped, 107 warnings** (40-69,71-74,76-89,93,95,96), guard **44 passed, 5 warnings**. SHA `880add2` (re-verified; git shows local checkpoint commits ahead but branch/SHA baseline recorded as `880add2` at rebaseline start; use `git rev-parse --short HEAD` in Step 0).
+**Fresh baseline (2026-11-07T15:20Z, batch106 executed):** miss **40/1693 (98%)**, **1466 passed, 0 failed, 17 skipped, 107 warnings** (40-69,71-74,76-89,93,95,96), guard **44 passed, 5 warnings**. SHA `2a5d0e5` (re-verified; git shows local checkpoint commits ahead but branch/SHA baseline recorded as `2a5d0e5` at rebaseline start; use `git rev-parse --short HEAD` in Step 0).
 
 **Remaining 40 lines:**
 `43-44, 234-244, 246-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953, 1626-1627, 1663-1664`
@@ -70,16 +70,17 @@ Repo name = **Crypto-Betting-Against-Beta** → **BAB strategy only**. **ONLY** 
 | 71–89,93,95,96 | -56 | measured | 96→40 cumulative (see docs/unreachable_proofs.md). |
 | 90–92,94,97–104 | 0 | proof-only/probe | mechanism-closure/handler-structure evidence strengthened; no production-realistic miss reduction found. |
 | 105 | 0 | proof/trace | Fresh rebaseline `82500cd`: **40 miss/1693, 1466/0/17, guard 44/5 warnings**. Direct coverage traces: NaT-return index (`"nat"`) enters 227-233,245 and drops NaT cleanly (234-244,246-247 MISS); unparseable-raise index hits 222-223→248 (224-247 MISS). Confirmed `268-269` handler-order dead, `403-404` no unguarded fallible stmt (`float("1e99999")=inf`, guarded int paths), remaining clusters structural-dead/inspect-gated/pathological. No production change, no canonical test. Evidence in `docs/unreachable_proofs.md` (batch105). |
+| 106 | 0 | proof/trace | Fresh rebaseline `2a5d0e5`: **40 miss/1693, 1466/0/17, guard 44/5 warnings**. Fresh empirical probes: (a) **`1926-1927`** — `np.allclose` tolerance gap between line 1916 (`rtol=0,atol=1e-9`) and line 1925 (default `rtol=1e-5,atol=1e-8`) is a *genuinely new mechanism*; numeric column `[0.0,1.0000001,2.0000002,...]` (integer-valued, starts at 0, diffs within default tolerance but NOT strict) is a production-realistic CSV row-index artifact that `_drop_metadata_columns` exists to handle — **line-level trace confirms 1926/1927 HIT**. However `tests/test_bab_data_loader_batch95.py` already exercises this exact mechanism (2 tests, both pass) and the canonical aggregate already includes batch95, so the canonical miss count remains 40 (1926-1927 not in canonical missing list). The handoff's "subsumed" claim for 1926-1927 is **wrong** — corrected in `docs/unreachable_proofs.md`. (b) **`194,196`** (`_normalize_index` numeric nested elementwise fallback 182-196): numeric-index path exits early via real `pd.to_datetime(unit=...)` before reaching 182-196; trace shows lines 116-164 hit, 182-201 MISS — **closure confirmed**. (c) **`234-244`** gate: `_coerce_to_datetime_scalar` verified deterministic across `np.datetime64('NaT')`, ISO dates, `31/12/2020`, `notadate`, `None`, `''`, `NaN` (identical result/exception on repeated calls) — determinism holds, 232 cannot raise where 220 did not. (d) **`268-269`**: `BABDataError` subclasses `ValueError` (MRO confirmed); handler 266 precedes 268. (e) **`403-404`**: `float(s)` returns `inf` (never raises) for every regex-admitted string (`1e999`, `1e309`, `9`*400, `1`*400, `1.5e309`, `1234567890123456789012345678901234567890`, `1e18`, `1609459200000000000`, `0.0`, `1e-300`, `1e9999999999999999`) — closure confirmed. No production change, no canonical test added. |
 
-Next batch number: **106** (only on a concretely demonstrated, genuinely new production-realistic mechanism).
+Next batch number: **107** (only on a concretely demonstrated, genuinely new production-realistic mechanism).
 
 ---
 
-## INITIAL TASK MESSAGE — 2026-11-07T15:19:33Z — EXECUTE IMMEDIATELY (HEAVY WORK, NO ESCAPE HATCHES)
+## INITIAL TASK MESSAGE — 2026-11-07T15:20:21Z — EXECUTE IMMEDIATELY (HEAVY WORK, NO ESCAPE HATCHES)
 
-**Timestamp (UTC):** 2026-11-07T14:27:07Z
-**SHA at handoff/rebaseline:** `407ba29` (run `git rev-parse --short HEAD` in Step 0 and record actual SHA).
-**Mode:** HEAVY WORK ONLY. Every minute must move coverage or proof quality. Future agents cannot avoid heavy work by claiming ambiguity — this message is explicit. Batch 104 completed fresh rebaseline + probe refinement (0 delta); batch 105 only proceeds if a genuinely new production-realistic mechanism is identified.
+**Timestamp (UTC):** 2026-11-07T15:19:33Z
+**SHA at handoff/rebaseline:** `2a5d0e5` (run `git rev-parse --short HEAD` in Step 0 and record actual SHA).
+**Mode:** HEAVY WORK ONLY. Every minute must move coverage or proof quality. Future agents cannot avoid heavy work by claiming ambiguity — this message is explicit. Batch 105 completed fresh rebaseline + trace confirmation (0 delta); batch 106 completed fresh rebaseline + fresh empirical probes (0 delta, proof-strengthening + one handoff correction).
 
 ### Mission (mandatory, binary)
 
@@ -108,7 +109,7 @@ Record actual baseline. If different from **40 miss, 1466/0/17, guard 44**, reco
 
 ### Campaign loop (repeat until measurable success — no early exit)
 
-1. Attack only with a **genuinely new production-realistic mechanism** not previously disproven: re-examine remaining clusters for pandas/internal exception types, frame/index/subclass shapes, or call-paths that throw through exact unguarded seams *without* changing BAB semantics. **Never alter `322,326`. Never change semantics to "fix" 351-352 pathological NaN-subclass slip.** Do **not** repeat: coercer→NaT/same-index determinism (216-224→225-227 gate), `DatetimeIndex` early-return blocking 225-247, handler-order/259+261 subsumption blocking 266/268-269, 245 index-set failures absorbed by outer recovery / 246-247 unrecordable, is_numeric_dtype→BABDataError conversion, np.allclose global falsification, normal `str.split`/`_not_null`/`abs(numf)` structural probes, pathological `BadIsnan.__float__` without explicit semantic decision, regex-admitted epoch-string outer-try probes for 403-404. Batch 103/104 closure already covers these; do not re-probe without a new mechanism.
+1. Attack only with a **genuinely new production-realistic mechanism** not previously disproven: re-examine remaining clusters for pandas/internal exception types, frame/index/subclass shapes, or call-paths that throw through exact unguarded seams *without* changing BAB semantics. **Never alter `322,326`. Never change semantics to "fix" 351-352 pathological NaN-subclass slip.** Do **not** repeat: coercer→NaT/same-index determinism (216-224→225-227 gate), `DatetimeIndex` early-return blocking 225-247, handler-order/259+261 subsumption blocking 266/268-269, 245 index-set failures absorbed by outer recovery / 246-247 unrecordable, is_numeric_dtype→BABDataError conversion, normal `str.split`/`_not_null`/`abs(numf)`/numeric-index-182-201 structural probes, pathological `BadIsnan.__float__` without explicit semantic decision, regex-admitted epoch-string outer-try probes for 403-404. **CORRECTION (batch106):** `1926-1927` (`_drop_metadata_columns` sequential-int inner check) is **NOT subsumed** by `1915-1918` — line 1916 uses strict `np.allclose(diffs,1.0,rtol=0,atol=1e-9)` while line 1925 uses default `np.allclose(...)` (rtol=1e-5,atol=1e-8); a numeric column `[0.0,1.0000001,2.0000002,...]` (integer-valued, starts at 0, diffs within default tolerance but NOT strict) reaches 1926-1927 (line-level trace HIT). This is already covered by `tests/test_bab_data_loader_batch95.py` (2 tests, both pass) and batch95 is in the canonical aggregate, so 1926-1927 is **not** in the canonical missing list — the handoff's prior "subsumed" claim was wrong and is corrected in `docs/unreachable_proofs.md`. Do not re-probe 1926-1927 without a *different* mechanism.
 
 2. **Max 1 probe per cluster** unless a probe proves a real path and needs a minimal focused harness. Use real DataFrame shapes, direct canonical helper entrypoints, and tight scoped monkeypatches/subclasses only where control flow is plausible.
 
