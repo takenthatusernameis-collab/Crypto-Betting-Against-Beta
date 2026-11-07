@@ -2,9 +2,9 @@
 
 > **THIS IS THE SOLE DURABLE HANDOFF.** Prioritize `Crypto-Betting-Against-Beta` (BAB) ONLY. Read completely, rebaseline, then execute the **INITIAL TASK MESSAGE** immediately. No off-ramps, no sidetracks, no status-only sessions, no planning-only sessions, no "review-only" exits. Every session must produce measurable heavy work: **miss reduction in a fresh canonical aggregate** OR **new high-confidence file:line unreachable-proof evidence** added to `docs/unreachable_proofs.md` while immediately moving to the next cluster.
 
-**Handoff refreshed (UTC):** 2026-11-07T12:17:00Z (batch103 mechanism closure verified fresh this session)
+**Handoff refreshed (UTC):** 2026-11-07T12:22:04Z (batch103 mechanism closure verified fresh this session)
 **Repo:** `Crypto-Betting-Against-Beta` | **Path:** `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
-**Branch/SHA:** `main` @ `bb8bac1` — working tree clean. Canonical rebaseline verified fresh at 2026-11-07T12:14Z (baseline matches HANDOFF; prior `cd119ee` entry superseded by actual `bb8bac1`).
+**Branch/SHA:** `main` @ `880add2` — working tree clean. Canonical rebaseline verified fresh at 2026-11-07T12:22Z (baseline matches HANDOFF; prior `bb8bac1` entry superseded by actual `880add2`).
 **Measured baseline (fresh canonical, 2026-11-07T12:14Z):** batches 40-69,71-74,76-89,93,95,96 — **1466 passed, 0 failed, 17 skipped, 107 warnings**. Guard (`campaign_d*`) **44 passed, 5 warnings**.
 **Target:** `strategies/betting_against_beta/data_loader.py` — **40 miss / 1693 stmts / 98%**. **Delta: 0 (proof-only, batch103 mechanism closure). Step 0 must rebaseline before hunting.**
 
@@ -43,7 +43,7 @@ Repo name = **Crypto-Betting-Against-Beta** → **BAB strategy only**. **ONLY** 
 
 ## CURRENT MEASURED STATE (rebaseline every session — do not trust stale numbers)
 
-**Fresh baseline (2026-11-07T12:14Z, batch104 prep):** miss **40/1693 (98%)**, **1466 passed, 0 failed, 17 skipped, 107 warnings** (40-69,71-74,76-89,93,95,96), guard **44 passed, 5 warnings**. SHA `bb8bac1`.
+**Fresh baseline (2026-11-07T12:22Z, batch104 prep):** miss **40/1693 (98%)**, **1466 passed, 0 failed, 17 skipped, 107 warnings** (40-69,71-74,76-89,93,95,96), guard **44 passed, 5 warnings**. SHA `880add2`.
 
 **Remaining 40 lines:**
 `43-44, 234-244, 246-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953, 1626-1627, 1663-1664`
@@ -75,10 +75,10 @@ Next batch number: **104**.
 
 ---
 
-## INITIAL TASK MESSAGE — 2026-11-07T12:17:00Z — EXECUTE IMMEDIATELY (HEAVY WORK, NO ESCAPE HATCHES)
+## INITIAL TASK MESSAGE — 2026-11-07T12:22:04Z — EXECUTE IMMEDIATELY (HEAVY WORK, NO ESCAPE HATCHES)
 
-**Timestamp (UTC):** 2026-11-07T12:17:00Z
-**SHA at handoff:** `bb8bac1` (main)
+**Timestamp (UTC):** 2026-11-07T12:22:04Z
+**SHA at handoff:** `880add2` (main)
 **Mode:** HEAVY WORK ONLY. Every minute must move coverage or proof quality. Future agents cannot avoid heavy work by claiming ambiguity — this message is explicit. Batch 103 completed mechanism closure of the remaining 40 lines (0 delta, proof-only); batch 104 only proceeds if a genuinely new production-realistic mechanism is identified.
 
 ### Mission (mandatory, binary)
