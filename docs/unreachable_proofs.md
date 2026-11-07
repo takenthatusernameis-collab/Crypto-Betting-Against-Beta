@@ -415,3 +415,15 @@ All remaining lines are structural-dead, inspect-gated (`322,326`), or blocked b
 | 334-335,338-342,351-352 | `_coerce_to_datetime_scalar` | `except ValueError: raise` passes intended `ValueError("bad")`; `except Exception: pass` unreachable without a non-ValueError exception from `type().__name__` compare, `is pd.NaT` identity, or `np.isnan/np.isinf` on already-typed `float`. No production-realistic exception source. |
 | 43-44,403-404,641-642,694-695,791-792,953,1626-1627,1663-1664 | misc | unchanged structural-dead/construction-unreachable/conversion-gated (prior batches). |
 | 322,326 | `_coerce_to_datetime_scalar` inspect-gated | **guard-relevant; DO NOT ALTER.** |
+
+## Batch 100 — 2026-11-07T11:04Z (SHA 73999ac, proof-only / 0 delta)
+
+**Rebaseline (fresh canonical, 2026-11-07T10:59Z):** `data_loader.py` **40 miss / 1693 stmts (98%)**; **1466 passed, 0 failed, 17 skipped, 107 warnings** (batches 40-69,71-74,76-89,93,95,96). `campaign_d*` guard **44 passed, 5 warnings**. No production-semantics changes.
+
+**New mechanism probes (production-realistic focus, 1 per cluster):**
+- **246-247** (`_normalize_index` dayfirst block, 227-247): traced index assignments across 216-224→227-247 with `np.datetime64('NaT')` object index (grants 225/227 entry). 234-244 remain unreachable (232 coercer deterministic after 216-224). Controlled `DataFrame.__setattr__('index')`/list-index failure heuristics targeting 245/246 produced outer recovery to `BABDataError` or successful NaT-robust fallback results; **246-247 `raise ValueError("unparseable")` not reached on a production-realistic path**. 248-257 NaT-robust fallbacks (`pd.to_datetime`/`_coerce_to_datetime_scalar` on original `idx`) and 257→268 conversion behavior unchanged.
+- **268-269** (outer `except (ValueError,TypeError)`): 261 catches `Exception` and converts to `BABDataError` at 265 (or re-raises BABDataError); 266 catches `BABDataError` before 268. No demonstrated plain `ValueError/TypeError` (non-`BABDataError`) escape from 161-265 under normal control flow. **Handler-structure dead.**
+- **334-335,338-342,351-352** (`_coerce_to_datetime_scalar`): `np.isnan/np.isinf` on `float`/`float`-subclass inputs raise/return safely and intended `ValueError("bad")` is re-raised through `except ValueError: raise`; `except Exception: pass` branches have no production-realistic non-ValueError trigger. **Proof-first.**
+- **641-642,694-695,791-792,1626-1627,1663-1664,43-44,953,403-404**: handler/nesting/construction analysis reconfirmed structural-dead (inner handlers swallow `Exception`/convert to `BABDataError`; `split()` construction; 364 is only unwrapped epoch statement and safe for regex-admitted `str`). **322,326 unchanged, guard-relevant.**
+
+**Remaining (40):** `43-44, 234-244, 246-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953, 1626-1627, 1663-1664`. No miss reduction without semantics-altering production change or non-production-realistic harness. Next: batch 101 only if a *new, concretely demonstrated* production-realistic mechanism is identified.
