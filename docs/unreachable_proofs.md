@@ -382,4 +382,24 @@ All remaining lines are structural-dead, inspect-gated (`322,326`), or blocked b
 
 - **43-44, 322, 326, 334-335, 338-342, 351-352, 641-642, 694-695, 791-792, 1626-1627, 1663-1664**: unchanged from prior mechanism-closure proofs (structural-dead / inspect-gated; `322,326` guard-relevant, **do not alter**). No new mechanism found.
 
-**Remaining (40 miss, next batch 98 target):** `43-44, 234-244, 246-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953, 1626-1627, 1663-1664` — all structural-dead, inspect-gated, BABDataError-MRO gated, or construction-unreachable. **Production semantics must not change solely to manufacture coverage.** Future sessions: only pursue with a *new, concretely demonstrated, production-realistic* control-flow mechanism; otherwise maintain proofs and baseline.
+**Remaining (40 miss, post batch98):** `43-44, 234-244, 246-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953, 1626-1627, 1663-1664` — all structural-dead, inspect-gated, BABDataError-MRO/handler-order gated, or construction-unreachable. **Production semantics must not change solely to manufacture coverage.** Future sessions: only pursue with a *new, concretely demonstrated, production-realistic* control-flow mechanism; otherwise maintain proofs and baseline.
+
+---
+
+## Batch 98 (2026-11-07T10:49Z, SHA 8f1ec29, proof-only / 0 delta)
+
+**Canonical rebaseline (fresh, 2026-11-07T10:48Z):** miss **40/1693 (98%)**, **1466 passed, 0 failed, 17 skipped, 107 warnings** (batches 40-69,71-74,76-89,93,95,96). Guard **44 passed, 5 warnings**. No miss reduction (0 delta). No production-semantics changes.
+
+### Evidence (direct probes, PYTHONPATH set)
+
+- **234-244, 245, 246-247** (`_normalize_index`, dayfirst last-ditch block, lines ~227-247): 234-244 remain blocked by 232 coercer determinism after 216-224 gate (batch94/97). Batch98 probe: `np.datetime64('NaT')` index enters 227; a `pd.DataFrame` subclass raised `ValueError('boom245')` on the 2nd `index` assignment (targeting 245). Observed: `_normalize_index` completed with `index_type=pandas.DatetimeIndex`, `n_sets=6` (assignment attempts observed across nested recovery), and **246-247 did not fire** (246-247 is `except Exception: raise ValueError("unparseable")` inside the 227-247 `try`). Confirms batch97: a naive/forced 245 assignment failure is absorbed/recovered by outer handler structure and does not reach 246-247 under current control flow. **No production-realistic mechanism demonstrated** for 246-247; would require an exception escaping 227-245 while bypassing outer BABDataError/recovery conversions (not shown).
+
+- **268-269** (`_normalize_index`, outer `except (ValueError, TypeError)` at 160-271, lines 268-269): handler order is 266 `except BABDataError: raise` then 268 `except (ValueError, TypeError) as exc: raise BABDataError(...)`. `BABDataError.__mro__` includes `ValueError` (batch97). The 261-265 fallback path either re-raises `BABDataError` (caught by 266) or raises `BABDataError("Index could not be parsed as datetime")` (265, caught by 266). Therefore 268-269 is reachable only by a plain `ValueError`/`TypeError` that is **not** a `BABDataError` and escapes 161-265 — but all realistic exception sources inside 161-265 are converted/wrapped before reaching 266/268 in the demonstrated paths. **Handler-order + internal conversion gated; proof-first.**
+
+- **403-404** (`_coerce_to_datetime_scalar`, numeric-string epoch outer `except` 362-404): line-level closure: 363 `numf = float(s)` is inside 362; **364 `av = abs(numf)` is the only statement in 362-402 not inside its own `try/except`**. For regex-admitted numeric strings, `float(s)` returns a builtin `float` (or raises and is outside the 365-402 epoch handling path as structured), making `abs(numf)` safe for normal `str` input. All 365-402 epoch branches and 397-402/405+ fallbacks are individually guarded. 403-404 **structurally unreachable for normal `str` input**; no production-realistic unwrapped exception source demonstrated.
+
+- **43-44** (`_not_null`, outer `except` 34-44): 35 uses identity (`is None`) — not overrideable; 37-41 wraps `pd.isna` in inner `except Exception: pass`; 42 returns `True`. No fallible unwrapped statement remains in 34-42. **Structurally dead.**
+
+- **953** (`_normalize_asset_name`): `s.split()` with no separator never yields empty strings; `tok_clean = tok.strip()` on a split token is never empty. **Unreachable by construction.**
+
+- **322, 326** (inspect-gated/campaign_d; **guard-relevant, DO NOT ALTER**), **334-335, 338-342, 351-352** (re-raise-before-generic-pass), **641-642, 694-695** (inner handlers swallow all `Exception`), **791-792** (all 760-790 individually guarded), **1626-1627, 1663-1664** (inner read/validate convert to `BABDataError`): unchanged from prior proofs (batch90/94/96/97). No new production-realistic mechanism found.

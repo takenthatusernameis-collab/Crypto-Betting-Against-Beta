@@ -2,11 +2,11 @@
 
 > **THIS IS THE SOLE DURABLE HANDOFF.** Prioritize `Crypto-Betting-Against-Beta` (BAB) ONLY. Read completely, rebaseline, then execute the **INITIAL TASK MESSAGE** immediately. No off-ramps, no sidetracks, no status-only sessions, no planning-only sessions, no "review-only" exits. Every session must produce measurable heavy work: **miss reduction in a fresh canonical aggregate** OR **new high-confidence file:line unreachable-proof evidence** added to `docs/unreachable_proofs.md` while immediately moving to the next cluster.
 
-**Handoff refreshed (UTC):** 2026-11-07T10:40:05Z
+**Handoff refreshed (UTC):** 2026-11-07T10:49:00Z
 **Repo:** `Crypto-Betting-Against-Beta` | **Path:** `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
 **Branch/SHA:** `main` @ `8f1ec29` (`chore(kilo): checkpoint agent session`) — working tree has untracked `debug_beta*.py`/`probe*.py` scratch and uncommitted `tests/test_bab_data_loader_batch96.py` (do not commit unless explicitly requested); canonical tests unaffected.
-**Measured baseline (fresh canonical, 2026-11-07T10:40Z, batch97 rebaseline):** batches 40-69,71-74,76-89,93,95,96 — **1466 passed, 0 failed, 17 skipped, 107 warnings**. Guard (`campaign_d*`) **44 passed, 5 warnings**.
-**Target:** `strategies/betting_against_beta/data_loader.py` — **40 miss / 1693 stmts / 98%** (`--source=strategies.betting_against_beta`, `--include='*data_loader.py'`). **Delta batch97: 0 (proof-only). Step 0 must rebaseline before hunting.**
+**Measured baseline (fresh canonical, 2026-11-07T10:48Z, batch98 rebaseline):** batches 40-69,71-74,76-89,93,95,96 — **1466 passed, 0 failed, 17 skipped, 107 warnings**. Guard (`campaign_d*`) **44 passed, 5 warnings**.
+**Target:** `strategies/betting_against_beta/data_loader.py` — **40 miss / 1693 stmts / 98%** (`--source=strategies.betting_against_beta`, `--include='*data_loader.py'`). **Delta batch98: 0 (proof-only). Step 0 must rebaseline before hunting.**
 
 **CRITICAL:** No `.github/workflows/*` edits/commits/pushes. No remote push performed. `--ignore=tests/test_controller_progress_accounting.py` ALWAYS. Do not commit unless explicitly requested.
 
@@ -85,14 +85,15 @@ Repo name = **Crypto-Betting-Against-Beta** → **BAB strategy only**. **ONLY** 
 | 95 | -2 | measured | `_drop_metadata_columns` sequential-int tolerance-window drop (1926-1927) covered; canonical included batch95. Baseline became 42 miss before batch96. |
 | 96 | -2 | measured | **42→40**; canonical **1466 passed, 0 failed, 17 skipped, 107 warnings** (40-69,71-74,76-89,93,95,96), guard **44 passed**. Covered quality `to_numeric(...).to_numpy` fallback **1319-1320** (`validate_returns_dataframe`, `quality=True`) via scoped `pd.to_numeric` monkeypatch for one column. Proved 268-269/403-404/43-44/953 remain structural-dead/proof-first. SHA `7c45311`. |
 | 97 | 0 | proof-only | Rebaseline **40 miss / 1466 passed / guard 44** (SHA `8f1ec29`, 40-69,71-74,76-89,93,95,96). Direct probes added mechanism-closure evidence to `docs/unreachable_proofs.md`: **234-244** still unreachable (232 coercer deterministic after 216-224 gate); **245** can execute in dayfirst block but **246-247** not reached by pathological index-assignment failure under current nested recovery (no production-realistic mechanism); **268-269** BABDataError-MRO/handler-ordering gated (266 catches `BABDataError(ValueError)` first) — no plain VE/TE escape demonstrated; **403-404** overflow/inf/nan numeric strings miss outer except; **953** `split()` never yields empty token. **43-44,322,326,334-352,641-642,694-695,791-792,1626-1627,1663-1664** unchanged structural-dead/inspect-gated. No production-semantics changes. |
+| 98 | 0 | proof-only | Rebaseline **40 miss / 1466 passed / guard 44** (SHA `8f1ec29`, 2026-11-07T10:48Z, 40-69,71-74,76-89,93,95,96). Targeted probes (1/cluster): **245-247** — DataFrame subclass raising `ValueError` on 2nd `index` assignment (target 245) completed with DatetimeIndex, 6 index-set attempts; **246-247 did not fire** (recovery absorbed). **268-269** — handler order 266 (`BABDataError`) before 268 (`ValueError/TypeError`) + 261-265 only re-raise/wrap as BABDataError; no plain VE/TE escape. **403-404** — `av=abs(numf)` (364) is the only unwrapped statement in 362-402; builtin float makes it safe for regex-admitted `str`. **43-44** identity+wrapped-pd.isna+returns only; **953** `split()` construction-unreachable. Others unchanged structural-dead/inspect-gated (`322,326` guard-relevant). `docs/unreachable_proofs.md` batch98 added. No production-semantics changes. |
 
-Next batch number: **98**.
+Next batch number: **99**.
 
 ---
 
-## INITIAL TASK MESSAGE — 2026-11-07T10:40Z — EXECUTE IMMEDIATELY (HEAVY WORK, NO ESCAPE HATCHES)
+## INITIAL TASK MESSAGE — 2026-11-07T10:49Z — EXECUTE IMMEDIATELY (HEAVY WORK, NO ESCAPE HATCHES)
 
-**Timestamp (UTC):** 2026-11-07T10:40:05Z
+**Timestamp (UTC):** 2026-11-07T10:49:00Z
 **SHA at handoff:** `8f1ec29` (main; working tree has untracked `debug_beta*.py`/`probe*.py` scratch and uncommitted `tests/test_bab_data_loader_batch96.py` — do not commit unless explicitly requested)
 **Mode:** HEAVY WORK ONLY. Every minute must move coverage or proof quality. Future agents cannot avoid heavy work by claiming ambiguity — this message is explicit.
 
@@ -100,7 +101,7 @@ Next batch number: **98**.
 
 Push `strategies/betting_against_beta/data_loader.py` **below the fresh measured baseline (40 miss / 1693 stmts / 98%)** in a fresh canonical aggregate, **OR** add new high-confidence unreachable proofs that materially close remaining ambiguity in `docs/unreachable_proofs.md` with file:line + function + entrypoint + exact shape/monkeypatch/trace + observed behavior + why dead/unreachable. **Do not stop after baseline.**
 
-**Reality (batch97 proof-only):** remaining **40** lines — `43-44, 234-244, 246-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953, 1626-1627, 1663-1664`. Batch97 confirmed: 234-244 blocked by 232 coercer determinism after 216-224 gate; 245 can execute but 246-247 not reached by pathological index-assignment failure under current nested recovery (no production-realistic mechanism); 268-269 BABDataError-MRO gated (266 catches first; only plain non-BABDataError VE/TE escape could reach 268, none demonstrated); 403-404/953 construction/guarded. 322,326 inspect-gated (**do not alter**). 43-44/641-642/694-695/791-792/1626-1627/1663-1664/334-352 structural-dead/defensive per proofs. **Production semantics must not change solely to manufacture coverage.** If no *genuinely new, production-realistic* control-flow mechanism is found, strengthen proofs with exact mechanism-closure evidence; do not fake delta.
+**Reality (batch98 proof-only):** remaining **40** lines — `43-44, 234-244, 246-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953, 1626-1627, 1663-1664`. Batch98 confirmed: 234-244 coercer-determinism blocked; 245-executed but 246-247 not reached by forced `ValueError` on 2nd index assignment (6 index-set attempts, DatetimeIndex result, recovery absorbed). 268-269 handler-order + BABDataError-MRO gated (266 before 268; 261-265 only BABDataError). 403-404 only unwrapped statement is `av=abs(numf)` (364) — safe for regex-admitted `str`. 953 construction-unreachable (`split()`); 43-44 structural-dead. 322,326 inspect-gated (**do not alter**). 334-352/641-642/694-695/791-792/1626-1627/1663-1664 structural-dead per proofs. **Production semantics must not change solely to manufacture coverage.** If no *genuinely new, production-realistic* control-flow mechanism is found, strengthen proofs with exact mechanism-closure evidence; do not fake delta.
 
 ### Step 0 — Environment + fresh rebaseline (MANDATORY, run first)
 
@@ -123,9 +124,9 @@ Record actual baseline. If different from **40 miss, 1466/0/17, guard 44**, reco
 
 ### Campaign loop (repeat until measurable success — no early exit)
 
-1. Attack only with a **new production-realistic mechanism**: re-examine `43-44,234-244,246-247,268-269,334-335,338-342,351-352,403-404,641-642,694-695,791-792,953,1626-1627,1663-1664` for pandas/internal exception types, frame/index/subclass shapes, or call-paths that can throw through the exact unguarded seams *without* changing BAB semantics. **Never alter `322,326` (guard-relevant).** Do **not** repeat coercer→NaT, np.allclose global falsification, deterministic-coercer same-index probes, is_numeric_dtype→BABDataError-converted probes, BadStr/index-assignment subtype probes that only confirm MRO/handler ordering, or semantics-altering probes.
+1. Attack only with a **new production-realistic mechanism**: re-examine `43-44,234-244,246-247,268-269,334-335,338-342,351-352,403-404,641-642,694-695,791-792,953,1626-1627,1663-1664` for pandas/internal exception types, frame/index/subclass shapes, or call-paths that can throw through the exact unguarded seams *without* changing BAB semantics. **Never alter `322,326` (guard-relevant).** Do **not** repeat coercer→NaT, np.allclose global falsification, deterministic-coercer same-index probes, is_numeric_dtype→BABDataError-converted probes, BadStr/index-assignment subtype probes that only confirm MRO/handler ordering/recovery absorption, or semantics-altering probes.
 2. **Max 1 probe per cluster** unless a probe proves a real path and needs a minimal focused harness. Use real DataFrame shapes, direct canonical helper entrypoints, and tight scoped monkeypatches/subclasses only where control flow is plausible.
-3. **If hit:** create `tests/test_bab_data_loader_batch98.py` (data_loader only). Minimal deterministic tests. Run focused → guard → fresh canonical aggregate including batch98. Record before/after/delta. If miss decreased, update `HANDOFF.md` + `docs/unreachable_proofs.md` and continue hunting.
+3. **If hit:** create `tests/test_bab_data_loader_batch99.py` (data_loader only). Minimal deterministic tests. Run focused → guard → fresh canonical aggregate including batch99. Record before/after/delta. If miss decreased, update `HANDOFF.md` + `docs/unreachable_proofs.md` and continue hunting.
 4. **If 0 delta:** do not add to canonical unless valuable. Add exact proof to `docs/unreachable_proofs.md` (file:line, function, entrypoint, shape/monkeypatch/trace tried, observed behavior, why dead/unreachable). Update HANDOFF cluster map. Move on immediately.
 5. **Never** retarget already-covered/dead lines without a new mechanism. **Never** touch workflows. **Never** coast. **Never** change production semantics solely to manufacture coverage.
 
