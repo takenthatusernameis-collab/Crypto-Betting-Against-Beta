@@ -2,10 +2,10 @@
 
 > **THIS IS THE SOLE DURABLE HANDOFF.** Prioritize `Crypto-Betting-Against-Beta` (BAB) ONLY. Read completely, rebaseline, then execute the **INITIAL TASK MESSAGE** immediately. No off-ramps, no sidetracks, no status-only sessions, no planning-only sessions. Every session must do heavy measurable work.
 
-**Handoff refreshed (UTC):** 2026-11-07T02:42:37Z
+**Handoff refreshed (UTC):** 2026-11-07T02:44:16Z
 **Repo:** `Crypto-Betting-Against-Beta` | **Path:** `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
-**Branch/SHA:** `main` @ `7e7f4fe` (verify with `git rev-parse --short HEAD`)
-**Measured canonical (fresh, this session, 2026-11-07T02:42Z):** batches 40-69,71-74,76-84 — **1442 passed, 0 failed, 17 skipped**. Guard **44 passed, 5 warnings**.
+**Branch/SHA:** `main` @ `38e1282` (verify with `git rev-parse --short HEAD`)
+**Measured canonical (fresh, this session, 2026-11-07T02:44Z):** batches 40-69,71-74,76-84 — **1442 passed, 0 failed, 17 skipped**. Guard **44 passed, 5 warnings**.
 **Target file:** `strategies/betting_against_beta/data_loader.py` — **1693 stmts, 74 miss, 96%** (delta **80→74, -6** vs prior recorded 80).
 
 **CRITICAL:** No `.github/workflows/*` edits/commits/pushes. No remote push performed. `--ignore=tests/test_controller_progress_accounting.py` ALWAYS. Do not commit unless explicitly requested.
@@ -35,12 +35,13 @@ Repo name = **Crypto-Betting-Against-Beta** → **BAB strategy only**. **ONLY** 
 | 7 | Aggregate-context sensitivity | Prefer direct calls to canonical entrypoints/helpers with real shapes and tight scoped monkeypatches. Always verify in fresh canonical aggregate. | Routed |
 | 8 | Inspect-sensitive/campaign_d semantics | Preserve `_coerce_to_datetime_scalar` inspect behavior and campaign_d filename/function behavior. Guard must stay green. | Preserved |
 | 9 | Batch81-84 present in tree but HANDOFF stale | Rebaselined this session; canonical now includes 76-84. | **Removed** |
+| 10 | Stale 1257-1258 "covered" claim | unreachable_proofs.md and batch80 claim 1257-1258 covered, but batch80 tests line 953 only; current aggregate confirms **1257-1258 MISSING**. Mark **open**; priority #1 for batch85. | **Removed** (reclassified to open priority) |
 
 ---
 
 ## CURRENT MEASURED STATE (rebaseline every session — do not trust stale numbers)
 
-**Fresh canonical (2026-11-07T02:42Z):** miss **74/1693 (96%)**, **1442 passed, 0 failed, 17 skipped** (40-69,71-74,76-84), guard **44 passed, 5 warnings**.
+**Fresh canonical (2026-11-07T02:44Z):** miss **74/1693 (96%)**, **1442 passed, 0 failed, 17 skipped** (40-69,71-74,76-84), guard **44 passed, 5 warnings**.
 
 **Delta this session:** 80→74 (**-6**). Lines newly covered by batch81-84 aggregate effect: `285-286, 713-714, 733-734, 1591-1592` (6 lines). `1257-1258` remains missing in this canonical despite prior proof claims — treat as **open/unverified in current aggregate** until covered or re-proven with exact current-aggregate evidence.
 
@@ -48,7 +49,7 @@ Repo name = **Crypto-Betting-Against-Beta** → **BAB strategy only**. **ONLY** 
 `43-44, 92-93, 194, 196, 227-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 561, 620, 641-642, 679, 694-695, 791-792, 859, 861-862, 867-868, 901-903, 912-914, 953, 1226-1227, 1257-1258, 1319-1320, 1626-1627, 1663-1664, 1926-1927`
 
 **Priority hunt (plausible before dead):**
-1. `1257-1258` — open in current aggregate. Reproduce via `_run_data_quality_campaign` with tz-aware `DatetimeIndex` where `tz_convert('UTC')` and `tz_localize(None)` both raise (monkeypatch on the actual index class instance path used). Confirm in focused + canonical aggregate; if still aggregate-sensitive, document exact mechanism and add a stable test.
+1. `1257-1258` — **OPEN.** `_run_data_quality_campaign` with tz-aware `DatetimeIndex` where `tz_convert('UTC')` and `tz_localize(None)` both raise (monkeypatch on the actual index class instance path used). Confirm in focused + canonical aggregate; if still aggregate-sensitive, document exact mechanism and add a stable test.
 2. `912-914` — last-resort fallback when assigned index is not `DatetimeIndex` after `__setitem__`/assignment edge; try frame/index subclass or monkeypatched assignment path leaving non-DatetimeIndex while parse succeeded and prior checks passed.
 3. `791-792, 859, 861-862, 867-868` — elementwise tz/parsed paths; test with raw `pd.Timestamp(tz=...)`/objects surviving coercion differently than strings, and with `parsed` shapes that trigger specific tz branches.
 4. `561,620,641-642,679,694-695` — exchange tz-aware-from-naive Timestamp branches where coercer already normalizes; prove or find a path passing naive-coercible-but-tz-attr-bearing objects (batch82 probes exist — verify they do not regress and inspect whether they hit these exact lines in canonical).
@@ -68,7 +69,7 @@ Repo name = **Crypto-Betting-Against-Beta** → **BAB strategy only**. **ONLY** 
 | 77 | -2 | measured | metadata drop inner exception (1928-1929) |
 | 78 | -8 | measured | validation remap + normalize_schema drop except |
 | 79 | -4 | measured | last-resort promotion (908-911) |
-| 80 | -2 | measured (recorded) | DQ tz fallback recorded as 1257-1258; **1257-1258 missing in 2026-11-07T02:42Z canonical — reconcile/prove** |
+| 80 | -2 | measured (recorded) | DQ tz fallback recorded as 1257-1258; **1257-1258 missing in 2026-11-07T02:44Z canonical — batch80 tests line 953, not 1257-1258; reconcile/prove** |
 | 81 | *see aggregate* | in tree/canonical | tz-property/convert probes (713-714,733-734 area targeted) |
 | 82 | *see aggregate* | in tree/canonical | exchange tz branches (561/620/679/953 area targeted) |
 | 83 | *see aggregate* | in tree/canonical | csv empty-after-read (1591-1592 targeted) |
@@ -82,11 +83,11 @@ Next batch number: **85**.
 
 ## INITIAL TASK MESSAGE — EXECUTE IMMEDIATELY (HEAVY WORK, NO COASTING)
 
-**Timestamp (UTC):** 2026-11-07T02:42:37Z
+**Timestamp (UTC):** 2026-11-07T02:44:16Z
 **Mode:** HEAVY WORK ONLY. Every minute must move coverage or proof quality.
 
 ### Mission
-Push `strategies/betting_against_beta/data_loader.py` below **74 miss** in a fresh canonical aggregate, or add new file:line unreachable proofs that close remaining ambiguity. **Do not stop after baseline.**
+Push `strategies/betting_against_beta/data_loader.py` below **74 miss** in a fresh canonical aggregate, or add new file:line unreachable proofs that close remaining ambiguity. **Do not stop after baseline.** The session is not done until miss < 74 **or** `docs/unreachable_proofs.md` gains new high-confidence evidence with file:line + entrypoint + shape/monkeypatch.
 
 ### Step 0 — Environment + fresh rebaseline (MANDATORY)
 ```bash
@@ -105,7 +106,7 @@ Record actual baseline. Expected anchor: **~74 miss, 1442 passed, 0 failed, 17 s
 ### Campaign loop (repeat until session end or measurable success)
 1. Pick the highest-plausibility reachable cluster (start: **1257-1258** — open in current aggregate; then `912-914`, `791-792/859/861-862/867-868`, `561/620/641-642/679/694-695`, `194,196,227-247,268-269`).
 2. **Max 1 probe per cluster.** Use real DataFrame shapes, direct helper entrypoints, and tight scoped monkeypatches/subclasses only where control flow is plausible. For `1257-1258`, call `_run_data_quality_campaign` directly with a tz-aware index and monkeypatch the index's `tz_convert`/`tz_localize` on the concrete class/instance path exercised.
-3. **If hit:** create `tests/test_bab_data_loader_batch85.py` (next sequential). Minimal deterministic tests. Run focused → guard → fresh canonical aggregate including batch85. Record before/after/delta. If miss < 74, update HANDOFF + proofs and continue.
+3. **If hit:** create `tests/test_bab_data_loader_batch85.py` (next sequential). Minimal deterministic tests. Run focused → guard → fresh canonical aggregate including batch85. Record before/after/delta. If miss < 74, update HANDOFF + proofs and continue to next cluster.
 4. **If 0 delta:** do not add to canonical unless valuable. Add exact proof to `docs/unreachable_proofs.md` (file:line, function, entrypoint, shape/monkeypatch tried, observed behavior, why dead/unreachable in current aggregate). Update HANDOFF priority list. Move on immediately.
 5. **Never** retarget already-covered lines or dead lines without a new mechanism. **Never** touch workflows. **Never** coast.
 
