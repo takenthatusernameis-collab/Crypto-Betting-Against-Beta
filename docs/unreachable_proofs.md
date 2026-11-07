@@ -386,6 +386,22 @@ All remaining lines are structural-dead, inspect-gated (`322,326`), or blocked b
 
 ---
 
+## Batch 126 (2026-11-07T22:37Z, SHA 90c48bf, fresh rebaseline + strict 4-criteria + trace probes, 0 delta)
+
+**Canonical (fresh, `--rcfile=/dev/null` run+report):** **1466 passed, 0 failed, 17 skipped, 107 warnings** (45.59s). Coverage: **36 miss / 1683 stmts / 98%** (`--include='strategies/betting_against_beta/data_loader.py'`). Missing exactly `43-44, 234-244, 246-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953`. Guard **44 passed, 5 warnings**. `data_loader.py` unchanged since `311656a` line→code for current misses.
+
+### Trace/mechanism evidence (production-realistic assessment)
+- **268-269** (`_normalize_index`, outer `except (ValueError, TypeError)`): `sys.settrace` on an all-unparseable object index (`['bad','worse','nope']`) hit `261→262→263→264→265→266→267` and raised `BABDataError`; **268-269 never hit**. Path: 261 catches `Exception`, 263 reparse fails, 265 raises `BABDataError`, 266 (`except BABDataError: raise`) intercepts before 268. `BABDataError.__mro__` includes `ValueError`, so even if a `BABDataError`-typed `ValueError` reached 268 it would be caught at 266 first. **No plain `ValueError/TypeError` escape from 161-265 demonstrated; handler conversion + order + MRO gate 268-269.**
+- **246-247** (`_normalize_index`, dayfirst `except Exception: raise ValueError("unparseable")`): 227-247 entry requires NaT surviving 216-224 (`np.datetime64('NaT')`→`pd.NaT` via coercer); 232 uses the same deterministic coercer on the same elements → `continue` always, making 234-244 unreachable. 245 is a same-length `df.index = coerced` assignment (safe on normal `pd.DataFrame`). A pathological DataFrame subclass blocking index assignment is not production-realistic input; no demonstrated path where 245/loop raises and escapes outer recovery to 246-247. **No production-realistic mechanism demonstrated.**
+- **351-352** (`_coerce_to_datetime_scalar`): normal `nan`/`inf` raise `ValueError` via NaN/inf guard; reaching 351-352 requires pathological numeric subclass bypassing NaN semantics/`__float__` behavior (batch124 trace). **Semantic/pathological only; disallowed.**
+- **403-404** (`_coerce_to_datetime_scalar`, epoch outer `except`): regex-admitted numeric strings parse via `float(s)` returning builtin `float` (`inf`/finite, no raise for admitted forms) and `abs(numf)` on builtin `float` is safe; no injection path from `str` parsing to a custom `__abs__`/raising float. **Structural-dead for regex-admitted `str`.**
+- **43-44, 322,326, 334-335,338-342, 641-642,694-695, 791-792, 953**: unchanged mechanism-closed proofs (identity/guarded `pd.isna`+unconditional return; inspect-gated campaign_d/NaT guards — **do not alter**; re-raise-before-generic-pass; inner-swallow/guarded setup; fully-guarded tz promotion; `str.split()` construction). **No new mechanism.**
+
+### Strict batch126 entry criteria (all 4 required) — none satisfied
+1. Targets/line→code verified for all 36 at `90c48bf`. 2. No mechanism not disproven by batches 103–125 (+ this batch’s trace/feasibility). 3. No production-realistic `pd.DataFrame`/index/dtype/column-label + plausible pandas/library behavior demonstrated to reach remaining handlers without semantic change or pathological harness. 4. Expected control-flow path cannot be stated consistently with (2)-(3). **No canonical `batch126` test/probe added.**
+
+---
+
 ## Batch 98 (2026-11-07T10:49Z, SHA 8f1ec29, proof-only / 0 delta)
 
 **Canonical rebaseline (fresh, 2026-11-07T10:48Z):** miss **40/1693 (98%)**, **1466 passed, 0 failed, 17 skipped, 107 warnings** (batches 40-69,71-74,76-89,93,95,96). Guard **44 passed, 5 warnings**. No miss reduction (0 delta). No production-semantics changes.
