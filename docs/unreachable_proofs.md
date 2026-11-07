@@ -1,8 +1,8 @@
 # Unreachable-branch proofs — data_loader.py remaining miss lines
 
 Generated: 2026-11-06T20:55 UTC (post batch73/batch74, miss 107 -> 96).
-Refreshed: 2026-11-07T03:49Z UTC (post batch86, miss 62 -> 59).
-Canonical aggregate (fresh, 2026-11-07T03:49Z): **1450 passed, 0 failed, 17 skipped** (batches 40-69, 71-74, 76-85, 86), guard **44 passed, 5 warnings**. Miss **59 / 1693 stmts (97%)**, delta **-3 vs 62**.
+Refreshed: 2026-11-07T07:40Z UTC (post batch93, miss 54 -> 44).
+Canonical aggregate (fresh, 2026-11-07T07:40Z): **1463 passed, 0 failed, 17 skipped, 107 warnings** (batches 40-69, 71-74, 76-93), guard **44 passed, 5 warnings**. Miss **44 / 1693 stmts (97%)**, delta **-10 vs 54**.
 Method: each cluster probed max once via direct canonical call. Structural proof below with file:line, function, code path, and why the branch cannot fire under realistic pandas input. Batch77 found 1928-1929 reachable via forced `np.allclose` exception in `load_prices` metadata-drop inner try; 1926-1927 remain subsumed by 1915-1918. Batch86 covered 901-903 via a `pd.Series` subclass whose `.tz` is truthy and whose `tz_convert` raises, fed through monkeypatched `pd.to_datetime` in the last-resort object-column loop.
 
 Scope: `strategies/betting_against_beta/data_loader.py` only. `campaign_d*` guard stays green (44 passed, 5 warnings).
@@ -223,23 +223,10 @@ Scope: `strategies/betting_against_beta/data_loader.py` only. `campaign_d*` guar
 
 ---
 
-## Summary of remaining clusters (54 miss lines, 2026-11-07T05:36Z rebaseline)
-`43-44, 92-93, 227-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953, 1319-1320, 1626-1627, 1663-1664, 1926-1927`
+## Summary of remaining clusters (44 miss lines, 2026-11-07T07:40Z rebaseline)
+`43-44, 234-244, 246-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953, 1319-1320, 1626-1627, 1663-1664, 1926-1927`
 
-**Batch80 delta:** 1257-1258 covered via `tests/test_bab_data_loader_batch80.py::test_dq_campaign_tz_localize_fallback_1257_1258` (miss **82→80, -2**). Reachable via a tz-aware DatetimeIndex where both `tz_convert("UTC")` and `tz_localize(None)` raise under a tight scoped monkeypatch.
-
-**Batch85 delta:** 1257-1258 (re-confirmed in fresh canonical), **912-914, 859, 861-862, 561, 620, 679** covered via `tests/test_bab_data_loader_batch85.py` (miss **74→62, -12** total vs the 2026-11-07T02:44Z baseline). Batch85 zero-delta probes (documented, not adding canonical value beyond the hits above): `791-792` (outer except dead — all inner statements caught), `867-868` (per-element loop never propagates — the only uncaught statement inside the loop is `coerced_clean.append(pdv)` on a fresh `[]`, which cannot raise), `196`, `268-269`, `227-247` (dayfirst block never entered — elementwise coercer raises rather than returning NaT), `641-642`, `694-695` (outer excepts over internally-handled blocks).
-
-**Batch80 zero-delta probes (documented, not added to canonical):**
-- `901-903`: **NOW COVERED (batch86)** — prior probe dead because `pd.to_datetime(Series)` has no `.tz`; batch86 used a `pd.Series` subclass with a truthy `.tz` property and a raising `tz_convert`, fed via monkeypatched `pd.to_datetime` in the last-resort loop. See `tests/test_bab_data_loader_batch86.py`.
-- `1319-1320`: `pd.to_numeric(..., errors="coerce")` is exception-free by design; monkeypatching `pd.to_numeric` to raise for the `ETH` column produces a `BABDataError` from the stale-run check, never reaching the outer except. Dead.
-- `953`: every non-empty input yields a non-empty `su` return; `not s2` is never true (probed `USD USDT`, `USD EUR`, `usd`, `USDT USDC BUSD`). Dead.
-- `1226-1227`: `BadDf.astype` raises `RuntimeError` -> caught by the `isinstance` guard at 1206-1207 -> `BABDataError`; `to_numeric` monkeypatch raises `AttributeError` -> caught by the second-pass `except (ValueError, TypeError)` at 1216 -> `BABDataError`. Outer except dead.
-- `1591-1592`: CSV emptiness is rejected at 1583-1584 before the nested try; redundant defensive layer. Dead.
-- `1626-1627`, `1663-1664`: parquet/hdf5 `ImportError` (missing engine) is caught by the inner `except Exception` and re-raised as `BABDataError`; no `OSError`/`ValueError` escapes to the outer handler. Dead.
-- `1926-1927`: `np.allclose(diffs, 1.0, rtol=0, atol=1e-9)` at 1915-1918 fires first for the only shape satisfying 1924-1925; instrumented with an `np.allclose` spy confirming only the 1915-1918 call executes. Subsumed.
-
-**Status:** miss **59/1693 (97%)**. Canonical **1450 passed, 0 failed, 17 skipped** (40-69,71-74,76-85,86). Guard **44 passed, 5 warnings**. All remaining lines have structural-death entries above (or are inspect-gated campaign_d / guard-relevant lines 322/326); no production-semantics change can reach them. Next batch: **87**.
+**Batch93 delta:** **-10** (54→44). Covered `92-93` (`_coerce_series_to_datetime_index` outer except via `BadIter` pd.Series subclass whose `__iter__` raises — `tests/test_bab_data_loader_batch93.py::test_92_93_outer_except_via_series_iter_raises`) and `227-233`/`245` (`_normalize_index` dayfirst last-ditch entered via `np.datetime64('NaT')` passthrough through `_coerce_to_datetime_scalar` — `tests/test_bab_data_loader_batch93.py::test_227_245_dayfirst_block_via_np_datetime64_nat` + `::test_coercer_nat_passthrough_contract`). Canonical **1463 passed, 0 failed, 17 skipped, 107 warnings**. Guard **44 passed, 5 warnings**. All remaining lines have structural-death entries above (or are inspect-gated campaign_d / guard-relevant lines 322/326); no production-semantics change can reach them. Next batch: **94**.
 
 ---
 
@@ -327,3 +314,21 @@ Scope: `strategies/betting_against_beta/data_loader.py` only. `campaign_d*` guar
 - **Inspect-gated / previously closed:** `322,326` (campaign_d stack inspection — guard-relevant, do not alter), `43-44,92-93,334-335,338-342,351-352,403-404,953,1319-1320` (re-raise/generic-except/subsumed per prior entries). No new mechanism found.
 
 **Status:** miss **54/1693 (97%)**. Canonical **1460 passed, 0 failed, 17 skipped** (40-69,71-74,76-89). Guard **44 passed, 5 warnings**. All remaining lines are structural-dead, inspect-gated, or would require production-semantics change to reach (disallowed). Future work: only pursue if a **new, production-realistic control-flow mechanism** is demonstrated; otherwise maintain proofs and baseline. Next batch: **93**.
+
+---
+
+## Batch 93 (2026-11-07T07:40Z, SHA 479db53, canonical delta -10)
+
+**Canonical delta:** miss **54→44 (-10)**, **1463 passed, 0 failed, 17 skipped, 107 warnings** (batches 40-69,71-74,76-93). Guard **44 passed, 5 warnings**.
+
+### Covered
+
+- **92-93** (`_coerce_series_to_datetime_index`, outer `except Exception: pass`, lines 92-93): a `pd.Series` subclass (`BadIter`) whose `__iter__` raises escapes the elementwise loop at 76-91 (the only unguarded statement there) and reaches the inner except at 92-93; execution continues at 94-97 and returns `True`. Entrypoint: `_coerce_series_to_datetime_index(df, "date", coerced)`. Test: `tests/test_bab_data_loader_batch93.py::test_92_93_outer_except_via_series_iter_raises`.
+
+- **227-233, 245** (`_normalize_index`, dayfirst last-ditch block, lines 227-247): `_coerce_to_datetime_scalar` returns `pd.NaT` (does NOT raise) for `np.datetime64('NaT')` — verified directly. When an object index mixes valid ISO dates with `np.datetime64('NaT')`, elementwise coercion at 218-224 succeeds (returning `NaT` for the NaT entry), so `df.index.isna().any()` becomes True at 225 and the dayfirst block at 227-247 is entered; rows are dropped at 291-295. Contract: `np.datetime64('NaT')` → `pd.NaT` (no raise); `pd.NaT` → raises `ValueError`. Tests: `tests/test_bab_data_loader_batch93.py::test_227_245_dayfirst_block_via_np_datetime64_nat`, `::test_coercer_nat_passthrough_contract`.
+
+### Remaining miss after batch93 (44 lines)
+
+`43-44, 234-244, 246-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953, 1319-1320, 1626-1627, 1663-1664, 1926-1927`
+
+All remaining lines are structural-dead, inspect-gated (`322,326`), or blocked by production contracts; no new production-realistic mechanism found in batch93. Next batch: **94**.
