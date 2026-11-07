@@ -232,11 +232,11 @@ Scope: `strategies/betting_against_beta/data_loader.py` only. `campaign_d*` guar
 
 ---
 
-## Summary of remaining clusters (44 miss lines, 2026-11-07T09:35Z batch94 rebaseline/proof-refresh)
+## Summary of remaining clusters (36 miss lines, 2026-11-07T22:41Z batch127 rebaseline @ `6ff7c23`)
 
-`43-44, 234-244, 246-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953, 1319-1320, 1626-1627, 1663-1664, 1926-1927`
+`43-44, 234-244, 246-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953`
 
-**Batch94 (0 delta, proof-refresh):** canonical reverified **1463 passed, 0 failed, 17 skipped, 107 warnings** (40-69,71-74,76-89,93; batch75 excluded from canonical per ledger, batch94 transient beta-targeting probe removed), miss **44/1693 (97%)**, guard **44 passed, 5 warnings**. Strengthened mechanism-closure proofs: **234-244,246-247** — 227-247 is entered only when 216-224 completes without coercer raise; 232 uses the same deterministic coercer on the same elements, so `continue` always fires and dayfirst fallbacks/`ValueError("unparseable")` are unreachable (trace evidence shows 223→248 for mixed NaT+unparseable; coercer deterministic). **791-792** — all 760-790 statements individually guarded; outer except structurally dead. **641-642,694-695,1626-1627,1663-1664,1926-1927** retained as structural-dead/subsumed (batch90). **322,326** inspect-gated (guard-relevant, do not alter). No production-semantics change can reach remaining lines. Next batch: **95**.
+**Batch127 (0 delta, stale-ref reconciliation):** canonical reverified **1466 passed, 0 failed, 17 skipped, 107 warnings** (40-69,71-74,76-89,93,95,96), miss **36/1683 (98%)**, guard **44 passed, 5 warnings**. SHA `6ff7c23`; `data_loader.py` unchanged since `311656a`. Covered (no longer missing): `1319-1320` (batch96), `1626-1627`/`1663-1664` (batch114), `1926-1927` (batch89), `1226-1227` (batch89) — retained below as historical covered clusters, not retargetable. Remaining 36 are all mechanism-closed (structural-dead / inspect-gated `322,326` / handler-order+MRO / construction-unreachable / pathological-semantic-only). No production-realistic control-flow mechanism remains; next batch: **128** only on a genuinely new production-realistic mechanism satisfying all four strict entry criteria.
 
 ---
 
