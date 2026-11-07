@@ -77,15 +77,15 @@ Scope: `strategies/betting_against_beta/data_loader.py` only. `campaign_d*` guar
 - Code path: previously considered dead because `_coerce_to_datetime_scalar` returns tz-naive Timestamps for naive input and `pd.Timestamp(tz-naive)` stays tz-naive, so the `tz_convert` branches after the `else` (no `tzinfo`) never fired under plain input. Batch85 monkeypatched `pd.Timestamp` to return a tz-aware Timestamp for tz-naive input, plus `_coerce_to_datetime_scalar` to return naive Timestamps for epoch-ms/int and naive `datetime.datetime` inputs. Long-format exchange frame (ticker/timestamp/close) hit **561**; OHLCV wide single-asset with an extra column hit **620**; epoch-ms `open_time` column reached the date-column promotion block and hit **679**.
 - Evidence: `tests/test_bab_data_loader_batch85.py::test_561_exchange_long_format_naive_to_tz`, `::test_620_exchange_ohlcv_naive_to_tz`, `::test_679_exchange_epoch_naive_to_tz`. Canonical delta included in batch85 (74 -> 62 total).
 
-### 641-642: outer `except Exception: pass` (OHLCV try)
-- Function: `_detect_and_normalize_exchange_format`, lines 639-642 (`except Exception:` / `pass` wrapping the OHLCV block).
-- Code path: every statement inside the OHLCV try (609-638) is either internally caught (per-element tz loops at 613-626, 627-633) or succeeds for real frames (`tmp_out.index = parsed`, column strip/return at 634-638). `price_choice` is resolved from `colmap` before use, so `tmp[[price_choice]]` does not KeyError for real exchange frames. No exception propagates to the outer except.
-- Evidence: defensive wrapper over internally-handled elementwise loops; no realistic pandas shape propagates an exception here.
+### 641-642: outer `except Exception: pass` (OHLCV outer try) — **structurally dead**
+- Function: `_detect_and_normalize_exchange_format`, lines 641-642 catch the outer `try` at line 598 (lines 598-642).
+- Code path: 598's try body contains only 599-607 (comments, list literal, `for`/`if`/`in` on `colmap`/local vars, assignments) — no fallible operation. 607's `if` contains 608-640: 608's inner `try` (608-640) catches all `Exception` at 639-640, so nothing escapes 608-640. Therefore no statement inside 598-640 can propagate an exception to 641-642.
+- Evidence (batch90 structural review): 641-642 are unreachable for any input; `df.copy()`/`apply`/index ops inside 608-640 are swallowed by 639-640. Proof-first; no test mechanism exists without modifying production control flow.
 
-### 694-695: outer `except Exception: pass` (date-column coercion block)
-- Function: `_detect_and_normalize_exchange_format`, lines 690-695.
-- Code path: the elementwise block (669-689) wraps `pd.Timestamp(pdv)`/`tz_convert` per element; exceptions are caught at 681-682. `df2.index = parsed_clean` (687) and `df2.drop(columns=[date_col])` (688) operate on a valid copy. The `except Exception` at 690-691 already swallows block-level failures; the outer 694-695 never fires because the inner try/except at 668-691 is complete.
-- Evidence: batch82 probed epoch paths; outer except never reached.
+### 694-695: outer `except Exception: pass` (date-column coercion outer try) — **structurally dead**
+- Function: `_detect_and_normalize_exchange_format`, lines 694-695 catch the outer `try` at line 648 (648-695).
+- Code path: 649-667 perform `df[date_col]` access/`len`/`iloc`/`isinstance`/string ops/`float` on already-type-narrowed numeric samples/`np.isnan` — all safe for frames where `date_col` was resolved from `df.columns` and sample types match the branches. 668-691 is fully wrapped by 690-691 (`except Exception: pass`). 692-693 is a safe conditional return. No exception can propagate to 694-695.
+- Evidence (batch90 structural review): inner handlers at 690-691 swallow 668-689; setup path uses only guarded/safe operations on a column known to exist. Proof-first.
 
 ---
 
@@ -180,28 +180,28 @@ Scope: `strategies/betting_against_beta/data_loader.py` only. `campaign_d*` guar
 
 ## `load_returns_from_parquet` (lines 1597-1627)
 
-### 1626-1627: outer `except (OSError, ValueError)`
+### 1626-1627: outer `except (OSError, ValueError)` — **structurally dead**
 - Function: `load_returns_from_parquet`, lines 1624-1627.
-- Code path: `pd.read_parquet` raises `ImportError` (pyarrow/tables not installed) which is caught by the inner `except Exception` at 1613-1617 and re-raised as `BABDataError`; `validate_returns_dataframe` raises `BABDataError` (re-raised at 1620-1623). No `OSError`/`ValueError` escapes to the outer 1626-1627.
-- Evidence: missing parquet engine -> ImportError -> BABDataError at inner handler; outer except dead.
+- Code path: `pd.read_parquet` is inside 1609-1617; `except Exception` at 1613 catches all read exceptions (including `OSError`/`ValueError`/`ImportError`) and raises `BABDataError`. `validate_returns_dataframe` is inside 1618-1623; `BABDataError` is re-raised (1620), any other `Exception` becomes `BABDataError` (1622). 1624 re-raises `BABDataError`. Since every exception from 1608-1623 is converted to `BABDataError` before 1624, `(OSError, ValueError)` can never reach 1626-1627.
+- Evidence (batch90 structural review): inner `except Exception` handlers convert to `BABDataError`; outer typed handler is unreachable.
 
 ---
 
 ## `load_returns_from_hdf5` (lines 1630-1664)
 
-### 1663-1664: outer `except (OSError, ValueError)`
+### 1663-1664: outer `except (OSError, ValueError)` — **structurally dead**
 - Function: `load_returns_from_hdf5`, lines 1661-1664.
-- Code path: same as parquet — `pd.read_hdf` raises `ImportError` (tables not installed) caught at 1650-1654 -> BABDataError; validation errors are BABDataError. No OSError/ValueError reaches 1663-1664.
-- Evidence: missing hdf5 engine -> ImportError -> BABDataError at inner handler; outer except dead.
+- Code path: mirrors parquet (lines 1646-1664): inner `except Exception` handlers at 1650-1654 (read) and 1659-1660 (validate) convert all exceptions to `BABDataError`; 1661 re-raises `BABDataError`. `(OSError, ValueError)` never propagates to 1663-1664.
+- Evidence (batch90 structural review): same structural subsumption as 1626-1627.
 
 ---
 
 ## `_drop_metadata_columns` (lines 1885-1943)
 
-### 1926-1927: sequential-integer inner check (subsumed)
+### 1926-1927: sequential-integer inner check (subsumed) — **structurally dead**
 - Function: `_drop_metadata_columns`, lines 1926-1927.
-- Code path: to reach 1926-1927, 1922 (`minv <= 0`) must hold AND 1924-1925 must pass (integer-like, `first==0`, `diff` all 1.0). But 1915-1918 already drops sequential-from-0 columns (same diff+first check) before 1922. Subsumed; unreachable.
-- Evidence: 1917-1918 fires first for the only shape satisfying 1924-1925.
+- Code path: 1915-1918 drop when `all(finite)`, `np.allclose(diffs,1.0,rtol=0,atol=1e-9)` and `float(vals[finite][0])==0.0`. 1924-1925 (inside `minv<=0` block) drop when integer-like AND `first==0.0` AND `np.allclose(np.diff(vals[finite]),1.0)`. Any finite array satisfying 1924-1925 also satisfies 1915-1918 (same `first==0` and same `allclose(diffs,1)` predicate on the same `vals[finite]`), so 1917-1918 fires and `continue`s before 1919-1927 can run. The predicates are identical in effect for that shape.
+- Evidence (batch90 structural analysis; probe removed, 0 canonical delta): monkeypatching `np.allclose` globally to falsify 1915 while keeping 1924 true is not a realistic execution path (same function/args) and did not yield a stable canonical hit; subsumption holds for real `np.allclose` semantics.
 
 ### 1928-1929: **COVERED (batch77)**
 - Function: `_drop_metadata_columns`, lines 1928-1929.
@@ -223,8 +223,8 @@ Scope: `strategies/betting_against_beta/data_loader.py` only. `campaign_d*` guar
 
 ---
 
-## Summary of remaining clusters (59 miss lines, 2026-11-07T03:49Z)
-`43-44, 92-93, 196, 227-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 867-868, 953, 1226-1227, 1319-1320, 1626-1627, 1663-1664, 1926-1927`
+## Summary of remaining clusters (54 miss lines, 2026-11-07T05:36Z rebaseline)
+`43-44, 92-93, 227-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953, 1319-1320, 1626-1627, 1663-1664, 1926-1927`
 
 **Batch80 delta:** 1257-1258 covered via `tests/test_bab_data_loader_batch80.py::test_dq_campaign_tz_localize_fallback_1257_1258` (miss **82→80, -2**). Reachable via a tz-aware DatetimeIndex where both `tz_convert("UTC")` and `tz_localize(None)` raise under a tight scoped monkeypatch.
 
@@ -281,3 +281,20 @@ Scope: `strategies/betting_against_beta/data_loader.py` only. `campaign_d*` guar
 ### 1926-1927: probe — `load_prices` metadata-drop inner `except Exception: pass` (still missing)
 - Function: `_drop_metadata_columns` inside `load_prices`, lines 1920-1927.
 - Probe: monkeypatched `np.allclose` to raise on the 2nd call (intended as 1921 inside try 1920-1925) with `JUNK=[0,0,0]` and valid BTC/ETH prices. Focused coverage showed 1921-1922 executed and 1926-1927 not hit in that harness shape; exception propagation through 1922’s boolean expression vs. 1921’s `if` guard needs a more precise trigger (or the branch is only reachable via a non-`np.allclose` exception source inside 1920-1925). Keep **proof-first**; do not repeat without a concrete escaping exception mechanism.
+
+
+---
+
+## Batch 90 (2026-11-07T05:52Z, SHA d2e5a74 → working tree, canonical rebaseline 54 miss / 1460 passed)
+
+**Canonical (reverified):** miss **54/1693 (97%)**, **1460 passed, 0 failed, 17 skipped** (batches 40-69,71-74,76-89). Guard **44 passed, 5 warnings**. No miss reduction (0 delta).
+
+### Probed / strengthened proofs (0 delta)
+- **641-642** (`_detect_and_normalize_exchange_format` outer OHLCV handler): **structurally dead**. Outer `try` 598-642 has no fallible setup; inner `try` 608-640 catches all `Exception` at 639-640. No path propagates to 641-642.
+- **694-695** (`_detect_and_normalize_exchange_format` outer date-coercion handler): **structurally dead**. 648-695: setup 649-667 uses safe ops on a resolved `date_col`; 668-691 fully swallowed by 690-691; 692-693 safe return.
+- **1626-1627 / 1663-1664** (parquet/hdf5 outer `OSError/ValueError`): **structurally dead**. Read/validate inner handlers catch `Exception`/`BABDataError` and convert to `BABDataError`; outer typed handlers are never reached.
+- **1926-1927** (`_drop_metadata_columns`): **subsumed/structurally dead** for real semantics — 1915-1918 and 1924-1925 test the same `first==0` + `allclose(diffs,1)` predicate on `vals[finite]`; 1917-1918 fires first. A global `np.allclose` falsification probe (0 canonical delta, not added) is unrealistic and did not produce a stable canonical hit.
+- **791-792**: prior batch85/batch87 evidence retained (all inner statements individually guarded; `hasattr` swallow). No new mechanism found.
+- **227-247** (`_normalize_index` dayfirst last-ditch): elementwise coercer raises rather than returning NaT, so NaT guard is false (prior evidence). No new NaT-producing path without production change.
+
+**Status:** miss **54/1693 (97%)**. Canonical **1460 passed, 0 failed, 17 skipped** (40-69,71-74,76-89). Guard **44 passed, 5 warnings**. Remaining clusters are documented structural-dead / inspect-gated (`322,326`) / no-known-realistic-mechanism; do not change production semantics solely for coverage. Next batch: **91**.
