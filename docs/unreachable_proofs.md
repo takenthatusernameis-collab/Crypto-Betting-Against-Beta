@@ -363,3 +363,23 @@ All remaining lines are structural-dead, inspect-gated (`322,326`), or blocked b
 ### Remaining (40 miss)
 
 `43-44, 234-244, 246-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953, 1626-1627, 1663-1664` — structural-dead, inspect-gated (`322,326` guard-relevant), BABDataError-ordering gated, or construction-unreachable. No production-semantics change solely for coverage.
+
+---
+
+## Batch 97 (2026-11-07T10:40Z, SHA 8f1ec29, proof-only / 0 delta)
+
+**Canonical rebaseline (fresh, 2026-11-07T10:40Z):** miss **40/1693 (98%)**, **1466 passed, 0 failed, 17 skipped, 107 warnings** (batches 40-69,71-74,76-89,93,95,96). Guard **44 passed, 5 warnings**. No miss reduction (0 delta). No production-semantics changes.
+
+### Evidence (direct probes, PYTHONPATH set)
+
+- **234-244, 245, 246-247** (`_normalize_index`, dayfirst last-ditch block, lines ~227-247): 227 entry requires `df.index.isna().any()` True after 216-224. Elements surviving 216-224 never make 232's deterministic `_coerce_to_datetime_scalar` raise, so `continue` always fires and **234-244 are structurally unreachable** (unchanged from batch94). Probe with `np.datetime64('NaT')` entering 227 and a `pd.DataFrame` subclass raising `RuntimeError` on the 2nd `index` assignment (intended for 245): line 245 executed (HIT), but 246-247 (`except Exception: raise ValueError("unparseable")`) did **not** fire — the raised `RuntimeError` propagated/was absorbed by outer fallback recovery paths and `_normalize_index` completed with a valid `DatetimeIndex` (observed `OK`, 6 index-set attempts). This confirms 246-247 is not reached by a naive index-assignment failure under current nested recovery structure; reaching it would require a failure mode that escapes 227-245 handling *and* is not converted by outer handlers — **no production-realistic mechanism demonstrated**. A pathological `__setattr__` DataFrame subclass is not production-realistic input.
+
+- **268-269** (`_normalize_index`, outer `except (ValueError, TypeError)` at 160-271): `BABDataError.__mro__` is `(BABDataError, ValueError, Exception, BaseException, object)`. Handler 266 is `except BABDataError: raise` and precedes 268 `except (ValueError, TypeError) as exc: raise BABDataError(...)`. Therefore any exception that is (or is wrapped as) `BABDataError` — including those raised as/converted through `ValueError` paths inside 161-265 — is caught by 266 first. 268-269 can only fire for a plain `ValueError`/`TypeError` that is **not** a `BABDataError` and escapes 161-265. Probes: `BadStr.__str__` raising `TypeError` in object index → converted to `BABDataError` (266 path, 268-269 MISS); monkeypatched `DatetimeIndex.isna` raising plain `ValueError` → 268-269 MISS (exception handled/converted upstream in the realistic DatetimeIndex fast path or not escaping as plain VE through the guarded structure). **No production-realistic plain VE/TE escape demonstrated; handler ordering + internal conversion make 268-269 proof-first.**
+
+- **403-404** (`_coerce_to_datetime_scalar`, numeric-string epoch outer `except` 362-404): probed with overflow/edge numeric strings (`1e3089999999999999`, `99999999999999999999999999999`, `inf`, `-inf`, `nan`) — all raised `ValueError` through normal parsing paths; 403-404 MISS. 361 regex admits these numeric forms but 365-402 branch handlers and 405+ fallbacks catch/convert; outer 403-404 remains unreachable absent a truly exceptional numeric operation outside those guards.
+
+- **953** (`_normalize_asset_name`, `if not tok_clean: continue`): probed ASCII/Unicode whitespace and separator forms (`'  BTC  '`, tabs/newlines, NBSP, ZWSP-in-token, empty, spaces-only, `BTC/USD`, `BTCUSDT`) — 953 MISS. `str.split()` (no separator) never yields empty strings; `tok_clean = tok.strip()` on a `split()` token is never empty. **Unreachable by construction.**
+
+- **43-44, 322, 326, 334-335, 338-342, 351-352, 641-642, 694-695, 791-792, 1626-1627, 1663-1664**: unchanged from prior mechanism-closure proofs (structural-dead / inspect-gated; `322,326` guard-relevant, **do not alter**). No new mechanism found.
+
+**Remaining (40 miss, next batch 98 target):** `43-44, 234-244, 246-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953, 1626-1627, 1663-1664` — all structural-dead, inspect-gated, BABDataError-MRO gated, or construction-unreachable. **Production semantics must not change solely to manufacture coverage.** Future sessions: only pursue with a *new, concretely demonstrated, production-realistic* control-flow mechanism; otherwise maintain proofs and baseline.
