@@ -510,3 +510,31 @@ All 40 remaining lines `43-44, 234-244, 246-247, 268-269, 322, 326, 334-335, 338
 - **Clusters not re-probed (unchanged closure):** `43-44, 234-244, 268-269(full), 334-335, 338-342, 641-642, 694-695, 791-792, 953, 1626-1627, 1663-1664` structural-dead/construction-unreachable; `351-352` pathological semantic decision; `322,326` inspect-gated guard-relevant (**DO NOT ALTER**).
 
 **Remaining (40):** unchanged. Next session (batch 105) only with a *genuinely new, concretely demonstrated, production-realistic* control-flow mechanism and no semantics change.
+
+---
+
+## Batch105 (2026-11-07T14:29Z) — fresh rebaseline + trace confirmation (0 delta, proof-strengthening)
+
+**SHA:** `82500cd` (local workspace). **Canonical rebaseline (fresh, this session):** batches 40-69,71-74,76-89,93,95,96 — **1466 passed, 0 failed, 17 skipped, 107 warnings** (46.78s). Coverage: **40 miss / 1693 stmts / 98%** (`--include='*data_loader.py'`). Campaign_d guard: **44 passed, 5 warnings**. Delta vs batch104 baseline: **0** (confirmed unchanged).
+
+**Scope:** no production code changes; no canonical test added (no production-realistic miss-reduction mechanism). Proof-only refresh with direct `coverage.Coverage` traces on current tree.
+
+### 234-244, 246-247 (`_normalize_index`, dayfirst block 227-247) — mechanism closed, trace-confirmed
+- **Entrypoint:** `_normalize_index` (102) via non-`DatetimeIndex` string/object index path 202-271.
+- **Gate closure (confirmed):** 227 executes only when 225 is true after 216-224. 216-224 calls `_coerce_to_datetime_scalar(v)` and does `except Exception: raise` at 222-223 — so 224 executes only if no element raised. Any unparseable scalar that raises reaches 223→248 and never 224-247. For elements that reach 224, 232 invokes the same deterministic coercer on the same values; it cannot raise where 220 did not, so 233 `continue` always fires and **234-244 never execute**.
+- **246-247 closure (confirmed):** 244 is reachable only from 243 after 242 fails — but 242 is inside the same per-element branch entered only when 232 raised (234-235 `pass`) and 238 failed (240-241 `pass`); 232 cannot raise for post-224 elements (determinism). `df.index = coerced` at 245 is equivalent to 224 and cannot raise on a normal `pd.DataFrame` with a same-length coerced list. Therefore **246-247 are unreachable** under production-realistic semantics.
+- **Trace evidence (2026-11-07T14:29Z):** `idx=['2021-01-01','nat','2021-01-03']` (scalar returns `NaT` for `'nat'`, no raise) hit 215-221,224-233,245 and returned a clean `DatetimeIndex` with NaT row dropped; 234-244,246-247 MISS. `idx=['2021-01-01','!!!unparseable!!!']` (scalar raises) hit 216-223 then 248-265 and raised `BABDataError`; 224-247 MISS. Confirms 223 intercept prevents 227 entry for raise-on-coerce elements and 232 determinism prevents 234-244 for NaT-return elements.
+
+### 268-269 (`_normalize_index`, outer `except (ValueError, TypeError)` 266-271) — handler-order dead
+- **Structure:** try 113 has `except BABDataError: raise` (259-260) and `except Exception` (261-265) that converts any remaining exception to `BABDataError` via 262-265. The outer try wrapping 113-265 catches `BABDataError` at 266-267 first (`BABDataError` subclasses `ValueError`), so a plain `ValueError/TypeError` escaping 113 cannot reach 268; and 261 prevents plain `ValueError/TypeError` from escaping 113 in the first place. **268-269 unreachable.**
+
+### 351-352 (`_coerce_to_datetime_scalar`) — pathological/semantic, unchanged
+- **Status:** only a pathological `float` subclass whose `np.isnan`/numeric checks trigger `__float__` raising can reach 351-352; changing behavior would alter NaN-guard semantics (disallowed). Proof-only.
+
+### 403-404 (`_coerce_to_datetime_scalar` epoch-string outer except) — structural dead
+- **Structure:** regex 361 admits numeric-like strings; 363 `float(s)` returns builtin `float` (including `inf` for huge exponents — not an exception). `int(inf)` raises but is only evaluated inside individually guarded branches (365-402), each with `try/except`. No unguarded statement in 362-402 can propagate to 403-404. **Unreachable for regex-admitted `str` inputs.**
+
+### 43-44, 641-642, 694-695, 791-792, 953, 1626-1627, 1663-1664 — prior structural proofs reaffirmed
+- No new production-realistic control-flow mechanism found. `43-44` (`_not_null`): no unwrapped fallible statement; inner `pd.isna` guarded. `953`: `str.split()` never yields empty token. `641-642`/`694-695`: inner handlers swallow all exceptions. `791-792`: 760-790 fully guarded (Python 3 `hasattr` swallows descriptor exceptions). `1626-1627`/`1663-1664`: inner read/validate convert all exceptions to `BABDataError`; outer typed handlers unreachable. `322,326` inspect-gated/guard-relevant — **DO NOT ALTER**.
+
+**Conclusion:** 40-miss floor remains mechanism-closed after batch105 trace confirmation. Next session should only act on a concretely demonstrated *new* production-realistic control-flow mechanism (not a semantic change, not a pathological subclass harness, not a repeated probe).

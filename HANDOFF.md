@@ -1,14 +1,14 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 
-> **THIS IS THE SOLE DURABLE HANDOFF.** Prioritize `Crypto-Betting-Against-Beta` (BAB) ONLY. Read completely, rebaseline, then execute the **INITIAL TASK MESSAGE** immediately. No off-ramps, no sidetracks, no status-only sessions, no planning-only sessions, no "review-only" exits. Every session must produce measurable heavy work: **miss reduction in a fresh canonical aggregate** OR **new high-confidence file:line unreachable-proof evidence** added to `docs/unreachable_proofs.md` while immediately moving to the next cluster.
+> **THIS IS THE SOLE DURABLE HANDOFF.** Prioritize `Crypto-Betting-Against-Beta` (BAB) ONLY. Read completely, rebaseline, then execute the **INITIAL TASK MESSAGE** immediately. No off-ramps, no sidetracks, no status-only sessions, no planning-only sessions, no "review-only" exits. Every session must produce measurable heavy work: **miss reduction in a fresh canonical aggregate** OR **new high-confidence file:line unreachable-proof evidence** added to `docs/unreachable_proofs.md` that closes a *genuinely new* mechanism (not a repeat probe).
 
-**Handoff refreshed (UTC):** 2026-11-07T14:27:07Z (batch105 rebaseline + handoff refresh; mechanism-closed floor maintained)
+**Handoff refreshed (UTC):** 2026-11-07T14:29Z (batch105: fresh rebaseline confirmed 40-miss mechanism-closed floor; trace-confirmation proofs added)
 **Repo:** `Crypto-Betting-Against-Beta` | **Path:** `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
-**Branch/SHA:** `main` @ `93f4d0c` — working tree has only this handoff refresh (untracked `debug_beta*.py`/`probe*.py` pre-existing; do not commit). Canonical rebaseline verified fresh at 2026-11-07T12:27Z.
-**Measured baseline (fresh canonical, 2026-11-07T12:27Z):** batches 40-69,71-74,76-89,93,95,96 — **1466 passed, 0 failed, 17 skipped, 107 warnings** (44.85s). Coverage: **40 miss / 1693 stmts / 98%** (`--include='*data_loader.py'`). Guard (`campaign_d*`) **44 passed, 5 warnings**.
-**Target:** `strategies/betting_against_beta/data_loader.py` — **40 miss / 1693 stmts / 98%**. **Delta: 0 (batch104 proof/probe-only). Step 0 must rebaseline before hunting.**
+**Branch/SHA:** `main` @ `82500cd` at session start (dirty from local checkpoints; this session modified only `HANDOFF.md` + appended to `docs/unreachable_proofs.md`; untracked `debug_beta*.py`/`probe*.py` pre-existing — do not commit).
+**Measured baseline (fresh canonical, 2026-11-07T14:29Z, batch105):** batches 40-69,71-74,76-89,93,95,96 — **1466 passed, 0 failed, 17 skipped, 107 warnings** (46.78s). Coverage: **40 miss / 1693 stmts / 98%** (`--include='*data_loader.py'`). Guard (`campaign_d*`) **44 passed, 5 warnings**.
+**Target:** `strategies/betting_against_beta/data_loader.py` — **40 miss / 1693 stmts / 98%**. **Delta: 0 (batch105 proof/trace-only). Step 0 must rebaseline before hunting.**
 
-**CRITICAL:** No `.github/workflows/*` edits/commits/pushes. No remote push performed. `--ignore=tests/test_controller_progress_accounting.py` ALWAYS. Do not commit unless explicitly requested.
+**CRITICAL:** No `.github/workflows/*` edits/commits/pushes. No remote push performed. `--ignore=tests/test_controller_progress_accounting.py` ALWAYS. Do not commit unless explicitly requested. Production semantics must not change solely to manufacture coverage.
 
 ---
 
@@ -68,10 +68,10 @@ Repo name = **Crypto-Betting-Against-Beta** → **BAB strategy only**. **ONLY** 
 | Batch | Delta (miss) | Result | Notes |
 |---|---|---|---|
 | 71–89,93,95,96 | -56 | measured | 96→40 cumulative (see docs/unreachable_proofs.md). |
-| 90–92,94,97–103 | 0 | proof-only | mechanism-closure/handler-structure evidence strengthened; no production-realistic miss reduction found. |
-| 104 | 0 | proof/probe | Fresh rebaseline confirmed 40 miss/1466/0/17/guard44. Probed: `246-247` path requires 245 index-set raise inside try 227, but NaT-bearing datetime-like inputs that would reach 225/227 are already `DatetimeIndex` (early-return/object paths do not satisfy the non-DatetimeIndex gate); `266,268-269` are outer handlers of try 113 while `259`/`261` catch `BABDataError`/`Exception` respectively — nothing escapes to 266/268; `403-404` outer `except` unreachable for regex-admitted `str` (363/364 safe; inner fallible ops individually guarded). No canonical test added (no production-realistic miss reduction; semantics unchanged). |
+| 90–92,94,97–104 | 0 | proof-only/probe | mechanism-closure/handler-structure evidence strengthened; no production-realistic miss reduction found. |
+| 105 | 0 | proof/trace | Fresh rebaseline `82500cd`: **40 miss/1693, 1466/0/17, guard 44/5 warnings**. Direct coverage traces: NaT-return index (`"nat"`) enters 227-233,245 and drops NaT cleanly (234-244,246-247 MISS); unparseable-raise index hits 222-223→248 (224-247 MISS). Confirmed `268-269` handler-order dead, `403-404` no unguarded fallible stmt (`float("1e99999")=inf`, guarded int paths), remaining clusters structural-dead/inspect-gated/pathological. No production change, no canonical test. Evidence in `docs/unreachable_proofs.md` (batch105). |
 
-Next batch number: **105**.
+Next batch number: **106** (only on a concretely demonstrated, genuinely new production-realistic mechanism).
 
 ---
 
