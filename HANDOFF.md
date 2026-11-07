@@ -2,10 +2,10 @@
 
 > **THIS IS THE SOLE DURABLE HANDOFF.** Prioritize `Crypto-Betting-Against-Beta` (BAB) ONLY. Read completely, rebaseline, then execute the **INITIAL TASK MESSAGE** immediately. No off-ramps, no sidetracks, no status-only sessions, no planning-only sessions, no "review-only" exits. Every session must produce measurable heavy work: **miss reduction in a fresh canonical aggregate** OR **new high-confidence file:line unreachable-proof evidence** added to `docs/unreachable_proofs.md` while immediately moving to the next cluster.
 
-**Handoff refreshed (UTC):** 2026-11-07T09:52:00Z
+**Handoff refreshed (UTC):** 2026-11-07T10:26:00Z
 **Repo:** `Crypto-Betting-Against-Beta` | **Path:** `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
-**Branch/SHA:** `main` @ `aa5944c` (`chore(kilo): checkpoint agent session`) — **working tree dirty** (untracked `debug_beta*.py`, `probe*.py` scratch; new canonical `tests/test_bab_data_loader_batch95.py`; canonical tests unaffected)
-**Measured baseline (fresh canonical, 2026-11-07T09:52Z, batch 95 session):** batches 40-69,71-74,76-89,93,95 — **1465 passed, 0 failed, 17 skipped, 107 warnings**. Guard (`campaign_d*`) **44 passed, 5 warnings**.
+**Branch/SHA:** `main` @ `a0d93f4` (`chore(kilo): checkpoint agent session`) — **working tree clean** (untracked `debug_beta*.py`/`probe*.py` scratch; canonical tests unaffected)
+**Measured baseline (fresh canonical, 2026-11-07T10:26Z, batch 95 session):** batches 40-69,71-74,76-89,93,95 — **1465 passed, 0 failed, 17 skipped, 107 warnings**. Guard (`campaign_d*`) **44 passed, 5 warnings**.
 **Target:** `strategies/betting_against_beta/data_loader.py` — **42 miss / 1693 stmts / 98%** (`--source=strategies.betting_against_beta`, `--include='*data_loader.py'`). **Delta this session: -2 (measured). Step 0 must rebaseline before hunting.**
 
 **CRITICAL:** No `.github/workflows/*` edits/commits/pushes. No remote push performed. `--ignore=tests/test_controller_progress_accounting.py` ALWAYS. Do not commit unless explicitly requested.
@@ -79,14 +79,14 @@ Repo name = **Crypto-Betting-Against-Beta** → **BAB strategy only**. **ONLY** 
 | 93 | -10 | measured | **54→44**; canonical **1463 passed, 0 failed, 17 skipped**; covered `92-93` + `227-233,245` |
 | 94 | 0 | proof-refresh | reverified **44 miss / 1463 passed / guard 44** (40-69,71-74,76-89,93). Added mechanism-closure evidence: 234-244,246-247 unreachable due to 223 intercept + 232 coercer determinism (trace); 791-792 all-inner-guarded. Removed misaligned beta-targeting `test_bab_data_loader_batch94.py` probe. No production changes. |
 
-Next batch number: **95**.
+Next batch number: **96**.
 
 ---
 
-## INITIAL TASK MESSAGE — 2026-11-07T09:40:27Z — EXECUTE IMMEDIATELY (HEAVY WORK, NO ESCAPE HATCHES)
+## INITIAL TASK MESSAGE — 2026-11-07T10:26:00Z — EXECUTE IMMEDIATELY (HEAVY WORK, NO ESCAPE HATCHES)
 
-**Timestamp (UTC):** 2026-11-07T09:40:27Z
-**SHA at handoff:** `a1cff65` (main; working tree dirty with untracked scratch only)
+**Timestamp (UTC):** 2026-11-07T10:26:00Z
+**SHA at handoff:** `a0d93f4` (main; working tree clean with untracked scratch only)
 **Mode:** HEAVY WORK ONLY. Every minute must move coverage or proof quality. Future agents cannot avoid heavy work by claiming ambiguity — this message is explicit.
 
 ### Mission (mandatory, binary)
@@ -118,7 +118,7 @@ Record actual baseline. If different from **44 miss, 1463/0/17, guard 44**, reco
 
 1. Attack only with a **new production-realistic mechanism**: re-examine `43-44,234-244,246-247,268-269,334-335,338-342,351-352,403-404,641-642,694-695,791-792,953,1319-1320,1626-1627,1663-1664,1926-1927` for pandas/internal exception types, frame/index/subclass shapes, or call-paths that can throw through the exact unguarded seams *without* changing BAB semantics. **Never alter `322,326` (guard-relevant).** Do **not** repeat coercer→NaT, np.allclose global falsification, deterministic-coercer same-index probes, or semantics-altering probes.
 2. **Max 1 probe per cluster** unless a probe proves a real path and needs a minimal focused harness. Use real DataFrame shapes, direct canonical helper entrypoints, and tight scoped monkeypatches/subclasses only where control flow is plausible.
-3. **If hit:** create `tests/test_bab_data_loader_batch95.py` (data_loader only). Minimal deterministic tests. Run focused → guard → fresh canonical aggregate including batch95. Record before/after/delta. If miss decreased, update `HANDOFF.md` + `docs/unreachable_proofs.md` and continue hunting.
+3. **If hit:** create `tests/test_bab_data_loader_batch96.py` (data_loader only). Minimal deterministic tests. Run focused → guard → fresh canonical aggregate including batch96. Record before/after/delta. If miss decreased, update `HANDOFF.md` + `docs/unreachable_proofs.md` and continue hunting.
 4. **If 0 delta:** do not add to canonical unless valuable. Add exact proof to `docs/unreachable_proofs.md` (file:line, function, entrypoint, shape/monkeypatch/trace tried, observed behavior, why dead/unreachable). Update HANDOFF cluster map. Move on immediately.
 5. **Never** retarget already-covered/dead lines without a new mechanism. **Never** touch workflows. **Never** coast. **Never** change production semantics solely to manufacture coverage.
 
