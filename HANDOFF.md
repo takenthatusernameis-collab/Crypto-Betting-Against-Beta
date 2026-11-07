@@ -2,7 +2,7 @@
 
 > **THIS IS THE SOLE DURABLE HANDOFF.** Prioritize `Crypto-Betting-Against-Beta` (BAB) ONLY. Read completely, rebaseline, then execute the **INITIAL TASK MESSAGE** immediately. No off-ramps, no sidetracks, no status-only sessions, no planning-only sessions, no "review-only" exits. Every session must produce measurable heavy work: **miss reduction in a fresh canonical aggregate** OR **new high-confidence file:line unreachable-proof evidence** added to `docs/unreachable_proofs.md` that closes a *genuinely new* mechanism (not a repeat probe).
 
-**Handoff refreshed (UTC):** 2026-11-07T19:04:02Z (batch114 rebaseline @ `5bf4434`; measured floor is now **36 miss** with `--rcfile=/dev/null` in this env; 1626-1627/1663-1664 no longer in the miss set at HEAD — see baseline note; remaining 36 mechanism-closed; next session (batch115) only on a genuinely new, concretely demonstrated, production-realistic control-flow mechanism).
+**Handoff refreshed (UTC):** 2026-11-07T19:04:30Z (batch115 rebaseline @ `54e030c`; measured floor confirmed **36 miss / 1683 stmts / 98%** with `--rcfile=/dev/null`; 1466 passed, 0 failed, 17 skipped, 107 warnings; guard 44 passed, 5 warnings; all 36 mechanism-closed; no new production-realistic mechanism found).
 **Repo:** `Crypto-Betting-Against-Beta` | **Path:** `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
 **Branch/SHA (measured):** `main` @ `cfe353d` (HEAD; `data_loader.py` **modified at HEAD vs 311656a** — 1626-1627/1663-1664 shifted/covered relative to prior handoff; untracked `debug_beta*.py`/`probe*.py` and `.coverage` pre-existing — do not commit; clean `.coverage*` before coverage runs).
 **Measured baseline (fresh canonical, 2026-11-07T18:33Z, this session):** batches 40-69,71-74,76-89,93,95,96 — **1466 passed, 0 failed, 17 skipped, 107 warnings** (45.17s). Coverage (use `--rcfile=/dev/null` in this env): **36 miss / 1683 stmts / 98%** (`--include='strategies/betting_against_beta/data_loader.py'`, `--rcfile=/dev/null`). Missing exactly `43-44, 234-244, 246-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953`. Guard (`campaign_d*`) **44 passed, 5 warnings**.
@@ -82,7 +82,7 @@ Next batch number: **115** (only on a concretely demonstrated, genuinely new pro
 
 ---
 
-## INITIAL TASK MESSAGE — 2026-11-07T19:04:02Z (batch114 rebaseline) — EXECUTE IMMEDIATELY (HEAVY WORK, NO ESCAPE HATCHES)
+## INITIAL TASK MESSAGE — 2026-11-07T19:04:30Z (batch115 rebaseline) — EXECUTE IMMEDIATELY (HEAVY WORK, NO ESCAPE HATCHES)
 
 **Timestamp (UTC):** 2026-11-07T19:04:02Z (batch114 re-baseline @ `5bf4434`; 36-miss mechanism-closed under `--rcfile=/dev/null`). **SHA at handoff/rebaseline:** `5bf4434` (run `git rev-parse --short HEAD` in Step 0 and record actual SHA).
 **Mode:** HEAVY WORK ONLY. Every minute must move coverage or proof quality. Future agents cannot avoid heavy work by claiming ambiguity — this message is explicit. **The 36-miss floor is mechanism-closed** across all remaining lines (batches 97-112 + this reconfirm). Only a *genuinely new, concretely demonstrated, production-realistic* control-flow mechanism (not semantic change, not pathological harness, not repeat probe) may justify batch115 tests/proofs.
