@@ -2,7 +2,7 @@
 
 > **THIS IS THE SOLE DURABLE HANDOFF.** Prioritize `Crypto-Betting-Against-Beta` (BAB) ONLY. Read completely, rebaseline, then execute the **INITIAL TASK MESSAGE** immediately. No off-ramps, no sidetracks, no status-only sessions, no planning-only sessions, no "review-only" exits. Every session must produce measurable heavy work: **miss reduction in a fresh canonical aggregate** OR **new high-confidence file:line unreachable-proof evidence** added to `docs/unreachable_proofs.md` that closes a *genuinely new* mechanism (not a repeat probe).
 
-**Handoff refreshed (UTC):** 2026-11-07T19:11:30Z (batch117 rebaseline @ `1122e26`; proof refinement only; **no new production-realistic mechanism**; baseline unchanged).
+**Handoff refreshed (UTC):** 2026-11-07T19:14:31Z (batch117 rebaseline @ `1122e26`; proof refinement only; **no new production-realistic mechanism**; baseline unchanged).
 **Repo:** `Crypto-Betting-Against-Beta` | **Path:** `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
 **Branch/SHA (measured):** `main` @ `1122e26` (untracked `debug_beta*.py`/`probe*.py`/`.coverage` and kilo/session artifacts may exist — **do not commit**; clean `.coverage*` before coverage runs).
 **Measured baseline (fresh canonical, 2026-11-07T19:11Z, this session):** batches 40-69,71-74,76-89,93,95,96 — **1466 passed, 0 failed, 17 skipped, 107 warnings**. Coverage (use `--rcfile=/dev/null` for run+report): **36 miss / 1683 stmts / 98%** (`--include='strategies/betting_against_beta/data_loader.py'`). Missing exactly `43-44, 234-244, 246-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953`. Guard (`campaign_d*`) **44 passed, 5 warnings**.
@@ -85,9 +85,9 @@ Next batch number: **117** (only on a concretely demonstrated, genuinely new pro
 
 ---
 
-## INITIAL TASK MESSAGE — 2026-11-07T19:11:30Z (batch117 rebaseline) — EXECUTE IMMEDIATELY (HEAVY WORK, NO ESCAPE HATCHES)
+## INITIAL TASK MESSAGE — 2026-11-07T19:14:31Z (batch117 rebaseline) — EXECUTE IMMEDIATELY (HEAVY WORK, NO ESCAPE HATCHES)
 
-**Timestamp (UTC):** 2026-11-07T19:11:30Z (batch117 proof-refine/rebaseline @ `1122e26`; 36-miss mechanism-closed under `--rcfile=/dev/null`). **SHA at handoff:** `1122e26` (run `git rev-parse --short HEAD` in Step 0 and record actual SHA).
+**Timestamp (UTC):** 2026-11-07T19:14:31Z (batch117 proof-refine/rebaseline @ `1122e26`; 36-miss mechanism-closed under `--rcfile=/dev/null`). **SHA at handoff:** `1122e26` (run `git rev-parse --short HEAD` in Step 0 and record actual SHA).
 **Mode:** HEAVY WORK ONLY. Every minute must move coverage or proof quality. Future agents cannot avoid heavy work by claiming ambiguity — this message is explicit. **The 36-miss floor is mechanism-closed** (batches 103–116). Only a *genuinely new, concretely demonstrated, production-realistic* control-flow mechanism (not semantic change, not pathological harness, not repeat probe) may justify batch117 tests/proofs.
 
 ### Mission (mandatory, binary)
