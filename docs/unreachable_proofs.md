@@ -137,10 +137,10 @@ Scope: `strategies/betting_against_beta/data_loader.py` only. `campaign_d*` guar
 
 ## `_run_data_quality_campaign` (lines 1232-1347)
 
-### 1257-1258: `tz_localize(None)` except
-- Function: `_run_data_quality_campaign`, lines 1252-1258.
-- Code path: `cleaned.index.tz_convert('UTC').tz_localize(None)` at 1253 succeeds for tz-aware indexes; the fallback `tz_localize(None)` at 1256 and its except at 1257-1258 only fire on a double-failure chain not produced by real pandas DatetimeIndex.
-- Evidence: tz_convert succeeds; tz_localize fallback dead.
+### 1257-1258: **COVERED (batch80)**
+- Function: `_run_data_quality_campaign`, lines 1251-1258.
+- Code path: tz-aware DatetimeIndex where `tz_convert("UTC")` AND `tz_localize(None)` both raise (tight scoped monkeypatch of `DatetimeIndex.tz_convert` / `tz_localize`). The outer `except` at 1257-1258 fires; index keeps its tz.
+- Evidence: `tests/test_bab_data_loader_batch80.py::test_dq_campaign_tz_localize_fallback_1257_1258`; canonical delta **82→80 (-2)**.
 
 ### 1319-1320: coerce fallback `arr = cleaned[col].to_numpy(dtype=float)`
 - Function: `_run_data_quality_campaign`, lines 1318-1320.
@@ -212,11 +212,22 @@ Scope: `strategies/betting_against_beta/data_loader.py` only. `campaign_d*` guar
 
 ---
 
-## Summary of remaining clusters (82 lines, 2026-11-06T23:50Z)
-`43-44, 92-93, 194, 196, 227-247, 268-269, 285-286, 322, 326, 334-335, 338-342, 351-352, 403-404, 561, 620, 641-642, 679, 694-695, 713-714, 733-734, 791-792, 859, 861-862, 867-868, 901-903, 912-914, 953, 1226-1227, 1257-1258, 1319-1320, 1591-1592, 1626-1627, 1663-1664, 1926-1927`
+## Summary of remaining clusters (80 lines, 2026-11-07T00:32Z)
+`43-44, 92-93, 194, 196, 227-247, 268-269, 285-286, 322, 326, 334-335, 338-342, 351-352, 403-404, 561, 620, 641-642, 679, 694-695, 713-714, 733-734, 791-792, 859, 861-862, 867-868, 901-903, 912-914, 953, 1226-1227, 1319-1320, 1591-1592, 1626-1627, 1663-1664, 1926-1927`
 
-**Batch78 delta:** 1530-1531, 1533-1536, 2192-2193 covered via `tests/test_bab_data_loader_batch78.py` (miss **94→86, -8**). Reachable when lowercase benchmark arg differs from normalized column case and/or when `DataFrame.rename`/`drop` throw under scoped monkeypatch.
+**Batch78 delta:** 1530-1531, 1533-1536, 2192-2193 covered via `tests/test_bab_data_loader_batch78.py` (miss **94→86, -8**).
 
-**Batch79 delta:** 908-911 covered (aggregate miss **86→82, -4**) via `tests/test_bab_data_loader_batch79.py`. Reachable via last-resort promotion of an exotic non-candidate object date column (`when_recorded`) not consumed by exchange normalization/named-candidate paths.
+**Batch79 delta:** 908-911 covered (aggregate miss **86→82, -4**) via `tests/test_bab_data_loader_batch79.py`.
 
-**Status:** miss **82/1693 (95%)**. Canonical **1431 passed, 0 failed, 17 skipped** (40-69,71-74,76-79). Guard **44 passed, 5 warnings**. Exhaustion hunt continues.
+**Batch80 delta:** 1257-1258 covered (aggregate miss **82→80, -2**) via `tests/test_bab_data_loader_batch80.py::test_dq_campaign_tz_localize_fallback_1257_1258`. Reachable via a tz-aware DatetimeIndex where both `tz_convert("UTC")` and `tz_localize(None)` raise under a tight scoped monkeypatch.
+
+**Batch80 zero-delta probes (documented, not in canonical):**
+- `901-903`: `getattr(parsed, "tz")` is never truthy for a `pd.to_datetime(Series)` result — a Series has no `.tz` attribute (only `.dtype.tz`). Probed by monkeypatching `pd.to_datetime` to return a tz-aware `DatetimeIndex` for the last-resort column; the spy never intercepts because `_normalize_columns` uppercases the column name to `WHEN RECORDED` and the `getattr(parsed, "tz", None)` check reads `None` from the Series. Dead.
+- `1319-1320`: `pd.to_numeric(..., errors="coerce")` is exception-free by design; monkeypatching `pd.to_numeric` to raise for the `ETH` column produces a `BABDataError` from the stale-run check, never reaching the outer except. Dead.
+- `953`: every non-empty input yields a non-empty `su` return; `not s2` is never true (probed `USD USDT`, `USD EUR`, `usd`, `USDT USDC BUSD`). Dead.
+- `1226-1227`: `BadDf.astype` raises `RuntimeError` -> caught by the `isinstance` guard at 1206-1207 -> `BABDataError`; `to_numeric` monkeypatch raises `AttributeError` -> caught by the second-pass `except (ValueError, TypeError)` at 1216 -> `BABDataError`. Outer except dead.
+- `1591-1592`: CSV emptiness is rejected at 1583-1584 before the nested try; redundant defensive layer. Dead.
+- `1626-1627`, `1663-1664`: parquet/hdf5 `ImportError` (missing engine) is caught by the inner `except Exception` and re-raised as `BABDataError`; no `OSError`/`ValueError` escapes to the outer handler. Dead.
+- `1926-1927`: `np.allclose(diffs, 1.0, rtol=0, atol=1e-9)` at 1915-1918 fires first for the only shape satisfying 1924-1925; instrumented with an `np.allclose` spy confirming only the 1915-1918 call executes. Subsumed.
+
+**Status:** miss **80/1693 (95%)**. Canonical **1432 passed, 0 failed, 17 skipped** (40-69,71-74,76-80). Guard **44 passed, 5 warnings**. Exhaustion hunt continues.
