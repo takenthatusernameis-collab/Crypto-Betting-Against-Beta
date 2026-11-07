@@ -2,10 +2,10 @@
 
 > **THIS IS THE SOLE DURABLE HANDOFF.** Prioritize `Crypto-Betting-Against-Beta` (BAB) ONLY. Read completely, rebaseline, then execute the **INITIAL TASK MESSAGE** immediately. No off-ramps, no sidetracks, no status-only sessions, no planning-only sessions, no "review-only" exits. Every session must produce measurable heavy work (miss reduction **or** new file:line unreachable proof evidence).
 
-**Handoff refreshed (UTC):** 2026-11-07T03:49Z
+**Handoff refreshed (UTC):** 2026-11-07T03:51Z
 **Repo:** `Crypto-Betting-Against-Beta` | **Path:** `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
 **Branch/SHA:** `main` @ `28c5fbc` (verify with `git rev-parse --short HEAD`)
-**Measured anchor (fresh, 2026-11-07T03:49Z):** batches 40-69,71-74,76-85,86 — **1450 passed, 0 failed, 17 skipped, 105 warnings**. Guard **44 passed, 5 warnings** (re-verified 2026-11-07T03:49Z).
+**Measured anchor (fresh, 2026-11-07T03:51Z):** batches 40-69,71-74,76-85,86 — **1450 passed, 0 failed, 17 skipped, 105 warnings**. Guard **44 passed, 5 warnings** (re-verified 2026-11-07T03:51Z).
 **Target:** `strategies/betting_against_beta/data_loader.py` — **59 miss, 1693 stmts, 97%** (re-verify before hunting).
 
 **CRITICAL:** No `.github/workflows/*` edits/commits/pushes. No remote push performed. `--ignore=tests/test_controller_progress_accounting.py` ALWAYS. Do not commit unless explicitly requested.
@@ -41,8 +41,8 @@ Repo name = **Crypto-Betting-Against-Beta** → **BAB strategy only**. **ONLY** 
 
 ## CURRENT MEASURED STATE (rebaseline every session — do not trust stale numbers)
 
-**Anchor (2026-11-07T03:49Z):** miss **59/1693 (97%)**, **1450 passed, 0 failed, 17 skipped** (40-69,71-74,76-85,86), guard **44 passed, 5 warnings**.
-**Guard re-verified (2026-11-07T03:49Z):** **44 passed, 5 warnings**.
+**Anchor (2026-11-07T03:51Z):** miss **59/1693 (97%)**, **1450 passed, 0 failed, 17 skipped** (40-69,71-74,76-85,86), guard **44 passed, 5 warnings**.
+**Guard re-verified (2026-11-07T03:51Z):** **44 passed, 5 warnings**.
 
 **Remaining 59 lines (current aggregate anchor):**
 `43-44, 92-93, 196, 227-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 867-868, 953, 1226-1227, 1319-1320, 1626-1627, 1663-1664, 1926-1927`
@@ -80,7 +80,7 @@ Next batch number: **87**.
 
 ## INITIAL TASK MESSAGE — EXECUTE IMMEDIATELY (HEAVY WORK, NO ESCAPE HATCHES)
 
-**Timestamp (UTC):** 2026-11-07T03:49Z
+**Timestamp (UTC):** 2026-11-07T03:51Z
 **Mode:** HEAVY WORK ONLY. Every minute must move coverage or proof quality. Future agents cannot avoid heavy work by claiming ambiguity — this message is explicit.
 
 ### Mission (mandatory)
