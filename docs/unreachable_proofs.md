@@ -696,3 +696,22 @@ Canonical (fresh, rcfile=/dev/null): miss **36/1683 (98%)**, **1466 passed, 0 fa
 - `953` `_normalize_asset_name`: `str.split()` (no separator) yields no empty strings; `tok.strip()` on split tokens non-empty → `if not tok_clean: continue` unreachable.
 
 **Conclusion:** 36-miss floor remains mechanism-closed at HEAD `074753a`. **No batch116 probe/test** unless a genuinely new, concretely demonstrated, production-realistic control-flow mechanism satisfies all four entry criteria without semantic change or pathological harness. Maintain proofs, preserve `322,326`, and keep `--rcfile=/dev/null` in canonical coverage runs in this environment.
+
+
+---
+
+## Batch 116 (2026-11-07T19:11Z, SHA 1122e26, proof refinement / rebaseline, 0 delta, no new mechanism)
+
+**Canonical (fresh, `--rcfile=/dev/null` run+report):** **1466 passed, 0 failed, 17 skipped, 107 warnings**. Coverage: **36 miss / 1683 stmts / 98%** (`--include='strategies/betting_against_beta/data_loader.py'`). Missing exactly `43-44, 234-244, 246-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953`. Guard **44 passed, 5 warnings**. `data_loader.py` unchanged from `074753a`/HEAD; stmt count **1683**. No production/test change.
+
+**Line-map note:** Historic refs `1626-1627,1663-1664` remain stale at HEAD (parquet/HDF5 handlers now ~1597-1654, no current miss). Future sessions must verify line→code at Step 0.
+
+**Strict batch116 entry criteria (all 4 required) — assessed, none satisfied:**
+1. **Target+current code:** reviewed all 36 misses at HEAD (`43-44` `_not_null`; `234-247` `_normalize_index` dayfirst last-ditch; `268-269` `_normalize_index` outer VE/TE handler; `322,326` inspect-gated coercer NaT guards; `334-335,338-342,351-352,403-404` `_coerce_to_datetime_scalar`; `641-642,694-695` `_detect_and_normalize_exchange_format`; `791-792` `_promote_datetime_column`; `953` `_normalize_asset_name`).
+2. **New mechanism not disproven:** none identified beyond batches 103–115 proofs (coercer determinism/gate for 234-247, `Exception→BABDataError` + `BABDataError`-first handler order/`BABDataError` subclasses `ValueError` for 268-269, re-raise-before-generic-pass for 334-342, builtin `float(str)`/individually-guarded epoch branches for 403-404, identity+guarded `pd.isna` for 43-44, inner-swallow/guarded setup for 641-695, fully-guarded tz promotion for 791-792, `str.split()` token construction for 953).
+3. **Production-realistic:** no real `pd.DataFrame`/index/dtype/subclass + plausible pandas/library behavior demonstrated to throw a plain `VE/TE`/`Exception` through an unguarded seam to the remaining handlers without semantic change or pathological harness.
+4. **Expected path:** cannot be stated for any cluster consistent with (2)-(3).
+
+**Cluster disposition (unchanged):** structural-dead/handler-order dead (`43-44,268-269,334-342,403-404,641-695,791-792`), coercer-determinism/NaT-gate dead (`234-247`), construction-unreachable (`953`), inspect-gated guard-relevant **do not alter** (`322,326`), pathological semantic-only **do not change semantics** (`351-352`).
+
+**Conclusion:** 36-miss floor remains mechanism-closed. Batch117 only on a genuinely new, concretely demonstrated, production-realistic mechanism satisfying all four criteria; otherwise maintain proofs and rebaseline with `--rcfile=/dev/null`.
