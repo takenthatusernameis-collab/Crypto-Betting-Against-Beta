@@ -2,9 +2,9 @@
 
 > **THIS IS THE SOLE DURABLE HANDOFF.** Prioritize `Crypto-Betting-Against-Beta` (BAB) ONLY. Read completely, rebaseline, then execute the **INITIAL TASK MESSAGE** immediately. No off-ramps, no sidetracks, no status-only sessions, no planning-only sessions, no "review-only" exits. Every session must produce measurable heavy work (miss reduction **or** new file:line unreachable proof evidence).
 
-**Handoff refreshed (UTC):** 2026-11-07T06:36:43Z
+**Handoff refreshed (UTC):** 2026-11-07T07:25:01Z
 **Repo:** `Crypto-Betting-Against-Beta` | **Path:** `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
-**Branch/SHA:** `main` @ `5b2d7ac` (local ahead of prior handoff; working tree dirty only via this HANDOFF refresh during session)
+**Branch/SHA:** `main` @ `03cca8d` (checkpoint; working tree dirty only via this HANDOFF refresh during session)
 **Measured anchor (fresh rebaseline, 2026-11-07T06:36Z):** batches 40-69,71-74,76-89 — **1460 passed, 0 failed, 17 skipped, 105 warnings**. Guard **44 passed, 5 warnings**.
 **Target:** `strategies/betting_against_beta/data_loader.py` — **54 miss, 1693 stmts, 97%** (re-verified this session).
 
@@ -76,7 +76,7 @@ Repo name = **Crypto-Betting-Against-Beta** → **BAB strategy only**. **ONLY** 
 | 90 | 0 | proof-only | structural proofs strengthened (641-642,694-695,1626-1627,1663-1664,1926-1927); probe test removed (not canonical). Anchor remains **54 miss / 1460 passed**. |
 | 91 | 0 | proof-only/probe | Rebaseline (2026-11-07T06:29Z, SHA 7a5b48b): canonical **1460 passed, 0 failed, 17 skipped, 105 warnings**, miss **54/1693 (97%)**, guard **44 passed**. Deps OK in `_temp/kilo-tmp/pylib`. Probe 227-247: monkeypatching `_coerce_to_datetime_scalar` to return `NaT` reached NaN guards but harness fell through 248 fallback with row-drop/NaT-index semantics — **no confirmed 227-247 hit** and not production-realistic without semantics change. Verified coercer raises on unparseable values (no NaT path). 791-792/641-642 probes unchanged. No new mechanism found; proofs remain structural-dead/inspect-gated. |
 **Batch 91 (2026-11-07T06:29Z, 0 delta):** rebaseline 54 miss / 1460/0/17 / guard 44. 227-247 monkeypatch-to-NaT probe reached guards but fell through 248 fallback (row-drop/NaT-index semantics) — not production-realistic; coercer raises on unparseables. 791-792/outer handlers unchanged.
-**Batch 92 (2026-11-07T06:36Z, SHA 5b2d7ac, 0 delta):** rebaseline confirmed **54 miss / 1693 stmts (97%)**, **1460 passed, 0 failed, 17 skipped, 105 warnings**, guard **44 passed**. Direct module probes verified `_coerce_to_datetime_scalar` contract (unparseables raise `ValueError`; valid date returns tz-aware Timestamp) — closes realistic NaT path to 227-247. All remaining clusters re-confirmed structural-dead/subsumed/inspect-gated (43-44,92-93,227-247,268-269,322,326,334-335,338-342,351-352,403-404,641-642,694-695,791-792,953,1319-1320,1626-1627,1663-1664,1926-1927). No production changes. See `docs/unreachable_proofs.md` Batch 92.
+**Batch 92 (2026-11-07T06:36Z, SHA 03cca8d, 0 delta):** rebaseline confirmed **54 miss / 1693 stmts (97%)**, **1460 passed, 0 failed, 17 skipped, 105 warnings**, guard **44 passed**. Direct module probes verified `_coerce_to_datetime_scalar` contract (unparseables raise `ValueError`; valid date returns tz-aware Timestamp) — closes realistic NaT path to 227-247. All remaining clusters re-confirmed structural-dead/subsumed/inspect-gated (43-44,92-93,227-247,268-269,322,326,334-335,338-342,351-352,403-404,641-642,694-695,791-792,953,1319-1320,1626-1627,1663-1664,1926-1927). No production changes. See `docs/unreachable_proofs.md` Batch 92.
 
 Next batch number: **93**.
 
@@ -84,7 +84,7 @@ Next batch number: **93**.
 
 ## INITIAL TASK MESSAGE — EXECUTE IMMEDIATELY (HEAVY WORK, NO ESCAPE HATCHES)
 
-**Timestamp (UTC):** 2026-11-07T06:36:43Z
+**Timestamp (UTC):** 2026-11-07T07:25:01Z
 **Mode:** HEAVY WORK ONLY. Every minute must move coverage or proof quality. Future agents cannot avoid heavy work by claiming ambiguity — this message is explicit.
 
 ### Mission (mandatory)
