@@ -25,7 +25,11 @@ def _run(args: list[str]) -> subprocess.CompletedProcess[str]:
     import sys
 
     env = dict(os.environ)
-    env["PYTHONPATH"] = str(REPO_ROOT)
+    # Preserve the full inherited PYTHONPATH (repo root + any dependency
+    # install dirs such as pylib) so subprocesses can import pandas/numpy/scipy.
+    env["PYTHONPATH"] = os.pathsep.join(
+        p for p in (str(REPO_ROOT), os.environ.get("PYTHONPATH", "")) if p
+    )
     return subprocess.run(
         [sys.executable, str(SCRIPT), *args],
         capture_output=True,

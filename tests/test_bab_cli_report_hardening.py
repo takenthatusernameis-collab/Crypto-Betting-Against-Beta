@@ -25,8 +25,13 @@ from strategies.betting_against_beta.cli import main as cli_main
 
 
 def _env():
-    env = dict(__import__("os").environ)
-    env["PYTHONPATH"] = str(REPO_ROOT)
+    import os as _os
+    env = dict(_os.environ)
+    # Preserve the full inherited PYTHONPATH (repo root + any dependency
+    # install dirs such as pylib) so subprocesses can import pandas/numpy/scipy.
+    env["PYTHONPATH"] = _os.pathsep.join(
+        p for p in (str(REPO_ROOT), _os.environ.get("PYTHONPATH", "")) if p
+    )
     return env
 
 
