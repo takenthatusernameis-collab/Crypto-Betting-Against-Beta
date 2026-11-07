@@ -2,9 +2,9 @@
 
 > **THIS IS THE SOLE DURABLE HANDOFF.** Prioritize `Crypto-Betting-Against-Beta` (BAB) ONLY. Read completely, rebaseline, then execute the **INITIAL TASK MESSAGE** immediately. No off-ramps, no sidetracks, no status-only sessions, no planning-only sessions, no "review-only" exits. Every session must produce measurable heavy work: **miss reduction in a fresh canonical aggregate** OR **new high-confidence file:line unreachable-proof evidence** added to `docs/unreachable_proofs.md` while immediately moving to the next cluster.
 
-**Handoff refreshed (UTC):** 2026-11-07T08:26:51Z
+**Handoff refreshed (UTC):** 2026-11-07T09:27:28Z
 **Repo:** `Crypto-Betting-Against-Beta` | **Path:** `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
-**Branch/SHA:** `main` @ `cadc222` (`chore(kilo): checkpoint agent session`) — **working tree clean** (verified 2026-11-07T08:26:51Z)
+**Branch/SHA:** `main` @ `d897866` (`chore(kilo): checkpoint agent session`) — **working tree clean** (verified 2026-11-07T09:27:28Z)
 **Measured anchor (last fresh canonical, 2026-11-07T07:40Z, batch 93 context):** batches 40-69,71-74,76-93 — **1463 passed, 0 failed, 17 skipped, 107 warnings**. Guard (`campaign_d*`) **44 passed, 5 warnings** (reverified 2026-11-07T08:26:51Z).
 **Target:** `strategies/betting_against_beta/data_loader.py` — **44 miss / 1693 stmts / 97%** (anchor; **Step 0 must rebaseline before hunting**).
 
