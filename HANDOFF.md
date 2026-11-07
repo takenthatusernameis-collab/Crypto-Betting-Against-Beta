@@ -2,7 +2,7 @@
 
 > **THIS IS THE SOLE DURABLE HANDOFF.** Prioritize `Crypto-Betting-Against-Beta` (BAB) ONLY. Read completely, rebaseline, then execute the **INITIAL TASK MESSAGE** immediately. No off-ramps, no sidetracks, no status-only sessions, no planning-only sessions, no "review-only" exits. Every session must produce measurable heavy work: **miss reduction in a fresh canonical aggregate** OR **new high-confidence file:line unreachable-proof evidence** added to `docs/unreachable_proofs.md` that closes a *genuinely new* mechanism (not a repeat probe).
 
-**Handoff refreshed (UTC):** 2026-11-07T16:24Z (handoff-only refresh: timestamps advanced for next session; 40-miss mechanism-closed floor stands; next session must reduce miss below 40 OR add genuinely new file:line unreachable proof)
+**Handoff refreshed (UTC):** 2026-11-07T16:28:58Z (handoff-only refresh: timestamp advanced for next session; 40-miss mechanism-closed floor stands; next session (batch109) must reduce miss below 40 OR add genuinely new file:line unreachable proof)
 **Repo:** `Crypto-Betting-Against-Beta` | **Path:** `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
 **Branch/SHA:** `main` @ `584c62a` at batch108 rebaseline (dirty from local checkpoints; this session modified `HANDOFF.md` + appended to `docs/unreachable_proofs.md` (batch108 entry); untracked `debug_beta*.py`/`probe*.py` pre-existing — do not commit).
 **Measured baseline (fresh canonical, 2026-11-07T16:24Z, batch108):** batches 40-69,71-74,76-89,93,95,96 — **1466 passed, 0 failed, 17 skipped, 107 warnings** (44.31s). Coverage: **40 miss / 1693 stmts / 98%** (`--include='*data_loader.py'`). Guard (`campaign_d*`) **44 passed, 5 warnings**.
@@ -78,9 +78,9 @@ Next batch number: **109** (only on a concretely demonstrated, genuinely new pro
 
 ---
 
-## INITIAL TASK MESSAGE — 2026-11-07T16:24:35Z — EXECUTE IMMEDIATELY (HEAVY WORK, NO ESCAPE HATCHES)
+## INITIAL TASK MESSAGE — 2026-11-07T16:28:58Z — EXECUTE IMMEDIATELY (HEAVY WORK, NO ESCAPE HATCHES)
 
-**Timestamp (UTC):** 2026-11-07T16:24Z (handoff refresh; batch108 floor stands)
+**Timestamp (UTC):** 2026-11-07T16:28:58Z (handoff refresh; batch108 floor stands; next batch109)
 **SHA at handoff/rebaseline:** `584c62a` (run `git rev-parse --short HEAD` in Step 0 and record actual SHA).
 **Mode:** HEAVY WORK ONLY. Every minute must move coverage or proof quality. Future agents cannot avoid heavy work by claiming ambiguity — this message is explicit. Batch 108 completed fresh canonical rebaseline (**40 miss/1693, 1466/0/17, guard 44/5**) + per-cluster closure reaffirmation (0 delta). **The 40-miss floor is mechanism-closed** across all remaining lines; only a *genuinely new, concretely demonstrated, production-realistic* control-flow mechanism (not semantic change, not pathological harness, not repeat probe) may justify batch109 tests/proofs.
 
