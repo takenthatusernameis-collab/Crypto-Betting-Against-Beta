@@ -735,3 +735,21 @@ Canonical (fresh, rcfile=/dev/null): miss **36/1683 (98%)**, **1466 passed, 0 fa
 4. **Expected path:** cannot be stated.
 
 **Conclusion:** 36-miss floor remains mechanism-closed. **Batch118 only** on a genuinely new, concretely demonstrated, production-realistic control-flow mechanism satisfying all four criteria (no semantic change, no pathological harness, no repeat probe). Maintain proofs; preserve `322,326`; use `--rcfile=/dev/null` for canonical coverage run+report.
+
+---
+
+## Batch 118 (2026-11-07T19:28Z, SHA 8145832, fresh rebaseline + mechanism re-confirm, 0 delta)
+
+**Canonical (fresh, `--rcfile=/dev/null` run+report, 2026-11-07T19:27Z):** **1466 passed, 0 failed, 17 skipped, 107 warnings** (45.23s). Coverage: **36 miss / 1683 stmts / 98%** (`--include='strategies/betting_against_beta/data_loader.py'`). Missing exactly `43-44, 234-244, 246-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953`. Guard **44 passed, 5 warnings**. `data_loader.py` unchanged vs `56574bd` (production code SHA-stable for this miss set; stmt count 1683).
+
+**Targeted re-confirmation traces (correct PYTHONPATH, no production/test changes):**
+- **268-269** (`_normalize_index` 160-271): `pd.to_datetime` monkeypatched to raise plain `TypeError` on normal string index → inner 261 caught, 262-265 converted to `BABDataError`, 266 re-raised before 268. Result observed: `BABDataError "Index could not be parsed as datetime"`. Confirms handler-order + `Exception→BABDataError` conversion + MRO (`BABDataError` subclasses `ValueError`) gate 268-269 for this path.
+- **234-244,246-247** (dayfirst 227-247): index `[np.datetime64('NaT'), 'zzzznotadate999']` → elementwise coercion raises at 223 on unparseable element, control jumps to 248; 227-247 not entered. Confirms 223 intercept prevents mixed NaT+unparseable entry (batches 94/97/98). 232 determinism on 216-224 survivors remains the closure for 234-244.
+
+**Strict batch118 entry criteria (all 4 required) — none satisfied:**
+1. Targets/current code verified at HEAD `8145832` (36 misses, 1683 stmts; historic 1626-1627/1663-1664 stale).
+2. No mechanism identified not disproven by batches 103–117/proofs (handler conversion+order/MRO 268-269; coercer determinism + 223 intercept + NaT gate 234-247; re-raise-before-generic-pass 334-342; builtin `float(str)`/guarded epoch branches 403-404; identity+guarded `pd.isna` 43-44; inner-swallow/guarded setup 641-695; fully-guarded tz promotion 791-792; `str.split()` construction 953; inspect-gated 322,326; pathological-semantic 351-352).
+3. No production-realistic `pd.DataFrame`/index/dtype + plausible pandas/library behavior demonstrated to reach remaining handlers without semantic change or pathological harness.
+4. Expected control-flow path cannot be stated consistently with (2)-(3).
+
+**Conclusion:** 36-miss floor remains mechanism-closed at `8145832`. **Batch119 only** on a genuinely new, concretely demonstrated, production-realistic mechanism satisfying all four criteria. Preserve `322,326`; no semantic changes for coverage; use `--rcfile=/dev/null` for canonical coverage run+report.
