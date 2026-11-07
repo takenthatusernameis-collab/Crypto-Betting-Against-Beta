@@ -4,7 +4,7 @@
 
 **Handoff refreshed (UTC):** 2026-11-07T04:38Z
 **Repo:** `Crypto-Betting-Against-Beta` | **Path:** `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
-**Branch/SHA:** `main` @ `28c5fbc` (verify with `git rev-parse --short HEAD`)
+**Branch/SHA:** `main` @ `37e1b8f` (verify with `git rev-parse --short HEAD`)
 **Measured anchor (fresh, 2026-11-07T03:51Z):** batches 40-69,71-74,76-85,86 — **1450 passed, 0 failed, 17 skipped, 105 warnings**. Guard **44 passed, 5 warnings** (re-verified 2026-11-07T03:51Z).
 **Target:** `strategies/betting_against_beta/data_loader.py` — **59 miss, 1693 stmts, 97%** (re-verify before hunting).
 
