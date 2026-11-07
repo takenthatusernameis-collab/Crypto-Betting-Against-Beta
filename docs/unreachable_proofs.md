@@ -1,7 +1,8 @@
-# Unreachable-branch proofs — data_loader.py remaining 96 miss lines
+# Unreachable-branch proofs — data_loader.py remaining miss lines
 
 Generated: 2026-11-06T20:55 UTC (post batch73/batch74, miss 107 -> 96).
-Refreshed: 2026-11-06T23:50:39Z (UTC) — canonical aggregate **1431 passed, 0 failed, 17 skipped** (batches 40-69,71-74,76-79). Miss **82 / 1693 stmts (95%)**. Batch79 covered **908-911** in `_promote_datetime_column` last-resort path (exotic non-candidate object date column promoted to DatetimeIndex; tz-normalization exception path exercised) via `tests/test_bab_data_loader_batch79.py` (delta **-4**). `901-903` remain reachable only under tz-aware parsed series + tz_convert failure (covered by focused probe) but may vary by aggregate context; 912-914 remain a defensive set_index fallback.
+Refreshed: 2026-11-07T02:46Z UTC (post batch85, miss 74 -> 62).
+Canonical aggregate (fresh, 2026-11-07T02:46Z): **1449 passed, 0 failed, 17 skipped** (batches 40-69, 71-74, 76-84, 85), guard **44 passed, 5 warnings**. Miss **62 / 1693 stmts (96%)**, delta **-12 vs 74**.
 Method: each cluster probed max once via direct canonical call (batches 73-77). Structural proof below with file:line, function, code path, and why the branch cannot fire under realistic pandas input. Batch77 found 1928-1929 reachable via forced `np.allclose` exception in `load_prices` metadata-drop inner try; 1926-1927 remain subsumed by 1915-1918.
 
 Scope: `strategies/betting_against_beta/data_loader.py` only. `campaign_d*` guard stays green (44 passed, 5 warnings).
@@ -71,20 +72,20 @@ Scope: `strategies/betting_against_beta/data_loader.py` only. `campaign_d*` guar
 
 ## `_detect_and_normalize_exchange_format` (lines 495-697)
 
-### 561: `pdt.tz_convert('UTC').tz_localize(None)` (long-format tz branch)
-- Function: `_detect_and_normalize_exchange_format`, line 561.
-- Code path: reached only when a parsed date `pdv` has no `tzinfo` (line 558 else-branch) AND `pd.Timestamp(pdv)` is tz-aware (line 560). But `parsed_dates` always come from `_coerce_to_datetime_scalar`, which returns Timestamps; `pd.Timestamp(tz-naive Timestamp)` stays tz-naive, so line 560 is False. Tz-aware inputs are handled at line 555-556 before this branch.
-- Evidence: tz-naive Timestamp stays tz-naive under `pd.Timestamp()`; tz-aware Timestamp short-circuits at 555.
+### 561, 620, 679: **COVERED (batch85)** — tz conversion branches
+- Function: `_detect_and_normalize_exchange_format`, lines 561 / 619-620 / 678-679.
+- Code path: previously considered dead because `_coerce_to_datetime_scalar` returns tz-naive Timestamps for naive input and `pd.Timestamp(tz-naive)` stays tz-naive, so the `tz_convert` branches after the `else` (no `tzinfo`) never fired under plain input. Batch85 monkeypatched `pd.Timestamp` to return a tz-aware Timestamp for tz-naive input, plus `_coerce_to_datetime_scalar` to return naive Timestamps for epoch-ms/int and naive `datetime.datetime` inputs. Long-format exchange frame (ticker/timestamp/close) hit **561**; OHLCV wide single-asset with an extra column hit **620**; epoch-ms `open_time` column reached the date-column promotion block and hit **679**.
+- Evidence: `tests/test_bab_data_loader_batch85.py::test_561_exchange_long_format_naive_to_tz`, `::test_620_exchange_ohlcv_naive_to_tz`, `::test_679_exchange_epoch_naive_to_tz`. Canonical delta included in batch85 (74 -> 62 total).
 
-### 620, 641-642: OHLCV wide-format tz conversion
-- Function: `_detect_and_normalize_exchange_format`, lines 619-620 / 640-642.
-- Code path: tz-normalization of parsed OHLCV dates. `_coerce_to_datetime_scalar` returns tz-naive Timestamps for epoch/ISO inputs; tz-aware inputs are converted at 614-615 before this point. The `pdt.tz_convert(...)` at 619-620 requires a tz-aware `pd.Timestamp(pdv)` from a tz-naive `pdv`, which does not occur.
-- Evidence: same tz-naive passthrough reasoning as 561.
+### 641-642: outer `except Exception: pass` (OHLCV try)
+- Function: `_detect_and_normalize_exchange_format`, lines 639-642 (`except Exception:` / `pass` wrapping the OHLCV block).
+- Code path: every statement inside the OHLCV try (609-638) is either internally caught (per-element tz loops at 613-626, 627-633) or succeeds for real frames (`tmp_out.index = parsed`, column strip/return at 634-638). `price_choice` is resolved from `colmap` before use, so `tmp[[price_choice]]` does not KeyError for real exchange frames. No exception propagates to the outer except.
+- Evidence: defensive wrapper over internally-handled elementwise loops; no realistic pandas shape propagates an exception here.
 
-### 679, 694-695: date-column promotion tz conversion
-- Function: `_detect_and_normalize_exchange_format`, lines 678-679 / 690-695.
-- Code path: elementwise tz normalization of `parsed` from `_coerce_to_datetime_scalar`. Same reasoning: coercer output is tz-naive for tz-naive input and already UTC-normalized for tz-aware input, so the `tz_convert` branches never fire.
-- Evidence: coercer already normalizes tz; elementwise re-conversion dead.
+### 694-695: outer `except Exception: pass` (date-column coercion block)
+- Function: `_detect_and_normalize_exchange_format`, lines 690-695.
+- Code path: the elementwise block (669-689) wraps `pd.Timestamp(pdv)`/`tz_convert` per element; exceptions are caught at 681-682. `df2.index = parsed_clean` (687) and `df2.drop(columns=[date_col])` (688) operate on a valid copy. The `except Exception` at 690-691 already swallows block-level failures; the outer 694-695 never fires because the inner try/except at 668-691 is complete.
+- Evidence: batch82 probed epoch paths; outer except never reached.
 
 ---
 
@@ -100,15 +101,25 @@ Scope: `strategies/betting_against_beta/data_loader.py` only. `campaign_d*` guar
 - Code path: tz-normalization when `df.index` is already DatetimeIndex or returned by exchange format. Both use `tz_convert('UTC').tz_localize(None)` which succeeds for real tz-aware indexes; the inner `except` paths (713-714, 733-734) only fire on double-failure chains not produced by real pandas.
 - Evidence: tz_convert succeeds for normal tz-aware indexes; fallback excepts dead.
 
-### 791-792: elementwise tz normalization in candidate-name promote
-- Function: `_promote_datetime_column`, lines 781-792.
-- Code path: elementwise `.apply(lambda p: pd.Timestamp(p).tz_convert('UTC').tz_localize(None) ...)`. Requires `parsed` to have a `.tz` attr None (elementwise path) yet contain tz-aware scalars that pass the `getattr(p, 'tzinfo', None) is not None` check. `parsed` from `_coerce_to_datetime_scalar` is either fully tz-aware (handled at 774-779 Series-level) or tz-naive; the mixed elementwise case does not arise.
-- Evidence: Series-level tz conversion at 774 handles the tz-aware case; elementwise path dead.
+### 912-914: **COVERED (batch85)** — last-resort `set_index` fallback
+- Function: `_promote_datetime_column`, lines 908-914 (last-resort loop).
+- Code path: requires `df2.index` assigned a non-DatetimeIndex value (so 906-907 does not return early) and `df2.set_index(df2.index)` raising (908-911). Batch85 monkeypatched `pd.to_datetime` to return a `_StrSeries` of plain strings for the renamed `mystery`/`MYSTERY` column and `pd.DataFrame.set_index` to raise — reaching the object Index, the `set_index` raise at 908-912, `pass` at 913, and `return df2` at 914.
+- Evidence: `tests/test_bab_data_loader_batch85.py::test_912_914_last_resort_set_index_raise_not_dtindex`. Canonical delta included in batch85 (74 -> 62 total).
 
-### 859, 861-862, 867-868: unnamed-column tz normalization
-- Function: `_promote_datetime_column`, lines 852-868 (unnamed column coercer/clean).
-- Code path: tz normalization of coerced unnamed column. `_coerce_to_datetime_scalar` output already tz-normalized; the `tz_convert` checks at 853-854, 858-859, 861-862, 867-868 operate on already-UTC-naive Timestamps and never trigger the except branches.
-- Evidence: coercer pre-normalizes tz; checks find `tz is None`.
+### 791-792: elementwise tz normalization in candidate-name promote
+- Function: `_promote_datetime_column`, lines 760-792.
+- Code path: the outer try at 760-792 wraps `dt_attr = getattr(parsed, "tz", None)` (caught at 766-767), the dtype.tz read (caught at 770-771), the Series-level tz convert (773-779), and the elementwise apply (782-790). Every statement inside has its own handler; batch85 probed a `_TzRaisingSeries` whose `.tz` property raises but it is caught at 766-767 (`dt_attr = None`), so the outer except at 791-792 never fires.
+- Evidence: focused batch85 probe `test_791_792_promote_tz_property_escape` produced zero delta; outer except is dead because all inner statements are individually caught.
+
+### 859, 861-862: **COVERED (batch85)** — unnamed-column tz normalization
+- Function: `_promote_datetime_column`, lines 852-862 (unnamed column coercer/clean).
+- Code path: previously considered dead because `_coerce_to_datetime_scalar` output was already tz-normalized. Batch85 monkeypatched `_coerce_to_datetime_scalar` to return a naive `Timestamp` for a `"mark"` unnamed value and `pd.Timestamp` to localize naive Timestamps to UTC — making the elementwise `else` branch see a tz-naive `pdv` whose `pd.Timestamp(pdv)` is tz-aware, hitting **859**; and a `_Sentinel` object (no `tzinfo`) for `"boom"` where `pd.Timestamp(pdv)` raises, hitting **861-862** (inner `except Exception: pass`).
+- Evidence: `tests/test_bab_data_loader_batch85.py::test_859_861_862_unnamed_tz_mixed`. Canonical delta included in batch85 (74 -> 62 total).
+
+### 867-868: unnamed-column per-element loop except / `if coerced is not None`
+- Function: `_promote_datetime_column`, lines 866-868 (unnamed branch per-element loop except + continuation).
+- Code path: `df[col].apply(_coerce_to_datetime_scalar)` (848) raising propagates to the *outer* unnamed try (874-875), never to the per-element loop except at 866-867. Inside the loop, every element operation is swallowed (`hasattr`/`pdv.tzinfo` guarded by `hasattr`, `pd.Timestamp(pdv)` caught at 860-861, `coerced_clean.append` cannot fail), so nothing propagates to 866-868; the loop runs to completion and 868's `if coerced is not None` guard then proceeds on the success path. The except/pass at 866-868 therefore never fires for real pandas input.
+- Evidence: batch85 unnamed-column probes exercised the apply-raise path (outer unnamed except) and the per-element pd.Timestamp-raise path (861-862), but never an exception escaping the completed loop.
 
 ### 901-903, 908-914: last-resort object-column promotion / set_index fallback
 - Function: `_promote_datetime_column`, lines 895-914 (last resort loop).
@@ -212,16 +223,14 @@ Scope: `strategies/betting_against_beta/data_loader.py` only. `campaign_d*` guar
 
 ---
 
-## Summary of remaining clusters (80 lines, 2026-11-07T00:32Z)
-`43-44, 92-93, 194, 196, 227-247, 268-269, 285-286, 322, 326, 334-335, 338-342, 351-352, 403-404, 561, 620, 641-642, 679, 694-695, 713-714, 733-734, 791-792, 859, 861-862, 867-868, 901-903, 912-914, 953, 1226-1227, 1319-1320, 1591-1592, 1626-1627, 1663-1664, 1926-1927`
+## Summary of remaining clusters (42 lines, 2026-11-07T02:46Z)
+`43-44, 92-93, 196, 227-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 867-868, 901-903, 953, 1226-1227, 1319-1320, 1626-1627, 1663-1664, 1926-1927`
 
-**Batch78 delta:** 1530-1531, 1533-1536, 2192-2193 covered via `tests/test_bab_data_loader_batch78.py` (miss **94→86, -8**).
+**Batch80 delta:** 1257-1258 covered via `tests/test_bab_data_loader_batch80.py::test_dq_campaign_tz_localize_fallback_1257_1258` (miss **82→80, -2**). Reachable via a tz-aware DatetimeIndex where both `tz_convert("UTC")` and `tz_localize(None)` raise under a tight scoped monkeypatch.
 
-**Batch79 delta:** 908-911 covered (aggregate miss **86→82, -4**) via `tests/test_bab_data_loader_batch79.py`.
+**Batch85 delta:** 1257-1258 (re-confirmed in fresh canonical), **912-914, 859, 861-862, 561, 620, 679** covered via `tests/test_bab_data_loader_batch85.py` (miss **74→62, -12** total vs the 2026-11-07T02:44Z baseline). Batch85 zero-delta probes (documented, not adding canonical value beyond the hits above): `791-792` (outer except dead — all inner statements caught), `867-868` (per-element loop never propagates), `196`, `268-269`, `227-247` (dayfirst block never entered — elementwise coercer raises rather than returning NaT), `641-642`, `694-695` (outer excepts over internally-handled blocks).
 
-**Batch80 delta:** 1257-1258 covered (aggregate miss **82→80, -2**) via `tests/test_bab_data_loader_batch80.py::test_dq_campaign_tz_localize_fallback_1257_1258`. Reachable via a tz-aware DatetimeIndex where both `tz_convert("UTC")` and `tz_localize(None)` raise under a tight scoped monkeypatch.
-
-**Batch80 zero-delta probes (documented, not in canonical):**
+**Batch80 zero-delta probes (documented, not added to canonical):**
 - `901-903`: `getattr(parsed, "tz")` is never truthy for a `pd.to_datetime(Series)` result — a Series has no `.tz` attribute (only `.dtype.tz`). Probed by monkeypatching `pd.to_datetime` to return a tz-aware `DatetimeIndex` for the last-resort column; the spy never intercepts because `_normalize_columns` uppercases the column name to `WHEN RECORDED` and the `getattr(parsed, "tz", None)` check reads `None` from the Series. Dead.
 - `1319-1320`: `pd.to_numeric(..., errors="coerce")` is exception-free by design; monkeypatching `pd.to_numeric` to raise for the `ETH` column produces a `BABDataError` from the stale-run check, never reaching the outer except. Dead.
 - `953`: every non-empty input yields a non-empty `su` return; `not s2` is never true (probed `USD USDT`, `USD EUR`, `usd`, `USDT USDC BUSD`). Dead.
@@ -230,4 +239,4 @@ Scope: `strategies/betting_against_beta/data_loader.py` only. `campaign_d*` guar
 - `1626-1627`, `1663-1664`: parquet/hdf5 `ImportError` (missing engine) is caught by the inner `except Exception` and re-raised as `BABDataError`; no `OSError`/`ValueError` escapes to the outer handler. Dead.
 - `1926-1927`: `np.allclose(diffs, 1.0, rtol=0, atol=1e-9)` at 1915-1918 fires first for the only shape satisfying 1924-1925; instrumented with an `np.allclose` spy confirming only the 1915-1918 call executes. Subsumed.
 
-**Status:** miss **80/1693 (95%)**. Canonical **1432 passed, 0 failed, 17 skipped** (40-69,71-74,76-80). Guard **44 passed, 5 warnings**. Exhaustion hunt continues.
+**Status:** miss **62/1693 (96%)**. Canonical **1449 passed, 0 failed, 17 skipped** (40-69,71-74,76-84,85). Guard **44 passed, 5 warnings**. All remaining lines have structural-death entries above; exhaustion hunt continues at batch86.

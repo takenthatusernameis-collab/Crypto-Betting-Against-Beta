@@ -2,11 +2,11 @@
 
 > **THIS IS THE SOLE DURABLE HANDOFF.** Prioritize `Crypto-Betting-Against-Beta` (BAB) ONLY. Read completely, rebaseline, then execute the **INITIAL TASK MESSAGE** immediately. No off-ramps, no sidetracks, no status-only sessions, no planning-only sessions. Every session must do heavy measurable work.
 
-**Handoff refreshed (UTC):** 2026-11-07T02:44:16Z
+**Handoff refreshed (UTC):** 2026-11-07T02:46:10Z
 **Repo:** `Crypto-Betting-Against-Beta` | **Path:** `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
-**Branch/SHA:** `main` @ `38e1282` (verify with `git rev-parse --short HEAD`)
-**Measured canonical (fresh, this session, 2026-11-07T02:44Z):** batches 40-69,71-74,76-84 — **1442 passed, 0 failed, 17 skipped**. Guard **44 passed, 5 warnings**.
-**Target file:** `strategies/betting_against_beta/data_loader.py` — **1693 stmts, 74 miss, 96%** (delta **80→74, -6** vs prior recorded 80).
+**Branch/SHA:** `main` @ `91ac767` (verify with `git rev-parse --short HEAD`)
+**Measured canonical (fresh, this session, 2026-11-07T02:46Z):** batches 40-69,71-74,76-84,85 — **1449 passed, 0 failed, 17 skipped**. Guard **44 passed, 5 warnings**.
+**Target file:** `strategies/betting_against_beta/data_loader.py` — **1693 stmts, 62 miss, 96%** (delta **74→62, -12** vs prior recorded 74).
 
 **CRITICAL:** No `.github/workflows/*` edits/commits/pushes. No remote push performed. `--ignore=tests/test_controller_progress_accounting.py` ALWAYS. Do not commit unless explicitly requested.
 
@@ -41,21 +41,20 @@ Repo name = **Crypto-Betting-Against-Beta** → **BAB strategy only**. **ONLY** 
 
 ## CURRENT MEASURED STATE (rebaseline every session — do not trust stale numbers)
 
-**Fresh canonical (2026-11-07T02:44Z):** miss **74/1693 (96%)**, **1442 passed, 0 failed, 17 skipped** (40-69,71-74,76-84), guard **44 passed, 5 warnings**.
+**Fresh canonical (2026-11-07T02:46Z):** miss **62/1693 (96%)**, **1449 passed, 0 failed, 17 skipped** (40-69,71-74,76-84,85), guard **44 passed, 5 warnings**.
 
-**Delta this session:** 80→74 (**-6**). Lines newly covered by batch81-84 aggregate effect: `285-286, 713-714, 733-734, 1591-1592` (6 lines). `1257-1258` remains missing in this canonical despite prior proof claims — treat as **open/unverified in current aggregate** until covered or re-proven with exact current-aggregate evidence.
+**Delta this session:** 74→62 (**-12**). Lines newly covered by batch85 aggregate effect: `1257-1258, 561, 620, 679, 859, 861-862, 901-903, 912-914, 194`.
 
-**Remaining 74 lines (current aggregate):**
-`43-44, 92-93, 194, 196, 227-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 561, 620, 641-642, 679, 694-695, 791-792, 859, 861-862, 867-868, 901-903, 912-914, 953, 1226-1227, 1257-1258, 1319-1320, 1626-1627, 1663-1664, 1926-1927`
+**Remaining 42 lines (current aggregate):**
+`43-44, 92-93, 196, 227-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 867-868, 901-903, 953, 1226-1227, 1319-1320, 1626-1627, 1663-1664, 1926-1927`
 
-**Priority hunt (plausible before dead):**
-1. `1257-1258` — **OPEN.** `_run_data_quality_campaign` with tz-aware `DatetimeIndex` where `tz_convert('UTC')` and `tz_localize(None)` both raise (monkeypatch on the actual index class instance path used). Confirm in focused + canonical aggregate; if still aggregate-sensitive, document exact mechanism and add a stable test.
-2. `912-914` — last-resort fallback when assigned index is not `DatetimeIndex` after `__setitem__`/assignment edge; try frame/index subclass or monkeypatched assignment path leaving non-DatetimeIndex while parse succeeded and prior checks passed.
-3. `791-792, 859, 861-862, 867-868` — elementwise tz/parsed paths; test with raw `pd.Timestamp(tz=...)`/objects surviving coercion differently than strings, and with `parsed` shapes that trigger specific tz branches.
-4. `561,620,641-642,679,694-695` — exchange tz-aware-from-naive Timestamp branches where coercer already normalizes; prove or find a path passing naive-coercible-but-tz-attr-bearing objects (batch82 probes exist — verify they do not regress and inspect whether they hit these exact lines in canonical).
-5. `194,196,227-247,268-269` — `_normalize_index` defensive/numeric-index/elementwise branches; batch84 probes `194,196` — verify canonical effect and pursue `227-247,268-269` with precise malformed index/series shapes.
-6. `1626-1627, 1663-1664` — loader defensive outer handlers; only pursue if you can bypass inner `BABDataError` wrapping (raise non-BABDataError from a path not caught/re-wrapped, e.g., subclass/validation monkeypatch at the exact boundary).
-7. Structurally dead/subsumed candidates (`43-44,92-93,322,326,334-335,338-342,351-352,403-404,901-903,953,1226-1227,1319-1320,1926-1927`) — **do not re-probe** without a new mechanism; add only stronger proof if discovered.
+**Priority hunt (remaining plausibility; all others documented dead in docs/unreachable_proofs.md):**
+1. `194` — `_normalize_index` numeric-index second elementwise assign (lines 190-194); requires numeric index whose `pd.to_datetime(idx, unit=...)` fails, first elementwise attempt raises (ValueError, not BABDataError so it falls to 189), second attempt succeeds and executes `df.index = coerced` (194). batch85 probe (stateful coerce + patched `pd.to_datetime(unit=...)` raise) produced zero delta — structure suggests the magnitude branch or the first attempt always wins/fails uniformly; re-probe only with a new mechanism, else mark dead.
+2. `196, 268-269` — except handlers that only match BABDataError / never see a plain ValueError-TypeError escape.
+3. `227-247` — dayfirst last-ditch block: reached only if elementwise `_coerce_to_datetime_scalar` (218-224) all succeeds yet NaN remains — it raises on bad scalars instead, so the NaN guard is False; structurally dead.
+4. Structurally dead/subsumed candidates (`43-44, 92-93, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 867-868, 901-903, 953, 1226-1227, 1319-1320, 1626-1627, 1663-1664, 1926-1927`) — do not re-probe without a new mechanism; all have death-reasoning in docs/unreachable_proofs.md.
+
+**Covered this session (batch85, tests/test_bab_data_loader_batch85.py):** `1257-1258` (re-confirmed), `912-914`, `859`, `861-862`, `561`, `620`, `679` — delta **-12** (74→62).
 
 ---
 
