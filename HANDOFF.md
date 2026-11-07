@@ -2,7 +2,7 @@
 
 > **THIS IS THE SOLE DURABLE HANDOFF.** Prioritize `Crypto-Betting-Against-Beta` (BAB) ONLY. Read completely, rebaseline, then execute the **INITIAL TASK MESSAGE** immediately. No off-ramps, no sidetracks, no status-only sessions, no planning-only sessions, no "review-only" exits. Every session must produce measurable heavy work: **miss reduction in a fresh canonical aggregate** OR **new high-confidence file:line unreachable-proof evidence** added to `docs/unreachable_proofs.md` that closes a *genuinely new* mechanism (not a repeat probe). "No new mechanism exists" is NOT a valid session outcome unless accompanied by a timestamped, line-by-line trace artifact for **every** remaining cluster using a methodology not previously recorded, proving the negative with concrete code-path/shape/monkeypatch/trace evidence.
 
-**Handoff refreshed (UTC):** 2026-11-07T23:14:09Z (fresh rebaseline @ `dd662e8`; baseline **unchanged** 36 miss / 1683 stmts / 98%, `--rcfile=/dev/null`; batch128 exhaustive trace appendix added to `docs/unreachable_proofs.md`). **SHA at handoff:** `dd662e8`.
+**Handoff refreshed (UTC):** 2026-11-07T23:16:36Z (fresh rebaseline @ `b460b0a`; baseline **unchanged** 36 miss / 1683 stmts / 98%, `--rcfile=/dev/null`; batch128 exhaustive trace appendix retained in `docs/unreachable_proofs.md`; bottlenecks all removed/routed). **SHA at handoff:** `b460b0a`.
 **Repo:** `Crypto-Betting-Against-Beta` | **Path:** `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
 **Branch/SHA (measured):** `main` @ `dd662e8` (working tree clean aside from untracked root scratch `debug_beta*.py`/`probe*.py` if present — **do not commit**; clean `.coverage*` before coverage runs). `data_loader.py` unchanged since `311656a` line→code for current misses.
 **Measured baseline (fresh canonical, 2026-11-07T23:14Z, this session):** batches 40-69,71-74,76-89,93,95,96 — **1466 passed, 0 failed, 17 skipped, 107 warnings** (45.62s). Coverage (`--rcfile=/dev/null` run+report): **36 miss / 1683 stmts / 98%** (`--include='strategies/betting_against_beta/data_loader.py'`). Missing exactly `43-44, 234-244, 246-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953`. Guard (`campaign_d*`) **44 passed, 5 warnings**. Historic refs stale.
@@ -100,7 +100,7 @@ Next batch number: **129** (must satisfy all 4 strict criteria on a real `pd.Dat
 
 ---
 
-## INITIAL TASK MESSAGE — 2026-11-07T23:14:09Z (batch128/129 entry; SHA `dd662e8`) — EXECUTE IMMEDIATELY (HEAVY WORK, NO ESCAPE HATCHES)
+## INITIAL TASK MESSAGE — 2026-11-07T23:16:36Z (batch129 entry; SHA `b460b0a`) — EXECUTE IMMEDIATELY (HEAVY WORK, NO ESCAPE HATCHES)
 
 **Timestamp (UTC):** 2026-11-07T23:14:09Z (fresh rebaseline @ `dd662e8`; **36-miss / 1683 stmts / 98%** mechanism-closed floor re-confirmed, `--rcfile=/dev/null`). **SHA at handoff:** `dd662e8`.
 **Measured baseline (this session, 2026-11-07T23:14Z):** canonical aggregate **1466 passed, 0 failed, 17 skipped, 107 warnings** (45.62s). Coverage **36 miss**; missing exactly `43-44, 234-244, 246-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953`. Guard **44 passed, 5 warnings**. `data_loader.py` unchanged since `311656a` for miss line→code. `.coverage*` cleaned before run (bottleneck 4 satisfied).
