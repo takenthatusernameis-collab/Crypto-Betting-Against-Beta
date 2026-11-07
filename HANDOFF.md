@@ -2,7 +2,7 @@
 
 > **THIS IS THE SOLE DURABLE HANDOFF.** Prioritize `Crypto-Betting-Against-Beta` (BAB) ONLY. Read completely, rebaseline, then execute the **INITIAL TASK MESSAGE** immediately. No off-ramps, no sidetracks, no status-only sessions, no planning-only sessions, no "review-only" exits. Every session must produce measurable heavy work: **miss reduction in a fresh canonical aggregate** OR **new high-confidence file:line unreachable-proof evidence** added to `docs/unreachable_proofs.md` that closes a *genuinely new* mechanism (not a repeat probe).
 
-**Handoff refreshed (UTC):** 2026-11-07T17:06:00Z (batch111 fresh rebaseline @ `c3a2df3`; 40-miss floor remains mechanism-closed; next session only on a genuinely new, concretely demonstrated, production-realistic control-flow mechanism).
+**Handoff refreshed (UTC):** 2026-11-07T17:09:00Z (batch111 fresh rebaseline @ `c3a2df3`; 40-miss floor remains mechanism-closed; next session only on a genuinely new, concretely demonstrated, production-realistic control-flow mechanism).
 **Repo:** `Crypto-Betting-Against-Beta` | **Path:** `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
 **Branch/SHA (measured):** `main` @ `c3a2df3` (tracked tree clean context; `data_loader.py` byte-identical to `311656a`; untracked `debug_beta*.py`/`probe*.py` and `.coverage` pre-existing — do not commit; clean `.coverage*` before coverage runs).
 **Measured baseline (fresh canonical, 2026-11-07T17:06Z, batch111 rebaseline):** batches 40-69,71-74,76-89,93,95,96 — **1466 passed, 0 failed, 17 skipped, 107 warnings** (45.88s). Coverage: **40 miss / 1693 stmts / 98%** (`--include='*data_loader.py'`). Missing exactly `43-44, 234-244, 246-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953, 1626-1627, 1663-1664`. Guard (`campaign_d*`) **44 passed, 5 warnings**.
@@ -77,10 +77,9 @@ Next batch number: **112** (only on a concretely demonstrated, genuinely new pro
 
 ---
 
-## INITIAL TASK MESSAGE — 2026-11-07T17:06:00Z — EXECUTE IMMEDIATELY (HEAVY WORK, NO ESCAPE HATCHES)
+## INITIAL TASK MESSAGE — 2026-11-07T17:09:00Z — EXECUTE IMMEDIATELY (HEAVY WORK, NO ESCAPE HATCHES)
 
-**Timestamp (UTC):** 2026-11-07T17:06:00Z (batch111 floor re-confirmed; 40-miss mechanism-closed).
-**SHA at handoff/rebaseline:** `c3a2df3` (run `git rev-parse --short HEAD` in Step 0 and record actual SHA); `data_loader.py` unchanged from `311656a`.
+**Timestamp (UTC):** 2026-11-07T17:09:00Z (batch111 floor re-confirmed; 40-miss mechanism-closed).**SHA at handoff/rebaseline:** `c3a2df3` (run `git rev-parse --short HEAD` in Step 0 and record actual SHA); `data_loader.py` unchanged from `311656a`.
 **Mode:** HEAVY WORK ONLY. Every minute must move coverage or proof quality. Future agents cannot avoid heavy work by claiming ambiguity — this message is explicit. **The 40-miss floor is mechanism-closed** across all remaining lines (batches 97-111). Only a *genuinely new, concretely demonstrated, production-realistic* control-flow mechanism (not semantic change, not pathological harness, not repeat probe) may justify batch112 tests/proofs.
 
 ### Mission (mandatory, binary)
