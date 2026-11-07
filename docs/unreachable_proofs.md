@@ -551,3 +551,21 @@ All 40 remaining lines `43-44, 234-244, 246-247, 268-269, 322, 326, 334-335, 338
 - **234-244,246-247,268-269,351-352,641-642,694-695,791-792,1626-1627,1663-1664,322,326**: unchanged — coercer determinism/227 gate (234-244), NaT-entry+recovery/245 absorption (246-247), handler-order+`BABDataError` conversion (268-269), pathological semantic decision (351-352, disallowed), inner-handler swallowing / fully guarded bodies / read-validate conversion (641-642,694-695,791-792,1626-1627,1663-1664), inspect-gated guard-relevant (322,326, **DO NOT ALTER**).
 
 **Remaining (40, mechanism-closed):** `43-44, 234-244, 246-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953, 1626-1627, 1663-1664`. No new production-realistic control-flow mechanism identified. Next session (batch 108) only with a *genuinely new, concretely demonstrated* production-realistic mechanism and no semantics change.
+
+## Batch108 — 2026-11-07T16:24Z — fresh canonical rebaseline + closure reaffirmation (0 delta)
+
+**SHA:** `584c62a` (current HEAD, tree clean). **Canonical rebaseline (fresh, this session):** batches 40-69,71-74,76-89,93,95,96 — **1466 passed, 0 failed, 17 skipped, 107 warnings** (44.31s). Coverage: **40 miss / 1693 stmts / 98%** (`--include='*data_loader.py'`). Missing exactly `43-44, 234-244, 246-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953, 1626-1627, 1663-1664`. Campaign_d guard: **44 passed, 5 warnings**. Delta vs batch107 baseline: **0**. No production code changes; no canonical test added.
+
+**Empirical trace reaffirmation (canonical aggregate, pandas 3.1.1):**
+- **234-244, 246-247**: canonical run exercises the 227 daylast block (batch93 `np.datetime64('NaT')` entry grants 225/227). 232 invokes the same deterministic `_coerce_to_datetime_scalar` on elements that survived 216-224 → identical result → `continue` at 233 always fires → **234-244 not executed**. 245 `df.index = coerced` is a same-length list assignment on a normal `pd.DataFrame` → does not raise → **246-247 not executed**. Confirmed MISS in coverage report.
+- **268-269**: handler order 266 `except BABDataError: raise` precedes 268 `except (ValueError, TypeError)`; `BABDataError` subclasses `ValueError`; inner try 113 converts all exceptions to `BABDataError` (265) or swallows them (261-265). Plain `ValueError/TypeError` (non-`BABDataError`) cannot reach 268. **Handler-order dead.** Confirmed MISS.
+- **334-335, 338-342, 351-352**: intended `ValueError("bad")` re-raised by preceding `except ValueError: raise`; generic `except Exception: pass` unreachable. 351-352 requires pathological `float.__float__` raising (semantic slip, disallowed). Confirmed MISS.
+- **403-404**: `float(s)` returns builtin `float` for every regex-admitted numeric string (incl. overflow→`inf`); no unguarded statement in 362-402 propagates to outer except. Confirmed MISS.
+- **43-44**: `v is None` identity (not overridable); inner `pd.isna` wrapped (40-41); unconditional `return True`. No unwrapped fallible stmt in 34-42. Confirmed MISS.
+- **953**: `str.split()` (no separator) never yields empty strings; `tok.strip()` on a split token never empty. Confirmed MISS.
+- **641-642, 694-695**: inner `try` bodies (608-640, 668-691) fully swallowed by `except Exception` at 639-640 / 690-691; setup is exception-free. Confirmed MISS.
+- **791-792**: all statements 760-790 individually guarded (`getattr` defaults, wrapped `tz_convert`/`tz_localize`/`apply`); Python 3 `hasattr` swallows descriptor exceptions. No uncaught stmt in 760-790. Confirmed MISS.
+- **1626-1627, 1663-1664**: read/validate inner handlers convert all exceptions to `BABDataError`; outer `(OSError, ValueError)` handlers unreachable. Confirmed MISS.
+- **322, 326**: inspect-gated `campaign_d` NaT guards — **guard-relevant, DO NOT ALTER**. Covered only by campaign_d stack frames.
+
+**Conclusion:** 40-miss floor remains mechanism-closed after batch108 fresh rebaseline under pandas 3.1.1. No new production-realistic control-flow mechanism identified. Next session (batch 109) only with a *genuinely new, concretely demonstrated* production-realistic mechanism and no semantics change.
