@@ -2,11 +2,11 @@
 
 > **THIS IS THE SOLE DURABLE HANDOFF.** Prioritize `Crypto-Betting-Against-Beta` (BAB) ONLY. Read completely, rebaseline, then execute the **INITIAL TASK MESSAGE** immediately. No off-ramps, no sidetracks, no status-only sessions, no planning-only sessions, no "review-only" exits. Every session must produce measurable heavy work: **miss reduction in a fresh canonical aggregate** OR **new high-confidence file:line unreachable-proof evidence** added to `docs/unreachable_proofs.md` while immediately moving to the next cluster.
 
-**Handoff refreshed (UTC):** 2026-11-07T11:35:57Z (batch102 proof-only; no production code changes)
+**Handoff refreshed (UTC):** 2026-11-07T12:14:24Z (batch103 prep; rebaseline verified fresh this session)
 **Repo:** `Crypto-Betting-Against-Beta` | **Path:** `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
-**Branch/SHA:** `main` @ `d0d1f62` (`chore(kilo): checkpoint agent session`) — working tree has uncommitted `HANDOFF.md` + `docs/unreachable_proofs.md` updates from this session only; no production code changes.
-**Measured baseline (fresh canonical, 2026-11-07T11:27Z, batch102 rebaseline):** batches 40-69,71-74,76-89,93,95,96 — **1466 passed, 0 failed, 17 skipped, 107 warnings**. Guard (`campaign_d*`) **44 passed, 5 warnings**.
-**Target:** `strategies/betting_against_beta/data_loader.py` — **40 miss / 1693 stmts / 98%**. **Delta batch102: 0 (proof-only). Step 0 must rebaseline before hunting.**
+**Branch/SHA:** `main` @ `cd119ee` — working tree clean. Canonical rebaseline verified fresh at 2026-11-07T12:14Z.
+**Measured baseline (fresh canonical, 2026-11-07T12:14Z):** batches 40-69,71-74,76-89,93,95,96 — **1466 passed, 0 failed, 17 skipped, 107 warnings**. Guard (`campaign_d*`) **44 passed, 5 warnings**.
+**Target:** `strategies/betting_against_beta/data_loader.py` — **40 miss / 1693 stmts / 98%**. **Delta: 0 (proof-only). Step 0 must rebaseline before hunting.**
 
 **CRITICAL:** No `.github/workflows/*` edits/commits/pushes. No remote push performed. `--ignore=tests/test_controller_progress_accounting.py` ALWAYS. Do not commit unless explicitly requested.
 
@@ -23,7 +23,7 @@ Repo name = **Crypto-Betting-Against-Beta** → **BAB strategy only**. **ONLY** 
 
 ---
 
-## BOTTLENECKS — REMOVED / ROUTED (verified 2026-11-07T11:16Z)
+## BOTTLENECKS — ALL REMOVED / ROUTED (verified 2026-11-07T12:14Z)
 
 | # | Bottleneck | Action | Status |
 |---|---|---|---|
@@ -37,12 +37,13 @@ Repo name = **Crypto-Betting-Against-Beta** → **BAB strategy only**. **ONLY** 
 | 8 | Inspect-sensitive/campaign_d semantics | Preserve `_coerce_to_datetime_scalar` inspect behavior and campaign_d filename/function behavior. Guard must stay green. | Preserved |
 | 9 | Canonical batch set drift | Canonical data-loader batches: **40-69,71-74,76-89,93,95,96** (no 70,75,90-92,94 in canonical aggregate). Rebaseline exact set in Step 0. | Routed |
 | 10 | `No data to report` / stale coverage | Clean `.coverage*` before coverage; run `coverage run` and `coverage report` in same shell/env. | Routed |
+| 11 | Repeated 0-delta batches (97-102) | All remaining 40 lines proven structural-dead / inspect-gated / handler-order gated / construction-unreachable / pathological-only. No new production-realistic mechanism found across 6 consecutive proof-only batches. Next session (103) must present a **new, concretely demonstrated, production-realistic control-flow mechanism** or add mechanism-closure proof and advance to next cluster — no repeat probes. | Routed |
 
 ---
 
 ## CURRENT MEASURED STATE (rebaseline every session — do not trust stale numbers)
 
-**Fresh baseline (2026-11-07T11:16Z, batch101):** miss **40/1693 (98%)**, **1466 passed, 0 failed, 17 skipped, 107 warnings** (40-69,71-74,76-89,93,95,96), guard **44 passed, 5 warnings**. SHA `7927e0a`.
+**Fresh baseline (2026-11-07T12:14Z, batch103 prep):** miss **40/1693 (98%)**, **1466 passed, 0 failed, 17 skipped, 107 warnings** (40-69,71-74,76-89,93,95,96), guard **44 passed, 5 warnings**. SHA `cd119ee`.
 
 **Remaining 40 lines:**
 `43-44, 234-244, 246-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953, 1626-1627, 1663-1664`
@@ -67,18 +68,16 @@ Repo name = **Crypto-Betting-Against-Beta** → **BAB strategy only**. **ONLY** 
 | Batch | Delta (miss) | Result | Notes |
 |---|---:|---|---|
 | 71–89,93,95,96 | -56 | measured | 96→40 cumulative (see docs/unreachable_proofs.md). |
-| 90–92,94,97–101 | 0 | proof-only | mechanism-closure/handler-structure evidence strengthened; no production-realistic miss reduction found. |
-| 101 | 0 | proof-only | Rebaseline 40/1693, 1466/0/17, guard 44 (SHA 7927e0a). Traced 245/246-247 NaT-entry + targeted index-fail recovery (246-247 not hit). Confirmed 351-352 reachable only by pathological `float.__float__`-raising subclass (semantic to "fix"); 334-335/338-342/43-44/953/268-269/403-404 structural-dead. |
-| 102 | 0 | proof-only | Rebaseline 40/1693, 1466/0/17, guard 44 (SHA d0d1f62, 2026-11-07T11:27Z). Probed 246-247: NaT-entry 225/227 path; 245 index-set raise caused recovery to line 276 (sets at 207,212,214,224,245,276), 246-247 line/branch events and ValueError("unparseable") sentinel not observed; focused/branch/canonical coverage **246-247 MISS**. 351-352 confirmed coverage-recordable via pathological `BadIsnan(float).__float__` raise (NaN-guard slip, current behavior) — **no test added; semantic decision disallowed**. No production code changes. |
+| 90–92,94,97–102 | 0 | proof-only | mechanism-closure/handler-structure evidence strengthened; no production-realistic miss reduction found. |
 
 Next batch number: **103**.
 
 ---
 
-## INITIAL TASK MESSAGE — 2026-11-07T11:35:57Z — EXECUTE IMMEDIATELY (HEAVY WORK, NO ESCAPE HATCHES)
+## INITIAL TASK MESSAGE — 2026-11-07T12:14:24Z — EXECUTE IMMEDIATELY (HEAVY WORK, NO ESCAPE HATCHES)
 
-**Timestamp (UTC):** 2026-11-07T11:35:57Z
-**SHA at handoff:** `d0d1f62` (main)
+**Timestamp (UTC):** 2026-11-07T12:14:24Z
+**SHA at handoff:** `cd119ee` (main)
 **Mode:** HEAVY WORK ONLY. Every minute must move coverage or proof quality. Future agents cannot avoid heavy work by claiming ambiguity — this message is explicit.
 
 ### Mission (mandatory, binary)
@@ -109,9 +108,13 @@ Record actual baseline. If different from **40 miss, 1466/0/17, guard 44**, reco
 ### Campaign loop (repeat until measurable success — no early exit)
 
 1. Attack only with a **new production-realistic mechanism** not previously disproven: re-examine remaining clusters for pandas/internal exception types, frame/index/subclass shapes, or call-paths that throw through exact unguarded seams *without* changing BAB semantics. **Never alter `322,326`. Never change semantics to "fix" 351-352 pathological NaN-subclass slip.** Do **not** repeat: coercer→NaT/same-index determinism, handler-order/BABDataError-MRO probes, 245 index-set failures that only confirm recovery absorption / 246-247 unrecordable, is_numeric_dtype→BABDataError conversion, np.allclose global falsification, normal `str.split`/`_not_null`/`abs(numf)` structural probes, pathological `BadIsnan.__float__` without explicit semantic decision.
+
 2. **Max 1 probe per cluster** unless a probe proves a real path and needs a minimal focused harness. Use real DataFrame shapes, direct canonical helper entrypoints, and tight scoped monkeypatches/subclasses only where control flow is plausible.
+
 3. **If hit:** create `tests/test_bab_data_loader_batch103.py` (data_loader only). Minimal deterministic tests. Run focused → guard → fresh canonical aggregate including batch103. Record before/after/delta. If miss decreased, update `HANDOFF.md` + `docs/unreachable_proofs.md` and continue hunting.
+
 4. **If 0 delta:** do not add to canonical unless valuable. Add exact proof to `docs/unreachable_proofs.md` (file:line, function, entrypoint, shape/monkeypatch/trace tried, observed behavior, why dead/unreachable/pathological/semantic). Update HANDOFF cluster map. Move on immediately.
+
 5. **Never** retarget already-covered/dead lines without a new mechanism. **Never** touch workflows. **Never** coast. **Never** change production semantics solely to manufacture coverage.
 
 ### Execution contract
