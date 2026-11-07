@@ -2,9 +2,9 @@
 
 > **THIS IS THE SOLE DURABLE HANDOFF.** Prioritize `Crypto-Betting-Against-Beta` (BAB) ONLY. Read completely, rebaseline, then execute the **INITIAL TASK MESSAGE** immediately. No off-ramps, no sidetracks, no status-only sessions, no planning-only sessions, no "review-only" exits. Every session must produce measurable heavy work (miss reduction **or** new file:line unreachable proof evidence).
 
-**Handoff refreshed (UTC):** 2026-11-07T06:34:25Z
+**Handoff refreshed (UTC):** 2026-11-07T06:34:42Z
 **Repo:** `Crypto-Betting-Against-Beta` | **Path:** `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
-**Branch/SHA:** `main` @ `f7dc842` (checkpoint agent session; working tree handoff refreshed)
+**Branch/SHA:** `main` @ `ac0b172` (checkpoint agent session; working tree handoff refreshed)
 **Measured anchor (fresh, 2026-11-07T06:29Z):** batches 40-69,71-74,76-89 — **1460 passed, 0 failed, 17 skipped, 105 warnings**. Guard **44 passed, 5 warnings**.
 **Target:** `strategies/betting_against_beta/data_loader.py` — **54 miss, 1693 stmts, 97%** (re-verify before hunting).
 
@@ -83,7 +83,7 @@ Next batch number: **92**.
 
 ## INITIAL TASK MESSAGE — EXECUTE IMMEDIATELY (HEAVY WORK, NO ESCAPE HATCHES)
 
-**Timestamp (UTC):** 2026-11-07T06:34:25Z
+**Timestamp (UTC):** 2026-11-07T06:34:42Z
 **Mode:** HEAVY WORK ONLY. Every minute must move coverage or proof quality. Future agents cannot avoid heavy work by claiming ambiguity — this message is explicit.
 
 ### Mission (mandatory)
