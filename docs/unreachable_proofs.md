@@ -342,3 +342,24 @@ Scope: `strategies/betting_against_beta/data_loader.py` only. `campaign_d*` guar
 `43-44, 234-244, 246-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953, 1319-1320, 1626-1627, 1663-1664, 1926-1927`
 
 All remaining lines are structural-dead, inspect-gated (`322,326`), or blocked by production contracts; no new production-realistic mechanism found in batch93. Next batch: **94**.
+
+---
+
+## Batch 96 (2026-11-07T10:28Z, SHA 7c45311, canonical delta -2)
+
+**Canonical delta:** miss **42→40 (-2)**, **1466 passed, 0 failed, 17 skipped, 107 warnings** (batches 40-69,71-74,76-89,93,95,96). Guard **44 passed, 5 warnings**.
+
+### Covered
+
+- **1319-1320** (`validate_returns_dataframe`, quality finite-data check, lines ~1315-1320): `pd.to_numeric(cleaned[col], errors="coerce").to_numpy(dtype=float)` raises (`RuntimeError`) on a crafted object result for one column; inner `except Exception` falls back to `cleaned[col].to_numpy(dtype=float)`. Entrypoint: `validate_returns_dataframe(..., quality=True)` on a valid 3-row datetime-indexed returns frame. Mechanism: scoped monkeypatch `strategies.betting_against_beta.data_loader.pd.to_numeric` returns a bad object only for the target column; other columns use real `pd.to_numeric`. Test: `tests/test_bab_data_loader_batch96.py::test_1319_1320_quality_to_numeric_to_numpy_raises_falls_back`.
+
+### Proof-first / mechanism-closure notes (batch96, 0 delta)
+
+- **268-269** (`_normalize_index`, outer `except (ValueError, TypeError)` at 160-271): probed by monkeypatching `pandas.api.types.is_numeric_dtype` to raise `ValueError`. Observed: inner handler at 261 (`except Exception`) caught it, attempted reparse at 263, and raised `BABDataError("Index could not be parsed as datetime")`; 266 (`except BABDataError: raise`) caught first because `BABDataError` subclasses `ValueError`. No demonstrated mechanism produces a plain `ValueError/TypeError` from 161-271 that is not converted/caught before 268. **Proof-first; structurally gated by BABDataError ordering.**
+- **403-404** (`_coerce_to_datetime_scalar`, numeric-string epoch outer `except` 362-404): every epoch branch (365-402) catches `Exception` and falls through to later branches/405 parsing; regex guard at 361 and deterministic numeric ops make an escaping exception unrealistic without pathological numeric/string subclass behavior. **Proof-first.**
+- **43-44** (`_not_null` outer `except`): `v is None` is identity (`is`), not overrideable; `pd.isna` call is wrapped by inner `except Exception` (40-41); remaining body returns `True`. **Structurally dead.**
+- **953** (`_normalize_asset_name`): `tok_clean = tok.strip(); if not tok_clean: continue` runs over `s.split()` tokens; Python `str.split()` with no separator never yields empty strings. **Unreachable by construction.**
+
+### Remaining (40 miss)
+
+`43-44, 234-244, 246-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953, 1626-1627, 1663-1664` — structural-dead, inspect-gated (`322,326` guard-relevant), BABDataError-ordering gated, or construction-unreachable. No production-semantics change solely for coverage.
