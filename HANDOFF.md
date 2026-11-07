@@ -2,11 +2,11 @@
 
 > **THIS IS THE SOLE DURABLE HANDOFF.** Prioritize `Crypto-Betting-Against-Beta` (BAB) ONLY. Read completely, rebaseline, then execute the **INITIAL TASK MESSAGE** immediately. No off-ramps, no sidetracks, no status-only sessions, no planning-only sessions, no "review-only" exits. Every session must produce measurable heavy work: **miss reduction in a fresh canonical aggregate** OR **new high-confidence file:line unreachable-proof evidence** added to `docs/unreachable_proofs.md` that closes a *genuinely new* mechanism (not a repeat probe).
 
-**Handoff refreshed (UTC):** 2026-11-07T19:18:27Z (batch117 rebaseline @ `4dbcd7b`; strict 4-criteria assessment + targeted probes; **no new production-realistic mechanism**; baseline unchanged).
+**Handoff refreshed (UTC):** 2026-11-07T19:22:43Z (batch118 rebaseline @ `56574bd`; canonical aggregate re-confirmed; **no new production-realistic mechanism**; baseline unchanged).
 **Repo:** `Crypto-Betting-Against-Beta` | **Path:** `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
-**Branch/SHA (measured):** `main` @ `4dbcd7b` (untracked `debug_beta*.py`/`probe*.py`/`.coverage` and kilo/session artifacts may exist — **do not commit**; clean `.coverage*` before coverage runs).
-**Measured baseline (fresh canonical, 2026-11-07T19:18Z, this session):** batches 40-69,71-74,76-89,93,95,96 — **1466 passed, 0 failed, 17 skipped, 107 warnings** (45.31s). Coverage (use `--rcfile=/dev/null` for run+report): **36 miss / 1683 stmts / 98%** (`--include='strategies/betting_against_beta/data_loader.py'`). Missing exactly `43-44, 234-244, 246-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953`. Guard (`campaign_d*`) **44 passed, 5 warnings**.
-**Target:** `strategies/betting_against_beta/data_loader.py` — **36 miss / 1683 stmts / 98%** (measured floor @ `4dbcd7b`, `--rcfile=/dev/null`). **Step 0 must rebaseline every session.** Historic refs to `1626-1627,1663-1664`/1693-stmt state are stale at this SHA — re-check line→code before targeting.
+**Branch/SHA (measured):** `main` @ `56574bd` (untracked `debug_beta*.py`/`probe*.py`/`.coverage` and kilo/session artifacts may exist — **do not commit**; clean `.coverage*` before coverage runs).
+**Measured baseline (fresh canonical, 2026-11-07T19:22Z, this session):** batches 40-69,71-74,76-89,93,95,96 — **1466 passed, 0 failed, 17 skipped, 107 warnings** (46.32s). Coverage (use `--rcfile=/dev/null` for run+report): **36 miss / 1683 stmts / 98%** (`--include='strategies/betting_against_beta/data_loader.py'`). Missing exactly `43-44, 234-244, 246-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953`. Guard (`campaign_d*`) **44 passed, 5 warnings**.
+**Target:** `strategies/betting_against_beta/data_loader.py` — **36 miss / 1683 stmts / 98%** (measured floor @ `56574bd`, `--rcfile=/dev/null`). **Step 0 must rebaseline every session.** Historic refs to `1626-1627,1663-1664`/1693-stmt state are stale at this SHA — re-check line→code before targeting.
 
 **CRITICAL:** No `.github/workflows/*` edits/commits/pushes. No remote push performed. `--ignore=tests/test_controller_progress_accounting.py` ALWAYS. Do not commit unless explicitly requested. Production semantics must not change solely to manufacture coverage.
 
@@ -83,20 +83,22 @@ Repo name = **Crypto-Betting-Against-Beta** → **BAB strategy only**. **ONLY** 
 
 | 117 | 0 | fresh rebaseline + strict 4-criteria + targeted probes @ `4dbcd7b` | 2026-11-07T19:18Z: canonical aggregate → **1466 passed, 0 failed, 17 skipped, 107 warnings** (45.31s); **36 miss / 1683 stmts / 98%** (`--rcfile=/dev/null`). Missing unchanged. Guard **44 passed, 5 warnings**. Probed 268-269 (`pd.to_datetime`→plain `TypeError` converted to `BABDataError`, caught by 266 before 268 — handler-order/MRO gate confirmed), 351-352 (float subclass normal; pathological only), 641-642/694-695 (production-realistic OHLCV/epoch-ms frames normalize). 246-247 probe harness malformed (not evidence). Strict 4-criteria unsatisfied for all 36. No production/test change. Proof appended to `docs/unreachable_proofs.md`. |
 
+| 117-reconfirm | 0 | fresh rebaseline @ `56574bd` | 2026-11-07T19:22Z: canonical aggregate → **1466 passed, 0 failed, 17 skipped, 107 warnings** (46.32s); **36 miss / 1683 stmts / 98%** (`--rcfile=/dev/null`). Missing unchanged (`43-44, 234-244, 246-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953`). Guard **44 passed, 5 warnings**. `data_loader.py` unchanged from `4dbcd7b` (HEAD commit `56574bd` touched only HANDOFF.md + docs/unreachable_proofs.md). Baseline re-confirmed at new SHA, delta 0.
+
 Next batch number: **118** (only on a concretely demonstrated, genuinely new production-realistic mechanism — see batch118 entry criteria in initial task).
 
 ---
 
-## INITIAL TASK MESSAGE — 2026-11-07T19:18:27Z (batch118 rebaseline) — EXECUTE IMMEDIATELY (HEAVY WORK, NO ESCAPE HATCHES)
+## INITIAL TASK MESSAGE — 2026-11-07T19:22:43Z (batch118 rebaseline) — EXECUTE IMMEDIATELY (HEAVY WORK, NO ESCAPE HATCHES)
 
-**Timestamp (UTC):** 2026-11-07T19:18:27Z (batch118; 36-miss mechanism-closed under `--rcfile=/dev/null`). **SHA at handoff:** `4dbcd7b` (run `git rev-parse --short HEAD` in Step 0 and record actual SHA).
+**Timestamp (UTC):** 2026-11-07T19:22:43Z (batch118; 36-miss mechanism-closed under `--rcfile=/dev/null`). **SHA at handoff:** `56574bd` (run `git rev-parse --short HEAD` in Step 0 and record actual SHA).
 **Mode:** HEAVY WORK ONLY. Every minute must move coverage or proof quality. Future agents cannot avoid heavy work by claiming ambiguity — this message is explicit. **The 36-miss floor is mechanism-closed** (batches 103–117). Only a *genuinely new, concretely demonstrated, production-realistic* control-flow mechanism (not semantic change, not pathological harness, not repeat probe) may justify batch118 tests/proofs.
 
 ### Mission (mandatory, binary)
 
-Push `strategies/betting_against_beta/data_loader.py` **below the fresh measured baseline (36 miss / 1683 stmts / 98%, rcfile=/dev/null @ 4dbcd7b)** in a fresh canonical aggregate, **OR** add new high-confidence unreachable proofs that materially close **genuinely new** ambiguity in `docs/unreachable_proofs.md` with file:line + function + entrypoint + exact shape/monkeypatch/trace + observed behavior + why dead/unreachable. **Do not stop after baseline.**
+Push `strategies/betting_against_beta/data_loader.py` **below the fresh measured baseline (36 miss / 1683 stmts / 98%, rcfile=/dev/null @ 56574bd)** in a fresh canonical aggregate, **OR** add new high-confidence unreachable proofs that materially close **genuinely new** ambiguity in `docs/unreachable_proofs.md` with file:line + function + entrypoint + exact shape/monkeypatch/trace + observed behavior + why dead/unreachable. **Do not stop after baseline.**
 
-**Reality (mechanism-closed @ 4dbcd7b):** remaining **36** — `43-44, 234-244, 246-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953`. All mechanism-closed (structural-dead/handler-order+MRO+conversion dead/coercer-determinism or NaT-gate dead/re-raise-before-generic-pass/construction-unreachable/pathological-semantic-only/inspect-gated). **Historic line refs (e.g. 1626-1627,1663-1664) are stale — re-check line→code every session. Production semantics must not change solely to manufacture coverage.**
+**Reality (mechanism-closed @ 56574bd):** remaining **36** — `43-44, 234-244, 246-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953`. All mechanism-closed (structural-dead/handler-order+MRO+conversion dead/coercer-determinism or NaT-gate dead/re-raise-before-generic-pass/construction-unreachable/pathological-semantic-only/inspect-gated). **Historic line refs (e.g. 1626-1627,1663-1664) are stale — re-check line→code every session. Production semantics must not change solely to manufacture coverage.**
 
 **Batch118 entry criteria (strict):** before writing any test/probe, state (1) the exact target line(s) *and current code at those lines*, (2) the new mechanism not disproven by batches 103–117/unreachable_proofs, (3) why it is production-realistic (real `pd.DataFrame`/index/dtype + plausible pandas/library behavior), and (4) the expected control-flow path. If you cannot state all four, do not probe — add a proof refinement only if it closes genuinely new ambiguity.
 
