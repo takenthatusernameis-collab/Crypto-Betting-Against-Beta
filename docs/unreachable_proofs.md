@@ -1064,3 +1064,58 @@ Canonical (fresh, rcfile=/dev/null): miss **36/1683 (98%)**, **1466 passed, 0 fa
 **Strict 4-criteria assessment:** none satisfied for miss reduction. (1) targets/code verified. (2) no mechanism not disproven by 103–138 + methods A–D. (3) no production-realistic `pd.DataFrame`/index/dtype/column-label/file-format path with plausible pandas/library behavior demonstrated; method C is explicitly non-production. (4) no statable path consistent with (2)-(3).
 
 **Conclusion:** **35-miss floor remains mechanism-closed at `24db195`.** No miss reduction; no canonical test added. Batch139 adds AST/MRO/coercer-contract static evidence, pandas 3.1.1 public-loader/downstream trace evidence, and an explicit non-production 351–352 boundary trace (recorded, not eligible) beyond 103–138. **Batch140 only** on a concretely demonstrated production-realistic mechanism satisfying all 4 criteria, or a different materially-new method with reproducible evidence closing a previously untested plausible gap.
+
+---
+
+## Batch 141 (2026-11-08T05:06Z, SHA `d97339d`, cross-module contract audit — materially-new method, 0 delta)
+
+**Scope:** `strategies/betting_against_beta/data_loader.py` remaining 35 misses
+`43-44, 234-244, 246-247, 268-269, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953`
+(verified `--rcfile=/dev/null`, `--show-missing` at `d97339d`; `data_loader.py` unchanged since `e945fde` for miss line→code; stmt count 1683). `322` covered in canonical aggregate. `326` guard-relevant, **DO NOT ALTER**. **No production code changed. No canonical test added. No workflow edits. Commit only if explicitly requested.**
+
+**Canonical (fresh, `--rcfile=/dev/null` run+report):** **1496 passed, 0 failed, 17 skipped, 109 warnings** (25.16s). Coverage **35 miss / 1683 stmts / 98%**. Missing exactly `43-44, 234-244, 246-247, 268-269, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953`. Guard `campaign_d*` **44 passed, 5 warnings** (0.41s). Deps: `PYTHONPATH=$PWD:/home/runner/work/_temp/kilo-tmp/pylib` (`pytest 9.2.0`, `coverage 7.17.2`, `numpy 2.5.4`, `pandas 3.1.1`, `scipy 1.18.1`, `hypothesis 6.170.15`; no `pyarrow`/`pytables`/`fastparquet`). `.coverage*` cleaned pre-run.
+
+**Method (materially new vs B103–140 recorded evidence — cross-module contract audit, not previously recorded):** AST-grep caller map of the `strategies.betting_against_beta` package for every loader public/private helper, then `sys.settrace` line-hit collection on `data_loader.py` across the **real end-to-end pipeline** `BABStrategy.run(returns_df=...)` (strategy → `_load_returns` → `load_returns` → `validate_returns_dataframe` → `_promote_datetime_column`/`_normalize_index`/`_coerce_numeric`/`_strip_units_and_parse`/`_normalize_asset_name` → `calculate_rolling_beta` → `generate_bab_signals` → `construct_portfolio` → `run_backtest`) plus public entrypoint traces (`load_returns`/`load_prices` via CLI/DataSource shapes).
+
+**Caller map (AST, strategies package, excluding data_loader.py):**
+- `load_returns`: `strategy.188`, `strategy.195` (`BABStrategy._load_returns`); `cli.259`, `cli.294`; `data_sources.28/36/48/56/64` (CSV/Parquet/HDF5/Pickle/DataFrame sources).
+- `load_prices`: `cli.257`, `cli.292`.
+- `BABDataError`: raised/imported across `beta`, `cli`, `portfolio`, `strategy`.
+
+**Traced shapes (sys.settrace; target set = all 35 miss lines):**
+1. `BABStrategy.run` valid_wide_benchmark_first → OK, loader_lines_hit=223, target_hits=[]
+2. `BABStrategy.run` valid_wide_benchmark_mid → OK, 222, []
+3. `BABStrategy.run` prices_wide_ohlcv → BABDataError (benchmark not in OHLCV cols), 232, []
+4. `BABStrategy.run` exchange_long_symbol_close → OK, 283, []
+5. `BABStrategy.run` exchange_ohlcv_symbol_close_time → BABDataError (only benchmark column), 354, []
+6. `BABStrategy.run` missing_benchmark → BABDataError, 218, []
+7. `BABStrategy.run` all_nan_column → OK, 226, []
+8. `BABStrategy.run` duplicate_timestamps → OK, 223, []
+9. `BABStrategy.run` string_iso_index → OK, 282, []
+10. `BABStrategy.run` numeric_epoch_ms_index → OK, 290, []
+11. `BABStrategy.run` date_column_alias_timestamp → OK, 329, []
+12. `BABStrategy.run` minimal_valid → OK, 217, []
+13. `load_returns` dataframe valid → OK, 223, []
+14. `load_returns` dataframe missing_bench → BABDataError, 218, []
+15. `load_prices` ohlcv_wide → BABDataError (benchmark missing), 232, []
+
+**Observed:** **0 target-line hits across all 15 cross-module shapes.** Loader lines exercised are confined to the happy-path/validation-raise spine (217–232, 223–226, 228–232, 282–283, 290, 329, 354); none of the 35 remaining miss lines are reached by any production-realistic cross-module caller shape.
+
+**Cluster appendix (all remaining, strict 4 criteria):** (1) target+line→code verified @ `d97339d`. (2) no mechanism not disproven by B103–140 + this cross-module contract audit. (3) no production-realistic `pd.DataFrame`/index/dtype/column-label/file-format path with plausible pandas/library behavior demonstrated (cross-module end-to-end pipeline traced, 0 hits). (4) no statable control-flow path consistent with (2)–(3). `326` guard-relevant, not altered.
+
+| Cluster | Lines (file:line @ `d97339d`) | Batch141 method/result (observed) | Verdict (strict 4 criteria) |
+|---|---|---|---|
+| `_not_null` outer except | `data_loader.py:43-44` | Cross-module shapes exercised `_not_null` via `_series_has_any_finite`/`_coerce_numeric`; identity `v is None` (35), inner `pd.isna` guarded (40–41), unconditional `return` (42). 0 hits. | **Closed (structural).** (1)(2) yes; (3)(4) no production escape. |
+| `_normalize_index` dayfirst last-ditch | `data_loader.py:234-244,246-247` | Numeric epoch-ms / string-ISO / date-alias / mixed object indexes through `BABStrategy.run`; coercer determinism (232 same as 216-224) + 223 intercept block dayfirst entry. 0 hits. | **Closed (determinism+intercept).** |
+| `_normalize_index` outer VE/TE | `data_loader.py:268-269` | All pipeline exception paths convert to `BABDataError`; `BABDataError⊂ValueError` MRO; 266 `except BABDataError: raise` precedes 268. 0 hits. | **Closed (handler-order/MRO).** |
+| inspect/campaign_d NaT guard | `data_loader.py:326` | **Not probed/altered (guard-relevant).** Guard 44/5 green. | **Preserved (guard-relevant).** |
+| `_coerce_to_datetime_scalar` NaT re-raise guards | `data_loader.py:334-335,338-342` | `pd.NaT`/`None`/valid scalars through coercer across pipeline shapes; `ValueError("bad")` re-raised before generic `except Exception: pass`. 0 hits. | **Closed (re-raise-before-generic-pass).** |
+| `_coerce_to_datetime_scalar` NaN/inf generic except | `data_loader.py:351-352` | `np.float64`/float NaN/inf through coercer in pipeline validation; guarded `ValueError`/normal paths; no non-`ValueError` from numeric check. 0 hits. | **Closed for production-realistic scalars.** |
+| `_coerce_to_datetime_scalar` epoch outer except | `data_loader.py:403-404` | Epoch-ms/s numeric index and date-column-alias shapes through pipeline; regex-admitted `float(s)` builtin, epoch branches individually guarded. 0 hits. | **Closed (regex+float+guarded).** |
+| `_detect_and_normalize_exchange_format` outer handlers | `data_loader.py:641-642,694-695` | Exchange long-format (symbol/close) and OHLCV (symbol/close_time) frames through `BABStrategy.run`; inner guarded/swallowing paths only. 0 hits on real frames. | **Closed for production-realistic frames.** |
+| `_promote_datetime_column` outer handler | `data_loader.py:791-792` | String-ISO / date-alias / epoch-ms index promotion through pipeline; 760–790 individually guarded. 0 hits. | **Closed (fully guarded).** |
+| `_normalize_asset_name` empty token continue | `data_loader.py:953` | Realistic crypto symbol normalization (BTC/ETH/SOL/BNB/XRP, slash pairs, quote suffixes) across pipeline column normalization; `str.split()` never yields empty token. 0 hits. | **Closed (construction-unreachable).** |
+
+**Strict 4-criteria assessment:** none satisfied for miss reduction. (1) targets/code verified @ `d97339d`. (2) no mechanism not disproven by B103–140 + this cross-module contract audit. (3) no production-realistic `pd.DataFrame`/index/dtype/column-label/file-format path with plausible pandas/library behavior demonstrated (end-to-end cross-module trace, 0 hits). (4) no statable control-flow path consistent with (2)–(3).
+
+**Conclusion:** **35-miss floor remains mechanism-closed at `d97339d`.** No miss reduction (delta 0); no canonical test added. Batch141 adds the materially-new cross-module contract audit (AST caller map + `sys.settrace` end-to-end `BABStrategy.run` trace, 0 target hits) beyond B103–140. All 35 remaining clusters carry a strict 4-criteria verdict. Next session: only on a concretely demonstrated production-realistic mechanism satisfying all 4 criteria, or a different materially-new method with reproducible evidence closing a previously untested plausible gap.

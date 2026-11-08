@@ -5,15 +5,15 @@
 ## Batch status (this session)
 
 - **Batch 140 (@ `ed0fda2`):** COMPLETED — state confirmed only, 0 delta. Canonical aggregate 1496/0/17, **35 miss / 1683 stmts / 98%**, guard 44/5. No new production-realistic mechanism found; `docs/unreachable_proofs.md` batch139 appendix already recorded the non-production 351–352 boundary trace. Batch 140 produced **no miss reduction**.
-- **Batch 141 (next session, binding):** Must pursue a **different materially-new method** beyond B103–140 recorded evidence and achieve miss **< 35**, OR produce a complete non-repeat materially-new appendix covering all remaining clusters with measured results. Anything less is failure.
+- **Batch 141 (@ `d97339d`, this session):** COMPLETED — materially-new **cross-module contract audit** executed (AST caller map + `sys.settrace` end-to-end `BABStrategy.run` trace, 12 run shapes + 3 public-entrypoint shapes): **0 target-line hits** on all 35 misses. Canonical aggregate **1496/0/17, 35 miss / 1683 stmts / 98%**, guard **44/5**. **Delta 0; no miss reduction.** Complete Batch141 non-repeat materially-new appendix appended to `docs/unreachable_proofs.md` covering all remaining clusters with strict 4-criteria verdicts; HANDOFF ledger updated with measured results. `322,326` preserved; no semantics/workflow changes.
 
 ## Measured state (fresh rebaseline, 2026-11-08T04:20:44Z @ `1d6f8cd`)
 
-- **Branch/SHA:** `main` @ `1d6f8cd` (checkpoint commits only; `data_loader.py` unchanged since `e945fde` for miss line→code; floor SHA `24db195`; Batch 140 measured at `ed0fda2` — same miss set/count). Working tree may include local scratch/untracked probes — do not commit unless requested.
-- **Canonical aggregate (fresh, `--rcfile=/dev/null`, `.coverage*` cleaned):** **1496 passed, 0 failed, 17 skipped, 109 warnings** (46.12s).
+- **Branch/SHA:** `main` @ `d97339d` (`data_loader.py` unchanged since `e945fde` for miss line→code; two checkpoint commits `4b108ba`/`d97339d` ahead of `1d6f8cd` do not touch `data_loader.py`; floor SHA `24db195`). Working tree clean; local scratch/untracked probes (`probe*`, `debug_beta*`) are `.gitignore`d — do not commit unless requested.
+- **Canonical aggregate (fresh rebaseline, 2026-11-08T05:06Z @ `d97339d`, `--rcfile=/dev/null`, `.coverage*` cleaned):** **1496 passed, 0 failed, 17 skipped, 109 warnings** (25.16s).
 - **Coverage (`--rcfile=/dev/null`, `--include='strategies/betting_against_beta/data_loader.py'`, `--show-missing`):** **35 miss / 1683 stmts / 98%**.
 - **Missing (35):** `43-44, 234-244, 246-247, 268-269, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953`
-- **Guard (`campaign_d*`):** **44 passed, 5 warnings** (0.60s). **`322` covered; `326` remains the only live inspect-gated miss — preserve semantics.**
+- **Guard (`campaign_d*`):** **44 passed, 5 warnings** (0.41s). **`322` covered; `326` remains the only live inspect-gated miss — preserve semantics.**
 - **Deps:** `/home/runner/work/_temp/kilo-tmp/pylib` has `pytest`, `coverage`, `numpy 2.5.4`, `pandas 3.1.1`, `scipy`, `hypothesis 6.170.15`; **no `pyarrow`/`pytables`/`fastparquet`**. `export PYTHONPATH=$PWD:/home/runner/work/_temp/kilo-tmp/pylib`.
 
 ## Bottlenecks — all removed/routed (verified 2026-11-08T04:20:44Z)
@@ -113,7 +113,8 @@ For each cluster `234-244,246-247`, `268-269`, `351-352`, `334-335,338-342`, `40
 | 137 | `0d00688` | 0 | proof | Hypothesis/public-loader/nullable/JSON-orient/tz/index/coercer evidence; 0 hits. |
 | 138 | `c3e44a3` | 0 | proof | Public loader trace, MRO/coercer-contract evidence; 0 hits. |
 | 139 | `24db195` | 0 | heavy proof | 1496/0/17, 35/1683, guard 44/5 (measured). AST/MRO/coercer static proofs; pandas 3.1.1 public-loader/downstream `sys.settrace` 0 target hits; 351–352 hit only via monkeypatched `np.isnan` RuntimeError (non-production boundary, criterion 3 fails). Batch139 appendix added to `docs/unreachable_proofs.md`. |
-| 140 | `ed0fda2` | 0 | state confirmed | 1496/0/17, 35/1683, guard 44/5 (rebaselined @ `ed0fda2`; tree now @ `1d6f8cd`, same miss set/count). Bottlenecks re-routed; Batch 141 campaign appended. **Next: execute Batch 141 heavy work.** |
+| 140 | `ed0fda2` | 0 | state confirmed | 1496/0/17, 35/1683, guard 44/5 (rebaselined @ `ed0fda2`; tree now @ `1d6f8cd`, same miss set/count). Bottlenecks re-routed; Batch 141 campaign appended. **Batch 141 executed (this session @ `d97339d` — see below).** |
+| 141 | `d97339d` | 0 | appendix | 1496/0/17, **35/1683**, guard 44/5 (measured, `--rcfile=/dev/null`). **No miss reduction (delta 0); no canonical test added.** Materially-new **cross-module contract audit** (AST caller map + `sys.settrace` end-to-end `BABStrategy.run` trace, 12 run shapes + 3 public-entrypoint shapes): **0 target-line hits** on all 35 misses. Batch141 appendix added to `docs/unreachable_proofs.md` covering all remaining clusters with strict 4-criteria verdicts; `322,326` preserved; no semantics/workflow changes. **Floor mechanism-closed.**
 
 ## Historical detail
 
