@@ -1,6 +1,6 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 
-> **SOLE DURABLE HANDOFF — canonical, no competing handoff files.** Refreshed **2026-11-08T15:46Z** @ HEAD `61f639a` (checkpoint). Step 0 rebaseline executed at this SHA; `strategies/betting_against_beta/data_loader.py` unchanged since `e945fde` (line→code stable). Batch 165 Step 0 rebaseline complete @ `61f639a`; heavy work (reduction / per-cluster strict-4 proof) **NOT yet done → rolled into Batch 166**. **Batch 166 initial task message is the ONLY active next-session directive** (see §“INITIAL TASK MESSAGE — 2026-11-08T15:46Z (Batch 166) — BINDING, EXECUTE IMMEDIATELY”). **Repo-name priority = BAB only — `data_loader.py` remaining miss floor.**
+> **SOLE DURABLE HANDOFF — canonical, no competing handoff files.** Refreshed **2026-11-08T15:49Z** @ HEAD `61f639a` (checkpoint). Step 0 rebaseline executed at this SHA; `strategies/betting_against_beta/data_loader.py` unchanged since `e945fde` (line→code stable). Batch 165 Step 0 rebaseline complete @ `61f639a`; heavy work (reduction / per-cluster strict-4 proof) **NOT yet done → rolled into Batch 166**. **Batch 166 initial task message is the ONLY active next-session directive** (see §“INITIAL TASK MESSAGE — 2026-11-08T15:49Z (Batch 166) — BINDING, EXECUTE IMMEDIATELY”). **Repo-name priority = BAB only — `data_loader.py` remaining miss floor.**
 >
 > **No session is blocked.** All known bottlenecks are routed/resolved (table below). `tests/test_bab_data_loader_batch163.py` does **not** exist (Batch 163 produced 0 delta; no cluster met strict 4 criteria).
 >
@@ -76,7 +76,7 @@
 | 165 | `61f639a` | 0 | partial | Step 0 rebaseline complete @ `61f639a` (632/6/34; 380 miss/77%; campaign_d 883/5/3406); target floor unchanged; heavy work (reduction / per-cluster strict-4 proof) pending → Batch 166. |
 | 166 | `61f639a` | — | **PENDING (BINDING)** | Execute immediately — directive below. |
 
-## INITIAL TASK MESSAGE — 2026-11-08T15:46Z (Batch 166) — BINDING, EXECUTE IMMEDIATELY
+## INITIAL TASK MESSAGE — 2026-11-08T15:49Z (Batch 166) — BINDING, EXECUTE IMMEDIATELY
 
 **SHA:** `61f639a` (`data_loader.py` unchanged since `e945fde`; line→code stable). **Fresh rebaseline (Step 0, complete) @ this SHA:** BAB canonical subset **632 passed, 6 skipped, 34 warnings**; `data_loader.py` **380 miss / 1683 stmts / 77%**; target-miss floor clusters still present **`43-44,234-244,246-247,268-269,326,338-342,403-404,641-642,694-695,791-792,953`** (target floor unchanged). Guard `campaign_d*` **883 passed, 5 skipped, 3406 deselected**. `tests/test_bab_data_loader_batch166.py` does **not** exist. **No baseline-only/review-only/planning-only/status-only exit. Repo-name priority = BAB only.**
 
