@@ -1,16 +1,16 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 
-> **SOLE DURABLE HANDOFF (canonical). No competing handoff files.** Refreshed **2026-11-08T21:30Z** @ workspace `b113ad1` (`main` clean; durable handoff/proof refreshed this session). `docs/unreachable_proofs.md` is evidence appendix only. **Repo-name priority = Betting Against Beta only** — next work targets `strategies/betting_against_beta/data_loader.py` remaining target-miss floor (Batch 177 binding).
->
-> **Authoritative Step 0 baseline (re-verified 2026-11-08T20:37Z, Batch 174; next agent MUST rerun fresh before any claim):** env `PATH=/home/runner/work/_temp/kilo-tmp/pylib/bin:$PATH PYTHONPATH=$PWD:/home/runner/work/_temp/kilo-tmp/pylib`; `rm -f .coverage .coverage.*`; coverage `--rcfile=/dev/null --source=strategies.betting_against_beta`, report `--include='*/strategies/betting_against_beta/data_loader.py' --show-missing`. Canonical subset incl. batch172 (retained): `--ignore=tests/test_controller_progress_accounting.py` + `tests/test_betting_against_beta*.py` + `tests/test_bab_data_loader_batch{40..69,71..74,76..89,93,95,96,148,149,172}.py` → **645 passed, 6 skipped, 34 warnings** (~41.4s). `data_loader.py`: **365 miss / 1683 stmts / 78%**. **Target-miss floor UNCHANGED (all present; verify line→code @ fresh SHA before edits): `43-44,234-244,246-247,268-269,326,338-342,403-404,641-642,694-695,791-792,953`** (`data_loader.py` semantic line-stable @ `e945fde`; `326` intact). `campaign_d*` guard: **883 passed, 5 skipped, 3487 deselected, 53 warnings**.
->
-> **BINDING — execute immediately. BATCH 175 is reduction-first heavy work.** B103–174/M149–M174 have produced no target-floor reduction since 149 and now include complete per-cluster strict-4 verdicts through Batch 174 (`docs/unreachable_proofs.md` §B174). Next agent must still run fresh Step 0, then attempt **only materially-new, production-realistic** reduction mechanisms not disproven by B103–174; if none exist, produce **new-method evidence** (not repeats) and update the durable artifacts. **Forbidden exits:** status-only, planning-only, review-only, baseline-only, or "closed/unreachable/no mechanism" without required heavy work and evidence.
+> **SOLE DURABLE HANDOFF (canonical). No competing handoff files.** Refreshed **2026-11-08T21:37Z** @ workspace `17aa635` (`main`; durable handoff/proof refreshed this session). `docs/unreachable_proofs.md` is evidence appendix only. **Repo-name priority = Betting Against Beta only** — next work targets `strategies/betting_against_beta/data_loader.py` remaining target-miss floor (Batch 178 binding).
 
-## INITIAL TASK MESSAGE — 2026-11-08T21:30Z (Batch 177, binding)
+> **Authoritative Step 0 baseline (re-verified 2026-11-08T21:37Z, Batch 177; next agent MUST rerun fresh before any claim):** env `PATH=/home/runner/work/_temp/kilo-tmp/pylib/bin:$PATH PYTHONPATH=$PWD:/home/runner/work/_temp/kilo-tmp/pylib`; `rm -f .coverage .coverage.*`; coverage `--rcfile=/dev/null --source=strategies.betting_against_beta -m pytest -q --ignore=tests/test_controller_progress_accounting.py tests/test_betting_against_beta*.py tests/test_bab_data_loader_batch{40..69,71..74,76..89,93,95,96,148,149,172}.py`; report via `python -m coverage report --rcfile=/dev/null --include='*/strategies/betting_against_beta/data_loader.py' --show-missing`. Canonical subset incl. batch172 (retained): **645 passed, 6 skipped, 34 warnings** (~41.8s). `data_loader.py` (blob `596ee9e` @ `17aa635`): **365 miss / 1683 stmts / 78%**. **Target-miss floor UNCHANGED (all present; verify line→code @ fresh SHA before edits): `43-44,234-244,246-247,268-269,326,338-342,403-404,641-642,694-695,791-792,953`**. `326` intact/LIVE-GUARD. `campaign_d*` guard: **883 passed, 5 skipped, 3487 deselected, 53 warnings**.
 
-**Objective (repo priority):** confirm `strategies/betting_against_beta/data_loader.py` target-miss floor is unchanged in a fresh canonical aggregate (Batch 176 complete: 0 reduction, all clusters strict-4 not-reducible, §Batch 176 recorded in `docs/unreachable_proofs.md`), OR produce complete materially-new strict-4 unreachable-proof/reduction evidence using methods not used in B103–176/M149–M176.
+> **BINDING — execute immediately. BATCH 178 is reduction-first heavy work.** B103–177/M149–M177 have produced no target-floor reduction since 149 and include complete per-cluster strict-4 verdicts through Batch 177 (`docs/unreachable_proofs.md` §B177). Next agent must still run fresh Step 0, then attempt **only materially-new, production-realistic** reduction mechanisms not disproven by B103–177; if none exist, produce **new-method evidence** (not repeats) and update the durable artifacts. **Forbidden exits:** status-only, planning-only, review-only, baseline-only, or "closed/unreachable/no mechanism" without required heavy work and evidence.
 
-**State:** workspace `b113ad1` (`main` + uncommitted Batch 176 proof appendix in `docs/unreachable_proofs.md`); `strategies/betting_against_beta/data_loader.py` semantic line-stable @ `e945fde`, blob `596ee9e`. Batch 176 executed: canonical **645 passed, 6 skipped, 34 warnings**, **365 miss / 1683 stmts / 78%**, target floor unchanged; `pytest -q -k campaign_d` **883 passed, 5 skipped, 3487 deselected, 53 warnings**. **`326` is LIVE/GUARD-RELEVANT — never alter.** Target floor: `43-44,234-244,246-247,268-269,326,338-342,403-404,641-642,694-695,791-792,953`. Batch 176 evidence: M176.1–M176.8 direct private-function adversarial input enumeration under sys.settrace line tracing (`/home/runner/work/_temp/kilo-tmp/m176_probe.py`, untracked, outside repo) → **0 target hits**; all clusters **not reducible**; §Batch 176 appended to `docs/unreachable_proofs.md`; HANDOFF refreshed to Batch 177 binding directive.
+## INITIAL TASK MESSAGE — 2026-11-08T21:37Z (Batch 178, binding)
+
+**Objective (repo priority):** confirm `strategies/betting_against_beta/data_loader.py` target-miss floor is unchanged in a fresh canonical aggregate (Batch 177 complete: 0 reduction, all clusters strict-4 not-reducible, §Batch 177 recorded in `docs/unreachable_proofs.md`), OR produce complete materially-new strict-4 unreachable-proof/reduction evidence using methods not used in B103–177/M149–M177.
+
+**State:** workspace `17aa635` (`main`; durable handoff/proof refreshed this session); `strategies/betting_against_beta/data_loader.py` blob `596ee9e`, line→code verified 2026-11-08T21:37Z. Batch 177 executed: canonical **645 passed, 6 skipped, 34 warnings**, **365 miss / 1683 stmts / 78%**, target floor unchanged; `pytest -q -k campaign_d` **883 passed, 5 skipped, 3487 deselected, 53 warnings**. **`326` is LIVE/GUARD-RELEVANT — never alter.** Target floor: `43-44,234-244,246-247,268-269,326,338-342,403-404,641-642,694-695,791-792,953`. Batch 177 evidence: M177.1–M177.8 public file/format entrypoint probes under sys.settrace (xlsx/parquet/hdf5 if available, `load_prices` CSV, exchange long OHLCV, full Binance wide OHLCV, tz-offset promotion via public CSV, `timestamp` promotion via `validate_returns_dataframe`) → **0 target hits**; all clusters **not reducible**; §Batch 177 appended to `docs/unreachable_proofs.md`; HANDOFF refreshed to Batch 178.
 
 ### Forced heavy-work steps (do in order)
 
@@ -18,18 +18,18 @@
    - `export PATH=/home/runner/work/_temp/kilo-tmp/pylib/bin:$PATH PYTHONPATH=$PWD:/home/runner/work/_temp/kilo-tmp/pylib`
    - `rm -f .coverage .coverage.*`
    - Canonical: `tests/test_betting_against_beta*.py` + `tests/test_bab_data_loader_batch{40..69,71..74,76..89,93,95,96,148,149,172}.py` with `coverage run --rcfile=/dev/null --source=strategies.betting_against_beta -m pytest -q --ignore=tests/test_controller_progress_accounting.py ...`
-   - `coverage report --rcfile=/dev/null --include='*/strategies/betting_against_beta/data_loader.py' --show-missing`
+   - `python -m coverage report --rcfile=/dev/null --include='*/strategies/betting_against_beta/data_loader.py' --show-missing`
    - Run `pytest -q -k campaign_d`. Verify line→code for every target cluster. **Continue immediately — baseline is not an outcome.**
 
-2. **Reduction sprint (primary):** for each cluster, re-check strict 4 criteria against **B103–176/M149–M176** + current code and structural findings. If any cluster satisfies all 4 with a **new** production-realistic mechanism, implement `tests/test_bab_data_loader_batch177.py`, prove target-floor reduction in a fresh canonical aggregate. Keep `322,326`; keep `campaign_d*` green; keep batch148/149/172 green.
+2. **Reduction sprint (primary):** for each cluster, re-check strict 4 criteria against **B103–177/M149–M177** + current code and structural findings. If any cluster satisfies all 4 with a **new** production-realistic mechanism, implement `tests/test_bab_data_loader_batch178.py`, prove target-floor reduction in a fresh canonical aggregate. Keep `322,326`; keep `campaign_d*` green; keep batch148/149/172 green.
 
-3. **Proof probes (mandatory if no reduction):** exhaustive **materially-new** M177 probes over **all remaining clusters**. Forbidden repeats: all B103–176/M149–M176 methods/mechanisms (incl. M175.1–M175.7 read-option/vendor-frame paths and M176.1–M176.8 direct private-function enumeration). Append `docs/unreachable_proofs.md` `## Batch 177` per cluster: `file:line@SHA`, materially-new method, observed result, strict-4 verdict. Cover **all clusters**: `43-44,234-244,246-247,268-269,326(guard-only),338-342,403-404,641-642,694-695,791-792,953`.
+3. **Proof probes (mandatory if no reduction):** exhaustive **materially-new** M178 probes over **all remaining clusters**. Forbidden repeats: all B103–177/M149–M177 methods/mechanisms (incl. M175.1–M175.7 read-option/vendor-frame paths, M176.1–M176.8 direct private-function enumeration, M177.1–M177.8 file/format entrypoints: xlsx/parquet/hdf5/load_prices/exchange OHLCV variants/tz-offset public CSV/timestamp promotion). Candidate new-method space (pick genuinely new): alternate pandas I/O codepaths (pyarrow fastpath toggles if present), `read_csv` `engine`/`memory_map`/`dtype`/`converters` interactions under trace, `DataFrame` construction from `numpy` structured arrays or `from_records` entering validator, `MultiIndex`→normalization boundaries, `to_datetime` with `format` inference variants, or static `ast`/control-flow proof that a specific handler is structurally dominated (must include observed runtime corroboration). Append `docs/unreachable_proofs.md` `## Batch 178` per cluster: `file:line@SHA`, materially-new method, observed result, strict-4 verdict. Cover **all clusters**: `43-44,234-244,246-247,268-269,326(guard-only),338-342,403-404,641-642,694-695,791-792,953`.
 
-4. **Forbidden:** status/planning/review/baseline-only exit; M149–M176 repeats; semantic production changes for coverage; altering `322,326`; weakening/deleting batch148/149/172; editing `.github/workflows/*`; tracked `probe*`/`debug*` edits/commits; commit/push unless explicitly requested.
+4. **Forbidden:** status/planning/review/baseline-only exit; M149–M177 repeats; semantic production changes for coverage; altering `322,326`; weakening/deleting batch148/149/172; editing `.github/workflows/*`; tracked `probe*`/`debug*` edits/commits; commit/push unless explicitly requested.
 
 ### Measurable outcome (required)
 
-**(A)** target-floor reduced in fresh canonical aggregate, OR **(B)** complete per-cluster strict-4 verdicts + `docs/unreachable_proofs.md` §Batch 175 covering all clusters + HANDOFF ledger updated. Report exact commands, counts, miss lines, artifact paths.
+**(A)** target-floor reduced in fresh canonical aggregate, OR **(B)** complete per-cluster strict-4 verdicts + `docs/unreachable_proofs.md` §Batch 178 covering all clusters + HANDOFF ledger updated. Report exact commands, counts, miss lines, artifact paths.
 
 ## Bottlenecks (resolved — do not reintroduce)
 
@@ -39,33 +39,33 @@
 | 2 | Controller workflow-sync test | Always `--ignore=tests/test_controller_progress_accounting.py`. **Never touch `.github/workflows/*`.** |
 | 3 | Deps fragility | Use `/home/runner/work/_temp/kilo-tmp/pylib`; set PATH+PYTHONPATH. |
 | 4 | Coverage DB instability | `rm -f .coverage .coverage.*` before canonical coverage. |
-| 5 | Coverage path filtering | `--rcfile=/dev/null --source=strategies.betting_against_beta` + report `--include='*/strategies/betting_against_beta/data_loader.py'`. |
+| 5 | Coverage path filtering | `--rcfile=/dev/null --source=strategies.betting_against_beta` + report `--include='*/strategies/betting_against_beta/data_loader.py'`; use `python -m coverage report` if `coverage` not on PATH. |
 | 6 | Missing parquet/hdf5 engines | Monkeypatch `pd.read_parquet/read_hdf`/call sites; handlers may wrap as `BABDataError`. |
 | 7 | Aggregate-context sensitivity | Direct canonical helper calls, real shapes, tight scoped monkeypatches/subclasses; verify in fresh canonical aggregate. |
 | 8 | Inspect-sensitive/campaign_d semantics | Preserve inspect/caller behavior and campaign_d behavior. **Never alter `322,326`.** |
 | 9 | Canonical batch set drift | Canonical: 40-69,71-74,76-89,93,95,96,148,149,172 (no 70,75,90-92,94). Step 0 command authoritative. |
-| 10 | Repeated 0-delta inefficiency | B103–173/M149–M173 executed. 0-delta without materially-new method + recorded evidence = failed session. |
+| 10 | Repeated 0-delta inefficiency | B103–177/M149–M177 executed. 0-delta without materially-new method + recorded evidence = failed session. |
 
 **No competing handoff files exist.**
 
 ## Remaining target-miss clusters (verify line→code @ SHA)
 
-| Cluster | Lines | Status (post-B173) |
+| Cluster | Lines | Status (post-B177) |
 |---|---|---|
-| `_not_null` outer except | `43-44` | B173: not reducible (production-realistic structural outer except). |
-| `_normalize_index` coercer/determinism/last-ditch | `234-244,246-247` | B173: dataflow/contract-shadow (deterministic scalar, 232/233). |
-| `_normalize_index` outer `ValueError,TypeError` | `268-269` | B173: handler-order shadow/MRO (261/266). |
+| `_not_null` outer except | `43-44` | B177/M177.1-8: not reducible (production-realistic structural outer except). |
+| `_normalize_index` coercer/determinism/last-ditch | `234-244,246-247` | B177: dataflow/contract-shadow (deterministic scalar, 232/233). |
+| `_normalize_index` outer `ValueError,TypeError` | `268-269` | B177: handler-order shadow/MRO (261/266). |
 | inspect/campaign_d NaT guard | `326` | **LIVE/GUARD — DO NOT ALTER.** |
-| `_coerce_to_datetime_scalar` NaT identity re-raise | `338-342` | B173: not reducible (earlier NaT guards dominate). |
-| `_coerce_to_datetime_scalar` epoch outer except | `403-404` | B173: defensive/guarded. |
-| exchange detect outer handlers | `641-642,694-695` | B173: **second `except Exception` handlers shadowed by 639/693**; no realistic escape observed. |
-| promote datetime column outer handler | `791-792` | B173: nested/guarded tz-normalization except; no realistic escape observed. |
-| `_normalize_asset_name` empty token continue | `953` | B173: construction-unreachable (`str.split()` default). |
+| `_coerce_to_datetime_scalar` NaT identity re-raise | `338-342` | B177: not reducible (earlier NaT guards dominate). |
+| `_coerce_to_datetime_scalar` epoch outer except | `403-404` | B177: defensive/guarded. |
+| exchange detect outer handlers | `641-642,694-695` | B177: **second `except Exception` handlers shadowed by 639/691/693**; no realistic escape observed. |
+| promote datetime column outer handler | `791-792` | B177: nested/guarded tz-normalization except; no realistic escape observed. |
+| `_normalize_asset_name` empty token continue | `953` | B177: construction-unreachable (`str.split()` default). |
 
 ## Strict 4 criteria (any miss-reduction/unreachable claim)
 
 1. Target lines and line→code verified at fresh SHA.
-2. Mechanism not disproven by B103–173 and recorded proofs.
+2. Mechanism not disproven by B103–177 and recorded proofs.
 3. Production-realistic `pd.DataFrame`/index/dtype/column-label/file-format path (no semantic change, no pathological harness).
 4. Stated control-flow path consistent with (2)-(3).
 
@@ -80,11 +80,12 @@
 | 170 | 0 | proof | M170.1–M170.5. |
 | 171 | 0 | proof | M171.A–F. |
 | 172 | 0 | proof+probes | M172.1–M172.7; batch172 retained; canonical incl. batch172 645/6/34, 365 miss; target floor unchanged. |
-| 173 | 0 | proof+probes (complete) | M173.1–M173.8; fresh Step 0 645/6/34, 365 miss/78%; target floor unchanged; per-cluster strict-4 verdicts in `docs/unreachable_proofs.md` §Batch 173; campaign_d 883/5/3487. No batch173 test. |
-| 174 | 0 | proof+probes (complete) | M174.1–M174.6; fresh Step 0 645/6/34, 365 miss/78%; target floor unchanged; JSON orient=split/empty-date CSV/float-epoch public-loader traces (0 target hits), `_normalize_index` `'NaT'` trace, promotion tz trace, structural shadow proofs for 641-642/694-695/268-269; §Batch 174 in `docs/unreachable_proofs.md`; campaign_d 883/5/3487. No batch174 test. |
-| 175 | **0** | proof+probes (complete) | M175.1–M175.7 materially-new public-loader/read-option/exchange-variant probes under sys.settrace: 0 target hits; all clusters strict-4 not-reducible; §Batch 175 in `docs/unreachable_proofs.md`; canonical 645/6/34, 365 miss/78%; campaign_d 883/5/3487. No batch175 test. HANDOFF refreshed to Batch 176 binding directive. |
-| 176 | **0** | proof+probes (complete) | M176.1–M176.8 materially-new direct private-function adversarial input enumeration under sys.settrace line tracing (not repeating M175.1–M175.7 public-loader/vendor-frame paths): 0 target hits on all clusters; §Batch 176 in `docs/unreachable_proofs.md`; canonical 645/6/34, 365 miss/78%; target floor unchanged; campaign_d 883/5/3487. No batch176 test. HANDOFF refreshed to Batch 177 binding directive. |
-| 177 | **PENDING — EXECUTE NOW (binding)** | binding | Fresh Step 0 → confirm target floor unchanged (365 miss/78%) and campaign_d green; re-verify line→code for all clusters at current `data_loader.py` SHA; only pursue reduction if a genuinely new production-realistic mechanism (not disproven by B103–176/M149–M176) emerges; otherwise maintain proofs and baseline. 0-delta without materially-new method + recorded evidence = failed session. |
+| 173 | 0 | proof+probes (complete) | M173.1–M173.8; fresh Step 0 645/6/34, 365 miss/78%; target floor unchanged; per-cluster strict-4 verdicts in §Batch 173; campaign_d 883/5/3487. |
+| 174 | 0 | proof+probes (complete) | M174.1–M174.6; JSON orient=split/empty-date CSV/float-epoch public-loader traces (0 target hits), structural shadow proofs; §Batch 174. |
+| 175 | 0 | proof+probes (complete) | M175.1–M175.7 read-option/vendor-frame paths (parse_dates/date_format/na_values/keep_default_na/dtype_backend, exchange vendor frames); 0 target hits; §Batch 175. |
+| 176 | 0 | proof+probes (complete) | M176.1–M176.8 direct private-function adversarial input enumeration under line tracing; 0 target hits; §Batch 176. |
+| 177 | 0 | proof+probes (complete) | M177.1–M177.8 public file/format entrypoints (xlsx/parquet/hdf5 if available, load_prices CSV, exchange long OHLCV, full Binance wide OHLCV, tz-offset public CSV promotion, timestamp promotion); 0 target hits; §Batch 177; canonical 645/6/34, 365 miss/78%; campaign_d 883/5/3487. |
+| 178 | **PENDING — EXECUTE NOW (binding)** | binding | Fresh Step 0 → confirm target floor unchanged (365 miss/78%) and campaign_d green; re-verify line→code for all clusters @ current SHA; only pursue reduction if a genuinely new production-realistic mechanism (not disproven by B103–177/M149–M177) emerges; otherwise produce materially-new M178 evidence + §Batch 178 + HANDOFF update. 0-delta without materially-new method + recorded evidence = failed session. |
 
 ## Historical detail
 
