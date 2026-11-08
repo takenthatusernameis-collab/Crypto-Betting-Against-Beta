@@ -1,15 +1,15 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 
-> **SOLE DURABLE HANDOFF (2026-11-08T04:20:44Z @ `1d6f8cd`, refreshed after Batch 140; Batch 141 initial task message below is binding). Repo-name priority = **BAB only — `strategies/betting_against_beta/data_loader.py` miss floor.** Read completely, rebaseline, then execute **INITIAL TASK MESSAGE — Batch 141** immediately. No off-ramps: no status-only, planning-only, review-only, or "floor closed" exit without the required heavy work. Every session must produce **measurable heavy work**: miss reduction in a fresh canonical aggregate **OR** genuinely new, non-repeat, high-confidence unreachable-proof evidence in `docs/unreachable_proofs.md` using a **materially new method** with per-cluster file:line, method, observed result, and strict 4-criteria verdict. "No new mechanism exists" is invalid unless you actually ran materially-new checks and recorded evidence. **Never change production semantics solely for coverage. Never alter `322,326` semantics. Never touch `.github/workflows/*`. Never commit/push unless explicitly requested.**
+> **SOLE DURABLE HANDOFF (2026-11-08T04:20:44Z @ `9d8ea39`, refreshed after Batch 140; Batch 142 initial task message below is binding). Repo-name priority = **BAB only — `strategies/betting_against_beta/data_loader.py` miss floor.** Read completely, rebaseline, then execute **INITIAL TASK MESSAGE — Batch 142** immediately. No off-ramps: no status-only, planning-only, review-only, or "floor closed" exit without the required heavy work. Every session must produce **measurable heavy work**: miss reduction in a fresh canonical aggregate **OR** genuinely new, non-repeat, high-confidence unreachable-proof evidence in `docs/unreachable_proofs.md` using a **materially new method** with per-cluster file:line, method, observed result, and strict 4-criteria verdict. "No new mechanism exists" is invalid unless you actually ran materially-new checks and recorded evidence. **Never change production semantics solely for coverage. Never alter `322,326` semantics. Never touch `.github/workflows/*`. Never commit/push unless explicitly requested.**
 
 ## Batch status (this session)
 
 - **Batch 140 (@ `ed0fda2`):** COMPLETED — state confirmed only, 0 delta. Canonical aggregate 1496/0/17, **35 miss / 1683 stmts / 98%**, guard 44/5. No new production-realistic mechanism found; `docs/unreachable_proofs.md` batch139 appendix already recorded the non-production 351–352 boundary trace. Batch 140 produced **no miss reduction**.
 - **Batch 141 (@ `d97339d`, this session):** COMPLETED — materially-new **cross-module contract audit** executed (AST caller map + `sys.settrace` end-to-end `BABStrategy.run` trace, 12 run shapes + 3 public-entrypoint shapes): **0 target-line hits** on all 35 misses. Canonical aggregate **1496/0/17, 35 miss / 1683 stmts / 98%**, guard **44/5**. **Delta 0; no miss reduction.** Complete Batch141 non-repeat materially-new appendix appended to `docs/unreachable_proofs.md` covering all remaining clusters with strict 4-criteria verdicts; HANDOFF ledger updated with measured results. `322,326` preserved; no semantics/workflow changes.
 
-## Measured state (fresh rebaseline, 2026-11-08T04:20:44Z @ `1d6f8cd`)
+## Measured state (fresh rebaseline, 2026-11-08T04:20:44Z @ `9d8ea39`)
 
-- **Branch/SHA:** `main` @ `d97339d` (`data_loader.py` unchanged since `e945fde` for miss line→code; two checkpoint commits `4b108ba`/`d97339d` ahead of `1d6f8cd` do not touch `data_loader.py`; floor SHA `24db195`). Working tree clean; local scratch/untracked probes (`probe*`, `debug_beta*`) are `.gitignore`d — do not commit unless requested.
+- **Branch/SHA:** `main` @ `d97339d` (`data_loader.py` unchanged since `e945fde` for miss line→code; two checkpoint commits `4b108ba`/`d97339d` ahead of `9d8ea39` do not touch `data_loader.py`; floor SHA `24db195`). Working tree clean; local scratch/untracked probes (`probe*`, `debug_beta*`) are `.gitignore`d — do not commit unless requested.
 - **Canonical aggregate (fresh rebaseline, 2026-11-08T05:06Z @ `d97339d`, `--rcfile=/dev/null`, `.coverage*` cleaned):** **1496 passed, 0 failed, 17 skipped, 109 warnings** (25.16s).
 - **Coverage (`--rcfile=/dev/null`, `--include='strategies/betting_against_beta/data_loader.py'`, `--show-missing`):** **35 miss / 1683 stmts / 98%**.
 - **Missing (35):** `43-44, 234-244, 246-247, 268-269, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953`
@@ -55,9 +55,9 @@ No session is blocked. All 10 bottlenecks are routed. Blockers eliminated: scrat
 3. Production-realistic `pd.DataFrame`/index/dtype/column-label/file-format path with plausible pandas/library behavior (no semantic change, no pathological harness).
 4. A statable control-flow path consistent with (2)-(3).
 
-## INITIAL TASK MESSAGE — 2026-11-08T04:20:44Z (Batch 141) — BINDING, EXECUTE IMMEDIATELY
+## INITIAL TASK MESSAGE — 2026-11-08T05:11:44Z (Batch 142) — BINDING, EXECUTE IMMEDIATELY
 
-**SHA:** `1d6f8cd`. **Fresh baseline (measured this session):** 1496/0/17, **35 miss / 1683 stmts / 98%**, missing `43-44,234-244,246-247,268-269,326,334-335,338-342,351-352,403-404,641-642,694-695,791-792,953`, guard 44/5. `data_loader.py` unchanged since `e945fde`; Batch 140 measured at `ed0fda2` produced 0 delta / no miss reduction. **No baseline-only/review-only/planning-only/status-only exit.**
+**SHA:** `9d8ea39`. **Fresh baseline (measured this session):** 1496/0/17, **35 miss / 1683 stmts / 98%**, missing `43-44,234-244,246-247,268-269,326,334-335,338-342,351-352,403-404,641-642,694-695,791-792,953`, guard 44/5. `data_loader.py` unchanged since `e945fde`; Batch 140 measured at `ed0fda2` produced 0 delta / no miss reduction. **No baseline-only/review-only/planning-only/status-only exit.**
 
 ### Mission (binary, both acceptable as heavy work; primary preferred)
 
@@ -93,7 +93,7 @@ Reconcile if different from 35 miss / 1496/0/17 / guard 44/5.
 ### Forced campaign (no early exit)
 
 For each cluster `234-244,246-247`, `268-269`, `351-352`, `334-335,338-342`, `403-404`, `43-44`, `953`, `641-642,694-695`, `791-792`, `326` (guard-only):
-1. Verify file:line at current SHA (`1d6f8cd`).
+1. Verify file:line at current SHA (`9d8ea39`).
 2. Apply strict 4 criteria. If all 4 met: create `tests/test_bab_data_loader_batch141.py`, run focused → guard → fresh canonical aggregate including batch141, record measured delta.
 3. If not: run ≥1 materially-new Batch 141 check (from the method list above, not a B103–140 repeat), document method/result, append Batch141 appendix to `docs/unreachable_proofs.md`.
 4. Never repeat B103–140 disproven mechanisms.
@@ -113,7 +113,7 @@ For each cluster `234-244,246-247`, `268-269`, `351-352`, `334-335,338-342`, `40
 | 137 | `0d00688` | 0 | proof | Hypothesis/public-loader/nullable/JSON-orient/tz/index/coercer evidence; 0 hits. |
 | 138 | `c3e44a3` | 0 | proof | Public loader trace, MRO/coercer-contract evidence; 0 hits. |
 | 139 | `24db195` | 0 | heavy proof | 1496/0/17, 35/1683, guard 44/5 (measured). AST/MRO/coercer static proofs; pandas 3.1.1 public-loader/downstream `sys.settrace` 0 target hits; 351–352 hit only via monkeypatched `np.isnan` RuntimeError (non-production boundary, criterion 3 fails). Batch139 appendix added to `docs/unreachable_proofs.md`. |
-| 140 | `ed0fda2` | 0 | state confirmed | 1496/0/17, 35/1683, guard 44/5 (rebaselined @ `ed0fda2`; tree now @ `1d6f8cd`, same miss set/count). Bottlenecks re-routed; Batch 141 campaign appended. **Batch 141 executed (this session @ `d97339d` — see below).** |
+| 140 | `ed0fda2` | 0 | state confirmed | 1496/0/17, 35/1683, guard 44/5 (rebaselined @ `ed0fda2`; tree now @ `9d8ea39`, same miss set/count). Bottlenecks re-routed; Batch 141 campaign appended. **Batch 141 executed (this session @ `d97339d` — see below).** |
 | 141 | `d97339d` | 0 | appendix | 1496/0/17, **35/1683**, guard 44/5 (measured, `--rcfile=/dev/null`). **No miss reduction (delta 0); no canonical test added.** Materially-new **cross-module contract audit** (AST caller map + `sys.settrace` end-to-end `BABStrategy.run` trace, 12 run shapes + 3 public-entrypoint shapes): **0 target-line hits** on all 35 misses. Batch141 appendix added to `docs/unreachable_proofs.md` covering all remaining clusters with strict 4-criteria verdicts; `322,326` preserved; no semantics/workflow changes. **Floor mechanism-closed.**
 
 ## Historical detail
