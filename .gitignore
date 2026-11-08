@@ -24,3 +24,5 @@ env/
 # Local scratch / probing artifacts
 diag*.py
 _recon_cov.py
+debug_beta*.py
+probe*.py

@@ -967,3 +967,32 @@ Canonical (fresh, rcfile=/dev/null): miss **36/1683 (98%)**, **1466 passed, 0 fa
 | inspect/campaign_d NaT guards | `data_loader.py:322,326` | **Not probed/altered (guard-relevant).** Guard `44 passed, 5 warnings`. | **Preserved.** |
 
 **Conclusion:** **36-miss floor remains mechanism-closed at `a66bec2`.** No miss reduction; no new production-realistic control-flow mechanism satisfied all 4 criteria. Batch132 adds materially-new public-entrypoint/nullable-NA/NumPy-scalar-dispatch/Unicode-epoch fuzz evidence beyond 103–131. **Batch133 only** if a concretely demonstrated production-realistic mechanism satisfies all 4 criteria, or a different materially-new method with reproducible evidence closes a previously untested plausible gap.
+
+---
+
+## Batch133 (2026-11-08T01:27Z, SHA e6e8756, fresh Step 0 rebaseline + forced-campaign public-entrypoint trace, 0 delta)
+
+**Scope:** `strategies/betting_against_beta/data_loader.py` remaining 36 misses `43-44, 234-244, 246-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953` (verified `--rcfile=/dev/null`, `--show-missing`). **No production code changed. No canonical test added. No workflow edits. `322,326` preserved.**
+
+**Canonical (fresh):** `1466 passed, 0 failed, 17 skipped, 107 warnings` (45.75s). Coverage **36 miss / 1683 stmts / 98%**. Guard `campaign_d*` **44 passed, 5 warnings** (0.62s). `data_loader.py` unchanged since `311656a`. Bottlenecks routed: deps via `PYTHONPATH=$PWD:/home/runner/work/_temp/kilo-tmp/pylib`; `.coverage*` cleaned; controller test ignored. `.gitignore` updated to ignore `debug_beta*.py`/`probe*.py` scratch (non-production, not committed).
+
+**Method (materially new vs 103–132):** `sys.settrace` line-hit collection across **public** `load_returns`/`load_prices` entrypoints (not only internal helpers) over 43 realistic crypto/file-shape cases: Binance ms-OHLCV CSV with `close_time`; ISO timestamps; multiple date-column aliases (`timestamp/datetime/time/Date/Timestamp`); JSONL symbol/close rows; Parquet/Feather/Pickle/HDF5 round-trips (HDF5 with/without key); `PeriodIndex`, `CategoricalIndex`, string-dtype index, period column; nullable `Float64`/`Int64`/`string` extension dtypes with NA; duplicated+unsorted timestamps; safe `pd.DataFrame` subclass (`_constructor`); `load_prices`/`load_returns` DataFrame inputs with `price_column`; direct coercer probes (epoch s/ms, ISO, `datetime64`, `Timestamp`, `None`/`nan`/`NaT`/`pd.NA`/`bool`/`int`); asset-name normalization variants; mixed object index (Timestamp/ISO string/datetime64/epoch-string/float epoch); long-format pivot (`timestamp/symbol/close`); BOM CSV (`\xef\xbb\xbf`); TSV; gzip-compressed CSV; JSON `orient='split'`; JSON dict keyed by date; mixed-epoch-scale index (s + ms); all-duplicate index; odd symbol/blank columns. `float64[pyarrow]` skipped (pyarrow not installed, expected). **Observed:** 0 target-line hits across all 43 cases (`HITS []`, `TARGET_HITS []`).
+
+**Cluster appendix (all 10, strict 4 criteria):** (1) target+line→code verified @ `e6e8756` (unchanged). (2) No mechanism not disproven by 103–132 + this method. (3) No production-realistic `pd.DataFrame`/index/dtype/column-label/file-format path with plausible pandas/library behavior demonstrated. (4) No statable control-flow path consistent with (2)-(3).
+
+| Cluster | Lines | New-method evidence (batch133, observed) | Verdict |
+|---|---|---|---|
+| `_normalize_index` dayfirst last-ditch | `234-244,246-247` | Mixed Timestamp/ISO/datetime64/epoch-string/float-epoch index, dup/unsorted, Categorical/string/Period, JSON/CSV/Parquet round-trips all normalized or intercepted by 223/248; no coercer divergence. | **Closed.** |
+| `_normalize_index` outer VE/TE | `268-269` | Public file/DataFrame loads exercised conversion+266-re-raise path only; no plain VE/TE escape. | **Closed (handler-order/MRO).** |
+| `_coerce_to_datetime_scalar` NaN/inf generic except | `351-352` | Direct coercer cases `nan/NaT/pd.NA/None/valid` hit guarded/normal paths; no non-`ValueError` in NaN/inf region. | **Closed for production-realistic scalars.** |
+| `_coerce_to_datetime_scalar` NaT re-raise guards | `334-335,338-342` | `NaT/pd.NA/None` behaved per contract; re-raise-before-generic-pass preserved. | **Closed.** |
+| `_coerce_to_datetime_scalar` epoch outer except | `403-404` | Epoch s/ms, overflow-adjacent realistic strings not triggered; regex+`float()`+guarded branches held. | **Closed.** |
+| `_not_null` outer except | `43-44` | Nullable extension dtypes / NA sentinels exercised inner-guarded paths. | **Closed (structural).** |
+| `_normalize_asset_name` empty token continue | `953` | Public odd-symbol/blank-column names normalized; `split()` construction-unreachable. | **Closed.** |
+| `_detect_and_normalize_exchange_format` outer handlers | `641-642,694-695` | Binance OHLCV ms, JSONL symbol/close, long pivot, DF subclass exercised inner guarded/swallowing paths; no outer-handler reach on real frames. | **Closed for production-realistic frames.** |
+| `_promote_datetime_column` outer handler | `791-792` | Multiple date aliases, BOM/TSV/gzip/JSON split, nullable columns promoted via guarded paths. | **Closed (fully guarded).** |
+| inspect/campaign_d NaT guards | `322,326` | **Not probed/altered.** Guard 44/5 green. | **Preserved.** |
+
+**Strict 4-criteria assessment:** none satisfied for miss reduction. (1) targets/code verified. (2) no mechanism not disproven by 103–132 + this public-entrypoint trace. (3) no production-realistic `pd.DataFrame`/index/dtype/column-label/file-format path demonstrated. (4) no statable path consistent with (2)-(3).
+
+**Conclusion:** **36-miss floor remains mechanism-closed at `e6e8756`.** No miss reduction; no canonical test added. Batch133 adds materially-new public-entrypoint/file-format round-trip trace evidence. **Batch134 only** on a concretely demonstrated production-realistic mechanism satisfying all 4 criteria, or a different materially-new method with reproducible evidence closing a previously untested plausible gap.
