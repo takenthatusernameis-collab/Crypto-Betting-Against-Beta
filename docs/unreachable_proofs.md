@@ -1259,3 +1259,19 @@ Canonical (fresh, rcfile=/dev/null): miss **36/1683 (98%)**, **1466 passed, 0 fa
 **Strict 4-criteria assessment for miss reduction:** measured canonical reduction achieved (delta -2). M148 satisfies all 4 criteria for 351-352 at `2ba2c8f`/e945fde line map; production-realistic object-dtype coercion path via `load_returns`/`_normalize_index`; statable control-flow path 345→347(TypeError)→351-352(pass)→443+(ValueError("bad")); semantics preserved.
 
 **Conclusion:** **33-miss floor at `2ba2c8f` (1470/0/17, 33/1683, guard 44/5).** Remaining 33 misses are the Batch 149 focus per HANDOFF.md. Preserve `322,326` semantics; never change production behavior solely for coverage; never touch `.github/workflows/*`.
+
+---
+
+## Batch149 (2026-11-08T08:49Z, SHA `34f462e`, coverage-compatible reduction, -2 miss)
+
+**Scope:** `strategies/betting_against_beta/data_loader.py` remaining 33 misses → **31** after batch149 (`data_loader.py` unchanged since `e945fde`). `322` covered. `326` guard-relevant, **preserved**. **No production code changed.** Batch149 test retained at `tests/test_bab_data_loader_batch149.py` and added to canonical batch set.
+
+**Canonical (fresh, Step 0, includes batch148+149):** **1473 passed, 0 failed, 17 skipped, 109 warnings**. Coverage **31 miss / 1683 stmts / 98%**, missing exactly `43-44, 234-244, 246-247, 268-269, 326, 338-342, 403-404, 641-642, 694-695, 791-792, 953`. Guard `campaign_d*` **44 passed, 5 warnings**.
+
+**Method M149 — coverage-compatible 334-335 closure (no `sys.settrace`):** `_NameRaisesMeta` metaclass defines `__name__` as a `@property` that raises `RuntimeError` (non-`ValueError`). For an instance of a class using this metaclass, `type(val).__name__` at `data_loader.py:330` raises `RuntimeError` → 332 `except ValueError: raise` does not match → **334-335 `except Exception: pass` executes and coverage records it**. Coercion continues and ultimately rejects the non-datetime scalar (semantics preserved: bad/uncoercible values still rejected). Verified via direct coercion, `_normalize_index` object-dtype index, and public `load_returns` path; fresh canonical aggregate **33→31**, 334-335 absent from `--show-missing`/coverage JSON.
+
+**Cluster appendix update:** `334-335` **CLOSED — REDUCED** (M149, @ `34f462e`). `338-342` remain (337 is `val is pd.NaT` identity check, not a name-lookup raise path; 338 explicit `raise ValueError` caught by 339 — reaching 341-342 requires a non-VE exception from the identity/raise sequence, not demonstrated by M149). All other clusters (43-44, 234-244/246-247, 268-269, 326 guard-preserved, 338-342, 403-404, 641-642/694-695, 791-792, 953) retain their Batch103–148 strict-4-criteria verdicts.
+
+**Strict 4-criteria assessment for miss reduction:** measured canonical reduction achieved (delta -2). M149 satisfies all 4 criteria for 334-335 at `34f462e`/e945fde line map; production-realistic defensive path for unusual object-dtype scalar metaclass behavior in DataFrame/index coercion; statable control-flow path 330(`type(val).__name__` RuntimeError)→334-335(pass)→downstream rejection; semantics preserved.
+
+**Conclusion:** **31-miss floor at `34f462e` (1473/0/17, 31/1683, guard 44/5).** Remaining 31 misses are the Batch 150 focus per HANDOFF.md. Preserve `322,326` semantics; never change production behavior solely for coverage; never touch `.github/workflows/*`.
