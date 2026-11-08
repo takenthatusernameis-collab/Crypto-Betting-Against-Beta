@@ -1,6 +1,6 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 
-> **SOLE DURABLE HANDOFF — canonical. No competing handoff files.** Refreshed **2026-11-08T19:01:50Z** @ `69662e9` (`main`, clean worktree). **Repo-name priority = BAB only** — next heavy work targets `strategies/betting_against_beta/data_loader.py` remaining miss floor.
+> **SOLE DURABLE HANDOFF — canonical. No competing handoff files.** Refreshed **2026-11-08T19:27:43Z** @ `eb2e8e4` (`main`, clean worktree). **Repo-name priority = BAB only** — next heavy work targets `strategies/betting_against_beta/data_loader.py` remaining miss floor.
 >
 > **Step 0 re-verified 2026-11-08T18:59Z (authoritative; fresh `.coverage*`; PATH=/home/runner/work/_temp/kilo-tmp/pylib/bin PYTHONPATH=$PWD:/home/runner/work/_temp/kilo-tmp/pylib; `--rcfile=/dev/null --source=strategies.betting_against_beta`, report `--include='*/strategies/betting_against_beta/data_loader.py'`):** Canonical subset incl. batch172 (retained) = `tests/test_betting_against_beta*.py` + `tests/test_bab_data_loader_batch{40..69,71..74,76..89,93,95,96,148,149,172}.py` → **645 passed, 6 skipped, 34 warnings** (~58s). `data_loader.py`: **365 miss / 1683 stmts / 78%**. **Target-miss floor UNCHANGED (all present): `43-44,234-244,246-247,268-269,326,338-342,403-404,641-642,694-695,791-792,953`**. `campaign_d*` guard: **883 passed, 5 skipped, 3487 deselected**. Historical baseline excl. batch172: **632/6/34, 380 miss/77%**. No blockers.
 >
