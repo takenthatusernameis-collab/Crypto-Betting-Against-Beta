@@ -78,9 +78,9 @@ No session is blocked. All 10 bottlenecks are routed.
 
 **Result:** canonical miss reduction **33 → 31** (334-335 reduced via coverage-compatible `_NameRaisesMeta.__name__`-raises test; retained at `tests/test_bab_data_loader_batch149.py`; production semantics preserved — values still rejected). Fresh canonical: **1473/0/17, 31 miss / 1683 stmts / 98%**, guard **44/5**.
 
-## INITIAL TASK MESSAGE — 2026-11-08T08:55Z (Batch 150) — BINDING, EXECUTE IMMEDIATELY
+## INITIAL TASK MESSAGE — 2026-11-08T09:06Z (Batch 150) — BINDING, EXECUTE IMMEDIATELY
 
-**SHA:** `34f462e` (`data_loader.py` unchanged since `e945fde`). **Fresh baseline (measured):** 1473/0/17, **31 miss / 1683 stmts / 98%**, missing `43-44,234-244,246-247,268-269,326,338-342,403-404,641-642,694-695,791-792,953`, guard 44/5. **Batch 149 completed (33→31, 334-335 reduced and retained in canonical set); B103–149 executed. No baseline-only/review-only/planning-only/status-only exit.**
+**SHA:** `241dea7` (`data_loader.py` unchanged since `e945fde`). **Fresh baseline (measured):** 1473/0/17, **31 miss / 1683 stmts / 98%**, missing `43-44,234-244,246-247,268-269,326,338-342,403-404,641-642,694-695,791-792,953`, guard 44/5. **Batch 149 completed (33→31, 334-335 reduced and retained in canonical set); B103–149 executed. No baseline-only/review-only/planning-only/status-only exit.**
 
 ### Mission (binary; primary preferred)
 
