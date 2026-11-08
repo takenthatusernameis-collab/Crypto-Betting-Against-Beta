@@ -1,20 +1,20 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 
-> **SOLE DURABLE HANDOFF (2026-11-08T10:07:00Z @ `e1aaa82`; Step 0 rebaseline verified 2026-11-08T10:07Z — canonical 1473/0/17, coverage **31 miss / 1683 stmts / 98%** `43-44,234-244,246-247,268-269,326,338-342,403-404,641-642,694-695,791-792,953`, guard `campaign_d*` 44/5 green). `data_loader.py` unchanged since `e945fde` (line→code stable). Repo-name priority = **BAB only — `strategies/betting_against_beta/data_loader.py` remaining miss floor.**
+> **SOLE DURABLE HANDOFF (2026-11-08T10:09Z @ `52d0d00`; Step 0 rebaseline verified 2026-11-08T10:09Z — canonical 1473/0/17, coverage **31 miss / 1683 stmts / 98%** `43-44,234-244,246-247,268-269,326,338-342,403-404,641-642,694-695,791-792,953`, guard `campaign_d*` 44/5 green). `data_loader.py` unchanged since `e945fde` (line→code stable). Repo-name priority = **BAB only — `strategies/betting_against_beta/data_loader.py` remaining miss floor.**
 >
-> **Status:** Batch 148 (351-352, 35→33) and 149 (334-335, 33→31) reduced misses with semantics preserved. Batch 150/151 completed **0-delta** with per-cluster materially-new proof work recorded in `docs/unreachable_proofs.md` (§Batch 150 M150.1–M150.7; §Batch 151 M151.A–M151.D). All remaining non-guard clusters have strict 4-criteria verdicts recorded; `326` is guard-relevant and preserved. **This is not a permission to idle.** “Floor closed”/status-only exits are forbidden unless the session performs the required heavy work below.
+> **Status:** Batch 148 (351-352, 35→33) and 149 (334-335, 33→31) reduced misses with semantics preserved. Batch 150/151/152 completed **0-delta** with per-cluster materially-new proof work recorded in `docs/unreachable_proofs.md` (§Batch 150 M150.1–M150.7; §Batch 151 M151.A–M151.D; §Batch 152 M152.A–M152.D — AST exhaustive-handler/shadowing, coercer→index dataflow gate contradiction, targeted runtime trace, strict re-audit). All remaining non-guard clusters have strict 4-criteria verdicts recorded; `326` is guard-relevant and preserved. **This is not a permission to idle.** “Floor closed”/status-only exits are forbidden unless the session performs the required heavy work below.
 >
 > **Binding rules:** Read completely, rebaseline, then do heavy work. No status-only, planning-only, review-only, or “floor closed” exit without required heavy work. Every session must produce **measurable heavy work**: miss reduction in a fresh canonical aggregate **OR** genuinely new, non-repeat, high-confidence unreachable-proof evidence in `docs/unreachable_proofs.md` using a **materially new method** with per-cluster file:line, method, observed result, and strict 4-criteria verdict. “No new mechanism exists” is invalid unless you actually ran materially-new checks and recorded evidence. **Never change production semantics solely for coverage. Never alter `322,326` semantics. Never touch `.github/workflows/*`. Never commit/push unless explicitly requested. `tests/test_bab_data_loader_batch148.py` and `tests/test_bab_data_loader_batch149.py` must remain in the canonical set and must not be deleted or weakened.**
 
-## Measured state (fresh rebaseline, 2026-11-08T10:07Z @ `e1aaa82`)
+## Measured state (fresh rebaseline, 2026-11-08T10:09Z @ `52d0d00`)
 
-- **Branch/SHA:** `main` @ `e1aaa82`. Working tree clean at rebaseline. `data_loader.py` unchanged since `e945fde`. `.gitignore` ignores `probe*`/`debug*`/`diag*` (historical tracked probe/debug files remain — **do not modify/commit them**).
+- **Branch/SHA:** `main` @ `52d0d00`. `data_loader.py` unchanged since `e945fde`. `.gitignore` ignores `probe*`/`debug*`/`diag*` (historical tracked probe/debug files remain — **do not modify/commit them**). `HANDOFF.md` and `docs/unreachable_proofs.md` carry Batch 152 work in this session.
 - **Canonical aggregate:** **1473 passed, 0 failed, 17 skipped, 109 warnings** (fresh, `--rcfile=/dev/null`, `.coverage*` cleaned).
 - **Coverage:** **31 miss / 1683 stmts / 98%**. Missing: `43-44, 234-244, 246-247, 268-269, 326, 338-342, 403-404, 641-642, 694-695, 791-792, 953`.
 - **Guard (`campaign_d*`):** **44 passed, 5 warnings**. `322` covered; `326` remains guard-relevant — **preserve semantics**.
 - **Deps:** `PYTHONPATH=$PWD:/home/runner/work/_temp/kilo-tmp/pylib` → pytest 9.2.0, coverage 7.17.2, numpy 2.5.4, pandas 3.1.1, scipy 1.18.1, hypothesis 6.170.15; **no pyarrow/pytables/fastparquet**.
 
-## Bottlenecks — routed (verified 2026-11-08T10:07Z)
+## Bottlenecks — routed (verified 2026-11-08T10:09Z)
 
 | # | Bottleneck | Route | Status |
 |---|---|---|---|
@@ -27,7 +27,7 @@
 | 7 | Aggregate-context sensitivity | Direct canonical helper calls, real shapes, tight scoped monkeypatches/subclasses; verify in fresh canonical aggregate. | Routed |
 | 8 | Inspect-sensitive/campaign_d semantics | Preserve inspect/caller behavior and campaign_d behavior. **Never alter `322,326` semantics.** | Preserved |
 | 9 | Canonical batch set drift | Canonical data-loader batches: **40-69,71-74,76-89,93,95,96,148,149** (no 70,75,90-92,94). Batch148+149 retained. | Routed |
-| 10 | Repeated 0-delta inefficiency | B103–151 executed/measured/proved. No repeat probes of closed mechanisms. 0-delta without new method + recorded evidence = failed session. | Routed |
+| 10 | Repeated 0-delta inefficiency | B103–152 executed/measured/proved. No repeat probes of closed mechanisms. 0-delta without new method + recorded evidence = failed session. | Routed |
 
 No session is blocked. All 10 bottlenecks are routed.
 
@@ -71,16 +71,17 @@ No session is blocked. All 10 bottlenecks are routed.
 | 149 | `34f462e` | -2 | reduction | **334-335 reduced** (metaclass `__name__` descriptor, M149); semantics preserved. 1473/0/17, **31/1683**. |
 | 150 | `1630eda` | 0 | proof | M150.1–M150.7 per-cluster strict 4-criteria; 31 miss unchanged. |
 | 151 | `55010c1` (proof appendix recorded) | 0 | proof | M151.A–M151.D (bytecode/520-object fuzz/branch trace/coercer determinism); 31 miss unchanged. |
+| 152 | `52d0d00` | 0 | proof | M152.A–D (AST exhaustive-handler/shadowing for try@113/598/648; coercer→index dataflow gate contradiction 216-224⇒232; targeted runtime trace NaT-string hit 227-233,245 only; strict re-audit). 31 miss unchanged. |
 
-## INITIAL TASK MESSAGE — 2026-11-08T10:07Z (Batch 152) — BINDING, EXECUTE IMMEDIATELY
+## INITIAL TASK MESSAGE — 2026-11-08T10:09Z (Batch 153) — BINDING, EXECUTE IMMEDIATELY
 
-**SHA:** `e1aaa82` (`data_loader.py` unchanged since `e945fde`; line→code stable). **Fresh baseline:** 1473/0/17, **31 miss / 1683 stmts / 98%**, missing `43-44,234-244,246-247,268-269,326,338-342,403-404,641-642,694-695,791-792,953`, guard 44/5. **Batch 151 proof work is recorded (M151.A–D). No baseline-only/review-only/planning-only/status-only exit.** This is the only active task message.
+**SHA:** `52d0d00` (`data_loader.py` unchanged since `e945fde`; line→code stable). **Fresh baseline:** 1473/0/17, **31 miss / 1683 stmts / 98%**, missing `43-44,234-244,246-247,268-269,326,338-342,403-404,641-642,694-695,791-792,953`, guard 44/5. **Batch 152 proof work is recorded (M152.A–D in `docs/unreachable_proofs.md`). No baseline-only/review-only/planning-only/status-only exit.** This is the only active task message.
 
 ### Mission (binary; heavy work required)
 
-1. **Primary (start here, reduction-first):** Re-verify every remaining cluster `43-44,234-244,246-247,268-269,338-342,403-404,641-642,694-695,791-792` (and `326` guard-only) at current SHA against strict 4 criteria. If **any** cluster now satisfies all 4 with a production-realistic, semantics-preserving path, create `tests/test_bab_data_loader_batch152.py`, run focused → guard → **fresh canonical aggregate including batch148 + batch149 + batch152**, record measured delta; claim reduction only if missing count < 31 and target lines absent from `--show-missing`/coverage JSON. **Never alter `322,326` semantics; `campaign_d*` must stay 44/5 green.**
-2. **Secondary (only if no cluster reduces canonically):** perform exhaustive **materially-new Batch 152** checks on all remaining clusters — methods must differ from B103–151/M149/M150.1–M150.7/M151.A–D (e.g., pandas 3.1.1 C/extension-array coercion edge on a realistic loader input not previously exercised; coverage-measurement behavior on a distinct tracer/branch path; bytecode+runtime contradiction on a different control-flow construct; source-to-runtime invariant checks grounded in measured execution). For every unresolved cluster, append per-cluster file:line @ SHA, method, observed result, and strict 4-criteria verdict to `docs/unreachable_proofs.md` §Batch 152. Update this HANDOFF ledger with measured results.
-3. **Forbidden:** status-only, planning-only, review-only, “floor closed” without heavy work, repeat probes/methods from B103–151, semantic changes for coverage, altering `322,326` or weakening/deleting batch148/149 tests, workflow edits (`.github/workflows/*`), committing/pushing unless explicitly requested.
+1. **Primary (start here, reduction-first):** Re-verify every remaining cluster `43-44,234-244,246-247,268-269,338-342,403-404,641-642,694-695,791-792` (and `326` guard-only) at current SHA against strict 4 criteria. **Do not repeat B103-152 methods.** Focus on production-realistic paths not yet exercised with line-level proof: (a) `_normalize_index` 234-247 — M152.B shows 216-224 gate forbids 232 exceptions on same `idx`; only a path where 216-loop and 232-loop see different effective coercer outcomes for same elements could help, but coercer is pure and `idx` unchanged — confirm no pandas 3.1.1 index/coercer side effect or object-index mutation path exists; if found, add `tests/test_bab_data_loader_batch153.py` with semantics preserved. (b) 268-269 — M152.A shows try@113 shadowing; confirm no code path raises plain `ValueError/TypeError` outside BABDataError conversion before 266. (c) 641-642/694-695/791-792/403-404/338-342/43-44/953 — attempt only with a demonstrably new production-realistic mechanism. **Never alter `322,326` semantics; `campaign_d*` must stay 44/5 green.**
+2. **Secondary (only if no cluster reduces canonically):** perform exhaustive **materially-new Batch 153** checks on all remaining clusters — methods must differ from B103-152/M149-M152 (e.g., pandas 3.1.1 `Index`/`DatetimeIndex` constructor behavior on mixed-object lists where element identity/tz/NA semantics differ from prior traces; `sys.settrace`/frame-level step proof on the exact 216→225→232 control flow with a constructed but production-plausible input; source-level dead-branch proof via `ast`+runtime contradiction on try@113’s full statement set; or a different coverage tracer/config confirming statement executability boundaries). For every unresolved cluster, append per-cluster file:line @ SHA, method, observed result, and strict 4-criteria verdict to `docs/unreachable_proofs.md` §Batch 153. Update this HANDOFF ledger with measured results.
+3. **Forbidden:** status-only, planning-only, review-only, “floor closed” without heavy work, repeat probes/methods from B103-152, semantic changes for coverage, altering `322,326` or weakening/deleting batch148/149 tests, workflow edits (`.github/workflows/*`), committing/pushing unless explicitly requested.
 
 ### Step 0 — mandatory rebaseline
 
@@ -95,7 +96,7 @@ python3 -m coverage report --rcfile=/dev/null --include='strategies/betting_agai
 python3 -m pytest -q --tb=no --ignore=tests/test_controller_progress_accounting.py tests/test_bab_data_loader_campaign_d.py tests/test_bab_data_loader_campaign_d2.py tests/test_bab_data_loader_campaign_d3.py
 ```
 
-Reconcile if different from 31 miss / 1473/0/17 / guard 44/5. Once `tests/test_bab_data_loader_batch152.py` exists, add it to coverage/canonical runs.
+Reconcile if different from 31 miss / 1473/0/17 / guard 44/5. Once `tests/test_bab_data_loader_batch153.py` exists, add it to coverage/canonical runs.
 
 ### Forced campaign (no early exit)
 
@@ -103,7 +104,7 @@ For each remaining cluster: (1) verify file:line at current SHA; (2) apply stric
 
 ### Required session outcome
 
-**Success =** miss **< 31** in fresh canonical aggregate **OR** complete per-cluster strict-4-criteria verdicts plus Batch152 non-repeat materially-new appendix in `docs/unreachable_proofs.md` covering all remaining clusters plus updated HANDOFF.md/ledger with measured results. Anything less is failure.
+**Success =** miss **< 31** in fresh canonical aggregate **OR** complete per-cluster strict-4-criteria verdicts plus Batch153 non-repeat materially-new appendix in `docs/unreachable_proofs.md` covering all remaining clusters plus updated HANDOFF.md/ledger with measured results. Anything less is failure.
 
 **BEGIN HEAVY WORK NOW.**
 
