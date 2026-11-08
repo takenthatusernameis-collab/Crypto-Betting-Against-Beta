@@ -1,16 +1,16 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 
-> **SOLE DURABLE HANDOFF (canonical). No competing handoff files.** Refreshed **2026-11-08T19:28:38Z** @ `14ca72e` (`main`, clean worktree). **Repo-name priority = Betting Against Beta only** — next heavy work targets `strategies/betting_against_beta/data_loader.py` remaining miss floor.
+> **SOLE DURABLE HANDOFF (canonical). No competing handoff files.** Refreshed **2026-11-08T19:41:46Z** @ `63dc952` (`main`, clean worktree). **Repo-name priority = Betting Against Beta only** — next heavy work targets `strategies/betting_against_beta/data_loader.py` remaining miss floor.
 >
 > **Authoritative Step 0 baseline (re-verified 2026-11-08T18:59Z; next agent MUST rerun fresh before any claim):** env `PATH=/home/runner/work/_temp/kilo-tmp/pylib/bin:$PATH PYTHONPATH=$PWD:/home/runner/work/_temp/kilo-tmp/pylib`; `rm -f .coverage .coverage.*`; canonical coverage `--rcfile=/dev/null --source=strategies.betting_against_beta`, report `--include='*/strategies/betting_against_beta/data_loader.py'`. Canonical subset incl. batch172 (retained): `tests/test_betting_against_beta*.py` + `tests/test_bab_data_loader_batch{40..69,71..74,76..89,93,95,96,148,149,172}.py` → **645 passed, 6 skipped, 34 warnings** (~58s). `data_loader.py`: **365 miss / 1683 stmts / 78%**. **Target-miss floor UNCHANGED (all present; verify line→code @ current SHA before edits): `43-44,234-244,246-247,268-269,326,338-342,403-404,641-642,694-695,791-792,953`**. `campaign_d*` guard: **883 passed, 5 skipped, 3487 deselected**. Historical baseline excl. batch172: **632/6/34, 380 miss/77%**.
 >
 > **BINDING — execute immediately. BATCH 173 is reduction-first heavy work.** Run fresh Step 0, then reduction attempts and/or materially-new proof probes across **every remaining cluster** until a measurable outcome. **Forbidden exits:** status-only, planning-only, review-only, baseline-only, or “closed/unreachable/no mechanism” without the required heavy work and evidence.
 
-## INITIAL TASK MESSAGE — 2026-11-08T19:28:38Z (Batch 173, binding)
+## INITIAL TASK MESSAGE — 2026-11-08T19:41:46Z (Batch 173, binding)
 
 **Objective (repo priority):** reduce the `strategies/betting_against_beta/data_loader.py` target-miss floor in a fresh canonical aggregate, OR produce complete materially-new strict-4 unreachable-proof evidence for every remaining cluster.
 
-**State:** `main@14ca72e` clean; `data_loader.py` semantic SHA `e945fde` (verify line→code before claims). Target floor: `43-44,234-244,246-247,268-269,326,338-342,403-404,641-642,694-695,791-792,953`. **`326` is LIVE/GUARD-RELEVANT — never alter.**
+**State:** `main@63dc952` clean; `data_loader.py` line→code verified at current SHA (target lines present; `326` guard intact). **`326` is LIVE/GUARD-RELEVANT — never alter.** Target floor: `43-44,234-244,246-247,268-269,326,338-342,403-404,641-642,694-695,791-792,953`.
 
 ### Forced heavy-work steps (do in order)
 
@@ -80,7 +80,7 @@
 | 170 | 0 | proof | M170.1–M170.5. |
 | 171 | 0 | proof | M171.A–F. |
 | 172 | 0 | proof+probes | M172.1–M172.7; batch172 retained; canonical incl. batch172 645/6/34, 365 miss; target floor unchanged. |
-| 173 | **PENDING — EXECUTE NOW** | binding | Fresh Step 0 → reduction or materially-new proofs for all clusters. |
+| 173 | **PENDING — EXECUTE NOW (binding, carried to next session)** | binding | Fresh Step 0 → reduction or materially-new proofs for all clusters. Next agent MUST run Step 0 baseline before any claim; 0-delta without materially-new method + recorded evidence = failed session. |
 
 ## Historical detail
 
