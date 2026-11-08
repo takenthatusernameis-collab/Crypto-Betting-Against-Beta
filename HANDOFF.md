@@ -74,9 +74,9 @@ No session is blocked. All 10 bottlenecks are routed.
 | 152 | `52d0d00` | 0 | proof | M152.A–D (AST exhaustive-handler/shadowing for try@113/598/648; coercer→index dataflow gate contradiction 216-224⇒232; targeted runtime trace NaT-string hit 227-233,245 only; strict re-audit). 31 miss unchanged. |
 | 153 | `03fd243` | 0 | proof | M153.A–D (sys.settrace frame-level line-hit proof: 268-269 handler-order/MRO dead — plain VE/TE converted to BABDataError at 261-265, intercepted by 266 before 268, `BABDataError⊂ValueError` shadows 268; all-unparseable object index trace hit 261-267 not 268-269). 234-244/246-247 dataflow-gate contradiction — 216-224 completion requires coercer success on all `idx` elements ⇒ same deterministic coercer at 232 cannot raise on same `idx` ⇒ `continue` 233 always; NaT-mixed index trace hit 227-233,245 not 234-244/246-247). 31 miss unchanged. |
 
-## INITIAL TASK MESSAGE — 2026-11-08T10:19Z (Batch 154) — BINDING, EXECUTE IMMEDIATELY
+## INITIAL TASK MESSAGE — 2026-11-08T10:34Z (Batch 155) — BINDING, EXECUTE IMMEDIATELY
 
-**SHA:** `03fd243` (`data_loader.py` unchanged since `e945fde`; line→code stable). **Fresh baseline:** 1473/0/17, **31 miss / 1683 stmts / 98%**, missing `43-44,234-244,246-247,268-269,326,338-342,403-404,641-642,694-695,791-792,953`, guard 44/5. **Batch 153 proof work is recorded (M153.A–D in `docs/unreachable_proofs.md`). No baseline-only/review-only/planning-only/status-only exit.** This is the only active task message.
+**SHA:** `f083ca5` (`data_loader.py` unchanged since `e945fde`; line→code stable). **Fresh baseline:** 1473/0/17, **31 miss / 1683 stmts / 98%**, missing `43-44,234-244,246-247,268-269,326,338-342,403-404,641-642,694-695,791-792,953`, guard 44/5. **Batch 154 proof work is recorded (M153.A–D in `docs/unreachable_proofs.md`). No baseline-only/review-only/planning-only/status-only exit.** This is the only active task message.
 
 ### Mission (binary; heavy work required)
 
