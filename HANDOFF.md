@@ -1,24 +1,24 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 
-> **SOLE DURABLE HANDOFF — canonical, no competing handoff files.** Refreshed **2026-11-08T14:44Z** (Batch 162 session) @ `119a018`. Batch 162 executed 2026-11-08T14:44Z @ `119a018` (0 delta; materially-new M162.A-F evidence appended to `docs/unreachable_proofs.md` §Batch 162 — pandas option/config sweep, tz-aware+NaT index mixes, nullable/NA scalar, exchange/promotion frame variants, Unicode asset normalization, 234-244 gate recheck; **0 target-line hits / no satisfiable production path; no canonical test added, no production code changed**). Batch 163 initial task message is the **only active next-session directive** (§“INITIAL TASK MESSAGE — 2026-11-08T14:44Z (Batch 163) — BINDING, EXECUTE IMMEDIATELY”). Step 0 rebaseline (B162): BAB canonical subset (`tests/test_betting_against_beta*.py` + canonical data-loader batches 40-69,71-74,76-89,93,95,96,148,149, `--ignore=tests/test_controller_progress_accounting.py`; `pyproject.toml` has no pytest-cov rcfile args, so use `coverage run -m pytest` + `coverage report --include='strategies/betting_against_beta/data_loader.py'` for misses) → **632 passed, 6 skipped, 34 warnings** @ `119a018`. Prior full canonical baseline remains **1473 passed, 0 failed, 17 skipped, 109 warnings** and target-miss floor **31 miss / 1683 stmts / 98%** (`43-44,234-244,246-247,268-269,326,338-342,403-404,641-642,694-695,791-792,953`) — next session must re-verify full canonical count and misses in Step 0. `data_loader.py` unchanged since `e945fde` (line→code stable). **Repo-name priority = BAB only — `strategies/betting_against_beta/data_loader.py` remaining miss floor.**
+> **SOLE DURABLE HANDOFF — canonical, no competing handoff files.** Refreshed **2026-11-08T14:46Z** (pre-Batch-163 session) @ `7cc54f6` (HEAD). Batch 162 executed **2026-11-08T14:44Z @ `119a018`** (0 delta; materially-new M162.A-F evidence appended to `docs/unreachable_proofs.md` §Batch 162 — pandas option/config sweep, tz-aware+NaT index mixes, nullable/NA scalar, exchange/promotion frame variants, Unicode asset normalization, 234-244 gate recheck; **0 target-line hits / no satisfiable production path; no canonical test added, no production code changed**). **Batch 163 initial task message is the only active next-session directive** (§“INITIAL TASK MESSAGE — 2026-11-08T14:46Z (Batch 163) — BINDING, EXECUTE IMMEDIATELY”). `data_loader.py` unchanged since `e945fde` (line→code stable). **Repo-name priority = BAB only — `strategies/betting_against_beta/data_loader.py` remaining miss floor.**
 >
-> **Status:** B148 (-2, 351-352) and B149 (-2, 334-335) reduced misses with semantics preserved. B150–162 produced 0-delta, materially-new proof work (M150-M162) in `docs/unreachable_proofs.md`. No new production-realistic mechanism satisfying strict 4 criteria has been demonstrated. **No miss reduction in B162.** “Floor closed”/status-only exits are forbidden unless the session performs required heavy work.
+> **Status:** B148 (-2, 351-352) and B149 (-2, 334-335) reduced misses with semantics preserved. B150–162 produced 0-delta, materially-new proof work (M150-M162). No new production-realistic mechanism satisfying strict 4 criteria has been demonstrated. **No miss reduction in B162.** “Floor closed”/status-only exits are forbidden unless the session performs required heavy work.
 >
-> **READ THIS FIRST — ACTIVE DIRECTIVE:** Jump to **“INITIAL TASK MESSAGE — 2026-11-08T14:44Z (Batch 163) — BINDING, EXECUTE IMMEDIATELY”** below. It is the only next-session task. Do not summarize, plan, or declare the floor closed without completing its heavy-work requirements.
+> **READ THIS FIRST — ACTIVE DIRECTIVE:** Jump to **“INITIAL TASK MESSAGE — 2026-11-08T14:46Z (Batch 163) — BINDING, EXECUTE IMMEDIATELY”** below. It is the only next-session task. Do not summarize, plan, or declare the floor closed without completing its heavy-work requirements.
 >
 > **Binding rules:** Read completely, rebaseline, then do heavy work. No status-only, planning-only, review-only, or “floor closed” exit without required heavy work. Every session must produce **measurable heavy work**: miss reduction in a fresh canonical aggregate **OR** genuinely new, non-repeat, high-confidence unreachable-proof evidence in `docs/unreachable_proofs.md` using a **materially new method** with per-cluster file:line, method, observed result, and strict 4-criteria verdict. “No new mechanism exists” is invalid unless you actually ran materially-new checks and recorded evidence. **Never change production semantics solely for coverage. Never alter `322,326` semantics. Never touch `.github/workflows/*`. Never commit/push unless explicitly requested. `tests/test_bab_data_loader_batch148.py` and `tests/test_bab_data_loader_batch149.py` must remain in the canonical set and must not be deleted or weakened.**
 
-## Measured state (fresh rebaseline, 2026-11-08T13:55Z @ `d614cad`)
+## Measured state (fresh rebaseline, 2026-11-08T14:46Z @ `7cc54f6`)
 
-- **Branch/SHA:** `main` @ `d614cad` (checkpoint after `52b634b`; `data_loader.py` identical blob, unchanged since `e945fde`). Batch 158 executed 2026-11-08T13:10Z @ `a522e82` (§Batch 158 recorded in `docs/unreachable_proofs.md`). Batch 161 executed 2026-11-08T13:55Z @ `d614cad` (§Batch 161 per-cluster verdicts + ledger row below); Batch 162 pending (unexecuted). `data_loader.py` unchanged since `e945fde`; `.gitignore` ignores `probe*`/`debug*`/`diag*` (historical tracked probe/debug files remain — **do not modify/commit them**). `HANDOFF.md` and `docs/unreachable_proofs.md` carry Batch 161 work; `tests/test_bab_data_loader_batch161.py` does not exist (Batch 161 produced no canonical test).
-- **Canonical aggregate (re-verified 2026-11-08T13:55Z @ `d614cad`, `--rcfile=/dev/null`, `.coverage*` cleaned):** BAB canonical subset **632 passed, 6 skipped, 34 warnings**; full canonical baseline **1473 passed, 0 failed, 17 skipped, 109 warnings**.
-- **Coverage:** **31 miss / 1683 stmts / 98%**. Missing: `43-44, 234-244, 246-247, 268-269, 326, 338-342, 403-404, 641-642, 694-695, 791-792, 953`.
+- **Branch/SHA:** `main` @ `7cc54f6`. `data_loader.py` unchanged since `e945fde` (identical blob; line→code stable). Batch 162 executed @ `119a018`; Batch 163 not yet executed. `.gitignore` ignores `probe*`/`debug*`/`diag*` (historical tracked probe/debug files remain — **do not modify/commit them**). `HANDOFF.md` and `docs/unreachable_proofs.md` carry Batch 162 work; `tests/test_bab_data_loader_batch163.py` does not exist.
+- **Canonical aggregate (re-verified 2026-11-08T14:46Z @ `7cc54f6`, `--rcfile=/dev/null`, `.coverage*` cleaned):** BAB canonical subset **632 passed, 6 skipped, 34 warnings** (`tests/test_betting_against_beta*.py` + canonical data-loader batches 40-69,71-74,76-89,93,95,96,148,149; `--ignore=tests/test_controller_progress_accounting.py`; `coverage run -m pytest` + `coverage report --include='strategies/betting_against_beta/data_loader.py'`). Prior full canonical baseline **1473 passed, 0 failed, 17 skipped, 109 warnings** — next session must re-verify full canonical count in Step 0.
+- **Coverage:** **380 miss / 1683 stmts / 77%** total in `data_loader.py`; **target-miss floor clusters all confirmed missing** **`43-44,234-244,246-247,268-269,326,338-342,403-404,641-642,694-695,791-792,953`** (~31-miss target floor unchanged). `322` covered; `326` guard-relevant — **preserve semantics**.
 - **Guard (`campaign_d*`):** **44 passed, 5 warnings** (BAB subset 879/5/53). `322` covered; `326` remains guard-relevant — **preserve semantics**.
 - **Deps:** `PYTHONPATH=$PWD:/home/runner/work/_temp/kilo-tmp/pylib` → pytest 9.2.0, coverage 7.17.2, numpy 2.5.4, pandas 3.1.1, scipy 1.18.1, hypothesis 6.170.15; **no pyarrow/pytables/fastparquet**.
 
-## Bottlenecks — routed (verified 2026-11-08T11:44Z; no blocked sessions)
+## Bottlenecks — resolved (verified 2026-11-08T14:46Z; no blocked sessions)
 
-| # | Bottleneck | Route | Status |
+| # | Bottleneck (was) | Resolution | Status |
 |---|---|---|---|
 | 1 | Scratch/probe clutter | `.gitignore` ignores `diag*`, `_recon_cov.py`, `debug_beta*`, `probe*`; never commit probes. | Routed |
 | 2 | Controller workflow-sync test | Always `--ignore=tests/test_controller_progress_accounting.py`. **Never touch `.github/workflows/*`.** | Routed |
@@ -27,30 +27,31 @@
 | 5 | Coverage path filtering | `--rcfile=/dev/null --source=strategies.betting_against_beta` + report `--include='strategies/betting_against_beta/data_loader.py'`. | Routed |
 | 6 | Missing parquet/hdf5 engines | Monkeypatch `pd.read_parquet/read_hdf`/call sites; handlers may wrap as `BABDataError`. | Routed |
 | 7 | Aggregate-context sensitivity | Direct canonical helper calls, real shapes, tight scoped monkeypatches/subclasses; verify in fresh canonical aggregate. | Routed |
-| 8 | Inspect-sensitive/campaign_d semantics | Preserve inspect/caller behavior and campaign_d behavior. **Never alter `322,326` semantics.** | Preserved |
+| 8 | Inspect-sensitive/campaign_d semantics | Preserve inspect/caller behavior and campaign_d behavior. **Never alter `322,326`.** | Preserved |
 | 9 | Canonical batch set drift | Canonical data-loader batches: **40-69,71-74,76-89,93,95,96,148,149** (no 70,75,90-92,94). Batch148+149 retained. Step 0 command is authoritative. | Routed |
 | 10 | Repeated 0-delta inefficiency | B103–162 executed/measured/proved (M149-M162). No repeat probes of closed mechanisms. 0-delta without new method + recorded evidence = failed session. | Routed |
+| 11 | HANDOFF.md internal contradiction (Batch 162 “pending” vs “executed”; measured-state SHA `d614cad` vs `119a018`) | Resolved in this refresh: Batch 162 executed @ `119a018`; current HEAD `7cc54f6` (post-B162 docs refresh); Batch 163 is the active directive. Measured state rebaselined @ `7cc54f6`. | Resolved |
 
-**No session is blocked. No competing handoff files exist** (`HANDOFF.md` is sole; `docs/unreachable_proofs.md` is evidence appendix, not a task directive). All 10 bottlenecks routed.
+**No session is blocked. No competing handoff files exist** (`HANDOFF.md` is sole; `docs/unreachable_proofs.md` is evidence appendix, not a task directive). All bottlenecks routed/resolved.
 
-## Remaining 31 — cluster map (verify line→code each session)
+## Remaining target-miss cluster map (verify line→code each session @ `7cc54f6`)
 
-| Cluster | Lines | Status (B103–161 / proofs) |
+| Cluster | Lines | Status (B103–162 / proofs) |
 |---|---|---|
-| `_not_null` outer except | `43-44` | **Closed (structural)** — M150.7/M151.B/C + M161.1 (identity `is None`; inner `pd.isna` guarded; unconditional `return`). No production escape. |
-| `_normalize_index` coercer/determinism/last-ditch | `234-244,246-247` | **Closed (dataflow gate)** — M150.3/M151.D + M161.2 (216-224 completion ⇒ same deterministic coercer at 232 ⇒ `continue` 233 always; 245 safe homogeneous list assignment). No satisfiable production path. |
-| `_normalize_index` outer `ValueError,TypeError` | `268-269` | **Closed (handler-order shadow/MRO)** — M150.2/M151.C + M161.3 (266 `except Exception`/`except BABDataError` precedes 268; `BABDataError⊂ValueError`; no plain VE/TE escape). |
+| `_not_null` outer except | `43-44` | **Closed (structural)** — M150.7/M151.B/C + M161.1 + M162.A/C (identity `is None`; inner `pd.isna` guarded; unconditional `return`). No production escape. |
+| `_normalize_index` coercer/determinism/last-ditch | `234-244,246-247` | **Closed (dataflow gate)** — M150.3/M151.D + M161.2 + M162.A/B/F (216-224 completion ⇒ same deterministic coercer at 232 ⇒ `continue` 233 always; 245 safe homogeneous list assignment). No satisfiable production path. |
+| `_normalize_index` outer `ValueError,TypeError` | `268-269` | **Closed (handler-order shadow/MRO)** — M150.2/M151.C + M161.3 + M162.B (266 `except Exception`/`except BABDataError` precedes 268; `BABDataError⊂ValueError`; no plain VE/TE escape). |
 | inspect/campaign_d NaT guard | `326` | **LIVE/GUARD-RELEVANT — DO NOT ALTER.** M161.4 (inspect gate unchanged; `campaign_d*` green). |
-| `_coerce_to_datetime_scalar` NaT identity re-raise guards | `338-342` | **Closed (IS_OP/explicit-raise)** — M150.1/M151.A/B + M161.5 (`val is pd.NaT` identity cannot raise; `raise ValueError` re-raised before generic pass). |
-| `_coerce_to_datetime_scalar` epoch outer except | `403-404` | **Closed (regex+float+guarded)** — M150.4/M151.A + M161.6 (regex-admitted `str`→builtin `float` no-raise; all epoch ops individually guarded). |
-| `_detect_and_normalize_exchange_format` outer handlers | `641-642,694-695` | **Closed for production-realistic frames** — M150.5/M151.B + M161.7 (inner exhaustive handlers swallow; bounded outer setup). |
-| `_promote_datetime_column` outer handler | `791-792` | **Closed (fully guarded)** — M150.6/M151.C + M161.8 (760-790 individually guarded; `hasattr` swallows descriptor exceptions). |
-| `_normalize_asset_name` empty token continue | `953` | **Closed (construction-unreachable)** — M150.7/M151.A/B + M161.9 (`str.split()` default never yields `''`; `tok.strip()` on split token never empty). |
+| `_coerce_to_datetime_scalar` NaT identity re-raise guards | `338-342` | **Closed (IS_OP/explicit-raise)** — M150.1/M151.A/B + M161.5 + M162.A (`val is pd.NaT` identity cannot raise; `raise ValueError` re-raised before generic pass). |
+| `_coerce_to_datetime_scalar` epoch outer except | `403-404` | **Closed (regex+float+guarded)** — M150.4/M151.A + M161.6 + M162.A (regex-admitted `str`→builtin `float` no-raise; all epoch ops individually guarded). |
+| `_detect_and_normalize_exchange_format` outer handlers | `641-642,694-695` | **Closed for production-realistic frames** — M150.5/M151.B + M161.7 + M162.D (inner exhaustive handlers swallow; bounded outer setup). |
+| `_promote_datetime_column` outer handler | `791-792` | **Closed (fully guarded)** — M150.6/M151.C + M161.8 + M162.D (760-790 individually guarded; `hasattr` swallows descriptor exceptions). |
+| `_normalize_asset_name` empty token continue | `953` | **Closed (construction-unreachable)** — M150.7/M151.A/B + M161.9 + M162.E (`str.split()` default never yields `''`; `tok.strip()` on split token never empty). |
 
 ## Strict 4 criteria (required for any miss-reduction claim)
 
-1. Target lines and line→code verified at fresh SHA.
-2. Mechanism not disproven by batches 103–161 and recorded proofs.
+1. Target lines and line→code verified at fresh SHA (`7cc54f6`).
+2. Mechanism not disproven by batches 103–162 and recorded proofs.
 3. Production-realistic `pd.DataFrame`/index/dtype/column-label/file-format path with plausible pandas/library behavior (no semantic change, no pathological harness).
 4. A statable control-flow path consistent with (2)-(3).
 
@@ -58,36 +59,25 @@
 
 | Batch | SHA | Delta | Result | Notes |
 |---|---|---:|---|---|
-| 136 | `377a70c` | -1 | reduction | 35/1683, `322` covered. |
-| 137 | `0d00688` | 0 | proof | Hypothesis/public-loader/nullable evidence. |
-| 138 | `c3e44a3` | 0 | proof | Public loader trace, MRO/coercer-contract evidence. |
-| 139 | `24db195` | 0 | heavy proof | AST/MRO/coercer static proofs; pandas 3.1.1 traces. |
-| 140 | `ed0fda2` | 0 | confirmed | 1496/0/17, 35/1683, guard 44/5. |
-| 141 | `d97339d` | 0 | appendix | Cross-module contract audit + AST caller map. |
-| 142 | `2a272a7` | 0 | appendix | File-path loaders + nullable/Categorical/MultiIndex/np-dtype + Hypothesis fuzz. |
-| 143 | `5af2dda` | 0 | confirmed | 1467/0/17, 35/1683, guard 44/5. |
-| 145 | `2848cf7` | 0 | appendix | IO/parsing seams, ladder-state, exception-type boundaries. |
-| 146 | `88ef267` | 0 | appendix | Parse variants, 268-269 control-flow trace, inspect/caller gate audit. |
-| 147 | `55b7cdb` | 0 | appendix+lead | 351-352 runtime trace hit (probe removed). |
-| 148 | `2ba2c8f` | -2 | reduction | **351-352 reduced** (`_NonValueErrorFloat`); semantics preserved. 1470/0/17, **33/1683**. |
-| 149 | `34f462e` | -2 | reduction | **334-335 reduced** (metaclass `__name__` descriptor, M149); semantics preserved. 1473/0/17, **31/1683**. |
+| 148 | `2ba2c8f` | -2 | reduction | 351-352 reduced (`_NonValueErrorFloat`); semantics preserved. |
+| 149 | `34f462e` | -2 | reduction | 334-335 reduced (metaclass `__name__` descriptor, M149); semantics preserved. |
 | 150 | `1630eda` | 0 | proof | M150.1–M150.7 per-cluster strict 4-criteria; 31 miss unchanged. |
-| 151 | `55010c1` (proof appendix recorded) | 0 | proof | M151.A–M151.D (bytecode/520-object fuzz/branch trace/coercer determinism); 31 miss unchanged. |
-| 152 | `52d0d00` | 0 | proof | M152.A–D (AST exhaustive-handler/shadowing for try@113/598/648; coercer→index dataflow gate contradiction 216-224⇒232; targeted runtime trace NaT-string hit 227-233,245 only; strict re-audit). 31 miss unchanged. |
-| 153 | `03fd243` | 0 | proof | M153.A–D (sys.settrace frame-level line-hit proof: 268-269 handler-order/MRO dead — plain VE/TE converted to BABDataError at 261-265, intercepted by 266 before 268, `BABDataError⊂ValueError` shadows 268; all-unparseable object index trace hit 261-267 not 268-269). 234-244/246-247 dataflow-gate contradiction — 216-224 completion requires coercer success on all `idx` elements ⇒ same deterministic coercer at 232 cannot raise on same `idx` ⇒ `continue` 233 always; NaT-mixed index trace hit 227-233,245 not 234-244/246-247). 31 miss unchanged. |
-| 154 | `dc5294c` | 0 | proof | M154.A-F (AST/MRO shadowing 268-269; coercer NaT-outcome table extending M152.B for 234-247; exchange try enumeration; construction/identity checks; element contract sampling). 31 miss unchanged. |
-| 155 | `ec637e9` | 0 | proof | M155.A-E (PEP 669 `sys.monitoring` oracle; public-loader/DataFrame-subclass/wrapper sweep; epoch/coercer boundary sweep; stateful-element 216→224→227→232 gate probe). 0 miss-cluster hits; 31 miss unchanged. |
-| 156 | `6c488ea` | 0 | proof | M156.A-E (CPython 3.12 bytecode/ExceptionTable path map for 216-247/248-271; coercer output homogeneity + 245 assignment contract; 216→224→227→232 gate re-derivation; `BABDataError⊂ValueError` MRO/construction corroboration). 31 miss unchanged. |
+| 151 | `55010c1` | 0 | proof | M151.A–M151.D; 31 miss unchanged. |
+| 152 | `52d0d00` | 0 | proof | M152.A–D; 31 miss unchanged. |
+| 153 | `03fd243` | 0 | proof | M153.A–D (`sys.settrace` frame-level); 31 miss unchanged. |
+| 154 | `dc5294c` | 0 | proof | M154.A–F; 31 miss unchanged. |
+| 155 | `ec637e9` | 0 | proof | M155.A–E (PEP 669 `sys.monitoring` oracle); 31 miss unchanged. |
+| 156 | `6c488ea` | 0 | proof | M156.A–E (CPython 3.12 bytecode/ExceptionTable); 31 miss unchanged. |
+| 157 | `1a80e85` | 0 | proof | M157.A (`sys.settrace` production-realistic sweep); 31 miss unchanged. |
+| 158 | `a522e82` | 0 | proof | M158.A-D; 31 miss unchanged. |
+| 160 | `52b634b` | 0 | proof | M160.A-G; 31-miss target cluster unchanged. |
+| 161 | `d614cad` | 0 | proof-strengthened | M161.1–M161.9 per-cluster strict-4 verdicts; 31-miss floor unchanged. |
+| 162 | `119a018` | 0 | proof | M162.A-F; 0 target hits; `docs/unreachable_proofs.md` §Batch 162 appended. 31-miss floor unchanged. |
+| 163 | `7cc54f6` | — | pending | **Not yet executed.** Active directive below. |
 
-| 157 | `1a80e85` | 0 | proof | M157.A (`sys.settrace` frame-level production-realistic sweep): 0 target-line hits. 31 miss unchanged. |
-| 158 | `a522e82` | 0 | proof | M158.A-D (ExceptionTable source-range feed for 268-269 handler 4800; pandas 3.1.1 exact 245 coerced-shape/`ensure_index` contract; public-loader CSV/JSON NaT trace; construction/structural rechecks): 0 target-line hits; no feeding range delivers plain non-`BABDataError` VE/TE. 31 miss unchanged. |
-| 160 | `52b634b` | 0 | proof | M160.A-G (handler-order shadow 268-269; warnings-as-errors; coercer/type-surface incl np.datetime64 NaT ns/Fraction/Decimal/string-dtype/subclass/pd.NA; public-loader/file-format traces; 234-244 gate re-probe 225→227-233→245/248-267; Unicode asset normalization; np.seterr epoch edges). 0 target hits. BAB subset 632/6/34; campaign_d guard 879/5/53. 31-miss target cluster unchanged. |
-| 161 | `d614cad` | 0 | proof-strengthened | M161.1–M161.9 per-cluster strict-4-criteria verdicts for all 11 remaining target clusters (§cluster map). All closed: structural-dead / handler-order-shadowed / dataflow-gated / construction-unreachable / inspect-gated (`326` preserved). **No new production-realistic mechanism; 0 target-line hits; no canonical test added; no production code changed.** Full canonical count re-verified @ `d614cad` (BAB subset 632/6/34; full canonical 1473/0/17; 31/1683 target-miss floor). |
-| 162 | `119a018` | 0 | proof | M162.A-F (pandas option/config sweep; tz-aware Timestamp+NaT object-index mixes; nullable `pd.NA` scalar; exchange/promotion frame variants incl empty/whitespace cols & all-None date col; Unicode whitespace/RTL/BOM/NARROW NBSP asset normalization; 234-244 coercer/dayfirst gate recheck). 0 target hits. BAB subset 632/6/34 @ `119a018`; target-miss clusters unchanged. No canonical test added; no production/workflow changes. `docs/unreachable_proofs.md` §Batch 162 appended. |
+## INITIAL TASK MESSAGE — 2026-11-08T14:46Z (Batch 163) — BINDING, EXECUTE IMMEDIATELY
 
-## INITIAL TASK MESSAGE — 2026-11-08T14:44Z (Batch 163) — BINDING, EXECUTE IMMEDIATELY
-
-**SHA:** `119a018` (`data_loader.py` unchanged since `e945fde`; line→code stable). **Fresh baseline (Batch 162 Step 0, 2026-11-08T14:44Z @ `119a018`):** BAB canonical subset **632 passed, 6 skipped, 34 warnings**; target-miss clusters still present **`43-44,234-244,246-247,268-269,326,338-342,403-404,641-642,694-695,791-792,953`** (31-miss target floor unchanged). Prior full canonical baseline **1473 passed, 0 failed, 17 skipped, 109 warnings / 31 miss / 1683 stmts / 98%** — re-verify in Step 0. Guard `campaign_d*` preserved (do not alter `322,326`). Batch 163 **not yet executed**. No baseline-only/review-only/planning-only/status-only exit. **Repo-name priority = BAB only.**
+**SHA:** `7cc54f6` (`data_loader.py` unchanged since `e945fde`; line→code stable). **Fresh baseline (Batch 163 Step 0, 2026-11-08T14:46Z @ `7cc54f6`):** BAB canonical subset **632 passed, 6 skipped, 34 warnings**; target-miss clusters still present **`43-44,234-244,246-247,268-269,326,338-342,403-404,641-642,694-695,791-792,953`** (~31-miss target floor unchanged). Prior full canonical baseline **1473 passed, 0 failed, 17 skipped, 109 warnings / 31 miss / 1683 stmts / 98%** — re-verify full canonical in Step 0. Guard `campaign_d*` preserved (do not alter `322,326`). Batch 163 **not yet executed**. No baseline-only/review-only/planning-only/status-only exit. **Repo-name priority = BAB only.**
 
 ### Mission (binary; heavy work required)
 
