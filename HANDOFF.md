@@ -1,8 +1,10 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 
-> **SOLE DURABLE HANDOFF (Batch 156 recorded 2026-11-08T11:16Z @ `6c488ea`; Batch 157 initial task message refreshed 2026-11-08T11:41Z @ `5caf899`; Step 0 rebaseline re-verified 2026-11-08T11:35Z @ `5caf899` — canonical 1473/0/17, coverage **31 miss / 1683 stmts / 98%** `43-44,234-244,246-247,268-269,326,338-342,403-404,641-642,694-695,791-792,953`, guard `campaign_d*` 44/5 green). `data_loader.py` unchanged since `e945fde` (line→code stable). Repo-name priority = **BAB only — `strategies/betting_against_beta/data_loader.py` remaining miss floor.**
+> **SOLE DURABLE HANDOFF — canonical, no competing handoff files.** Refreshed **2026-11-08T11:41:58Z** (this session) @ `5caf899`. Batch 156 recorded 2026-11-08T11:16Z @ `6c488ea`; Batch 157 initial task message is the **only active next-session directive** (§“INITIAL TASK MESSAGE — 2026-11-08T11:41Z (Batch 157)”). Step 0 rebaseline re-verified 2026-11-08T11:35Z @ `5caf899`: canonical **1473/0/17, 31 miss / 1683 stmts / 98%** `43-44,234-244,246-247,268-269,326,338-342,403-404,641-642,694-695,791-792,953`, guard `campaign_d*` 44/5 green. `data_loader.py` unchanged since `e945fde` (line→code stable). **Repo-name priority = BAB only — `strategies/betting_against_beta/data_loader.py` remaining miss floor.**
 >
 > **Status:** B148 (-2, 351-352) and B149 (-2, 334-335) reduced misses with semantics preserved. B150–156 produced 0-delta, materially-new proof work (M150-M156) recorded in `docs/unreachable_proofs.md`. B156 (this session, `6c488ea`) verified fresh canonical baseline and added §Batch 156 (M156.A-E, **materially new CPython 3.12.3 bytecode/`ExceptionTable` path mapping for `_normalize_index`** + coercer output-homogeneity/245 assignment contract on pandas 3.1.1 + 216→224→227→232 control-flow gate re-derivation + `BABDataError⊂ValueError` MRO/construction corroboration): **0 miss-cluster hits / no satisfiable production path**. 234-247 remains dataflow-gated (232 same coercer/`idx`; 231 suppresses 232 exceptions to 237/243→246 conversion; 245 reached only after 227 loop completes; homogeneous coercer outputs assign successfully). 268-269 remains shadowed by handler order/MRO (266 intercept before 268). **No miss reduction achieved (strict-4-criteria miss reduction requires a semantics-preserving production-realistic path; none demonstrated).** This is not a permission to idle. “Floor closed”/status-only exits are forbidden unless the session performs required heavy work.
+>
+> **READ THIS FIRST — ACTIVE DIRECTIVE:** Jump to **“INITIAL TASK MESSAGE — 2026-11-08T11:41Z (Batch 157) — BINDING, EXECUTE IMMEDIATELY”** below. It is the only next-session task. Do not summarize, plan, or declare the floor closed without completing its heavy-work requirements.
 >
 > **Binding rules:** Read completely, rebaseline, then do heavy work. No status-only, planning-only, review-only, or “floor closed” exit without required heavy work. Every session must produce **measurable heavy work**: miss reduction in a fresh canonical aggregate **OR** genuinely new, non-repeat, high-confidence unreachable-proof evidence in `docs/unreachable_proofs.md` using a **materially new method** with per-cluster file:line, method, observed result, and strict 4-criteria verdict. “No new mechanism exists” is invalid unless you actually ran materially-new checks and recorded evidence. **Never change production semantics solely for coverage. Never alter `322,326` semantics. Never touch `.github/workflows/*`. Never commit/push unless explicitly requested. `tests/test_bab_data_loader_batch148.py` and `tests/test_bab_data_loader_batch149.py` must remain in the canonical set and must not be deleted or weakened.**
 
@@ -14,7 +16,7 @@
 - **Guard (`campaign_d*`):** **44 passed, 5 warnings**. `322` covered; `326` remains guard-relevant — **preserve semantics**.
 - **Deps:** `PYTHONPATH=$PWD:/home/runner/work/_temp/kilo-tmp/pylib` → pytest 9.2.0, coverage 7.17.2, numpy 2.5.4, pandas 3.1.1, scipy 1.18.1, hypothesis 6.170.15; **no pyarrow/pytables/fastparquet**.
 
-## Bottlenecks — routed (verified 2026-11-08T10:09Z)
+## Bottlenecks — routed (verified 2026-11-08T11:41Z; no blocked sessions)
 
 | # | Bottleneck | Route | Status |
 |---|---|---|---|
@@ -26,10 +28,10 @@
 | 6 | Missing parquet/hdf5 engines | Monkeypatch `pd.read_parquet/read_hdf`/call sites; handlers may wrap as `BABDataError`. | Routed |
 | 7 | Aggregate-context sensitivity | Direct canonical helper calls, real shapes, tight scoped monkeypatches/subclasses; verify in fresh canonical aggregate. | Routed |
 | 8 | Inspect-sensitive/campaign_d semantics | Preserve inspect/caller behavior and campaign_d behavior. **Never alter `322,326` semantics.** | Preserved |
-| 9 | Canonical batch set drift | Canonical data-loader batches: **40-69,71-74,76-89,93,95,96,148,149** (no 70,75,90-92,94). Batch148+149 retained. | Routed |
-| 10 | Repeated 0-delta inefficiency | B103–152 executed/measured/proved. No repeat probes of closed mechanisms. 0-delta without new method + recorded evidence = failed session. | Routed |
+| 9 | Canonical batch set drift | Canonical data-loader batches: **40-69,71-74,76-89,93,95,96,148,149** (no 70,75,90-92,94). Batch148+149 retained. Step 0 command is authoritative. | Routed |
+| 10 | Repeated 0-delta inefficiency | B103–156 executed/measured/proved (M149-M156). No repeat probes of closed mechanisms. 0-delta without new method + recorded evidence = failed session. | Routed |
 
-No session is blocked. All 10 bottlenecks are routed.
+**No session is blocked. No competing handoff files exist** (`HANDOFF.md` is sole; `docs/unreachable_proofs.md` is evidence appendix, not a task directive). All 10 bottlenecks routed.
 
 ## Remaining 31 — cluster map (verify line→code each session)
 
@@ -73,6 +75,10 @@ No session is blocked. All 10 bottlenecks are routed.
 | 151 | `55010c1` (proof appendix recorded) | 0 | proof | M151.A–M151.D (bytecode/520-object fuzz/branch trace/coercer determinism); 31 miss unchanged. |
 | 152 | `52d0d00` | 0 | proof | M152.A–D (AST exhaustive-handler/shadowing for try@113/598/648; coercer→index dataflow gate contradiction 216-224⇒232; targeted runtime trace NaT-string hit 227-233,245 only; strict re-audit). 31 miss unchanged. |
 | 153 | `03fd243` | 0 | proof | M153.A–D (sys.settrace frame-level line-hit proof: 268-269 handler-order/MRO dead — plain VE/TE converted to BABDataError at 261-265, intercepted by 266 before 268, `BABDataError⊂ValueError` shadows 268; all-unparseable object index trace hit 261-267 not 268-269). 234-244/246-247 dataflow-gate contradiction — 216-224 completion requires coercer success on all `idx` elements ⇒ same deterministic coercer at 232 cannot raise on same `idx` ⇒ `continue` 233 always; NaT-mixed index trace hit 227-233,245 not 234-244/246-247). 31 miss unchanged. |
+| 154 | `dc5294c` | 0 | proof | M154.A-F (AST/MRO shadowing 268-269; coercer NaT-outcome table extending M152.B for 234-247; exchange try enumeration; construction/identity checks; element contract sampling). 31 miss unchanged. |
+| 155 | `ec637e9` | 0 | proof | M155.A-E (PEP 669 `sys.monitoring` oracle; public-loader/DataFrame-subclass/wrapper sweep; epoch/coercer boundary sweep; stateful-element 216→224→227→232 gate probe). 0 miss-cluster hits; 31 miss unchanged. |
+| 156 | `6c488ea` | 0 | proof | M156.A-E (CPython 3.12 bytecode/ExceptionTable path map for 216-247/248-271; coercer output homogeneity + 245 assignment contract; 216→224→227→232 gate re-derivation; `BABDataError⊂ValueError` MRO/construction corroboration). 31 miss unchanged. |
+
 
 | 156 | `6c488ea` | 0 | proof | M156.A-E (CPython 3.12 bytecode/ExceptionTable path map for 216-247/248-271; coercer output homogeneity + 245 assignment contract; 216→224→227→232 gate re-derivation; `BABDataError⊂ValueError` MRO/construction corroboration). 31 miss unchanged. |
 
@@ -118,5 +124,3 @@ For each remaining cluster: (1) verify file:line at current SHA; (2) apply stric
 ## Historical detail
 
 Detailed batch appendices remain in `docs/unreachable_proofs.md` and git history. This HANDOFF is the single durable operational control document.
-| 154 | `dc5294c` | 0 | proof | M154.A-F (AST/MRO shadowing 268-269; coercer NaT-outcome table extending M152.B for 234-247; exchange try enumeration; construction/identity checks; element contract sampling). 31 miss unchanged. |
-| 155 | `ec637e9` | 0 | proof | M155.A-E (PEP 669 `sys.monitoring` oracle; public-loader/DataFrame-subclass/wrapper sweep; epoch/coercer boundary sweep; stateful-element 216→224→227→232 gate probe). 0 miss-cluster hits; 31 miss unchanged. |
