@@ -1,14 +1,14 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 
-> **SOLE DURABLE HANDOFF (2026-11-08T04:02Z @ `c3e44a3`).** Repo-name priority = **BAB only**. Read completely, rebaseline, then execute **INITIAL TASK MESSAGE — Batch 139** immediately. No off-ramps: no status-only, planning-only, review-only, or “floor closed” exit without the required heavy work. Every session must produce **measurable heavy work**: miss reduction in a fresh canonical aggregate **OR** genuinely new, non-repeat, high-confidence unreachable-proof evidence in `docs/unreachable_proofs.md` using a **materially new method** with per-cluster file:line, method, observed result, and strict 4-criteria verdict. “No new mechanism exists” is invalid unless you actually ran materially-new checks and recorded evidence. **Never change production semantics solely for coverage. Never alter `322,326` semantics. Never touch `.github/workflows/*`. Never commit/push unless explicitly requested.**
+> **SOLE DURABLE HANDOFF (2026-11-08T04:08Z @ `24db195`, refreshed after Batch 139).** Repo-name priority = **BAB only**. Read completely, rebaseline, then execute **INITIAL TASK MESSAGE — Batch 140** immediately. No off-ramps: no status-only, planning-only, review-only, or “floor closed” exit without the required heavy work. Every session must produce **measurable heavy work**: miss reduction in a fresh canonical aggregate **OR** genuinely new, non-repeat, high-confidence unreachable-proof evidence in `docs/unreachable_proofs.md` using a **materially new method** with per-cluster file:line, method, observed result, and strict 4-criteria verdict. “No new mechanism exists” is invalid unless you actually ran materially-new checks and recorded evidence. **Never change production semantics solely for coverage. Never alter `322,326` semantics. Never touch `.github/workflows/*`. Never commit/push unless explicitly requested.**
 
-## Measured state (fresh rebaseline, 2026-11-08T04:01Z @ `c3e44a3`)
+## Measured state (fresh rebaseline, 2026-11-08T04:08Z @ `24db195`)
 
-- **Branch/SHA:** `main` @ `c3e44a3`. `strategies/betting_against_beta/data_loader.py` unchanged since `e945fde` for miss line→code. Working tree dirty only by local scratch/untracked probes and this handoff/proof update — do not commit unless requested.
-- **Canonical aggregate (fresh, `--rcfile=/dev/null`, `.coverage*` cleaned):** **1496 passed, 0 failed, 17 skipped, 109 warnings** (47.75s).
+- **Branch/SHA:** `main` @ `24db195` (checkpoint commits only; `data_loader.py` unchanged since `e945fde` for miss line→code). Working tree may include local scratch/untracked probes — do not commit unless requested.
+- **Canonical aggregate (fresh, `--rcfile=/dev/null`, `.coverage*` cleaned):** **1496 passed, 0 failed, 17 skipped, 109 warnings** (48.01s).
 - **Coverage (`--rcfile=/dev/null`, `--include='strategies/betting_against_beta/data_loader.py'`, `--show-missing`):** **35 miss / 1683 stmts / 98%**.
 - **Missing (35):** `43-44, 234-244, 246-247, 268-269, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953`
-- **Guard (`campaign_d*`):** **44 passed, 5 warnings** (0.68s). **`322` covered; `326` remains the only live inspect-gated miss — preserve semantics.**
+- **Guard (`campaign_d*`):** **44 passed, 5 warnings** (0.84s). **`322` covered; `326` remains the only live inspect-gated miss — preserve semantics.**
 - **Deps:** `/home/runner/work/_temp/kilo-tmp/pylib` has `pytest`, `coverage`, `numpy 2.5.4`, `pandas 3.1.1`, `scipy`, `hypothesis 6.170.15`; **no `pyarrow`/`pytables`/`fastparquet`**. `export PYTHONPATH=$PWD:/home/runner/work/_temp/kilo-tmp/pylib`.
 
 ## Bottlenecks — removed/routed (verified 2026-11-08T04:01Z)
@@ -48,23 +48,23 @@
 3. Production-realistic `pd.DataFrame`/index/dtype/column-label/file-format path with plausible pandas/library behavior (no semantic change, no pathological harness).
 4. A statable control-flow path consistent with (2)-(3).
 
-## INITIAL TASK MESSAGE — 2026-11-08T04:02Z (Batch 139) — EXECUTE IMMEDIATELY
+## INITIAL TASK MESSAGE — 2026-11-08T04:08Z (Batch 140) — EXECUTE IMMEDIATELY
 
-**SHA:** `c3e44a3`. **Fresh baseline:** 1496/0/17, **35 miss / 1683 stmts / 98%**, missing `43-44,234-244,246-247,268-269,326,334-335,338-342,351-352,403-404,641-642,694-695,791-792,953`, guard 44/5. `data_loader.py` unchanged since `e945fde`. **No baseline-only/review-only/planning-only exit.**
+**SHA:** `24db195`. **Fresh baseline (measured this session):** 1496/0/17, **35 miss / 1683 stmts / 98%**, missing `43-44,234-244,246-247,268-269,326,334-335,338-342,351-352,403-404,641-642,694-695,791-792,953`, guard 44/5. `data_loader.py` unchanged since `e945fde`. **No baseline-only/review-only/planning-only exit.**
 
 ### Mission (binary)
 
 1. **Primary:** Push `data_loader.py` **below 35 miss** in a fresh canonical aggregate via a genuinely new, concretely demonstrated, production-realistic mechanism satisfying all 4 criteria on a real `DataFrame`/index/dtype/column-label/file-format path. No semantic changes. Preserve `322,326`.
-2. **Fallback (only after exhaustive new-method work):** Add genuinely new unreachable-proof evidence to `docs/unreachable_proofs.md` using a **materially new method** not recorded in B103–138. Required: per cluster file:line @ SHA, method, observed result, strict 4-criteria verdict. Do not repeat disproven mechanisms.
+2. **Fallback (only after exhaustive new-method work):** Add genuinely new unreachable-proof evidence to `docs/unreachable_proofs.md` using a **materially new method** not recorded in B103–139. Required: per cluster file:line @ SHA, method, observed result, strict 4-criteria verdict. Do not repeat disproven mechanisms.
 3. **Forbidden:** status-only, repeat probes, semantic changes for coverage, workflow edits, altering `322,326`, committing/pushing unless explicitly requested.
 
-### Batch 139 materially-new methods (use ≥1 substantively; record commands/cases/outcomes)
+### Batch 140 materially-new methods (use ≥1 substantively; record commands/cases/outcomes)
 
-- **AST/control-flow proof from source:** Parse `data_loader.py` and statically prove (with concrete evidence appended) reachability/deadness for clusters where feasible (e.g., `split()` empty token, handler-order/MRO, coercer NaT contract), and explicitly document why each static claim is or is not sufficient for a miss-reduction claim.
-- **Pandas 3.x realistic constructor boundaries:** Exercise `pd.read_csv`/`read_json`/`to_pickle`/`pd.DataFrame` constructors with pandas 3.1.1 behaviors (nullable dtypes, `copy_on_write` interactions, `StringDtype`/`ArrowDtype` absent fallback paths, `pd.NA` propagation) through **public loaders** and direct helper calls — but only count evidence new relative to B137/B138.
-- **Targeted single-boundary monkeypatch in aggregate-realistic frames:** monkeypatch exactly one plausible boundary (`pd.to_datetime`, `pd.isna`, `Index.isna`, `DataFrame.__setitem__` on a realistic subclass, `np.issubdtype` paths if any) while keeping frame/index construction production-realistic; use `sys.settrace` to prove whether the target line executes. A hit only counts if the boundary behavior is plausible for real pandas/library behavior (satisfy criterion 3); otherwise record as non-production boundary evidence.
-- **Downstream-consumption trace:** feed loader-normalized outputs into `beta`/`signals`/`portfolio`/`backtest`/`strategy` paths to detect any loader call sites or return-shape expectations that open a missed normalization branch; this is exploratory proof work, not a production change.
-- If a concrete 4-criteria path is found, implement it as `tests/test_bab_data_loader_batch139.py` and verify in fresh canonical aggregate.
+- **C-extension/NumPy 2.5.4 ufunc boundary audit (production-realistic):** Trace scalar dispatch for `np.float64`/`np.floating`/Decimal-like values that are *not* pathological `__float__` side effects (`np.isfinite`/`math.isfinite`/`pd.api.types` interactions, `pd.to_datetime`/Index construction). Eligible for 351–352 only if criterion 3 holds.
+- **Pandas parser/API seams (available engines only):** Exercise realistic `read_csv`/`read_json` options, file-like/Path objects, dtype-backend interactions, malformed-but-plausible file content through public loaders. No pyarrow/fastparquet/tables assumptions.
+- **Exception-origin audit with plausible single monkeypatch:** Monkeypatch only a seam corresponding to plausible library behavior (document why plausible), e.g., `pd.DatetimeIndex`/`pd.to_datetime` raising under realistic malformed index/value after normalization attempts; `sys.settrace` hits count only if criterion 3 holds.
+- **Cross-module contract audit:** `grep`/AST all `strategies.betting_against_beta` callers of loader public/private helpers; exercise untested real-pipeline shapes (`beta`, `signals`, `portfolio`, `backtest`, `metrics`, `cli`, `strategy`) and trace.
+- If a concrete 4-criteria path is found, implement it as `tests/test_bab_data_loader_batch140.py` and verify in fresh canonical aggregate.
 
 ### Step 0 — mandatory rebaseline
 
@@ -79,19 +79,19 @@ python3 -m coverage report --rcfile=/dev/null --include='strategies/betting_agai
 python3 -m pytest -q --tb=no --ignore=tests/test_controller_progress_accounting.py tests/test_bab_data_loader_campaign_d.py tests/test_bab_data_loader_campaign_d2.py tests/test_bab_data_loader_campaign_d3.py
 ```
 
-Reconcile if different from 35 miss / 1496/0/17 (or prior 1494 baseline) / guard 44/5.
+Reconcile if different from 35 miss / 1496/0/17 / guard 44/5.
 
 ### Forced campaign (no early exit)
 
 For each cluster `234-244,246-247`, `268-269`, `351-352`, `334-335,338-342`, `403-404`, `43-44`, `953`, `641-642,694-695`, `791-792`, `326` (guard-only):
 1. Verify file:line at current SHA.
-2. Apply strict 4 criteria. If all 4 met: create `tests/test_bab_data_loader_batch139.py`, run focused → guard → fresh canonical aggregate including batch139, record measured delta.
-3. If not: run ≥1 materially-new check, document method/result, append Batch139 appendix to `docs/unreachable_proofs.md`.
-4. Never repeat B103–138 disproven mechanisms.
+2. Apply strict 4 criteria. If all 4 met: create `tests/test_bab_data_loader_batch140.py`, run focused → guard → fresh canonical aggregate including batch140, record measured delta.
+3. If not: run ≥1 materially-new check, document method/result, append Batch140 appendix to `docs/unreachable_proofs.md`.
+4. Never repeat B103–139 disproven mechanisms.
 
 ### Required session outcome
 
-**Success =** miss **< 35** in fresh canonical aggregate **OR** genuinely new 4-criteria mechanism/test **OR** complete Batch139 non-repeat materially-new appendix in `docs/unreachable_proofs.md` covering all remaining clusters plus updated HANDOFF/ledger with measured results. Anything less is failure.
+**Success =** miss **< 35** in fresh canonical aggregate **OR** genuinely new 4-criteria mechanism/test **OR** complete Batch140 non-repeat materially-new appendix in `docs/unreachable_proofs.md` covering all remaining clusters plus updated HANDOFF/ledger with measured results. Anything less is failure.
 
 **BEGIN HEAVY WORK NOW.**
 
@@ -101,7 +101,8 @@ For each cluster `234-244,246-247`, `268-269`, `351-352`, `334-335,338-342`, `40
 |---|---|---:|---|---|
 | 136 | `377a70c` | -1 | reduction | canonical aggregate included campaign_d_core tests; **35/1683**, `322` covered. |
 | 137 | `0d00688` | 0 | proof | Hypothesis/public-loader/nullable/JSON-orient/tz/index/coercer evidence; 0 hits. |
-| **138** | **`c3e44a3`** | **0** | **heavy proof** | **1496/0/17, 35/1683, guard 44/5.** Public `load_returns/load_prices` trace (CSV/long/JSONL/pickle) 0 hits; MRO proves `268-269` dead; coercer contract proves `234-247` dead; `351-352` only via monkeypatched `np.isnan` non-`ValueError` (non-production). Appendix in `docs/unreachable_proofs.md`. **Next: Batch 139.** |
+| 138 | `c3e44a3` | 0 | proof | Public loader trace, MRO/coercer-contract evidence; 0 hits. |
+| **139** | **`24db195`** | **0** | **heavy proof (this session)** | **1496/0/17, 35/1683, guard 44/5 (measured).** AST/MRO/coercer static proofs; pandas 3.1.1 public-loader/downstream `sys.settrace` 0 target hits; 351–352 hit only via monkeypatched `np.isnan` RuntimeError (non-production boundary, criterion 3 fails). Batch139 appendix added to `docs/unreachable_proofs.md`. **Next: Batch 140.** |
 
 ## Historical detail
 
