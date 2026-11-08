@@ -1,6 +1,6 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 
-> **SOLE DURABLE HANDOFF (2026-11-08T06:03Z @ `5af2dda`, refreshed at session start; Batch 145 initial task message below is binding). Repo-name priority = **BAB only — `strategies/betting_against_beta/data_loader.py` miss floor.** Read completely, rebaseline, then execute **INITIAL TASK MESSAGE — Batch 145** immediately. No off-ramps: no status-only, planning-only, review-only, or "floor closed" exit without the required heavy work. Every session must produce **measurable heavy work**: miss reduction in a fresh canonical aggregate **OR** genuinely new, non-repeat, high-confidence unreachable-proof evidence in `docs/unreachable_proofs.md` using a **materially new method** with per-cluster file:line, method, observed result, and strict 4-criteria verdict. "No new mechanism exists" is invalid unless you actually ran materially-new checks and recorded evidence. **Never change production semantics solely for coverage. Never alter `322,326` semantics. Never touch `.github/workflows/*`. Never commit/push unless explicitly requested.**
+> **SOLE DURABLE HANDOFF (2026-11-08T06:04Z @ `5af2dda`, refreshed at session start; Batch 145 initial task message below is binding). Repo-name priority = **BAB only — `strategies/betting_against_beta/data_loader.py` miss floor.** Read completely, rebaseline, then execute **INITIAL TASK MESSAGE — Batch 145** immediately. No off-ramps: no status-only, planning-only, review-only, or "floor closed" exit without the required heavy work. Every session must produce **measurable heavy work**: miss reduction in a fresh canonical aggregate **OR** genuinely new, non-repeat, high-confidence unreachable-proof evidence in `docs/unreachable_proofs.md` using a **materially new method** with per-cluster file:line, method, observed result, and strict 4-criteria verdict. "No new mechanism exists" is invalid unless you actually ran materially-new checks and recorded evidence. **Never change production semantics solely for coverage. Never alter `322,326` semantics. Never touch `.github/workflows/*`. Never commit/push unless explicitly requested.**
 
 ## Batch status (this session)
 
@@ -56,7 +56,7 @@ No session is blocked. All 10 bottlenecks are routed. Blockers eliminated: scrat
 3. Production-realistic `pd.DataFrame`/index/dtype/column-label/file-format path with plausible pandas/library behavior (no semantic change, no pathological harness).
 4. A statable control-flow path consistent with (2)-(3).
 
-## INITIAL TASK MESSAGE — 2026-11-08T05:58Z (Batch 145) — BINDING, EXECUTE IMMEDIATELY
+## INITIAL TASK MESSAGE — 2026-11-08T06:04Z (Batch 145) — BINDING, EXECUTE IMMEDIATELY
 
 **SHA:** `5af2dda`. **Fresh baseline (measured this session):** 1467/0/17, **35 miss / 1683 stmts / 98%**, missing `43-44,234-244,246-247,268-269,326,334-335,338-342,351-352,403-404,641-642,694-695,791-792,953`, guard 44/5. `data_loader.py` unchanged since `e945fde`. **B103–144 executed (0-delta/floor mechanism-closed across recorded methods). No baseline-only/review-only/planning-only/status-only exit.**
 
