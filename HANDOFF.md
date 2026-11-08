@@ -2,7 +2,7 @@
 
 > **THIS IS THE SOLE DURABLE HANDOFF.** Prioritize `Crypto-Betting-Against-Beta` (BAB) ONLY. Read completely, rebaseline, then execute the **INITIAL TASK MESSAGE** immediately. No off-ramps, no sidetracks, no status-only sessions, no planning-only sessions, no "review-only" exits. Every session must produce measurable heavy work: **miss reduction in a fresh canonical aggregate** OR **new high-confidence file:line unreachable-proof evidence** added to `docs/unreachable_proofs.md` that closes a *genuinely new* mechanism (not a repeat probe). "No new mechanism exists" is NOT a valid session outcome unless accompanied by a timestamped, line-by-line trace artifact for **every** remaining cluster using a methodology not previously recorded, proving the negative with concrete code-path/shape/monkeypatch/trace evidence.
 
-**Handoff refreshed (UTC):** 2026-11-08T01:18:00Z (batch133 Step 0 rebaseline @ `8b1bdc2`; canonical aggregate 36 miss / 1683 stmts / 98% (`--rcfile=/dev/null`); full-suite run shows 322 covered → 35 miss; bottlenecks removed/routed; no semantic changes). **SHA at handoff:** `8b1bdc2`.
+**Handoff refreshed (UTC):** 2026-11-08T01:26:41Z (batch133 Step 0 rebaseline @ `b0b7280`; canonical aggregate 36 miss / 1683 stmts / 98% (`--rcfile=/dev/null`); full-suite run shows 322 covered → 35 miss; bottlenecks removed/routed; no semantic changes). **SHA at handoff:** `b0b7280`.
 **Repo:** `Crypto-Betting-Against-Beta` | **Path:** `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
 **Branch/SHA (measured):** `main` @ `a66bec2` (working tree: tracked diffs from this session’s proof/handoff work; untracked root scratch `debug_beta*.py`/`probe*.py` if present — **do not commit**; clean `.coverage*` before coverage runs). `data_loader.py` unchanged since `311656a`.
 **Measured baseline (fresh canonical, 2026-11-08T01:00Z, batch132 Step 0):** canonical aggregate batches 40-69,71-74,76-89,93,95,96 — **1466 passed, 0 failed, 17 skipped, 107 warnings** (46.32s). Coverage (`--rcfile=/dev/null` run+report): **36 miss / 1683 stmts / 98%** (`--include='strategies/betting_against_beta/data_loader.py'`). Missing exactly `43-44, 234-244, 246-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953`. Guard (`campaign_d*`) **44 passed, 5 warnings** (0.52s).
@@ -106,9 +106,9 @@ Repo name = **Crypto-Betting-Against-Beta** → **BAB strategy only**. **ONLY** 
 
 ---
 
-## INITIAL TASK MESSAGE — 2026-11-08T01:10:03Z (batch133 entry; SHA `8b1bdc2`) — EXECUTE IMMEDIATELY (HEAVY WORK, NO ESCAPE HATCHES)
+## INITIAL TASK MESSAGE — 2026-11-08T01:26:41Z (batch133 entry; SHA `b0b7280`) — EXECUTE IMMEDIATELY (HEAVY WORK, NO ESCAPE HATCHES)
 
-**Timestamp (UTC):** 2026-11-08T01:10:03Z (fresh Step 0 rebaseline @ `8b1bdc2`; **36-miss / 1683 stmts / 98%** mechanism-closed floor re-confirmed, `--rcfile=/dev/null`). **SHA at handoff:** `8b1bdc2`.
+**Timestamp (UTC):** 2026-11-08T01:26:41Z (fresh Step 0 rebaseline @ `b0b7280`; **36-miss / 1683 stmts / 98%** mechanism-closed floor re-confirmed, `--rcfile=/dev/null`). **SHA at handoff:** `b0b7280`.
 **Measured baseline (batch132, this session):** canonical aggregate **1466 passed, 0 failed, 17 skipped, 107 warnings** (46.32s). Coverage **36 miss**; missing exactly `43-44, 234-244, 246-247, 268-269, 322, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953`. Guard **44 passed, 5 warnings** (0.52s). `data_loader.py` unchanged since `311656a`.
 **Mode:** HEAVY WORK ONLY. 0-delta status sessions are **FAILED**. Floor mechanism-closed through batch132 (Batch132 added materially-new public-entrypoint/nullable-NA/NumPy-scalar-dispatch/Unicode-epoch fuzz in `docs/unreachable_proofs.md`; strict 4 criteria unsatisfied). **Do not exit after baseline**.
 **Bottlenecks:** all removed/routed (deps in `/home/runner/work/_temp/kilo-tmp/pylib` via `PYTHONPATH=$PWD:/home/runner/work/_temp/kilo-tmp/pylib`; `.coverage*` cleaned pre-run; `--ignore=tests/test_controller_progress_accounting.py`; no `.github/workflows/*` edits; canonical batch set 40-69,71-74,76-89,93,95,96).
