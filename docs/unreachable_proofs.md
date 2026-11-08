@@ -1243,3 +1243,19 @@ Canonical (fresh, rcfile=/dev/null): miss **36/1683 (98%)**, **1466 passed, 0 fa
 **Strict 4-criteria assessment for miss reduction:** no measured canonical reduction achieved (delta 0). M147.1 is a concrete runtime-trace candidate for 351-352 with a statable path and plausible object-dtype wrapper boundary, but canonical aggregate/isolated coverage did not record 351-352 as covered under the probe design used; no canonical test retained. All other clusters: (1)(2) satisfied for closure evidence where stated; (3)(4) no demonstrated production-realistic path to remaining misses.
 
 **Conclusion:** **35-miss floor remains at `55b7cdb` (1467/0/17, 35/1683, guard 44/5).** Batch147 added materially-new pandas `iloc`/object-array scalar-source traces, exchange/promotion adversarial frames, 268-269 handler-order structural proof with adversarial traces, 334-342/351-352 structural/NumPy-boundary probes, and a runtime-observed 351-352 float-subclass mechanism (not counted as reduction). **Next session priority:** re-attempt 351-352 with a coverage-compatible test (no `sys.settrace` in the test asserting hits; rely on `coverage`/`coverage json` in the same process if feasible, or structure so coverage's tracer records execution) using a `float` subclass where `np.isnan` raises `TypeError` due to `__float__`/`__array__` boundary in object-dtype index coercion — verify in fresh canonical aggregate before claiming. Preserve `322,326` semantics; never change production behavior solely for coverage; never touch `.github/workflows/*`.
+
+---
+
+## Batch148 (2026-11-08T07:53Z, SHA `2ba2c8f`, coverage-compatible reduction, -2 miss)
+
+**Scope:** `strategies/betting_against_beta/data_loader.py` remaining 35 misses → **33** after batch148 (`data_loader.py` unchanged since `e945fde`). `322` covered. `326` guard-relevant, **preserved**. **No production code changed.** Batch148 test retained at `tests/test_bab_data_loader_batch148.py` and added to canonical batch set.
+
+**Canonical (fresh, Step 0, includes batch148):** **1470 passed, 0 failed, 17 skipped, 109 warnings**. Coverage **33 miss / 1683 stmts / 98%**, missing exactly `43-44, 234-244, 246-247, 268-269, 326, 334-335, 338-342, 403-404, 641-642, 694-695, 791-792, 953`. Guard `campaign_d*` **44 passed, 5 warnings**.
+
+**Method M148 — coverage-compatible 351-352 closure (no `sys.settrace`):** `_NonValueErrorFloat(float)` with `__float__`/`__array__` raising `TypeError` passes `isinstance(val, float)` at `data_loader.py:345`; `np.isnan(val)` at 347 raises non-`ValueError` TypeError → 349-350 `except ValueError: raise` does not match → **351-352 `except Exception: pass` executes and coverage records it**. Coercion continues to epoch-float branch (443+) → `ValueError("bad")` — **semantics preserved**, bad value still rejected. Verified in fresh canonical aggregate: 35→33, 351-352 absent from `--show-missing`/coverage JSON.
+
+**Cluster appendix update:** `351-352` **CLOSED — REDUCED** (M148, @ `2ba2c8f`). All other clusters (43-44, 234-244/246-247, 268-269, 326 guard-preserved, 334-335/338-342, 403-404, 641-642/694-695, 791-792, 953) retain their Batch103–147 strict-4-criteria verdicts.
+
+**Strict 4-criteria assessment for miss reduction:** measured canonical reduction achieved (delta -2). M148 satisfies all 4 criteria for 351-352 at `2ba2c8f`/e945fde line map; production-realistic object-dtype coercion path via `load_returns`/`_normalize_index`; statable control-flow path 345→347(TypeError)→351-352(pass)→443+(ValueError("bad")); semantics preserved.
+
+**Conclusion:** **33-miss floor at `2ba2c8f` (1470/0/17, 33/1683, guard 44/5).** Remaining 33 misses are the Batch 149 focus per HANDOFF.md. Preserve `322,326` semantics; never change production behavior solely for coverage; never touch `.github/workflows/*`.
