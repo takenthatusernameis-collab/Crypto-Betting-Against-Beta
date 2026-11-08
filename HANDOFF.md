@@ -76,6 +76,22 @@
 | 165 | `61f639a` | 0 | partial | Step 0 rebaseline complete @ `61f639a` (632/6/34; 380 miss/77%; campaign_d 883/5/3406); target floor unchanged; heavy work (reduction / per-cluster strict-4 proof) pending → Batch 166. |
 | 166 | `61f639a` | — | **PENDING (BINDING)** | Execute immediately — directive below. |
 
+## INITIAL TASK MESSAGE — 2026-11-08T16:25Z (Batch 167) — BINDING, EXECUTE IMMEDIATELY
+
+**SHA:** `61f639a` (data_loader.py unchanged since `e945fde`; line→code stable). **Fresh rebaseline (Step 0):** BAB canonical subset **632 passed, 6 skipped, 34 warnings**; `data_loader.py` **380 miss / 1683 stmts / 77%**; target-miss floor clusters still present `43-44,234-244,246-247,268-269,326,338-342,403-404,641-642,694-695,791-792,953`. Guard `campaign_d*` **883 passed, 5 skipped, 3406 deselected**. `tests/test_bab_data_loader_batch167.py` does **not** exist. **No baseline-only/review-only/planning-only/status-only exit. Repo-name priority = BAB only.**
+
+### Mission (binary; heavy work required)
+1. Step 0 mandatory rebaseline; verify line→code for all target clusters.
+2. Primary (reduction-first): re-verify every remaining cluster against strict 4 criteria; add `tests/test_bab_data_loader_batch167.py` if any reduces canonically; verify miss < 31. Never alter `322,326`; `campaign_d*` must stay green; batch148/149 retained.
+3. Secondary (only if no reduction): exhaustive materially-new Batch 167 checks on all remaining clusters; append per-cluster `file:line@SHA`, method, observed result, strict-4 verdict to `docs/unreachable_proofs.md` §Batch 167; update this HANDOFF ledger/measured state.
+4. Forced campaign: every cluster `(43-44,234-244,246-247,268-269,326 guard-only,338-342,403-404,641-642,694-695,791-792,953)` gets verify + strict-4 + reduce or materially-new proof. No skip without verdict. No "floor closed"/status-only exit without heavy work.
+5. Forbidden: status/planning/review-only exits, repeat B103-163 methods, semantic changes for coverage, altering `322,326`, weakening/deleting batch148/149, workflow edits, commit/push unless requested.
+
+### Required session outcome
+Success = miss floor reduced in fresh canonical aggregate OR complete per-cluster strict-4 verdicts plus Batch 167 materially-new appendix covering all remaining clusters plus updated HANDOFF ledger/measured state. Anything less is failure.
+
+**BEGIN HEAVY WORK NOW.**
+
 ## INITIAL TASK MESSAGE — 2026-11-08T15:49Z (Batch 166) — BINDING, EXECUTE IMMEDIATELY
 
 **SHA:** `61f639a` (`data_loader.py` unchanged since `e945fde`; line→code stable). **Fresh rebaseline (Step 0, complete) @ this SHA:** BAB canonical subset **632 passed, 6 skipped, 34 warnings**; `data_loader.py` **380 miss / 1683 stmts / 77%**; target-miss floor clusters still present **`43-44,234-244,246-247,268-269,326,338-342,403-404,641-642,694-695,791-792,953`** (target floor unchanged). Guard `campaign_d*` **883 passed, 5 skipped, 3406 deselected**. `tests/test_bab_data_loader_batch166.py` does **not** exist. **No baseline-only/review-only/planning-only/status-only exit. Repo-name priority = BAB only.**
