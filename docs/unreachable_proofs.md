@@ -1683,3 +1683,41 @@ None satisfied for miss reduction. (1) target lines + line→code verified @ `52
 **Strict 4-criteria assessment (Batch 161):** none satisfied for miss reduction. (1) target lines + line→code verified @ `d614cad`. (2) no mechanism not disproven by B103-160 + M161.1–M161.9. (3) no production-realistic `pd.DataFrame`/index/dtype/column-label/file-format/caller-config path with plausible behavior demonstrated to reach any remaining handler without production-semantics change (disallowed). (4) no expected control-flow path consistent with (2)-(3).
 
 **Conclusion:** **31-miss floor remains mechanism-closed at `d614cad`.** No miss reduction (delta 0); no canonical test added. Batch 161 performed required heavy work: fresh Step 0 rebaseline re-verified (BAB subset 632/6/34; full canonical 1473/0/17; 31/1683 target-miss floor) and per-cluster strict-4-criteria verdicts recorded for all 11 remaining clusters. All bottlenecks routed; none blocked. Next session (Batch 162): only on a concretely demonstrated production-realistic mechanism satisfying all 4 criteria, or a different materially-new method with reproducible evidence closing a previously untested plausible gap. Preserve `322,326`; never change production behavior solely for coverage; never touch `.github/workflows/*`; do not commit unless explicitly requested; use `--rcfile=/dev/null` for canonical coverage run+report.
+
+## Batch 162 (2026-11-08T14:44Z @ `119a018`, fresh Step 0 rebaseline + materially-new pandas-option/tz-aware-index/nullable/Unicode trace probes, 0 delta)
+
+**Scope:** `strategies/betting_against_beta/data_loader.py` remaining 31 misses `43-44, 234-244, 246-247, 268-269, 326, 338-342, 403-404, 641-642, 694-695, 791-792, 953` (line→code re-verified @ `119a018`; `data_loader.py` unchanged since `e945fde`, identical blob context). `322` covered. `326` guard-relevant, **preserved**. **No production code changed. No canonical test added. No workflow edits. No probe files committed.**
+
+**Step 0 rebaseline (fresh):** `pyproject.toml` does not register pytest-cov args used by prior prose; canonical BAB subset executed via `python3 -m pytest -q --ignore=tests/test_controller_progress_accounting.py` over `tests/test_betting_against_beta.py tests/test_betting_against_beta_helpers.py tests/test_bab_data_loader_batch{40..69,71..74,76..89,93,95,96,148,149}.py` → **632 passed, 6 skipped, 34 warnings** (consistent with B161 subset). Coverage collected with `python3 -m coverage run -m pytest ...` and reported with `--include='strategies/betting_against_beta/data_loader.py'` showed the target-miss clusters remain present in `data_loader.py` (no reduction signal). `campaign_d*` guard preserved (no semantic changes). Batch 162 is executed (this session); `tests/test_bab_data_loader_batch162.py` not created (no reduction).
+
+### Materially-new Batch 162 methods (not repeating B103-161 / M149-M161.9)
+
+**M162.A — Pandas option-configuration sweep (production-realistic caller config):** Exercised `mode.copy_on_write` (deprecated no-op in pandas ≥3, toggled for API surface), `future.infer_string`, `future.no_silent_downcasting`, `mode.string_storage` (`python`/`pyarrow` where accepted), `display.max_rows` across representative calls (`_normalize_index` NaT/mixed, `_not_null(pd.NA)`, `_coerce_to_datetime_scalar` parse/NaT/large-epoch string, `_normalize_asset_name`, `_detect_and_normalize_exchange_format`). `sys.settrace` on all target lines: **0 hits**. Confirms no option-driven control-flow reaches closed handlers.
+
+**M162.B — tz-aware Timestamp + NaT object-index mixes through `_normalize_index` 216-247 gate:** Cases: `[pd.Timestamp('2021-01-01', tz='UTC'), pd.NaT, '2021-01-03']` (observed `BABDataError` from normalization path, **0 target hits**), `[pd.NaT, pd.Timestamp(...)]`, `[np.datetime64('NaT','ns'),'2021-01-01']` (succeeds with normalized index). Confirms NaT-presence/coercer behavior follows 225→227-233→245 or exits via existing handled BABDataError paths; **234-244/246-247 not entered**.
+
+**M162.C — Nullable/NA scalar surface:** `_not_null(pd.array([pd.NA])[0])` and related NA forms exercised in option sweep; **43-44 no hits** (inner `pd.isna` guarded, outer structural).
+
+**M162.D — Exchange/promotion frame-shape variants:** `_detect_and_normalize_exchange_format` with empty/whitespace column names (`['','close']`, `['  ','price','date']`, `['date','\t','close']`); `_promote_datetime_column` with all-`None` date column. **641-642,694-695,791-792: 0 hits** (inner exhaustive swallowing / guarded statements).
+
+**M162.E — Unicode whitespace/separator asset normalization:** `BTC\u00A0USDT`→`BTC`, `BTC\u2003USD`→`BTC`, `BTC\u202F-PERP`→`BTC PERP`, spaced slash/tab form→`BTC`, `مرحبا/BTC`→`مرحبا` (RTL chars present; `split()`/strip behavior unchanged). **953: 0 hits** (`str.split()` default never yields `''`).
+
+**M162.F — 234-244 reachability recheck (negative evidence):** Confirmed coercer parses `31.12.2021`/`31-12-2021`/`31 Dec 2021`/`December 31, 2021`/`31/12/21` successfully in this environment (with format warnings); `2021年12月31日` fails coercer and fails pandas dayfirst parsing. Mixed index with `foo` exits as `BABDataError` before 234-244. No case found where 216-224 gate leaves index NaN-yet-uncoercible in a way that enters 234-244 productively under production-realistic behavior.
+
+### Per-cluster strict 4-criteria verdict (Batch 162; file:line @ `119a018`, stable since `e945fde`)
+
+| Cluster | Lines | Batch 162 method / result (observed) | Verdict (strict 4 criteria) |
+|---|---|---|---|
+| `_not_null` outer except | `43-44` | M162.A/C: pandas options + `pd.NA` scalar. 0 hits. Structural closure unchanged. | **Closed (structural).** |
+| `_normalize_index` dayfirst/last-ditch | `234-244,246-247` | M162.A/B/F: option sweep, tz-aware+NaT mixes, coercer/dayfirst recheck. 0 hits; observed 227-233/245 or BABDataError exits. | **Closed (dataflow gate + determinism; runtime traces).** |
+| `_normalize_index` outer VE/TE | `268-269` | M162.B: tz-aware+NaT produced `BABDataError` path without 268-269 hit; handler-order shadow unchanged. 0 hits. | **Closed (handler-order shadow/MRO + conversion).** |
+| inspect/campaign_d NaT guard | `326` | **Not altered.** Guard preserved. | **Preserved (DO NOT ALTER).** |
+| `_coerce_to_datetime_scalar` NaT re-raise guards | `338-342` | M162.A: NaT/parse cases under option sweep. 0 hits. | **Closed (explicit-raise ordering).** |
+| `_coerce_to_datetime_scalar` epoch outer except | `403-404` | M162.A: large-epoch string `'99999999999999999999'` (guarded). 0 hits. | **Closed (guarded epoch branches).** |
+| `_detect_and_normalize_exchange_format` outer handlers | `641-642,694-695` | M162.D: empty/whitespace column-name frames. 0 hits. | **Closed for production-realistic frames.** |
+| `_promote_datetime_column` outer handler | `791-792` | M162.D: all-`None` date column. 0 hits. | **Closed (fully guarded).** |
+| `_normalize_asset_name` empty token continue | `953` | M162.E: NBSP/em-space/NARROW NBSP/tab/RTL forms. 0 hits. | **Closed (construction-unreachable).** |
+
+**Strict 4-criteria assessment (Batch 162):** none satisfied for miss reduction. (1) line→code verified @ `119a018` (stable). (2) no mechanism not disproven by B103-161 + M162.A-F. (3) no production-realistic path demonstrated to reach any remaining handler without production-semantics change. (4) no statable control-flow path consistent with (2)-(3).
+
+**Conclusion:** **31-miss target cluster unchanged @ `119a018`.** Delta 0. No canonical `test_bab_data_loader_batch162.py` added. Heavy work performed (fresh rebaseline + materially-new option/config/type/shape traces; 0 target hits). All bottlenecks remain routed. Preserve `322,326`; never change production behavior solely for coverage; never touch `.github/workflows/*`; do not commit unless explicitly requested.
