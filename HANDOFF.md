@@ -1,6 +1,6 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 
-> **SOLE DURABLE HANDOFF (2026-11-08T08:49Z @ `34f462e`; Batch 149 COMPLETED — canonical miss reduction 33→31 recorded below; Batch 150 initial task message below is binding — data_loader.py unchanged since `e945fde`, remaining floor now 31 misses). Repo-name priority = **BAB only — `strategies/betting_against_beta/data_loader.py` remaining miss floor.** Read completely, rebaseline, then execute **INITIAL TASK MESSAGE — Batch 150** immediately. No off-ramps: no status-only, planning-only, review-only, or "floor closed" exit without the required heavy work. Every session must produce **measurable heavy work**: miss reduction in a fresh canonical aggregate **OR** genuinely new, non-repeat, high-confidence unreachable-proof evidence in `docs/unreachable_proofs.md` using a **materially new method** with per-cluster file:line, method, observed result, and strict 4-criteria verdict. "No new mechanism exists" is invalid unless you actually ran materially-new checks and recorded evidence. **Never change production semantics solely for coverage. Never alter `322,326` semantics. Never touch `.github/workflows/*`. Never commit/push unless explicitly requested. `tests/test_bab_data_loader_batch148.py` and `tests/test_bab_data_loader_batch149.py` must remain in the canonical set and must not be deleted or weakened.**
+> **SOLE DURABLE HANDOFF (2026-11-08T08:55Z @ `34f462e`; Batch 149 COMPLETED — canonical miss reduction 33→31 recorded below; Batch 150 initial task message below is binding — data_loader.py unchanged since `e945fde`, remaining floor now 31 misses). Repo-name priority = **BAB only — `strategies/betting_against_beta/data_loader.py` remaining miss floor.** Read completely, rebaseline, then execute **INITIAL TASK MESSAGE — Batch 150** immediately. No off-ramps: no status-only, planning-only, review-only, or "floor closed" exit without the required heavy work. Every session must produce **measurable heavy work**: miss reduction in a fresh canonical aggregate **OR** genuinely new, non-repeat, high-confidence unreachable-proof evidence in `docs/unreachable_proofs.md` using a **materially new method** with per-cluster file:line, method, observed result, and strict 4-criteria verdict. "No new mechanism exists" is invalid unless you actually ran materially-new checks and recorded evidence. **Never change production semantics solely for coverage. Never alter `322,326` semantics. Never touch `.github/workflows/*`. Never commit/push unless explicitly requested. `tests/test_bab_data_loader_batch148.py` and `tests/test_bab_data_loader_batch149.py` must remain in the canonical set and must not be deleted or weakened.**
 
 ## Batch status (this session)
 
@@ -8,7 +8,7 @@
 - **Batch 149 (@ `34f462e`, this session):** COMPLETED — **canonical miss reduction achieved: 33 → 31**. Fresh canonical aggregate including `tests/test_bab_data_loader_batch148.py` + `tests/test_bab_data_loader_batch149.py`: **1473 passed, 0 failed, 17 skipped, 109 warnings**; coverage **31 miss / 1683 stmts / 98%**, missing `43-44,234-244,246-247,268-269,326,338-342,403-404,641-642,694-695,791-792,953` (**334-335 no longer missing**); guard **44 passed, 5 warnings** (campaign_d* included in aggregate, green).
 - **Batch 149 method M149 (coverage-compatible, no `sys.settrace`):** `_NameRaisesMeta` metaclass with `__name__` as `@property` raising `RuntimeError` (non-VE). For an instance of that metaclass class, `type(val).__name__` at `data_loader.py:330` raises RuntimeError → 332 `except ValueError: raise` does not match → **334-335 `except Exception: pass` executes and coverage records it**. Coercion continues and rejects the non-datetime scalar — **semantics preserved**. Verified by direct coercion, `_normalize_index` object-dtype index, and public `load_returns`; fresh canonical aggregate 33→31, 334-335 absent from `--show-missing`/coverage JSON. `tests/test_bab_data_loader_batch149.py` retained.
 
-## Measured state (fresh rebaseline, 2026-11-08T08:49Z @ `34f462e`)
+## Measured state (fresh rebaseline, 2026-11-08T08:55Z @ `34f462e`)
 
 - **Branch/SHA:** `main` @ `34f462e` (working tree dirty only with local uncommitted session artifacts as applicable; HANDOFF/proofs/batch test updated this session). `data_loader.py` unchanged since `e945fde` (line→code stable). `.gitignore` ignores `probe*`/`debug*`/`diag*` (historical tracked probe/debug files remain — **do not modify/commit them**).
 - **Canonical aggregate (fresh, `--rcfile=/dev/null`, `.coverage*` cleaned, includes batch148+149):** **1473 passed, 0 failed, 17 skipped, 109 warnings**.
@@ -17,7 +17,7 @@
 - **Guard (`campaign_d*`):** **44 passed, 5 warnings**. **`322` covered; `326` remains the only live inspect-gated miss — preserve semantics.**
 - **Deps:** `/home/runner/work/_temp/kilo-tmp/pylib` has `pytest 9.2.0`, `coverage 7.17.2`, `numpy 2.5.4`, `pandas 3.1.1`, `scipy 1.18.1`, `hypothesis 6.170.15`; **no `pyarrow`/`pytables`/`fastparquet`**. `export PYTHONPATH=$PWD:/home/runner/work/_temp/kilo-tmp/pylib`.
 
-## Bottlenecks — all removed/routed (verified 2026-11-08T08:49Z)
+## Bottlenecks — all removed/routed (verified 2026-11-08T08:55Z)
 
 | # | Bottleneck | Route | Status |
 |---|---|---|---|
@@ -74,11 +74,11 @@ No session is blocked. All 10 bottlenecks are routed.
 | 148 | `2ba2c8f` | -2 | reduction | **351-352 reduced** via coverage-compatible `_NonValueErrorFloat` test; semantics preserved. 1470/0/17, **33/1683**, guard 44/5. |
 | 149 | `34f462e` | -2 | reduction | **334-335 reduced** via coverage-compatible metaclass `__name__`-raises test (M149); semantics preserved. 1473/0/17, **31/1683**, guard 44/5. |
 
-## Batch 149 completion (2026-11-08T08:49Z @ `34f462e`)
+## Batch 149 completion (2026-11-08T08:55Z @ `34f462e`)
 
 **Result:** canonical miss reduction **33 → 31** (334-335 reduced via coverage-compatible `_NameRaisesMeta.__name__`-raises test; retained at `tests/test_bab_data_loader_batch149.py`; production semantics preserved — values still rejected). Fresh canonical: **1473/0/17, 31 miss / 1683 stmts / 98%**, guard **44/5**.
 
-## INITIAL TASK MESSAGE — 2026-11-08T08:49Z (Batch 150) — BINDING, EXECUTE IMMEDIATELY
+## INITIAL TASK MESSAGE — 2026-11-08T08:55Z (Batch 150) — BINDING, EXECUTE IMMEDIATELY
 
 **SHA:** `34f462e` (`data_loader.py` unchanged since `e945fde`). **Fresh baseline (measured):** 1473/0/17, **31 miss / 1683 stmts / 98%**, missing `43-44,234-244,246-247,268-269,326,338-342,403-404,641-642,694-695,791-792,953`, guard 44/5. **Batch 149 completed (33→31, 334-335 reduced and retained in canonical set); B103–149 executed. No baseline-only/review-only/planning-only/status-only exit.**
 
