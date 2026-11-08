@@ -1527,3 +1527,46 @@ None satisfied for miss reduction. (1) target lines + line→code verified @ `6c
 ### Batch 156 summary
 - **Delta:** 0 (31 miss unchanged). **Primary reduction not achievable by a semantics-preserving production-realistic path.** M156 adds materially-new CPython 3.12 bytecode/ExceptionTable path mapping, coercer output-homogeneity/245-assignment contract evidence, and MRO/construction corroboration; all outcomes remain consistent with prior dataflow/handler-shadowing/construction closures. `326` preserved.
 - **`326` guard-relevant; `322` covered; campaign_d guard 44/5 green; no production semantics changed; no `.github/workflows/*` touched; batch148/149 retained.**
+
+---
+
+## Batch 157 (2026-11-08T11:44Z @ `1a80e85`, fresh Step 0 rebaseline + materially-new sys.settrace sweep, 0 delta)
+
+**Scope:** `strategies/betting_against_beta/data_loader.py` remaining 31 misses `43-44, 234-244, 246-247, 268-269, 326, 338-342, 403-404, 641-642, 694-695, 791-792, 953` (verified `--rcfile=/dev/null --show-missing` @ `1a80e85`; `data_loader.py` unchanged since `e945fde`, line→code stable; 0 commits after `5caf899` touched it). `322` covered. `326` guard-relevant, **preserved**. **No production code changed. No canonical test added. No workflow edits. No probe files committed.**
+
+**Canonical rebaseline (fresh, Step 0):** **1473 passed, 0 failed, 17 skipped, 109 warnings**. Coverage **31 miss / 1683 stmts / 98%**, missing exactly `43-44, 234-244, 246-247, 268-269, 326, 338-342, 403-404, 641-642, 694-695, 791-792, 953`. Guard `campaign_d*` **44 passed, 5 warnings**. Deps: pytest 9.2.0, coverage 7.17.2, pandas 3.1.1, numpy 2.5.4, scipy 1.18.1, hypothesis 6.170.15 (`PYTHONPATH=$PWD:/home/runner/work/_temp/kilo-tmp/pylib`).
+
+### Materially-new Batch 157 method (not repeating B103-156 / M149-M156)
+
+**M157.A — `sys.settrace` frame-level line-hit sweep over production-realistic inputs at current SHA (materially new vs bytecode/ExceptionTable/PEP669/Hypothesis/cross-module methods):** Traced `_normalize_index`, `_coerce_to_datetime_scalar`, `_not_null`, `_normalize_asset_name`, `_detect_and_normalize_exchange_format`, `_promote_datetime_column`, and public `load_returns` across a battery of realistic shapes with zero semantic change and no pathological harness:
+- NaT-mixed object index (`[np.datetime64('NaT'), '2021-01-01']`), all-NaT object index, dayfirst strings (`31/12/2020`, `01/13/2021`), ISO object index → dayfirst block entered only where coercer returns NaT; 232 deterministic `continue`, 245 homogeneous assignment safe.
+- Plain `TypeError` escape attempt for 268-269: `pd.to_datetime` monkeypatched to raise plain `TypeError` on normal string index → 261-265 converts to `BABDataError`, 266 re-raises before 268 (`BABDataError⊂ValueError`).
+- Coercer NaT/identity guards 338-342: `pd.NaT`, `None`, `NaTType`-named instance, `np.datetime64('NaT')` → contract paths, no generic-pass hit.
+- Epoch outer except 403-404: overflow (`1e99999`), 400-digit strings, `inf`, `nan` → guarded/builtin-float paths, no outer-except hit.
+- Exchange frames: OHLCV wide, epoch-ms date+close, long symbol/close → inner guarded/swallowing paths, no outer-handler reach.
+- Promote tz-aware/naive date column; asset-name NBSP/tab/ZWSP/slash/concat forms; `load_returns` messy frame.
+**Observed: 0 target-line hits across all cases (`hit_lines=[]` for every cluster).**
+
+### Per-cluster strict 4-criteria verdict (Batch 157; file:line @ `1a80e85`)
+
+| Cluster | Lines (file:line) | Batch 157 method / result (observed) | Verdict (strict 4 criteria) |
+|---|---|---|---|
+| `_not_null` outer except | `data_loader.py:43-44` | M157.A: identity `is None` (35), inner `pd.isna` guarded (40-41), unconditional `return True` (42); raising-`__bool__`/NaT/None/nan exercised → `True`/`False`, no outer hit. | **Closed (structural).** (1) yes (2) yes (3) no production escape (4) none. |
+| `_normalize_index` dayfirst/last-ditch | `data_loader.py:234-244,246-247` | M157.A: 227 entry gated by 216-224 (223 intercept on coercer raise); 232 same deterministic coercer on survivors → `continue` 233 always; 245 homogeneous-coercer assignment safe. 0 hits. | **Closed (dataflow gate + determinism + assignment contract).** (1) yes (2) yes (3) no satisfiable production path (4) no path consistent with 216-224 gate. |
+| `_normalize_index` outer VE/TE | `data_loader.py:268-269` | M157.A: 261-265 converts any `Exception`→`BABDataError`; 266 `except BABDataError: raise` precedes 268; `BABDataError⊂ValueError`. Plain-`TypeError` escape probe → 266 intercepts before 268. 0 hits. | **Closed (handler shadowing/MRO + conversion).** (1) yes (2) yes (3) no plain VE/TE escape past conversion/intercept (4) none. |
+| inspect/campaign_d NaT guard | `data_loader.py:326` | **Not probed/altered.** Guard 44/5 green. | **Preserved (guard-relevant, DO NOT ALTER).** |
+| `_coerce_to_datetime_scalar` NaT re-raise guards | `data_loader.py:338-342` | M157.A: identity/type-name checks raise `ValueError("bad")` re-raised before generic `except Exception: pass`; `pd.NaT`/`None`/NaTType-named exercised. 0 hits. | **Closed (identity+explicit-raise).** (1) yes (2) yes (3) no (4) none. |
+| `_coerce_to_datetime_scalar` epoch outer except | `data_loader.py:403-404` | M157.A: regex-admitted numeric strings → builtin `float` (`inf` on overflow, no raise); epoch branches individually guarded. Overflow/400-digit/inf/nan strings → guarded paths. 0 hits. | **Closed (regex+float+guarded branches).** (1) yes (2) yes (3) no (4) none. |
+| `_detect_and_normalize_exchange_format` outer handlers | `data_loader.py:641-642,694-695` | M157.A: OHLCV wide / epoch-ms date+close / long symbol-close frames exercised inner guarded/swallowing paths on real `pd.DataFrame`. 0 hits. | **Closed for production-realistic frames.** (1) yes (2) yes (3) no (4) none. |
+| `_promote_datetime_column` outer handler | `data_loader.py:791-792` | M157.A: tz-aware/naive date-column promotion through 760-790 individually guarded paths. 0 hits. | **Closed (fully guarded).** (1) yes (2) yes (3) no (4) none. |
+| `_normalize_asset_name` empty token continue | `data_loader.py:953` | M157.A: NBSP/tab/ZWSP/slash/concat forms → no empty post-strip tokens (`str.split()` never yields `''`). 0 hits. | **Closed (construction-unreachable).** (1) yes (2) yes (3) realistic names exercised (4) none. |
+
+### Strict 4-criteria assessment (Batch 157)
+
+None satisfied for miss reduction. (1) target lines + line→code verified @ `1a80e85` (stable since `e945fde`). (2) no mechanism not disproven by B103-156 plus M157.A (`sys.settrace` production-realistic sweep). (3) no production-realistic `pd.DataFrame`/index/dtype/column-label/file-format path with plausible pandas/library behavior demonstrated to reach any remaining handler without a production-semantics change (disallowed). (4) no expected control-flow path consistent with (2)-(3).
+
+### Batch 157 summary
+
+- **Delta:** 0 (31 miss unchanged). **Primary reduction not achievable by a semantics-preserving production-realistic path.** M157 adds materially-new `sys.settrace` frame-level production-realistic sweep evidence at current SHA `1a80e85`; all outcomes consistent with prior dataflow/handler-shadowing/construction closures. `326` preserved.
+- **`326` guard-relevant; `322` covered; campaign_d guard 44/5 green; no production semantics changed; no `.github/workflows/*` touched; batch148/149 retained.**
+- **No canonical `test_bab_data_loader_batch157.py` added** (no reduction found; adding one would not satisfy canonical inclusion without `< 31` miss).
