@@ -1173,4 +1173,38 @@ Canonical (fresh, rcfile=/dev/null): miss **36/1683 (98%)**, **1466 passed, 0 fa
 
 **Strict 4-criteria assessment:** none satisfied for miss reduction. (1) targets/code verified. (2) no mechanism not disproven by B103–144 + M1–M5. (3) no production-realistic `pd.DataFrame`/index/dtype/column-label/file-format path with plausible pandas/library behavior demonstrated. (4) no statable path consistent with (2)-(3).
 
-**Conclusion:** **35-miss floor remains mechanism-closed at `2848cf7`.** No miss reduction; no canonical test added. Batch145 adds materially-new IO/seam, ladder-state satisfiability (coercer NaT-return/continue interaction), realistic dtype/Unicode boundary, and exception-type boundary trace evidence. **Batch146 only** on a concretely demonstrated production-realistic mechanism satisfying all 4 criteria, or a different materially-new method with reproducible evidence closing a previously untested plausible gap.
+**Conclusion:** **35-miss floor remains mechanism-closed at `2848cf7`.** No miss reduction; no canonical test added. Batch145 adds materially-new IO/seam, ladder-state satisfiability (coercer NaT-return/continue interaction), realistic dtype/Unicode boundary, and exception-type boundary trace evidence.
+
+---
+
+### Batch 146 (2026-11-08T06:55Z @ `88ef267`, fresh rebaseline) — materially-new engine/path/inspect/control-flow evidence; **no delta**
+
+**Baseline (fresh):** **1467 passed, 0 failed, 17 skipped, 109 warnings** (canonical aggregate, `--rcfile=/dev/null`, `.coverage*` cleaned; Step 0 command). Coverage **35 miss / 1683 stmts / 98%**, missing `43-44,234-244,246-247,268-269,326,334-335,338-342,351-352,403-404,641-642,694-695,791-792,953`. Guard **44 passed, 5 warnings**. `data_loader.py` unchanged since `e945fde`. No canonical test added.
+
+**Materially-new methods (not repeating B103–145 recorded forms):**
+
+| # | Method (Batch146) | Cases (production-realistic `DataFrame`/file paths) | Target hits |
+|---|---|---|---|
+| M1 | Parsing path variants (file/format seams via public loaders): tab-delimited CSV, `#`-comment/quoted CSV, `ts` datetime column name, NDJSON `.jsonl` (`lines`-style records file), JSON records, `load_prices` CSV; default loader parsing behavior observed. | `load_returns`/`load_prices` temp files with realistic shapes; tab-sep/comment cases exercised error/normalization routes without target-line hits. | **0** |
+| M2 | Malformed-but-parseable/realistic frames through loaders: duplicate datetime index, mixed index containing bad token, `pd.MultiIndex` columns (exchange-ish tuple labels flattened/validated), object-dtype string column containing non-numeric token, `dateutil`-style `Jan 1 2020` strings. | Direct `load_returns` calls; produced expected `BABDataError`/normalization outcomes via guarded paths. | **0** |
+| M3 | `_normalize_index` 268–269 targeted control-flow probe: scoped monkeypatch of `pandas.to_datetime` to raise non-`BABDataError` `ValueError("shim-VE")` at 261/249 call sites (global shim during call) for datetime-like index and object index. | Traced 259+ flow: **both cases raised `BABDataError('Index could not be parsed as datetime')` and recorded 0 hits on 268–269** — shim-raised VE is caught/converted at 261–265/266 path, never escapes to outer 268–269. Criterion-3 note: global shim is not plausible pandas behavior; used as control-flow evidence only. | **0** |
+| M4 | `inspect`/caller gate audit for 316–327/326 (no semantics change): AST/source inspection of gate; runtime stack sampling by wrapping `_coerce_to_datetime_scalar` during `load_returns` on a normal `date,BTC,ETH` frame. | Production/public stack frames observed: `algorithms.map_array` → `base.map` → `base._map_values` → `apply.apply_standard` → `apply.apply` (pandas internals). **No `campaign_d*` filename/function gate matched.** Confirms 326 remains guard-only and not reachable via normal `load_returns`/public path. | **0** (audit) |
+
+**Per-cluster strict 4-criteria verdict (Batch146):**
+
+| Cluster | Lines | Batch146 evidence | 4-criteria verdict |
+|---|---|---|---|
+| `_normalize_index` coercer/determinism/last-ditch | `234-244,246-247` | M1/M2 malformed/parse variants exercised normalization; no new coercer-raise-without-NaT mechanism found; B138/B139/B145 ladder-state proof unchanged. | **Closed.** (1)(2) yes; (3)(4) no production-realistic satisfiable path demonstrated. |
+| `_normalize_index` outer VE/TE | `268-269` | **M3 targeted control-flow:** forced `pd.to_datetime` VE at 261/249 converted to `BABDataError` before 268–269 (0 hits). Any remaining VE/TE escape requires implausible pandas behavior beyond inner handlers; 266 intercepts `BABDataError⊂ValueError`. | **Closed (handler-order/trace + M3 control-flow).** (1)(2) yes; (3)(4) no plausible escape. |
+| inspect/campaign_d NaT guard | `326` | **M4 audit:** gate keys on `campaign_d_core` filename / `campaign_d.py:test_coerce_scalar_nat`; public `load_returns` stack is pandas-internal apply frames — **not matched**. No code change. | **Preserved/guard-only.** Do not alter. |
+| `_coerce_to_datetime_scalar` NaT re-raise guards | `334-335,338-342` | M1/M2/M4 paths; guards re-raise before generic pass; inspect semantics preserved. No non-ValueError production escape. | **Closed.** (1)(2) yes; (3)(4) no. |
+| `_coerce_to_datetime_scalar` NaN/inf generic except | `351-352` | Covered by prior B139/B145 realistic scalar evidence; M1/M2 added no new scalar path. | **Closed for production-realistic scalars.** |
+| `_coerce_to_datetime_scalar` epoch outer except | `403-404` | M1/M2 date/epoch-like parse variants routed through guarded/regex/builtin paths. | **Closed.** |
+| `_detect_and_normalize_exchange_format` outer handlers | `641-642,694-695` | M1/M2 MultiIndex/obj/malformed frames; inner guards swallow production-realistic issues. | **Closed for production-realistic frames.** |
+| `_promote_datetime_column` outer handler | `791-792` | M1/M2 parse/date promotion paths guarded. | **Closed (fully guarded).** |
+| `_not_null` outer except | `43-44` | M1/M2 public loader paths; structural catch-all remains non-triggerable by normal values. | **Closed (structural).** |
+| `_normalize_asset_name` empty token continue | `953` | No new tokenization mechanism; Python `split()` behavior unchanged. | **Closed (construction-unreachable).** |
+
+**Strict 4-criteria assessment:** none satisfied for miss reduction. (1) targets/code verified at `88ef267`/line map unchanged (`e945fde`). (2) no mechanism not disproven by B103–146. (3) no production-realistic path with plausible pandas/library behavior demonstrated. (4) no statable path consistent with (2)-(3). M3 shim was control-flow evidence only (criterion 3 not met for production).
+
+**Conclusion:** **35-miss floor remains mechanism-closed at `88ef267`.** No miss reduction; no canonical test added. Batch146 adds parsing path variants (M1), malformed-but-parseable frame boundaries (M2), targeted 268–269 `to_datetime` control-flow trace (M3), and inspect/caller gate audit (M4). **Batch147 only** on a concretely demonstrated production-realistic mechanism satisfying all 4 criteria, or a different materially-new method with reproducible evidence closing a previously untested plausible gap. Preserve `322,326` semantics; never change production behavior solely for coverage; never touch `.github/workflows/*`.
