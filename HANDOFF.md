@@ -1,10 +1,10 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 
-> **SOLE DURABLE HANDOFF (2026-11-08T04:08Z @ `24db195`, refreshed after Batch 139).** Repo-name priority = **BAB only**. Read completely, rebaseline, then execute **INITIAL TASK MESSAGE — Batch 140** immediately. No off-ramps: no status-only, planning-only, review-only, or “floor closed” exit without the required heavy work. Every session must produce **measurable heavy work**: miss reduction in a fresh canonical aggregate **OR** genuinely new, non-repeat, high-confidence unreachable-proof evidence in `docs/unreachable_proofs.md` using a **materially new method** with per-cluster file:line, method, observed result, and strict 4-criteria verdict. “No new mechanism exists” is invalid unless you actually ran materially-new checks and recorded evidence. **Never change production semantics solely for coverage. Never alter `322,326` semantics. Never touch `.github/workflows/*`. Never commit/push unless explicitly requested.**
+> **SOLE DURABLE HANDOFF (2026-11-08T04:16Z @ `3848721`, refreshed after Batch 139; Batch 140 initial task message below is binding).** Repo-name priority = **BAB only**. Read completely, rebaseline, then execute **INITIAL TASK MESSAGE — Batch 140** immediately. No off-ramps: no status-only, planning-only, review-only, or “floor closed” exit without the required heavy work. Every session must produce **measurable heavy work**: miss reduction in a fresh canonical aggregate **OR** genuinely new, non-repeat, high-confidence unreachable-proof evidence in `docs/unreachable_proofs.md` using a **materially new method** with per-cluster file:line, method, observed result, and strict 4-criteria verdict. “No new mechanism exists” is invalid unless you actually ran materially-new checks and recorded evidence. **Never change production semantics solely for coverage. Never alter `322,326` semantics. Never touch `.github/workflows/*`. Never commit/push unless explicitly requested.**
 
-## Measured state (fresh rebaseline, 2026-11-08T04:08Z @ `24db195`)
+## Measured state (fresh rebaseline, 2026-11-08T04:16Z @ `3848721`)
 
-- **Branch/SHA:** `main` @ `24db195` (checkpoint commits only; `data_loader.py` unchanged since `e945fde` for miss line→code). Working tree may include local scratch/untracked probes — do not commit unless requested.
+- **Branch/SHA:** `main` @ `3848721` (checkpoint commits only; `data_loader.py` unchanged since `e945fde` for miss line→code; `data_loader.py` identical to `24db195` floor SHA). Working tree may include local scratch/untracked probes — do not commit unless requested.
 - **Canonical aggregate (fresh, `--rcfile=/dev/null`, `.coverage*` cleaned):** **1496 passed, 0 failed, 17 skipped, 109 warnings** (48.01s).
 - **Coverage (`--rcfile=/dev/null`, `--include='strategies/betting_against_beta/data_loader.py'`, `--show-missing`):** **35 miss / 1683 stmts / 98%**.
 - **Missing (35):** `43-44, 234-244, 246-247, 268-269, 326, 334-335, 338-342, 351-352, 403-404, 641-642, 694-695, 791-792, 953`
@@ -48,9 +48,9 @@
 3. Production-realistic `pd.DataFrame`/index/dtype/column-label/file-format path with plausible pandas/library behavior (no semantic change, no pathological harness).
 4. A statable control-flow path consistent with (2)-(3).
 
-## INITIAL TASK MESSAGE — 2026-11-08T04:08Z (Batch 140) — EXECUTE IMMEDIATELY
+## INITIAL TASK MESSAGE — 2026-11-08T04:16Z (Batch 140) — EXECUTE IMMEDIATELY
 
-**SHA:** `24db195`. **Fresh baseline (measured this session):** 1496/0/17, **35 miss / 1683 stmts / 98%**, missing `43-44,234-244,246-247,268-269,326,334-335,338-342,351-352,403-404,641-642,694-695,791-792,953`, guard 44/5. `data_loader.py` unchanged since `e945fde`. **No baseline-only/review-only/planning-only exit.**
+**SHA:** `3848721`. **Fresh baseline (measured this session):** 1496/0/17, **35 miss / 1683 stmts / 98%**, missing `43-44,234-244,246-247,268-269,326,334-335,338-342,351-352,403-404,641-642,694-695,791-792,953`, guard 44/5. `data_loader.py` unchanged since `e945fde` (identical at `24db195` floor SHA). **No baseline-only/review-only/planning-only exit.**
 
 ### Mission (binary)
 
