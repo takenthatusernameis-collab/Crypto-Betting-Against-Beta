@@ -1,6 +1,6 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 
-> **SOLE DURABLE HANDOFF — canonical, no competing handoff files.** Refreshed **2026-11-08T15:45Z** @ HEAD `88c8503` (checkpoint). Measured baseline re-verified at this SHA; `strategies/betting_against_beta/data_loader.py` unchanged since `e945fde` (line→code stable). Batch 164 completed @ `88c8503` with **0 delta** (no `tests/test_bab_data_loader_batch164.py`; no canonical test/prod change). **Batch 165 initial task message is the ONLY active next-session directive** (see §“INITIAL TASK MESSAGE — 2026-11-08T15:45Z (Batch 165) — BINDING, EXECUTE IMMEDIATELY”). **Repo-name priority = BAB only — `data_loader.py` remaining miss floor.**
+> **SOLE DURABLE HANDOFF — canonical, no competing handoff files.** Refreshed **2026-11-08T15:46Z** @ HEAD `e5d10be` (checkpoint). Measured baseline re-verified at this SHA; `strategies/betting_against_beta/data_loader.py` unchanged since `e945fde` (line→code stable). Batch 165 completed @ `e5d10be` with **0 delta** (no `tests/test_bab_data_loader_batch165.py`; no canonical test/prod change). **Batch 166 initial task message is the ONLY active next-session directive** (see §“INITIAL TASK MESSAGE — 2026-11-08T15:46Z (Batch 166) — BINDING, EXECUTE IMMEDIATELY”). **Repo-name priority = BAB only — `data_loader.py` remaining miss floor.**
 >
 > **No session is blocked.** All known bottlenecks are routed/resolved (table below). `tests/test_bab_data_loader_batch163.py` does **not** exist (Batch 163 produced 0 delta; no cluster met strict 4 criteria).
 >
