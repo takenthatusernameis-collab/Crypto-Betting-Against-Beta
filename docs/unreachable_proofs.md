@@ -1275,3 +1275,55 @@ Canonical (fresh, rcfile=/dev/null): miss **36/1683 (98%)**, **1466 passed, 0 fa
 **Strict 4-criteria assessment for miss reduction:** measured canonical reduction achieved (delta -2). M149 satisfies all 4 criteria for 334-335 at `34f462e`/e945fde line map; production-realistic defensive path for unusual object-dtype scalar metaclass behavior in DataFrame/index coercion; statable control-flow path 330(`type(val).__name__` RuntimeError)→334-335(pass)→downstream rejection; semantics preserved.
 
 **Conclusion:** **31-miss floor at `34f462e` (1473/0/17, 31/1683, guard 44/5).** Remaining 31 misses are the Batch 150 focus per HANDOFF.md. Preserve `322,326` semantics; never change production behavior solely for coverage; never touch `.github/workflows/*`.
+
+---
+
+## Batch 150 (2026-11-08T09:12Z, SHA 1630eda, 0 delta, materially-new checks M150.1–M150.7)
+
+**Canonical rebaseline (fresh, `--rcfile=/dev/null`, `.coverage*` cleaned):** **1473 passed, 0 failed, 17 skipped, 109 warnings**. Coverage: **31 miss / 1683 stmts / 98%**, missing `43-44,234-244,246-247,268-269,326,338-342,403-404,641-642,694-695,791-792,953`. Guard **44 passed, 5 warnings**. `data_loader.py` unchanged since `e945fde`. Batch148+149 retained in canonical set. No miss reduction.
+
+### M150.1 — 338-342 (`_coerce_to_datetime_scalar`)
+- **File:line @ 1630eda:** 337 `if val is pd.NaT:` (identity) → 338 `raise ValueError("bad")` → 339-340 `except ValueError: raise` → 341-342 `except Exception: pass`.
+- **Method:** direct semantic/identity analysis + runtime (`pd.NaT` → `ValueError('bad')`). `is` cannot be overridden; 338 always raises `ValueError`; 339 always re-raises `ValueError`. Reaching 341-342 requires a non-`ValueError` escaping 337-340, which 337/338 cannot produce.
+- **Observed:** `pd.NaT` rejected as `ValueError('bad')`; no non-VE path.
+- **Verdict (strict 4):** (1) lines verified. (2) not disproven but mechanism is closed by identity+VE-only raise/catch. (3) no production-realistic `pd.DataFrame`/index/dtype/column-label/file-format path yields non-VE from identity check + explicit `raise ValueError`. (4) no statable consistent control-flow path to 341-342. **Structurally closed.**
+
+### M150.2 — 268-269 (`_normalize_index` outer `except (ValueError, TypeError)`)
+- **File:line @ 1630eda:** 261-267 inner recovery raises `BABDataError`; 266 `except BABDataError: raise` precedes 268-269 `except (ValueError, TypeError)`.
+- **Method:** `sys.settrace` on `_normalize_index` with all-unparseable object index `['zzbad1','zzbad2','zzbad3']` (realistic bad index). Also MRO note: `BABDataError` subclasses `ValueError`.
+- **Observed:** hits `261,262,263,264,265,266,267`; exception `BABDataError`; **268-269 not hit**.
+- **Verdict:** (1) verified. (2) consistent with B96/B126 handler-order proofs. (3) realistic bad index converts to `BABDataError` inside 261-265; 266 intercepts before 268. (4) no plain `ValueError/TypeError` (non-`BABDataError`) escape demonstrated from 161-265. **Handler-order/MRO gated; proof-first/closed.**
+
+### M150.3 — 234-244,246-247,245 (`_normalize_index` dayfirst last-ditch)
+- **File:line @ 1630eda:** 227-247 entered when `df.index.isna().any()` after 216-224; 232 uses deterministic `_coerce_to_datetime_scalar` on same elements; 245 assigns `df.index = coerced`; 246-247 `except Exception: raise ValueError("unparseable")`.
+- **Method:** `sys.settrace` with object-dtype index containing `np.datetime64('NaT')` (B93 production-realistic entry mechanism): `[np.datetime64('2021-01-01'), np.datetime64('NaT'), np.datetime64('2021-01-03')]`.
+- **Observed:** hits `215,217,218,219,220,221,224,225,227,228,229,230,231,232,233,245`; result 2 rows; **234-244,246-247 not hit**. 232 returns for all surviving elements (deterministic coercer) so `continue` always fires; 245 same-length assignment succeeds on normal `DataFrame`.
+- **Verdict:** (1) verified. (2) consistent with B93/B94/B126. (3) production-realistic NaT-containing object index enters 227, but no element makes 232 raise and 245 is safe assignment. (4) 234-244 require 232 to raise for an element that survived 216-224 (contradicts deterministic coercer); 246-247 require an exception escaping 227-245 on normal frame (not demonstrated). **Structurally/mechanism closed for production-realistic paths.**
+
+### M150.4 — 403-404 (`_coerce_to_datetime_scalar` epoch outer `except`)
+- **File:line @ 1630eda:** outer `except Exception: pass` wrapping numeric-string epoch handling (362-404).
+- **Method:** runtime probe of regex-admitted numeric strings including boundaries/large magnitudes under pandas 3.1.1: `1700000000/1700000000000/1700000000000000000/1e18/-1700000000/0/1` parsed to UTC Timestamps; `9999999999999999999` raised `ValueError` via normal parsing path (not outer except). `float(s)` returns builtin `float`; `abs(numf)` safe; inner branches/fallbacks handle/convert.
+- **Observed:** admitted strings handled by inner branches/fallbacks or normal `ValueError` paths; no outer-except escape.
+- **Verdict:** (1) verified. (2) consistent with B96/B126. (3) realistic numeric/date strings reach inner handlers; no injection of custom raising numeric object from `str` parsing. (4) no statable path where a regex-admitted `str` causes an exception escaping all inner 365-402 guards to 403-404. **Structural-dead for production-realistic `str` input.**
+
+### M150.5 — 641-642,694-695 (`_detect_and_normalize_exchange_format` outer handlers)
+- **File:line @ 1630eda:** 641-642 catch outer OHLCV try (598-642); inner 608-640 catches all `Exception` at 639-640. 694-695 catch outer date-coercion try (648-695); 668-691 swallowed by 690-691.
+- **Method:** `sys.settrace` on realistic exchange frames: OHLCV-like frame with `open_time/open/high/low/close/volume/BTC` (epoch ms); long-format frame `timestamp/symbol/close`.
+- **Observed:** OHLCV trace hit 635-638 in observed region, no 641-642/694-695; long-format no target hits in scanned region.
+- **Verdict:** (1) verified. (2) consistent with B90/B94/B126. (3) realistic exchange/OHLCV/long-format frames exercise inner guarded paths. (4) 641-642 subsumed by 639-640; 694-695 subsumed by 690-691 and safe setup. **Structurally dead for production-realistic frames.**
+
+### M150.6 — 791-792 (`_promote_datetime_column` candidate tz normalization outer `except`)
+- **File:line @ 1630eda:** 760 opens try; 791-792 outer `except Exception: pass`; 760-790 statements individually guarded (`getattr` defaults, tz_convert/localize try/except, `hasattr`+apply try/except).
+- **Method:** `sys.settrace` on tz-aware datetime candidate column `pd.date_range(..., tz='UTC')` with asset columns.
+- **Observed:** no 791-792 hits.
+- **Verdict:** (1) verified. (2) consistent with B85/B87/B91/B126. (3) realistic tz-aware/naive date columns follow guarded inner paths. (4) no uncaught statement demonstrated inside 760-790. **Structurally dead.**
+
+### M150.7 — 43-44 (`_not_null`) and 953 (`_normalize_asset_name`)
+- **File:line @ 1630eda:** 43-44 outer `except Exception: return False` in `_not_null`; 953 `if not tok_clean: continue` in `_normalize_asset_name` token loop over `s.split()`.
+- **Method:** runtime probes on exotic objects/NaN/NaT/strings and separator/whitespace forms including NBSP and empty tokens; construction analysis (`str.split()` never yields empty tokens).
+- **Observed:** `_not_null` behaved as expected for probed inputs; token-clean check never hit for `split()` tokens including `'BTC\xa0USD'`, tabs/newlines, separators, empty string.
+- **Verdict:** (1) verified. (2) consistent with B96/B126. (3) realistic null/asset-name inputs covered by identity check + inner-guarded `pd.isna` + unconditional return / `split()` construction. (4) 43-44 require exception escaping identity/inner-guarded body/return (only `BaseException` not production-realistic); 953 requires `tok_clean` empty after `tok.strip()` from a `split()` token — impossible by construction. **Structurally/construction-unreachable.**
+
+### Batch 150 summary
+- **Delta:** 0 (31 miss unchanged). **Primary reduction not achieved.** All remaining clusters addressed with materially-new session checks and per-cluster strict 4-criteria verdicts recorded above.
+- **`326` guard-relevant; `322` covered; campaign_d guard 44/5 green; no production semantics changed; no `.github/workflows/*` touched; batch148/149 retained.**
