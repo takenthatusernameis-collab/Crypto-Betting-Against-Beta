@@ -1,6 +1,6 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 
-> **SOLE DURABLE HANDOFF — canonical, no competing handoff files.** Refreshed **2026-11-08T15:49Z** @ HEAD `61f639a` (checkpoint). Step 0 rebaseline executed at this SHA; `strategies/betting_against_beta/data_loader.py` unchanged since `e945fde` (line→code stable). Batch 165 Step 0 rebaseline complete @ `61f639a`; heavy work (reduction / per-cluster strict-4 proof) **NOT yet done → rolled into Batch 166**. **Batch 166 initial task message is the ONLY active next-session directive** (see §“INITIAL TASK MESSAGE — 2026-11-08T15:49Z (Batch 166) — BINDING, EXECUTE IMMEDIATELY”). **Repo-name priority = BAB only — `data_loader.py` remaining miss floor.**
+> **SOLE DURABLE HANDOFF — canonical, no competing handoff files.** Refreshed **2026-11-08T16:27Z** @ HEAD `61f639a` (checkpoint). Step 0 rebaseline executed at this SHA; `strategies/betting_against_beta/data_loader.py` unchanged since `e945fde` (line→code stable). Batch 165 Step 0 rebaseline complete @ `61f639a`; heavy work (reduction / per-cluster strict-4 proof) **NOT yet done → rolled into Batch 168**. **Batch 168 initial task message is the ONLY active next-session directive** (see §“INITIAL TASK MESSAGE — 2026-11-08T16:27Z (Batch 168) — BINDING, EXECUTE IMMEDIATELY”). **Repo-name priority = BAB only — `data_loader.py` remaining miss floor.**
 >
 > **No session is blocked.** All known bottlenecks are routed/resolved (table below). `tests/test_bab_data_loader_batch163.py` does **not** exist (Batch 163 produced 0 delta; no cluster met strict 4 criteria).
 >
@@ -76,7 +76,7 @@
 | 165 | `61f639a` | 0 | partial | Step 0 rebaseline complete @ `61f639a` (632/6/34; 380 miss/77%; campaign_d 883/5/3406); target floor unchanged; heavy work (reduction / per-cluster strict-4 proof) pending → Batch 166. |
 | 166 | `61f639a` | — | **PENDING (BINDING)** | Execute immediately — directive below. |
 
-## INITIAL TASK MESSAGE — 2026-11-08T16:26Z (Batch 168) — BINDING, EXECUTE IMMEDIATELY
+## INITIAL TASK MESSAGE — 2026-11-08T16:27Z (Batch 168) — BINDING, EXECUTE IMMEDIATELY
 
 **SHA:** `61f639a` (`data_loader.py` unchanged since `e945fde`; line→code stable). **Fresh rebaseline (Step 0):** BAB canonical subset **632 passed, 6 skipped, 34 warnings**; `data_loader.py` **380 miss / 1683 stmts / 77%**; target-miss floor clusters still present `43-44,234-244,246-247,268-269,326,338-342,403-404,641-642,694-695,791-792,953`. Guard `campaign_d*` **883 passed, 5 skipped, 3406 deselected**. `tests/test_bab_data_loader_batch168.py` does **not** exist. **No baseline-only/review-only/planning-only/status-only exit. Repo-name priority = BAB only.**
 
@@ -92,50 +92,7 @@ Success = miss floor reduced in fresh canonical aggregate OR complete per-cluste
 
 **BEGIN HEAVY WORK NOW.**
 
-## INITIAL TASK MESSAGE — 2026-11-08T16:25Z (Batch 167) — BINDING, EXECUTE IMMEDIATELY
-
-**SHA:** `61f639a` (data_loader.py unchanged since `e945fde`; line→code stable). **Fresh rebaseline (Step 0):** BAB canonical subset **632 passed, 6 skipped, 34 warnings**; `data_loader.py` **380 miss / 1683 stmts / 77%**; target-miss floor clusters still present `43-44,234-244,246-247,268-269,326,338-342,403-404,641-642,694-695,791-792,953`. Guard `campaign_d*` **883 passed, 5 skipped, 3406 deselected**. `tests/test_bab_data_loader_batch167.py` does **not** exist. **No baseline-only/review-only/planning-only/status-only exit. Repo-name priority = BAB only.**
-
-### Mission (binary; heavy work required)
-1. Step 0 mandatory rebaseline; verify line→code for all target clusters.
-2. Primary (reduction-first): re-verify every remaining cluster against strict 4 criteria; add `tests/test_bab_data_loader_batch167.py` if any reduces canonically; verify miss < 31. Never alter `322,326`; `campaign_d*` must stay green; batch148/149 retained.
-3. Secondary (only if no reduction): exhaustive materially-new Batch 167 checks on all remaining clusters; append per-cluster `file:line@SHA`, method, observed result, strict-4 verdict to `docs/unreachable_proofs.md` §Batch 167; update this HANDOFF ledger/measured state.
-4. Forced campaign: every cluster `(43-44,234-244,246-247,268-269,326 guard-only,338-342,403-404,641-642,694-695,791-792,953)` gets verify + strict-4 + reduce or materially-new proof. No skip without verdict. No "floor closed"/status-only exit without heavy work.
-5. Forbidden: status/planning/review-only exits, repeat B103-163 methods, semantic changes for coverage, altering `322,326`, weakening/deleting batch148/149, workflow edits, commit/push unless requested.
-
-### Required session outcome
-Success = miss floor reduced in fresh canonical aggregate OR complete per-cluster strict-4 verdicts plus Batch 167 materially-new appendix covering all remaining clusters plus updated HANDOFF ledger/measured state. Anything less is failure.
-
-**BEGIN HEAVY WORK NOW.**
-
-## INITIAL TASK MESSAGE — 2026-11-08T15:49Z (Batch 166) — BINDING, EXECUTE IMMEDIATELY
-
-**SHA:** `61f639a` (`data_loader.py` unchanged since `e945fde`; line→code stable). **Fresh rebaseline (Step 0, complete) @ this SHA:** BAB canonical subset **632 passed, 6 skipped, 34 warnings**; `data_loader.py` **380 miss / 1683 stmts / 77%**; target-miss floor clusters still present **`43-44,234-244,246-247,268-269,326,338-342,403-404,641-642,694-695,791-792,953`** (target floor unchanged). Guard `campaign_d*` **883 passed, 5 skipped, 3406 deselected**. `tests/test_bab_data_loader_batch166.py` does **not** exist. **No baseline-only/review-only/planning-only/status-only exit. Repo-name priority = BAB only.**
-
-### Mission (binary; heavy work required)
-
-1. **Step 0 — mandatory rebaseline (DONE this session):** `.coverage*` cleaned; canonical BAB subset command run; canonical coverage for `data_loader.py` run; `campaign_d*` guard run; SHA, counts, exact miss list recorded above. Verify line→code for all target clusters before any claim.
-
-2. **Primary (reduction-first):** Re-verify every remaining cluster against strict 4 criteria. **Do not repeat B103-163 methods** (AST/MRO/shadowing; coercer NaT-outcome tables/gate re-derivations; `sys.settrace`/coverage/PEP 669 line events; CPython 3.12 bytecode/ExceptionTable path mapping/source-range feed proofs; coercer output-homogeneity/245 assignment; exchange try enumeration; construction/identity checks; element-contract sampling; production-realistic sweeps; handler-order shadowing; warnings-as-errors traces; expanded coercer/type-surface/public-loader/file-format traces; 234-244 gate re-probes; Unicode asset normalization traces; `np.seterr` epoch edges; pandas option/config sweeps; tz-aware+NaT index mixes; nullable `pd.NA` scalar traces; exchange/promotion frame variants incl empty/whitespace cols; per-cluster strict-4 verdict patterns M161.1–M161.9/M162.A–F/M163.A–E; hypothesis bounded falsification over production-contract scalars already performed in M163.D; M163 public-loader temp-file traces). Focus only on **demonstrably new production-realistic paths** with line-level proof. If any cluster meets strict 4 criteria, add **`tests/test_bab_data_loader_batch166.py`** (semantics-preserving), include in canonical aggregate, verify fresh aggregate shows miss **< 31** for the target floor (or measured reduction). Never alter `322,326`; `campaign_d*` must stay green. Batch148/149 remain in canonical set and must not be deleted/weakened.
-
-3. **Secondary (only if no cluster reduces canonically):** perform **exhaustive materially-new Batch 166 checks** on **all** remaining clusters. For every unresolved cluster, append per-cluster `file:line@SHA`, method, observed result, and strict 4-criteria verdict to `docs/unreachable_proofs.md` §Batch 166. Update this HANDOFF ledger/measured state with actual results.
-
-4. **Materially-new methods to attempt (choose/adapt; must be genuinely new vs B103-163):**
-   - **M166.A — `pandas` 3.1.1 `to_datetime`/index coercion with `StringDtype`/`ArrowDtype`-unavailable fallbacks under real CSV object dtypes + `pd.options.mode.copy_on_write` toggles:** exercise production-realistic loader/index-normalization paths where CoW/view/copy behavior changes intermediate assignment outcomes (without pyarrow). Target 234-247/268-269/641-642/694-695/791-792 only with statable paths.
-   - **M166.B — DataFrame-subclass/copy constructor edge cases reachable through `pd.read_csv`/public loaders:** if `DataFrame` subclass behavior is preserved by pandas 3.1.1 operations used in target try blocks, test only realistic subclass scenarios that could be returned/passed in production; avoid pathological harnesses. Record negative evidence.
-   - **M166.C — targeted `Decimal`/`Fraction`/`numpy` scalar subclasses and `__index__`/`__float__` protocol objects that appear in realistic financial CSV/JSON parsing:** test whether any can traverse epoch/index coercion into target except branches with a statable control-flow path (not blind scalar sampling repeats).
-   - **M166.D — `load_prices`/`load_returns` multi-asset pivot/stack/unstack realistic error paths:** construct realistic wide/long price frames where exchange-format detection, date promotion, and index normalization interact; trace target lines under public entrypoints.
-   - **M166.E — if A–D produce a concrete candidate only:** line-level proof and strict 4 criteria; otherwise record negative evidence with method details (no generic restatement). If no reduction is possible, also explicitly identify which specific production API/behavior change would be required for any cluster and record it as a non-actionable external dependency note (no semantic change).
-
-5. **Forced campaign (no early exit):** For each remaining cluster `(43-44, 234-244, 246-247, 268-269, 326 guard-only, 338-342, 403-404, 641-642, 694-695, 791-792, 953)`: (1) verify file:line @ current SHA; (2) apply strict 4 criteria; (3) reduce canonically **or** record a materially-new-method proof. No cluster may be skipped without a verdict. “Floor closed”/status-only exits are forbidden unless required heavy work is performed.
-
-6. **Forbidden:** status-only, planning-only, review-only, "floor closed" without heavy work, repeat probes/methods from B103-163, semantic changes for coverage, altering `322,326` or weakening/deleting batch148/149 tests, workflow edits (`.github/workflows/*`), committing/pushing unless explicitly requested.
-
-### Required session outcome
-
-**Success =** miss floor reduced in fresh canonical aggregate **OR** complete per-cluster strict-4-criteria verdicts plus **Batch 166** non-repeat materially-new appendix in `docs/unreachable_proofs.md` covering **all** remaining clusters **plus** updated `HANDOFF.md` ledger/measured state with actual results. Anything less is failure.
-
-**BEGIN HEAVY WORK NOW.****
+_(Redundant Batch 166/167 directives collapsed; single directive is Batch 168 below.)_
 
 ## Historical detail
 
