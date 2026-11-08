@@ -1,12 +1,12 @@
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
 
-> **SOLE DURABLE HANDOFF — canonical, no competing handoff files.** Refreshed **2026-11-08T15:10Z** @ HEAD `96e03f0` (checkpoint). Measured baseline re-verified at this SHA; `strategies/betting_against_beta/data_loader.py` unchanged since `e945fde` (line→code stable). Batch 162 completed earlier @ `119a018` with **0 delta** (M162.A–F evidence in `docs/unreachable_proofs.md` §Batch 162; 0 target-line hits; no canonical test added; no production code changed). **Batch 163 initial task message is the ONLY active next-session directive** (see §“INITIAL TASK MESSAGE — 2026-11-08T15:10Z (Batch 163) — BINDING, EXECUTE IMMEDIATELY”). **Repo-name priority = BAB only — `data_loader.py` remaining miss floor.**
+> **SOLE DURABLE HANDOFF — canonical, no competing handoff files.** Refreshed **2026-11-08T15:15Z** @ HEAD `96e03f0` (checkpoint). Measured baseline re-verified at this SHA; `strategies/betting_against_beta/data_loader.py` unchanged since `e945fde` (line→code stable). Batch 162 completed earlier @ `119a018` with **0 delta** (M162.A–F evidence in `docs/unreachable_proofs.md` §Batch 162; 0 target-line hits; no canonical test added; no production code changed). **Batch 163 initial task message is the ONLY active next-session directive** (see §“INITIAL TASK MESSAGE — 2026-11-08T15:15Z (Batch 163) — BINDING, EXECUTE IMMEDIATELY”). **Repo-name priority = BAB only — `data_loader.py` remaining miss floor.**
 >
 > **No session is blocked.** All known bottlenecks are routed/resolved (table below). `tests/test_bab_data_loader_batch163.py` does **not** exist yet — Batch 163 has **not** been executed.
 >
 > **Binding rules (non-negotiable):** Read completely → rebaseline → do heavy work. No status-only, planning-only, review-only, or “floor closed” exit without required heavy work. Every session must produce **measurable heavy work**: (A) miss reduction in a fresh canonical aggregate, **OR** (B) genuinely new, non-repeat, high-confidence unreachable-proof evidence in `docs/unreachable_proofs.md` using a **materially new method** with per-cluster `file:line@SHA`, method, observed result, and strict 4-criteria verdict for **every remaining cluster**. “No new mechanism exists” is invalid unless you actually ran materially-new checks and recorded evidence. **Never change production semantics solely for coverage. Never alter `322,326` semantics. Never touch `.github/workflows/*`. Never commit/push unless explicitly requested. `tests/test_bab_data_loader_batch148.py` and `tests/test_bab_data_loader_batch149.py` must remain in the canonical set and must not be deleted or weakened.**
 
-## Measured state (fresh rebaseline, 2026-11-08T15:10Z @ `96e03f0`)
+## Measured state (fresh rebaseline, 2026-11-08T15:15Z @ `96e03f0`)
 
 - **Branch/SHA:** `main` @ `96e03f0` HEAD (checkpoint only). `data_loader.py` unchanged since `e945fde` (line→code stable). `.gitignore` ignores `probe*`/`debug*`/`diag*` (historical tracked files remain — **do not modify/commit them**). `docs/unreachable_proofs.md` is evidence appendix (not a task directive); `HANDOFF.md` is sole durable task directive.
 - **Canonical BAB subset (re-verified):** `rm -f .coverage .coverage.* && PYTHONPATH=$PWD:/home/runner/work/_temp/kilo-tmp/pylib python3 -m pytest -q --ignore=tests/test_controller_progress_accounting.py tests/test_betting_against_beta*.py tests/test_bab_data_loader_batch{40..69,71..74,76..89,93,95,96,148,149}.py` → **632 passed, 6 skipped, 34 warnings**.
@@ -73,7 +73,7 @@
 | 162 | `119a018` | 0 | proof | M162.A–F; 0 target hits; no canonical test/prod change. |
 | 163 | `96e03f0` | — | **PENDING (BINDING)** | Execute immediately — directive below. |
 
-## INITIAL TASK MESSAGE — 2026-11-08T15:10Z (Batch 163) — BINDING, EXECUTE IMMEDIATELY
+## INITIAL TASK MESSAGE — 2026-11-08T15:15Z (Batch 163) — BINDING, EXECUTE IMMEDIATELY
 
 **SHA:** `96e03f0` (`data_loader.py` unchanged since `e945fde`; line→code stable). **Fresh baseline @ this SHA:** BAB canonical subset **632 passed, 6 skipped, 34 warnings**; `data_loader.py` **380 miss / 1683 stmts / 77%**; target-miss floor clusters still present **`43-44,234-244,246-247,268-269,326,338-342,403-404,641-642,694-695,791-792,953`** (~31-miss target floor unchanged). Guard `campaign_d*` healthy (re-verify exact count). `tests/test_bab_data_loader_batch163.py` does **not** exist. **No baseline-only/review-only/planning-only/status-only exit. Repo-name priority = BAB only.**
 
