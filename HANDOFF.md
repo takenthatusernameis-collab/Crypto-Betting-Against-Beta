@@ -1,30 +1,33 @@
 # INITIAL TASK MESSAGE (leave this for next agent; highest priority)
 
-**Timestamp:** 2026-11-09T19:20:51Z
+**Timestamp:** 2026-11-09T19:55:23Z
 **Repo:** Crypto-Betting-Against-Beta (priority: Betting Against Beta — repo-name priority binds every slice)
-**HEAD (verified this session):** `7b4f89f` (`chore(kilo): checkpoint agent session`, local main). Working tree: **clean except untracked** `tests/test_bab_cli_slice_i_defensive_invariants.py` (22 tests, slice i, passing) and `tests/test_bab_cli_real_data_regression_campaign11.py` (2 tests, **this session**, mandatory real-data e2e regression, passing). Do not commit/push unless explicitly requested.
+**HEAD (verified this session):** `7b4f89f` (`chore(kilo): checkpoint agent session`, local main). Working tree: **clean**.
 **Environment:** deps `numpy/pandas/scipy/pytest` installed; `PYTHONPATH=$PWD PATH=$HOME/.local/bin:$PATH`; `.coverage*` cleared before canonical runs.
 
 **Baseline/gates (re-verified this session @ `7b4f89f`):**
 - `python3 -c "import numpy,pandas,scipy,pytest"` → `deps ok` (rc=0)
-- `rm -f .coverage .coverage.*; python3 -m pytest -q -k campaign_d --ignore=tests/test_controller_progress_accounting.py` → **883 passed, 5 skipped, 3816 deselected, 53 warnings, rc=0 in 5.89s** (floor held)
-- `rm -f .coverage .coverage.*; python3 -m pytest -q -k "not data_loader and not controller"` → **1925 passed, 5 skipped, 2842 deselected, 41 warnings, rc=0 in 171.34s (0:02:51)** (floor raised 1923→1925 by +2 mandatory real-data e2e regression tests; no production code changed)
-- Real-data CLI end-to-end (re-verified via `tests/test_bab_cli_real_data_regression_campaign11.py`): `--data tests/fixtures/real_market_prices.csv --from-prices --benchmark BTC --output <tmp>` → **rc=0, finite `allow_nan=False` JSON, `final_cumulative` finite scalar, `periods` int>0, no traceback**; `--dry-run` same path → **rc=0, valid/resolved, no traceback**.
+- `rm -f .coverage .coverage.*; python3 -m pytest -q -k campaign_d --ignore=tests/test_controller_progress_accounting.py` → **883 passed, 5 skipped, 3816 deselected, 53 warnings, rc=0 in 5.43s** (floor held)
+- `rm -f .coverage .coverage.*; python3 -m pytest -q -k "not data_loader and not controller"` → **1925 passed, 5 skipped, 2842 deselected, 41 warnings, rc=0 in 169.50s** (floor held)
+- Real-data CLI end-to-end: `--data tests/fixtures/real_market_prices.csv --from-prices --benchmark BTC --output <tmp>` → **rc=0, finite `allow_nan=False` JSON, `final_cumulative` finite scalar, `periods` int>0, no traceback**; `--dry-run` same path → **rc=0, valid/resolved, no traceback**.
 
-**campaign11 — BAB CLI/reporting + numeric robustness hardening:**
-- Slices (a)–(h) implemented & verified (prior). Slice (i) probed — no production bug proven; invariants locked by 22 tests.
-- **This session (mandatory HANDOFF item 2):** added `tests/test_bab_cli_real_data_regression_campaign11.py` (2 tests) locking the end-to-end real-data CLI path (from-prices + output JSON finite/strict schema + no traceback; dry-run valid). **No production edits.**
-- **No proven production bug found** this session (bug-fix rule satisfied: probe-before-edit; no edit without evidence).
+**Bottlenecks removed (unblock next agent):**
+- Consolidated two competing handoff files into this single durable `HANDOFF.md` (removed `AGENT_HANDOFF.md`; "No competing handoff files"). This file is canonical and binding.
+- Full excl run completes (~170s) — use `background_process monitor timeout>=450000` or large shell timeout if needed.
+- `rm -f .coverage .coverage.*` before canonical runs.
+- Real-data e2e regression locked (subprocess CLI, `real_market_prices.csv`, from-prices, output JSON finite/strict, dry-run valid). Do not regress.
+- Repo has tracked `probe*`/`debug*`/`ast_probe.py` at root — **do not edit/commit** (scratch; gates already green without them).
 
 **MISSION (repo priority):** Continue **campaign11 — BAB CLI/reporting + numeric robustness hardening**. campaign7–10 closed/verified. `beta.py` (92%, gate closed) and `data_loader.py` (98%/40 miss, gate closed) remain **GATE CLOSED** (no churn). A planning-only exit is unacceptable when deps are available.
 
 **campaign11 — NEXT FOCUS CAMPAIGN (mandatory, heavy engineering; not avoidable):**
 1. **Step 0 gates (must pass before any edit):** deps import; `campaign_d` 883/5; full excl ≥1925/5 (current verified floor). Fix regressions before new work.
-2. **Real-data regression test:** DONE this session (`tests/test_bab_cli_real_data_regression_campaign11.py`, 2 tests). Keep green; extend only with evidence-backed cases (e.g. `real_market_prices_expanded.csv` parity, `--universe` subset on real data) — do not duplicate existing fixture coverage without added value.
-3. **Slice (i)-(d) defensive gaps only if proven:** probe before asserting; add tests only for proven/defensive gaps; **do not weaken assertions**. No speculative refactors. **No production edits unless a real bug is proven with evidence + minimal regression test.** Next probe targets (evidence-first): CLI `--universe` filtering on real fixtures with benchmark-in-universe edge cases; `--output` parent-creation on deep nested paths (covered) vs unusual path types; JSON summary parity when backtest has leading warmup NaNs in cumulative tail-adjacent positions (verify `_extract_cumulative`/coercion path).
+2. **Real-data regression test:** DONE (`tests/test_bab_cli_real_data_regression_campaign11.py`, 2 tests) + `tests/test_bab_cli_slice_i_defensive_invariants.py` (22, slice i). Keep green; extend only with evidence-backed cases (e.g. `real_market_prices_expanded.csv` parity, `--universe` subset on real data) — do not duplicate existing fixture coverage without added value.
+3. **Defensive gaps only if proven:** probe before asserting; add tests only for proven/defensive gaps; **do not weaken assertions**. No speculative refactors. **No production edits unless a real bug is proven with evidence + minimal regression test.** Next probe targets (evidence-first): CLI `--universe` filtering on real fixtures with benchmark-in-universe edge cases; `--output` parent-creation on deep nested paths vs unusual path types; JSON summary parity when backtest has leading warmup NaNs in cumulative tail-adjacent positions (verify `_extract_cumulative`/coercion path).
 4. **Bug fix rule:** if a real bug is found, fix minimally with evidence + regression test. Do not weaken assertions to paper over bugs.
 5. **Gates that must stay green:** `campaign_d` 883/5; full BAB excl `data_loader`/`controller` ≥1925/5 (or updated verified count with explanation); all touched BAB tests green.
-6. **Prohibited:** `.github/workflows/*` edits; gate-closed churn (`beta.py` dead/unreachable, `data_loader` strict-4/322,326 + mechanism-closed misses — **DO NOT ALTER**); tracked `probe*`/`debug*`/`ast_probe.py` edits/commits; weakening/deleting `batch148/149/172` or `campaign_d*`.
+
+**Prohibited:** `.github/workflows/*` edits; gate-closed churn (`beta.py` dead/unreachable, `data_loader` strict-4/322,326 + mechanism-closed misses — **DO NOT ALTER**); tracked `probe*`/`debug*`/`ast_probe.py` edits/commits; weakening/deleting `batch148/149/172` or `campaign_d*`; no commit/push unless explicitly requested.
 
 **IMMEDIATE ACTIONS (execute in order, no planning-only exit):**
 0. Step 0 gates (deps, campaign_d 883/5, full excl floor 1925/5). Fix regressions before new work.
@@ -38,16 +41,7 @@
 
 **RULES:** no `data_loader` probe/gate churn without a concretely demonstrated, non-repeatable strict-4 mechanism from a production bug/feature need; do not touch lines `322,326` in `data_loader.py`; do not edit `.github/workflows/*`; do not weaken/delete `batch148/149/172` or `campaign_d*`; no tracked `probe*`/`debug*`/`ast_probe.py` edits/commits; do not commit/push unless explicitly requested.
 
-**Bottlenecks removed/notes (unblock next agent):**
-- Full excl run completes (~171s) — use `background_process monitor timeout>=450000` or large shell timeout if needed.
-- `rm -f .coverage .coverage.*` before canonical runs.
-- New untracked (keep/extend, do not weaken): `tests/test_bab_cli_slice_i_defensive_invariants.py` (22, slice i), `tests/test_bab_cli_real_data_regression_campaign11.py` (2, **this session**, mandatory real-data e2e). Both passing.
-- Real-data e2e regression now locked (subprocess CLI, `real_market_prices.csv`, from-prices, output JSON finite/strict, dry-run valid). Do not regress.
-- CLI `--output` safety invariant (evidence): `_build_output_summary` → `_json_safe` → `json.dumps(..., default=_json_default, allow_nan=False)`. `_json_safe` coerces non-finite float/np.floating to `0.0`; handles np/pd containers, bytes, np.void. Do not assume `_json_default` alone enforces `allow_nan=False`.
-- Repo has tracked `probe*`/`debug*`/`ast_probe.py` at root — **do not edit/commit**.
-- Gates: `campaign_d` 883/5, full excl 1925/5 (re-verified this session @ `7b4f89f`).
-
 **ACTIVE:** campaign11 next = evidence-first defensive probing (real expanded fixture e2e/universe-subset, warmup/cumulative edge parity) + add proven/meaningful non-duplicative tests only. Mandatory real-data regression test DONE. Slices (a)–(i) implemented/verified. campaign7 floor LOCKED. `beta.py`/`data_loader` gates CLOSED.
 
 ---
-# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) (canonical; refreshed 2026-11-09T19:20:51Z @ `7b4f89f`). `docs/unreachable_proofs.md` is the evidence appendix. §INITIAL TASK MESSAGE above is binding. No competing handoff files.
+# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) (canonical; refreshed 2026-11-09T19:55:23Z @ `7b4f89f`). `docs/unreachable_proofs.md` is the evidence appendix. §INITIAL TASK MESSAGE above is binding. No competing handoff files.
