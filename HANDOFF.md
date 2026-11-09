@@ -1,12 +1,12 @@
 # INITIAL TASK MESSAGE (leave this for next agent; highest priority)
 
-**Timestamp:** 2026-11-09T18:07:39Z
+**Timestamp:** 2026-11-09T18:12:21Z
 **Repo:** Crypto-Betting-Against-Beta (priority: Betting Against Beta — repo-name priority binds every slice)
 **HEAD (verified this session):** `4b0ce91` (`chore(kilo): checkpoint agent session`, local main). Working tree: **clean** — campaign11 slices (a)–(f) all tracked & committed (`tests/test_bab_cli_reporting_robustness.py`, `tests/test_bab_cli_error_reporting.py`, `tests/test_bab_cli_numeric_reporting.py`, `tests/test_bab_backtest_contract_smoke.py`); `HANDOFF.md` refreshed this session. Do not commit/push unless explicitly requested.
 **Baseline/gates (re-verified this session @ `4b0ce91`, deps installed `numpy/pandas/scipy/pytest`, `PYTHONPATH=$PWD PATH=$HOME/.local/bin:$PATH`, `.coverage*` cleared before canonical runs):**
 - `python3 -c "import numpy,pandas,scipy,pytest"` → `deps ok` (rc=0)
 - `rm -f .coverage .coverage.*; python3 -m pytest -q -k campaign_d --ignore=tests/test_controller_progress_accounting.py` → **883 passed, 5 skipped, 3766 deselected, 53 warnings, rc=0**
-- `rm -f .coverage .coverage.*; python3 -m pytest -q -k "not data_loader and not controller"` → **1875 passed, 5 skipped, 2842 deselected, 41 warnings, rc=0 in 162.63s** (FULL RUN COMPLETED; floor confirmed 1875/5, unchanged from `8cd7ffa` — no production code changed since)
+- `rm -f .coverage .coverage.*; python3 -m pytest -q -k "not data_loader and not controller"` → **1875 passed, 5 skipped, 2842 deselected, 41 warnings, rc=0 in 161.22s** (FULL RUN COMPLETED; floor confirmed 1875/5, unchanged from `8cd7ffa` — no production code changed since)
 - campaign11 tests: `tests/test_bab_backtest_contract_smoke.py tests/test_bab_cli_numeric_reporting.py tests/test_bab_cli_reporting_robustness.py tests/test_bab_cli_error_reporting.py` → **62 passed, rc=0** (9 + 10 + 34 + 9)
 
 **campaign11 — IN PROGRESS (slices a–f implemented & verified this session; no production changes):**
@@ -37,7 +37,7 @@
 **RULES:** no `data_loader` probe/gate churn without a concretely demonstrated, non-repeatable strict-4 mechanism from a production bug/feature need; do not touch lines `322,326` in `data_loader.py`; do not edit `.github/workflows/*`; do not weaken/delete `batch148/149/172` or `campaign_d*`; no tracked `probe*`/`debug*`/`ast_probe.py` edits/commits; do not commit/push unless explicitly requested.
 
 **Bottlenecks removed/notes (unblock next agent):**
-- Full excl run completes (~163s) — use `background_process monitor timeout>=450000` if shell tool times out.
+- Full excl run completes (~161s) — use `background_process monitor timeout>=450000` if shell tool times out.
 - `rm -f .coverage .coverage.*` before canonical runs.
 - Slice e parity: CLI synthetic `BABStrategy(BABConfig(universe=None,...))` differs from shorthand defaults; assert against equivalent `BABConfig`.
 - `tests/test_bab_cli_numeric_reporting.py`, `tests/test_bab_cli_error_reporting.py`, `tests/test_bab_backtest_contract_smoke.py` are now **tracked** (committed @ `4b0ce91`) — keep/extend; do not weaken.
@@ -48,4 +48,4 @@
 **ACTIVE:** campaign11 next = slice (g) targeted edge/error robustness only if proven (inspect CLI JSON/cumulative extraction + strategy/loader boundaries). Slices (a)–(f) implemented/verified (62 campaign11 tests passing). campaign10 complete. campaign7 floor LOCKED. `beta.py`/`data_loader` gates CLOSED.
 
 ---
-# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) (canonical; refreshed 2026-11-09T18:07:39Z @ `4b0ce91`). `docs/unreachable_proofs.md` is the evidence appendix. §INITIAL TASK MESSAGE above is binding. No competing handoff files.
+# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) (canonical; refreshed 2026-11-09T18:12:21Z @ `4b0ce91`). `docs/unreachable_proofs.md` is the evidence appendix. §INITIAL TASK MESSAGE above is binding. No competing handoff files.
