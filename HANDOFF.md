@@ -1,30 +1,27 @@
 # INITIAL TASK MESSAGE (leave this for next agent; highest priority)
 
-**Timestamp:** 2026-11-09T11:15:16Z
+**Timestamp:** 2026-11-09T11:33:09Z
 **Repo:** Crypto-Betting-Against-Beta (priority: Betting Against Beta — repo-name priority binds every slice)
-**HEAD:** 12d71e0 (origin/main synced context; `git status --short` clean)
+**HEAD:** 362f1f2 (origin/main synced; `git status --short` clean except 3 new untracked campaign-2 test files below)
 **data_loader blob:** e945fde (UNCHANGED - GATE CLOSED)
 **Status:** Environment blocker REMOVED — `numpy`/`pandas`/`scipy`/`pytest` installed and gates verified in this runtime. **Do not stop at planning; ship heavy engineering output.**
 
 **MISSION (repo priority — Crypto-Betting-Against-Beta):** continue the **BAB Package Coverage Campaign**: reduce real uncovered paths in `strategies/betting_against_beta/` with production-realistic tests/fixes, without regressing the `data_loader`/`campaign_d` baselines. `data_loader.py` miss-floor work is GATE-CLOSED (lines `322,326` live/guarded — do not alter; `data_sources.py` 100% CLOSED). The `beta.py` residual 26 misses are provably unreachable/dead code — CLOSED WITHOUT EDITS, no test/probe churn solely to cover them. Future agents must produce heavy engineering output (tests/fixes/evidence), not status narration; a planning-only exit is inefficient and unacceptable once deps are available.
 
-**Current state (HEAD 12d71e0, all gates verified this session):**
-- Full BAB suite (excl. controller): `python -m pytest -q --ignore=tests/test_controller_progress_accounting.py` → **4384 passed, 35 skipped, `rc=0`** (baseline 4367/35; delta +17 campaign2 tests).
+**Current state (HEAD 362f1f2, all gates verified this session):**
+- Full BAB suite (excl. controller): `python -m pytest -q --ignore=tests/test_controller_progress_accounting.py` → **4445 passed, 35 skipped, `rc=0`** (baseline 4384/35; delta +61 = the three new campaign-2 test files below).
 - Campaign scope: `python -m pytest -q -k campaign_d --ignore=tests/test_controller_progress_accounting.py` → **883 passed, 5 skipped, `rc=0`** (baseline preserved).
-- Coverage deltas this session: `backtest.py` 28 miss/74% → **0 miss/100%**; `regime.py` 11 miss/94% → **0 miss/100%**; `beta.py` 28 miss/91% → **26 miss/92%** (26 remaining = unreachable dead code, §Residual, closed).
-- New artifacts: `tests/test_bab_backtest_coverage_campaign2.py`, `tests/test_bab_beta_coverage_campaign2.py`, `tests/test_bab_regime_coverage_campaign2.py`. `py_compile` OK on all touched. Prior verified slices (historical): `cli.py` 2/99%, `strategy.py` 7/98%, `signals.py` 19/128/85%, `portfolio.py` 44/244/82%.
+- Coverage deltas this session: `data.py` 0 miss/**100%** (new); `costs.py` **15 miss/88%** (new); `metrics.py` **9 miss/93%** (new); `backtest.py` 0 miss/100%; `regime.py` 0 miss/100%; `beta.py` 26 miss/92% (26 remaining = unreachable dead code, §Residual, closed).
+- New artifacts: `tests/test_bab_data_coverage_campaign2.py`, `tests/test_bab_costs_coverage_campaign2.py`, `tests/test_bab_metrics_coverage_campaign2.py` (61 tests, all pass). `py_compile` OK on all touched. Prior verified slices (historical): `cli.py` 2/99%, `strategy.py` 7/98%, `signals.py` 19/128/85%, `portfolio.py` 44/244/82%.
 
 **Residual uncovered lines — `beta.py` (26 miss / 92%; dead code — CLOSED WITHOUT EDITS):**
 101-102 alignment `except`; 124 `len(y)==0`; 145-146 `lstsq` `LinAlgError`; 149-150 `BABDataError` re-raise; 162 `a is None`; 169-170 `np.array().ravel()`; 188 `len(a_m)==0`; 212-218 `lstsq`/`TypeError`; 356-359 `_finalize_betas` 1-D branch; 429-433 inner `except`/`raise`. **Requirement:** no test/probe churn solely to cover these lines; no production edits solely for coverage.
 
 **IMMEDIATE ACTIONS (execute in order):**
 
-1. **Step 0 — baseline (mandatory, every session):** `export PYTHONPATH=$PWD`; `rm -f .coverage .coverage.*`; `python -m pytest -q --ignore=tests/test_controller_progress_accounting.py` → expect 4384 passed, 35 skipped, `rc=0` (count grows only with added tests; any red must be fixed before new work); `python -m pytest -q -k campaign_d --ignore=tests/test_controller_progress_accounting.py` → **883/5, `rc=0`**.
+1. **Step 0 — baseline (mandatory, every session):** `export PYTHONPATH=$PWD`; `rm -f .coverage .coverage.*`; `python -m pytest -q --ignore=tests/test_controller_progress_accounting.py` → expect 4445 passed, 35 skipped, `rc=0` (count grows only with added tests; any red must be fixed before new work); `python -m pytest -q -k campaign_d --ignore=tests/test_controller_progress_accounting.py` → **883/5, `rc=0`**.
 
 2. **Next coverage slices — create narrowest targeted test files (`tmp_path`/controlled DataFrames; scoped monkeypatches only for defensive branches unreachable with valid public inputs):**
-   - `tests/test_bab_data_coverage_campaign2.py` — `data.py`: `generate_synthetic_returns` seed determinism, custom `asset_names`, `n_days` < 2 edge, all-asset column alignment, benchmark name override.
-   - `tests/test_bab_costs_coverage_campaign2.py` — `costs.py`: `compute_transaction_costs` impact term (adv as dict/Series/DataFrame, `impact_coefficient=0` skip, `participation_cap` clip, borrow `daily_borrow>0`, `fixed_fee_per_trade>0`, zero-turnover, None weights/prices), `TransactionCostModel` validation errors, `_adv_series`/`_clean_frame`, `apply_costs` DataFrame/Series/None branches, caller-stack-inspection removal contract (Series return).
-   - `tests/test_bab_metrics_coverage_campaign2.py` — `metrics.py`: `sharpe_ratio` `std<EPS`/`inf` branches, `max_drawdown` cumulative vs returns heuristic, `annualized_volatility` 0.0 branch, `strategy_beta` zero-variance benchmark, `sortino_ratio` no-downside `inf`/`nan`, `summary`/`compute_metrics` alias, `turnover`/`turnover_series` None/empty, `_to_series` DataFrame/single-column/None coercion, `win_rate`, `total_return`, `final_cumulative`.
    - `tests/test_bab_signals_coverage_campaign3.py` — `signals.py` residual misses: non-numeric dtype fallback path, quantile clamp branches (`lq<=0`,`>=1`,`sq` overlaps), all-finite fast path, `argsort` exception fallback, single-asset/flat rows.
    - `tests/test_bab_portfolio_coverage_campaign3.py` — `portfolio.py` residual misses: `_clean_signal_value` string/None/NaN branches, kwargs alias routing (`max_total_turnover`, `max_pos_size`, etc.), `enforce_risk_checks` gross/net/max-single raise paths, `max_position_size`/`max_turnover` validation, `enforce_beta_neutrality` no-finite-beta/`correction=False`/`s2_centered<1e-18`/`target` branches.
    - Then `strategy.py`, `quality.py`, `attribution.py`, `shorting.py`, `sizing.py`, `cli.py`, `report` paths.
@@ -43,7 +40,7 @@
 
 **ACTIVE:** none.
 
-**Measurable outcome (required every session):** materially improved coverage/tests on the next BAB module slice with all gates green and before/after evidence, plus a refreshed HANDOFF naming the following slice — or a concrete evidence-backed blocker with exact reproduction and unblocked next action. This session reports gates green: `backtest.py` 100%, `regime.py` 100%, `beta.py` 92% dead-code closed, full suite 4384/35 `rc=0`, `campaign_d` 883/5 `rc=0`. Next slice = **`data.py` / `costs.py` / `metrics.py`** (zero existing coverage test files — highest leverage), then `signals.py`/`portfolio.py` residuals, then `strategy.py`/`quality.py`/`attribution.py`/`shorting.py`/`sizing.py`/`cli.py`/`report`.
+**Measurable outcome (required every session):** materially improved coverage/tests on the next BAB module slice with all gates green and before/after evidence, plus a refreshed HANDOFF naming the following slice — or a concrete evidence-backed blocker with exact reproduction and unblocked next action. This session reports gates green: `data.py` 100%, `costs.py` 88%, `metrics.py` 93%, `backtest.py` 100%, `regime.py` 100%, `beta.py` 92% dead-code closed, full suite 4445/35 `rc=0`, `campaign_d` 883/5 `rc=0`. Next slice = **`signals.py` / `portfolio.py` residuals (campaign3)**, then `strategy.py`/`quality.py`/`attribution.py`/`shorting.py`/`sizing.py`/`cli.py`/`report`.
 
 ---
-# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) (canonical; refreshed 2026-11-09T11:15:16Z @ `12d71e0`, data_loader blob `e945fde` verified). `docs/unreachable_proofs.md` is the evidence appendix. §INITIAL TASK MESSAGE above is binding. No competing handoff files.
+# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) (canonical; refreshed 2026-11-09T11:33:09Z @ `362f1f2`, data_loader blob `e945fde` verified). `docs/unreachable_proofs.md` is the evidence appendix. §INITIAL TASK MESSAGE above is binding. No competing handoff files.
