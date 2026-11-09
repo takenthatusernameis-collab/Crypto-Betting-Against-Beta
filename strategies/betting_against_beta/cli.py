@@ -15,6 +15,9 @@ from .errors import BABDataError
 
 __version__ = "0.1.0"
 
+_UNIVERSE_UNSET = object()
+
+
 
 def _print_resolved_config(config: BABConfig) -> None:
     """Print the resolved CLI configuration in a stable, human-readable form."""
@@ -208,12 +211,15 @@ def main(argv=None) -> int:
         return 1
 
     try:
-        universe_arg = getattr(args, "universe", None)
+        universe_arg = getattr(args, "universe", None) if hasattr(args, "universe") else None
         if universe_arg is not None and len(universe_arg) == 0:
             # When --universe is passed with no values (e.g., followed by another flag),
             # argparse with nargs='*' can consume the next flag as a value. To be defensive
             # and match test expectations, treat as using defaults / synthetic.
             universe_arg = None
+        # No --universe provided -> pass universe=None so config/strategy derive
+        # from data/synthetic defaults (historical CLI behavior); explicit
+        # --universe uses the provided list.
         config = BABConfig(
             universe=universe_arg,
             benchmark=args.benchmark,

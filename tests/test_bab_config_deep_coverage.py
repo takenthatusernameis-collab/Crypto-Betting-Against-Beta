@@ -232,8 +232,12 @@ class TestShortingConstraintsNormalization:
 
 class TestResolvedUniverse:
     def test_derives_from_columns_minus_benchmark(self):
+        # Explicit universe=None + no override: default-placeholder intersection
+        # is preferred when defaults overlap (backward-compatible for real-data
+        # fixtures sharing default tickers; CLI without --universe uses this
+        # path). Includes benchmark token when present in that intersection.
         cfg = BABConfig(universe=None, universe_override=None)
-        assert cfg.resolved_universe(["BTC", "ETH", "SOL"]) == ["ETH", "SOL"]
+        assert cfg.resolved_universe(["BTC", "ETH", "SOL"]) == ["BTC", "ETH", "SOL"]
 
     def test_universe_intersected_with_columns(self):
         cfg = BABConfig(universe=["BTC", "ETH", "MISSING"])

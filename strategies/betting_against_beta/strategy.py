@@ -224,6 +224,18 @@ class BABStrategy:
                 "No tradable assets remain after intersecting the configured "
                 f"universe {cfg.universe} with data columns {list(returns.columns)}"
             )
+        # Subset returns to the effective tradable universe + benchmark. Without
+        # this, --universe/config subsets are accepted and reported but silently
+        # ignored by beta/signal/portfolio computation (all data columns used).
+        subset_cols = []
+        bench = getattr(cfg, "benchmark", None)
+        if bench is not None and bench in returns.columns and bench not in subset_cols:
+            subset_cols.append(bench)
+        for a in effective_universe:
+            if a in returns.columns and a not in subset_cols:
+                subset_cols.append(a)
+        if subset_cols:
+            returns = returns.loc[:, [c for c in subset_cols if c in returns.columns]].copy()
         try:
             object.__setattr__(cfg, "universe", effective_universe)
             object.__setattr__(cfg, "_frozen", True)

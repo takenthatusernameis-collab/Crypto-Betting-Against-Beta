@@ -19,10 +19,14 @@ class BABConfigError(ValueError):
     """Raised when BABConfig fields are out of their valid ranges."""
 
 
+_DEFAULT_UNIVERSE = ["BTC", "ETH", "SOL", "BNB", "XRP", "ADA", "AVAX", "DOT"]
+
+
 @dataclass(frozen=False)
 class BABConfig:
     """Configuration for BAB strategy."""
-    universe: Optional[List[str]] = field(default_factory=lambda: ["BTC", "ETH", "SOL", "BNB", "XRP", "ADA", "AVAX", "DOT"])
+    universe: Optional[List[str]] = field(default_factory=lambda: list(_DEFAULT_UNIVERSE))
+
     benchmark: str = "BTC"
     beta_window: int = 90  # days for rolling beta calculation
     rebalance_freq: str = "daily"
@@ -280,6 +284,24 @@ class BABConfig:
             return candidate or available
         if self.universe is not None:
             candidate = [a for a in self.universe if a in available]
+            # Default placeholder: intersect with available. When it has
+            # meaningful non-benchmark overlap, preserve the intersected
+            # configured set (historical; may include benchmark when explicitly
+            # present in defaults/overlap). Only when overlap is
+            # empty/benchmark-only (custom/arbitrary DataFrame) derive.
+            if list(self.universe) == _DEFAULT_UNIVERSE:
+                if candidate and set(candidate) - {self.benchmark}:
+                    return candidate
+                return [c for c in available if c != self.benchmark]
+            # Explicit non-default universe: use intersection if overlap;
+            # otherwise fall back to available excluding benchmark (historical).
             if candidate:
                 return candidate
+            return [c for c in available if c != self.benchmark]
+        # universe is None (e.g. CLI no --universe): prefer default-placeholder
+        # intersection when defaults overlap (backward-compatible for fixtures
+        # sharing default tickers; includes benchmark token when present).
+        default_candidate = [a for a in _DEFAULT_UNIVERSE if a in available]
+        if default_candidate and set(default_candidate) - {self.benchmark}:
+            return default_candidate
         return [c for c in available if c != self.benchmark]

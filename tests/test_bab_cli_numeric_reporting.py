@@ -148,6 +148,8 @@ class TestFixtureNumericInvariants:
         assert math.isfinite(tail)
         assert payload["final_cumulative"] == pytest.approx(tail, rel=0, abs=1e-12)
         assert payload["benchmark"] == "BTC"
+        # Effective universe must match resolved tradable set (no silent extra cols).
+        assert set(payload["universe"]) == set(result.config.universe)
 
     def test_returns_fixture_cli_summary_finite_and_periods_parity(self):
         argv = ["--data", RETURNS_FIXTURE, "--benchmark", "BTC"]
