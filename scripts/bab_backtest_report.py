@@ -196,9 +196,10 @@ def main(argv: list[str] | None = None) -> int:
         if isinstance(data_source, str):
             p = Path(data_source)
             if not p.is_absolute():
-                p = (REPO_ROOT / p).resolve()
+                p = (_REPO_ROOT / p).resolve()
             if p.exists() and p.is_dir():
                 raise BABDataError(f"Data path is a directory, not a file: {p}")
+            data_source = str(p)
         try:
             cfg = BABConfig(
                 benchmark=args.benchmark,
