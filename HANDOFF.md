@@ -1,34 +1,39 @@
 # INITIAL TASK MESSAGE (leave this for next agent; highest priority)
 
-**Timestamp:** 2026-11-09T19:09:16Z
+**Timestamp:** 2026-11-09T19:10:37Z
 **Repo:** Crypto-Betting-Against-Beta (priority: Betting Against Beta — repo-name priority binds every slice)
-**HEAD (verified this session):** `a063a5e` (`chore(kilo): checkpoint agent session`, local main). Working tree: **clean except untracked** `tests/test_bab_cli_edge_robustness_campaign11h.py` (new this session, 14 tests, all passing). `tests/test_bab_cli_edge_robustness_campaign11g.py` was created earlier as untracked in prior context and should be verified/tracked as appropriate if present; campaign11g is counted in prior verified floor (1875→1887 at `b391c6e`) — confirm presence before relying on it. All prior campaign11 slices (a)–(f) tracked/committed @ `4b0ce91`. Do not commit/push unless explicitly requested.
-**Baseline/gates (re-verified this session @ `a063a5e`, deps installed `numpy/pandas/scipy/pytest`, `PYTHONPATH=$PWD PATH=$HOME/.local/bin:$PATH`, `.coverage*` cleared before canonical runs):**
-- `python3 -c "import numpy,pandas,scipy,pytest"` → `deps ok` (rc=0)
-- `rm -f .coverage .coverage.*; python3 -m pytest -q -k campaign_d --ignore=tests/test_controller_progress_accounting.py` → **883 passed, 5 skipped, 3792 deselected, 53 warnings, rc=0** (deselected count shifted with new untracked test file present)
-- `rm -f .coverage .coverage.*; python3 -m pytest -q -k "not data_loader and not controller"` → **1901 passed, 5 skipped, 2842 deselected, 41 warnings, rc=0 in 172.61s (0:02:52)** (FULL RUN COMPLETED; floor raised 1887→1901 by +14 campaign11h tests; no production code changed)
-- campaign11 tests: `tests/test_bab_cli_edge_robustness_campaign11h.py tests/test_bab_cli_edge_robustness_campaign11g.py tests/test_bab_cli_error_reporting.py tests/test_bab_cli_numeric_reporting.py tests/test_bab_cli_reporting_robustness.py tests/test_bab_backtest_contract_smoke.py` → **88 passed, rc=0 in 32.60s** (14 + 12 + 9 + 10 + 34 + 9)
+**HEAD (verified this session):** `7b4f89f` (`chore(kilo): checkpoint agent session`, local main). Working tree: **clean except untracked** `tests/test_bab_cli_slice_i_defensive_invariants.py` (new this session, slice (i), 22 tests, all passing). Do not commit/push unless explicitly requested.
+**Environment:** deps `numpy/pandas/scipy/pytest` installed; `PYTHONPATH=$PWD PATH=$HOME/.local/bin:$PATH`; `.coverage*` cleared before canonical runs.
 
-**campaign11 — IN PROGRESS (slices a–h implemented & verified; no production changes):**
-- **`tests/test_bab_cli_reporting_robustness.py`** (tracked): 34 tests — output path/schema/determinism across fixtures; dry-run/output validation; numeric/backtest invariants; README↔CLI contract smokes.
-- **`tests/test_bab_cli_error_reporting.py`** (tracked, slice d): 9 tests — evidence-first CLI error paths (missing `--data`, `--from-prices` missing, `--output` directory, unwritable parent best-effort, `--data` directory, valid dry-run fixture). **No production bug proven.**
-- **`tests/test_bab_cli_numeric_reporting.py`** (tracked, slice e): 10 tests — strict JSON/finite summary invariants; CLI parity with `BABStrategy(BABConfig(...))` for deterministic synthetic configs (`universe=None` nuance) and `--universe` subset; NaN/Infinity token absence. **No production bug proven.**
-- **`tests/test_bab_backtest_contract_smoke.py`** (tracked, slice f): 9 tests — backtest/metrics/report contract smoke on committed real fixtures and deterministic synthetic. Evidence-based contracts: `result.backtest` columns `['returns','gross_return','cost_drag','slippage_drag','cumulative']`, monotonic index, finite scalar tail, positive cumulative, non-negative drags, CLI parity; `report()`/`tear_sheet()` finite/JSON-serializable (`default=str`). **No production bug proven.**
-- **`tests/test_bab_cli_edge_robustness_campaign11g.py`** (**untracked if present; verify**): 12 tests — adversarial backtest shapes at CLI/strategy boundary via monkeypatch (unnamed Series, named cumulative Series, ndarray, NaN/inf cumulative tail coerced finite, empty DataFrame, list, scalar) and `BABDataError`/generic-exception propagation (clean stdout, no traceback). **No production bug proven; no production edits.**
-- **`tests/test_bab_cli_edge_robustness_campaign11h.py`** (**untracked, NEW slice h this session**): 14 tests — defensive JSON/serialization invariant evidence + committed malformed/adversarial fixture CLI runs. Evidence/probes: CLI `--output` uses `_json_safe` first then `json.dumps(..., default=_json_default, allow_nan=False)` (safety invariant). `_json_safe` coerces non-finite `float`/`np.floating` to `0.0`; `_json_safe` leaves `np.datetime64` unchanged (no `isoformat`) but `_json_default`/json path serializes it; `np.void`/`bytes` stringify safely; nested exotic payloads (`np.datetime64`, `np.void`, `bytes`, `np.float64` inf/nan, `np.ndarray` with non-finite, `pd.Timestamp`, `pd.Index`, `pd.Series`) produce `allow_nan=False`-safe JSON via `_json_safe`-first. Committed fixtures `all_nan_column`, `benchmark_nan_window`, `junk_columns`, `real_data_defects`, `messy_returns`, `non_monotonic_dates`, `returns.json` dry-run clean/valid (rc=0, no `INVALID`/traceback); `degenerate_metrics.csv` and `real_data_defects.csv` full runs produce finite JSON output (`allow_nan=False`), no traceback. `--from-prices` on `returns.json` (not a price file) remains clean (rc 0/1, no traceback). **No production bug proven; no production edits.**
+**Baseline/gates (re-verified this session @ `7b4f89f`):**
+- `python3 -c "import numpy,pandas,scipy,pytest"` → `deps ok` (rc=0)
+- `rm -f .coverage .coverage.*; python3 -m pytest -q -k campaign_d --ignore=tests/test_controller_progress_accounting.py` → **883 passed, 5 skipped, rc=0** (floor held)
+- `rm -f .coverage .coverage.*; python3 -m pytest -q -k "not data_loader and not controller"` → **1923 passed, 5 skipped, 2842 deselected, 41 warnings, rc=0 in 167s (0:02:47)** (floor raised 1901→1923 by +22 slice (i) tests; no production code changed)
+- Real-data CLI end-to-end: `python -m strategies.betting_against_beta.cli --data tests/fixtures/real_market_prices.csv --from-prices --benchmark BTC --output <tmp>` → **rc=0, `final_cumulative=0.3838`, `periods=398`, finite `allow_nan=False` JSON, no traceback** (README real-data path verified).
+
+**campaign11 — BAB CLI/reporting + numeric robustness hardening:**
+- Slices (a)–(h) implemented & verified (88 campaign11 tests passing incl. g/h). No production changes.
+- **Slice (i) PROBED this session (defensive gaps beyond current evidence): NO production bug proven.**
+  - (a) `_extract_cumulative`/`_coerce_finite_scalar` with `pd.NA`, `Decimal` NaN/inf, nullable/numpy scalar subclasses → always finite default, never raises. OK.
+  - (b) `_json_safe`/`_json_default` with `pd.NaT`, `datetime.date`/`time`, `np.complexfloating`, `Decimal` NaN/inf, nested containers → `_json_safe`-first output remains `allow_nan=False`-safe (Decimal NaN → quoted `"NaN"` string; bare NaN/Infinity tokens never emitted). OK.
+  - (c) CLI `--output` with `_build_output_summary` receiving exotic config/benchmark/universe (None, bytes, np.inf, pd.NaT, object) → finite JSON, no crash. OK.
+  - (d) `--from-prices` on committed returns-like fixture `returns.json` → clean (rc 0/1, no traceback). OK.
+  - **No production edits** (bug-fix rule: no proven bug → no edit).
+- **Added:** `tests/test_bab_cli_slice_i_defensive_invariants.py` (22 tests) locking in the probed CLI JSON/finite boundary invariants so no future change can regress them silently.
 
 **MISSION (repo priority):** Continue **campaign11 — BAB CLI/reporting + numeric robustness hardening**. campaign7–10 closed/verified. `beta.py` (92%, gate closed) and `data_loader.py` (98%/40 miss, gate closed) remain **GATE CLOSED** (no churn). A planning-only exit is unacceptable when deps are available.
 
 **campaign11 — NEXT FOCUS CAMPAIGN (mandatory, heavy engineering; not avoidable):**
-1. **Step 0 gates (must pass before any edit):** deps import; `campaign_d` 883/5; full excl ≥1901/5 (current verified floor). Fix regressions before new work.
-2. **Slice (i) — defensive gaps beyond current evidence (only if proven):** (a) `_extract_cumulative`/`_coerce_finite_scalar` behavior with `pd.NA`/nullable scalar results and `Decimal`/numpy scalar subclasses in backtest tails — add CLI-boundary tests via monkeypatch if JSON/finite invariants can be violated. (b) `_json_safe/_json_default` handling of `pd.NaT`, `datetime.date`/`time` in nested containers, and `np.complexfloating` (if ever present) — assert `_json_safe`-first output remains `allow_nan=False` safe or document/handle only with proven risk; do not invent production paths. (c) CLI `--output` when `_build_output_summary` receives exotic config/benchmark/universe elements from malformed strategy/config objects (defensive monkeypatch). (d) `--from-prices` on committed fixtures that are clearly returns-like (e.g., small/negative-heavy) — confirm clean error/valid behavior, no traceback. Add tests only for proven/defensive gaps; **do not weaken assertions**. No speculative refactors. **No production edits unless a real bug is proven with evidence + minimal regression test.**
-3. **Bug fix rule:** if a real bug is found, fix minimally with evidence + regression test. Do not weaken assertions to paper over bugs.
-4. **Gates that must stay green:** `campaign_d` 883/5; full BAB excl `data_loader`/`controller` ≥1901/5 (or updated verified count with explanation); all touched BAB tests green.
-5. **Prohibited:** `.github/workflows/*` edits; gate-closed churn (`beta.py` dead/unreachable, `data_loader` strict-4/322,326 + mechanism-closed misses — **DO NOT ALTER**); tracked `probe*`/`debug*`/`ast_probe.py` edits/commits; weakening/deleting `batch148/149/172` or `campaign_d*`.
+1. **Step 0 gates (must pass before any edit):** deps import; `campaign_d` 883/5; full excl ≥1923/5 (current verified floor). Fix regressions before new work.
+2. **Real-data regression test (the heavy work):** add a test locking in the end-to-end real-data CLI path (`--data tests/fixtures/real_market_prices.csv --from-prices --benchmark BTC --output <tmp>` → rc 0, finite `allow_nan=False` JSON, `final_cumulative` finite scalar, `periods` int, no traceback; dry-run valid). Future agents must not skip this — the repo's purpose is real BAB backtests.
+3. **Slice (i)-(d) defensive gaps only if proven:** probe before asserting; add tests only for proven/defensive gaps; **do not weaken assertions**. No speculative refactors. **No production edits unless a real bug is proven with evidence + minimal regression test.**
+4. **Bug fix rule:** if a real bug is found, fix minimally with evidence + regression test. Do not weaken assertions to paper over bugs.
+5. **Gates that must stay green:** `campaign_d` 883/5; full BAB excl `data_loader`/`controller` ≥1923/5 (or updated verified count with explanation); all touched BAB tests green.
+6. **Prohibited:** `.github/workflows/*` edits; gate-closed churn (`beta.py` dead/unreachable, `data_loader` strict-4/322,326 + mechanism-closed misses — **DO NOT ALTER**); tracked `probe*`/`debug*`/`ast_probe.py` edits/commits; weakening/deleting `batch148/149/172` or `campaign_d*`.
 
 **IMMEDIATE ACTIONS (execute in order, no planning-only exit):**
-0. Step 0 gates (deps, campaign_d 883/5, full excl floor 1901/5). Fix regressions before new work.
-1. Verify `tests/test_bab_cli_edge_robustness_campaign11g.py` presence; include in campaign11 runs/floor accounting as applicable. Execute campaign11 slice (i) end-to-end (probe before asserting; add tests only for proven/defensive gaps). Run new tests + campaign_d + full excl (monitor `timeout>=450000`); record before/after counts+rc and modules touched.
+0. Step 0 gates (deps, campaign_d 883/5, full excl floor 1923/5). Fix regressions before new work.
+1. Add the real-data CLI end-to-end regression test (next focus campaign item 2). Run it + campaign_d + full excl (monitor `timeout>=450000`); record before/after counts+rc and modules touched.
 2. Refresh this HANDOFF (timestamp/SHA, commands+counts+rc, modules touched, deltas, next slice). Keep §INITIAL TASK MESSAGE binding.
 
 **Coverage evidence (campaign7 floor — LOCKED, unchanged):**
@@ -39,17 +44,15 @@
 **RULES:** no `data_loader` probe/gate churn without a concretely demonstrated, non-repeatable strict-4 mechanism from a production bug/feature need; do not touch lines `322,326` in `data_loader.py`; do not edit `.github/workflows/*`; do not weaken/delete `batch148/149/172` or `campaign_d*`; no tracked `probe*`/`debug*`/`ast_probe.py` edits/commits; do not commit/push unless explicitly requested.
 
 **Bottlenecks removed/notes (unblock next agent):**
-- Full excl run completes (~173s) — use `background_process monitor timeout>=450000` or large shell timeout if needed.
+- Full excl run completes (~167s) — use `background_process monitor timeout>=450000` or large shell timeout if needed.
 - `rm -f .coverage .coverage.*` before canonical runs.
-- **New untracked:** `tests/test_bab_cli_edge_robustness_campaign11h.py` (14 tests, slice h) — passes; keep/extend/track as appropriate; do not weaken.
-- **Untracked check:** `tests/test_bab_cli_edge_robustness_campaign11g.py` may be absent/untracked depending on checkout state; verify and restore/track only if consistent with repo history (prior handoff claimed it as untracked/new; not seen in this session's git status after checkpoint).
-- Slice e parity: CLI synthetic `BABStrategy(BABConfig(universe=None,...))` differs from shorthand defaults; assert against equivalent `BABConfig`.
-- CLI `--output` safety invariant (evidence): `_build_output_summary` → `_json_safe` → `json.dumps(..., default=_json_default, allow_nan=False)`. `_json_safe` coerces non-finite float/np.floating to `0.0`; leaves `np.datetime64` unchanged (no `isoformat`) but `json_default`/json serialization resolves it; handles np/pd containers, bytes, np.void stringification. Do not assume `_json_default` alone enforces `allow_nan=False`.
+- New untracked: `tests/test_bab_cli_slice_i_defensive_invariants.py` (22 tests, slice i) — passes; keep/extend, do not weaken.
+- CLI `--output` safety invariant (evidence): `_build_output_summary` → `_json_safe` → `json.dumps(..., default=_json_default, allow_nan=False)`. `_json_safe` coerces non-finite float/np.floating to `0.0`; leaves `np.datetime64` unchanged (no `isoformat`) but `_json_default`/json serializes it; handles np/pd containers, bytes, np.void stringification. Do not assume `_json_default` alone enforces `allow_nan=False`.
 - `_extract_cumulative`: unnamed Series/non-cum returns object → CLI coerces to default `1.0`. NaN/inf cumulative tail values are extracted then coerced finite by CLI (`main:~315`) — verified.
 - Repo has tracked `probe*`/`debug*`/`ast_probe.py` at root — **do not edit/commit**.
-- Gates: `campaign_d` 883/5, full excl 1901/5 (re-verified this session @ `a063a5e`).
+- Gates: `campaign_d` 883/5, full excl 1923/5 (re-verified this session @ `7b4f89f`).
 
-**ACTIVE:** campaign11 next = slice (i) defensive pd.NA/NaT/nullable/Decimal/nested container gaps at CLI JSON boundary + `--from-prices`/malformed-config defensive checks (probe/evidence first). Slices (a)–(h) implemented/verified (88 campaign11 tests passing incl. g/h files present). campaign10 complete. campaign7 floor LOCKED. `beta.py`/`data_loader` gates CLOSED.
+**ACTIVE:** campaign11 next = real-data CLI end-to-end regression test (heavy, mandatory) + continue slice (i)-(d) defensive probing only if proven. Slices (a)–(i) implemented/verified; slice (i) probed — no bug, invariants locked in by 22 new tests. campaign10 complete. campaign7 floor LOCKED. `beta.py`/`data_loader` gates CLOSED.
 
 ---
-# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) (canonical; refreshed 2026-11-09T19:09:16Z @ `a063a5e`). `docs/unreachable_proofs.md` is the evidence appendix. §INITIAL TASK MESSAGE above is binding. No competing handoff files.
+# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) (canonical; refreshed 2026-11-09T19:10:37Z @ `7b4f89f`). `docs/unreachable_proofs.md` is the evidence appendix. §INITIAL TASK MESSAGE above is binding. No competing handoff files.
