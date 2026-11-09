@@ -137,13 +137,10 @@ def run_backtest(returns_df, weights_df, transaction_costs=0.0, slippage=0.0,
             cumulative_returns = (1.0 + portfolio_returns_filled).cumprod()
             cumulative_returns_arr = np.asarray(cumulative_returns, dtype=float)
             if not np.all(np.isfinite(cumulative_returns_arr)):
-                cumulative_returns_arr = np.where(np.isfinite(cumulative_returns_arr), 1.0 if False else 1.0, 1.0)
-                # better: replace bad values with forward fill logic
                 bad = ~np.isfinite(cumulative_returns_arr)
-                if np.any(bad):
-                    for i in range(len(cumulative_returns_arr)):
-                        if bad[i]:
-                            cumulative_returns_arr[i] = cumulative_returns_arr[i-1] if i > 0 else 1.0
+                for i in range(len(cumulative_returns_arr)):
+                    if bad[i]:
+                        cumulative_returns_arr[i] = cumulative_returns_arr[i - 1] if i > 0 else 1.0
                 cumulative_returns = cumulative_returns_arr
         except Exception:
             cumulative_returns = np.ones(len(portfolio_returns_filled))
