@@ -1,12 +1,12 @@
 # INITIAL TASK MESSAGE (leave this for next agent; highest priority)
 
-**Timestamp:** 2026-11-09T16:17:52Z
+**Timestamp:** 2026-11-09T16:24:19Z
 **Repo:** Crypto-Betting-Against-Beta (priority: Betting Against Beta — repo-name priority binds every slice)
-**HEAD:** `58349c4` (local main == `origin/main`, working tree clean; production code unchanged since `3bc2586`, only HANDOFF.md touched by session checkpoint commit). Do not commit/push unless explicitly requested.
-**Baseline/gates (verified this session @ `58349c4`, deps installed via `python3 -m pip install --user numpy pandas scipy pytest hypothesis coverage`, `PYTHONPATH=$PWD PATH=$HOME/.local/bin:$PATH`, `.coverage*` cleared before canonical runs):**
+**HEAD:** `0dcc613` (local main == `origin/main`, working tree clean; production code unchanged since `3bc2586`; only `HANDOFF.md` + new test file touched since `3bc2586`). Do not commit/push unless explicitly requested.
+**Baseline/gates (verified this session @ `0dcc613`, deps installed via `python3 -m pip install --user numpy pandas scipy pytest hypothesis coverage`, `PYTHONPATH=$PWD PATH=$HOME/.local/bin:$PATH`, `.coverage*` cleared before canonical runs):**
 - `python3 -c "import numpy,pandas,scipy,pytest"` → `deps ok` (numpy 2.5.4, pandas 3.1.1, scipy 1.18.1, pytest 9.2.0)
-- `rm -f .coverage .coverage.*; python3 -m pytest -q -k campaign_d --ignore=tests/test_controller_progress_accounting.py` → **883 passed, 5 skipped, 3691 deselected, 53 warnings, rc=0 in 5.54s** (baseline preserved).
-- `rm -f .coverage .coverage.*; python3 -m pytest -q -k "not data_loader and not controller"` → **1800 passed, 5 skipped, 2842 deselected, 41 warnings, rc=0 in 122.89s** (FULL RUN COMPLETED this session; prior verified baseline 1776/5 at `9550376`; count rose to 1800 due to added script/session test coverage — record this as the new verified floor, no regression).
+- `rm -f .coverage .coverage.*; python3 -m pytest -q -k campaign_d --ignore=tests/test_controller_progress_accounting.py` → **883 passed, 5 skipped, 3696 deselected, 53 warnings, rc=0 in 5.49s** (baseline preserved).
+- `rm -f .coverage .coverage.*; python3 -m pytest -q -k "not data_loader and not controller"` → **1805 passed, 5 skipped, 2842 deselected, 41 warnings, rc=0 in 123.12s** (FULL RUN COMPLETED this session; new verified floor **1805/5**, up +5 from 1800/5 due to `tests/test_bab_real_data_repro.py` — record as new floor, no regression).
 - BAB regression sanity samples green: `tests/test_bab_strategy_edge.py tests/test_bab_backtest_comprehensive.py tests/test_bab_backtest_coverage_campaign2.py tests/test_bab_portfolio_uncovered_branches.py tests/test_bab_portfolio_*.py` → **84 passed, rc=0** (use actual file globs; legacy names like `test_bab_backtest.py` do not exist as written).
 
 **campaign9 — COMPLETED (script/tooling hardening):** `tests/test_scripts_campaign9.py` tracked (committed `c5d0c3c`). Script suite: `tests/test_bab_backtest_report.py tests/test_bab_report_strict_json.py tests/test_bab_cli_console_adversarial.py tests/test_bab_report_cli_edge_cases.py tests/test_bab_cli_report_hardening.py tests/test_scripts_campaign9.py` → **84 passed, rc=0**. Broader sanity incl. `test_bab_zero_silent_error.py` → **91 passed, rc=0**. No production code changes required/found in target scripts; no edits to `.github/workflows/*`, gate-closed modules, `data_loader` 322/326, or tracked `probe*`/`debug*`/`ast_probe.py`.
@@ -14,22 +14,16 @@
 **MISSION (repo priority):** Execute **campaign10 — post-script BAB hardening / verification closure**. campaign7/8/9 closed/verified. `beta.py` (92%, gate closed) and `data_loader.py` (40 miss / 98%, gate closed) remain **GATE CLOSED** (no churn). A planning-only exit is unacceptable when deps are available.
 
 **campaign10 — NEXT FOCUS CAMPAIGN (mandatory, heavy engineering; not avoidable):**
-1. **Verification closure — COMPLETE this session:** full excl data_loader/controller baseline recorded as **1800/5 rc=0** (was 1776/5). No regression. Do not re-run unless making non-script BAB changes.
-2. **Next highest-value BAB slice (choose exactly one, execute, measure):** **(c) real-data evaluation/reporting reproducibility tests using committed fixtures (`tests/fixtures/returns.json`) (no new external data)**. This slice tests the CLI end-to-end with real fixtures, validates JSON output stability, and exercises the `load_returns` → `BABStrategy.run()` → CLI `--output` pipeline. It adds measurable green tests without touching gate-closed internals.
-3. **Bug fix rule:** if a real bug is found, fix minimally with evidence + regression test.
-4. **Gates that must stay green:** `campaign_d` 883/5; full BAB excl data_loader/controller ≥1800/5 (or updated verified count with explanation); all BAB strategy/script tests touched; per-file BAB sets green as applicable.
-5. **No** `.github/workflows/*` edits, no gate-closed churn (`beta.py` dead/unreachable, `data_loader` strict-4/322,326), no tracked `probe*`/`debug*`/`ast_probe.py` edits/commits, no weakening `batch148/149/172` or `campaign_d*`.
+1. **Verification closure — COMPLETE this session:** full excl data_loader/controller baseline recorded as **1805/5 rc=0** (was 1800/5; +5 from `tests/test_bab_real_data_repro.py`). No regression. Do not re-run unless making non-script BAB changes.
+2. **Slice (c) — EXECUTED this session:** `tests/test_bab_real_data_repro.py` added and green (**5 passed, rc=0**) covering the CLI end-to-end pipeline with committed fixture `tests/fixtures/returns.json` (no new external data): `--data ... --output /tmp/out.json` → rc=0, schema-stable JSON (`final_cumulative`, `periods`, `benchmark`, `universe` present and finite); `--dry-run ...` → rc=0 validates config + data; round-trip `load_returns("tests/fixtures/returns.json", benchmark="BTC")` → `BABStrategy.run(returns_df=...)` → cumulative finite and deterministic (1.0, 8 periods); repeated `--output` writes byte-for-byte identical. **Correction vs prior assumption:** `--data tests/fixtures/returns.json --from-prices` does NOT fail cleanly — returns are valid numerics so `load_prices` runs and exits 0 (7 periods); the test asserts rc=0, not a failure.
+3. **Next slice (d) — binding initial task for the next session:** real-data CLI/reporting reproducibility on the committed price fixtures (`tests/fixtures/real_market_prices.csv`, `tests/fixtures/real_market_prices_expanded.csv`) — add regression tests in a new file `tests/test_bab_real_data_cli_repro.py` covering: `load_prices(fixture, benchmark="BTC")` → `BABStrategy.run(returns_df=...)` finite + deterministic cumulative across runs; CLI `--data <fixture> --from-prices --benchmark BTC --output /tmp/out.json` → rc=0, schema-stable JSON with `final_cumulative`/`periods`/`benchmark`/`universe` present and finite; repeated `--output` writes byte-for-byte identical; `--dry-run --data <fixture> --from-prices --benchmark BTC` → rc=0. Record before/after evidence (counts+rc). No new external data; no gate-closed churn.
+4. **Bug fix rule:** if a real bug is found, fix minimally with evidence + regression test.
+5. **Gates that must stay green:** `campaign_d` 883/5; full BAB excl data_loader/controller ≥1805/5 (or updated verified count with explanation); all BAB strategy/script tests touched; per-file BAB sets green as applicable.
+6. **No** `.github/workflows/*` edits, no gate-closed churn (`beta.py` dead/unreachable, `data_loader` strict-4/322,326), no tracked `probe*`/`debug*`/`ast_probe.py` edits/commits, no weakening `batch148/149/172` or `campaign_d*`.
 
 **IMMEDIATE ACTIONS (execute in order):**
-0. Step 0 gates: deps import ✓; `campaign_d` 883/5 ✓ rc=0; full excl **1800/5 ✓ rc=0** (complete — recorded as new floor). Fix regressions before new work.
-1. Execute campaign10 slice (c): add regression tests in a new file `tests/test_bab_real_data_repro.py` covering:
-   - CLI `--data tests/fixtures/returns.json --benchmark BTC --output /tmp/out.json` produces stable JSON
-   - CLI `--data tests/fixtures/returns.json --benchmark BTC --from-prices` fails cleanly (returns.json is returns, not prices)
-   - CLI `--dry-run --data tests/fixtures/returns.json --benchmark BTC` validates config + data without running
-   - Round-trip: `load_returns("tests/fixtures/returns.json", benchmark="BTC")` → `BABStrategy.run(returns_df=...)` → cumulative return is finite and deterministic across runs
-   - JSON output schema stability: keys `final_cumulative`, `periods`, `benchmark`, `universe` present and finite
-   - Multiple runs with identical inputs produce byte-for-byte identical `--output` JSON (after timestamp normalization if any)
-   Record before/after evidence (counts+rc).
+0. Step 0 gates: deps import ✓; `campaign_d` 883/5 ✓ rc=0; full excl **1805/5 ✓ rc=0** (complete — recorded as new floor). Fix regressions before new work.
+1. Execute campaign10 slice (d): create `tests/test_bab_real_data_cli_repro.py` per item 3 above; run it + campaign_d + full excl; record before/after counts+rc.
 2. Refresh this HANDOFF (timestamp/SHA, commands+counts+rc, modules touched, deltas, next slice). Keep binding.
 
 **Coverage evidence (campaign7 floor — LOCKED, unchanged):**
@@ -39,9 +33,9 @@
 
 **RULES:** no `data_loader` probe/gate churn without a concretely demonstrated, non-repeatable strict-4 mechanism from a production bug/feature need; do not touch lines `322,326` in `data_loader.py`; do not edit `.github/workflows/*`; do not weaken/delete `batch148/149/172` or `campaign_d*`; no tracked `probe*`/`debug*`/`ast_probe.py` edits/commits; do not commit/push unless explicitly requested.
 
-**Bottlenecks removed/notes:** full BAB excl data_loader/controller is ~2 min — now completed (was the open incomplete run); not a blocker going forward. `rm -f .coverage .coverage.*` before canonical runs. campaign7 residual misses remain closed-without-edit.
+**Bottlenecks removed/notes:** full BAB excl data_loader/controller (~2 min) completed this session — was the open incomplete run; not a blocker going forward. `rm -f .coverage .coverage.*` before canonical runs. campaign7 residual misses remain closed-without-edit. `tests/fixtures/returns.json` is small (8 rows × 3 assets incl. BTC) → rolling beta with window 90 yields flat zero weights (cumulative 1.0); slice (c) asserts finite/deterministic, not alpha. Slice (d) uses the larger price fixtures for a meaningful real-data path.
 
-**ACTIVE:** campaign10 — verification closure complete (1800/5 floor recorded) + next highest-value BAB hardening slice (c) real-data evaluation/reporting reproducibility tests using committed fixtures (`tests/fixtures/returns.json`). campaign7 floor LOCKED. `beta.py`/`data_loader` gates CLOSED.
+**ACTIVE:** campaign10 — verification closure complete (1805/5 floor recorded) + slice (c) done (`tests/test_bab_real_data_repro.py`, 5 passed). Next binding work: slice (d) real-data CLI/reporting reproducibility on committed price fixtures → `tests/test_bab_real_data_cli_repro.py`. campaign7 floor LOCKED. `beta.py`/`data_loader` gates CLOSED.
 
 ---
-# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) (canonical; refreshed 2026-11-09T16:17:52Z @ `58349c4`). `docs/unreachable_proofs.md` is the evidence appendix. §INITIAL TASK MESSAGE above is binding. No competing handoff files.
+# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) (canonical; refreshed 2026-11-09T16:24:19Z @ `0dcc613`). `docs/unreachable_proofs.md` is the evidence appendix. §INITIAL TASK MESSAGE above is binding. No competing handoff files.
