@@ -1,19 +1,19 @@
 # INITIAL TASK MESSAGE (leave this for next agent; highest priority)
 
-**Timestamp:** 2026-11-09T17:54:38Z
+**Timestamp:** 2026-11-09T18:07:39Z
 **Repo:** Crypto-Betting-Against-Beta (priority: Betting Against Beta — repo-name priority binds every slice)
-**HEAD (verified this session):** `8cd7ffa` (`chore(kilo): checkpoint agent session`, local main). Working tree: **untracked `tests/test_bab_cli_error_reporting.py` (slice d), `tests/test_bab_cli_numeric_reporting.py` (slice e), `tests/test_bab_backtest_contract_smoke.py` (slice f, added this session)**; `HANDOFF.md` modified by this session. Do not commit/push unless explicitly requested.
-**Baseline/gates (verified this session @ `8cd7ffa`, deps installed `numpy/pandas/scipy/pytest`, `PYTHONPATH=$PWD PATH=$HOME/.local/bin:$PATH`, `.coverage*` cleared before canonical runs):**
+**HEAD (verified this session):** `4b0ce91` (`chore(kilo): checkpoint agent session`, local main). Working tree: **clean** — campaign11 slices (a)–(f) all tracked & committed (`tests/test_bab_cli_reporting_robustness.py`, `tests/test_bab_cli_error_reporting.py`, `tests/test_bab_cli_numeric_reporting.py`, `tests/test_bab_backtest_contract_smoke.py`); `HANDOFF.md` refreshed this session. Do not commit/push unless explicitly requested.
+**Baseline/gates (re-verified this session @ `4b0ce91`, deps installed `numpy/pandas/scipy/pytest`, `PYTHONPATH=$PWD PATH=$HOME/.local/bin:$PATH`, `.coverage*` cleared before canonical runs):**
 - `python3 -c "import numpy,pandas,scipy,pytest"` → `deps ok` (rc=0)
 - `rm -f .coverage .coverage.*; python3 -m pytest -q -k campaign_d --ignore=tests/test_controller_progress_accounting.py` → **883 passed, 5 skipped, 3766 deselected, 53 warnings, rc=0**
-- `rm -f .coverage .coverage.*; python3 -m pytest -q -k "not data_loader and not controller"` → **1875 passed, 5 skipped, 2842 deselected, 41 warnings, rc=0 in 168.81s** (FULL RUN COMPLETED, post-fix; floor raised from 1866/5 → 1875/5 by slice f)
+- `rm -f .coverage .coverage.*; python3 -m pytest -q -k "not data_loader and not controller"` → **1875 passed, 5 skipped, 2842 deselected, 41 warnings, rc=0 in 162.63s** (FULL RUN COMPLETED; floor confirmed 1875/5, unchanged from `8cd7ffa` — no production code changed since)
 - campaign11 tests: `tests/test_bab_backtest_contract_smoke.py tests/test_bab_cli_numeric_reporting.py tests/test_bab_cli_reporting_robustness.py tests/test_bab_cli_error_reporting.py` → **62 passed, rc=0** (9 + 10 + 34 + 9)
 
 **campaign11 — IN PROGRESS (slices a–f implemented & verified this session; no production changes):**
 - **`tests/test_bab_cli_reporting_robustness.py`** (tracked history): 34 tests — output path/schema/determinism across returns.json, real_market_prices*.csv `--from-prices`, synthetic `--beta-window 30`; dry-run/output validation; numeric/backtest invariants on real fixtures; README↔CLI contract smokes.
-- **`tests/test_bab_cli_error_reporting.py`** (untracked, slice d): 9 tests — evidence-first CLI error paths (missing `--data` dry-run/real, `--from-prices` missing, `--output` directory, unwritable parent best-effort, `--data` directory, valid dry-run fixture). **No production bug proven.**
-- **`tests/test_bab_cli_numeric_reporting.py`** (untracked, slice e): 10 tests — strict JSON/finite summary invariants across all committed fixtures + synthetic; CLI `periods`/`final_cumulative` parity with `BABStrategy(BABConfig(...))` for deterministic synthetic configs (CLI synthetic uses `BABConfig(universe=None,...)` defaults); `--universe` subset contract reflected/stable with parity; NaN/Infinity token absence. **No production bug proven.**
-- **`tests/test_bab_backtest_contract_smoke.py`** (untracked, slice f, added this session): 9 tests — backtest/metrics/report contract smoke on committed real fixtures (`real_market_prices*.csv`, `returns.json`) and deterministic synthetic. Evidence-based contracts only: `result.backtest` is a DataFrame with columns `['returns','gross_return','cost_drag','slippage_drag','cumulative']` (verified `backtest.py`/`strategy.run`), monotonic index, finite scalar tail, positive cumulative, non-negative drags, CLI periods/tail parity. `BABStrategy.report()`/`tear_sheet()` present (evidence: strategy API) — smoke finite/JSON-serializable (`default=str`) outputs; report includes `config/metrics/rebalances/attribution/attribution_totals`. **No production bug proven; no production edits.**
+- **`tests/test_bab_cli_error_reporting.py`** (tracked, slice d): 9 tests — evidence-first CLI error paths (missing `--data` dry-run/real, `--from-prices` missing, `--output` directory, unwritable parent best-effort, `--data` directory, valid dry-run fixture). **No production bug proven.**
+- **`tests/test_bab_cli_numeric_reporting.py`** (tracked, slice e): 10 tests — strict JSON/finite summary invariants across all committed fixtures + synthetic; CLI `periods`/`final_cumulative` parity with `BABStrategy(BABConfig(...))` for deterministic synthetic configs (CLI synthetic uses `BABConfig(universe=None,...)` defaults); `--universe` subset contract reflected/stable with parity; NaN/Infinity token absence. **No production bug proven.**
+- **`tests/test_bab_backtest_contract_smoke.py`** (tracked, slice f): 9 tests — backtest/metrics/report contract smoke on committed real fixtures (`real_market_prices*.csv`, `returns.json`) and deterministic synthetic. Evidence-based contracts only: `result.backtest` is a DataFrame with columns `['returns','gross_return','cost_drag','slippage_drag','cumulative']` (verified `backtest.py`/`strategy.run`), monotonic index, finite scalar tail, positive cumulative, non-negative drags, CLI periods/tail parity. `BABStrategy.report()`/`tear_sheet()` present (evidence: strategy API) — smoke finite/JSON-serializable (`default=str`) outputs; report includes `config/metrics/rebalances/attribution/attribution_totals`. **No production bug proven; no production edits.**
 
 **MISSION (repo priority):** Continue **campaign11 — BAB CLI/reporting + numeric robustness hardening**. campaign7–10 closed/verified. `beta.py` (92%, gate closed) and `data_loader.py` (98%/40 miss, gate closed) remain **GATE CLOSED** (no churn). A planning-only exit is unacceptable when deps are available.
 
@@ -37,15 +37,15 @@
 **RULES:** no `data_loader` probe/gate churn without a concretely demonstrated, non-repeatable strict-4 mechanism from a production bug/feature need; do not touch lines `322,326` in `data_loader.py`; do not edit `.github/workflows/*`; do not weaken/delete `batch148/149/172` or `campaign_d*`; no tracked `probe*`/`debug*`/`ast_probe.py` edits/commits; do not commit/push unless explicitly requested.
 
 **Bottlenecks removed/notes (unblock next agent):**
-- Full excl run completes (~169s) — use `background_process monitor timeout>=450000` if shell tool times out.
+- Full excl run completes (~163s) — use `background_process monitor timeout>=450000` if shell tool times out.
 - `rm -f .coverage .coverage.*` before canonical runs.
 - Slice e parity: CLI synthetic `BABStrategy(BABConfig(universe=None,...))` differs from shorthand defaults; assert against equivalent `BABConfig`.
-- `tests/test_bab_cli_numeric_reporting.py`, `tests/test_bab_cli_error_reporting.py`, `tests/test_bab_backtest_contract_smoke.py` are **untracked** — keep/extend; do not weaken.
+- `tests/test_bab_cli_numeric_reporting.py`, `tests/test_bab_cli_error_reporting.py`, `tests/test_bab_backtest_contract_smoke.py` are now **tracked** (committed @ `4b0ce91`) — keep/extend; do not weaken.
 - Repo has tracked `probe*`/`debug*`/`ast_probe.py` at root — **do not edit/commit**.
 - CLI summary schema: `final_cumulative` (finite float), `periods`, `benchmark`, `universe`; JSON `allow_nan=False`. `run_backtest` columns observed: `returns,gross_return,cost_drag,slippage_drag,cumulative`.
-- Gates: `campaign_d` 883/5, full excl 1875/5 (verified this session).
+- Gates: `campaign_d` 883/5, full excl 1875/5 (re-verified this session @ `4b0ce91`).
 
 **ACTIVE:** campaign11 next = slice (g) targeted edge/error robustness only if proven (inspect CLI JSON/cumulative extraction + strategy/loader boundaries). Slices (a)–(f) implemented/verified (62 campaign11 tests passing). campaign10 complete. campaign7 floor LOCKED. `beta.py`/`data_loader` gates CLOSED.
 
 ---
-# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) (canonical; refreshed 2026-11-09T17:54:38Z @ `8cd7ffa`). `docs/unreachable_proofs.md` is the evidence appendix. §INITIAL TASK MESSAGE above is binding. No competing handoff files.
+# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) (canonical; refreshed 2026-11-09T18:07:39Z @ `4b0ce91`). `docs/unreachable_proofs.md` is the evidence appendix. §INITIAL TASK MESSAGE above is binding. No competing handoff files.
