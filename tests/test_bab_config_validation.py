@@ -94,12 +94,14 @@ class TestConfigRangeValidation:
         assert cfg.resolved_universe(["BTC", "ETH", "SOL", "BNB"]) == ["BTC", "ETH", "SOL"]
         assert cfg.resolved_universe(["BTC", "ETH"]) == ["BTC", "ETH"]
 
-    def test_resolved_universe_falls_back_to_available_excluding_benchmark(self):
-        # When the configured universe has no overlap with available columns,
-        # the fallback derives the tradable set from available columns,
-        # excluding the benchmark.
+    def test_resolved_universe_no_overlap_raises(self):
+        # Regression (2026-11-09 campaign11): an explicit non-default universe
+        # with no overlap against the data must raise cleanly instead of silently
+        # falling back to the data-derived universe (which would report a
+        # universe the caller never asked for).
         cfg = BABConfig(universe=["DOGE"], benchmark="BTC")
-        assert cfg.resolved_universe(["BTC", "ETH", "SOL"]) == ["ETH", "SOL"]
+        with pytest.raises(BABConfigError):
+            cfg.resolved_universe(["BTC", "ETH", "SOL"])
 
     def test_resolved_universe_override_wins(self):
         cfg = BABConfig(universe_override=["BTC", "ETH"])

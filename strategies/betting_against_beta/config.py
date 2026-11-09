@@ -313,10 +313,15 @@ class BABConfig:
                     return _dedupe_preserve_order(candidate)
                 return [c for c in available if c != self.benchmark]
             # Explicit non-default universe: use intersection if overlap;
-            # otherwise fall back to available excluding benchmark (historical).
-            if candidate:
-                return _dedupe_preserve_order(candidate)
-            return [c for c in available if c != self.benchmark]
+            # otherwise raise instead of silently falling back to the data
+            # columns (which would report a universe the caller did not ask
+            # for). An empty effective universe is also an error.
+            if not candidate:
+                raise BABConfigError(
+                    f"configured universe {list(self.universe)} has no overlap with "
+                    f"data columns {available}"
+                )
+            return _dedupe_preserve_order(candidate)
         # universe is None (e.g. CLI no --universe): prefer default-placeholder
         # intersection when defaults overlap (backward-compatible for fixtures
         # sharing default tickers; includes benchmark token when present).

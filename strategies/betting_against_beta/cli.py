@@ -212,11 +212,25 @@ def main(argv=None) -> int:
 
     try:
         universe_arg = getattr(args, "universe", None) if hasattr(args, "universe") else None
-        if universe_arg is not None and len(universe_arg) == 0:
-            # When --universe is passed with no values (e.g., followed by another flag),
-            # argparse with nargs='*' can consume the next flag as a value. To be defensive
-            # and match test expectations, treat as using defaults / synthetic.
-            universe_arg = None
+        if universe_arg is not None:
+            # Two distinct cases, both handled here:
+            #  * `[]` (argparse swallowed the following flag as a value, e.g.
+            #    `--universe --synthetic`) -> not a real universe request; fall
+            #    back to defaults/synthetic (historical behavior, expected by
+            #    existing tests).
+            #  * explicit empty/whitespace-only tokens (`""`, `"   "`) -> the
+            #    caller asked for a universe containing a non-asset token.
+            #    Reject cleanly instead of silently dropping the whole
+            #    explicit universe and reporting a different one.
+            if len(universe_arg) == 0:
+                universe_arg = None
+            else:
+                cleaned = [str(u).strip() for u in universe_arg if str(u).strip()]
+                if not cleaned:
+                    raise BABDataError(
+                        "--universe must contain at least one non-empty asset token"
+                    )
+                universe_arg = cleaned
         # No --universe provided -> pass universe=None so config/strategy derive
         # from data/synthetic defaults (historical CLI behavior); explicit
         # --universe uses the provided list.

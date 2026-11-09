@@ -8,7 +8,7 @@ import pytest
 
 from strategies.betting_against_beta.backtest import run_backtest
 from strategies.betting_against_beta.beta import calculate_beta, calculate_rolling_beta
-from strategies.betting_against_beta.config import BABConfig
+from strategies.betting_against_beta.config import BABConfig, BABConfigError
 from strategies.betting_against_beta.data import generate_synthetic_returns
 from strategies.betting_against_beta.portfolio import construct_portfolio
 from strategies.betting_against_beta.signals import generate_bab_signals
@@ -267,12 +267,14 @@ class TestRunBacktest:
 class TestResolvedUniverse:
     """Tests for BABConfig.resolved_universe edge cases."""
 
-    def test_empty_intersection_falls_back_to_available(self):
+    def test_empty_intersection_raises(self):
+        # Regression (2026-11-09 campaign11): an explicit non-default universe
+        # with no overlap against the data must surface as a clean error rather
+        # than silently falling back to the data-derived universe (which would
+        # report a universe the caller never asked for).
         cfg = BABConfig(universe=["AAA", "BBB"], benchmark="BTC")
-        resolved = cfg.resolved_universe(["BTC", "ETH", "SOL"])
-        # No overlap with the configured universe -> fall back to all
-        # available columns except the benchmark.
-        assert resolved == ["ETH", "SOL"]
+        with pytest.raises(BABConfigError):
+            cfg.resolved_universe(["BTC", "ETH", "SOL"])
 
     def test_partial_intersection_keeps_overlap(self):
         cfg = BABConfig(universe=["BTC", "ETH", "ZZZ"], benchmark="BTC")
