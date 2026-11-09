@@ -254,3 +254,18 @@ class TestResolvedUniverse:
     def test_no_columns_returns_universe(self):
         cfg = BABConfig(universe=["BTC", "ETH"])
         assert cfg.resolved_universe(None) == ["BTC", "ETH"]
+
+    def test_no_columns_dedupes_universe(self):
+        # Regression (2026-11-09): duplicate tokens in the configured universe
+        # leaked into the reported effective universe. resolved_universe must
+        # de-duplicate while preserving first-seen order.
+        cfg = BABConfig(universe=["BTC", "ETH", "ETH", "SOL", "BTC"])
+        assert cfg.resolved_universe(None) == ["BTC", "ETH", "SOL"]
+
+    def test_universe_intersected_dedupes_duplicates(self):
+        cfg = BABConfig(universe=["ETH", "ETH", "SOL", "SOL"])
+        assert cfg.resolved_universe(["BTC", "ETH", "SOL"]) == ["ETH", "SOL"]
+
+    def test_universe_override_dedupes_duplicates(self):
+        cfg = BABConfig(universe_override=["XRP", "XRP", "ADA"])
+        assert cfg.resolved_universe(["BTC", "XRP", "ADA"]) == ["XRP", "ADA"]

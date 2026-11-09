@@ -22,6 +22,24 @@ class BABConfigError(ValueError):
 _DEFAULT_UNIVERSE = ["BTC", "ETH", "SOL", "BNB", "XRP", "ADA", "AVAX", "DOT"]
 
 
+def _dedupe_preserve_order(items: list) -> list:
+    """Return ``items`` with duplicates removed, preserving first-seen order.
+
+    Duplicate tokens (e.g. ``--universe ETH,ETH,SOL``) must not leak into the
+    effective universe or downstream weights columns; the intersection with
+    data columns already collapses duplicates by column name, but the
+    reported/resolved universe list must stay de-duplicated too.
+    """
+    seen: set = set()
+    out = []
+    for a in items:
+        if a in seen:
+            continue
+        seen.add(a)
+        out.append(a)
+    return out
+
+
 @dataclass(frozen=False)
 class BABConfig:
     """Configuration for BAB strategy."""
@@ -276,12 +294,13 @@ class BABConfig:
         - Else derive from the returns columns, excluding the benchmark.
         """
         if returns_columns is None:
-            return list(self.universe) if self.universe else []
+            universe = list(self.universe) if self.universe else []
+            return _dedupe_preserve_order(universe)
 
         available = [str(c) for c in returns_columns]
         if self.universe_override is not None:
             candidate = [a for a in self.universe_override if a in available]
-            return candidate or available
+            return _dedupe_preserve_order(candidate) or available
         if self.universe is not None:
             candidate = [a for a in self.universe if a in available]
             # Default placeholder: intersect with available. When it has
@@ -291,17 +310,17 @@ class BABConfig:
             # empty/benchmark-only (custom/arbitrary DataFrame) derive.
             if list(self.universe) == _DEFAULT_UNIVERSE:
                 if candidate and set(candidate) - {self.benchmark}:
-                    return candidate
+                    return _dedupe_preserve_order(candidate)
                 return [c for c in available if c != self.benchmark]
             # Explicit non-default universe: use intersection if overlap;
             # otherwise fall back to available excluding benchmark (historical).
             if candidate:
-                return candidate
+                return _dedupe_preserve_order(candidate)
             return [c for c in available if c != self.benchmark]
         # universe is None (e.g. CLI no --universe): prefer default-placeholder
         # intersection when defaults overlap (backward-compatible for fixtures
         # sharing default tickers; includes benchmark token when present).
         default_candidate = [a for a in _DEFAULT_UNIVERSE if a in available]
         if default_candidate and set(default_candidate) - {self.benchmark}:
-            return default_candidate
+            return _dedupe_preserve_order(default_candidate)
         return [c for c in available if c != self.benchmark]
