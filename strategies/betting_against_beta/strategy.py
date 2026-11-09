@@ -376,7 +376,7 @@ class BABStrategy:
             # Extra pass
             wa2 = weights.to_numpy(dtype=float)
             if not _np.isfinite(wa2).all():
-                wa2 = np.where(_np.isfinite(wa2), wa2, 0.0)
+                wa2 = _np.where(_np.isfinite(wa2), wa2, 0.0)
                 weights.iloc[:] = wa2
         except Exception:
             try:
