@@ -2133,3 +2133,20 @@ Each case executed under sys.settrace line tracing: **0 target-line hits on all 
 **New-method probe gate:** no genuinely new method (not in M149–M186 families) was identified with a plausible strict-4 path; **no probe batch created** (no `tests/test_bab_data_loader_batch187.py`). This avoids 0-delta churn.
 
 **Batch 187 result:** **(B) gate complete, no reduction mechanism.** Canonical aggregate unchanged (365 miss/78%); campaign_d green; `326` preserved. Next agent should rerun Step 0 fresh and attempt reduction only if a concretely new, non-repeat production-realistic mechanism is discovered; otherwise preserve baseline and do not churn.
+
+## Batch 192 (2026-11-09T05:22Z @ workspace `bbce6d3`, `data_loader.py` blob `596ee9e`, line→code verified fresh; `326` guard intact)
+
+**Fresh Step 0 (authoritative, executed 2026-11-09T05:22Z):** env `PYTHONPATH=$PWD`; `rm -f .coverage .coverage.*`; canonical coverage `--rcfile=/dev/null --source=strategies.betting_against_beta -m pytest -q --ignore=tests/test_controller_progress_accounting.py` over explicit canonical file list (`tests/test_betting_against_beta*.py` + `tests/test_bab_data_loader_batch{40..69,71..74,76..89,93,95,96,148,149,172}.py`) → **645 passed, 6 skipped, 34 warnings** (~39s). `python -m coverage report --rcfile=/dev/null --include='*/strategies/betting_against_beta/data_loader.py' --show-missing` → **365 miss / 1683 stmts / 78%**. Target-miss floor **unchanged** (all present): `43-44,234-244,246-247,268-269,326,338-342,403-404,641-642,694-695,791-792,953`. `pytest -q -k campaign_d` guard: **883 passed, 5 skipped, 3487 deselected, 53 warnings**. `tests/test_bab_data_loader_batch192.py` **not created** (no strict-4 reduction mechanism identified). No production/test semantic changes; `322,326` preserved; no workflows/tracked probes edited; no commit/push.
+
+**Reduction gate analysis (strict 4, evidence-first):** reviewed all clusters against current code (`596ee9e`) and recorded B103–183/M149–M183/B186–B191 evidence. No materially-new production-realistic mechanism was identified that satisfies strict 4:
+- `43-44` remains structural outer except behind identity-safe `v is None`, wrapped `pd.isna` (38-41), and unconditional `return True` (42).
+- `234-244,246-247,268-269` remain dataflow/contract-shadow and handler-order/MRO shadowed by 216–224 gate + deterministic coercer/safe assignment + earlier `BABDataError`/VE/TE conversion.
+- `326` **LIVE/GUARD — DO NOT ALTER**.
+- `338-342,403-404` remain dominated by explicit NaT/identity/`ValueError("bad")` re-raise and guarded epoch/magnitude branches.
+- `641-642,694-695` remain structurally shadowed by inner `except Exception: pass`/handler chains with safe returns.
+- `791-792` remains nested/guarded tz-normalization/promotion path.
+- `953` remains construction-unreachable (`str.split()` default never yields `''`).
+
+**New-method probe gate:** no genuinely new method (not in M149–M191 families) was identified with a plausible strict-4 path; **no probe batch created** (no `tests/test_bab_data_loader_batch192.py`). This avoids 0-delta churn.
+
+**Batch 192 result:** **(B) gate complete, no reduction mechanism.** Canonical aggregate unchanged (365 miss/78%); campaign_d green; `326` preserved. Next agent should rerun Step 0 fresh and attempt reduction only if a concretely new, non-repeat production-realistic mechanism is discovered; otherwise preserve baseline and do not churn.
