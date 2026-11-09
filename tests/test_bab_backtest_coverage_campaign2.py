@@ -296,3 +296,22 @@ def test_cumulative_fallback_forward_fills_bad_cumprod_entries(monkeypatch):
     assert np.all(np.isfinite(cum))
     assert cum[0] == 1.0  # i==0 -> 1.0
     assert cum[1] == 1.0  # i>0 -> forward-fill from cum[0] == 1.0
+
+
+def test_cumulative_fallback_ones_branch_when_inner_fallback_raises(monkeypatch):
+    """Covers lines 148-149: final except when the cumprod fallback itself raises."""
+    returns, weights = _returns_weights(periods=8, seed=11)
+
+    def raising_log1p(_x):
+        raise RuntimeError("force cumulative fallback")
+
+    def raising_cumprod(self, axis=None, skipna=True, *args, **kwargs):
+        raise RuntimeError("cumprod failure")
+
+    monkeypatch.setattr(backtest_mod.np, "log1p", raising_log1p)
+    monkeypatch.setattr(pd.Series, "cumprod", raising_cumprod)
+    res = backtest_mod.run_backtest(returns, weights)
+    cum = res["cumulative"].to_numpy(dtype=float)
+    assert np.all(cum == 1.0)
+    assert np.all(np.isfinite(cum))
+    assert list(res.columns) == ["returns", "gross_return", "cost_drag", "slippage_drag", "cumulative"]
