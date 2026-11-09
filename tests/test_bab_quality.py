@@ -426,6 +426,13 @@ class TestDetectStaleExtra:
         res = quality.detect_stale_data(df)
         assert res["bad"]["count"] == 0
 
+    def test_stale_single_row_skips_loop(self):
+        # branch 199->210: len(arr) <= 1 must skip the stale-run loop entirely
+        from strategies.betting_against_beta import quality
+        df = _make_df(n=1)
+        res = quality.detect_stale_data(df, threshold=3)
+        assert res["BTC"] == {"stale_runs": [], "count": 0}
+
 
 class TestDetectVolumeExtra:
     def test_volume_median_zero(self):

@@ -163,3 +163,58 @@ def test_cli_dry_run_invalid_data(tmp_path):
     missing = tmp_path / "nope.csv"
     rc = main(["--dry-run", "--data", str(missing), "--benchmark", "BTC"])
     assert rc == 1
+
+
+def test_cli_output_path_relative_no_parent_dir(tmp_path, monkeypatch):
+    # branches 50->58 and 59->67: parent is "." so mkdir and os.access are skipped
+    monkeypatch.chdir(tmp_path)
+    out = tmp_path / "rel_out.json"
+    rc = main(["--synthetic", "--output", "rel_out.json", "--benchmark", "BTC"])
+    assert rc == 0
+    assert out.exists()
+
+
+def test_cli_output_path_is_directory(tmp_path):
+    rc = main(["--synthetic", "--output", str(tmp_path), "--benchmark", "BTC"])
+    assert rc == 1
+
+
+def test_cli_extract_cumulative_no_matching_column():
+    # branch 370->369: DataFrame with columns but no 'cumulative'/'cum' col falls through
+    from strategies.betting_against_beta.cli import _extract_cumulative
+
+    class FakeDF:
+        columns = ["returns", "weights"]
+        iloc = None  # hasattr is True, but no col matches so __getitem__ never called
+
+        def __getitem__(self, key):
+            raise AssertionError("should not reach __getitem__")
+
+    class FakeResult:
+        backtest = FakeDF()
+
+    # Falls through to the final `return backtest` (a non-None object), not None.
+    assert _extract_cumulative(FakeResult()) is not None
+
+
+def test_cli_extract_cumulative_series_cum_name_raises():
+    # lines 381-382: Series whose name contains 'cum' but iloc[-1] raises -> falls through
+    from strategies.betting_against_beta.cli import _extract_cumulative
+
+    class BadSeries:
+        name = "cumulative"
+        iloc = None
+
+        def __getitem__(self, key):
+            raise IndexError("boom")
+
+        def __len__(self):
+            return 5  # must be > 0 to skip the empty early-return at line 359
+
+    class FakeResult:
+        backtest = BadSeries()
+
+    # Falls through the try/except and ultimately returns the object itself (line 387).
+    result = _extract_cumulative(FakeResult())
+    assert result is not None
+    assert isinstance(result, BadSeries)
