@@ -135,7 +135,10 @@ def run_backtest(returns_df, weights_df, transaction_costs=0.0, slippage=0.0,
         # Fallback
         try:
             cumulative_returns = (1.0 + portfolio_returns_filled).cumprod()
-            cumulative_returns_arr = np.asarray(cumulative_returns, dtype=float)
+            # np.asarray can return a read-only view of a Series' underlying buffer;
+            # force a writable copy so the non-finite repair below can actually
+            # mutate entries instead of silently raising and falling through.
+            cumulative_returns_arr = np.asarray(cumulative_returns, dtype=float).copy()
             if not np.all(np.isfinite(cumulative_returns_arr)):
                 bad = ~np.isfinite(cumulative_returns_arr)
                 for i in range(len(cumulative_returns_arr)):
