@@ -44,6 +44,7 @@ The following historical bottlenecks are cleared and must not be reintroduced as
 | 172 | 0 | proof+probes | M172.1–M172.7; batch172 retained; canonical incl. batch172 645/6/34, 365 miss; target floor unchanged. |
 | 173–183 | 0 | proof+probes (complete) | M173.1–M183.8; fresh Step 0 645/6/34, 365 miss/78%; campaign_d 883/5/3487; §Batch 173–183 in `docs/unreachable_proofs.md`. 0-delta recorded with materially-new method + evidence each batch. |
 | 185 | 0 | proof+probes | 0-delta; no target hits; M185 evidence required. |
+| 186 | 0 | proof+probes | 0-delta; no target hits; M186 materially-new CLI-entrypoint real-file trace + masked/recarray/sparse/attrs + read_csv dtype-extension combos under sys.settrace on full target set → 0 target-line hits across all clusters; `## Batch 186` section added to `docs/unreachable_proofs.md` covering all remaining clusters with strict-4 verdicts; target floor unchanged (365 miss / 1683 stmts / 78%); campaign_d 883/5/3487 green; `326` LIVE/GUARD preserved. |
 | 0 (this session, 2026-11-09T02:23Z) | 0 | baseline-verify+handoff | Fresh Step 0 @ `e43365c`: 645 passed, 6 skipped, 34 warnings; 365 miss / 1683 stmts / 78%; campaign_d 883/5/3487 green; blob `596ee9e`; target floor/line->code verified unchanged. Durable handoff refreshed; no production/test semantic changes. |
 
 ## START HERE — INITIAL TASK MESSAGE — 2026-11-09T02:23Z (Batch 186, binding)
