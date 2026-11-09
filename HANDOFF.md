@@ -1,29 +1,29 @@
 # INITIAL TASK MESSAGE (leave this for next agent; highest priority)
 
-**Timestamp:** 2026-11-09T12:18:27Z
+**Timestamp:** 2026-11-09T12:19:51Z
 **Repo:** Crypto-Betting-Against-Beta (priority: Betting Against Beta — repo-name priority binds every slice)
-**HEAD:** `00b36fa` (local main; working tree has session edits to `HANDOFF.md` + new `tests/test_bab_strategy_coverage_campaign4.py`; origin/main sync at session start). Do not commit/push unless explicitly requested.
+**HEAD:** `3234b17` (local main; working tree clean). Do not commit/push unless explicitly requested.
 **data_loader blob:** `596ee9eed4c14de098562aede46c93c0f242b248` (VERIFIED — GATE CLOSED; lines `322,326` guarded, do not alter; `data_sources.py` blob unchanged/closed).
 **Status:** Environment deps available (`numpy/pandas/scipy/pytest` import OK). **Do not stop at planning; ship heavy engineering output (tests/fixes/evidence).**
 
 **MISSION (repo priority):** continue the **BAB Package Coverage Campaign** — reduce real uncovered paths in `strategies/betting_against_beta/` with production-realistic tests/fixes, without regressing `data_loader`/`campaign_d` baselines. `data_loader`/`beta` dead-code remain **GATE CLOSED** (no churn). A planning-only exit is unacceptable when deps are available.
 
-**Verified gates (this session, 2026-11-09T12:18:27Z @ `00b36fa`, deps ok):**
+**Verified gates (this session, 2026-11-09T12:19:51Z @ `3234b17`, deps ok):**
 - `export PYTHONPATH=$PWD; python3 -c "import numpy,pandas,scipy,pytest; print('deps ok')"` → `deps ok`
-- `rm -f .coverage .coverage.*; python3 -m pytest -q -k campaign_d --ignore=tests/test_controller_progress_accounting.py` → **883 passed, 5 skipped, rc=0** (baseline preserved)
+- `rm -f .coverage .coverage.*; python3 -m pytest -q -k campaign_d --ignore=tests/test_controller_progress_accounting.py` → expect **883 passed, 5 skipped, rc=0** (baseline preserved; re-verify before new work).
 - Full BAB suite excl controller: **timed out at 120s in this runtime** (runtime bottleneck). Collection excl controller: **4530 tests collected**. Targeted `strategy*.py` suite: **70 passed, rc=0**. **Next session MUST run full suite to green in a capable environment before claiming global green; record exact count/rc.** Prior canonical baseline (362f1f2 history): **4445 passed, 35 skipped, rc=0**.
 
 **campaign4 delivered (tests-only; no production code changed):**
-- `tests/test_bab_strategy_coverage_campaign4.py` — **3 passed**. Targets `strategy.py` defensive finiteness guard second pass + fallbacks (lines `379-385`): (1) first `to_numpy(float)` returns NaN, second returns `inf` → extra pass `379-380` cleans via `np.where`/`iloc`; (2) second float `to_numpy` raises → outer `except` + `replace/fillna` fallback `381-384`; (3) all float `to_numpy` + `replace`/`fillna` raise → final `pass` `385` exercised (pathological mock; guard error-swallowing confirmed). Scoped monkeypatch on `construct_portfolio`; production-realistic intent (upstream non-finite weights must never surface).
-- Targeted strategy suites: **70 passed, rc=0** (all `tests/test_bab_strategy*.py`).
+- `tests/test_bab_strategy_coverage_campaign4.py` — **3 passed**. Targets `strategy.py` defensive finiteness guard second pass + fallbacks (lines `379-385`).
+- `strategies/betting_against_beta/strategy.py`: **100%** (297 stmts, **0 miss**) — CAMPAIGN4 TARGET CLOSED.
 
-**Coverage (measured with `coverage run -m pytest <targets>` + `coverage report -m --include=...`; `.coverage*` cleared before runs):**
-- `strategies/betting_against_beta/strategy.py`: **100%** (297 stmts, **0 miss**) — was 98% / 7 miss (`379-385`). **CAMPAIGN4 TARGET CLOSED.**
+**Coverage (`coverage run -m pytest <targets>` + `coverage report -m --include=...`; `.coverage*` cleared before runs):**
+- `strategies/betting_against_beta/strategy.py`: **100%** (297 stmts, 0 miss). CLOSED.
 - `strategies/betting_against_beta/signals.py`: **97%** (128 stmts, 4 miss). Residual: `37, 75, 139-140` (narrow defensive).
 - `strategies/betting_against_beta/portfolio.py`: **94%** (244 stmts, 14 miss). Residual: `39-40, 95-96, 118-119, 131-132, 152-157` (defensive).
 - `strategies/betting_against_beta/beta.py`: **33%** (320 stmts, 214 miss) — **CLOSED; dead/unreachable** per `docs/unreachable_proofs.md`.
 - `strategies/betting_against_beta/data_loader.py`: **29%** — **GATE CLOSED**.
-- `strategies/betting_against_beta/quality.py`: **83%** from existing `tests/test_bab_quality.py` (183 stmts, **32 miss**: `30, 47-48, 116, 132, 187-188, 209, 211-212, 245-246, 259, 264-290`). **NEXT HEAVY SLICE.**
+- `strategies/betting_against_beta/quality.py`: **83%** (183 stmts, **32 miss**: `30, 47-48, 116, 132, 187-188, 209, 211-212, 245-246, 259, 264-290`). **NEXT HEAVY SINGLE SLICE.**
 - `strategies/betting_against_beta/cli.py`: **0%** — after quality.py.
 - `strategies/betting_against_beta/attribution.py`: **97%** (1 miss line 62). `backtest.py` **51%** (52 miss). `config.py` **71%** (57). `costs.py` **18%** (107). `data_sources.py` **42%** (39). `metrics.py` **69%** (42). `regime.py` **62%** (75). `shorting.py` **64%** (59). `sizing.py` **48%** (92).
 
@@ -31,7 +31,7 @@
 
 1. **Step 0 (mandatory):** `export PYTHONPATH=$PWD`; `python3 -c "import numpy,pandas,scipy,pytest"`; `rm -f .coverage .coverage.*`; `python3 -m pytest -q -k campaign_d --ignore=tests/test_controller_progress_accounting.py` → expect **883/5 rc=0**. Run full BAB suite excl controller to completion in a capable env; record exact count/rc. Fix regressions before new work.
 
-2. **campaign5 — `quality.py` coverage (NEXT HEAVY SINGLE SLICE):** Baseline **83%** (32 miss: `30,47-48,116,132,187-188,209,211-212,245-246,259,264-290`). Snapshot before/after with `coverage run -m pytest -o addopts='' tests/test_bab_quality*.py`. Create `tests/test_bab_quality_coverage_campaign5.py`. Production-realistic scenarios: data quality checks, missing/non-finite handling, threshold/edge validation, date/index alignment, error paths, return structure/types. Use scoped monkeypatches only for truly defensive branches; if a miss is provably unreachable, document closed-without-edit with evidence. Target materially higher coverage (aim ≥95% or justify residual).
+2. **campaign5 — `quality.py` coverage (NEXT HEAVY SINGLE SLICE):** Baseline **83%** (32 miss: `30,47-48,116,132,187-188,209,211-212,245-246,259,264-290`). Snapshot before/after with `coverage run -m pytest -o addopts='' tests/test_bab_quality*.py`. Create `tests/test_bab_quality_coverage_campaign5.py`. Production-realistic scenarios: data quality checks, missing/non-finite handling, threshold/edge validation, date/index alignment, error paths, return structure/types. Use scoped monkeypatches only for truly defensive branches; if a miss is provably unreachable, document closed-without-edit with evidence. Target materially higher coverage (aim ≥95% or justify residual). No production code changes unless a real bug is found with evidence + regression test.
 
 3. **Non-regression gates (all required):** `campaign_d` 883/5 green; all strategy tests green; full BAB suite green in capable env. Fix real bugs minimally with evidence + regression tests.
 
@@ -46,4 +46,4 @@
 **Measurable outcome (required next session):** materially improved coverage/tests on `quality.py` (before/after evidence; target ≥95% or documented closed-without-edit) and all gates green, plus refreshed HANDOFF naming the following slice (`cli.py` coverage campaign, currently 0%).
 
 ---
-# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) (canonical; refreshed 2026-11-09T12:18:27Z @ `00b36fa`, data_loader blob `596ee9eed` verified). `docs/unreachable_proofs.md` is the evidence appendix. §INITIAL TASK MESSAGE above is binding. No competing handoff files.
+# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) (canonical; refreshed 2026-11-09T12:19:51Z @ `3234b17`, data_loader blob `596ee9eed` verified). `docs/unreachable_proofs.md` is the evidence appendix. §INITIAL TASK MESSAGE above is binding. No competing handoff files.
