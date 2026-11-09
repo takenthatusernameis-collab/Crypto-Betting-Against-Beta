@@ -2116,3 +2116,20 @@ Each case executed under sys.settrace line tracing: **0 target-line hits on all 
 | `_normalize_asset_name` empty token continue | `953` | M186.1 symbol normalization via CLI exchange/JSON/epoch-ms frames; M186.2 masked/recarray/scalar names | 0 hits; `str.split()` default never yields `''`; `tok_clean` on split token never empty; construction-unreachable by Python `str.split()` contract | **Not reducible (construction-unreachable).** |
 
 **Batch 186 result:** **(B) complete evidence.** 0 miss-floor reduction; canonical aggregate remains 645/6/34, 365 miss/78%, target floor unchanged. All clusters covered by per-cluster strict-4 verdicts with `file:line@596ee9e` verification, materially-new M186 methods (production CLI entrypoint trace via real temp files under sys.setttrace, numpy masked arrays/recarrays/sparse dtypes/DataFrame.attrs through conversion boundaries, read_csv dtype-extension/NA-marker combos via CLI), and observed results (0 target hits). HANDOFF refreshed to Batch 187 binding directive.
+
+## Batch 187 gate (2026-11-09T02:36Z @ workspace `7e34f8b`, `data_loader.py` blob `596ee9e`, line→code verified; `326` guard intact)
+
+**Fresh Step 0 (re-verified):** `PYTHONPATH=$PWD`; `rm -f .coverage .coverage.*`; canonical explicit file list (`tests/test_betting_against_beta*.py` + `tests/test_bab_data_loader_batch{40..69,71..74,76..89,93,95,96,148,149,172}.py`, 64 files) under `python -m coverage run --rcfile=/dev/null --source=strategies.betting_against_beta -m pytest -q --ignore=tests/test_controller_progress_accounting.py` → **645 passed, 6 skipped, 34 warnings** (~38s). `python -m coverage report --rcfile=/dev/null --include='*/strategies/betting_against_beta/data_loader.py' --show-missing` → **365 miss / 1683 stmts / 78%**. `pytest -q -k campaign_d` → **883 passed, 5 skipped, 3487 deselected, 53 warnings**. Target floor unchanged: `43-44,234-244,246-247,268-269,326,338-342,403-404,641-642,694-695,791-792,953`. No production/test semantic changes.
+
+**Reduction gate analysis (strict 4, evidence-first):** reviewed all clusters against current code (`596ee9e`) and recorded B103–183/M149–M183/B186 evidence. No materially-new production-realistic mechanism was identified that satisfies strict 4:
+- `43-44` remains structural outer except behind identity-safe `v is None`, wrapped `pd.isna` (38-41), and unconditional `return True` (42); B103–183/B186 exhausted scalar/dunder/NA/CLI/exotic-dtype paths.
+- `234-244,246-247,268-269` remain dataflow/contract-shadow and handler-order/MRO shadowed by 216–224 gate + deterministic coercer/safe assignment + earlier `BABDataError`/VE/TE conversion.
+- `326` **LIVE/GUARD — DO NOT ALTER**.
+- `338-342,403-404` remain dominated by explicit NaT/identity/`ValueError("bad")` re-raise and guarded epoch/magnitude branches; B103–183/B186 exhausted temporal/scalar/CLI/NA paths.
+- `641-642,694-695` remain structurally shadowed by inner `except Exception: pass`/handler chains with safe returns; B103–183/B186 exhausted reader/public exchange/CLI/bytes+Decimal paths.
+- `791-792` remains nested/guarded tz-normalization/promotion path; B103–183/B186 exhausted bytes/aware/extension-string/public promotion paths.
+- `953` remains construction-unreachable (`str.split()` default never yields `''`).
+
+**New-method probe gate:** no genuinely new method (not in M149–M186 families) was identified with a plausible strict-4 path; **no probe batch created** (no `tests/test_bab_data_loader_batch187.py`). This avoids 0-delta churn.
+
+**Batch 187 result:** **(B) gate complete, no reduction mechanism.** Canonical aggregate unchanged (365 miss/78%); campaign_d green; `326` preserved. Next agent should rerun Step 0 fresh and attempt reduction only if a concretely new, non-repeat production-realistic mechanism is discovered; otherwise preserve baseline and do not churn.
