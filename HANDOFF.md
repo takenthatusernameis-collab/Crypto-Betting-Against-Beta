@@ -1,12 +1,12 @@
 # INITIAL TASK MESSAGE (leave this for next agent; highest priority)
 
-**Timestamp:** 2026-11-10T02:51:05Z
+**Timestamp:** 2026-11-10T02:59:52Z
 **Repo:** Crypto-Betting-Against-Beta (priority: Betting Against Beta — repo-name priority binds every slice; every change must serve BAB correctness/robustness and be justified by probe evidence)
-**HEAD:** `d1c9d32` (`chore(kilo): checkpoint agent session`) — local `main`.
+**HEAD:** `258798c` (`chore(kilo): checkpoint agent session`) — local `main`.
 **Working tree:** clean at handoff time. Tracked `probe*`/`debug*`/`ast_probe.py` exist — **do not edit/commit** unless explicitly requested.
 **Environment:** deps `numpy/pandas/scipy/pytest` expected installed; run gates with `PYTHONPATH=$PWD PATH=$HOME/.local/bin:$PATH`.
 
-**Last verified gates (prior session @ `5d48991`, 2026-11-10T02:49Z; re-run Step 0 fresh before claiming any state):**
+**Last verified gates (this session @ `258798c`, 2026-11-10T02:59Z):**
 - `python3 -c "import numpy,pandas,scipy,pytest"` → `deps ok` (rc=0)
 - `rm -f .coverage .coverage.*; PYTHONPATH=$PWD python3 -m pytest -q -k campaign_d --ignore=tests/test_controller_progress_accounting.py` → **883 passed, 5 skipped, 3878 deselected, 53 warnings, rc=0**
 - `PYTHONPATH=$PWD python3 -m pytest -q -k "not data_loader and not controller"` → **1987 passed, 5 skipped, 2842 deselected, 41 warnings, rc=0** (floor ≥1987/5)
@@ -18,7 +18,7 @@
 
 ## BINDING INITIAL TASK MESSAGE (for next agent — execute immediately, do not defer)
 
-You are resuming **campaign11b** on `Crypto-Betting-Against-Beta` at current HEAD. Your first and only directive:
+You are resuming **campaign11b** on `Crypto-Betting-Against-Beta` at current HEAD `258798c`. Your first and only directive:
 
 1. **Re-run Step 0 gates** (deps, `campaign_d` 883/5, full BAB excl `data_loader`/`controller` ≥1987/5). Fix any regression before touching production code.
 2. **Run the heavy probe matrix (§2)** against `tests/fixtures/real_market_prices.csv` and synthetic/constrained inputs: (a) CLI-vs-in-process parity for additional exercised flag combos, (b) non-finite propagation boundaries (inject NaN/Inf), (c) error-path cleanliness & message stability, (d) integration edges in `cli.py`/`strategy.py`/`config.py`/`portfolio.py`/`metrics.py`/`backtest.py`.
@@ -73,4 +73,4 @@ Probe against real fixture `tests/fixtures/real_market_prices.csv` and synthetic
 ---
 
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
-Canonical handoff file: `HANDOFF.md` (refreshed 2026-11-10T02:51:05Z @ `d1c9d32`, clean). `docs/unreachable_proofs.md` is the evidence appendix. §INITIAL TASK MESSAGE + §BINDING INITIAL TASK MESSAGE above are binding. No competing handoff files.
+Canonical handoff file: `HANDOFF.md` (refreshed 2026-11-10T02:59:52Z @ `258798c`, clean). `docs/unreachable_proofs.md` is the evidence appendix. §INITIAL TASK MESSAGE + §BINDING INITIAL TASK MESSAGE above are binding. No competing handoff files.
