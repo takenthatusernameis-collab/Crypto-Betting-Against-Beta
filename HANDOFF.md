@@ -1,13 +1,20 @@
 # INITIAL TASK MESSAGE (single durable handoff — leave for next agent; highest priority)
 
-**Timestamp:** 2026-11-10T21:21:21Z (active handoff for next session)
+**Timestamp:** 2026-11-10T21:45:00Z (active handoff for next session)
 **Repo:** `Crypto-Betting-Against-Beta` (repo-name priority is binding: every slice must advance **Betting Against Beta** correctness/robustness/reporting fidelity; no unrelated refactors)
-**HEAD/base:** `ef281ac` (`chore(kilo): checkpoint agent session`, `main` at read time; treat current HEAD as base and record exact HEAD when you run).
-**Working tree:** clean at session start (no uncommitted changes observed). No competing handoff files; this file is the single durable handoff.
+**HEAD/base:** `d929a7d` (`chore(kilo): checkpoint agent session`, `main` at read time; treat current HEAD as base and record exact HEAD when you run).
+**Working tree:** clean at session start (`git status --short` empty). No competing handoff files; this file is the single durable handoff.
 
-**Environment (observed 2026-11-10):** `python3 -c "import numpy,pandas,scipy,pytest"` → rc=0 (pytest 9.2.0 present). Fixtures present under `tests/fixtures/` (incl. `real_market_prices.csv`, `real_market_prices_expanded.csv`, `degenerate_metrics.csv`, `junk_columns.csv`, `all_nan_column.csv`).
+**Environment (observed 2026-11-10T21:39Z):** `python3 -c "import numpy,pandas,scipy,pytest"` → rc=0 (deps ok). Fixtures present under `tests/fixtures/` (incl. `real_market_prices.csv`, `real_market_prices_expanded.csv`, `degenerate_metrics.csv`, `junk_columns.csv`, `all_nan_column.csv`).
 
-**Bottlenecks/status:** No in-repo blocked sessions identified. Prior workflow diagnostics (`research_state/workflow_run_diagnostics.jsonl`) show historical agent-loop tool/timeout/import noise in earlier runs but all captured runs concluded success; treat as historical context, not a current blocker. **C19 is unexecuted in this workspace:** no `/home/runner/work/_temp/kilo-tmp/c19_bab_config_cost_slippage_sizing_fidelity_probe_evidence.log`, no `tests/test_bab_cli_campaign19*.py`. Step 0 gates were **not re-run in this handoff-only session** — next agent MUST run and record them before any edit.
+**Bottlenecks/status:** No in-repo blocked sessions identified. Prior workflow diagnostics (`research_state/workflow_run_diagnostics.jsonl`) are historical (all captured runs success) — not a current blocker. **C19 is unexecuted:** `/home/runner/work/_temp/kilo-tmp/c19_bab_config_cost_slippage_sizing_fidelity_probe_evidence.log` MISSING; no `tests/test_bab_cli_campaign19*.py`.
+
+**Step 0 gate status (this session, 2026-11-10T21:39Z onward, `export PYTHONPATH=$PWD PATH=$HOME/.local/bin:$PATH`):**
+- `python3 -c "import numpy,pandas,scipy,pytest"` → rc=0 ✓
+- `python3 -m pytest -q -k campaign_d tests/test_bab_data_loader*.py` → **883 passed, 5 skipped, 1808 deselected, 53 warnings, rc=0** ✓ (recorded complete)
+- `python3 -m pytest -q tests/test_bab_cli_campaign11m*.py ... tests/test_bab_cli_campaign14_cli_reporting.py` → **RUN STARTED but not completed within this session's available wait window** (no final summary/rc captured before handoff). **Re-run and record exact counts/rc before any edit.**
+- `python3 -m pytest -q tests/test_bab_*.py tests/test_betting_against_beta*.py --ignore=tests/test_bab_data_loader* --ignore=tests/test_controller*` → **RUN STARTED (long suite) but not completed within this session's available wait window** (no final summary/rc captured). **Re-run and record exact counts/rc before any edit.**
+**Action:** Do not assume Step 0 green from prior claims; complete the two unfinished gates and record concrete pass/skip/rc evidence.
 
 ---
 
@@ -25,7 +32,7 @@ Run and record with `export PYTHONPATH=$PWD PATH=$HOME/.local/bin:$PATH`:
 Do not revert prior fixes without cause.
 
 ### 2) Campaigns 6–18 (historical closure — no churn)
-C6–C18 reported closed in prior sessions (benchmark/NaN/universe/parity/cost/dry-run/reporting/pipeline/schema-metrics/strategy-core/metrics-attribution-sizing-regime/beta-neutral fidelity per prior handoff context). Prior probe logs may not be present locally; rely on fresh Step 0 gates and new evidence. Do not churn without a new, statable, reproducible failure.
+C6–C18 reported closed in prior sessions. Prior probe logs may not be present locally; rely on fresh Step 0 gates and new evidence. Do not churn without a new, statable, reproducible failure.
 
 ### 3) Execute C19 — config-validation edges, cost/slippage monotonic drag, universe/rebalance/shorting/sizing robustness (≥12 combos, HEAVY)
 Goal: verify **BAB configuration robustness and cost/slippage/position-sizing fidelity** — clean `BABConfigError` (no Traceback) on invalid configs, transaction-cost monotonic drag, slippage accounting, explicit-universe no-overlap rejection, rebalance freq (`daily`/`weekly`/`monthly`) behavior, shorting constraints, `max_position_size` bounding, and CLI `--output` strict-JSON/schema/determinism on real & defective data.
@@ -80,8 +87,8 @@ Update timestamp/HEAD/state, Step 0 & validation counts/rc, C19 evidence (log pa
 - No commit/push unless explicitly requested. No planning-only or evidence-free exits.
 
 ## IMMEDIATE ACTIONS (MANDATORY SEQUENCE)
-1. **RUN STEP 0 GATES** → record exact counts/rc.
-2. **EXECUTE C19** probe matrix (≥12 combos) → write evidence log.
+1. **COMPLETE STEP 0 GATES** (re-run unfinished bundle & full-BAB suites) → record exact counts/rc.
+2. **EXECUTE C19** probe matrix (≥15 combos above) → write evidence log `/home/runner/work/_temp/kilo-tmp/c19_bab_config_cost_slippage_sizing_fidelity_probe_evidence.log`.
 3. **TRIAGE/FIX** proven gaps only (smallest non-locked change + `tests/test_bab_cli_campaign19*.py`) or record "no proven gaps".
 4. **RE-RUN GATES** + impacted suites; record results.
 5. **REFRESH THIS `HANDOFF.md`** with evidence and nominate **C20** (≥12 concrete combos).
