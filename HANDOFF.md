@@ -1,16 +1,15 @@
 # INITIAL TASK MESSAGE (leave this for next agent; highest priority)
 
-**Timestamp:** 2026-11-10T02:36:46Z
-**Repo:** Crypto-Betting-Against-Beta (priority: Betting Against Beta — repo-name priority binds every slice)
-**HEAD (verified this session):** `fab3f61` (`chore(kilo): checkpoint agent session`, HANDOFF-only diff from `64c4727`) — local `main`. Code state unchanged from `cf7e90b`.
+**Timestamp:** 2026-11-10T02:42:01Z
+**Repo:** Crypto-Betting-Against-Beta (priority: Betting Against Beta — repo-name priority binds every slice; every change must serve BAB correctness/robustness and be justified by probe evidence)
+**HEAD (verified this session):** `2794e3a` (`chore(kilo): checkpoint agent session`) — local `main`. Code state unchanged from `cf7e90b`.
 **Working tree:** **clean** — `campaign11k` (5 tests) and `campaign11l` (14 tests) committed. Tracked `probe*`/`debug*`/`ast_probe.py` unchanged — **do not edit/commit** unless explicitly requested.
 **Environment:** deps `numpy/pandas/scipy/pytest` installed (`deps ok`). `PYTHONPATH=$PWD PATH=$HOME/.local/bin:$PATH`.
 
-**Step 0 gates (re-verified this session @ `fab3f61`, 2026-11-10T02:36Z):**
+**Step 0 gates (re-verified this session @ `2794e3a`, 2026-11-10T02:42Z):**
 - `python3 -c "import numpy,pandas,scipy,pytest"` → `deps ok` (rc=0)
-- `rm -f .coverage .coverage.*; PYTHONPATH=$PWD python3 -m pytest -q -k campaign_d --ignore=tests/test_controller_progress_accounting.py` → **883 passed, 5 skipped, 3878 deselected, 53 warnings, rc=0 in 6.14s**
-- `PYTHONPATH=$PWD python3 -m pytest -q -k "not data_loader and not controller"` → **1987 passed, 5 skipped, 2842 deselected, 41 warnings, rc=0** (floor ≥1987/5 holds)
-- `PYTHONPATH=$PWD python3 -m pytest -q tests/test_bab_cli_universe_whitespace_dryrun_campaign11k.py tests/test_bab_cli_parity_error_campaign11l.py` → **19 passed, rc=0** (tracked)
+- `rm -f .coverage .coverage.*; PYTHONPATH=$PWD python3 -m pytest -q -k campaign_d --ignore=tests/test_controller_progress_accounting.py` → **883 passed, 5 skipped, 3878 deselected, 53 warnings, rc=0 in 6.05s**
+- `PYTHONPATH=$PWD python3 -m pytest -q -k "not data_loader and not controller"` → **1987 passed, 5 skipped, 2842 deselected, 41 warnings, rc=0 in 4m22s** (floor ≥1987/5 holds)
 - Spot-check green: `tests/test_bab_cli_universe_{subset,edge,explicit_contract}.py`, `tests/test_bab_cli_warmup_parity_campaign11.py`, `tests/test_bab_cli_real_data_regression_campaign11.py`, `tests/test_bab_cli_slice_i_defensive_invariants.py`, `tests/test_bab_cli_universe_whitespace_dryrun_campaign11k.py`, `tests/test_bab_cli_parity_error_campaign11l.py`
 
 **Bottlenecks removed / fixes (closed, evidence-backed):**
@@ -25,6 +24,18 @@
 - `beta.py` (92%) and `data_loader.py` (98%/40 miss) remain **GATE CLOSED**. **No active session locks/`.bab_active` found**. Bottlenecks: **none blocking** — heavy work is required, not optional.
 
 **MISSION (repo priority):** Continue **campaign11b — BAB CLI/reporting + numeric robustness hardening** with **heavy, evidence-backed engineering**. Campaign7–11l closed/verified. `beta.py` and `data_loader.py` gates **CLOSED** (no churn). A planning-only exit is unacceptable while deps are available. Prioritize by repo name (Betting Against Beta) — every change must serve BAB correctness/robustness and be justified by probe evidence.
+
+## BINDING INITIAL TASK MESSAGE (for next agent — execute immediately, do not defer)
+
+You are resuming **campaign11b** on `Crypto-Betting-Against-Beta` at `2794e3a` (clean tree). Your first and only directive:
+
+1. **Re-run Step 0 gates** (deps, `campaign_d` 883/5, full BAB excl `data_loader`/`controller` ≥1987/5). Fix any regression before touching production code.
+2. **Run the heavy probe matrix (§2)** against `tests/fixtures/real_market_prices.csv` and synthetic/constrained inputs: (a) CLI-vs-in-process parity for additional exercised flag combos, (b) non-finite propagation boundaries (inject NaN/Inf), (c) error-path cleanliness & message stability, (d) integration edges in `cli.py`/`strategy.py`/`config.py`/`portfolio.py`/`metrics.py`/`backtest.py`.
+3. **Log rc/stdout/stderr/JSON snippets for every probe.** Do not stop at the first pass — probe combinations until you have evidence (pass or proven gap).
+4. **For each proven gap:** write minimal non-duplicative regression test(s) in `tests/test_bab_*campaign11*`, fix production minimally if a real bug is proven, re-run gates + touched tests, record before/after counts.
+5. **Refresh this HANDOFF.md** (timestamp/SHA/dirty-state, commands+counts+rc, modules touched, proven gaps/fixes, next slice) before finishing.
+
+**Prohibited exits:** planning-only exit, no-evidence exit, gate-closed churn (`beta.py`, `data_loader.py`), tracked `probe*`/`debug*`/`ast_probe.py` edits, `.github/workflows/*` edits, weakening `campaign_d*`/`batch148/149/172`. No commit/push unless explicitly requested.
 
 ## CAMPAIGN11b — NEXT FOCUS (MANDATORY, HEAVY WORKING; NOT AVOIDABLE)
 
@@ -72,4 +83,4 @@ Probe against real fixture `tests/fixtures/real_market_prices.csv` and synthetic
 
 ---
 
-# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) (canonical; refreshed 2026-11-10T02:36:46Z @ `fab3f61`, clean tree; `campaign11k`/`campaign11l` committed; code state unchanged from `cf7e90b`). `docs/unreachable_proofs.md` is the evidence appendix. §INITIAL TASK MESSAGE above is binding. No competing handoff files.
+# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) (canonical; refreshed 2026-11-10T02:42:01Z @ `2794e3a`, clean tree; `campaign11k`/`campaign11l` committed; code state unchanged from `cf7e90b`). `docs/unreachable_proofs.md` is the evidence appendix. §INITIAL TASK MESSAGE + §BINDING INITIAL TASK MESSAGE above are binding. No competing handoff files.
