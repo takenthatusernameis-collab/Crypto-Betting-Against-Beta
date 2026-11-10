@@ -1498,18 +1498,13 @@ def validate_returns_dataframe(
     if np.isinf(cleaned.to_numpy()).any():
         raise BABDataError("Returns DataFrame contains infinite values")
 
-    # Comprehensive data quality checks (Campaign 7 Item 4)
-    if quality:
-        cleaned = _run_data_quality_campaign(
-            cleaned,
-            max_return_abs=max_return_abs,
-            max_gap_days=max_gap_days,
-            stale_run_threshold=stale_run_threshold,
-            min_finite_fraction=min_finite_fraction,
-            allow_duplicate_timestamps=allow_duplicate_timestamps,
-        )
-
-    # Handle symbol case-insensitively for benchmark
+    # Benchmark-presence check MUST run before the comprehensive data-quality
+    # campaign. The quality campaign rejects any large |r| (a lenient 10000
+    # threshold is fine for real returns, but a *missing benchmark column*
+    # produces a degenerate column of NaN/0 that can still trip it). Without
+    # this ordering the returns path reported a misleading "Implausible return
+    # detected" for a missing benchmark while the prices path reported the
+    # actionable "Benchmark not found" message. Campaign11 reporting parity.
     if benchmark is not None:
         bench_found = None
         if benchmark in cleaned.columns:
@@ -1545,6 +1540,18 @@ def validate_returns_dataframe(
             raise BABDataError(
                 f"Only the benchmark column '{benchmark}' is present; no assets to trade (missing benchmark coverage of tradable assets)"
             )
+
+    # Comprehensive data quality checks (Campaign 7 Item 4). Runs after the
+    # benchmark-presence check so a missing benchmark is reported actionably.
+    if quality:
+        cleaned = _run_data_quality_campaign(
+            cleaned,
+            max_return_abs=max_return_abs,
+            max_gap_days=max_gap_days,
+            stale_run_threshold=stale_run_threshold,
+            min_finite_fraction=min_finite_fraction,
+            allow_duplicate_timestamps=allow_duplicate_timestamps,
+        )
 
     # Per-asset minimum history
     finite_counts = pd.DataFrame(cleaned).apply(lambda s: int(np.isfinite(s.to_numpy()).sum()))
