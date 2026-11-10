@@ -1,8 +1,8 @@
 # INITIAL TASK MESSAGE (single durable handoff — leave for next agent; highest priority)
 
-**Timestamp:** 2026-11-10T07:53:27Z
+**Timestamp:** 2026-11-10T08:17:29Z
 **Repo:** `Crypto-Betting-Against-Beta` (repo-name priority is binding: every slice must advance **Betting Against Beta** correctness/robustness/reporting fidelity; no unrelated refactors)
-**HEAD/base:** `b32bc7c` (`chore(kilo): checkpoint agent session`, `main`, up-to-date with `origin/main`; prior base `e4ca3f3`)
+**HEAD/base:** `b32bc7c` (unchanged) (`chore(kilo): checkpoint agent session`, `main`, up-to-date with `origin/main`; prior base `e4ca3f3`)
 **Working tree:** **dirty** — `strategies/betting_against_beta/cli.py` modified (+4 lines); new untracked `tests/test_bab_cli_campaign11ab_cli_surfaces.py`. Not committed (commit only if explicitly requested).
 
 **Environment/gates (re-verified this session, `PYTHONPATH=$PWD PATH=$HOME/.local/bin:$PATH`):**
@@ -36,35 +36,33 @@
 
 ---
 
-## SESSION EVIDENCE (2026-11-10T07:53:27Z @ b32bc7c)
+## SESSION EVIDENCE (2026-11-10T08:17:29Z @ b32bc7c)
 
 ### Step 0 baseline (executed)
 - deps: rc=0
-- campaign11 11m–11s: **132 passed, rc=0** (120.24s); post-change `11m–s + 11ab` **147 passed, rc=0** (119.90s)
-- `campaign_d`: **883 passed, 5 skipped, rc=0** (6.44s post-change; 6.68s pre-change)
-- Full excl `data_loader`/`controller`: **4807 passed, 35 skipped, rc=0** (332.72s; baseline 3616/28)
+- campaign11 11m–s + 11ab: **147 passed, rc=0** (116.24s)
+- `campaign_d`: **883 passed, 5 skipped, rc=0** (7.02s)
+- Full BAB excl `data_loader`/`controller`: in-progress/unchecked this sub-turn (baseline **4807 passed, 35 skipped** known)
 
 ### Heavy work this session
-- Executed C11 probe matrix: 14 combos → `/home/runner/work/_temp/kilo-tmp/c11_cli_surface_probe_evidence.log`. All clean, zero Tracebacks.
-- **Gap found + fixed:** `--from-prices` without `--data` silently ran synthetic (rc=0). Smallest `cli.py` fix: reject cleanly `rc=1, "--from-prices requires --data"`, no Traceback (run + dry-run).
-- **No proven gaps (evidence-backed):** `--version` (rc=0, "bab 0.1.0"), `--output` unwritable/directory (rc=1), `--output` nonexistent parent (rc=0, parents created), `--universe ""`/`"   "` (rc=1), unknown flag (rc=2), `--help` (rc=0), nonexistent `--data` (rc=1), dry-run output unwritable (rc=1).
-- Added `tests/test_bab_cli_campaign11ab_cli_surfaces.py` (15 regression tests) — all pass.
-- Regression check: campaign11m–s + 11ab **147 passed**; additional CLI modules **106 passed**; `campaign_d` **883/5**.
+- **C12 — CLI `main()` in-process API error-path cleanliness (≥12 combos) — DONE, evidenced:** Probed direct `main(argv)` + subprocess parity. Logged to `/home/runner/work/_temp/kilo-tmp/c12_cli_api_probe_evidence.log`. Cases: invalid `--beta-window` (0/-1/huge), invalid quantiles/sum, negative `--transaction-costs`/`--slippage`, empty `--rebalance-freq`, empty/whitespace `--universe`, `--from-prices` without `--data`, unwritable/deep/dir `--output`, nonexistent `--data`, malformed `--benchmark`. **All rc=1 with actionable messages, zero Tracebacks; in-process == subprocess. No proven gaps.**
+- Confirmed C11 fix holds (from-prices without data rc=1).
 
 ### Modules touched
-- `strategies/betting_against_beta/cli.py` (+4 lines: `--from-prices requires --data` validation)
-- `tests/test_bab_cli_campaign11ab_cli_surfaces.py` (new, 15 tests)
 - `HANDOFF.md` (refreshed in place)
 
 ---
 
 ## §NEXT FOCUS HEAVY CAMPAIGN (priority order — execute exhaustively, no skipping)
 
-**C12 — CLI `main()` in-process API error-path cleanliness (≥12 probe combos).** Probe direct `main(argv)` invocations (not subprocess) and capture rc/stdout/stderr, asserting rc=1 with actionable message and **no Traceback / no uncaught exception** for:
-- invalid `--beta-window` (<1, 0, huge), invalid `--long-quantile`/`--short-quantile` (≤0, ≥1, sum≥1), negative `--transaction-costs`/`--slippage`, empty `--rebalance-freq`, empty/whitespace `--universe`, `--from-prices` without `--data` (confirm fix holds in-process), `--output` unwritable/directory, nonexistent `--data`, malformed benchmark symbol.
-- Plus in-process parity: `main(...)` rc == subprocess rc for the same argv; output JSON strict-finite where written.
+**C13 — CLI dry-run + JSON output edge cleanliness (≥12 probe combos).** Probe `--dry-run` paths and JSON emission edges with subprocess+in-process, capture rc/stdout/stderr/JSON validity:
+- `--dry-run` with valid `--data` (REAL/EXP), ensure no side effects, rc=0 or explicit handled rc, no Traceback; JSON/summary well-formed if emitted.
+- `--dry-run` combined with error cases (bad quantiles/universe/from-prices-no-data/bad output) → rc=1 actionable, no Traceback.
+- `--output` to valid writable path (tmp) in dry-run vs normal; ensure JSON written only on success paths as expected.
+- `--from-prices`+valid `--data` (if fixture suitable) and ensure fix holds.
+- In-process parity for ≥4 dry-run combos.
 
-Capture cmd/rc/stdout/stderr to `/home/runner/work/_temp/kilo-tmp/c12_cli_api_probe_evidence.log`. Add regression tests + smallest `cli.py` fix only for proven, non-duplicative gaps; else explicit "no proven gaps" with evidence.
+Capture to `/home/runner/work/_temp/kilo-tmp/c13_cli_dryrun_probe_evidence.log`. Add regression tests + smallest `cli.py` fix only for proven gaps; else explicit "no proven gaps" with evidence.
 
 **Probe helper (MUST SET):** `export PYTHONPATH=$PWD PATH=$HOME/.local/bin:$PATH; REAL=tests/fixtures/real_market_prices.csv; EXP=tests/fixtures/real_market_prices_expanded.csv`
 
