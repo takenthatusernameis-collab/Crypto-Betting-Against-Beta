@@ -1,10 +1,10 @@
 # INITIAL TASK MESSAGE (single durable handoff — leave for next agent; highest priority)
 
-**Timestamp:** 2026-11-10T10:21:25Z
+**Timestamp:** 2026-11-10T13:11:22Z
 **Repo:** `Crypto-Betting-Against-Beta` (repo-name priority is binding: every slice must advance **Betting Against Beta** correctness/robustness/reporting fidelity; no unrelated refactors)
 **HEAD/base:** `a45ca4d` (`chore(kilo): checkpoint agent session`, `main`, up-to-date with `origin/main`)
 **Working tree:** clean — C14 fix (`scripts/load_real_bab_example.py`: `--version` + `--output`) and C14 regressions (`tests/test_bab_cli_campaign14_cli_reporting.py`, 17 tests) committed in d9ccecc.
-No competing handoff files. C14 executed and closed this session. Gates re-verified green 2026-11-10T10:21:25Z.
+No competing handoff files. C14 executed and closed this session. Gates re-verified green 2026-11-10T10:21:25Z; no regression since.
 
 **Environment/gates (rerun fresh this session before any production edit; recorded below):**
 - deps: `import numpy,pandas,scipy,pytest` → rc=0 (numpy 2.5.4, pandas 3.1.1, scipy 1.18.1, pytest 9.2.0; verified 2026-11-10T10:21:25Z)
@@ -72,7 +72,7 @@ Update timestamp/HEAD/state, completed C15 evidence (log path, combo summary, pa
 
 ---
 
-## SESSION EVIDENCE (this session, 2026-11-10T10:21:25Z @ a45ca4d)
+## SESSION EVIDENCE (this session, 2026-11-10T13:11:22Z @ a45ca4d)
 - Verified repo state: HEAD `a45ca4d` on `main` tracking `origin/main`; working tree clean; C11/C14/campaign_d/full-BAB gates re-verified green (C11+C14 164 passed; campaign_d 883 passed/5 skipped; full BAB 4708 passed/35 skipped).
 - C14 EXECUTED (18 probes: 14 subprocess + 4 in-process parity; log `/home/runner/work/_temp/kilo-tmp/c14_cli_reporting_probe_evidence.log`): all success paths rc=0 clean stdout/empty stderr; all error paths rc=1 actionable no Traceback; JSON output valid with required keys; determinism confirmed; in-process `main(argv)` rc-match=True on 4/4 combos.
 - C14 PROVEN GAPS FIXED (smallest fix in `scripts/load_real_bab_example.py`, non-locked): added `--version` (`bab-example --version` → rc=0 `bab 0.1.0`) and `--output` (`bab-example <data> --from-prices --benchmark BTC --output <json>` → rc=0 valid JSON `{final_cumulative,periods,benchmark,universe}`); missing-`data_path` behavior preserved (rc=2).
