@@ -1,6 +1,6 @@
 # INITIAL TASK MESSAGE (single durable handoff — leave for next agent; highest priority)
 
-**Timestamp:** 2026-11-10T05:34:03Z
+**Timestamp:** 2026-11-10T05:35:54Z
 **Repo:** `Crypto-Betting-Against-Beta` (repo-name priority is binding: every slice must advance **Betting Against Beta** correctness/robustness/reporting fidelity; no unrelated refactors)
 **HEAD/base:** `7e281b1` (`chore(kilo): checkpoint agent session`, local `main`/worktree context; prior session base in file was `1d9f342` content-refresh checkpoint)
 **Working tree:** **dirty/untracked** — `tests/test_bab_cli_campaign11q_followup_probe_regressions.py` added this session (33 tests, green). No production code changed. No commits/pushes. Tracked `probe*`/`debug*`/`ast_probe.py` untouched.
@@ -10,7 +10,7 @@
 - `python3 -m pytest -q tests/test_bab_cli_campaign11m_probe_regressions.py tests/test_bab_cli_campaign11n_expanded_probe_regressions.py tests/test_bab_cli_campaign11o_remaining_probe_regressions.py tests/test_bab_cli_campaign11p_real_dryrun_synth_probe_regressions.py` → **83 passed, rc=0** (28+18+19+18)
 - `python3 -m pytest -q tests/test_bab_cli_campaign11q_followup_probe_regressions.py` → **33 passed, rc=0** (new probe locks this session)
 - `rm -f .coverage .coverage.*; python3 -m pytest -q -k campaign_d --ignore=tests/test_controller_progress_accounting.py` → **883 passed, 5 skipped, 3994 deselected, 53 warnings, rc=0**
-- `python3 -m pytest -q -k "not data_loader and not controller"` → **2099 passed, 5 skipped, 2842 deselected, 41 warnings, rc=0** in 288.65s (baseline floor before this session’s 11q file existed; re-run after adding/adjusting 11q to confirm ≥2103 passed/5 skipped expected — do as Step 0 before further edits)
+- `python3 -m pytest -q -k "not data_loader and not controller"` → **2099 passed, 5 skipped, 2842 deselected, 41 warnings, rc=0** in 288.65s (baseline floor before this session's 11q file existed; re-run after adding/adjusting 11q to confirm ≥2103 passed/5 skipped expected — do as Step 0 before further edits)
 
 **Bottlenecks removed:** Step 0 gates re-run; campaign_d green; prior `data_loader`/`controller` exclusion baseline stable. No `.bab_active`/session-lock artifacts observed.
 
@@ -20,13 +20,15 @@
 
 You are continuing **campaign11 follow-up** for `Crypto-Betting-Against-Beta` from this tree. Objective: keep producing probe-backed evidence on exercised BAB CLI/backtest surfaces and land minimal regressions/fixes only for proven gaps.
 
-1. **Stabilize baseline:** run Step 0 gates (deps, 11m≥28, 11n≥18, 11o≥19, 11p≥18, 11q≥33, `campaign_d` ≥883/5, full excl `data_loader`/`controller` ≥2099/5 adjusted for new 11q coverage). Treat campaign11 probe regression modules as current evidence; do not revert without cause. Fix any regression before production edits.
-2. **Execute next heavy probe matrix (§NEXT FOCUS)** against `tests/fixtures/real_market_prices.csv`, `tests/fixtures/real_market_prices_expanded.csv`, and constrained synthetic/temp inputs. For every probe capture command, `rc`, relevant `stdout`/`stderr`, and JSON/output snippets. Probe combinations until evidence is obtained (pass or proven gap) — no single-pass/no-evidence exits.
-3. **Triage evidence:** for each proven, non-duplicative gap add focused regression test(s) in `tests/test_bab_*campaign11*` (new module per coherent cluster). If a real bug is proven, apply the smallest production fix in exercised, non-gate-closed code (`cli.py`/`strategy.py`/`config.py`/`portfolio.py`/`metrics.py`/`backtest.py`/`signals.py` only as justified) plus regression coverage.
-4. **Validate:** run touched/new tests, then `campaign_d`, then full BAB excl `data_loader`/`controller` (record before/after counts/rc). Record before/after.
-5. **Refresh this HANDOFF.md** before finishing: timestamp, HEAD/base state, dirty-state, commands+counts+rc, probes run with evidence summary, gaps found/fixed (or explicit "no proven gaps" per area), modules touched, and the next binding slice. Keep this file the single durable handoff.
+**YOU MUST DO HEAVY WORK.** No planning-only exits. No single-pass probes. No evidence-free exits. Every session must produce probe logs (cmd/rc/stdout/stderr/JSON) and either new regression tests or explicit "no proven gaps" with evidence.
 
-**Prohibited:** `.github/workflows/*` edits; gate-closed churn in `beta.py`/`data_loader.py`; edits/commits to tracked `probe*`/`debug*`/`ast_probe.py`; weakening/deleting `batch148/149/172` or `campaign_d*`; commit/push unless explicitly requested. No planning-only exit. No no-evidence exit.
+1. **Stabilize baseline (Step 0 — MANDATORY):** run Step 0 gates (deps, 11m≥28, 11n≥18, 11o≥19, 11p≥18, 11q≥33, `campaign_d` ≥883/5, full excl `data_loader`/`controller` ≥2099/5 adjusted for new 11q coverage). Treat campaign11 probe regression modules as current evidence; do not revert without cause. Fix any regression before production edits.
+2. **Execute heavy probe matrix (§NEXT FOCUS HEAVY CAMPAIGN)** against `tests/fixtures/real_market_prices.csv`, `tests/fixtures/real_market_prices_expanded.csv`, and constrained synthetic/temp inputs. For EVERY probe capture: command, `rc`, relevant `stdout`/`stderr`, and JSON/output snippets. Probe combinations exhaustively until evidence is obtained (pass or proven gap) — no single-pass/no-evidence exits. Minimum 10 distinct probe combos per session.
+3. **Triage evidence rigorously:** for each proven, non-duplicative gap add focused regression test(s) in `tests/test_bab_*campaign11*` (new module per coherent cluster). If a real bug is proven, apply the SMALLEST production fix in exercised, non-gate-closed code (`cli.py`/`strategy.py`/`config.py`/`portfolio.py`/`metrics.py`/`backtest.py`/`signals.py` only as justified) plus regression coverage.
+4. **Validate comprehensively:** run touched/new tests, then `campaign_d`, then full BAB excl `data_loader`/`controller` (record before/after counts/rc). Record before/after.
+5. **Refresh this HANDOFF.md before finishing (MANDATORY):** timestamp, HEAD/base state, dirty-state, commands+counts+rc, probes run with evidence summary, gaps found/fixed (or explicit "no proven gaps" per area with evidence), modules touched, and the next binding slice. Keep this file the single durable handoff.
+
+**Prohibited:** `.github/workflows/*` edits; gate-closed churn in `beta.py`/`data_loader.py`; edits/commits to tracked `probe*`/`debug*`/`ast_probe.py`; weakening/deleting `batch148/149/172` or `campaign_d*`; commit/push unless explicitly requested. No planning-only exit. No no-evidence exit. No session without probe evidence.
 
 ---
 
@@ -52,17 +54,57 @@ You are continuing **campaign11 follow-up** for `Crypto-Betting-Against-Beta` fr
 
 **Modules touched:** `tests/test_bab_cli_campaign11q_followup_probe_regressions.py` (new, 33 tests). No production edits.
 
-### Remaining unprobed combos (priority order for next session) — §NEXT FOCUS
+---
 
-**Probe helper:** `export PYTHONPATH=$PWD PATH=$HOME/.local/bin:$PATH; REAL=tests/fixtures/real_market_prices.csv; EXP=tests/fixtures/real_market_prices_expanded.csv`
+## §NEXT FOCUS HEAVY CAMPAIGN (priority order — execute exhaustively, no skipping)
 
-1. **Returns-path parity on real fixtures with `--output` JSON** across same tc/slippage/rebalance combos as 11q from-prices (returns input, no `--from-prices`) vs in-process `load_returns`+`BABStrategy`; exact finite match on `final_cumulative/periods/benchmark/universe`. (11p locked human-readable/behavioral parity; JSON-output parity for returns path is a focused lock candidate if not duplicative.)
-2. **CLI config/validation edges (evidence-first):** invalid `--rebalance-freq` token, negative/zero/impossible `--beta-window`, NaN/inf/negative numeric flags, `--benchmark` absent in data for returns-path dry-run vs run, `--universe` token that matches after whitespace trimming in real runs (comma-splitting behavior characterization). Capture rc/stdout/stderr/no-Traceback and compare dry-run vs run parity.
-3. **From-prices vs returns semantic equivalence on fixtures:** `load_prices(...).pipe` vs `load_returns(...)` where applicable (fixture content-dependent) — confirm CLI paths produce expected finite outputs and characterize differences; only lock if stable/non-duplicative.
-4. **`--output` overwrite/idempotence:** run twice to same path (overwrite), output to symlink target if feasible, very long path component — rc/finite/no-Traceback/write semantics.
-5. **Metrics/backtest summary consistency probes:** for real-fixture runs (from-prices/returns, with costs/slippage), compare CLI JSON `final_cumulative` to last cumulative in result and sanity-check `periods` against returned backtest length across configs; add regression only on proven mismatch.
+**Probe helper (MUST SET):** `export PYTHONPATH=$PWD PATH=$HOME/.local/bin:$PATH; REAL=tests/fixtures/real_market_prices.csv; EXP=tests/fixtures/real_market_prices_expanded.csv`
 
-### GATES THAT MUST STAY GREEN
+### HEAVY CAMPAIGN 1: Returns-path CLI JSON parity (from-prices parity locked in 11q; returns path unprobed for JSON)
+**Target:** `load_returns` + `BABStrategy` in-process vs CLI `--output` JSON on REAL/EXP fixtures (no `--from-prices`)
+**Combos (minimum 12):** Cross product of tc ∈ {0.0, 0.0005, 0.001, 0.005}, slippage ∈ {0.0, 0.0005, 0.001}, rebalance ∈ {daily, weekly, monthly}
+**Evidence required per combo:** CLI cmd, rc, stdout tail, stderr tail, `--output` JSON parsed; in-process `load_returns`+`BABStrategy` run with identical config; exact finite match on `final_cumulative`/`periods`/`benchmark`/`universe` (stringified).
+**Failure mode:** Any mismatch → add regression test in `tests/test_bab_cli_campaign11r_returns_json_parity.py`; if bug proven → minimal fix in `cli.py`/`strategy.py` only.
+
+### HEAVY CAMPAIGN 2: CLI config/validation adversarial edges (evidence-first, no assumptions)
+**Target:** Dry-run vs run parity on validation paths
+**Probe matrix (minimum 15 combos):**
+- Invalid `--rebalance-freq` tokens: `hourly`, `yearly`, `invalid`, `D`, `W`, `M`, `1d`, `7d`, `` (empty)
+- `--beta-window`: `-1`, `0`, `1`, `10`, `50`, `1000000`, `999999999`, `NaN` (via shell), `inf`
+- `--long-quantile`/`--short-quantile`: `-0.1`, `0.0`, `1.0`, `1.1`, `NaN`, `inf`, `-inf`, `0.999999`, `1.000001`
+- `--transaction-costs`/`--slippage`: negative, NaN, inf, very large (1e6)
+- `--benchmark` absent in data (returns-path): dry-run vs run behavior
+- `--universe` whitespace: `" BTC "`, `"BTC, ETH"`, `"BTC,,ETH"`, `"  "`, `","`, `", ,"`
+**Evidence required per combo:** Dry-run cmd/rc/stdout/stderr; Run cmd/rc/stdout/stderr; Compare parity; Note any Traceback (must be absent).
+**Failure mode:** Proven validation gap → regression test in `tests/test_bab_cli_campaign11s_validation_edges.py`; minimal fix in `cli.py`/`config.py` only.
+
+### HEAVY CAMPAIGN 3: From-prices vs returns semantic equivalence on real fixtures
+**Target:** `load_prices(...)` → returns vs `load_returns(...)` on REAL/EXP fixtures
+**Probe matrix (minimum 8 combos):** Cross product of rebalance ∈ {daily, weekly}, tc ∈ {0.0, 0.001}, slippage ∈ {0.0, 0.0005}
+**Evidence required:** CLI `--from-prices` run JSON vs CLI returns-path run JSON vs in-process both paths; Characterize differences (beta calc, universe resolution, period alignment); Only lock if stable/non-duplicative.
+**Failure mode:** Proven semantic difference → regression test in `tests/test_bab_cli_campaign11t_prices_vs_returns.py`; document expected difference.
+
+### HEAVY CAMPAIGN 4: `--output` overwrite/idempotence/fs edge cases
+**Target:** File write semantics
+**Probe matrix (minimum 6 combos):**
+- Run twice to same `--output` path (overwrite): 2nd run rc=0, file contains 2nd run data
+- Output to symlink target (create temp symlink → real file): rc=0, file written
+- Very long path component (>200 chars): rc=0 or clean error, no crash
+- Output to existing file with `0444` perms (read-only): clean error, no Traceback
+- `--dry-run --output` to unwritable location: rc=1, no file written
+- `--output` with directory traversal `../../../tmp/out.json`: rc=0 or clean error
+**Evidence required:** cmd, rc, stdout, stderr, file existence/contents after, perms check.
+**Failure mode:** Proven fs bug → regression test in `tests/test_bab_cli_campaign11u_output_fs.py`; minimal fix in `cli.py`.
+
+### HEAVY CAMPAIGN 5: Metrics/backtest summary consistency under costs/slippage
+**Target:** CLI JSON `final_cumulative` vs last cumulative in result vs `periods` vs backtest length
+**Probe matrix (minimum 10 combos):** REAL/EXP fixtures × from-prices/returns × costs {0.0, 0.001, 0.005} × slippage {0.0, 0.001} × rebalance {daily, weekly}
+**Evidence required:** Parse CLI `--output` JSON; extract `result.backtest.cumulative` last value; extract `len(result.backtest)`; Verify `final_cumulative` ≈ last cumulative (within 1e-10); Verify `periods` == `len(backtest)`; Any mismatch → regression.
+**Failure mode:** Proven inconsistency → regression test in `tests/test_bab_cli_campaign11v_summary_consistency.py`; minimal fix in `cli.py`/`backtest.py`/`metrics.py`.
+
+---
+
+### GATES THAT MUST STAY GREEN (NON-NEGOTIABLE)
 
 - `campaign_d` **883 passed, 5 skipped** (ignore `tests/test_controller_progress_accounting.py`)
 - Full BAB excl `data_loader`/`controller` **≥2099 passed, 5 skipped** (pre-11q floor this session; expected +33 with 11q present — re-verify)
@@ -74,12 +116,19 @@ You are continuing **campaign11 follow-up** for `Crypto-Betting-Against-Beta` fr
 - `data_loader.py` gate closed (strict misses/mechanism-closed) — **DO NOT ALTER**.
 - `portfolio.py`/`sizing.py`/`cli.py`/`strategy.py` 100% locked per prior notes unless disproven by evidence; other module miss-closures per prior handoff/proofs remain binding.
 
-## IMMEDIATE ACTIONS (no planning-only exit)
+## IMMEDIATE ACTIONS (MANDATORY SEQUENCE — NO DEVIATION)
 
-1. Run Step 0 gates on current tree; confirm 11m–11q passing and full-excl floor including 11q.
-2. Probe §NEXT FOCUS #1 then #2 with evidence-first logging (cmd/rc/stdout/stderr/JSON). Compare dry-run vs run parity where relevant.
-3. Add minimal non-duplicative `tests/test_bab_*campaign11*` for any proven gap; minimal prod fix only if bug proven. Re-run touched + gates.
-4. Refresh this `HANDOFF.md` with evidence and next binding slice.
+1. **RUN STEP 0 GATES** on current tree; confirm 11m–11q passing and full-excl floor including 11q. Record counts/rc.
+2. **EXECUTE HEAVY CAMPAIGN 1** (Returns-path JSON parity) — minimum 12 probe combos with full evidence logging. No skipping.
+3. **EXECUTE HEAVY CAMPAIGN 2** (Validation edges) — minimum 15 probe combos with dry-run vs run parity evidence. No skipping.
+4. **EXECUTE HEAVY CAMPAIGN 3** (Prices vs returns equivalence) — minimum 8 probe combos. No skipping.
+5. **EXECUTE HEAVY CAMPAIGN 4** (Output fs edges) — minimum 6 probe combos. No skipping.
+6. **EXECUTE HEAVY CAMPAIGN 5** (Summary consistency) — minimum 10 probe combos. No skipping.
+7. **ADD REGRESSION TESTS** for ANY proven gap (non-duplicative, focused, in `tests/test_bab_*campaign11*`).
+8. **APPLY MINIMAL PRODUCTION FIXES** only for proven bugs (smallest diff, exercised code only).
+9. **RE-RUN TOUCHED TESTS + ALL GATES** (Step 0) — record before/after counts/rc.
+10. **REFRESH THIS HANDOFF.md** with: new timestamp, HEAD, dirty state, all probe evidence (cmd/rc/stdout/stderr/JSON), gaps found/fixed with evidence, modules touched, next binding slice.
 
 ---
-*Single durable handoff for `Crypto-Betting-Against-Beta`. Do not create competing handoff files; update this file in place.*
+
+*Single durable handoff for `Crypto-Betting-Against-Beta`. Do not create competing handoff files; update this file in place. Future agents: this handoff is binding. You must execute the heavy campaigns above. No planning-only exits. No evidence-free sessions. Heavy work is mandatory.*
