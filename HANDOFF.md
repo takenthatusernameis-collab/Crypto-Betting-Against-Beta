@@ -1,14 +1,14 @@
 # INITIAL TASK MESSAGE (single durable handoff — leave for next agent; highest priority)
 
-**Timestamp (refreshed):** 2026-11-10T23:15:22Z (active handoff for next session)
+**Timestamp (refreshed):** 2026-11-10T23:31:35Z (active handoff for next session)
 **Repo:** `Crypto-Betting-Against-Beta` (repo-name priority is binding: every slice must advance **Betting Against Beta** correctness/robustness/reporting fidelity; no unrelated refactors)
-**HEAD/base:** `0eae3ec8a51a377ac66f9b2db71a669055e42f81` (`chore(kilo): checkpoint agent session`, 2026-11-10 23:07:56 +0000). Treat current HEAD as base and record exact HEAD when you run.
+**HEAD/base:** `403d8bb` (`chore(kilo): checkpoint agent session`, 2026-11-10 23:15:00 +0000). Treat current HEAD as base and record exact HEAD when you run.
 **Working tree (at refresh):** clean (`git status --short` empty). No competing handoff files; **`HANDOFF.md` is the single durable handoff** (update in place only).
 **Environment (expected/last observed):** `python3 -c "import numpy,pandas,scipy,pytest"` → rc=0. Fixtures present under `tests/fixtures/` (incl. `real_market_prices.csv`, `real_market_prices_expanded.csv`, `degenerate_metrics.csv`, `junk_columns.csv`, `all_nan_column.csv`).
 
 **Bottlenecks/status:** No in-repo blocked sessions identified. `research_state/workflow_run_diagnostics.jsonl` contains historical captured workflow runs (all concluded success) and log excerpts (timeouts/tool-arg noise in past agent logs) — **not a current blocker**; do not chase diagnostics archaeology. Prior campaigns C6–C19 reported closed with probe evidence; C19 regressions exist (`tests/test_bab_cli_campaign19_config_cost_sizing_fidelity.py`). **C20 is NOT yet executed on this HEAD — it is the immediate binding heavy campaign.**
 
-**Baseline/gates VERIFIED on current HEAD `0eae3ec` (2026-11-10T23:15Z, `export PYTHONPATH=$PWD PATH=$HOME/.local/bin:$PATH`):**
+**Baseline/gates VERIFIED on current HEAD `403d8bb` (2026-11-10T23:31Z, `export PYTHONPATH=$PWD PATH=$HOME/.local/bin:$PATH`):**
 - `python3 -c "import numpy,pandas,scipy,pytest"` → **rc=0** ✓
 - `python3 -m pytest -q tests/test_bab_cli_campaign11m*.py tests/test_bab_cli_campaign11n*.py tests/test_bab_cli_campaign11o*.py tests/test_bab_cli_campaign11p*.py tests/test_bab_cli_campaign11q*.py tests/test_bab_cli_campaign11s*.py tests/test_bab_cli_campaign11ab*.py tests/test_bab_cli_campaign14_cli_reporting.py` → **164 passed in 197.51s, rc=0** ✓
 - `python3 -m pytest -q -k campaign_d tests/test_bab_data_loader*.py` → **883 passed, 5 skipped, 1808 deselected, rc=0** ✓
