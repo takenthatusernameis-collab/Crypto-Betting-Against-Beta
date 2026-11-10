@@ -12,8 +12,11 @@ This script shows the concrete contract for swapping in real data:
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from pathlib import Path
+
+__version__ = "0.1.0"
 
 # Ensure the repository root is importable when this script is executed
 # directly (``python scripts/load_real_bab_example.py``) rather than as a
@@ -30,7 +33,7 @@ from strategies.betting_against_beta.data_loader import BABDataError, load_price
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Load real returns/price data and run BAB")
-    parser.add_argument("data_path", type=str, help="Path to data file (CSV/JSON/JSONL/Parquet/HDF5/Pickle). For prices use --from-prices")
+    parser.add_argument("data_path", nargs="?", default=None, type=str, help="Path to data file (CSV/JSON/JSONL/Parquet/HDF5/Pickle). For prices use --from-prices")
     parser.add_argument("--benchmark", type=str, default="BTC", help="Benchmark symbol column name")
     parser.add_argument("--min-rows", type=int, default=30, help="Minimum rows/finite history")
     parser.add_argument("--lookback", type=int, default=252, help="Rolling beta lookback")
@@ -38,7 +41,16 @@ def main() -> int:
     parser.add_argument("--transaction-cost", type=float, default=0.001, help="Transaction cost per unit turnover")
     parser.add_argument("--from-prices", action="store_true", help="Treat input as prices and convert to returns via load_prices()")
     parser.add_argument("--universe", type=str, nargs="*", help="Optional universe override (must intersect data)")
+    parser.add_argument("--version", action="store_true", help="Print version and exit")
+    parser.add_argument("--output", type=str, help="Output JSON file for results summary")
     args = parser.parse_args()
+
+    if args.version:
+        print(f"bab {__version__}")
+        return 0
+
+    if args.data_path is None:
+        parser.error("the following arguments are required: data_path")
 
     data_path = Path(args.data_path)
     if not data_path.exists():
@@ -88,6 +100,29 @@ def main() -> int:
         cum = 0.0
     print(f"cumulative_return={float(cum):.6f}")
     print(f"periods={len(bt) if bt is not None and hasattr(bt, '__len__') else 0}")
+
+    if args.output:
+        out_path = Path(args.output)
+        parent = out_path.parent
+        if str(parent) and str(parent) != ".":
+            try:
+                parent.mkdir(parents=True, exist_ok=True)
+            except OSError as exc:
+                print(f"Error creating parent directory for --output {out_path}: {exc}", file=sys.stderr)
+                return 1
+        universe = args.universe if args.universe else []
+        summary = {
+            "final_cumulative": float(cum),
+            "periods": int(len(bt)) if bt is not None and hasattr(bt, "__len__") else 0,
+            "benchmark": args.benchmark,
+            "universe": [str(u) for u in universe],
+        }
+        try:
+            out_path.write_text(json.dumps(summary, indent=2, allow_nan=False))
+        except OSError as exc:
+            print(f"Error writing output: {exc}", file=sys.stderr)
+            return 1
+
     return 0
 
 
