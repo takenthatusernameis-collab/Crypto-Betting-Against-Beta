@@ -244,6 +244,10 @@ def main(argv=None) -> int:
             transaction_costs=args.transaction_costs,
             slippage=args.slippage,
         )
+        # --from-prices is meaningless without a --data source; reject cleanly
+        # instead of silently falling back to synthetic data.
+        if args.from_prices and args.data is None:
+            raise BABDataError("--from-prices requires --data")
     except Exception as exc:
         print(f"Error creating config: {exc}")
         return 1
