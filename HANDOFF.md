@@ -1,6 +1,6 @@
 # INITIAL TASK MESSAGE (single durable handoff — leave for next agent; highest priority)
 
-**Timestamp:** 2026-11-10T18:14:41Z (active handoff for next session); prior sessions 2026-11-10T17:53:28Z / 17:17:56Z / 17:18:00Z, source handoff 2026-11-10T16:02:41Z retained for provenance
+**Timestamp:** 2026-11-10T18:28:22Z (active handoff for next session); prior sessions 2026-11-10T18:14:41Z / 17:53:28Z / 17:17:56Z / 17:18:00Z, source handoff 2026-11-10T16:02:41Z retained for provenance
 **Repo:** `Crypto-Betting-Against-Beta` (repo-name priority is binding: every slice must advance **Betting Against Beta** correctness/robustness/reporting fidelity; no unrelated refactors)
 **HEAD/base:** `27a36fa` (`chore(kilo): checkpoint agent session`, `main`; up-to-date with `origin/main`; prior checkpoint `288f69b` only refreshed this HANDOFF, so recorded gates below remain valid)
 **Working tree:** clean; `tests/test_bab_cli_campaign17.py` (new C17 regressions, 16 passed, committed in a6f025f) and `tests/test_bab_cli_campaign18.py` (new C18 regressions, 24 passed, committed in 185f1fa) both tracked. No production code changes. No competing handoff files. C16/C17/C18 executed and closed; all gates re-verified fresh this session at `288f69b` (unchanged by `27a36fa`).
@@ -75,7 +75,7 @@ Update timestamp/HEAD/state, C19 evidence (log path, combo summary, parity notes
 
 ---
 
-## SESSION EVIDENCE (this session, 2026-11-10T18:14:41Z @ 27a36fa)
+## SESSION EVIDENCE (this session, 2026-11-10T18:28:22Z @ 27a36fa)
 - Repo state: HEAD `27a36fa` on `main`; up-to-date with `origin/main`; no competing handoff files. Working tree clean; C17/C18 regression test files committed. No production code changes.
 - Step 0 gates (fresh re-verification at `288f69b`, unchanged by `27a36fa`): deps rc=0 (numpy 2.5.4/pandas 3.1.1/scipy 1.18.1/pytest 9.2.0); C11 bundle incl. 11ab + campaign14 **164 passed, rc=0**; `campaign_d` **883 passed, 5 skipped, rc=0**; full BAB excl `data_loader`/`controller` **4764 passed, 35 skipped, rc=0** (floor 4708 maintained; +40 = new C17 16 + new C18 24 test files).
 - C16/C17/C18 EXECUTED AND CLOSED: C16 log `/home/runner/work/_temp/kilo-tmp/c16_bab_reporting_metrics_probe_evidence.log`; C17 log `/home/runner/work/_temp/kilo-tmp/c17_bab_strategy_core_fidelity_probe_evidence.log`; C18 log `/home/runner/work/_temp/kilo-tmp/c18_bab_metrics_report_attribution_fidelity_probe_evidence.log` (15 probes, 0 failures). Parity values bit-identical across C16/C17/C18 (REAL default cum=0.45632700835934265, EXP default cum=0.5311665101149625, REAL ETH cum=2.1986969529723432). **No proven gaps for C16/C17/C18**. Regression tests: C17 16 passed, C18 24 passed. C6–C18 closed/evidenced. **C19 is the next binding heavy campaign and has NOT been executed (no c19 probe log exists).**
