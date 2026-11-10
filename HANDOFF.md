@@ -1,15 +1,15 @@
 # INITIAL TASK MESSAGE (single durable handoff — leave for next agent; highest priority)
 
-**Timestamp:** 2026-11-10T06:53:45Z
+**Timestamp:** 2026-11-10T06:54:49Z
 **Repo:** `Crypto-Betting-Against-Beta` (repo-name priority is binding: every slice must advance **Betting Against Beta** correctness/robustness/reporting fidelity; no unrelated refactors)
-**HEAD/base:** `d4a4939` (`chore(kilo): checkpoint agent session`, local `main`/worktree context, up-to-date with `origin/main`)
+**HEAD/base:** `0f5dd64` (`chore(kilo): checkpoint agent session`, local `main`/worktree context, up-to-date with `origin/main`)
 **Working tree:** **clean** — nothing to commit, no pushes. All `campaign11` probe regression modules tracked/committed (`11m`–`11s`). Untracked test artifacts: none.
 
-**Environment/gates (re-verified this session @ `d4a4939`, `PYTHONPATH=$PWD PATH=$HOME/.local/bin:$PATH`):**
+**Environment/gates (re-verified this session @ `0f5dd64`, `PYTHONPATH=$PWD PATH=$HOME/.local/bin:$PATH`):
 - `python3 -c "import numpy,pandas,scipy,pytest"` → `deps ok` (rc=0)
-- `python3 -m pytest -q tests/test_bab_cli_campaign11m_probe_regressions.py tests/test_bab_cli_campaign11n_expanded_probe_regressions.py tests/test_bab_cli_campaign11o_remaining_probe_regressions.py tests/test_bab_cli_campaign11p_real_dryrun_synth_probe_regressions.py tests/test_bab_cli_campaign11q_followup_probe_regressions.py tests/test_bab_cli_campaign11s_validation_edges.py` → **132 passed, rc=0** (last verified 119.91s)
-- `rm -f .coverage .coverage.*; python3 -m pytest -q -k campaign_d --ignore=tests/test_controller_progress_accounting.py` → **883 passed, 5 skipped, 4010 deselected, 53 warnings, rc=0** in 4.33s
-- Full BAB excl `data_loader`/`controller`: **2119 passed, 5 skipped, 2842 deselected, 41 warnings, rc=0** (last verified 306.81s)
+- `python3 -m pytest -q tests/test_bab_cli_campaign11m_probe_regressions.py tests/test_bab_cli_campaign11n_expanded_probe_regressions.py tests/test_bab_cli_campaign11o_remaining_probe_regressions.py tests/test_bab_cli_campaign11p_real_dryrun_synth_probe_regressions.py tests/test_bab_cli_campaign11q_followup_probe_regressions.py tests/test_bab_cli_campaign11s_validation_edges.py` → **132 passed, rc=0** (just verified: 11m=28, 11n-11s=104, total 132)
+- `rm -f .coverage .coverage.*; python3 -m pytest -q -k campaign_d --ignore=tests/test_controller_progress_accounting.py` → **883 passed, 5 skipped, 4010 deselected, 53 warnings, rc=0** in 4.37s (just verified)
+- Full BAB excl `data_loader`/`controller`: **2119 passed, 5 skipped, 2842 deselected, 41 warnings, rc=0** (last verified 306.81s @ d4a4939; no source changes since)
 
 **Bottlenecks removed:** Step 0 gates re-established on current HEAD; working tree clean; no in-flight uncommitted edits; no competing handoff files. No session is blocked.
 
@@ -31,13 +31,13 @@ You are continuing **campaign11 follow-up** for `Crypto-Betting-Against-Beta` fr
 
 ---
 
-## CAMPAIGN11 follow-up — EVIDENCE THIS SESSION (2026-11-10T06:53Z @ d4a4939)
+## CAMPAIGN11 follow-up — EVIDENCE THIS SESSION (2026-11-10T06:54Z @ 0f5dd64)
 
 ### Step 0 baseline
 - `python3 -c "import numpy,pandas,scipy,pytest"` → `deps ok`, rc=0
-- Campaign11 probe regressions (11m–11s): **132 passed, rc=0** (119.91s)
-- `campaign_d --ignore=tests/test_controller_progress_accounting.py`: **883 passed, 5 skipped, 4010 deselected, 53 warnings, rc=0** (4.33s)
-- Full excl `data_loader`/`controller`: **2119 passed, 5 skipped, 2842 deselected, 41 warnings, rc=0** (306.81s)
+- Campaign11 probe regressions (11m–11s): **132 passed, rc=0** (just verified: 11m=28, 11n-11s=104, 127.46s total)
+- `campaign_d --ignore=tests/test_controller_progress_accounting.py`: **883 passed, 5 skipped, 4010 deselected, 53 warnings, rc=0** (just verified 4.37s)
+- Full excl `data_loader`/`controller`: **2119 passed, 5 skipped, 2842 deselected, 41 warnings, rc=0** (last verified 306.81s @ d4a4939; no source changes since)
 
 ### Fixture column inventory (for benchmark/universe interpretation)
 - `tests/fixtures/real_market_prices.csv`: columns `['date','BTC','ETH','SOL','BNB','XRP','ADA','AVAX','DOT','LINK','DEL']`
@@ -67,7 +67,7 @@ You are continuing **campaign11 follow-up** for `Crypto-Betting-Against-Beta` fr
 - **None newly proven.** Observed dry-run/run universe-comma mismatch reproduces known/locked 11s behavior; no duplicate regression added. No production fixes.
 
 ### Modules touched
-- `HANDOFF.md` (refreshed)
+- `HANDOFF.md` (refreshed with current timestamp, HEAD, and re-verified gates)
 
 ---
 
