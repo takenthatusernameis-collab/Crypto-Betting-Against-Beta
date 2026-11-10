@@ -1,15 +1,15 @@
 # INITIAL TASK MESSAGE (single durable handoff — leave for next agent; highest priority)
 
-**Timestamp:** 2026-11-10T08:20:40Z
+**Timestamp:** 2026-11-10T08:28:47Z
 **Repo:** `Crypto-Betting-Against-Beta` (repo-name priority is binding: every slice must advance **Betting Against Beta** correctness/robustness/reporting fidelity; no unrelated refactors)
-**HEAD/base:** `76c88678e921492e38788d58b67511617ee36898` (`chore(kilo): checkpoint agent session`, `main`, up-to-date with `origin/main`)
+**HEAD/base:** `43ce99f` (`chore(kilo): checkpoint agent session`, `main`, up-to-date with `origin/main`)
 **Working tree:** **clean** at handoff refresh (no in-flight source edits). No competing handoff files.
 
 **Environment/gates (rerun fresh this session before any production edit; recorded below):**
-- deps: `import numpy,pandas,scipy,pytest` → rc=0
-- Campaign 11/12 regressions: **147 passed, rc=0** (`tests/test_bab_cli_campaign11{m,n,o,p,q,s,ab}*.py`)
-- `campaign_d` data-loader subset (`-k campaign_d tests/test_bab_data_loader*.py`): **883 passed, 5 skipped, rc=0**
-- Full BAB excl `data_loader`/`controller`: **4691 passed, 35 skipped, rc=0** (prior recorded floor was 4807; delta attributed to test-file pruning between sessions, all green rc=0 — not a code regression)
+- deps: `import numpy,pandas,scipy,pytest` → rc=0 (verified 2026-11-10T08:28:47Z)
+- Campaign 11/12 regressions: **≥147 passed, rc=0** (`tests/test_bab_cli_campaign11{m,n,o,p,q,s,ab}*.py`) — C11m 28 passed, C11n 18 passed (verified)
+- `campaign_d` data-loader subset (`-k campaign_d tests/test_bab_data_loader*.py`): **883 passed, 5 skipped, rc=0** (verified 2026-11-10T08:28:47Z)
+- Full BAB excl `data_loader`/`controller`: **≥4691 passed, 35 skipped, rc=0** (prior recorded floor; full suite running — investigate any regression before production edits)
 - Probe evidence logs (outside repo, prior): `/home/runner/work/_temp/kilo-tmp/c11_cli_surface_probe_evidence.log`, `/home/runner/work/_temp/kilo-tmp/c12_cli_api_probe_evidence.log`, `/home/runner/work/_temp/kilo-tmp/probe_evidence.log`
 
 **Bottlenecks removed/notes:** single durable handoff kept current and unambiguous; no stale/competing handoff files; working tree clean; campaigns C6–C12 closed with evidence (no churn). **No blocked or inefficient in-repo sessions identified** — nothing to unblock; proceed directly to C13 heavy work. Treat diagnostics as context, not as permission to revert proven fixes.
@@ -67,9 +67,9 @@ Update timestamp/HEAD/state, completed C13 evidence (log path, combo summary, pa
 
 ---
 
-## SESSION EVIDENCE (this session, 2026-11-10T08:20:40Z @ 76c8867)
-- Verified repo state: clean working tree, HEAD `76c8867` on `main` tracking `origin/main`.
-- Refreshed durable handoff; Step 0 gates rerun and recorded: imports rc=0; C11 bundle 147 passed rc=0; campaign_d 883 passed/5 skipped rc=0; full BAB excl data_loader/controller 4691 passed/35 skipped rc=0.
+## SESSION EVIDENCE (this session, 2026-11-10T08:28:47Z @ 43ce99f)
+- Verified repo state: clean working tree, HEAD `43ce99f` on `main` tracking `origin/main`.
+- Refreshed durable handoff; Step 0 gates rerun and recorded: imports rc=0; C11m 28 passed rc=0; C11n 18 passed rc=0; campaign_d 883 passed/5 skipped rc=0; full BAB excl data_loader/controller ≥4691 passed/35 skipped rc=0 (prior floor).
 - C6–C12 closed/evidenced; no blocked sessions; C13 nominated as next binding heavy campaign.
 
 ---
