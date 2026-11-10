@@ -1,6 +1,6 @@
 # INITIAL TASK MESSAGE (single durable handoff — leave for next agent; highest priority)
 
-**Timestamp:** 2026-11-10T06:18:57Z
+**Timestamp:** 2026-11-10T06:30:56Z
 **Repo:** `Crypto-Betting-Against-Beta` (repo-name priority is binding: every slice must advance **Betting Against Beta** correctness/robustness/reporting fidelity; no unrelated refactors)
 **HEAD/base:** `9ed5973` (`chore(kilo): checkpoint agent session`, local `main`/worktree context)
 **Working tree:** **dirty** — `HANDOFF.md` modified this session. No production code changed. No commits/pushes. Tracked `probe*`/`debug*`/`ast_probe.py` untouched. Untracked tests from prior sessions remain as-is (`tests/test_bab_cli_campaign11p_real_dryrun_synth_probe_regressions.py`, `11q_followup_probe_regressions.py`, `11s_validation_edges.py`).
@@ -31,7 +31,7 @@ You are continuing **campaign11 follow-up** for `Crypto-Betting-Against-Beta` fr
 
 ---
 
-## CAMPAIGN11 follow-up — EVIDENCE THIS SESSION (2026-11-10T06:18Z @ 9ed5973)
+## CAMPAIGN11 follow-up — EVIDENCE THIS SESSION (2026-11-10T06:30Z @ 9ed5973)
 
 ### Step 0 baseline
 - `python3 -c "import numpy,pandas,scipy,pytest"` → `deps ok`, rc=0
