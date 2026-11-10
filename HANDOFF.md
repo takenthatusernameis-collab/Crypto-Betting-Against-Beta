@@ -1,8 +1,8 @@
 # INITIAL TASK MESSAGE (single durable handoff — leave for next agent; highest priority)
 
-**Timestamp:** 2026-11-10T13:13:46Z
+**Timestamp:** 2026-11-10T13:44:17Z
 **Repo:** `Crypto-Betting-Against-Beta` (repo-name priority is binding: every slice must advance **Betting Against Beta** correctness/robustness/reporting fidelity; no unrelated refactors)
-**HEAD/base:** `bcc5b92` (`chore(kilo): checkpoint agent session`, `main`, ahead of `origin/main` per local state; working tree dirty with local `.git/kilo` + this `HANDOFF.md` refresh in this session)
+**HEAD/base:** `b63a9f1` (`chore(kilo): checkpoint agent session`, `main`, ahead of `origin/main` per local state; working tree dirty with local `.git/kilo` + this `HANDOFF.md` refresh in this session)
 **Working tree:** dirty — `.git/kilo` (runtime/state artifact, do not commit) and `HANDOFF.md` (this refresh). No production code changes. No competing handoff files. C15 executed and closed this session.
 
 **Environment/gates (rerun fresh this session before any production edit; recorded below):**
@@ -69,8 +69,8 @@ Update timestamp/HEAD/state, completed C16 evidence (log path, combo summary, pa
 
 ---
 
-## SESSION EVIDENCE (this session, 2026-11-10T13:13:46Z @ bcc5b92)
-- Repo state: HEAD `bcc5b92` on `main`; dirty only `.git/kilo` + `HANDOFF.md`; no competing handoff files.
+## SESSION EVIDENCE (this session, 2026-11-10T13:44:17Z @ b63a9f1)
+- Repo state: HEAD `b63a9f1` on `main`; dirty only `.git/kilo` + `HANDOFF.md`; no competing handoff files.
 - Step 0 gates (fresh): deps rc=0 (numpy 2.5.4/pandas 3.1.1/scipy 1.18.1/pytest 9.2.0); C11+C14 bundle **164 passed, rc=0**; `campaign_d` **883 passed, 5 skipped, rc=0**; full BAB excl `data_loader`/`controller` **4708 passed, 35 skipped, rc=0**.
 - C15 EXECUTED (≥18 probes; log `/home/runner/work/_temp/kilo-tmp/c15_bab_pipeline_parity_probe_evidence.log`): (1)(2) in-process `load_returns` REAL/EXP BTC rc=0 finite cum periods=398; (3)(4) console `bab-example` REAL/EXP `--from-prices` rc=0 clean stdout/stderr; (5)(6) cost monotonicity tc 0/0.001/0.005 non-increasing on REAL `[0.472126,0.456327,0.398083]` and EXP `[0.585443,0.531167,0.359523]`; (7) alt benchmark ETH rc=0 finite; (8)(9) lookback 60/120 rc=0 finite; (10)(11) quantile 0.2/0.5 rc=0 finite; (12) `all_nan_column.csv` rc=1 clean actionable "Insufficient rows..." no Traceback; (12b/c) NaN column in sufficient returns data console+in-process rc=0 finite; (13) stdout non-empty/stderr empty; (14) determinism identical stdout; extra lookback 500 rc=0 finite; parity console↔in-process with matched params (`--lookback 252 --quantile q --transaction-cost 0.001`) confirmed equal to full-float values (console prints 6dp) for REAL default, EXP default, REAL ETH, REAL q0.2.
 - **No proven gaps.** No production code changes. C6–C15 closed/evidenced. C16 is the next binding heavy campaign.
