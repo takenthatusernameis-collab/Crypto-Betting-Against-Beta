@@ -1,17 +1,17 @@
 # INITIAL TASK MESSAGE (leave this for next agent; highest priority)
 
-**Timestamp:** 2026-11-10T02:13:09Z
+**Timestamp:** 2026-11-10T02:19:11Z
 **Repo:** Crypto-Betting-Against-Beta (priority: Betting Against Beta — repo-name priority binds every slice)
-**HEAD (verified this session):** `18579b4` (`chore(kilo): checkpoint agent session`, local main). Working tree: **dirty** — untracked `tests/test_bab_cli_universe_whitespace_dryrun_campaign11k.py` (5 tests, green) and `tests/test_bab_cli_parity_error_campaign11l.py` (14 tests, green, added this session) + this HANDOFF refresh; tracked `probe*`/`debug*`/`ast_probe.py` unchanged — **do not edit/commit** unless explicitly requested.
+**HEAD (verified this session):** `cf7e90b` (`chore(kilo): checkpoint agent session`, local main). Working tree: **clean** — `campaign11k` (5 tests) and `campaign11l` (14 tests) now tracked/committed in `cf7e90b`; tracked `probe*`/`debug*`/`ast_probe.py` unchanged — **do not edit/commit** unless explicitly requested.
 **Environment:** deps `numpy/pandas/scipy/pytest` installed; `PYTHONPATH=$PWD PATH=$HOME/.local/bin:$PATH`.
 
-**Step 0 gates (re-verified this session @ `18579b4`, 2026-11-10T02:13Z):**
+**Step 0 gates (re-verified this session @ `cf7e90b`, 2026-11-10T02:19Z):**
 - `python3 -c "import numpy,pandas,scipy,pytest"` → `deps ok` (rc=0)
-- `rm -f .coverage .coverage.*; python3 -m pytest -q -k campaign_d --ignore=tests/test_controller_progress_accounting.py` → **883 passed, 5 skipped, 3864 deselected, 53 warnings, rc=0 in 6.14s** (floor held)
-- `rm -f .coverage .coverage.*; PYTHONPATH=$PWD python3 -m pytest -q -k "not data_loader and not controller"` → **1987 passed, 5 skipped, 2842 deselected, 41 warnings, rc=0** (floor raised: +14 vs prior 1973; includes new campaign11l)
-- `PYTHONPATH=$PWD python3 -m pytest -q tests/test_bab_cli_universe_whitespace_dryrun_campaign11k.py` → **5 passed, rc=0 in 6.45s** (untracked)
-- `PYTHONPATH=$PWD python3 -m pytest -q tests/test_bab_cli_parity_error_campaign11l.py` → **14 passed, rc=0 in 11.77s** (untracked, added this session)
-- Campaign11 spot-check (all green): `tests/test_bab_cli_universe_{subset,edge,explicit_contract,campaign11}.py`, `tests/test_bab_cli_warmup_parity_campaign11.py`, `tests/test_bab_cli_real_data_regression_campaign11.py`, `tests/test_bab_cli_slice_i_defensive_invariants.py` (+ new campaign11k/l)
+- `rm -f .coverage .coverage.*; python3 -m pytest -q -k campaign_d --ignore=tests/test_controller_progress_accounting.py` → **883 passed, 5 skipped, 3878 deselected, 53 warnings, rc=0 in 5.95s** (floor held)
+- `rm -f .coverage .coverage.*; PYTHONPATH=$PWD python3 -m pytest -q -k "not data_loader and not controller"` → **1987 passed, 5 skipped, 2842 deselected, 41 warnings, rc=0** (floor held @ 1987; includes committed campaign11l)
+- `PYTHONPATH=$PWD python3 -m pytest -q tests/test_bab_cli_universe_whitespace_dryrun_campaign11k.py` → **5 passed, rc=0** (tracked)
+- `PYTHONPATH=$PWD python3 -m pytest -q tests/test_bab_cli_parity_error_campaign11l.py` → **14 passed, rc=0** (tracked, committed in cf7e90b)
+- Campaign11 spot-check (all green): `tests/test_bab_cli_universe_{subset,edge,explicit_contract}.py`, `tests/test_bab_cli_warmup_parity_campaign11.py`, `tests/test_bab_cli_real_data_regression_campaign11.py`, `tests/test_bab_cli_slice_i_defensive_invariants.py`, `tests/test_bab_cli_universe_whitespace_dryrun_campaign11k.py`, `tests/test_bab_cli_parity_error_campaign11l.py`
 
 **Bottlenecks removed / fixes (all closed, evidence-backed):**
 - Duplicate-token `--universe`/config universe leak into reported `resolved_universe` → **FIXED+regressed**.
@@ -27,8 +27,8 @@
 **MISSION (repo priority):** Continue **campaign11 — BAB CLI/reporting + numeric robustness hardening** with **heavy, evidence-backed engineering**. campaign7–10 closed/verified. `beta.py` and `data_loader.py` gates **CLOSED** (no churn). A planning-only exit is unacceptable when deps are available. Prioritize by repo name (Betting Against Beta) — every change must serve BAB correctness/robustness.
 
 **campaign11 — NEXT FOCUS CAMPAIGN (mandatory, heavy working; not avoidable):**
-1. **Step 0 gates (must pass before any edit):** deps import; `campaign_d` 883/5; full excl ≥1987/5 (current verified floor @ `18579b4`). Fix regressions before new work.
-2. **Real-data/defensive regressions (keep green, extend only with evidence-backed non-duplicative cases):** `test_bab_cli_real_data_regression_campaign11.py`, `test_bab_cli_slice_i_defensive_invariants.py`, `test_bab_cli_universe_subset_campaign11.py`, `test_bab_cli_universe_edge_campaign11.py`, `test_bab_cli_universe_explicit_contract_campaign11.py`, `test_bab_cli_warmup_parity_campaign11.py`, `test_bab_cli_universe_whitespace_dryrun_campaign11k.py` (untracked), `test_bab_cli_parity_error_campaign11l.py` (untracked), `test_bab_config_deep_coverage.py`, `test_bab_cli_reporting_robustness.py`, `test_bab_cli_error_reporting.py`, `test_bab_cli_numeric_reporting.py`, `test_bab_backtest_contract_smoke.py`.
+1. **Step 0 gates (must pass before any edit):** deps import; `campaign_d` 883/5; full excl ≥1987/5 (current verified floor @ `cf7e90b`). Fix regressions before new work.
+2. **Real-data/defensive regressions (keep green, extend only with evidence-backed non-duplicative cases):** `test_bab_cli_real_data_regression_campaign11.py`, `test_bab_cli_slice_i_defensive_invariants.py`, `test_bab_cli_universe_subset_campaign11.py`, `test_bab_cli_universe_edge_campaign11.py`, `test_bab_cli_universe_explicit_contract_campaign11.py`, `test_bab_cli_warmup_parity_campaign11.py`, `test_bab_cli_universe_whitespace_dryrun_campaign11k.py` (tracked, committed cf7e90b), `test_bab_cli_parity_error_campaign11l.py` (tracked, committed cf7e90b), `test_bab_config_deep_coverage.py`, `test_bab_cli_reporting_robustness.py`, `test_bab_cli_error_reporting.py`, `test_bab_cli_numeric_reporting.py`, `test_bab_backtest_contract_smoke.py`.
 3. **Heavy probe+prove campaign (do not stop at one test file):** systematically probe remaining `strategies/betting_against_beta/cli.py`/`strategy.py`/`config.py`/`portfolio.py`/`metrics.py`/`backtest.py` integration edges for proven gaps: (a) CLI-vs-in-process parity on real fixture for additional exercised combos not yet locked if meaningful (e.g. `--beta-window` override, `--rebalance-freq`/`--long-quantile`/`--short-quantile` exercised paths, `--dry-run`+valid data with `--output` deep-validate no-write already locked but confirm any other flag combos; `--from-prices` already covered). (b) Non-finite propagation boundaries via constrained injected paths (NaN/Inf in returns/prices columns, empty-after-drop edge cases, extreme values) — probe JSON/reporting/CLI for leaks or tracebacks; ensure `_json_safe`/`_json_default`/`_build_output_summary` remain strict. (c) Error-path cleanliness and message stability for additional malformed combos (unreadable file perms if feasible, conflicting/unsupported extensions, extreme numeric args, very large `--beta-window` vs data). **Probe before asserting; add tests only for proven/defensive gaps; no production edits unless real bug proven with evidence + minimal regression test.**
 4. **Coverage/dead-branch evidence (only where meaningful):** if probing reveals reachable-but-untested CLI/strategy/config/portfolio/metrics/backtest branches, add targeted tests. Do not chase `beta.py`/`data_loader` gate-closed misses.
 5. **Bug fix rule:** if real bug found, fix minimally with evidence + regression test; re-run gates and record before/after.
@@ -49,4 +49,4 @@
 
 ---
 
-# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) (canonical; refreshed 2026-11-10T02:13:09Z @ `18579b4`, dirty: +`tests/test_bab_cli_universe_whitespace_dryrun_campaign11k.py`, +`tests/test_bab_cli_parity_error_campaign11l.py` untracked). `docs/unreachable_proofs.md` is the evidence appendix. §INITIAL TASK MESSAGE above is binding. No competing handoff files.
+# SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB) (canonical; refreshed 2026-11-10T02:19:11Z @ `cf7e90b`, clean tree; `campaign11k`/`campaign11l` committed). `docs/unreachable_proofs.md` is the evidence appendix. §INITIAL TASK MESSAGE above is binding. No competing handoff files.
