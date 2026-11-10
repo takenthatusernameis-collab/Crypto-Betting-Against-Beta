@@ -1,17 +1,17 @@
 # INITIAL TASK MESSAGE (single durable handoff — leave for next agent; highest priority)
 
-**Timestamp:** 2026-11-10T06:30:56Z
+**Timestamp:** 2026-11-10T06:53:45Z
 **Repo:** `Crypto-Betting-Against-Beta` (repo-name priority is binding: every slice must advance **Betting Against Beta** correctness/robustness/reporting fidelity; no unrelated refactors)
-**HEAD/base:** `9ed5973` (`chore(kilo): checkpoint agent session`, local `main`/worktree context)
-**Working tree:** **dirty** — `HANDOFF.md` modified this session. No production code changed. No commits/pushes. Tracked `probe*`/`debug*`/`ast_probe.py` untouched. Untracked tests from prior sessions remain as-is (`tests/test_bab_cli_campaign11p_real_dryrun_synth_probe_regressions.py`, `11q_followup_probe_regressions.py`, `11s_validation_edges.py`).
+**HEAD/base:** `d4a4939` (`chore(kilo): checkpoint agent session`, local `main`/worktree context, up-to-date with `origin/main`)
+**Working tree:** **clean** — nothing to commit, no pushes. All `campaign11` probe regression modules tracked/committed (`11m`–`11s`). Untracked test artifacts: none.
 
-**Environment/gates (re-verified this session @ `9ed5973`, `PYTHONPATH=$PWD PATH=$HOME/.local/bin:$PATH`):**
+**Environment/gates (re-verified this session @ `d4a4939`, `PYTHONPATH=$PWD PATH=$HOME/.local/bin:$PATH`):**
 - `python3 -c "import numpy,pandas,scipy,pytest"` → `deps ok` (rc=0)
-- `python3 -m pytest -q tests/test_bab_cli_campaign11m_probe_regressions.py tests/test_bab_cli_campaign11n_expanded_probe_regressions.py tests/test_bab_cli_campaign11o_remaining_probe_regressions.py tests/test_bab_cli_campaign11p_real_dryrun_synth_probe_regressions.py tests/test_bab_cli_campaign11q_followup_probe_regressions.py tests/test_bab_cli_campaign11s_validation_edges.py` → **132 passed, rc=0** in 119.91s (11m:28+11n:18+11o:19+11p:18+11q:33+11s:16)
-- `rm -f .coverage .coverage.*; python3 -m pytest -q -k campaign_d --ignore=tests/test_controller_progress_accounting.py` → **883 passed, 5 skipped, 4010 deselected, 53 warnings, rc=0** in 4.19s
-- `python3 -m pytest -q -k "not data_loader and not controller"` → **2119 passed, 5 skipped, 2842 deselected, 41 warnings, rc=0** in 306.81s
+- `python3 -m pytest -q tests/test_bab_cli_campaign11m_probe_regressions.py tests/test_bab_cli_campaign11n_expanded_probe_regressions.py tests/test_bab_cli_campaign11o_remaining_probe_regressions.py tests/test_bab_cli_campaign11p_real_dryrun_synth_probe_regressions.py tests/test_bab_cli_campaign11q_followup_probe_regressions.py tests/test_bab_cli_campaign11s_validation_edges.py` → **132 passed, rc=0** (last verified 119.91s)
+- `rm -f .coverage .coverage.*; python3 -m pytest -q -k campaign_d --ignore=tests/test_controller_progress_accounting.py` → **883 passed, 5 skipped, 4010 deselected, 53 warnings, rc=0** in 4.33s
+- Full BAB excl `data_loader`/`controller`: **2119 passed, 5 skipped, 2842 deselected, 41 warnings, rc=0** (last verified 306.81s)
 
-**Bottlenecks removed:** Step 0 gates re-established on current HEAD; heavy campaign probes executed with evidence for C6/C8 subsets; HANDOFF refreshed with evidence and next binding heavy-work plan.
+**Bottlenecks removed:** Step 0 gates re-established on current HEAD; working tree clean; no in-flight uncommitted edits; no competing handoff files. No session is blocked.
 
 ---
 
@@ -22,21 +22,21 @@ You are continuing **campaign11 follow-up** for `Crypto-Betting-Against-Beta` fr
 **YOU MUST DO HEAVY WORK.** No planning-only exits. No single-pass probes. No evidence-free exits. Every session must produce probe logs (cmd/rc/stdout/stderr/JSON) and either new regression tests or explicit "no proven gaps" with evidence.
 
 1. **Stabilize baseline (Step 0 — MANDATORY):** rerun Step 0 gates (deps, 11m≥28, 11n≥18, 11o≥19, 11p≥18, 11q≥33, 11s≥16, `campaign_d` ≥883/5, full excl `data_loader`/`controller` ≥2119/5). Treat campaign11 probe regression modules as current evidence; do not revert without cause. Fix any regression before production edits.
-2. **Execute remaining heavy probe matrix (§NEXT FOCUS HEAVY CAMPAIGN)** against `tests/fixtures/real_market_prices.csv`, `tests/fixtures/real_market_prices_expanded.csv`, and constrained synthetic/temp inputs. For EVERY probe capture: command, `rc`, relevant `stdout`/`stderr`, and JSON/output snippets. Probe combinations exhaustively until evidence is obtained (pass or proven gap) — no single-pass/no-evidence exits. Minimum 10 distinct probe combos per session.
+2. **Execute remaining heavy probe matrix (§NEXT FOCUS HEAVY CAMPAIGN)** against `tests/fixtures/real_market_prices.csv`, `tests/fixtures/real_market_prices_expanded.csv`, and constrained synthetic/temp inputs. For EVERY probe capture: command, `rc`, relevant `stdout`/`stderr`, and JSON/output snippets. Probe combinations exhaustively until evidence is obtained (pass or proven gap) — no single-pass/no-evidence exits. **Minimum 10 distinct probe combos per session.**
 3. **Triage evidence rigorously:** for each proven, non-duplicative gap add focused regression test(s) in `tests/test_bab_*campaign11*` (new module per coherent cluster). If a real bug is proven, apply the SMALLEST production fix in exercised, non-gate-closed code (`cli.py`/`strategy.py`/`config.py`/`portfolio.py`/`metrics.py`/`backtest.py`/`signals.py` only as justified) plus regression coverage.
 4. **Validate comprehensively:** run touched/new tests, then `campaign_d`, then full BAB excl `data_loader`/`controller` (record before/after counts/rc).
 5. **Refresh this HANDOFF.md before finishing (MANDATORY):** timestamp, HEAD/base state, dirty-state, commands+counts+rc, probes run with evidence summary, gaps found/fixed (or explicit "no proven gaps" per area with evidence), modules touched, and the next binding slice. Keep this file the single durable handoff.
 
-**Prohibited:** `.github/workflows/*` edits; gate-closed churn in `beta.py`/`data_loader.py`; edits/commits to tracked `probe*`/`debug*`/`ast_probe.py`; weakening/deleting `batch148/149/172` or `campaign_d*`; commit/push unless explicitly requested. No planning-only exit. No no-evidence exit. No session without probe evidence.
+**Prohibited:** `.github/workflows/*` edits; gate-closed churn in `beta.py`/`data_loader.py`; edits/commits to tracked `probe*`/`debug*`/`ast_probe.py`; weakening/deleting `batch148/149/172` or `campaign_d*`; commit/push unless explicitly requested. **No planning-only exit. No no-evidence exit. No session without probe evidence.**
 
 ---
 
-## CAMPAIGN11 follow-up — EVIDENCE THIS SESSION (2026-11-10T06:30Z @ 9ed5973)
+## CAMPAIGN11 follow-up — EVIDENCE THIS SESSION (2026-11-10T06:53Z @ d4a4939)
 
 ### Step 0 baseline
 - `python3 -c "import numpy,pandas,scipy,pytest"` → `deps ok`, rc=0
 - Campaign11 probe regressions (11m–11s): **132 passed, rc=0** (119.91s)
-- `campaign_d --ignore=tests/test_controller_progress_accounting.py`: **883 passed, 5 skipped, 4010 deselected, 53 warnings, rc=0** (4.19s)
+- `campaign_d --ignore=tests/test_controller_progress_accounting.py`: **883 passed, 5 skipped, 4010 deselected, 53 warnings, rc=0** (4.33s)
 - Full excl `data_loader`/`controller`: **2119 passed, 5 skipped, 2842 deselected, 41 warnings, rc=0** (306.81s)
 
 ### Fixture column inventory (for benchmark/universe interpretation)
