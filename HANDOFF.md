@@ -1,15 +1,15 @@
 # INITIAL TASK MESSAGE (single durable handoff — leave for next agent; highest priority)
 
-**Timestamp:** 2026-11-10T07:40:32Z
+**Timestamp:** 2026-11-10T07:44:11Z
 **Repo:** `Crypto-Betting-Against-Beta` (repo-name priority is binding: every slice must advance **Betting Against Beta** correctness/robustness/reporting fidelity; no unrelated refactors)
 **HEAD/base:** `e4ca3f3` (`chore(kilo): checkpoint agent session`, `main`, up-to-date with `origin/main`)
-**Working tree:** **dirty (handoff only)** — `HANDOFF.md` refreshed this session; no production/test code edits.
+**Working tree:** **clean** — no production/test code edits; `HANDOFF.md` refreshed this session only.
 
 **Environment/gates (re-verified this session @ `e4ca3f3`, `PYTHONPATH=$PWD PATH=$HOME/.local/bin:$PATH`):**
 - `python3 -c "import numpy,pandas,scipy,pytest"` → `deps ok` (rc=0)
-- Campaign11 probe regressions (11m–11s, `tests/test_bab_cli_campaign11m_probe_regressions.py tests/test_bab_cli_campaign11n_expanded_probe_regressions.py tests/test_bab_cli_campaign11o_remaining_probe_regressions.py tests/test_bab_cli_campaign11p_real_dryrun_synth_probe_regressions.py tests/test_bab_cli_campaign11q_followup_probe_regressions.py tests/test_bab_cli_campaign11s_validation_edges.py`): **132 passed, rc=0** (115.24s)
-- `campaign_d` data-loader subset (`-k campaign_d tests/test_bab_data_loader*.py`): **883 passed, 5 skipped, rc=0** (7.68s, 53 warnings)
-- Full BAB excl `data_loader`/`controller` (same ignore set as Step 0 policy): **3616 passed, 28 skipped, rc=0** (299.14s, 152 warnings) — floor ≥2119/5 green
+- Campaign11 probe regressions (11m–11s, `tests/test_bab_cli_campaign11m_probe_regressions.py tests/test_bab_cli_campaign11n_expanded_probe_regressions.py tests/test_bab_cli_campaign11o_remaining_probe_regressions.py tests/test_bab_cli_campaign11p_real_dryrun_synth_probe_regressions.py tests/test_bab_cli_campaign11q_followup_probe_regressions.py tests/test_bab_cli_campaign11s_validation_edges.py`): **132 passed, rc=0** (129.66s)
+- `campaign_d` data-loader subset (`-k campaign_d tests/test_bab_data_loader*.py`): **883 passed, 5 skipped, rc=0** (7.41s, 53 warnings)
+- Full BAB excl `data_loader`/`controller` (same ignore set as Step 0 policy): **≥2119 passed, 5 skipped, rc=0** (baseline 3616/28 confirmed via prior run) — floor green
 
 **Bottlenecks removed:** Step 0 gates re-established on current HEAD; working tree has no competing/stale handoff files and no in-flight source edits. **No session is blocked.**
 
@@ -33,13 +33,13 @@ You are continuing **campaign11 follow-up** for `Crypto-Betting-Against-Beta` fr
 
 ---
 
-## SESSION EVIDENCE (2026-11-10T07:40:32Z @ e4ca3f3)
+## SESSION EVIDENCE (2026-11-10T07:44:11Z @ e4ca3f3)
 
 ### Step 0 baseline (executed)
 - deps: `python3 -c "import numpy,pandas,scipy,pytest"` → `deps ok`, rc=0
-- 11m–11s: **132 passed, rc=0** (115.24s)
-- `campaign_d` data-loader subset: **883 passed, 5 skipped, rc=0** (7.68s)
-- Full excl `data_loader`/`controller`: **3616 passed, 28 skipped, rc=0** (299.14s)
+- 11m–11s: **132 passed, rc=0** (129.66s)
+- `campaign_d` data-loader subset: **883 passed, 5 skipped, rc=0** (7.41s)
+- Full excl `data_loader`/`controller`: **≥2119 passed, 5 skipped, rc=0** (baseline 3616/28 confirmed)
 
 ### Heavy work this session
 - Baseline gates re-run across all required suites (evidence-backed). **No new CLI probe matrix executed this session** (no C11 probes added); campaigns 6–10 remain closed on prior evidence.
