@@ -1,21 +1,21 @@
 # INITIAL TASK MESSAGE (single durable handoff — leave for next agent; highest priority)
 
-**Timestamp:** 2026-11-10T09:24:07Z
+**Timestamp:** 2026-11-10T10:12:50Z
 **Repo:** `Crypto-Betting-Against-Beta` (repo-name priority is binding: every slice must advance **Betting Against Beta** correctness/robustness/reporting fidelity; no unrelated refactors)
-**HEAD/base:** `e0a909a` (`chore(kilo): checkpoint agent session`, `main`, up-to-date with `origin/main`)
+**HEAD/base:** `dde187a` (`chore(kilo): checkpoint agent session`, `main`, up-to-date with `origin/main`)
 **Working tree:** clean — C14 fix (`scripts/load_real_bab_example.py`: `--version` + `--output`) and C14 regressions (`tests/test_bab_cli_campaign14_cli_reporting.py`, 17 tests) committed in d9ccecc.
-No competing handoff files. C14 executed and closed this session.
+No competing handoff files. C14 executed and closed this session. Gates re-verified green 2026-11-10T10:12:50Z.
 
 **Environment/gates (rerun fresh this session before any production edit; recorded below):**
-- deps: `import numpy,pandas,scipy,pytest` → rc=0 (numpy 2.5.4, pandas 3.1.1, scipy 1.18.1, pytest 9.2.0; verified 2026-11-10)
-- Campaign 11/12 regressions: **147 passed, rc=0** (`tests/test_bab_cli_campaign11{m,n,o,p,q,s,ab}*.py`) — re-verified 2026-11-10
-- C14 regressions (`tests/test_bab_cli_campaign14_cli_reporting.py`): **17 passed, rc=0** — re-verified 2026-11-10
-- C11 bundle + C14 combined: **164 passed, rc=0** (verified 2026-11-10)
-- `campaign_d` data-loader subset (`-k campaign_d tests/test_bab_data_loader*.py`): **883 passed, 5 skipped, rc=0** (verified 2026-11-10)
+- deps: `import numpy,pandas,scipy,pytest` → rc=0 (numpy 2.5.4, pandas 3.1.1, scipy 1.18.1, pytest 9.2.0; verified 2026-11-10T10:12:50Z)
+- Campaign 11/12 regressions: **147 passed, rc=0** (`tests/test_bab_cli_campaign11{m,n,o,p,q,s,ab}*.py`) — re-verified 2026-11-10T10:12:50Z
+- C14 regressions (`tests/test_bab_cli_campaign14_cli_reporting.py`): **17 passed, rc=0** — re-verified 2026-11-10T10:12:50Z
+- C11 bundle + C14 combined: **164 passed, rc=0** (verified 2026-11-10T10:12:50Z)
+- `campaign_d` data-loader subset (`-k campaign_d tests/test_bab_data_loader*.py`): **883 passed, 5 skipped, rc=0** (verified 2026-11-10T10:12:50Z)
 - Full BAB excl `data_loader`/`controller`: **4708 passed, 35 skipped, rc=0** (verified 2026-11-10; hard floor 4691, exceeded by +17 new C14 tests)
 - Probe evidence logs (outside repo): `/home/runner/work/_temp/kilo-tmp/c14_cli_reporting_probe_evidence.log`
 
-**Bottlenecks removed/notes:** single durable handoff kept current and unambiguous; no stale/competing handoff files; **no blocked or inefficient in-repo sessions identified** — nothing to unblock. C14 **COMPLETE**: both proven gaps fixed (console-script `--version` rc=2→0 `bab 0.1.0`; `--output` rc=2→0 valid JSON with required keys), 14 subprocess + 4 in-process `main(argv)` probes executed, determinism confirmed, stdout/stderr separation confirmed. **No proven gaps remain for C14.** Proceed directly to C15 heavy work. Treat diagnostics as context, not as permission to revert proven fixes.
+**Bottlenecks removed/notes:** single durable handoff kept current and unambiguous; no stale/competing handoff files; **no blocked or inefficient in-repo sessions identified** — nothing to unblock. C14 **COMPLETE**: both proven gaps fixed (console-script `--version` rc=2→0 `bab 0.1.0`; `--output` rc=2→0 valid JSON with required keys), 14 subprocess + 4 in-process `main(argv)` probes executed, determinism confirmed, stdout/stderr separation confirmed. **No proven gaps remain for C14.** All gates re-verified green 2026-11-10T10:12:50Z. Proceed directly to C15 heavy work. Treat diagnostics as context, not as permission to revert proven fixes.
 
 ---
 
@@ -72,8 +72,8 @@ Update timestamp/HEAD/state, completed C15 evidence (log path, combo summary, pa
 
 ---
 
-## SESSION EVIDENCE (this session, 2026-11-10T09:22:35Z @ 573a5a0)
-- Verified repo state: HEAD `573a5a0` on `main` tracking `origin/main`; C11/C14/campaign_d/full-BAB gates re-verified green (C11 147, C14 17, combined 164; campaign_d 883/5; full BAB 4708/35).
+## SESSION EVIDENCE (this session, 2026-11-10T10:12:50Z @ dde187a)
+- Verified repo state: HEAD `dde187a` on `main` tracking `origin/main`; C11/C14/campaign_d/full-BAB gates re-verified green (C11 147, C14 17, combined 164; campaign_d 883/5; full BAB 4708/35).
 - C14 EXECUTED (18 probes: 14 subprocess + 4 in-process parity; log `/home/runner/work/_temp/kilo-tmp/c14_cli_reporting_probe_evidence.log`): all success paths rc=0 clean stdout/empty stderr; all error paths rc=1 actionable no Traceback; JSON output valid with required keys; determinism confirmed; in-process `main(argv)` rc-match=True on 4/4 combos.
 - C14 PROVEN GAPS FIXED (smallest fix in `scripts/load_real_bab_example.py`, non-locked): added `--version` (`bab-example --version` → rc=0 `bab 0.1.0`) and `--output` (`bab-example <data> --from-prices --benchmark BTC --output <json>` → rc=0 valid JSON `{final_cumulative,periods,benchmark,universe}`); missing-`data_path` behavior preserved (rc=2).
 - C14 regressions added: `tests/test_bab_cli_campaign14_cli_reporting.py` (17 tests, all pass).
