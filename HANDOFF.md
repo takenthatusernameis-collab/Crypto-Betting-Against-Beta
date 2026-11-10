@@ -1,8 +1,8 @@
 # INITIAL TASK MESSAGE (single durable handoff — leave for next agent; highest priority)
 
-**Timestamp:** 2026-11-10T09:23:10Z
+**Timestamp:** 2026-11-10T09:24:07Z
 **Repo:** `Crypto-Betting-Against-Beta` (repo-name priority is binding: every slice must advance **Betting Against Beta** correctness/robustness/reporting fidelity; no unrelated refactors)
-**HEAD/base:** `d9ccecc` (`chore(kilo): checkpoint agent session`, `main`, up-to-date with `origin/main`)
+**HEAD/base:** `e0a909a` (`chore(kilo): checkpoint agent session`, `main`, up-to-date with `origin/main`)
 **Working tree:** clean — C14 fix (`scripts/load_real_bab_example.py`: `--version` + `--output`) and C14 regressions (`tests/test_bab_cli_campaign14_cli_reporting.py`, 17 tests) committed in d9ccecc.
 No competing handoff files. C14 executed and closed this session.
 
