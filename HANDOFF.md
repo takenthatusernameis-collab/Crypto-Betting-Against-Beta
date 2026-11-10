@@ -1,76 +1,70 @@
 # INITIAL TASK MESSAGE (single durable handoff — leave for next agent; highest priority)
 
-**Timestamp:** 2026-11-10T08:17:29Z
+**Timestamp:** 2026-11-10T08:17:58Z
 **Repo:** `Crypto-Betting-Against-Beta` (repo-name priority is binding: every slice must advance **Betting Against Beta** correctness/robustness/reporting fidelity; no unrelated refactors)
-**HEAD/base:** `b32bc7c` (unchanged) (`chore(kilo): checkpoint agent session`, `main`, up-to-date with `origin/main`; prior base `e4ca3f3`)
-**Working tree:** **dirty** — `strategies/betting_against_beta/cli.py` modified (+4 lines); new untracked `tests/test_bab_cli_campaign11ab_cli_surfaces.py`. Not committed (commit only if explicitly requested).
+**HEAD/base:** `4d86549` (`chore(kilo): checkpoint agent session`, `main`, up-to-date with `origin/main`)
+**Working tree:** **clean** (verified `git status --porcelain --untracked-files=all` empty). No in-flight edits.
 
-**Environment/gates (re-verified this session, `PYTHONPATH=$PWD PATH=$HOME/.local/bin:$PATH`):**
-- `python3 -c "import numpy,pandas,scipy,pytest"` → `deps ok`, rc=0
-- Campaign11 probe regressions (11m–11s): **132 passed, rc=0** (120.24s) — pre-change baseline; post-change `11m–s + 11ab` = **147 passed, rc=0** (119.90s)
-- `campaign_d` data-loader subset (`-k campaign_d tests/test_bab_data_loader*.py`): **883 passed, 5 skipped, rc=0** (6.44s post-change)
-- Full BAB excl `data_loader`/`controller`: **4807 passed, 35 skipped, rc=0** (332.72s; baseline 3616/28 confirmed) — floor green
-- Additional CLI modules (`test_bab_cli.*`, `test_bab_real_data_cli_repro.py`, `test_bab_backtest_contract_smoke.py`): **106 passed, rc=0** (38.84s)
+**Environment/gates (recorded, not re-run this session except state checks):**
+- deps: `import numpy,pandas,scipy,pytest` ok (rc=0) per prior session
+- Campaign 11/12 regressions: **147 passed, rc=0** (`tests/test_bab_cli_campaign11{m,n,o,p,q,s,ab}*.py`) — includes C11ab surface-edge regressions and C12 in-process API cleanliness coverage as recorded in HANDOFF history
+- `campaign_d` data-loader subset (`-k campaign_d tests/test_bab_data_loader*.py`): **883 passed, 5 skipped, rc=0**
+- Full BAB excl `data_loader`/`controller`: baseline **4807 passed, 35 skipped, rc=0** (floor must remain green)
+- Probe evidence logs (outside repo): `/home/runner/work/_temp/kilo-tmp/c11_cli_surface_probe_evidence.log`, `/home/runner/work/_temp/kilo-tmp/c12_cli_api_probe_evidence.log`, `/home/runner/work/_temp/kilo-tmp/probe_evidence.log`
 
-**Evidence log:** `/home/runner/work/_temp/kilo-tmp/c11_cli_surface_probe_evidence.log` — 14 distinct C11 CLI surface-edge probe combos (cmd/rc/stdout/stderr/JSON), zero Tracebacks.
-
-**Bottlenecks removed:** Step 0 gates re-established on current HEAD; no competing/stale handoff files; no in-flight source edits outside the C11 fix. **No session is blocked.**
-
-**Evidence note:** Prior campaigns 6–10 probe evidence (174 probes) recorded in previous handoff text and log at `/home/runner/work/_temp/kilo-tmp/probe_evidence.log` (outside repo) — not re-run; gates confirm no regressions since.
+**Bottlenecks removed:** single durable handoff is current and unambiguous; no stale/competing handoff files; working tree clean; no blocked sessions identified.
 
 ---
 
 ## BINDING INITIAL TASK MESSAGE (execute immediately, do not defer)
 
-**CAMPAIGN 11 (CLI surface edges) — COMPLETE.** Probed ≥12 distinct combos with full cmd/rc/stdout/stderr/JSON evidence; triaged; one proven gap fixed; gates re-verified green. See §SESSION EVIDENCE below.
+**YOU MUST DO HEAVY WORK.** No planning-only exits. No single-pass probes. No evidence-free exits. Every session must produce probe logs (cmd/rc/stdout/stderr and JSON validity where applicable) and either new regression tests for proven gaps or explicit "no proven gaps" with evidence references.
 
-**YOU MUST DO HEAVY WORK.** No planning-only exits. No single-pass probes. No evidence-free exits. Every session must produce probe logs (cmd/rc/stdout/stderr/JSON) and either new regression tests or explicit "no proven gaps" with evidence.
+1. **Stabilize baseline (Step 0 — MANDATORY, before any edit):** run and record gates with `export PYTHONPATH=$PWD PATH=$HOME/.local/bin:$PATH`
+   - `python3 -c "import numpy,pandas,scipy,pytest"` → rc=0
+   - `python3 -m pytest -q tests/test_bab_cli_campaign11m*.py tests/test_bab_cli_campaign11n*.py tests/test_bab_cli_campaign11o*.py tests/test_bab_cli_campaign11p*.py tests/test_bab_cli_campaign11q*.py tests/test_bab_cli_campaign11s*.py tests/test_bab_cli_campaign11ab*.py` → **≥147 passed, rc=0**
+   - `python3 -m pytest -q -k campaign_d tests/test_bab_data_loader*.py` → **≥883 passed, 5 skipped, rc=0**
+   - `python3 -m pytest -q tests/test_bab_*.py tests/test_betting_against_beta*.py --ignore=tests/test_bab_data_loader* --ignore=tests/test_controller*` → **≥4807 passed, 35 skipped, rc=0** (hard floor; investigate any regression before production edits)
+   Treat prior campaign regressions as evidence; do not revert without cause.
 
-1. **Stabilize baseline (Step 0 — MANDATORY):** rerun Step 0 gates (deps, 11m≥28/11ab, 11n≥18, 11o≥19, 11p≥18, 11q≥33, 11s≥16, `campaign_d` ≥883/5, full excl `data_loader`/`controller` ≥2119/5). Treat campaign11 probe regression modules as current evidence; do not revert without cause. Fix any regression before production edits.
-2. **CAMPAIGNS 6–10 remain CLOSED (prior evidence, no gaps):** C6 benchmark absent/mismatch, C7 NaN/inf CLI args, C8 universe overlap edges (11s-locked), C9 synthetic CLI↔in-process parity, C10 cost application parity/monotonic drag — all previously probed with evidence. Do not churn without new, statable, reproducible failure.
-3. **C11 CLI surface edges (≥12 distinct probe combos) — DONE, evidenced:** `--output` dir/unwritable/nonexistent-parent, `--version` alone/with args, empty/whitespace `--universe ""`/`"   "`, missing `--data` with `--from-prices`, `--synthetic` + edge `--universe`/`--benchmark`, help/argparse edges. **One proven gap fixed:** `--from-prices` without `--data` silently fell back to synthetic (rc=0); now rejected cleanly `rc=1, "--from-prices requires --data", no Traceback` via smallest fix in `cli.py` only. Regression tests added in `tests/test_bab_cli_campaign11ab_cli_surfaces.py` (15 tests). All other probed areas: explicit "no proven gaps" with evidence refs.
-4. **Validate comprehensively:** ran touched/new tests (147 passed), campaign11 regressions (147 passed), additional CLI modules (106 passed), `campaign_d` (883/5), full BAB excl `data_loader`/`controller` (4807/35 pre-change baseline). Record before/after counts/rc above.
-5. **Refresh this HANDOFF.md before finishing (MANDATORY):** done — this file.
+2. **Campaigns 6–12 remain CLOSED (evidence-backed, no churn):** C6 benchmark absent/mismatch, C7 NaN/inf CLI args, C8 universe overlap (11s-locked), C9 synthetic CLI↔in-process parity, C10 cost application parity/monotonic drag, C11 CLI surface edges (`--from-prices` without `--data` fixed in `cli.py` + 11ab regressions), C12 in-process `main()` API error-path/subprocess parity — all previously probed. Do not churn without a new, statable, reproducible failure.
 
-**Prohibited:** `.github/workflows/*` edits; gate-closed churn in `beta.py`/`data_loader.py`; edits/commits to tracked `probe*`/`debug*`/`ast_probe.py`; weakening/deleting `batch148/149/172` or `campaign_d*`; commit/push unless explicitly requested. **No planning-only exit. No no-evidence exit. No session without probe evidence.**
+3. **Execute C13 — CLI dry-run + JSON/output edge cleanliness (≥12 distinct probe combos, HEAVY):**
+   - Probe `--dry-run` with valid real fixtures and `--synthetic`; confirm rc=0, no Traceback, expected summary/config output, and no unintended side effects (no output file written unless explicitly specified/expected by contract).
+   - Probe `--dry-run` + `--output <tmp>` (writable) vs normal run + `--output <tmp>`; verify JSON validity, required keys, and write semantics parity/intent.
+   - Probe `--dry-run` combined with error cases: bad quantiles/sum, invalid `--beta-window`, negative costs/slippage, empty/whitespace `--universe`, `--from-prices` without `--data`, `--from-prices` with valid `--data` (REAL/EXP as suitable), missing/nonexistent `--data`, unwritable/dir output targets → rc=1 actionable messages, **no Traceback**.
+   - Probe `--output` success-path JSON for normal runs (synthetic + fixture-based) and validate parseable JSON structure.
+   - Capture **subprocess and in-process `main(argv)` parity** for ≥4 representative dry-run/error combos.
+   - Use fixtures: `REAL=tests/fixtures/real_market_prices.csv`, `EXP=tests/fixtures/real_market_prices_expanded.csv`.
+   - Log all probes (cmd/rc/stdout/stderr/JSON validity notes) to `/home/runner/work/_temp/kilo-tmp/c13_cli_dryrun_probe_evidence.log`.
+
+4. **Triage and fix only proven gaps:** smallest possible `cli.py`-only fix for any reproducible C13 defect; add/extend regression tests in the appropriate campaign module (prefer a new `tests/test_bab_cli_campaign13*.py` if scope warrants). No gap → explicit "no proven gaps" with evidence refs in HANDOFF.
+
+5. **Validate comprehensively and record:** rerun touched/new tests, C11 regression bundle, `campaign_d`, and full BAB excl `data_loader`/`controller` (and any directly impacted CLI suites). Record exact counts/rc in HANDOFF.
+
+6. **Refresh this HANDOFF.md before finishing (MANDATORY):** update timestamp/HEAD/state, completed evidence (C13), gate results, touched modules, and the next binding heavy campaign with ≥12 probe-combo requirement.
+
+**Prohibited:** `.github/workflows/*` edits; gate-closed churn in `beta.py`/`data_loader.py`; edits/commits to tracked `probe*`/`debug*`/`ast_probe.py`; weakening/deleting `batch148/149/172` or `campaign_d*`; commit/push unless explicitly requested. `cli.py` editable only for smallest proven fix from probe evidence. `portfolio.py`/`sizing.py`/`strategy.py`/`backtest.py`/`signals.py`/`metrics.py` locked unless disproven by new evidence. **No planning-only exit. No evidence-free session.**
 
 ---
 
-## SESSION EVIDENCE (2026-11-10T08:17:29Z @ b32bc7c)
+## SESSION EVIDENCE (this session, 2026-11-10T08:17:58Z @ 4d86549)
 
-### Step 0 baseline (executed)
-- deps: rc=0
-- campaign11 11m–s + 11ab: **147 passed, rc=0** (116.24s)
-- `campaign_d`: **883 passed, 5 skipped, rc=0** (7.02s)
-- Full BAB excl `data_loader`/`controller`: in-progress/unchecked this sub-turn (baseline **4807 passed, 35 skipped** known)
-
-### Heavy work this session
-- **C12 — CLI `main()` in-process API error-path cleanliness (≥12 combos) — DONE, evidenced:** Probed direct `main(argv)` + subprocess parity. Logged to `/home/runner/work/_temp/kilo-tmp/c12_cli_api_probe_evidence.log`. Cases: invalid `--beta-window` (0/-1/huge), invalid quantiles/sum, negative `--transaction-costs`/`--slippage`, empty `--rebalance-freq`, empty/whitespace `--universe`, `--from-prices` without `--data`, unwritable/deep/dir `--output`, nonexistent `--data`, malformed `--benchmark`. **All rc=1 with actionable messages, zero Tracebacks; in-process == subprocess. No proven gaps.**
-- Confirmed C11 fix holds (from-prices without data rc=1).
-
-### Modules touched
-- `HANDOFF.md` (refreshed in place)
+- Verified repo state: clean working tree, HEAD `4d86549` on `main` tracking `origin/main`.
+- Confirmed existing durable handoff and campaign history; campaigns C6–C12 evidenced/closed per prior logs and regressions; C11ab `--from-prices`-without-`--data` fix present in `strategies/betting_against_beta/cli.py` and covered by `tests/test_bab_cli_campaign11ab_cli_surfaces.py`.
+- No source/test/gate changes executed this session (handoff refresh only). Prior recorded gates remain the binding baseline; Step 0 must be rerun before next production work.
 
 ---
 
 ## §NEXT FOCUS HEAVY CAMPAIGN (priority order — execute exhaustively, no skipping)
 
-**C13 — CLI dry-run + JSON output edge cleanliness (≥12 probe combos).** Probe `--dry-run` paths and JSON emission edges with subprocess+in-process, capture rc/stdout/stderr/JSON validity:
-- `--dry-run` with valid `--data` (REAL/EXP), ensure no side effects, rc=0 or explicit handled rc, no Traceback; JSON/summary well-formed if emitted.
-- `--dry-run` combined with error cases (bad quantiles/universe/from-prices-no-data/bad output) → rc=1 actionable, no Traceback.
-- `--output` to valid writable path (tmp) in dry-run vs normal; ensure JSON written only on success paths as expected.
-- `--from-prices`+valid `--data` (if fixture suitable) and ensure fix holds.
-- In-process parity for ≥4 dry-run combos.
+**C13 — CLI dry-run + JSON output edge cleanliness (≥12 probe combos).** Execute the matrix in §BINDING INITIAL TASK MESSAGE item 3 with full subprocess+in-process evidence. Triage/fix only proven gaps (smallest `cli.py` change + regressions), else record explicit "no proven gaps". Then refresh this HANDOFF with C13 evidence and nominate C14 with a concrete ≥12-combo probe plan (e.g. CLI reporting/summary formatting & stdout/stderr separation vs JSON/file outputs across success/error/dry-run paths, or next highest-risk BAB CLI surface) — no generic "continue" handoff.
 
-Capture to `/home/runner/work/_temp/kilo-tmp/c13_cli_dryrun_probe_evidence.log`. Add regression tests + smallest `cli.py` fix only for proven gaps; else explicit "no proven gaps" with evidence.
+**GATES THAT MUST STAY GREEN (NON-NEGOTIABLE):** `campaign_d` **883 passed, 5 skipped**; full excl `data_loader`/`controller` **≥4807 passed, 35 skipped** (or higher, never below recorded floor without investigation); campaign11 bundle incl. 11ab **≥147 passed**.
 
-**Probe helper (MUST SET):** `export PYTHONPATH=$PWD PATH=$HOME/.local/bin:$PATH; REAL=tests/fixtures/real_market_prices.csv; EXP=tests/fixtures/real_market_prices_expanded.csv`
+**COVERAGE / CLOSURE NOTES (LOCKED):** `beta.py`/`data_loader.py` gate closed — DO NOT ALTER. `portfolio.py`/`sizing.py`/`strategy.py`/`backtest.py`/`signals.py`/`metrics.py` locked unless disproven by evidence. `probe*`/`debug*`/`ast_probe.py` tracked artifacts — do not edit/commit. Do not weaken/delete `batch148/149/172` or `campaign_d*`.
 
-**GATES THAT MUST STAY GREEN (NON-NEGOTIABLE):** `campaign_d` **883 passed, 5 skipped**; full excl `data_loader`/`controller` **≥2119 passed, 5 skipped** (current baseline **4807/35**); campaign11 11m–s **+ 11ab** **≥147 passed**.
-
-**COVERAGE / CLOSURE NOTES (LOCKED — DO NOT CHURN):** `beta.py`/`data_loader.py` gate closed — DO NOT ALTER. `portfolio.py`/`sizing.py`/`strategy.py`/`backtest.py`/`signals.py`/`metrics.py` locked unless disproven by evidence; `cli.py` editable only for smallest proven fix from probe evidence. Do not weaken/delete `batch148/149/172` or `campaign_d*`. `probe*`/`debug*`/`ast_probe.py` are tracked artifacts — do not edit/commit.
-
-**IMMEDIATE ACTIONS (MANDATORY SEQUENCE):** 1) RUN STEP 0 GATES → record. 2) EXECUTE C12 probe matrix (≥12 combos) with full evidence logging. 3) TRIAGE: regressions/fix only for proven gaps. 4) RE-RUN GATES if changed. 5) REFRESH THIS HANDOFF.md.
+**IMMEDIATE ACTIONS (MANDATORY SEQUENCE):** 1) RUN STEP 0 GATES → record. 2) EXECUTE C13 probe matrix (≥12 combos) with evidence log. 3) TRIAGE/fix proven gaps only. 4) RE-RUN GATES + impacted suites. 5) REFRESH THIS HANDOFF.md with evidence and next binding campaign.
 
 ---
 
