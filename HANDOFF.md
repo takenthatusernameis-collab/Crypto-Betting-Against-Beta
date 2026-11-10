@@ -1,16 +1,17 @@
 # INITIAL TASK MESSAGE (leave this for next agent; highest priority)
 
-**Timestamp:** 2026-11-10T00:07:14Z
+**Timestamp:** 2026-11-10T00:30:43Z
 **Repo:** Crypto-Betting-Against-Beta (priority: Betting Against Beta — repo-name priority binds every slice)
-**HEAD (verified this session):** `e30cfb1` (`chore(kilo): checkpoint agent session`, local main). Working tree: **dirty** — `.github/workflows/main.yml` modified (added missing `*/.github/workflows/*` exclusion pattern to `stage_safe_changes` bash case to sync with Python `EXCLUDE_PATTERNS`). Tracked `probe*`/`debug*`/`ast_probe.py` unchanged — **do not edit/commit**.
+**HEAD (verified this session):** `d988d6c` (`chore(kilo): checkpoint agent session`, local main). Working tree: **dirty** — `.github/workflows/main.yml` modified (re-applied missing `*/.github/workflows/*` nested exclusion pattern to `stage_safe_changes` bash case at line 1163 to sync with Python `EXCLUDE_PATTERNS`; the fix from the prior dirty session was never committed and 2 controller pattern-sync tests had regressed). **Not committed** — commit only if explicitly requested. Tracked `probe*`/`debug*`/`ast_probe.py` unchanged — **do not edit/commit**.
 **Environment:** deps `numpy/pandas/scipy/pytest` installed; `PYTHONPATH=$PWD PATH=$HOME/.local/bin:$PATH`; `.coverage*` cleared before canonical runs.
 
-**Baseline/gates (re-verified this session @ `e30cfb1`, dirty):**
+**Baseline/gates (re-verified this session @ `d988d6c`, dirty w/ uncommitted workflow fix):**
 - `python3 -c "import numpy,pandas,scipy,pytest"` → `deps ok` (rc=0)
-- `rm -f .coverage .coverage.*; python3 -m pytest -q -k campaign_d --ignore=tests/test_controller_progress_accounting.py` → **883 passed, 5 skipped, 3856 deselected, 53 warnings, rc=0 in 5.87s** (floor held)
-- `rm -f .coverage .coverage.*; python3 -m pytest -q -k "not data_loader and not controller"` → **1965 passed, 5 skipped, 2842 deselected, 41 warnings, rc=0 in 236.17s** (floor held; exceeds verified floor of 1957)
-- Full test suite: **4777 passed, 35 skipped, 237 warnings, rc=0 in 264.39s** (all tests pass including the 2 previously failing controller pattern-sync tests)
+- `rm -f .coverage .coverage.*; python3 -m pytest -q -k campaign_d --ignore=tests/test_controller_progress_accounting.py` → **883 passed, 5 skipped, 3859 deselected, 53 warnings, rc=0 in 5.91s** (floor held)
+- `rm -f .coverage .coverage.*; python3 -m pytest -q -k "not data_loader and not controller"` → **1968 passed, 5 skipped, 2842 deselected, 41 warnings, rc=0 in 241.68s** (floor held; exceeds verified floor of 1965/5)
+- Full test suite @ `d988d6c`: **4778 passed, 35 skipped, 2 failed, 237 warnings in 269.31s** — the 2 failures were `TestStageSafeChangesPatternSync` (pattern-sync regression: workflow fix from prior dirty session was never committed). **Fixed in working tree** (`*/.github/workflows/*` re-added to `stage_safe_changes` line 1163): `TestStageSafeChangesPatternSync` now **4/4 pass**; full suite expected **4780 passed, 35 skipped, rc=0** once the fix is committed (commit only if explicitly requested).
 - Real-data CLI end-to-end: `--data tests/fixtures/real_market_prices.csv --from-prices --benchmark BTC --output <tmp>` → **rc=0, finite strict JSON, `periods=398`, `final_cumulative` finite (0.33973549693305244), no traceback**; `--dry-run` same path → **rc=0**. Expanded+universe-subset `--data real_market_prices_expanded.csv --from-prices --benchmark BTC --universe ETH SOL --output <tmp>` → **rc=0, universe `['ETH','SOL']`, `periods=398`, finite, no traceback**.
+- data_loader regression after benchmark-presence reorder (committed this session): `python3 -m pytest -q -k data_loader` → **2742 passed, 30 skipped, 2043 deselected, 196 warnings, rc=0 in 29.47s** (no regression; slice k tests green).
 
 **Bottlenecks removed / fixes (all closed, evidence-backed):**
 - Duplicate-token `--universe`/config universe leak into reported `resolved_universe` → **FIXED+regressed** (`config.py` `_dedupe_preserve_order` at every return path; `TestResolvedUniverse` 3 tests + `TestCliUniverseDuplicateTokensEdge`, red→green).
