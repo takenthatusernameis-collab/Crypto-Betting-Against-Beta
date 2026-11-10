@@ -1,8 +1,8 @@
 # INITIAL TASK MESSAGE (single durable handoff — leave for next agent; highest priority)
 
-**Timestamp:** 2026-11-10T08:56:12Z
+**Timestamp:** 2026-11-10T09:03:21Z
 **Repo:** `Crypto-Betting-Against-Beta` (repo-name priority is binding: every slice must advance **Betting Against Beta** correctness/robustness/reporting fidelity; no unrelated refactors)
-**HEAD/base:** `c52f210` (`chore(kilo): checkpoint agent session`, `main`, up-to-date with `origin/main`)
+**HEAD/base:** `dc7e9ce` (`chore(kilo): checkpoint agent session`, `main`, up-to-date with `origin/main`; only HANDOFF.md changed since `c52f210` — no code deltas, all recorded gates still hold)
 **Working tree:** **clean** at handoff refresh (no in-flight source edits). No competing handoff files.
 
 **Environment/gates (rerun fresh this session before any production edit; recorded below):**
@@ -69,11 +69,12 @@ Update timestamp/HEAD/state, completed C14 evidence (log path, combo summary, pa
 
 ---
 
-## SESSION EVIDENCE (this session, 2026-11-10T08:56:12Z @ c52f210)
-- Verified repo state: clean working tree, HEAD `c52f210` on `main` tracking `origin/main`.
+## SESSION EVIDENCE (this session, 2026-11-10T09:03:21Z @ dc7e9ce)
+- Verified repo state: clean working tree, HEAD `dc7e9ce` on `main` tracking `origin/main`; only HANDOFF.md changed since `c52f210` (no code deltas), all recorded gates still hold.
 - Refreshed durable handoff; Step 0 gates rerun and recorded: imports rc=0; C11 bundle 147 passed rc=0; campaign_d 883 passed/5 skipped rc=0; full BAB excl data_loader/controller 4691 passed/35 skipped rc=0.
+- `bab-example` console script installed (pyproject `[project.scripts]` → `scripts.load_real_bab_example:main`) but NOT on default PATH; Step 0 already exports `PATH=$HOME/.local/bin:$PATH`. Verified `bab-example` requires positional `data_path` and has no `--version` flag — this is a **known C14 probe-surface gap** to be exercised during C14 (probes #11/#12 expect `bab-example --version` → rc=0 `bab 0.1.0`).
 - C13 EXECUTED (24 probe combos, log `/home/runner/work/_temp/kilo-tmp/c13_cli_dryrun_probe_evidence.log`): all success paths rc=0 clean; all error paths rc=1/2 actionable with no Traceback; JSON output valid with required keys for both written files; in-process `main(argv)` parity rc-match=True on 6/6 combos; **no proven gaps** → C13 closed.
-- C6–C13 closed/evidenced; no blocked sessions; C14 nominated as next binding heavy campaign.
+- C6–C13 closed/evidenced; no blocked sessions; no bottlenecks to remove. C14 is the next binding heavy campaign — ready to execute.
 
 ---
 
