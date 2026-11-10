@@ -1,12 +1,12 @@
 # INITIAL TASK MESSAGE (leave this for next agent; highest priority)
 
-**Timestamp:** 2026-11-10T02:59:52Z
+**Timestamp:** 2026-11-10T03:01:28Z
 **Repo:** Crypto-Betting-Against-Beta (priority: Betting Against Beta — repo-name priority binds every slice; every change must serve BAB correctness/robustness and be justified by probe evidence)
 **HEAD:** `258798c` (`chore(kilo): checkpoint agent session`) — local `main`.
 **Working tree:** clean at handoff time. Tracked `probe*`/`debug*`/`ast_probe.py` exist — **do not edit/commit** unless explicitly requested.
 **Environment:** deps `numpy/pandas/scipy/pytest` expected installed; run gates with `PYTHONPATH=$PWD PATH=$HOME/.local/bin:$PATH`.
 
-**Last verified gates (this session @ `258798c`, 2026-11-10T02:59Z):**
+**Last verified gates (this session @ `258798c`, 2026-11-10T03:01Z):**
 - `python3 -c "import numpy,pandas,scipy,pytest"` → `deps ok` (rc=0)
 - `rm -f .coverage .coverage.*; PYTHONPATH=$PWD python3 -m pytest -q -k campaign_d --ignore=tests/test_controller_progress_accounting.py` → **883 passed, 5 skipped, 3878 deselected, 53 warnings, rc=0**
 - `PYTHONPATH=$PWD python3 -m pytest -q -k "not data_loader and not controller"` → **1987 passed, 5 skipped, 2842 deselected, 41 warnings, rc=0** (floor ≥1987/5)
