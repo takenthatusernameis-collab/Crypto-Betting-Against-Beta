@@ -1,6 +1,6 @@
 # INITIAL TASK MESSAGE (single durable handoff — leave for next agent; highest priority)
 
-**Timestamp:** 2026-11-10T17:00:00Z (this session); source handoff timestamp 2026-11-10T16:02:41Z retained for provenance
+**Timestamp:** 2026-11-10T17:17:56Z (active handoff for next session); prior session 2026-11-10T17:00:00Z, source handoff 2026-11-10T16:02:41Z retained for provenance
 **Repo:** `Crypto-Betting-Against-Beta` (repo-name priority is binding: every slice must advance **Betting Against Beta** correctness/robustness/reporting fidelity; no unrelated refactors)
 **HEAD/base:** `288f69b` (`chore(kilo): checkpoint agent session`, `main`; up-to-date with `origin/main`)
 **Working tree:** one untracked file only — `tests/test_bab_cli_campaign17.py` (new C17 regressions, 16 passed this session, NOT committed; commit/push only if explicitly requested). No production code changes. No competing handoff files. C16 executed and closed in prior session; all gates re-verified fresh at HEAD `288f69b` this session.
