@@ -1,20 +1,19 @@
 # INITIAL TASK MESSAGE (single durable handoff — leave for next agent; highest priority)
 
-**Timestamp:** 2026-11-10T22:40:00Z (active handoff for next session)
+**Timestamp (refreshed):** 2026-11-10T23:07:34Z (active handoff for next session)
 **Repo:** `Crypto-Betting-Against-Beta` (repo-name priority is binding: every slice must advance **Betting Against Beta** correctness/robustness/reporting fidelity; no unrelated refactors)
-**HEAD/base:** `e4b6e4ca91ec06959ba20da473dfdf74aca9d5e3` (`chore(kilo): checkpoint agent session`, recorded 2026-11-10T22:2xZ). Treat current HEAD as base and record exact HEAD when you run.
-**Working tree (this session end):** modified/new only by intended C19 work — added `tests/test_bab_cli_campaign19_config_cost_sizing_fidelity.py`, wrote probe evidence `/home/runner/work/_temp/kilo-tmp/c19_bab_config_cost_slippage_sizing_fidelity_probe_evidence.log`, updated this `HANDOFF.md`. No competing handoff files; this file is the single durable handoff.
+**HEAD/base:** `c452a1a064712d17c6373dfd5015922fbbb8f06a` (`chore(kilo): checkpoint agent session`, 2026-11-10 22:38:34 +0000). Treat current HEAD as base and record exact HEAD when you run.
+**Working tree (at refresh):** clean (`git status --short` empty). No competing handoff files; **`HANDOFF.md` is the single durable handoff** (update in place only).
+**Environment (expected/last observed):** `python3 -c "import numpy,pandas,scipy,pytest"` → rc=0. Fixtures present under `tests/fixtures/` (incl. `real_market_prices.csv`, `real_market_prices_expanded.csv`, `degenerate_metrics.csv`, `junk_columns.csv`, `all_nan_column.csv`).
 
-**Environment (observed 2026-11-10T22:2xZ):** `python3 -c "import numpy,pandas,scipy,pytest"` → rc=0 (deps ok). Fixtures present under `tests/fixtures/` (incl. `real_market_prices.csv`, `real_market_prices_expanded.csv`, `degenerate_metrics.csv`, `junk_columns.csv`, `all_nan_column.csv`).
+**Bottlenecks/status:** No in-repo blocked sessions identified. `research_state/workflow_run_diagnostics.jsonl` contains historical captured workflow runs (all concluded success) and log excerpts (timeouts/tool-arg noise in past agent logs) — **not a current blocker**; do not chase diagnostics archaeology. Prior campaigns C6–C19 reported closed with probe evidence; C19 regressions exist (`tests/test_bab_cli_campaign19_config_cost_sizing_fidelity.py`). **C20 is NOT yet executed on this HEAD — it is the immediate binding heavy campaign.**
 
-**Bottlenecks/status:** No in-repo blocked sessions identified. Prior workflow diagnostics (`research_state/workflow_run_diagnostics.jsonl`) are historical (captured runs success) — not a current blocker. **C19 executed and evidenced this session** (see below). No production-code fixes required (no proven gaps). C20 is the next binding heavy campaign.
-
-**Step 0 gate status (this session, 2026-11-10T22:2xZ, `export PYTHONPATH=$PWD PATH=$HOME/.local/bin:$PATH`, all completed and recorded):**
+**Baseline/gates last recorded (2026-11-10T22:2xZ on prior HEAD `e4b6e4c`, `export PYTHONPATH=$PWD PATH=$HOME/.local/bin:$PATH`):**
 - `python3 -c "import numpy,pandas,scipy,pytest"` → rc=0 ✓
-- `python3 -m pytest -q tests/test_bab_cli_campaign11m*.py tests/test_bab_cli_campaign11n*.py tests/test_bab_cli_campaign11o*.py tests/test_bab_cli_campaign11p*.py tests/test_bab_cli_campaign11q*.py tests/test_bab_cli_campaign11s*.py tests/test_bab_cli_campaign11ab*.py tests/test_bab_cli_campaign14_cli_reporting.py` → **164 passed in 206.27s (0:03:26), rc=0** ✓
-- `python3 -m pytest -q -k campaign_d tests/test_bab_data_loader*.py` → **883 passed, 5 skipped, 1808 deselected, 53 warnings in 16.33s, rc=0** ✓
-- `python3 -m pytest -q tests/test_bab_*.py tests/test_betting_against_beta*.py --ignore=tests/test_bab_data_loader* --ignore=tests/test_controller*` → **4764 passed, 35 skipped, 231 warnings in 511.25s (0:08:31), rc=0** ✓ (exceeds hard floor ≥4708)
-- New regressions: `tests/test_bab_cli_campaign19_config_cost_sizing_fidelity.py` → **18 passed in 7.26s, rc=0** ✓
+- `python3 -m pytest -q tests/test_bab_cli_campaign11m*.py tests/test_bab_cli_campaign11n*.py tests/test_bab_cli_campaign11o*.py tests/test_bab_cli_campaign11p*.py tests/test_bab_cli_campaign11q*.py tests/test_bab_cli_campaign11s*.py tests/test_bab_cli_campaign11ab*.py tests/test_bab_cli_campaign14_cli_reporting.py` → **164 passed in 206.27s, rc=0** ✓
+- `python3 -m pytest -q -k campaign_d tests/test_bab_data_loader*.py` → **883 passed, 5 skipped, 1808 deselected, rc=0** ✓
+- `python3 -m pytest -q tests/test_bab_*.py tests/test_betting_against_beta*.py --ignore=tests/test_bab_data_loader* --ignore=tests/test_controller*` → **4764 passed, 35 skipped, rc=0** ✓
+- C19 regressions: `tests/test_bab_cli_campaign19_config_cost_sizing_fidelity.py` → **18 passed, rc=0** ✓
 
 ---
 
@@ -29,27 +28,10 @@ Run and record with `export PYTHONPATH=$PWD PATH=$HOME/.local/bin:$PATH`:
 - `python3 -m pytest -q -k campaign_d tests/test_bab_data_loader*.py` → **expect ≥883 passed, 5 skipped, rc=0**
 - `python3 -m pytest -q tests/test_bab_*.py tests/test_betting_against_beta*.py --ignore=tests/test_bab_data_loader* --ignore=tests/test_controller*` → **expect ≥4764 passed, 35 skipped, rc=0** (hard floor; investigate any regression before production edits)
 
-Do not revert prior fixes without cause.
+If deps missing, install minimal needed deps and record; do not claim progress blocked without an evidenced attempt. Do not revert prior fixes without cause.
 
 ### 2) Campaigns 6–19 (historical closure — no churn)
-C6–C19 reported closed with evidence. C19 evidence: `/home/runner/work/_temp/kilo-tmp/c19_bab_config_cost_slippage_sizing_fidelity_probe_evidence.log` (HEAD `e4b6e4c`, 15 combos probed). Summary:
-- (1) `BABConfig(beta_window=0)` → `BABConfigError` clean (no Traceback). PASS
-- (2) `long_quantile` 0.0/1.0 → `BABConfigError` clean. PASS
-- (3) `short_quantile=0.0` → `BABConfigError` clean. PASS
-- (4) `transaction_costs=-0.001` → `BABConfigError` clean. PASS
-- (5) `vol_thresholds`+`vol_percentiles` both set → `BABConfigError` clean. PASS
-- (6) REAL × costs {0,0.0005,0.001,0.005} → `final_cumulative` [0.3397354969330525, 0.3263966105648454, 0.31357452508222267, 0.22738172195446477] monotonic non-increasing, all finite, periods=398. PASS
-- (7) REAL × slippage {0,0.001} → `slippage_drag_total` 0.0→0.08 (>0), all finite, net cum ≤ no-slippage. PASS
-- (8) Explicit universe no-overlap `['ZZZ','YYY']` on REAL → `BABConfigError` clean user-path (`configured universe ... has no overlap...`). NOTE: exception is clean; probe log records `traceback_in_exc=True` inside captured traceback string but no user-visible Traceback emitted. PASS (clean contract)
-- (9) `rebalance_freq` daily/weekly/monthly on REAL ×2 runs → all finite, dollar-neutral (row-sum abs max 0.0), deterministic per freq (fc daily 0.3397354969330525, weekly 0.38215059713934335, monthly 0.5930166842166542). PASS
-- (10) Shorting constraints: valid `{'max_short_weight':0.5,'max_short_notional_per_asset':1.0}` runs finite, neutral, shorts present (fc 0.3397354969330525). Invalid shorthand keys (`allow_shorting`, `max_gross_leverage`) and sign-mismatched `max_short_weight:-0.5` rejected cleanly as `BABConfigError` by contract (validated). PASS (no proven gap)
-- (11) `max_position_size=0.5` on REAL feasible → finite, bounded (maxabs 0.5). `max_position_size=0.3` rejected with `BABDataError: Position size exceeds max_position_size` (clean, by contract; portfolio cannot satisfy). PASS (no proven gap)
-- (12) CLI `--data REAL --from-prices --benchmark BTC --output <tmp>` → rc=0, stderr empty, no Traceback, strict JSON valid, keys {benchmark, final_cumulative, periods, universe}, periods=398, benchmark BTC. PASS
-- (13) CLI `--output` to nonexistent nested dir → rc=0, parents created, valid strict JSON. PASS
-- (14) CLI `--dry-run --output <existing-dir>` → rc=1, clean `Error validating output path: --output path is a directory...`, no Traceback. PASS
-- (15) CLI determinism: two identical REAL runs → stdout_equal True, file_equal True (193 bytes), rc 0/0. PASS
-
-**C19 conclusion:** explicit **"no proven gaps"** — all probes matched contracts (clean errors, finite/deterministic/neutral where required, monotonic drag, strict JSON). Regressions added in `tests/test_bab_cli_campaign19_config_cost_sizing_fidelity.py` (18 tests) to lock behavior. Do not churn C6–C19 without a new, statable, reproducible failure.
+C6–C19 reported closed with evidence (C19 log: `/home/runner/work/_temp/kilo-tmp/c19_bab_config_cost_slippage_sizing_fidelity_probe_evidence.log`). C19 conclusion: explicit **"no proven gaps"** across config/cost/slippage/sizing/CLI fidelity probes; regressions locked in `tests/test_bab_cli_campaign19_config_cost_sizing_fidelity.py`. **Do not churn C6–C19 without a new, statable, reproducible failure.**
 
 ### 3) Execute C20 — metrics/reporting/CLI fidelity under stressed-but-valid and edge-valid regimes (≥12 combos, HEAVY)
 Goal: verify **BAB metrics/reporting/CLI fidelity** under stressed-but-valid regimes — no silent corruption, strict JSON/finite outputs where contract requires, deterministic/stable keys, and correct clean errors on invalid-but-user-facing edges.
@@ -57,7 +39,7 @@ Goal: verify **BAB metrics/reporting/CLI fidelity** under stressed-but-valid reg
 Evidence log (mandatory): `/home/runner/work/_temp/kilo-tmp/c20_bab_metrics_reporting_stress_fidelity_probe_evidence.log` (record cmd, rc, stdout, stderr, JSON validity/finiteness `allow_nan=False`, key sets, determinism, neutrality/shorting/bounds checks where applicable).
 
 **Required probe matrix (minimum 12 combos; do more if anomalies appear):**
-1. Very short history near limits: slice REAL to minimal rows around `beta_window`/`min_periods`/`min_rows` behavior (e.g. small window like 30 with enough rows, and boundary-ish short slices) → rc/behavior per contract, no Traceback, metrics finite or clean BABDataError as specified.
+1. Very short history near limits: slice REAL to minimal rows around `beta_window`/`min_periods`/`min_rows` behavior (e.g. small window like 30 with enough rows, and boundary-ish short slices) → rc/behavior per contract, no Traceback, metrics finite or clean `BABDataError` as specified.
 2. Sparse but valid universe: run on a reduced valid subset (e.g. BTC + 2-3 assets) from REAL/EXP → finite metrics, neutral weights, deterministic.
 3. High-NaN-but-recoverable rows/columns: construct/fixture inputs where some assets/rows are NaN but run remains valid per loader contract → verify finite outputs or clean contract error (no silent corruption).
 4. Zero/near-zero return regimes: constant/near-zero columns or windows (using valid fixtures/synthetic-safe construction consistent with existing tests) → metrics/backtest finite, no NaN/inf leakage in CLI JSON.
@@ -85,7 +67,7 @@ Update timestamp/HEAD/state, Step 0 & validation counts/rc, C20 evidence (log pa
 
 ## GATES THAT MUST STAY GREEN (NON-NEGOTIABLE)
 - `campaign_d` **≥883 passed, 5 skipped, rc=0**
-- full BAB excl `data_loader`/`controller` **≥4764 passed, 35 skipped, rc=0** (hard floor, raised by C19 regressions)
+- full BAB excl `data_loader`/`controller` **≥4764 passed, 35 skipped, rc=0** (hard floor)
 - campaign11 bundle incl. 11ab + campaign14 **≥164 passed, rc=0**
 
 ## LOCKS / PROHIBITIONS
