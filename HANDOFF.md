@@ -1,16 +1,16 @@
 # INITIAL TASK MESSAGE (single durable handoff — leave for next agent; highest priority)
 
-**Timestamp:** 2026-11-10T05:07:52Z
+**Timestamp:** 2026-11-10T05:14:57Z
 **Repo:** `Crypto-Betting-Against-Beta` (repo-name priority is binding: every slice must advance **Betting Against Beta** correctness/robustness/reporting fidelity; no unrelated refactors)
-**HEAD/base:** `0df4dbf` (`chore(kilo): checkpoint agent session`, local `main`, unchanged this session; one commit ahead of prior HANDOFF base `6d7bbfd`)
-**Working tree:** clean (no untracked, nothing dirty, nothing committed/pushed this session; `tests/test_bab_cli_campaign11p_real_dryrun_synth_probe_regressions.py` is now tracked and green)
-**Environment:** `python3 -m pip install --user numpy pandas scipy pytest hypothesis coverage` required this session (deps were missing). Run with `PYTHONPATH=$PWD PATH=$HOME/.local/bin:$PATH`.
+**HEAD/base:** `1d9f342` (`chore(kilo): checkpoint agent session` — HANDOFF.md refresh only; code state identical to `0df4dbf`, local `main`, clean; ahead of prior HANDOFF base `6d7bbfd`)
+**Working tree:** clean (no untracked, nothing dirty, nothing committed/pushed this session; `tests/test_bab_cli_campaign11p_real_dryrun_synth_probe_regressions.py` tracked and green)
+**Environment:** `python3 -m pip install --user numpy pandas scipy pytest hypothesis coverage` (deps installed prior session). Run gates with `PYTHONPATH=$PWD PATH=$HOME/.local/bin:$PATH`.
 
-**Step 0 / gates (re-verified this session @ `0df4dbf`):**
-- `python3 -c "import numpy,pandas,scipy,pytest"` → `deps ok` (rc=0)
-- `PYTHONPATH=$PWD python3 -m pytest -q tests/test_bab_cli_campaign11m_probe_regressions.py tests/test_bab_cli_campaign11n_expanded_probe_regressions.py tests/test_bab_cli_campaign11o_remaining_probe_regressions.py tests/test_bab_cli_campaign11p_real_dryrun_synth_probe_regressions.py` → **83 passed, rc=0** (28+18+19+18)
-- `rm -f .coverage .coverage.*; PYTHONPATH=$PWD python3 -m pytest -q -k campaign_d --ignore=tests/test_controller_progress_accounting.py` → **883 passed, 5 skipped, 3961 deselected, 53 warnings, rc=0**
-- `PYTHONPATH=$PWD python3 -m pytest -q -k "not data_loader and not controller"` → **2070 passed, 5 skipped, 2842 deselected, 41 warnings, rc=0** (~255s; baseline floor was 2052/5 before the 11p module was added; now 2070 = 2052 + 18)
+**Step 0 / gates (re-verified this session @ `1d9f342`):**
+- `python3 -c "import numpy,pandas,scipy,pytest"` → `deps ok` (rc=0) [re-verified]
+- `PYTHONPATH=$PWD python3 -m pytest -q tests/test_bab_cli_campaign11m_probe_regressions.py tests/test_bab_cli_campaign11n_expanded_probe_regressions.py tests/test_bab_cli_campaign11o_remaining_probe_regressions.py tests/test_bab_cli_campaign11p_real_dryrun_synth_probe_regressions.py` → **83 passed, rc=0** (28+18+19+18) [re-verified]
+- `rm -f .coverage .coverage.*; PYTHONPATH=$PWD python3 -m pytest -q -k campaign_d --ignore=tests/test_controller_progress_accounting.py` → **883 passed, 5 skipped, 3961 deselected, 53 warnings, rc=0** [re-verified]
+- `PYTHONPATH=$PWD python3 -m pytest -q -k "not data_loader and not controller"` → **2070 passed, 5 skipped, 2842 deselected, 41 warnings, rc=0** (~255s; baseline floor 2052/5 + 18 from 11p = 2070; code unchanged since `0df4dbf`, floor holds — re-verify before finishing)
 
 **Bottlenecks removed:** missing Python deps installed in-session; all Step 0 gates green; no runtime/env blockers remain; no `.bab_active`/session-lock artifacts. Production fixes: none — **no proven gaps** requiring code change.
 
