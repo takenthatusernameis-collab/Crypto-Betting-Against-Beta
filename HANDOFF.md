@@ -1,12 +1,12 @@
 # INITIAL TASK MESSAGE (leave this for next agent; highest priority)
 
-**Timestamp:** 2026-11-10T03:14:35Z
+**Timestamp:** 2026-11-10T03:27:25Z
 **Repo:** Crypto-Betting-Against-Beta (priority: Betting Against Beta — repo-name priority binds every slice; every change must serve BAB correctness/robustness and be justified by probe evidence)
-**HEAD:** `6860e99` (`chore(kilo): checkpoint agent session`) — local `main`.
+**HEAD:** `60d653e` (`chore(kilo): checkpoint agent session`) — local `main`.
 **Working tree:** clean at handoff time. Tracked `probe*`/`debug*`/`ast_probe.py` exist — **do not edit/commit** unless explicitly requested.
 **Environment:** deps `numpy/pandas/scipy/pytest` expected installed; run gates with `PYTHONPATH=$PWD PATH=$HOME/.local/bin:$PATH`.
 
-**Last verified gates (this session @ `6860e99`, 2026-11-10T03:14Z):**
+**Last verified gates (this session @ `60d653e`, 2026-11-10T03:27Z):**
 - `python3 -c "import numpy,pandas,scipy,pytest"` → `deps ok` (rc=0)
 - `rm -f .coverage .coverage.*; PYTHONPATH=$PWD python3 -m pytest -q -k campaign_d --ignore=tests/test_controller_progress_accounting.py` → **883 passed, 5 skipped, 3878 deselected, 53 warnings, rc=0**
 - `PYTHONPATH=$PWD python3 -m pytest -q -k "not data_loader and not controller"` → **1987 passed, 5 skipped, 2842 deselected, 41 warnings, rc=0** (floor ≥1987/5)
@@ -73,4 +73,4 @@ Probe against real fixture `tests/fixtures/real_market_prices.csv` and synthetic
 ---
 
 # SINGLE DURABLE HANDOFF — Crypto-Betting-Against-Beta (BAB)
-Canonical handoff file: `HANDOFF.md` (refreshed 2026-11-10T03:14:35Z @ `6860e99`, clean). `docs/unreachable_proofs.md` is the evidence appendix. §INITIAL TASK MESSAGE + §BINDING INITIAL TASK MESSAGE above are binding. No competing handoff files.
+Canonical handoff file: `HANDOFF.md` (refreshed 2026-11-10T03:27:25Z @ `60d653e`, clean). `docs/unreachable_proofs.md` is the evidence appendix. §INITIAL TASK MESSAGE + §BINDING INITIAL TASK MESSAGE above are binding. No competing handoff files.
