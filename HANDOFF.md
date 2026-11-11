@@ -1,14 +1,14 @@
 # HANDOFF: Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-11T11:04:20Z
-**HEAD:** `65e0f71` (`chore(kilo): checkpoint agent session`)
+**Timestamp (refreshed):** 2026-11-11T11:15:00Z
+**HEAD:** `cc7704d` (`chore(kilo): checkpoint agent session`), branch `main`, worktree clean
 **Repo priority (binding):** `Crypto-Betting-Against-Beta` — every slice must advance **Betting Against Beta** correctness/robustness/reporting fidelity; no unrelated refactors.
-**Working tree at refresh:** uncommitted C27 evidence/log/handoff refresh artifacts only expected in `_temp/kilo-tmp` and this `HANDOFF.md`; no tracked product code modified this session; no competing durable handoff files remain (`.kilo/handoff.md` not present). No commit/push.
+**Working tree at refresh:** uncommitted artifacts only expected in `_temp/kilo-tmp` and this `HANDOFF.md`; no tracked product code modified this session; no competing durable handoff files remain (`.kilo/handoff.md` not present). No commit/push.
 
 ## Bottleneck removal status (this session)
 - **Single durable handoff enforced:** only `HANDOFF.md` maintained; no competing handoff sources found.
+- **Long gate execution bottleneck RESOLVED:** campaign11+14 and full-BAB-excl were re-run this session and returned green with exact counts/rc (see Step 0 below). No longer "pending reconfirmation."
 - **No blocking runtime/env bottlenecks found:** deps importable, CLI/scripts runnable, fixtures present, tests runnable. Historical CI diagnostics in `research_state/workflow_run_diagnostics.jsonl` not reproduced locally on `main`.
-- **Long gate execution bottleneck noted:** full-BAB-excl and campaign11+14 gate commands were started this session but exceeded the tool timeout window before returning in-turn; they were not observed to fail. Treat as **not re-confirmed this session** (carried forward from prior recorded green) — re-run and record exact counts/rc before finishing any future edit.
 - **Not blocked:** C27 executed with probe evidence; no churn performed. C6–C26 remain closed absent new reproducible defect evidence.
 
 ## Environment / quick start (verified this session)
@@ -22,50 +22,20 @@
 - **C24:** 37 combos, **no proven gaps**, 0 modules touched. Evidence: `/home/runner/work/_temp/kilo-tmp/c24_bab_beta_attribution_regime_probe_evidence.log`
 - **C25:** 14 required combos + corrected probes, **no proven gaps**, 0 modules touched. Evidence: `/home/runner/work/_temp/kilo-tmp/c25_bab_reporting_cli_contract_probe_evidence.log`
 - **C26:** 14 combos, **0 production module/test edits**. Evidence: `/home/runner/work/_temp/kilo-tmp/c26_bab_pipeline_stress_determinism_probe_evidence.log`, `c26_followup_evidence.log`, `c26_final_verify.log`.
-  - Prior review items (C01 parity, C04 stale/frozen constant-series contract, C09 beta-neutral tolerance/semantics) re-checked in C27 with canonical probes (see below): **no proven product gaps**.
-- **Do not churn C6–C26** without a new, statable, reproducible failure with probe evidence.
+  - Prior review items (C01 parity, C04 stale/frozen constant-series contract, C09 beta-neutral tolerance/semantics) re-checked in C27 with canonical probes: **no proven product gaps**.
+- **C27:** attribution/sizing/shorting/reporting stress — **0 proven gaps fixed**, **0 regressions added**. Review carried (not proven): C06 `beta_neutral=True` ex-post `strategy_beta(...)` returns `nan` under current call/series alignment — requires canonical apples-to-apples semantic/tolerance spec before any change.
+- **Do not churn C6–C27** without a new, statable, reproducible failure with probe evidence.
 
-## Step 0 baseline/gates
+## Step 0 baseline/gates (re-run and recorded this session)
 
 **Re-run this session (recorded):**
-- `python3 -c "import numpy,pandas,scipy,pytest"` → **rc=0** (`deps_ok`)
-- `python3 -m pytest -q -k campaign_d tests/test_bab_data_loader*.py` → **883 passed, 5 skipped, 1808 deselected, 53 warnings, rc=0** (10.24s) ✅
-
-**Started this session but not completed within tool timeout (not failed/observed; CARRIED FORWARD — must re-run before finishing if you edit anything):**
-- campaign11 bundle + campaign14 (`tests/test_bab_cli_campaign11m*.py tests/test_bab_cli_campaign11n*.py tests/test_bab_cli_campaign11o*.py tests/test_bab_cli_campaign11p*.py tests/test_bab_cli_campaign11q*.py tests/test_bab_cli_campaign11s*.py tests/test_bab_cli_campaign11ab*.py tests/test_bab_cli_campaign14_cli_reporting.py`) → **prior recorded: ≥164 passed, rc=0** (pending reconfirmation)
-- full BAB excl `data_loader`/`controller` (`tests/test_bab_*.py tests/test_betting_against_beta*.py --ignore=tests/test_bab_data_loader* --ignore=tests/test_controller*`) → **prior recorded: ≥4782 passed, 35 skipped, rc=0** (pending reconfirmation)
+- `export PYTHONPATH=$PWD PATH=$HOME/.local/bin:$PATH`
+- `python3 -c "import numpy,pandas,scipy,pytest"` → **rc=0** (`deps_ok`) ✅
+- `python3 -m pytest -q -k campaign_d tests/test_bab_data_loader*.py` → **883 passed, 5 skipped, 1808 deselected, 53 warnings, rc=0** (10.09s) ✅
+- campaign11 bundle + campaign14 (`tests/test_bab_cli_campaign11m*.py tests/test_bab_cli_campaign11n*.py tests/test_bab_cli_campaign11o*.py tests/test_bab_cli_campaign11p*.py tests/test_bab_cli_campaign11q*.py tests/test_bab_cli_campaign11s*.py tests/test_bab_cli_campaign11ab*.py tests/test_bab_cli_campaign14_cli_reporting.py`) → **164 passed, rc=0** (194.89s) ✅ **RE-CONFIRMED** (prior recorded ≥164, rc=0)
+- full BAB excl `data_loader`/`controller` (`tests/test_bab_*.py tests/test_betting_against_beta*.py --ignore=tests/test_bab_data_loader* --ignore=tests/test_controller*`) → **4782 passed, 35 skipped, 231 warnings, rc=0** (506.15s) ✅ **RE-CONFIRMED** (prior recorded ≥4782 passed, 35 skipped, rc=0)
 
 **No modules/tests edited this session; no regressions introduced by this session's changes.**
-
-## C27 execution — attribution, sizing/shorting edge interactions & script/report surface stress (HEAVY)
-
-**Evidence log:** `/home/runner/work/_temp/kilo-tmp/c27_bab_attribution_sizing_shorting_report_probe_evidence.log`
-- Primary run: `/tmp/c27_probe.py` (12 combos) + follow-up: `/tmp/c27_followup.py` (canonical corrections / contract checks). For each: cmd/rc/stdout/stderr captured; JSON checked with `json.loads` + `json.dumps(..., allow_nan=False)` and finiteness walk where applicable.
-
-| # | Combo | Result | Key evidence / invariants |
-|---|---|---|---|
-| 1 | C26-C01 canonical CLI↔API parity (`--from-prices real_market_prices.csv --output` vs `BABStrategy(BABConfig(benchmark='BTC')).run(load_prices(...))`) | **PASS / no gap** | CLI rc=0, strict JSON finite keys `[final_cumulative, periods, benchmark, universe]`; API=`0.3397354969330525`, CLI=`0.3397354969330525`, `abs diff=0.0 <= 1e-12`. Prior C01 mismatch was probe-harness comparability, not product defect. |
-| 2 | Attribution decomposition finite (real run) | **PASS** | `trade_attribution` shape `(398,4)` cols `[gross_return,cost_drag,slippage_drag,net_return]`, finite_att=True; totals finite `gross/net=-0.9199788229523507`, cost/slippage drags 0.0, recon sum_net matches. |
-| 3 | Attribution on degenerate/flat run (quality-safe) | **PASS (follow-up)** | Initial probe used `load_prices(degenerate_metrics.csv)` → `BABDataError: All price columns were metadata` (expected for price-loader path). Canonical `load_returns(degenerate_metrics.csv, benchmark='BTC')` with `beta_window=3,min_observations=2` → shape `(5,2)`, att `(5,4)` finite, totals all finite/zero, no NaN/Inf/Traceback. |
-| 4 | Sizing edges (`equal`,`kelly`,`vol_target`,`risk_parity`) on real fixture | **PASS** | rc/finite cumulatives & weights for all: equal `0.3397354969330525`, kelly `0.6018377033270763`, vol_target `0.8429986112560915`, risk_parity `0.0` (finite, periods=398). No Traceback. |
-| 5 | Shorting constraints (supported API) | **PASS (follow-up)** | Initial `{'borrow_cap','utilization'}` rejected cleanly by config validation (`BABConfigError`, no Traceback). Canonical `ShortingConstraints(max_short_weight=0.5, ...)` via `shorting_constraints={'max_short_weight':0.5}` → rc=0, final `0.3397354969330525`, finite weights. |
-| 6 | C26-C09 canonical beta-neutral check | **REVIEW / no proven product gap** | `beta_neutral=True` deterministic 3× final `0.7839996713884239`; `strategy_beta(strategy_returns, benchmark_returns)` returns `nan` (finite/deterministic pipeline output otherwise). `strategy_beta` requires aligned return series; observed NaN likely due to benchmark/series alignment or insufficient comparable series in this contract — **not proven a defect** without canonical apples-to-apples ex-post beta spec. Document for C28. |
-| 7 | Script surface (`scripts/bab_backtest_report.py`, `scripts/load_real_bab_example.py`) | **PASS (follow-up)** | `bab_backtest_report.py` (no args, synthetic) rc=0, finite human report, no Traceback. `load_real_bab_example.py` requires positional `data_path`; `--help` rc=0; canonical run with fixture `--from-prices --benchmark BTC` rc=0 (`cumulative_return=0.456327 periods=398`), no Traceback. Initial bare run rc=2 was usage-contract (no required arg), not a defect. |
-| 8 | Script/CLI error-contract parity (missing/invalid inputs) | **PASS** | `cli --data missing` rc=1 clean actionable error; `cli --from-prices` (no data) rc=1 `--from-prices requires --data`; `bab_backtest_report.py --data-source missing` rc=1 clean error. No Tracebacks, no partial/corrupt output observed. |
-| 9 | `strategy.report()` / `tear_sheet()` / JSON on degenerate case | **PASS (contract-observed)** | On degenerate returns run: `BABResult` has no `report`/`tear_sheet`/`summary` attrs (API surface as-is); backtest finite with cols `[returns,gross_return,cost_drag,slippage_drag,cumulative]`. No NaN/Inf/Traceback. (CLI/script JSON/report paths separately validated finite/strict in 1,7,12.) |
-| 10 | Combined stress determinism (`transaction_costs`+`slippage`+`regime_filter`) | **PASS (follow-up)** | Correct canonical config `regime_filter=True` (bool per config contract; string `'volatility'` rejected by validation) with costs/slippage → 3× identical finals `[0.2796264034046895,...]`, deterministic. |
-| 11 | Rebalance-frequency comparison (daily/weekly/monthly) | **PASS** | All finite, deterministic per-freq, rc=0, periods=398: daily `0.3397354969330525`, weekly `0.38215059713934335`, monthly `0.5930166842166542`. |
-| 12 | Report/output overwrite & idempotence | **PASS** | Repeated `--output` CLI run rc=0 both times, strict JSON finite (`allow_nan=False`), identical final `0.3397354969330525`, overwrite-safe/no stale corruption. |
-
-**Additional C26/C27 contract checks:**
-- **C26-C04 (constant-series stale/frozen guard):** 20-row constant prices (`BTC/ETH/SOL=const`) via CLI `--from-prices` → **rc=0**, `Final cumulative return: 1.000000, Periods: 19`, no Traceback. Behavior consistent/finite on this path; no proven gap.
-
-**Modules/tests touched:** **NONE** (0 production modules, 0 tests). No proven gaps found; no regressions introduced.
-
-## C27 outcome
-- **Proven product gaps fixed:** 0
-- **Regressions added:** 0 (none warranted)
-- **Explicit:** **No proven gaps** identified in C27 with evidence in `/home/runner/work/_temp/kilo-tmp/c27_bab_attribution_sizing_shorting_report_probe_evidence.log`. Review items carried (not proven): C06 `beta_neutral=True` ex-post `strategy_beta(...)` returns `nan` under current call/series alignment — requires canonical apples-to-apples semantic/tolerance spec before any change.
 
 ---
 
@@ -85,7 +55,7 @@ If deps missing, install minimal deps and record; do not claim blocked without e
 ### 2) Campaigns 6–27 (historical closure — no churn)
 Closed/evidenced. **Do not churn C6–C27 without a new, statable, reproducible failure with probe evidence.** C27 carry-over: C06 beta-neutral ex-post `strategy_beta` NaN is **REVIEW only** — resolve only via canonical apples-to-apples repro proving a real defect vs contract.
 
-### 3) EXECUTE C28 — end-to-end reproducibility, config/CLI-API contract closure & reporting fidelity hardening (≥12 combos, HEAVY) — BINDING
+### 3) EXECUTE C28 — end-to-end reproducibility, config/CLI-API contract closure & reporting fidelity hardening (≥12 combos, HEAVY) — BINDING (IN-FLIGHT, NOT YET EXECUTED THIS SESSION)
 **Goal:** close remaining contract/reproducibility/reporting-fidelity surfaces with canonical apples-to-apples probes; fix only proven gaps.
 **Evidence log (MANDATORY):** `/home/runner/work/_temp/kilo-tmp/c28_bab_repro_config_cli_api_reporting_probe_evidence.log`
 For each combo record: cmd, rc, stdout, stderr, JSON validity/finiteness (strict `allow_nan=False` + finiteness walk), key sets, determinism/parity/invariant notes.
@@ -117,6 +87,25 @@ For each combo record: cmd, rc, stdout, stderr, JSON validity/finiteness (strict
 ### 6) Refresh HANDOFF before finishing (MANDATORY)
 Update this file in place with: timestamp/HEAD/worktree state, Step 0 counts/rc (re-run or carried forward), C28 evidence log path, combo-by-combo PASS/FAIL/REVIEW + invariants, modules/tests touched (or none), and the next binding heavy campaign (**C29**) with concrete ≥12-combo probe plan. No ambiguous handoff.
 
+---
+
+## NEXT BINDING HEAVY CAMPAIGN — C29 (prepare after C28 closes)
+**C29 — Real-data E2E pipeline hardening, attribution×sizing×shorting interaction stress, adversarial defect-fixture contract closure, and perf/regression gate parity (≥12 combos, HEAVY):**
+1. **Real-fixture E2E determinism:** `real_market_prices.csv` + `real_market_prices_expanded.csv` via CLI `--from-prices` and API `load_prices`→`BABStrategy(...).run()` — 3× each, byte/strict-JSON identical, rc=0.
+2. **Attribution×sizing×shorting interaction matrix:** all sizing modes (`equal`,`kelly`,`vol_target`,`risk_parity`) × shorting constraints (`max_short_weight` 0.2/0.5/1.0) × attribution on/off — finite weights/cumulatives, no Traceback, 2× deterministic.
+3. **Regime filter × costs × slippage × rebalance-freq full factorial** on real fixture — finite, deterministic per combo, `allow_nan=False`.
+4. **Adversarial defect-fixture contract:** `messy_returns.csv`, `junk_columns.csv`, `all_nan_column.csv`, `benchmark_nan_window.csv` per load/CLI path — clean rc/errors vs accepted behavior per contract, no silent corruption, no partial output.
+5. **Quality gate edge branches:** constant/flat/insufficient-history series — flat zero-weight periods, finite, no NaN/Inf/Traceback.
+6. **CLI script surface hardening:** `bab_backtest_report.py` and `load_real_bab_example.py` with missing/invalid `--data-source`, `--data`, nested `--output`, overwrite — clean actionable errors, rc contract stable, no Traceback.
+7. **Nonfinite serialization guard:** CLI/script/API JSON on degenerate runs — `allow_nan=False`, finiteness walk, no `Infinity`/`NaN` tokens emitted.
+8. **Dry-run side-effect absence:** `--dry-run` produces no files, no output writes, stable rc/messages across valid/invalid inputs.
+9. **Performance/regression gate parity:** re-run Step 0 gates after any edit — counts must not regress below floors (`campaign_d` ≥883/5/0; full BAB ≥4782/35/0; campaign11+14 ≥164/0).
+10. **Output-path edge matrix:** existing-dir target, nested non-existent dir create, overwrite-existing-file — clean rc, no corrupt partial output, overwrite-safe.
+11. **Config-API equivalence on real fixture:** every CLI knob has an equivalent BABStrategy/BABConfig kwarg producing identical final cumulative (≤1e-12) — parity log.
+12. **Determinism under concurrent/repeated invocation:** same CLI invoked 3× in quick succession — identical strict JSON outputs, no file-lock/corruption issues.
+**Evidence log (MANDATORY):** `/home/runner/work/_temp/kilo-tmp/c29_bab_realtime_e2e_interaction_stress_probe_evidence.log`
+**Regression file:** `tests/test_bab_cli_campaign29*.py` for every proven fix; if none, record explicit "no proven gaps" with evidence refs.
+
 ## GATES THAT MUST STAY GREEN (NON-NEGOTIABLE)
 - `campaign_d` **≥883 passed, 5 skipped, rc=0**
 - full BAB excl `data_loader`/`controller` **≥4782 passed, 35 skipped, rc=0** (hard floor; raise if legitimately increased)
@@ -131,4 +120,4 @@ Update this file in place with: timestamp/HEAD/worktree state, Step 0 counts/rc 
 - `cli.py`/`metrics.py`/reporting/`scripts`/`costs.py`/`regime.py`/`attribution.py`/`shorting.py`/`sizing.py` editable only for smallest proven fix from probe evidence.
 - No commit/push unless explicitly requested. No planning-only or evidence-free exits.
 
-*Single durable handoff for `Crypto-Betting-Against-Beta`. Future agents: execute heavy C28 with probe evidence, remove bottlenecks if found, and leave a refreshed handoff.*
+*Single durable handoff for `Crypto-Betting-Against-Beta`. Future agents: execute heavy C28 (in-flight) then C29 with probe evidence, remove bottlenecks if found, and leave a refreshed handoff.*
