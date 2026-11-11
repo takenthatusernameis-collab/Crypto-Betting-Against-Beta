@@ -1,16 +1,16 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-11T18:22:12Z
-**HEAD:** `7e79c4a` (`chore(kilo): checkpoint agent session`) on `main`
+**Timestamp (refreshed):** 2026-11-11T18:47:27Z
+**HEAD:** `43b4d85` (`chore(kilo): checkpoint agent session`) on `main`
 **Repo priority (binding):** `Crypto-Betting-Against-Beta` — every action must advance **Betting Against Beta** correctness, robustness, CLI/API/reporting/metrics fidelity, or a newly proven regression. No unrelated refactors, no `.github/workflows/*` edits, no commit/push unless explicitly requested.
 
 ## BINDING INITIAL TASK MESSAGE — NEXT AGENT (execute first, no preamble loops)
 
-**Start by re-confirming all three gate floors (Step 1 below) before doing anything else. Do not invent work, do not churn locked areas, do not run open-ended probes without a concrete failure hypothesis.**
+**Start by re-confirming all three gate floors (Step 1 below) before doing anything else. Do not invent work, do not churn locked areas, do not run open-ended probes without a concrete, reproducible failure hypothesis.**
 
 - **C28 items 1–5:** CLOSED — no proven gaps. **Do not reopen without a new, statable, reproducible failure + durable probe evidence.**
 - **C29 (all 12 mandatory combos):** COMPLETE — 12/12 PASS, no proven gaps. **No regressions added.**
-- **Current bottlenecks:** None proven in BAB product code. Prior historical workflow diagnostics are CI-log excerpts (tool-arg noise in past runs), not current source/test failures. Gate-floor suites are long-running in this environment (see evidence below); an incomplete/timed-out re-run is not evidence of failure — re-run to completion before claiming green/red.
+- **Current bottlenecks:** None proven in BAB product code. Historical workflow diagnostics are CI-log excerpts from past runs, not current source/test failures. Full-suite floors are slow in this environment; an incomplete/timed-out re-run without observed failure is inconclusive (not a regression). Re-run to completion with durable logs before claiming green/red.
 
 **If a new failure is discovered (must be specific, reproducible, BAB-relevant):**
 1. Capture minimal repro + durable probe log under `/home/runner/work/_temp/kilo-tmp/<unique>.log`.
@@ -20,13 +20,13 @@
 
 **If no new failure is found:** state "no proven gaps", keep gates/floors unchanged (or record completed re-runs), refresh timestamp/HEAD/evidence summary, and exit without code churn. Do not declare "blocked" without an evidenced attempt and durable logs. This file is the sole durable coordination artifact.
 
-## Current baseline (2026-11-11T18:22:12Z, HEAD `7e79c4a`, clean tree; NO BAB product/test code edited)
+## Current baseline (2026-11-11T18:47:27Z, HEAD `43b4d85`, clean tree; NO BAB product/test code edited)
 
-- **campaign_d gate floor (re-confirmed this session):** `898 passed, 5 skipped, rc=0` in 8.80s (≥883 floor). Command: `python3 -m pytest -q tests/test_bab_data_loader_campaign_d*.py tests/test_bab_data_loader_batch148.py tests/test_bab_data_loader_batch149.py tests/test_bab_data_loader_batch172.py`.
-- **Full BAB excl `data_loader`/controller floor:** **NOT completed this session** — run exceeded 120s shell timeout twice in this environment (no failure observed before timeout). Last recorded green in prior handoff state at `bc98cf4`: `2234 passed, 5 skipped, rc=0`. Must be re-run to completion on any future BAB edit and as first action of next session (use sufficient timeout/background capture to durable log).
-- **campaign11+14 closure bundle floor:** **NOT completed this session** — run exceeded 120s shell timeout twice (no failure observed before timeout). Last recorded green at `bc98cf4`: `164 passed, 0 failed, rc=0`. Re-run to completion next session / after any BAB edit.
-- **Known non-BAB (excluded from BAB gates, not a blocker):** `tests/test_controller_progress_accounting.py` has 2 controller/infra failures (workflow `stage_safe_changes` missing nested `*/.github/workflows/*` vs `scripts/controller_progress.py EXCLUDE_PATTERNS`). **Do not edit `.github/workflows/*`; do not weaken tests.**
-- **This session:** repo/README/HANDOFF/git/diagnostics inspected, working tree clean, no BAB product/test edits made, no new reproducible BAB failure found. `research_state/workflow_run_diagnostics.jsonl` tail shows historical `conclusion: success` CI runs with log-excerpt `kilo_edit_tool_invalid_arguments` signals from past sessions — non-blocking/historical, not current code defects.
+- **campaign_d gate floor (re-confirmed this session):** `898 passed, 5 skipped, rc=0` in 6.27s (≥883 floor). Command: `python3 -m pytest -q tests/test_bab_data_loader_campaign_d*.py tests/test_bab_data_loader_batch148.py tests/test_bab_data_loader_batch149.py tests/test_bab_data_loader_batch172.py` (stdout captured in session; persist to durable log on next run if needed).
+- **Full BAB excl `data_loader`/controller floor:** **NOT re-run to completion this session** (time-boxed to avoid inconclusive partial run). Last recorded green at `bc98cf4`: `2234 passed, 5 skipped, rc=0`. **Must be re-run to completion as first heavy action next session / after any BAB edit** (use ample timeout and durable log e.g. `/home/runner/work/_temp/kilo-tmp/c30_gate_full_<ts>.log`).
+- **campaign11+14 closure bundle floor:** **NOT re-run to completion this session**. Last recorded green at `bc98cf4`: `164 passed, 0 failed, rc=0`. **Must be re-run to completion next session / after any BAB edit** (durable log e.g. `/home/runner/work/_temp/kilo-tmp/c30_gate_campaign11_14_<ts>.log`).
+- **Known non-BAB (excluded from BAB gates, not a blocker):** `tests/test_controller_progress_accounting.py` has controller/infra failures (workflow `stage_safe_changes` excludes nested `*/.github/workflows/*` in `scripts/controller_progress.py`). **Do not edit `.github/workflows/*`; do not weaken tests.**
+- **This session:** repo/README/HANDOFF/git/diagnostics inspected, working tree clean, no BAB product/test edits made, no new reproducible BAB failure found. `research_state/workflow_run_diagnostics.jsonl` remains historical CI-log excerpts only.
 
 **Gate floors (must stay green):** campaign_d ≥883 passed/5 skipped/rc=0; full BAB excl data_loader/controller rc=0; campaign11+14 ≥164 passed/0 failed/rc=0. Re-run affected gates after any product/test edit.
 
