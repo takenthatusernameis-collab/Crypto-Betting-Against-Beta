@@ -472,6 +472,7 @@ class BABStrategy:
             strat_returns if strat_returns is not None else pd.Series(dtype="float64"),
             weights_df=weights if isinstance(weights, pd.DataFrame) else None,
             benchmark_returns=benchmark_returns,
+            betas_df=getattr(res, "betas", None) if isinstance(getattr(res, "betas", None), pd.DataFrame) else None,
         )
         # Ensure every summary value is a finite scalar so downstream formatting
         # and JSON serialization never encounter NaN/inf tokens.
@@ -548,6 +549,7 @@ class BABStrategy:
         lines.append(f"Max Drawdown: {_fmt(m['max_drawdown'], '.2%')}")
         lines.append(f"Turnover (avg): {_fmt(m['turnover'], '.4f')}")
         lines.append(f"Strategy Beta vs {cfg['benchmark']}: {_fmt(m['strategy_beta'], '.4f')}")
+        lines.append(f"Portfolio Beta (gross-exp wt): {_fmt(m.get('portfolio_beta', float('nan')), '.4f')}")
         lines.append(f"Observations: {int(m.get('n_observations', 0))}")
         lines.append("-" * 60)
         lines.append("Trade Attribution (cumulative):")

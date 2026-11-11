@@ -115,6 +115,55 @@ def strategy_beta(strategy_returns, benchmark_returns, periods_per_year: int = 2
     return float(beta)
 
 
+def portfolio_beta(weights_df, betas_df):
+    """Return-weighted average portfolio beta across backtest periods.
+
+    This is the quantity that ``enforce_beta_neutrality`` actually drives to
+    ``target_beta``: for each period ``t``::
+
+        beta_p(t) = sum_i w_i(t) * beta_i(t) / sum_i |w_i(t)|
+
+    i.e. the gross-exposure-weighted average of the per-asset betas, evaluated
+    on the *causal* (lagged) weights.  It is **not** the same as
+    :func:`strategy_beta`, which is the full-sample OLS slope of strategy
+    returns against benchmark returns; that OLS slope conflates the portfolio
+    beta with benchmark-timing/leverage effects and does not reflect the
+    per-period beta-neutral enforcement.
+
+    The function returns the mean of ``beta_p(t)`` over periods with nonzero
+    gross exposure.  Defensive: None / empty / misaligned inputs yield ``nan``
+    rather than raising, so the report path never crashes on degenerate output.
+    """
+    if weights_df is None or betas_df is None:
+        return np.nan
+    if not isinstance(weights_df, pd.DataFrame) or weights_df.empty:
+        return np.nan
+    if not isinstance(betas_df, pd.DataFrame) or betas_df.empty:
+        return np.nan
+    common = list(weights_df.columns.intersection(betas_df.columns))
+    if not common:
+        return np.nan
+    idx = weights_df.index.intersection(betas_df.index)
+    if len(idx) == 0:
+        return np.nan
+    w = weights_df.loc[idx, common].astype(float).replace([np.inf, -np.inf], np.nan).fillna(0.0)
+    b = betas_df.loc[idx, common].astype(float).replace([np.inf, -np.inf], np.nan)
+    wv = w.to_numpy(dtype=float)
+    bv = b.to_numpy(dtype=float)
+    finite = np.isfinite(bv)
+    wv = np.where(finite, wv, 0.0)
+    bv = np.where(finite, bv, 0.0)
+    gross = np.abs(wv).sum(axis=1)
+    pb = np.full(len(idx), np.nan)
+    mask = gross > 1e-18
+    if mask.any():
+        pb[mask] = (wv[mask] * bv[mask]).sum(axis=1) / gross[mask]
+    s = pd.Series(pb).dropna()
+    if len(s) == 0:
+        return np.nan
+    return float(s.mean())
+
+
 def total_return(returns):
     """Cumulative total return (fraction) of a returns series."""
     r = _to_series(returns)
@@ -188,7 +237,8 @@ def turnover_series(weights_df):
     return w.diff().abs().sum(axis=1).fillna(0.0)
 
 
-def summary(returns, weights_df=None, benchmark_returns=None, risk_free: float = 0.0, periods_per_year: int = 252):
+def summary(returns, weights_df=None, benchmark_returns=None, betas_df=None,
+           risk_free: float = 0.0, periods_per_year: int = 252):
     """Generate summary of all metrics."""
     result: dict = {}
     r = _to_series(returns)
@@ -202,6 +252,10 @@ def summary(returns, weights_df=None, benchmark_returns=None, risk_free: float =
         if benchmark_returns is not None
         else np.nan
     )
+    # portfolio_beta is the gross-exposure-weighted per-period portfolio beta
+    # (the metric beta_neutral enforcement actually targets). It is reported
+    # alongside strategy_beta so callers can distinguish the two contracts.
+    result["portfolio_beta"] = portfolio_beta(weights_df, betas_df)
     result["total_return"] = total_return(r)
     result["final_cumulative"] = final_cumulative(r)
     result["n_observations"] = int(len(r))
