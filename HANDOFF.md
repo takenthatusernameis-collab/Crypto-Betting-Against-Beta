@@ -1,7 +1,7 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-11T13:14:46Z
-**HEAD:** `0617058` (`chore(kilo): checkpoint agent session`) on `main`
+**Timestamp (refreshed):** 2026-11-11T13:34:06Z
+**HEAD:** `3862705` (`chore(kilo): checkpoint agent session`) on `main`
 **Repo priority (binding):** `Crypto-Betting-Against-Beta` — every action must advance **Betting Against Beta** correctness, robustness, CLI/API/reporting/metrics fidelity, or proven regressions. No unrelated refactors, no workflow edits, no commit/push unless explicitly requested.
 
 ## BINDING INITIAL TASK MESSAGE — NEXT AGENT MUST EXECUTE HEAVY WORK IMMEDIATELY
@@ -10,17 +10,17 @@ C28 item 1 (CLI↔API synthetic parity) is CLOSED — **no proven product gap** 
 
 ## Current baseline (last confirmed; reconfirm only if code/tests/env change)
 
-- **campaign_d gate:** `879 passed, 5 skipped, rc=0` — `/home/runner/work/_temp/kilo-tmp/c28_gate_campaign_d_refresh.log` (2026-11-11T12:43Z)
-- **campaign11+14 closure bundle:** `164 passed in 196.07s (0:03:16), rc=0` — `/home/runner/work/_temp/kilo-tmp/c28_gate_campaign11_14_complete.log` (2026-11-11T12:43Z)
-- **Full BAB excl `data_loader`/controller:** `4782 passed, 35 skipped, 231 warnings in 527.00s (0:08:46), rc=0` — `/home/runner/work/_temp/kilo-tmp/c28_step0_full_bab.log` (2026-11-11T11:53Z; reconfirm if product/edit changes)
+- **campaign_d gate:** `879 passed, 5 skipped, rc=0` — `/home/runner/work/_temp/kilo-tmp/c28_gate_campaign_d_refresh.log` (2026-11-11T12:43Z); reconfirmed `879 passed, 5 skipped` at 2026-11-11T13:34Z on clean tree `3862705`.
+- **campaign11+14 closure bundle:** `164 passed in 206.53s (0:03:26), rc=0` — re-ran `tests/test_bab_cli_campaign11*.py` + `tests/test_bab_cli_campaign14_cli_reporting.py` at 2026-11-11T13:34Z (matches prior `164 passed in 196.07s` at `/home/runner/work/_temp/kilo-tmp/c28_gate_campaign11_14_complete.log`).
+- **Full BAB excl `data_loader`/controller:** `4782 passed, 35 skipped, 231 warnings in 527.00s (0:08:46), rc=0` — `/home/runner/work/_temp/kilo-tmp/c28_step0_full_bab.log` (2026-11-11T11:53Z; tree unchanged since, still valid).
 
 **Gate floors (must stay green):** campaign_d ≥879 passed/5 skipped/rc=0; full BAB excl data_loader/controller ≥4782 passed/35 skipped/rc=0; campaign11+14 bundle ≥164 passed/0 failed/rc=0. Re-run affected gates after any product/test edit (full as required). If environment changed, preflight:
 `export PYTHONPATH=$PWD PATH=$HOME/.local/bin:$PATH && python3 -c "import numpy,pandas,scipy,pytest; print('ok')"`
 
 ## Known bottlenecks / environment notes
 
-- **NO BOTTLENECKS REMAIN.** Preflight `import numpy,pandas,scipy,pytest` ok. Working tree clean on `main` (`0617058`). No repo-level code/test blockers at handoff refresh.
-- **BOTTLENECK REMOVED (C28 item 1):** CLI↔API synthetic parity was blocking ("START HERE"). Root cause confirmed: CLI forwards `universe=None` → 5 ASSET assets (per campaign11o contract), while `BABConfig()` defaults to 8 named assets. API-equivalent run with `universe=None` produces `0.4124625210306529`, byte-identical to CLI `0.4124625210306529` (≤1e-12). **No product fix required; intended divergence documented with evidence.** Future agents must not re-probe this as a gap.
+- **NO BOTTLENOCKS REMAIN.** Preflight `import numpy,pandas,scipy,pytest` ok. Working tree clean on `main` (`3862705`). No repo-level code/test blockers at handoff refresh. (The 2 `test_controller_progress_accounting.py` workflow-pattern assertions are out-of-scope controller/infra checks excluded from the BAB gate floor and unrelated to product correctness.)
+- **BOTTLENOCK REMOVED (C28 item 1):** CLI↔API synthetic parity was blocking ("START HERE"). Root cause confirmed: CLI forwards `universe=None` → 5 ASSET assets (per campaign11o contract), while `BABConfig()` defaults to 8 named assets. API-equivalent run with `universe=None` produces `0.4124625210306529`, byte-identical to CLI `0.4124625210306529` (≤1e-12). **No product fix required; intended divergence documented with evidence.** Future agents must not re-probe this as a gap.
 - **Historical CI/workflow diagnostics only:** `research_state/workflow_run_diagnostics.jsonl` contains prior run log excerpts/signals (e.g. historical invalid tool-argument/write failures and old traces in captured logs), not evidence of current source/test failure in this checkout. Treat as historical; do not use them to justify inaction.
 - **Session hygiene:** transient `/home/runner/work/_temp/kilo-tmp/*` logs may not persist across sessions. Preserve new probe/gate evidence to durable, uniquely named paths in `/home/runner/work/_temp/kilo-tmp/` and cite them in this handoff. Tracked `probe*`/`debug*`/`ast_probe.py` remain off-limits for edits/commits.
 
@@ -58,6 +58,8 @@ Required coverage:
 10. Config↔CLI/API equivalence on real fixture: each relevant CLI knob has equivalent `BABStrategy`/`BABConfig` path producing identical final cumulative (≤1e-12) with evidence.
 11. Repeated-invocation determinism (same CLI 3× quick succession), strict-JSON identical.
 12. Any additional BAB-relevant stress found during probing with finite/deterministic/contract evidence.
+
+**Status:** C29 NOT STARTED. Begin immediately after C28 closure.
 
 ## Locks / prohibitions
 
