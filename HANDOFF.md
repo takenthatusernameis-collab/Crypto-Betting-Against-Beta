@@ -1,19 +1,19 @@
 # INITIAL TASK MESSAGE (single durable handoff — leave for next agent; highest priority)
 
-**Timestamp (refreshed):** 2026-11-11T03:09:02Z (active handoff for next session)
+**Timestamp (refreshed):** 2026-11-11T03:09:36Z (active handoff for next session)
 **Repo:** `Crypto-Betting-Against-Beta` (repo-name priority is binding: every slice must advance **Betting Against Beta** correctness/robustness/reporting fidelity; no unrelated refactors)
-**HEAD/base:** `570c943` (`cli: validate output path before strategy run`, 2026-11-11). Treat current HEAD as base and record exact HEAD when you run.
+**HEAD/base:** `d578817` (`chore(kilo): checkpoint agent session`, 2026-11-11). Treat current HEAD as base and record exact HEAD when you run.
 **Working tree (at refresh):** clean except `HANDOFF.md` updated in place (no competing handoff files; **`HANDOFF.md` is the single durable handoff**).
 **Environment (verified):** `python3 -c "import numpy,pandas,scipy,pytest"` → **rc=0** (numpy 2.5.4 / pandas 3.1.1 / scipy 1.18.1 / pytest 9.2.0). Fixtures present under `tests/fixtures/` (incl. `real_market_prices.csv`, `real_market_prices_expanded.csv`, `degenerate_metrics.csv`, `junk_columns.csv`, `all_nan_column.csv`).
 **Bottlenecks:** None identified. No in-repo blocked sessions. `research_state/workflow_run_diagnostics.jsonl` holds historical concluded runs only — not a current blocker; do not chase diagnostics archaeology. `bab-example` console entrypoint **not installed on PATH** in this env (recorded concretely); use `python scripts/load_real_bab_example.py` direct execution as baseline.
 
-**Prior campaign closure:** C6–C22 closed with evidence (C19 log `/home/runner/work/_temp/kilo-tmp/c19_*`; C20 log `/home/runner/work/_temp/kilo-tmp/c20_*`). C21 **EXECUTED on HEAD `e98ec5a`** with probe evidence → explicit **"no proven gaps"**. **C22 EXECUTED on HEAD `91d587b`** with probe evidence → explicit **"no proven gaps"**. **C23 EXECUTED on HEAD `570c943`** with probe evidence → **1 PROVEN GAP FIXED** (output path validation timing), 0 remaining gaps.
+**Prior campaign closure:** C6–C22 closed with evidence (C19 log `/home/runner/work/_temp/kilo-tmp/c19_*`; C20 log `/home/runner/work/_temp/kilo-tmp/c20_*`). C21 **EXECUTED on HEAD `e98ec5a`** with probe evidence → explicit **"no proven gaps"**. C22 **EXECUTED on HEAD `91d587b`** with probe evidence → explicit **"no proven gaps"**. C23 **EXECUTED on HEAD `570c943`** with probe evidence → **1 PROVEN GAP FIXED** (output path validation timing), 0 remaining gaps.
 
 ---
 
-## Step 0 baseline/gates — VERIFIED on HEAD `570c943` (2026-11-11, `export PYTHONPATH=$PWD PATH=$HOME/.local/bin:$PATH`)
+## Step 0 baseline/gates — VERIFIED on HEAD `d578817` (2026-11-11, `export PYTHONPATH=$PWD PATH=$HOME/.local/bin:$PATH`)
 - `python3 -c "import numpy,pandas,scipy,pytest"` → **rc=0** ✓
-- `python3 -m pytest -q tests/test_bab_cli_campaign11m*.py tests/test_bab_cli_campaign11n*.py tests/test_bab_cli_campaign11o*.py tests/test_bab_cli_campaign11p*.py tests/test_bab_cli_campaign11q*.py tests/test_bab_cli_campaign11s*.py tests/test_bab_cli_campaign11ab*.py tests/test_bab_cli_campaign14_cli_reporting.py` → **164 passed in 151.47s, rc=0** ✓
+- `python3 -m pytest -q tests/test_bab_cli_campaign11m*.py tests/test_bab_cli_campaign11n*.py tests/test_bab_cli_campaign11o*.py tests/test_bab_cli_campaign11p*.py tests/test_bab_cli_campaign11q*.py tests/test_bab_cli_campaign11s*.py tests/test_bab_cli_campaign11ab*.py tests/test_bab_cli_campaign14_cli_reporting.py` → **164 passed in 144.38s, rc=0** ✓
 - `python3 -m pytest -q -k campaign_d tests/test_bab_data_loader*.py` → **883 passed, 5 skipped, 1808 deselected, rc=0** ✓ (warnings only)
 - `python3 -m pytest -q tests/test_bab_*.py tests/test_betting_against_beta*.py --ignore=tests/test_bab_data_loader* --ignore=tests/test_controller*` → **4782 passed, 35 skipped, rc=0** ✓ (hard floor met; warnings only)
 - C19 regressions present: `tests/test_bab_cli_campaign19_config_cost_sizing_fidelity.py` ✓ (covered by full BAB floor)
@@ -113,7 +113,7 @@ Update timestamp/HEAD/state, Step 0 & validation counts/rc, C24 evidence (log pa
 - Do **not** weaken/delete `batch148/149/172` or `campaign_d*` tests.
 - `beta.py`/`data_loader.py` gate closed — do not alter without new disproving evidence and minimal fix.
 - `portfolio.py`/`sizing.py`/`strategy.py`/`backtest.py`/`signals.py`/`config.py` locked unless disproven by new evidence.
-- `cli.py`/`metrics.py`/`reporting.py`/`scripts`/`costs.py`/`regime.py`/`attribution.py`/`shorting.py` editable only for smallest proven fix from probe evidence.
+- `cli.py`/`metrics.py`/`reporting.py`/`scripts`/`costs.py`/`regime.py`/`attribution.py`/`shorting.py`/`sizing.py` editable only for smallest proven fix from probe evidence.
 - No commit/push unless explicitly requested. No planning-only or evidence-free exits.
 
 ## IMMEDIATE ACTIONS (MANDATORY SEQUENCE)
