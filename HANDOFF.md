@@ -1,7 +1,7 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-11T13:48:30Z
-**HEAD:** `7fe0345` (`chore(kilo): checkpoint agent session`) on `main`
+**Timestamp (refreshed):** 2026-11-11T15:49:44Z
+**HEAD:** `148e6ce` (`chore: capture completed workflow run diagnostics`) on `main`
 **Repo priority (binding):** `Crypto-Betting-Against-Beta` — every action must advance **Betting Against Beta** correctness, robustness, CLI/API/reporting/metrics fidelity, or proven regressions. No unrelated refactors, no workflow edits, no commit/push unless explicitly requested.
 
 ## BINDING INITIAL TASK MESSAGE — NEXT AGENT MUST EXECUTE HEAVY WORK IMMEDIATELY
@@ -10,16 +10,18 @@ C28 items 1-4 are CLOSED with evidence (**no proven product gaps**; see resoluti
 
 ## Current baseline (last confirmed; reconfirm only if code/tests/env change)
 
-- **campaign_d gate:** `879 passed, 5 skipped, rc=0` — `/home/runner/work/_temp/kilo-tmp/c28_gate_campaign_d_refresh.log` (2026-11-11T12:43Z); reconfirmed `879 passed, 5 skipped` at 2026-11-11T13:34Z on clean tree at `3862705` (no BAB source/test edits since; still valid baseline for `7fe0345` which only added checkpoints/handoff-state in git history context — reconfirm if you touch code).
+- **campaign_d gate:** `883 passed, 5 skipped, rc=0` — re-confirmed 2026-11-11T15:49Z on clean tree at `148e6ce` (no BAB source/test edits since; reconfirm if you touch code). Prior baseline `879 passed, 5 skipped` at `/home/runner/work/_temp/kilo-tmp/c28_gate_campaign_d_refresh.log` (2026-11-11T12:43Z), reconfirmed `879 passed, 5 skipped` at 2026-11-11T13:34Z on clean tree at `3862705`.
+- **Full-suite re-run (2026-11-11T15:49Z):** `5035 passed, 35 skipped, 2 failed in 591.39s` — the 2 failures are controller/infra tests (`test_controller_progress_accounting.py::test_python_patterns_are_subset_of_workflow`, `::test_nested_workflow_pattern_is_present_in_workflow`) caused by the workflow `stage_safe_changes` list missing the nested variant `*/.github/workflows/*` that Python `EXCLUDE_PATTERNS` includes. These are **excluded from the BAB gate floor** (excl controller) and are **not** BAB product gaps. Lock prohibits editing `.github/workflows/*`; do not weaken the regression test. Treat as a known non-BAB controller discrepancy, not a BAB bottleneck.
 - **campaign11+14 closure bundle:** `164 passed in 206.53s (0:03:26), rc=0` — re-run at 2026-11-11T13:34Z; prior log `/home/runner/work/_temp/kilo-tmp/c28_gate_campaign11_14_complete.log`.
 - **Full BAB excl `data_loader`/controller:** `4782 passed, 35 skipped, 231 warnings in 527.00s (0:08:46), rc=0` — `/home/runner/work/_temp/kilo-tmp/c28_step0_full_bab.log` (2026-11-11T11:53Z; unchanged-product baseline).
 
-**Gate floors (must stay green):** campaign_d ≥879 passed/5 skipped/rc=0; full BAB excl data_loader/controller ≥4782 passed/35 skipped/rc=0; campaign11+14 bundle ≥164 passed/0 failed/rc=0. Re-run affected gates after any product/test edit (full as required). If environment changed, preflight:
+**Gate floors (must stay green):** campaign_d ≥883 passed/5 skipped/rc=0; full BAB excl data_loader/controller ≥4782 passed/35 skipped/rc=0; campaign11+14 bundle ≥164 passed/0 failed/rc=0. Re-run affected gates after any product/test edit (full as required). If environment changed, preflight:
 `export PYTHONPATH=$PWD PATH=$HOME/.local/bin:$PATH && python3 -c "import numpy,pandas,scipy,pytest; print('ok')"`
 
 ## Known bottlenecks / environment notes
 
-- **NO BOTTLENECKS.** Preflight `import numpy,pandas,scipy,pytest` ok. Working tree clean on `main` (`7fe0345`). No repo-level code/test blockers.
+- **NO BAB BOTTLENECKS.** Preflight `import numpy,pandas,scipy,pytest` ok. Working tree clean on `main` (`148e6ce`). No repo-level BAB code/test blockers.
+- **Known non-BAB controller discrepancy (excluded from BAB gate):** `tests/test_controller_progress_accounting.py` 2 failures — workflow `stage_safe_changes` lacks nested `*/.github/workflows/*` pattern present in `scripts/controller_progress.py EXCLUDE_PATTERNS`. Lock: do not edit `.github/workflows/*`; do not weaken tests. Not a BAB bottleneck; BAB gate floor excludes controller.
 - **Historical CI/workflow diagnostics only:** `research_state/workflow_run_diagnostics.jsonl` contains prior captured log excerpts/signals, not evidence of current source/test failure in this checkout. Treat as historical; do not use to justify inaction.
 - **Session hygiene:** transient `/home/runner/work/_temp/kilo-tmp/*` logs may not persist. Preserve new probe/gate evidence to durable, uniquely named paths in `/home/runner/work/_temp/kilo-tmp/` and cite them here. Tracked `probe*`/`debug*`/`ast_probe.py` remain off-limits for edits/commits.
 
