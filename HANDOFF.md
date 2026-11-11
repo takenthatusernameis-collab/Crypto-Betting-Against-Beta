@@ -1,7 +1,7 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-11T22:42:00Z
-**HEAD:** `9f9d80e` (`chore: capture completed workflow run diagnostics`) on `main` — working tree clean at session start; untracked probe/temp artifacts exist only under `/home/runner/work/_temp/kilo-tmp/` (durable logs/scripts for C32). No BAB product/test code changes made this session; no commit/push.
+**Timestamp (refreshed):** 2026-11-11T22:48:45Z
+**HEAD:** `b471831` (`chore(kilo): checkpoint agent session`) on `main` — working tree clean at session start. Between prior HANDOFF HEAD `9f9d80e` and `b471831` only `HANDOFF.md` changed (checkpoint commits); no BAB product/test code changes; no commit/push. Untracked probe/temp artifacts exist only under `/home/runner/work/_temp/kilo-tmp/` (durable logs/scripts).
 **Repo priority (binding):** `Crypto-Betting-Against-Beta` — every action must advance **Betting Against Beta** correctness, robustness, CLI/API/reporting/metrics fidelity, or a newly proven regression. No unrelated refactors, no `.github/workflows/*` edits, no commit/push unless explicitly requested.
 
 ## BINDING INITIAL TASK MESSAGE — NEXT AGENT (execute immediately, no preamble loops)
@@ -75,13 +75,12 @@
 
 **Conclusion:** **C31: no proven gaps** after full Step 1 + Step 2 execution on allowed surfaces. No product/test fixes required.
 
-## Known bottlenecks / environment notes
+## Known bottlenecks / environment notes (bottlenecks removed/clarified — do not re-litigate)
 
-- **No proven BAB runtime/code bottlenecks.**
-- **Environment:** full suites are slow; run with ample timeout and durable logs. Timeout/interruption without observed failure is inconclusive, not a regression. `c31_gate_full_bab.log` / `c32_gate_full_bab.log` show PASS summary; treat as observed-pass; re-run if strict rc-log evidence required.
-- **Probe harness note:** initial c31 probe in-process checks failed with `ModuleNotFoundError` because `/tmp` script lacked repo on `sys.path`; corrected in `c31_probe2.py` / `c32_probe.py` (not a product issue). Future probes must `sys.path.insert(0, repo_root)` or run via `-m` from repo.
+- **`tests/test_controller_progress_accounting.py` — EXCLUDED, NOT a BAB blocker.** 2 tests fail on `.github/workflows/*` pattern sync (see `research_state/workflow_run_diagnostics.jsonl`). This is infra/workflow staging, not BAB product. **Do not edit `.github/workflows/*`; do not weaken/delete this test; do not spend cycles trying to make it pass.** It is excluded from all BAB gate floors. Treat as known non-BAB noise. (Bottleneck removed: future sessions must not re-open or chase it without new statable reproducible BAB-relevant failure + durable evidence.)
+- **Environment:** full suites are slow; run with ample timeout and durable logs. Timeout/interruption without observed failure is inconclusive, not a regression. Treat observed PASS summary as observed-pass; re-run only if strict rc-log evidence is required.
+- **Probe harness fix (applied):** in-process probe scripts under `/tmp` must `sys.path.insert(0, repo_root)` or run via `python3 -m` from the repo root, else `ModuleNotFoundError` (harness-only, not a product issue). Future probes must do this.
 - **Historical CI diagnostics only:** `research_state/workflow_run_diagnostics.jsonl` are prior captured log signals, not current source/test failures.
-- **Known non-BAB (excluded, not a blocker):** `tests/test_controller_progress_accounting.py` may fail (infra/workflow staging). Exclude from BAB gates; **do not edit `.github/workflows/*`; do not weaken tests.**
 - **Off-limits tracked artifacts:** `probe*`, `debug*`, `ast_probe.py` — do not edit/commit (use untracked `/home/runner/work/_temp/kilo-tmp/`).
 
 ## C28/C29/C31/C32 status (closed) — do not reopen without new evidence
