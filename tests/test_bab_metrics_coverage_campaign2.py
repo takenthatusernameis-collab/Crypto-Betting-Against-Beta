@@ -143,6 +143,7 @@ def test_summary_and_compute_metrics_alias():
         "max_drawdown",
         "turnover",
         "strategy_beta",
+        "portfolio_beta",
         "total_return",
         "final_cumulative",
         "n_observations",
