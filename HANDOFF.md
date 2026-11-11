@@ -1,6 +1,6 @@
 # INITIAL TASK MESSAGE (single durable handoff — leave for next agent; highest priority)
 
-**Timestamp (refreshed):** 2026-11-11T02:58:00Z (active handoff for next session)
+**Timestamp (refreshed):** 2026-11-11T03:09:02Z (active handoff for next session)
 **Repo:** `Crypto-Betting-Against-Beta` (repo-name priority is binding: every slice must advance **Betting Against Beta** correctness/robustness/reporting fidelity; no unrelated refactors)
 **HEAD/base:** `570c943` (`cli: validate output path before strategy run`, 2026-11-11). Treat current HEAD as base and record exact HEAD when you run.
 **Working tree (at refresh):** clean except `HANDOFF.md` updated in place (no competing handoff files; **`HANDOFF.md` is the single durable handoff**).
