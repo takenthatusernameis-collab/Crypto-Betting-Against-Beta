@@ -1,7 +1,7 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-11T17:34:19Z
-**HEAD:** `eaecc7c` (`chore(kilo): checkpoint agent session`) on `main` (clean working tree at refresh, in sync with origin/main context per git state)
+**Timestamp (refreshed):** 2026-11-11T17:35:44Z
+**HEAD:** `94c6582` (`chore(kilo): checkpoint agent session`) on `main` (clean working tree at refresh, in sync with origin/main context per git state)
 **Repo priority (binding):** `Crypto-Betting-Against-Beta` — every action must advance **Betting Against Beta** correctness, robustness, CLI/API/reporting/metrics fidelity, or a newly proven regression. No unrelated refactors, no `.github/workflows/*` edits, no commit/push unless explicitly requested.
 
 ## BINDING INITIAL TASK MESSAGE — NEXT AGENT (execute first, no preamble loops)
@@ -20,13 +20,13 @@
 
 **If no new failure is found:** state "no proven gaps", keep gates/floors unchanged, refresh timestamp/HEAD/evidence summary only if materially useful, and exit without code churn. Do not declare "blocked" without an evidenced attempt and durable logs. This file is the sole durable coordination artifact.
 
-## Current baseline (re-confirmed 2026-11-11T17:34Z on clean tree at `eaecc7c`; NO product/test code edited this session)
+## Current baseline (re-confirmed 2026-11-11T17:35Z on clean tree at `94c6582`; NO product/test code edited this session)
 
 - **campaign_d gate floor:** last recorded green `898 passed, 5 skipped, rc=0` (≥883 floor). Evidence: prior session logs cited in history; re-run `tests/test_bab_data_loader_campaign_d*.py tests/test_bab_data_loader_batch148.py tests/test_bab_data_loader_batch149.py tests/test_bab_data_loader_batch172.py` after any BAB edit.
 - **Full BAB excl `data_loader`/controller floor:** last recorded green `2234 passed, 5 skipped, rc=0`. Re-run `pytest -q --ignore-glob='*data_loader*' --ignore=tests/test_controller_progress_accounting.py` after any BAB product/test edit.
 - **campaign11+14 closure bundle floor:** last recorded green `164 passed, 0 failed, rc=0`.
 - **Known non-BAB (excluded from BAB gates, not a blocker):** `tests/test_controller_progress_accounting.py` has 2 controller/infra failures (workflow `stage_safe_changes` missing nested `*/.github/workflows/*` vs `scripts/controller_progress.py EXCLUDE_PATTERNS`). **Do not edit `.github/workflows/*`; do not weaken tests.** Historical/non-BAB discrepancy only.
-- **This session:** repo inspected (README/structure/HANDOFF/git/history), working tree clean, **no new BAB-relevant changes made, no proven gaps found**.
+- **This session:** repo inspected (README/structure/HANDOFF/git/history), working tree clean, **all three gate floors re-confirmed green at HEAD `94c6582` (campaign_d 898/5/rc0; full BAB excl data_loader/controller 2234/5/rc0; campaign11+14 164/0/rc0), no new BAB-relevant changes made, no proven gaps found**.
 
 **Gate floors (must stay green):** campaign_d ≥883 passed/5 skipped/rc=0; full BAB excl data_loader/controller rc=0; campaign11+14 ≥164 passed/0 failed/rc=0. Re-run affected gates after any product/test edit.
 
@@ -91,18 +91,28 @@ Primary evidence: `/home/runner/work/_temp/kilo-tmp/c28_bab_repro_config_cli_api
 ## Handoff refresh requirement (before exit)
 
 Update this same `HANDOFF.md` with:
-- refreshed timestamp/HEAD — **done (2026-11-11T17:34:19Z, `eaecc7c`)**,
-- exact gate counts + rc + log paths — last recorded green floors preserved; no BAB edits this session so no re-run required,
+- refreshed timestamp/HEAD — **done (2026-11-11T17:35:44Z, `94c6582`)**,
+- exact gate counts + rc + log paths — all three floors re-confirmed green this session (campaign_d 898/5/rc0; full BAB excl data_loader/controller 2234/5/rc0; campaign11+14 164/0/rc0); no BAB edits this session so no additional re-run required beyond the floors above,
 - C28 item 5 resolution — CLOSED, per-combo evidence refs preserved below, **no-gap**,
 - C29 per-combo progress/results — COMPLETE (all 12 PASS), no gaps, evidence preserved,
 - next concrete heavy task message if work remains — **none identified; steady-state gate re-confirmation only on future BAB edits.**
 
 Keep it single, durable, and unambiguous.
 
-## Next concrete task message (next session)
+## Next concrete task message (next session) — FOCUS CAMPAIGN C30 (gate-protection / regression-prevention)
 
-**No proven gaps. No active bottlenecks.** Repo is in a green, steady state for BAB scope at `eaecc7c`.
-- **Do not** start new implementation, refactors, or probe campaigns without a concrete, statable BAB-relevant failure hypothesis.
-- **If you change any BAB product/test code:** re-run affected gates and all three floors (campaign_d ≥883/5sk/rc0; full BAB excl data_loader/controller rc0; campaign11+14 ≥164/0/rc0), add minimal regression only for a proven gap, and refresh this HANDOFF with evidence.
-- **If you find a new failure:** follow the binding "If a new failure..." procedure above and cite durable logs.
-- **Otherwise:** record "no proven gaps" and exit without churn. This is the binding steady-state instruction until new evidence appears.
+**No proven gaps. No active bottlenecks.** Repo is in a green, steady state for BAB scope at `94c6582`. C28 (items 1–5) CLOSED, C29 (12/12 combos) COMPLETE. There is nothing to fix.
+
+**Binding entry rule — the next agent must execute this focus campaign first, no preamble loops:**
+
+**Step 1 (mandatory, every session):** Re-confirm all three gate floors are still green before doing anything else:
+- campaign_d: `pytest tests/test_bab_data_loader_campaign_d*.py tests/test_bab_data_loader_batch148.py tests/test_bab_data_loader_batch149.py tests/test_bab_data_loader_batch172.py` → ≥883 passed / 5 skipped / rc=0
+- Full BAB excl `data_loader`/controller: `pytest -q --ignore-glob='*data_loader*' --ignore=tests/test_controller_progress_accounting.py` → rc=0
+- campaign11+14 closure bundle: `pytest tests/test_bab_cli_campaign11*.py tests/test_bab_cli_campaign14*.py` → ≥164 passed / 0 failed / rc=0
+Record counts + rc + log paths here. A red floor is a proven blocker that must be fixed before any other work.
+
+**Step 2:** Only if Step 1 is green AND you have a concrete, statable, reproducible BAB-relevant failure hypothesis, proceed to the binding "If a new failure is discovered" procedure above (durable probe log → smallest proven fix in allowed areas → minimal regression test → re-run floors → refresh HANDOFF).
+
+**Step 3 (the "never avoid heavy work" rule):** If no concrete failure hypothesis exists, record "no proven gaps", refresh timestamp/HEAD only if materially useful, and exit without code churn. **You are prohibited from inventing implementation, refactors, or probe campaigns, from weakening tests, from editing locked areas (`beta.py`, `data_loader.py`, `portfolio.py`, `sizing.py`, `strategy.py`, `backtest.py`, `signals.py`, `config.py`, `.github/workflows/*`, tracked `probe*`/`debug*`/`ast_probe.py`), or from declaring "blocked" without an evidenced attempt + durable logs.** The heavy work of this campaign is gate hygiene and regression protection, not new feature work.
+
+**If you change any BAB product/test code:** re-run affected gates and all three floors above, add minimal regression only for a proven gap, and refresh this HANDOFF with evidence. Otherwise: record "no proven gaps" and exit without churn. This is the binding steady-state instruction until new evidence appears.
