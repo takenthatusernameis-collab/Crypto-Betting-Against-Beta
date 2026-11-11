@@ -1,32 +1,33 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-11T12:06:23Z
-**HEAD:** `64296e5` (`chore(kilo): checkpoint agent session`) on `main`
+**Timestamp (refreshed):** 2026-11-11T12:09:49Z
+**HEAD:** `9535e21` (`chore(kilo): checkpoint agent session`) on `main`
 **Repo priority (binding):** `Crypto-Betting-Against-Beta` — every action must advance **Betting Against Beta** correctness, robustness, CLI/API/reporting/metrics fidelity, or proven regressions. No unrelated refactors, no workflow edits, no commit/push unless explicitly requested.
 
 ## BINDING INITIAL TASK MESSAGE — NEXT AGENT MUST EXECUTE HEAVY WORK IMMEDIATELY
 
-**No planning-only exits. No single-pass probes. No evidence-free claims. No declaring “blocked” without an evidenced attempt and durable logs.** Do not churn C6–C27 without a new, statable, reproducible failure supported by probe evidence. Work in small verified slices but make material progress every session.
+**Start with Phase B / C28 item 1 NOW (CLI↔API synthetic parity).** Do not plan-only, do not do a single-pass probe, do not declare "blocked" without an evidenced attempt and durable logs, and do not churn C6–C27 without a new statable reproducible failure supported by probe evidence. Work in small verified slices but make material progress every session. This handoff is the sole durable coordination artifact for this repo state.
 
 ## Current baseline (last confirmed; reconfirm only if code/tests/env change)
 
 - **campaign_d gate:** `883 passed, 5 skipped, 1808 deselected, 53 warnings in 10.47s`, **rc=0** — `/home/runner/work/_temp/kilo-tmp/c28_gate_campaign_d_refresh.log` (2026-11-11T11:53Z)
-- **Full BAB excl `data_loader`/`controller`:** `4782 passed, 35 skipped, 231 warnings in 527.00s (0:08:46)`, **rc=0** — `/home/runner/work/_temp/kilo-tmp/c28_step0_full_bab.log` (no product edits since; reconfirm after any edit)
-- **campaign11+14 closure bundle:** `164 tests collected` → `164 passed in 198.27s (0:03:18)`, **rc=0** — `/home/runner/work/_temp/kilo-tmp/c28_gate_campaign11_14_complete.log` (supersedes mid-run timeout artifact in `c28_gate_campaign11_14_refresh.log`)
+- **Full BAB excl `data_loader`/`controller`:** `4782 passed, 35 skipped, 231 warnings in 527.00s (0:08:46)`, **rc=0** — `/home/runner/work/_temp/kilo-tmp/c28_step0_full_bab.log`
+- **campaign11+14 closure bundle:** `164 tests collected` → `164 passed in 198.27s (0:03:18)`, **rc=0** — `/home/runner/work/_temp/kilo-tmp/c28_gate_campaign11_14_complete.log`
 
 **Gate floors (must stay green):** campaign_d ≥883 passed/5 skipped/rc=0; full BAB excl data_loader/controller ≥4782 passed/35 skipped/rc=0; campaign11+14 bundle ≥164 passed/0 failed/rc=0. Re-run affected gates after any product/test edit (full as required). If environment changed, preflight:
 `export PYTHONPATH=$PWD PATH=$HOME/.local/bin:$PATH && python3 -c "import numpy,pandas,scipy,pytest; print('ok')"`
 
 ## Known bottlenecks / environment notes
 
-- **No repo-level code blockers observed at handoff refresh.** Working tree clean on `main`; prior workflow diagnostics in `research_state/workflow_run_diagnostics.jsonl` reflect historical CI/tool-log signals (e.g. past invalid-argument tool calls), not current source/test failures.
-- **Session hygiene:** do not rely on transient `/home/runner/work/_temp/kilo-tmp/*` gate logs existing forever; preserve new probe/gate evidence to durable, uniquely named paths in `/home/runner/work/_temp/kilo-tmp/` and cite them here. Tracked `probe*`/`debug*`/`ast_probe.py` remain off-limits for edits/commits.
+- **No repo-level code/test blockers observed at handoff refresh.** Working tree clean on `main` (`9535e21`).
+- **Historical CI/workflow diagnostics only:** `research_state/workflow_run_diagnostics.jsonl` contains prior run log excerpts/signals (e.g. historical invalid tool-argument/write failures and old traces in captured logs), not evidence of current source/test failure in this checkout. Treat as historical; do not use them to justify inaction.
+- **Session hygiene:** transient `/home/runner/work/_temp/kilo-tmp/*` logs may not persist across sessions. Preserve new probe/gate evidence to durable, uniquely named paths in `/home/runner/work/_temp/kilo-tmp/` and cite them in this handoff. Tracked `probe*`/`debug*`/`ast_probe.py` remain off-limits for edits/commits.
 
 ## Phase B — CLOSE C28 review items (mandatory, heavy, evidence-first)
 
-Primary evidence: `/home/runner/work/_temp/kilo-tmp/c28_bab_repro_config_cli_api_reporting_probe_evidence.log` (+ `c28_probe.py|2|3`). For each item: apples-to-apples repro, capture durable evidence, then either land **smallest proven product fix in allowed modules + targeted regression** or record explicit **“no proven gap”** with evidence refs. Append new findings to `/home/runner/work/_temp/kilo-tmp/c28_closure_probe_evidence.log`.
+Primary evidence: `/home/runner/work/_temp/kilo-tmp/c28_bab_repro_config_cli_api_reporting_probe_evidence.log` (+ `c28_probe.py|2|3`). For each item: apples-to-apples repro, capture durable evidence, then either land **smallest proven product fix in allowed modules + targeted regression** or record explicit **"no proven gap"** with evidence refs. Append new findings to `/home/runner/work/_temp/kilo-tmp/c28_closure_probe_evidence.log`.
 
-1. **CLI↔API synthetic parity (REVIEW, unresolved):** CLI `--synthetic` (BTC, beta_window=90, q=0.3/0.3, tx=0.001, slip=0.0005) final `0.4124625210306529` vs direct `BABStrategy/BABConfig` run `0.3156954937661637` (probe log). Determine canonical equivalent config/data-generation/defaults path (CLI synthetic generation/universe/seed/params likely differ); prove parity or document intended divergence with precise reproducible evidence.
+1. **CLI↔API synthetic parity (REVIEW, unresolved) — START HERE:** CLI `--synthetic` (BTC, beta_window=90, q=0.3/0.3, tx=0.001, slip=0.0005) final `0.4124625210306529` vs direct `BABStrategy/BABConfig` run `0.3156954937661637` (probe log). Determine canonical equivalent config/data-generation/defaults path (CLI synthetic generation/universe/seed/params likely differ); prove parity or document intended divergence with precise reproducible evidence. **Action now:** trace CLI synthetic path end-to-end, construct exact API-equivalent run (or prove non-equivalence by contract), produce durable side-by-side evidence, then fix or close with evidence.
 2. **Config boundary contract (REVIEW, unresolved):** `long_quantile=0.6, short_quantile=0.6` (sum≥1) accepted/ran (`final=0.5035753195459134`); `benchmark='BTC'` inside `universe=['BTC','ETH']` accepted/ran (`final=0.9620761095211079`). Confirm intended contract; if validation gap, minimal fix in allowed modules + regression.
 3. **Attribution API/cross-consistency (PARTIAL):** prior probe raised `TypeError: trade_attribution() takes 1 positional argument but 2 were given` — **signature misuse in probe, not a proven product gap**. Re-probe with correct API and reconcile attribution vs weights/returns/report/tear_sheet on real + synthetic fixtures.
 4. **`beta_neutral=True` ex-post `strategy_beta` semantics (REVIEW, unresolved):** `metrics.strategy_beta` finite `0.059632543547352916` on real fixture (not NaN). State canonical apples-to-apples semantic/tolerance expectation with evidence; fix only if proven.
@@ -37,7 +38,7 @@ Primary evidence: `/home/runner/work/_temp/kilo-tmp/c28_bab_repro_config_cli_api
 ## Phase C — Execute C29 heavy campaign after C28 closure (≥12 combos, mandatory)
 
 Evidence log: `/home/runner/work/_temp/kilo-tmp/c29_bab_realtime_e2e_interaction_stress_probe_evidence.log`
-Regressions for proven fixes: `tests/test_bab_cli_campaign29*.py` (or most specific allowed location). If no proven gaps: record explicit “no proven gaps” per area with evidence refs and refresh this handoff.
+Regressions for proven fixes: `tests/test_bab_cli_campaign29*.py` (or most specific allowed location). If no proven gaps: record explicit "no proven gaps" per area with evidence refs and refresh this handoff.
 
 Required coverage:
 1. Real-fixture E2E determinism: `tests/fixtures/real_market_prices.csv` and `tests/fixtures/real_market_prices_expanded.csv` via CLI `--from-prices` and API `load_prices→BABStrategy.run()` — 3× each, byte/strict-JSON identical, rc=0.
