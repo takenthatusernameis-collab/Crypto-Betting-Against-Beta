@@ -1,52 +1,40 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-11T11:56:00Z
-**HEAD:** `6c15112` (`chore(kilo): checkpoint agent session`) on `main`
+**Timestamp (refreshed):** 2026-11-11T12:05:12Z
+**HEAD:** `7ecfcbd` (`chore(kilo): checkpoint agent session`) on `main`
 **Repo priority (binding):** `Crypto-Betting-Against-Beta` — every action must advance **Betting Against Beta** correctness, robustness, CLI/API/reporting fidelity, or proven regressions. No unrelated refactors, no workflow edits, no commit/push unless explicitly requested.
 
 ## BINDING INITIAL TASK MESSAGE — NEXT AGENT MUST EXECUTE HEAVY WORK IMMEDIATELY
 
-**No planning-only exits. No single-pass probes. No evidence-free claims. No declaring “blocked” without an evidenced attempt and captured durable logs.** Do not churn C6–C27 without a new, statable, reproducible failure supported by probe evidence. Work in small verified slices but make material progress every session.
+**No planning-only exits. No single-pass probes. No evidence-free claims. No declaring “blocked” without an evidenced attempt and durable logs.** Do not churn C6–C27 without a new, statable, reproducible failure supported by probe evidence. Work in small verified slices but make material progress every session.
 
-### Phase A — Unblock & finalize Step 0 baseline gates (do first, capture durable evidence)
+## Current baseline (confirmed; do not re-litigate)
 
-Preflight (record rc/output):
-`export PYTHONPATH=$PWD PATH=$HOME/.local/bin:$PATH && python3 -c "import numpy,pandas,scipy,pytest; print('ok')"`
+- **Step 0 gate — campaign_d:** `883 passed, 5 skipped, 1808 deselected, 53 warnings in 10.47s`, **rc=0** — `/home/runner/work/_temp/kilo-tmp/c28_gate_campaign_d_refresh.log` (2026-11-11T11:53Z)
+- **Step 0 gate — full BAB excl `data_loader`/`controller`:** `4782 passed, 35 skipped, 231 warnings in 527.00s (0:08:46)`, **rc=0** — `/home/runner/work/_temp/kilo-tmp/c28_step0_full_bab.log` (prior complete, no product edits since; reconfirm only if you change code/tests)
+- **Step 0 gate — campaign11+14 closure bundle:** `164 tests collected` → `164 passed in 198.27s (0:03:18)`, **rc=0** — `/home/runner/work/_temp/kilo-tmp/c28_gate_campaign11_14_complete.log` (**bottleneck closed**; earlier `c28_gate_campaign11_14_refresh.log` was a mid-run timeout artifact, superseded)
 
-Run each gate to completion with `tee` logs and record **exact pass/skip/fail counts + rc** in the next handoff refresh:
+**Gate floors (must stay green):** campaign_d ≥883 passed/5 skipped/rc=0; full BAB excl data_loader/controller ≥4782 passed/35 skipped/rc=0; campaign11 bundle incl. 11ab + campaign14 ≥164 passed/0 failed/rc=0. Re-run affected gates after any product/test edit (full as required).
 
-1. `python3 -m pytest -q -k campaign_d tests/test_bab_data_loader*.py 2>&1 | tee /home/runner/work/_temp/kilo-tmp/c28_gate_campaign_d.log`
-   - **Floor:** ≥883 passed, 5 skipped, rc=0
-2. `python3 -m pytest -q tests/test_bab_*.py tests/test_betting_against_beta*.py --ignore=tests/test_bab_data_loader* --ignore=tests/test_controller* 2>&1 | tee /home/runner/work/_temp/kilo-tmp/c28_gate_full_bab.log`
-   - **Floor:** ≥4782 passed, 35 skipped, rc=0 (raise only if legitimately increased)
-3. `python3 -m pytest -q tests/test_bab_cli_campaign11m*.py tests/test_bab_cli_campaign11n*.py tests/test_bab_cli_campaign11o*.py tests/test_bab_cli_campaign11p*.py tests/test_bab_cli_campaign11q*.py tests/test_bab_cli_campaign11s*.py tests/test_bab_cli_campaign11ab*.py tests/test_bab_cli_campaign14_cli_reporting.py 2>&1 | tee /home/runner/work/_temp/kilo-tmp/c28_gate_campaign11_14.log`
-   - **Floor:** ≥164 passed, 0 failed, rc=0 (**mandatory closure — current refresh did NOT confirm completion**)
+## Phase A — Fast preflight only if environment changed
+`export PYTHONPATH=$PWD PATH=$HOME/.local/bin:$PATH && python3 -c "import numpy,pandas,scipy,pytest; print('ok')"` (record rc/output). Skip re-running full gates unless code/tests change.
 
-If any gate regresses: stop feature work, produce probe evidence, apply the smallest proven fix in allowed modules + targeted regression, and re-run affected gates.
+## Phase B — CLOSE C28 review items (mandatory, heavy, evidence-first)
 
-**Current gate evidence (verify; no product edits since refresh):**
-- campaign_d **PASSED (refreshed):** `883 passed, 5 skipped, 1808 deselected, 53 warnings in 10.47s`, rc=0 — `/home/runner/work/_temp/kilo-tmp/c28_gate_campaign_d_refresh.log` (2026-11-11T11:53Z)
-- full BAB excl `data_loader`/`controller` **prior complete evidence:** `4782 passed, 35 skipped, 231 warnings in 527.00s (0:08:46)`, rc=0 — `/home/runner/work/_temp/kilo-tmp/c28_step0_full_bab.log` (349 lines, ends with summary). Reconfirm if any edit occurs.
-- campaign11+14 bundle **INCOMPLETE/BOTTLENECK:** `164 tests collected` (`--co`); run started but exceeded 120s tool timeout in this session and did not reach final summary — partial progress captured in `/home/runner/work/_temp/kilo-tmp/c28_gate_campaign11_14_refresh.log` (ends mid-run around ~43%). **Next agent must run to completion and record final counts+rc.**
+Primary evidence: `/home/runner/work/_temp/kilo-tmp/c28_bab_repro_config_cli_api_reporting_probe_evidence.log` (+ probes `c28_probe.py|2|3`). For each item: apples-to-apples repro, capture durable evidence, then either land **smallest proven product fix in allowed modules + targeted regression** or record explicit **“no proven gap”** with evidence refs. Append new findings to `/home/runner/work/_temp/kilo-tmp/c28_closure_probe_evidence.log`.
 
-### Phase B — Close C28 REVIEW items with canonical probe evidence (heavy, mandatory)
+1. **CLI↔API synthetic parity (REVIEW, unresolved):** CLI `--synthetic` (BTC, beta_window=90, q=0.3/0.3, tx=0.001, slip=0.0005) final `0.4124625210306529` vs direct `BABStrategy/BABConfig` run `0.3156954937661637` (probe log). Determine canonical equivalent config/data-generation/defaults path (CLI synthetic generation/universe/seed/params likely differ); prove parity or document intended divergence with precise reproducible evidence.
+2. **Config boundary contract (REVIEW, unresolved):** `long_quantile=0.6, short_quantile=0.6` (sum≥1) accepted/ran (`final=0.5035753195459134`); `benchmark='BTC'` inside `universe=['BTC','ETH']` accepted/ran (`final=0.9620761095211079`). Confirm intended contract; if validation gap, minimal fix in allowed modules + regression.
+3. **Attribution API/cross-consistency (PARTIAL, probe misuse not disproven):** prior probe raised `TypeError: trade_attribution() takes 1 positional argument but 2 were given` — **signature misuse in probe, not a proven product gap**. Re-probe with correct API and reconcile attribution vs weights/returns/report/tear_sheet on real + synthetic fixtures.
+4. **`beta_neutral=True` ex-post `strategy_beta` semantics (REVIEW, unresolved):** `metrics.strategy_beta` finite `0.059632543547352916` on real fixture (not NaN). State canonical apples-to-apples semantic/tolerance expectation with evidence; fix only if proven.
+5. **Expand matrix (required):** additional CLI knob combos; API `report()/tear_sheet()` strict finiteness on degenerate inputs (`allow_nan=False`); all relevant defect fixtures/modes; output-path edges (incl. unwritable if feasible); regime/cost/slippage/rebalance combos. Determinism = identical outputs/strict JSON across repeated runs.
 
-Read existing evidence: `/home/runner/work/_temp/kilo-tmp/c28_bab_repro_config_cli_api_reporting_probe_evidence.log` (2026-11-11T11:34Z, combos 1–12), probes `c28_probe.py|2|3`. For each item: apples-to-apples repro, capture evidence, then either land smallest proven product fix + regression or record explicit **“no proven gap”** with evidence refs.
+**Known status:** no proven product gaps fixed yet; items above remain REVIEW/PARTIAL pending canonical closure. Do not invent gaps.
 
-1. **CLI↔API synthetic parity (REVIEW):** CLI `--synthetic` (BTC, beta_window=90, q=0.3/0.3, tx=0.001, slip=0.0005) final `0.4124625210306529` vs direct `BABStrategy/BABConfig` run `0.3156954937661637`. Determine canonical equivalent config/data-generation/defaults path (CLI synthetic generation/universe/params likely differ); prove parity or document intended divergence with precise, reproducible evidence.
-2. **Config boundary contract (REVIEW):** `long_quantile=0.6, short_quantile=0.6` (sum≥1) accepted/ran (`final=0.5035753195459134`); `benchmark='BTC'` inside `universe=['BTC','ETH']` accepted/ran (`final=0.9620761095211079`). Confirm intended contract; if validation gap, minimal fix in allowed modules + regression.
-3. **Attribution API/cross-consistency (PARTIAL):** prior probe raised `TypeError: trade_attribution() takes 1 positional argument but 2 were given` (signature misuse, not proven product gap). Re-probe with correct API and reconcile attribution vs weights/returns/report/tear_sheet.
-4. **`beta_neutral=True` ex-post `strategy_beta` semantics (REVIEW):** `metrics.strategy_beta` finite `0.059632543547352916` on real fixture (not NaN). State canonical apples-to-apples semantic/tolerance expectation with evidence; fix only if proven.
-5. **Expand matrix (required):** additional CLI knob combos; API `report()/tear_sheet()` strict finiteness on degenerate inputs; all relevant defect fixtures/modes; output-path edges (incl. unwritable if feasible); regime/cost/slippage/rebalance combos. Determinism = identical outputs/strict JSON across repeated runs.
-
-Append new findings to `/home/runner/work/_temp/kilo-tmp/c28_closure_probe_evidence.log`.
-
-**Proven gaps so far:** none fixed. Prior C28 observations remain **REVIEW/PARTIAL pending canonical closure** — do not invent gaps; do not leave unresolved without evidence.
-
-### Phase C — Execute C29 heavy campaign after C28 closure (≥12 combos, mandatory)
+## Phase C — Execute C29 heavy campaign after C28 closure (≥12 combos, mandatory)
 
 Evidence log: `/home/runner/work/_temp/kilo-tmp/c29_bab_realtime_e2e_interaction_stress_probe_evidence.log`
-Regression tests for any proven fix: `tests/test_bab_cli_campaign29*.py` (or most specific allowed location). If no proven gaps: record explicit “no proven gaps” per area with evidence refs and refresh handoff.
+Regressions for proven fixes: `tests/test_bab_cli_campaign29*.py` (or most specific allowed location). If no proven gaps: record explicit “no proven gaps” per area with evidence refs and refresh handoff.
 
 Required coverage:
 1. Real-fixture E2E determinism: `tests/fixtures/real_market_prices.csv` and `tests/fixtures/real_market_prices_expanded.csv` via CLI `--from-prices` and API `load_prices→BABStrategy.run()` — 3× each, byte/strict-JSON identical, rc=0.
@@ -62,21 +50,14 @@ Required coverage:
 11. Repeated-invocation determinism (same CLI 3× quick succession), strict-JSON identical.
 12. Any additional BAB-relevant stress found during probing with finite/deterministic/contract evidence.
 
-### Gates that must stay green (non-negotiable)
-- `campaign_d` ≥883 passed, 5 skipped, rc=0
-- full BAB excl `data_loader`/`controller` ≥4782 passed, 35 skipped, rc=0
-- campaign11 bundle incl. 11ab + campaign14 ≥164 passed, 0 failed, rc=0
-
-Re-run all Step 0 gates (or touched subsets with justification, then full as required) after every product/test edit.
-
-### Locks / prohibitions
+## Locks / prohibitions
 - Do **not** edit `.github/workflows/*`.
-- Do **not** edit/commit tracked `probe*`/`debug*`/`ast_probe.py`.
+- Do **not** edit/commit tracked `probe*`/`debug*`/`ast_probe.py` (use untracked `/home/runner/work/_temp/kilo-tmp/` probes).
 - Do **not** weaken/delete `batch148/149/172` or `campaign_d*` tests.
 - `beta.py`/`data_loader.py` closed — no changes without new disproving evidence and minimal fix.
 - `portfolio.py`/`sizing.py`/`strategy.py`/`backtest.py`/`signals.py`/`config.py` locked unless disproven by new evidence.
-- `cli.py`/`metrics.py`/reporting/`scripts`/`costs.py`/`regime.py`/`attribution.py`/`shorting.py`/`sizing.py` editable **only** for smallest proven fix from probe evidence.
+- Editable **only for smallest proven fix from probe evidence:** `cli.py`, `metrics.py`, reporting, `scripts/*`, `costs.py`, `regime.py`, `attribution.py`, `shorting.py`, `sizing.py`.
 - No commit/push unless explicitly requested.
 
-### Handoff refresh requirement (before exit)
+## Handoff refresh requirement (before exit)
 Update this same `HANDOFF.md` with: refreshed timestamp/HEAD, exact gate counts+rc+log paths, C28 item-by-item resolution (fixed+regression or explicit no-gap + evidence), C29 progress/results, proven gaps/regressions, and the next concrete heavy task message if work remains. Keep it single, durable, and unambiguous.
