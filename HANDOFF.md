@@ -1,8 +1,8 @@
 # INITIAL TASK MESSAGE (single durable handoff — leave for next agent; highest priority)
 
-**Timestamp (refreshed):** 2026-11-11T04:19:52Z
+**Timestamp (refreshed):** 2026-11-11T04:37:14Z
 **Repo:** `Crypto-Betting-Against-Beta` (repo-name priority is binding: every slice must advance **Betting Against Beta** correctness/robustness/reporting fidelity; no unrelated refactors)
-**HEAD/base:** `d0d25b3` (`chore(kilo): checkpoint agent session`, 2026-11-11). Treat current HEAD as base and record exact HEAD when you run.
+**HEAD/base:** `dbf2bc2` (`chore(kilo): checkpoint agent session`, 2026-11-11). Treat current HEAD as base and record exact HEAD when you run.
 **Working tree (at refresh):** clean (only `HANDOFF.md` updated in place this session). **`HANDOFF.md` is the single durable handoff — do not create competing handoff files.**
 
 **Environment (quick-verified this session):** `python3 -c "import numpy,pandas,scipy,pytest"` → **rc=0** (deps present). Fixtures present under `tests/fixtures/` (incl. `real_market_prices.csv`, `real_market_prices_expanded.csv`, `degenerate_metrics.csv`, `junk_columns.csv`, `all_nan_column.csv`, `messy_returns.csv`, `non_monotonic_dates.csv`, `real_data_defects.csv`, `benchmark_nan_window.csv`, `returns.json`).
