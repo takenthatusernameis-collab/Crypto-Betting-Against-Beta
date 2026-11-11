@@ -1,7 +1,7 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-11T16:20:45Z
-**HEAD:** `0f966f6` (`chore(kilo): checkpoint agent session`) on `main` (clean working tree, in sync with origin/main per session start)
+**Timestamp (refreshed):** 2026-11-11T16:40:02Z
+**HEAD:** `79207f1` (`chore(kilo): checkpoint agent session`) on `main` (clean working tree, in sync with origin/main per session start)
 **Repo priority (binding):** `Crypto-Betting-Against-Beta` — every action must advance **Betting Against Beta** correctness, robustness, CLI/API/reporting/metrics fidelity, or proven regressions. No unrelated refactors, no workflow edits, no commit/push unless explicitly requested.
 
 ## BINDING INITIAL TASK MESSAGE — NEXT AGENT MUST EXECUTE HEAVY WORK IMMEDIATELY
@@ -9,8 +9,10 @@
 **Do not plan-only. Do not run a single-pass probe. Start implementing the required campaign now and produce durable evidence every slice.**
 
 - **C28 items 1–4:** CLOSED with evidence (no proven product gaps). **Do not reopen/churn without a new, statable, reproducible failure + probe evidence.**
-- **C28 item 5 (expand matrix): PARTIAL — continue and close it immediately.**
-- **C29 heavy campaign (all 12 mandatory combos): NOT STARTED — execute after/while closing item 5 per the matrix below.** Minimum ≥12 combos total with durable logs.
+- **C28 item 5 (expand matrix): PARTIAL — continue and close it immediately.** Remaining: additional CLI knob combos; API `report()`/`tear_sheet()` strict finiteness on degenerate inputs (`allow_nan=False`); all relevant defect fixtures/modes; output-path edges (incl. unwritable if feasible); regime/cost/slippage/rebalance combos. Determinism = identical outputs/strict JSON across repeated runs. Record per-combo PASS/FAIL with evidence refs; add minimal regressions only for proven gaps.
+- **C29 heavy campaign (all 12 mandatory combos): THE FOCUS — execute now per the matrix below.** Minimum ≥12 combos total with durable logs in `/home/runner/work/_temp/kilo-tmp/c29_bab_realtime_e2e_interaction_stress_probe_evidence.log`.
+
+**INITIAL TASK (next session, execute immediately):** Run C29 combo 1 — Real-fixture E2E determinism: `tests/fixtures/real_market_prices.csv` and `tests/fixtures/real_market_prices_expanded.csv` via CLI `--from-prices` and API `load_prices→BABStrategy.run()`, 3× each, byte/strict-JSON identical, `rc=0`. Log each run to the C29 evidence log with timestamp, command, output hash, and PASS/FAIL. Then proceed through combos 2–12 in order. Do not stop at combo 1.
 
 Working tree is clean and preflight deps are available in prior baselines; re-run preflight if env changed:
 `export PYTHONPATH=$PWD PATH=$HOME/.local/bin:$PATH && python3 -c "import numpy,pandas,scipy,pytest; print('ok')"`
@@ -43,10 +45,11 @@ Primary evidence: `/home/runner/work/_temp/kilo-tmp/c28_bab_repro_config_cli_api
 4. **`beta_neutral=True` ex-post `strategy_beta` semantics — CLOSED (no proven gap).** Ex-post OLS beta of realized returns vs benchmark (finite) is correct/canonical; neutral enforcement targets portfolio beta exposure causally (tolerance/estimation/time-variation/cost effects can leave finite realized beta). Report/metrics consistent.
 5. **Expand matrix — PARTIAL (MANDATORY NOW).** Exercised: real+synthetic attribution/report paths and deterministic strict-JSON report sanity (`allow_nan=False`, identical reruns, beta_neutral+costs+slippage) in session closure log. **Still required to close item 5:** additional CLI knob combos; API `report()`/`tear_sheet()` strict finiteness on degenerate inputs (`allow_nan=False`); all relevant defect fixtures/modes; output-path edges (incl. unwritable if feasible); regime/cost/slippage/rebalance combos. Determinism = identical outputs/strict JSON across repeated runs. Record per-combo PASS/FAIL with evidence refs; add minimal regressions only for proven gaps.
 
-**Status:** items 1–4 closed (no proven gaps). Item 5 PARTIAL. C29 NOT STARTED. **Do not invent gaps.**
+**Status:** items 1–4 closed (no proven gaps). Item 5 PARTIAL. C29 IN FOCUS — execute combos 1–12 now. **Do not invent gaps.**
 
-## Phase C — Execute C29 heavy campaign (≥12 combos, mandatory)
+## Phase C — Execute C29 heavy campaign (≥12 combos, mandatory) — IN FOCUS NOW
 
+**Status:** C29 in progress. Combo 1 (Real-fixture E2E determinism) is the initial task above; combos 2–12 follow in order.
 **Evidence log (create/append, durable):** `/home/runner/work/_temp/kilo-tmp/c29_bab_realtime_e2e_interaction_stress_probe_evidence.log`
 **Regressions for proven fixes only:** `tests/test_bab_cli_campaign29*.py` (or most specific allowed location).
 If no proven gaps: record explicit **"no proven gaps"** per area with evidence refs and refresh this handoff.
