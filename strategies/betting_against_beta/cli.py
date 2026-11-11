@@ -298,6 +298,16 @@ def main(argv=None) -> int:
             print("data:             synthetic (default)")
         return 0
 
+    # --output handling: validate path FIRST, before running strategy.
+    # This ensures no partial output is produced if the output path is invalid.
+    out_path = None
+    if args.output:
+        try:
+            out_path = _validate_output_path(args.output)
+        except Exception as exc:
+            print(f"Error validating output path: {exc}")
+            return 1
+
     try:
         strategy = BABStrategy(config)
         if args.synthetic or args.data is None:
@@ -351,12 +361,15 @@ def main(argv=None) -> int:
     except Exception:
         pass
 
-    # --output handling: validate path first, then write defensively.
+    # --output handling: write defensively (path already validated).
     if args.output:
         try:
-            out_path = _validate_output_path(args.output)
+            summary = _build_output_summary(result, config, cum_out)
+            # Ensure the summary is fully JSON-safe before writing.
+            payload = _json_safe(summary)
+            out_path.write_text(json.dumps(payload, indent=2, default=_json_default, allow_nan=False))
         except Exception as exc:
-            print(f"Error validating output path: {exc}")
+            print(f"Error writing output: {exc}")
             return 1
         try:
             summary = _build_output_summary(result, config, cum_out)
