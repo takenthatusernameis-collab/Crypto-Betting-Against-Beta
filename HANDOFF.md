@@ -1,7 +1,7 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-11T18:47:27Z
-**HEAD:** `43b4d85` (`chore(kilo): checkpoint agent session`) on `main`
+**Timestamp (refreshed):** 2026-11-11T18:51:48Z
+**HEAD:** `bc0af86` (`chore(kilo): checkpoint agent session`) on `main`
 **Repo priority (binding):** `Crypto-Betting-Against-Beta` — every action must advance **Betting Against Beta** correctness, robustness, CLI/API/reporting/metrics fidelity, or a newly proven regression. No unrelated refactors, no `.github/workflows/*` edits, no commit/push unless explicitly requested.
 
 ## BINDING INITIAL TASK MESSAGE — NEXT AGENT (execute first, no preamble loops)
@@ -20,13 +20,13 @@
 
 **If no new failure is found:** state "no proven gaps", keep gates/floors unchanged (or record completed re-runs), refresh timestamp/HEAD/evidence summary, and exit without code churn. Do not declare "blocked" without an evidenced attempt and durable logs. This file is the sole durable coordination artifact.
 
-## Current baseline (2026-11-11T18:47:27Z, HEAD `43b4d85`, clean tree; NO BAB product/test code edited)
+## Current baseline (2026-11-11T18:51:48Z, HEAD `bc0af86`, clean tree; NO BAB product/test code edited)
 
-- **campaign_d gate floor (re-confirmed this session):** `898 passed, 5 skipped, rc=0` in 6.27s (≥883 floor). Command: `python3 -m pytest -q tests/test_bab_data_loader_campaign_d*.py tests/test_bab_data_loader_batch148.py tests/test_bab_data_loader_batch149.py tests/test_bab_data_loader_batch172.py` (stdout captured in session; persist to durable log on next run if needed).
-- **Full BAB excl `data_loader`/controller floor:** **NOT re-run to completion this session** (time-boxed to avoid inconclusive partial run). Last recorded green at `bc98cf4`: `2234 passed, 5 skipped, rc=0`. **Must be re-run to completion as first heavy action next session / after any BAB edit** (use ample timeout and durable log e.g. `/home/runner/work/_temp/kilo-tmp/c30_gate_full_<ts>.log`).
-- **campaign11+14 closure bundle floor:** **NOT re-run to completion this session**. Last recorded green at `bc98cf4`: `164 passed, 0 failed, rc=0`. **Must be re-run to completion next session / after any BAB edit** (durable log e.g. `/home/runner/work/_temp/kilo-tmp/c30_gate_campaign11_14_<ts>.log`).
+- **campaign_d gate floor (re-confirmed this session):** `898 passed, 5 skipped, rc=0` in 8.44s (≥883 floor). Durable log: `/home/runner/work/_temp/kilo-tmp/c30_gate_campaign_d_20261111T1852Z.log`. Command: `python3 -m pytest -q tests/test_bab_data_loader_campaign_d*.py tests/test_bab_data_loader_batch148.py tests/test_bab_data_loader_batch149.py tests/test_bab_data_loader_batch172.py`
+- **Full BAB excl `data_loader`/controller floor:** **Re-ran to completion this session:** `2234 passed, 5 skipped, rc=0` in 561.86s (matches last recorded green at `bc98cf4`). Durable log: `/home/runner/work/_temp/kilo-tmp/c30_gate_full_bab_20261111T1852Z.log`. Command: `python3 -m pytest -q --ignore-glob='*data_loader*' --ignore=tests/test_controller_progress_accounting.py`
+- **campaign11+14 closure bundle floor:** **Re-ran to completion this session:** `164 passed, 0 failed, rc=0` in 207.05s (≥164 floor). Durable log: `/home/runner/work/_temp/kilo-tmp/c30_gate_campaign11_14_20261111T1852Z.log`. Command: `python3 -m pytest -q tests/test_bab_cli_campaign11*.py tests/test_bab_cli_campaign14*.py`
 - **Known non-BAB (excluded from BAB gates, not a blocker):** `tests/test_controller_progress_accounting.py` has controller/infra failures (workflow `stage_safe_changes` excludes nested `*/.github/workflows/*` in `scripts/controller_progress.py`). **Do not edit `.github/workflows/*`; do not weaken tests.**
-- **This session:** repo/README/HANDOFF/git/diagnostics inspected, working tree clean, no BAB product/test edits made, no new reproducible BAB failure found. `research_state/workflow_run_diagnostics.jsonl` remains historical CI-log excerpts only.
+- **This session:** all three gate floors re-confirmed green to completion with durable logs, repo/README/HANDOFF/git/diagnostics inspected, working tree clean, no BAB product/test edits made, no new reproducible BAB failure found. `research_state/workflow_run_diagnostics.jsonl` remains historical CI-log excerpts only.
 
 **Gate floors (must stay green):** campaign_d ≥883 passed/5 skipped/rc=0; full BAB excl data_loader/controller rc=0; campaign11+14 ≥164 passed/0 failed/rc=0. Re-run affected gates after any product/test edit.
 
@@ -56,14 +56,14 @@
 **No proven gaps. No active BAB bottlenecks.** Steady-state maintenance only until new evidence appears.
 
 **Step 1 (mandatory, every session, first):** Re-confirm all three gate floors to completion (capture durable logs under `/home/runner/work/_temp/kilo-tmp/c30_gate_<name>_<ts>.log`):
-- campaign_d: `python3 -m pytest -q tests/test_bab_data_loader_campaign_d*.py tests/test_bab_data_loader_batch148.py tests/test_bab_data_loader_batch149.py tests/test_bab_data_loader_batch172.py` → ≥883 passed / 5 skipped / rc=0
-- Full BAB excl `data_loader`/controller: `python3 -m pytest -q --ignore-glob='*data_loader*' --ignore=tests/test_controller_progress_accounting.py` → rc=0
-- campaign11+14 closure bundle: `python3 -m pytest -q tests/test_bab_cli_campaign11*.py tests/test_bab_cli_campaign14*.py` → ≥164 passed / 0 failed / rc=0
-Record counts + rc + log paths here. A red floor is a proven blocker — fix before any other work.
+- campaign_d: `python3 -m pytest -q tests/test_bab_data_loader_campaign_d*.py tests/test_bab_data_loader_batch148.py tests/test_bab_data_loader_batch149.py tests/test_bab_data_loader_batch172.py` → **GREEN this session: 898 passed / 5 skipped / rc=0** (log: `/home/runner/work/_temp/kilo-tmp/c30_gate_campaign_d_20261111T1852Z.log`)
+- Full BAB excl `data_loader`/controller: `python3 -m pytest -q --ignore-glob='*data_loader*' --ignore=tests/test_controller_progress_accounting.py` → **GREEN this session: 2234 passed / 5 skipped / rc=0** (log: `/home/runner/work/_temp/kilo-tmp/c30_gate_full_bab_20261111T1852Z.log`)
+- campaign11+14 closure bundle: `python3 -m pytest -q tests/test_bab_cli_campaign11*.py tests/test_bab_cli_campaign14*.py` → **GREEN this session: 164 passed / 0 failed / rc=0** (log: `/home/runner/work/_temp/kilo-tmp/c30_gate_campaign11_14_20261111T1852Z.log`)
+Record counts + rc + log paths here. A red floor is a proven blocker — fix before any other work. All three floors are currently green.
 
 **Step 2:** Only if Step 1 is fully green AND you have a concrete, statable, reproducible BAB-relevant failure hypothesis, execute the "If a new failure is discovered" procedure (durable probe log → smallest proven fix in allowed areas only → minimal regression test only for the proven gap → re-run floors → refresh HANDOFF).
 
-**Step 3 (never avoid heavy work, never invent work):** If no concrete failure hypothesis exists, record "no proven gaps", keep evidence current, and exit without code churn. **Prohibited:** inventing implementation/refactors/probe campaigns, weakening tests, editing locked areas or `.github/workflows/*` or tracked `probe*`/`debug*`/`ast_probe.py`, or declaring "blocked" without an evidenced attempt + durable logs. Heavy work in C30 means rigorous gate verification and regression protection — not feature work.
+**Step 3 (never avoid heavy work, never invent work):** If no concrete failure hypothesis exists, record "no proven gaps", keep evidence current, and exit without code churn. **No new BAB-relevant failure hypothesis exists this session.** Heavy work in C30 = rigorous gate verification and regression protection (completed above) — not feature work. Exit steady-state.
 
 ## Handoff refresh requirement (before exit)
 
