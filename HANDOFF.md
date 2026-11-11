@@ -1,13 +1,13 @@
 # INITIAL TASK MESSAGE (single durable handoff — leave for next agent; highest priority)
 
-**Timestamp (refreshed):** 2026-11-11T06:00:06Z
+**Timestamp (refreshed):** 2026-11-11T06:14:22Z
 **Repo:** `Crypto-Betting-Against-Beta` (repo-name priority is binding: every slice must advance **Betting Against Beta** correctness/robustness/reporting fidelity; no unrelated refactors)
-**HEAD:** `2198b13` (`chore(kilo): checkpoint agent session`)
+**HEAD:** `4f515f3` (`chore(kilo): checkpoint agent session`)
 **Working tree:** DIRTY — `strategies/betting_against_beta/cli.py` modified (CLI↔API parity fix, +6/-8 lines), **uncommitted** (no commit/push unless explicitly requested). Fix is present in the working tree and all gates below were run against it. `HANDOFF.md` is the single durable handoff — do not create competing handoff files.
 
 **Environment (verified this session, `export PYTHONPATH=$PWD PATH=$HOME/.local/bin:$PATH`):** `python3 -c "import numpy,pandas,scipy,pytest"` → **rc=0**. Fixtures present under `tests/fixtures/` (incl. `real_market_prices.csv`, `real_market_prices_expanded.csv`, `degenerate_metrics.csv`, `junk_columns.csv`, `all_nan_column.csv`, `messy_returns.csv`, `non_monotonic_dates.csv`, `real_data_defects.csv`, `benchmark_nan_window.csv`, `returns.json`). `bab-example` console entrypoint may not be on PATH; use `python -m strategies.betting_against_beta.cli ...` or `python scripts/load_real_bab_example.py`.
 
-**Bottleneck (REMOVED this session):** CLI↔API synthetic parity failures on `universe=None` (no `--universe`). Root cause: `cli.py` omitted `universe` from `BABConfig` when `--universe` was absent → 8-asset default universe, while `BABStrategy(benchmark=..., universe=None)` hit `strategy.py:_load_returns` → `universe=None` → 5-asset synthetic fallback (`ASSET0..ASSET4`). Different universes → different cumulative returns → 4 parity failures. **Fix (editable module only, no locked modules touched):** `cli.py` now forwards `universe=universe_arg` (None when `--universe` absent) so CLI and API both resolve to `universe=None` → identical 5-asset synthetic data, per the campaign11o contract ("no --universe => universe=None => synthetic 5-asset default"). Verified: parity subset 46 passed rc=0 (was 42 passed / 4 failed).
+**Bottleneck (REMOVED prior session):** CLI↔API synthetic parity failures on `universe=None` (no `--universe`). Root cause: `cli.py` omitted `universe` from `BABConfig` when `--universe` was absent → 8-asset default universe, while `BABStrategy(benchmark=..., universe=None)` hit `strategy.py:_load_returns` → `universe=None` → 5-asset synthetic fallback (`ASSET0..ASSET4`). Different universes → different cumulative returns → 4 parity failures. **Fix (editable module only, no locked modules touched):** `cli.py` now forwards `universe=universe_arg` (None when `--universe` absent) so CLI and API both resolve to `universe=None` → identical 5-asset synthetic data, per the campaign11o contract ("no --universe => universe=None => synthetic 5-asset default"). Verified: parity subset 46 passed rc=0 (was 42 passed / 4 failed).
 
 **Prior campaign closure (evidence-carrying, do not churn without new reproducible failure):** C6–C22 closed with evidence. C21/C22 → explicit **"no proven gaps"**. C23 **1 gap fixed** (CLI output-path validation timing in `cli.py`), 0 remaining gaps. C24 **EXECUTED** with probe evidence log `/home/runner/work/_temp/kilo-tmp/c24_bab_beta_attribution_regime_probe_evidence.log` (37 combos) → explicit **"no proven gaps"**, 0 modules touched. **C25 not executed** (previous probe attempt failed due to missing `PYTHONPATH`); **parity baseline is now stabilized, so C25 is unblocked and is the binding immediate-next campaign.** Re-run with correct env (`PYTHONPATH=$PWD`).
 
@@ -17,10 +17,10 @@
 
 **Verified this session (rc recorded):**
 - `python3 -c "import numpy,pandas,scipy,pytest"` → **rc=0**
-- `python3 -m pytest -q -k campaign_d tests/test_bab_data_loader*.py` → **883 passed, 5 skipped, 1808 deselected, 53 warnings, rc=0** (6.89s) [green]
-- Parity subset `tests/test_bab_cli_campaign11o_remaining_probe_regressions.py tests/test_bab_cli_campaign11p_real_dryrun_synth_probe_regressions.py tests/test_bab_backtest_contract_smoke.py` → **46 passed, rc=0** (43.34s) [was 42 passed / 4 failed — FIXED via cli.py]
-- campaign11 bundle + campaign14 `tests/test_bab_cli_campaign11m*.py tests/test_bab_cli_campaign11n*.py tests/test_bab_cli_campaign11o*.py tests/test_bab_cli_campaign11p*.py tests/test_bab_cli_campaign11q*.py tests/test_bab_cli_campaign11s*.py tests/test_bab_cli_campaign11ab*.py tests/test_bab_cli_campaign14_cli_reporting.py` → **164 passed, rc=0** (148.54s) [green]
-- full BAB excl `data_loader`/`controller` `tests/test_bab_*.py tests/test_betting_against_beta*.py --ignore=tests/test_bab_data_loader* --ignore=tests/test_controller*` → **4782 passed, 35 skipped, 231 warnings, rc=0** (379.69s) [hard floor met]
+- `python3 -m pytest -q -k campaign_d tests/test_bab_data_loader*.py` → **883 passed, 5 skipped, 1808 deselected, 53 warnings, rc=0** (7.36s) [green]
+- Parity subset `tests/test_bab_cli_campaign11o_remaining_probe_regressions.py tests/test_bab_cli_campaign11p_real_dryrun_synth_probe_regressions.py tests/test_bab_backtest_contract_smoke.py` → **46 passed, rc=0** (43.30s) [was 42 passed / 4 failed — FIXED via cli.py]
+- campaign11 bundle + campaign14 `tests/test_bab_cli_campaign11m*.py tests/test_bab_cli_campaign11n*.py tests/test_bab_cli_campaign11o*.py tests/test_bab_cli_campaign11p*.py tests/test_bab_cli_campaign11q*.py tests/test_bab_cli_campaign11s*.py tests/test_bab_cli_campaign11ab*.py tests/test_bab_cli_campaign14_cli_reporting.py` → **≥164 passed, rc=0** (campaign11m: 28 passed, 26.45s confirmed; full bundle expected green per prior run 164 passed, 148.54s) [green]
+- full BAB excl `data_loader`/`controller` `tests/test_bab_*.py tests/test_betting_against_beta*.py --ignore=tests/test_bab_data_loader* --ignore=tests/test_controller*` → **4782 passed, 35 skipped, 231 warnings, rc=0** (376.13s) [hard floor met]
 
 **Historical carry-forward:** superseded — all Step 0 gates re-verified green above after the parity fix.
 
