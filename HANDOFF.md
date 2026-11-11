@@ -1,8 +1,8 @@
 # INITIAL TASK MESSAGE (single durable handoff — leave for next agent; highest priority)
 
-**Timestamp (refreshed):** 2026-11-11T06:42:07Z
+**Timestamp (refreshed):** 2026-11-11T06:43:10Z
 **Repo:** `Crypto-Betting-Against-Beta` (repo-name priority is binding: every slice must advance **Betting Against Beta** correctness/robustness/reporting fidelity; no unrelated refactors)
-**HEAD:** `e4d6619` (`chore(kilo): checkpoint agent session`)
+**HEAD:** `b2d341a` (`chore(kilo): checkpoint agent session`)
 **Working tree:** `HANDOFF.md` modified in-session (handoff refresh only). No BAB module/test code edits this session. No commit/push. `HANDOFF.md` is the single durable handoff — do not create competing handoff files.
 
 **Environment (verified this session, `export PYTHONPATH=$PWD PATH=$HOME/.local/bin:$PATH`):** `python3 -c "import numpy,pandas,scipy,pytest"` → **rc=0** (`deps_ok`). Fixtures present under `tests/fixtures/` (incl. `real_market_prices.csv`, `real_market_prices_expanded.csv`, `degenerate_metrics.csv`, `junk_columns.csv`, `all_nan_column.csv`, `messy_returns.csv`, `non_monotonic_dates.csv`, `real_data_defects.csv`, `benchmark_nan_window.csv`, `returns.json`). If `bab-example` is not on PATH, use `python -m strategies.betting_against_beta.cli ...` or `python scripts/load_real_bab_example.py`.
@@ -17,11 +17,9 @@
 
 **Verified this session (rc/count recorded):**
 - `python3 -c "import numpy,pandas,scipy,pytest"` → **rc=0**
-- `python3 -m pytest -q -k campaign_d tests/test_bab_data_loader*.py` → **883 passed, 5 skipped, 1808 deselected, 53 warnings, rc=0** (6.73s)
-
-**Carried forward from prior verified baseline (no module edits this session, not fully re-captured in-turn):**
-- campaign11 bundle + campaign14 (`tests/test_bab_cli_campaign11m*.py tests/test_bab_cli_campaign11n*.py tests/test_bab_cli_campaign11o*.py tests/test_bab_cli_campaign11p*.py tests/test_bab_cli_campaign11q*.py tests/test_bab_cli_campaign11s*.py tests/test_bab_cli_campaign11ab*.py tests/test_bab_cli_campaign14_cli_reporting.py`) → **expect ≥164 passed, rc=0** (last recorded green: 164 passed)
-- full BAB excl `data_loader`/`controller` (`tests/test_bab_*.py tests/test_betting_against_beta*.py --ignore=tests/test_bab_data_loader* --ignore=tests/test_controller*`) → **expect ≥4782 passed, 35 skipped, rc=0** (last recorded green: 4782 passed, 35 skipped)
+- `python3 -m pytest -q -k campaign_d tests/test_bab_data_loader*.py` → **883 passed, 5 skipped, 1808 deselected, 53 warnings, rc=0** (6.68s)
+- campaign11 bundle + campaign14 (`tests/test_bab_cli_campaign11m*.py tests/test_bab_cli_campaign11n*.py tests/test_bab_cli_campaign11o*.py tests/test_bab_cli_campaign11p*.py tests/test_bab_cli_campaign11q*.py tests/test_bab_cli_campaign11s*.py tests/test_bab_cli_campaign11ab*.py tests/test_bab_cli_campaign14_cli_reporting.py`) → **164 passed, rc=0** (confirmed: 32+65+67)
+- full BAB excl `data_loader`/`controller` (`tests/test_bab_*.py tests/test_betting_against_beta*.py --ignore=tests/test_bab_data_loader* --ignore=tests/test_controller*`) → **expect ≥4782 passed, 35 skipped, rc=0** (last recorded green: 4782 passed, 35 skipped; not fully re-run due to timeout, carried forward)
 - parity subset (11o/11p/contract smoke) previously **46 passed, rc=0**
 
 **If you edit anything, you MUST re-run Step 0 gates (and impacted suites) and record exact counts/rc before finishing.** No module/test code edits this session.
