@@ -1,7 +1,7 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-11T23:10:28Z
-**HEAD:** `6103e0c` on `main`
+**Timestamp (refreshed):** 2026-11-11T23:11:18Z
+**HEAD:** `bb9fd5e` on `main`
 **Repo priority (binding):** advance **Betting Against Beta** correctness, robustness, CLI/API/reporting/metrics fidelity, or a newly proven regression. No unrelated refactors, no `.github/workflows/*` edits, no commit/push unless explicitly requested.
 
 ## BINDING INITIAL TASK MESSAGE — NEXT AGENT (C34, execute immediately)
@@ -18,7 +18,7 @@ Run to completion with ample timeout and durable logs under `/home/runner/work/_
 3. `.venv/bin/python -m pytest -q tests/test_bab_cli_campaign11*.py tests/test_bab_cli_campaign14*.py`
    - **Floor:** ≥164 passed, 0 failed, rc=0.
 
-Record exact counts+rc+durations+log paths in this HANDOFF. A red floor is a proven blocker — fix smallest-possible in allowed areas only, add minimal regression, re-run affected gates, then continue.
+Record exact counts+rc+durations+durable log paths in this HANDOFF. A red floor is a proven blocker — fix smallest-possible in allowed areas only, add minimal regression, re-run affected gates, then continue.
 
 ### Step 2 — C34 adversarial probe campaign (mandatory after Step 1 green)
 Systematically exercise **editable/allowed surfaces only** (`cli.py`, `metrics.py`, reporting, `scripts/*`, `costs.py`, `regime.py`, `attribution.py`, `shorting.py`, `sizing.py`) via untracked scripts under `/home/runner/work/_temp/kilo-tmp/` with durable logs. Execute all areas below and rotate/expand beyond C33 (never skip heavy verification):
@@ -43,22 +43,14 @@ For every probe record: command, rc, key outputs/invariants, PASS/FAIL. Any repr
 - **Off-limits tracked artifacts:** `probe*`, `debug*`, `ast_probe.py` — do not edit/commit.
 - **Historical only:** `research_state/workflow_run_diagnostics.jsonl` are prior captured log signals, not current source/test failures.
 
-## C33 session results (2026-11-11T23:02:30Z, HEAD `4dfd861`) — closed
-
-### Step 1 — Gate floors (all PASS)
-- **campaign_d + batch148/149/172:** `898 passed, 5 skipped, 53 warnings in 5.36s` — **rc=0**. Log: `/home/runner/work/_temp/kilo-tmp/c33_gate_campaign_d_20261111T225340Z.log`.
-- **Full BAB excl `data_loader`/controller:** `2234 passed, 5 skipped, 41 warnings in 261.81s (0:04:21)` — **rc=0**. Log: `/home/runner/work/_temp/kilo-tmp/c33_gate_full_bab_20261111T230100Z.log`.
-- **campaign11+14:** `164 passed in 117.52s (0:01:57)` — **rc=0**. Log: `/home/runner/work/_temp/kilo-tmp/c33_gate_campaign11_14_20261111T225340Z.log`.
-
-### Step 2 — Adversarial probes (no reproducible BAB-relevant gaps)
-- **Aggregate:** 34 checks, **34 PASS, 0 FAIL** (final corrected run v4). Log: `/home/runner/work/_temp/kilo-tmp/c33_probe4_run_20261111T230100Z.log`, summary: `/home/runner/work/_temp/kilo-tmp/c33_probe_summary.json`. Harness: `c33_probe.py`–`c33_probe4.py`; earlier v1–v3 had harness/signature issues only (not product defects), corrected and re-run.
-- **Outcomes:** CLI/reporting parity & error paths (nonzero, no traceback, strict-finite sanitized outputs), metrics/reporting robustness, costs/regime/attribution/shorting/sizing boundary/basic paths — all PASS/contract-consistent.
-
-**Conclusion:** **C33: no proven gaps**. No product/test fixes required.
+## C33 session results (2026-11-11T23:02:30Z, then HEAD `4dfd861`) — closed
+- **Step 1 gates (all PASS):** campaign_d+batch148/149/172 `898 passed, 5 skipped, rc=0` (`/home/runner/work/_temp/kilo-tmp/c33_gate_campaign_d_20261111T225340Z.log`); full BAB excl data_loader/controller `2234 passed, 5 skipped, rc=0` (`/home/runner/work/_temp/kilo-tmp/c33_gate_full_bab_20261111T230100Z.log`); campaign11+14 `164 passed, rc=0` (`/home/runner/work/_temp/kilo-tmp/c33_gate_campaign11_14_20261111T225340Z.log`).
+- **Step 2 probes:** 34 checks, 34 PASS, 0 FAIL (corrected run v4). Logs: `/home/runner/work/_temp/kilo-tmp/c33_probe4_run_20261111T230100Z.log`, `/home/runner/work/_temp/kilo-tmp/c33_probe_summary.json` (harness `c33_probe.py`–`c33_probe4.py`; v1–v3 harness issues only).
+- **Conclusion:** **C33: no proven gaps**. No product/test fixes required.
 
 ## C28–C33 status (closed) — do not reopen without new evidence
-- **C28–C32:** CLOSED per prior evidence (see `c28_*`–`c32_*` logs under `/home/runner/work/_temp/kilo-tmp/`).
-- **C33:** COMPLETE, no proven gaps. Evidence: gate logs `c33_gate_campaign_d_20261111T225340Z.log`, `c33_gate_campaign11_14_20261111T225340Z.log`, `c33_gate_full_bab_20261111T230100Z.log`; probes `c33_probe.py`–`c33_probe4.py`, `c33_probe*_run_*.log`, `c33_probe_summary.json`.
+- **C28–C32:** CLOSED per prior evidence (`c28_*`–`c32_*` logs under `/home/runner/work/_temp/kilo-tmp/`).
+- **C33:** COMPLETE, no proven gaps (see logs above).
 
 ## Locks / prohibitions
 - **No** edits to `.github/workflows/*`.
