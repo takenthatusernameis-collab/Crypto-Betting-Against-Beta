@@ -1,9 +1,9 @@
 # HANDOFF: Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-11T10:34:59Z
+**Timestamp (refreshed):** 2026-11-11T10:36:41Z
 **Repo priority (binding):** `Crypto-Betting-Against-Beta` — every slice must advance **Betting Against Beta** correctness/robustness/reporting fidelity; no unrelated refactors.
-**HEAD:** `4b80110` (`chore(kilo): checkpoint agent session`)
-**Working tree at refresh:** clean tracked state observed except this `HANDOFF.md` update in progress and stale `.kilo/handoff.md` removed this session (bottleneck cleanup). No other product changes. No commit/push. **This file is the single durable handoff** — do not create competing handoff files.
+**HEAD:** `10dac11` (`chore(kilo): checkpoint agent session`)
+**Working tree at refresh:** clean tracked state observed except this `HANDOFF.md` update in progress. Stale `.kilo/handoff.md` previously removed (bottleneck cleanup — no competing durable handoff source remains). No other product changes. No commit/push. **This file is the single durable handoff** — do not create competing handoff files.
 
 ## Environment / quick start (verified this session)
 - `export PYTHONPATH=$PWD PATH=$HOME/.local/bin:$PATH`
@@ -12,8 +12,9 @@
 - Key fixtures present under `tests/fixtures/` (real/degenerate/messy/benchmark-nan etc.).
 
 ## Bottleneck removal status (this session)
-- **Removed stale handoff:** `.kilo/handoff.md` deleted to eliminate competing durable handoff sources.
-- **No blocking runtime/env bottlenecks found now:** deps installed, repo readable, tests runnable. Prior `research_state/workflow_run_diagnostics.jsonl` contains historical tool-error diagnostics but no current reproducible in-repo blocker observed. If deps/env break, install minimal deps and record evidence before claiming blocked.
+- **Removed stale handoff:** `.kilo/handoff.md` deleted to eliminate competing durable handoff sources. Only `HANDOFF.md` (this file) is the single durable handoff.
+- **No blocking runtime/env bottlenecks found now:** deps installed, repo readable, tests runnable. `research_state/workflow_run_diagnostics.jsonl` contains historical CI/tool-error diagnostics (pandas missing in some CI runs, controller progress pattern-sync failures, edit-tool invalid-argument turns) but no current reproducible in-repo blocker on `main`. If deps/env break, install minimal deps and record evidence before claiming blocked.
+- **Not blocked:** no sessions inefficient/blocked on `main`. All prior C6–C26 closures stand with evidence; no churn without new reproducible failure + probe evidence.
 
 ## Historical closure (do not churn without new reproducible failure + probe evidence)
 - **C6–C22:** closed with evidence.
