@@ -1,32 +1,30 @@
 # INITIAL TASK MESSAGE (single durable handoff — leave for next agent; highest priority)
 
-**Timestamp (refreshed):** 2026-11-11T05:51:58Z
+**Timestamp (refreshed):** 2026-11-11T06:00:06Z
 **Repo:** `Crypto-Betting-Against-Beta` (repo-name priority is binding: every slice must advance **Betting Against Beta** correctness/robustness/reporting fidelity; no unrelated refactors)
-**HEAD:** `14f0cc5` (`chore(kilo): checkpoint agent session`)
-**Working tree:** clean (`## main...origin/main`, no uncommitted changes). **`HANDOFF.md` is the single durable handoff — do not create competing handoff files.**
+**HEAD:** `2198b13` (`chore(kilo): checkpoint agent session`)
+**Working tree:** DIRTY — `strategies/betting_against_beta/cli.py` modified (CLI↔API parity fix, +6/-8 lines), **uncommitted** (no commit/push unless explicitly requested). Fix is present in the working tree and all gates below were run against it. `HANDOFF.md` is the single durable handoff — do not create competing handoff files.
 
-**Environment (verified this session, `export PYTHONPATH=$PWD PATH=$HOME/.local/bin:$PATH`):** `python3 -c "import numpy,pandas,scipy,pytest"` → **rc=0**. Fixtures present under `tests/fixtures/` (incl. `real_market_prices.csv`, `real_market_prices_expanded.csv`, `degenerate_metrics.csv`, `junk_columns.csv`, `all_nan_column.csv`, `messy_returns.csv`, `non_monotonic_dates.csv`, `real_data_defects.csv`, `benchmark_nan_window.csv`, `returns.json`).
-**Bottlenecks (current):** Prior handoff reported synthetic CLI↔API parity failures; **reproduced locally on HEAD 14f0cc5** in a focused parity subset (evidence below) — triage/fix is the blocking priority before claiming green gates. `research_state/workflow_run_diagnostics.jsonl` is historical CI/run diagnostics only (not a current blocker). `bab-example` console entrypoint may not be installed on PATH; use `python -m strategies.betting_against_beta.cli ...` or `python scripts/load_real_bab_example.py`.
+**Environment (verified this session, `export PYTHONPATH=$PWD PATH=$HOME/.local/bin:$PATH`):** `python3 -c "import numpy,pandas,scipy,pytest"` → **rc=0**. Fixtures present under `tests/fixtures/` (incl. `real_market_prices.csv`, `real_market_prices_expanded.csv`, `degenerate_metrics.csv`, `junk_columns.csv`, `all_nan_column.csv`, `messy_returns.csv`, `non_monotonic_dates.csv`, `real_data_defects.csv`, `benchmark_nan_window.csv`, `returns.json`). `bab-example` console entrypoint may not be on PATH; use `python -m strategies.betting_against_beta.cli ...` or `python scripts/load_real_bab_example.py`.
 
-**Prior campaign closure (evidence-carrying, do not churn without new reproducible failure):** C6–C22 closed with evidence. C21/C22 → explicit **"no proven gaps"**. C23 **1 gap fixed** (CLI output-path validation timing in `cli.py`), 0 remaining gaps. C24 **EXECUTED** with probe evidence log `/home/runner/work/_temp/kilo-tmp/c24_bab_beta_attribution_regime_probe_evidence.log` (37 combos) → explicit **"no proven gaps"**, 0 modules touched. **C25 not executed** (previous probe attempt failed due to missing `PYTHONPATH`); must be re-run with correct env after parity baseline is stabilized.
+**Bottleneck (REMOVED this session):** CLI↔API synthetic parity failures on `universe=None` (no `--universe`). Root cause: `cli.py` omitted `universe` from `BABConfig` when `--universe` was absent → 8-asset default universe, while `BABStrategy(benchmark=..., universe=None)` hit `strategy.py:_load_returns` → `universe=None` → 5-asset synthetic fallback (`ASSET0..ASSET4`). Different universes → different cumulative returns → 4 parity failures. **Fix (editable module only, no locked modules touched):** `cli.py` now forwards `universe=universe_arg` (None when `--universe` absent) so CLI and API both resolve to `universe=None` → identical 5-asset synthetic data, per the campaign11o contract ("no --universe => universe=None => synthetic 5-asset default"). Verified: parity subset 46 passed rc=0 (was 42 passed / 4 failed).
+
+**Prior campaign closure (evidence-carrying, do not churn without new reproducible failure):** C6–C22 closed with evidence. C21/C22 → explicit **"no proven gaps"**. C23 **1 gap fixed** (CLI output-path validation timing in `cli.py`), 0 remaining gaps. C24 **EXECUTED** with probe evidence log `/home/runner/work/_temp/kilo-tmp/c24_bab_beta_attribution_regime_probe_evidence.log` (37 combos) → explicit **"no proven gaps"**, 0 modules touched. **C25 not executed** (previous probe attempt failed due to missing `PYTHONPATH`); **parity baseline is now stabilized, so C25 is unblocked and is the binding immediate-next campaign.** Re-run with correct env (`PYTHONPATH=$PWD`).
 
 ---
 
-## Step 0 baseline/gates — status (this refresh)
+## Step 0 baseline/gates — status (this refresh, all re-verified with evidence)
 
 **Verified this session (rc recorded):**
 - `python3 -c "import numpy,pandas,scipy,pytest"` → **rc=0**
-- `python3 -m pytest -q -k campaign_d tests/test_bab_data_loader*.py` → **883 passed, 5 skipped, 1808 deselected, 53 warnings, rc=0** (11.23s)
-- Focused parity subset `tests/test_bab_cli_campaign11o_remaining_probe_regressions.py tests/test_bab_cli_campaign11p_real_dryrun_synth_probe_regressions.py tests/test_bab_backtest_contract_smoke.py` → **42 passed, 4 failed, rc=1** (43.05s). Failing tests (all `final_cumulative` CLI vs in-process mismatch, no Traceback shown): `test_bab_cli_campaign11o_remaining_probe_regressions.py::TestSyntheticConfigOverridesParity::test_synthetic_overrides_match_inprocess`, `test_bab_cli_campaign11p_real_dryrun_synth_probe_regressions.py::TestSyntheticParityAlternateConfigs::test_synthetic_cli_matches_inprocess[BTC-None]`, same `[SOL-None]`, `test_bab_backtest_contract_smoke.py::TestBacktestContractSynthetic::test_synthetic_cli_periods_and_tail_match_config_parity`.
-- Sanity check (same env): `python -m strategies.betting_against_beta.cli --synthetic --benchmark BTC --beta-window 90 --long-quantile 0.3 --short-quantile 0.3 --rebalance-freq daily --transaction-costs 0.0 --slippage 0.0` → rc=0, stdout `Final cumulative return: 0.316645 / Periods: 252`; in-process `BABStrategy(... same args ...).run()` → `0.31664543005633267, 252` (match for this case). Regressions appear config/test-case specific — **investigate determinism/universe/config resolution parity** (e.g. synthetic universe/defaulting/seed/arg handling) before editing locked modules.
+- `python3 -m pytest -q -k campaign_d tests/test_bab_data_loader*.py` → **883 passed, 5 skipped, 1808 deselected, 53 warnings, rc=0** (6.89s) [green]
+- Parity subset `tests/test_bab_cli_campaign11o_remaining_probe_regressions.py tests/test_bab_cli_campaign11p_real_dryrun_synth_probe_regressions.py tests/test_bab_backtest_contract_smoke.py` → **46 passed, rc=0** (43.34s) [was 42 passed / 4 failed — FIXED via cli.py]
+- campaign11 bundle + campaign14 `tests/test_bab_cli_campaign11m*.py tests/test_bab_cli_campaign11n*.py tests/test_bab_cli_campaign11o*.py tests/test_bab_cli_campaign11p*.py tests/test_bab_cli_campaign11q*.py tests/test_bab_cli_campaign11s*.py tests/test_bab_cli_campaign11ab*.py tests/test_bab_cli_campaign14_cli_reporting.py` → **164 passed, rc=0** (148.54s) [green]
+- full BAB excl `data_loader`/`controller` `tests/test_bab_*.py tests/test_betting_against_beta*.py --ignore=tests/test_bab_data_loader* --ignore=tests/test_controller*` → **4782 passed, 35 skipped, 231 warnings, rc=0** (379.69s) [hard floor met]
 
-**Not completed in this session (timed out in tool wrapper, long-running):**
-- campaign11 bundle + campaign14: `tests/test_bab_cli_campaign11m*.py tests/test_bab_cli_campaign11n*.py tests/test_bab_cli_campaign11o*.py tests/test_bab_cli_campaign11p*.py tests/test_bab_cli_campaign11q*.py tests/test_bab_cli_campaign11s*.py tests/test_bab_cli_campaign11ab*.py tests/test_bab_cli_campaign14_cli_reporting.py` — **not fully re-verified**; known 4 parity failures reproduced in 11o/11p/smoke subset.
-- full BAB excl `data_loader`/`controller`: `tests/test_bab_*.py tests/test_betting_against_beta*.py --ignore=tests/test_bab_data_loader* --ignore=tests/test_controller*` — **not fully re-verified**.
+**Historical carry-forward:** superseded — all Step 0 gates re-verified green above after the parity fix.
 
-**Historical carry-forward (HEAD d0d25b3):** campaign11 bundle+14 **164 passed rc=0**; full BAB excl loader/controller **4782 passed, 35 skipped rc=0** — **treat as stale until parity regressions triaged and gates re-run with evidence.**
-
-**If you edit anything, you MUST re-run Step 0 gates (and impacted suites) and record exact counts/rc before finishing.** No module/code edits were made in this refresh.
+**If you edit anything, you MUST re-run Step 0 gates (and impacted suites) and record exact counts/rc before finishing.** One module/code edit was made this refresh (`cli.py` parity fix); gates re-run green.
 
 ---
 
@@ -34,20 +32,20 @@
 
 **YOU MUST DO HEAVY WORK.** No planning-only exits. No single-pass probes. No evidence-free exits. Every session must produce probe logs (cmd, rc, stdout, stderr, JSON validity/finiteness with strict `allow_nan=False` semantics where applicable) and either (a) new regression tests for proven gaps or (b) an explicit "no proven gaps" conclusion with evidence references.
 
-### 1) Stabilize baseline — Step 0 (MANDATORY before any edit)
+### 1) Confirm baseline — Step 0 (MANDATORY before any edit)
 Run and record with `export PYTHONPATH=$PWD PATH=$HOME/.local/bin:$PATH`:
 - `python3 -c "import numpy,pandas,scipy,pytest"` → rc=0
-- campaign11 bundle + campaign14 → **expect ≥164 passed, rc=0** (currently 4 parity failures — triage first)
-- `-k campaign_d tests/test_bab_data_loader*.py` → **expect ≥883 passed, 5 skipped, rc=0** (verified green)
-- full BAB excl `data_loader`/`controller` → **expect ≥4782 passed, 35 skipped, rc=0** (hard floor; 4 known parity regressions — investigate before production edits)
+- campaign11 bundle + campaign14 → **expect ≥164 passed, rc=0** (verified green this session: 164 passed)
+- `-k campaign_d tests/test_bab_data_loader*.py` → **expect ≥883 passed, 5 skipped, rc=0** (verified green this session: 883 passed, 5 skipped)
+- full BAB excl `data_loader`/`controller` → **expect ≥4782 passed, 35 skipped, rc=0** (verified green this session: 4782 passed, 35 skipped)
 
 If deps missing, install minimal needed deps and record; do not claim progress blocked without an evidenced attempt. Do not revert prior fixes without cause.
 
 ### 2) Campaigns 6–24 (historical closure — no churn)
 C6–C24 reported closed/evidenced above. **Do not churn C6–C24 without a new, statable, reproducible failure with probe evidence.**
 
-### 3) EXECUTE C25 — reporting fidelity, CLI error contracts & serialization robustness (≥14 combos, HEAVY) — BINDING
-Goal: harden **reporting fidelity, CLI error contracts, and serialization robustness** of the BAB delivery surface (`cli.py`/`metrics.py`/reporting/scripts), plus cross-surface metric determinism under stressed numeric regimes. Produce real probe evidence (not summaries).
+### 3) EXECUTE C25 — reporting fidelity, CLI error contracts & serialization robustness (≥14 combos, HEAVY) — BINDING, NOW UNBLOCKED
+Goal: harden **reporting fidelity, CLI error contracts, and serialization robustness** of the BAB delivery surface (`cli.py`/`metrics.py`/reporting/scripts), plus cross-surface metric determinism under stressed numeric regimes. Produce real probe evidence (not summaries). Parity baseline is stabilized, so run C25 now.
 
 **Evidence log (MANDATORY):** `/home/runner/work/_temp/kilo-tmp/c25_bab_reporting_cli_contract_probe_evidence.log`
 Record for each combo: cmd, rc, stdout, stderr, JSON validity/finiteness (strict `allow_nan=False` parse + finiteness walk where JSON produced), key sets, determinism/parity/invariant notes.
@@ -101,4 +99,21 @@ Update this file in place with: timestamp/HEAD/worktree state, Step 0 counts/rc 
 
 ---
 
-*Single durable handoff for `Crypto-Betting-Against-Beta`. Future agents: execute heavy work with probe evidence, remove bottlenecks if found, and leave a refreshed handoff.*
+*Single durable handoff for `Crypto-Betting-Against-Beta`. Future agents: execute heavy work with probe evidence, remove bottlenecks if found, and leave a refreshed handoff. Next binding campaign after C25 completes: C26 (pipeline stress & cross-surface determinism under degenerate/extreme regimes, ≥12-combo probe plan defined below).*
+
+## C26 — next binding campaign (after C25) — pipeline stress & cross-surface determinism (≥12 combos)
+**Evidence log:** `/home/runner/work/_temp/kilo-tmp/c26_bab_pipeline_stress_determinism_probe_evidence.log`
+1. CLI+in-process parity on real fixture with transaction_costs+slippage (strict finite JSON, cumulative match abs_tol=1e-12).
+2. All-NaN asset column → CLI rc=0 finite degenerate output, no Traceback, no NaN/Infinity tokens.
+3. Single-asset universe (benchmark only) → rc=0 finite, no short possible, flat weights.
+4. Constant/zero returns series → finite cumulative, no NaN.
+5. `beta_window` (9999) > data length → rc=0 finite JSON, no Traceback (both fixtures + short 10-row slice).
+6. `min_observations` exceeding available data → flat/zero-weight periods, finite.
+7. `transaction_costs=1.0` + `slippage=1.0` → cumulative finite (≥0 where applicable), no -inf/NaN, strict JSON finite, rc=0.
+8. `regime_filter=True` → 3× identical `final_cumulative` (determinism).
+9. `beta_neutral=True` → finite, strategy beta ≈ 0 within tolerance.
+10. `ShortingConstraints` low borrow cap → finite weights/cumulative, no Traceback.
+11. Position sizers kelly/vol_target/risk_parity/equal → finite, rc=0.
+12. `report_to_json()` + `tear_sheet()` on degenerate run → strict JSON finite, tear_sheet renders no Traceback.
+13. CLI repeated run 3× → byte-identical stdout (determinism).
+14. `--output` overwrite replaces stale content, rc=0.

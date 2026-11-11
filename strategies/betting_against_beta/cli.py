@@ -231,12 +231,11 @@ def main(argv=None) -> int:
                         "--universe must contain at least one non-empty asset token"
                     )
                 universe_arg = cleaned
-        # No --universe provided -> omit the ``universe`` kwarg entirely so
-        # BABConfig applies its documented default universe (BTC, ETH, SOL,
-        # BNB, XRP, ADA, AVAX, DOT). Passing ``universe=None`` explicitly
-        # overrides that default and silently shrinks the synthetic universe
-        # to a 5-asset fallback, producing a different cumulative path than
-        # the equivalent API/programmatic config (reporting-fidelity gap).
+        # ``no --universe`` => ``universe=None`` => synthetic 5-asset default
+        # (per campaign11o contract). Always forward ``universe_arg`` (None when
+        # --universe is absent) so CLI and BABStrategy(benchmark=..., universe=None)
+        # generate identical synthetic data; omitting it would resurrect the
+        # 8-asset default / 5-asset None reporting-fidelity gap.
         kw = dict(
             benchmark=args.benchmark,
             beta_window=args.beta_window,
@@ -245,9 +244,8 @@ def main(argv=None) -> int:
             rebalance_freq=args.rebalance_freq,
             transaction_costs=args.transaction_costs,
             slippage=args.slippage,
+            universe=universe_arg,
         )
-        if universe_arg is not None:
-            kw["universe"] = universe_arg
         # --from-prices is meaningless without a --data source; reject cleanly
         # instead of silently falling back to synthetic data.
         if args.from_prices and args.data is None:
