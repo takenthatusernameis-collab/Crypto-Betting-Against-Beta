@@ -1,8 +1,8 @@
 # HANDOFF: Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-11T07:01:12Z
+**Timestamp (refreshed):** 2026-11-11T07:26:19Z
 **Repo priority (binding):** `Crypto-Betting-Against-Beta` — every slice must advance **Betting Against Beta** correctness/robustness/reporting fidelity; no unrelated refactors.
-**HEAD:** `b2d341a` (`chore(kilo): checkpoint agent session`)
+**HEAD:** `a82fd86` (`chore(kilo): checkpoint agent session`)
 **Working tree:** clean at refresh (no uncommitted module/test changes). No commit/push. This file is the single durable handoff — do not create competing handoff files. (`.kilo/handoff.md`, if present, is superseded by this document.)
 
 ## Environment (verified this session)
