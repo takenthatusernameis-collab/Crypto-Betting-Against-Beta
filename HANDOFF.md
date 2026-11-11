@@ -1,12 +1,12 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-11T12:43:36Z
-**HEAD:** `38f56b4` (`chore(kilo): checkpoint agent session`) on `main`
+**Timestamp (refreshed):** 2026-11-11T13:14:46Z
+**HEAD:** `0617058` (`chore(kilo): checkpoint agent session`) on `main`
 **Repo priority (binding):** `Crypto-Betting-Against-Beta` — every action must advance **Betting Against Beta** correctness, robustness, CLI/API/reporting/metrics fidelity, or proven regressions. No unrelated refactors, no workflow edits, no commit/push unless explicitly requested.
 
 ## BINDING INITIAL TASK MESSAGE — NEXT AGENT MUST EXECUTE HEAVY WORK IMMEDIATELY
 
-C28 item 1 (CLI↔API synthetic parity) is CLOSED — **no proven product gap** (see resolution below). **Start with C28 item 2 (config boundary contract) NOW, then C28 items 3-5, then execute the full C29 campaign (12 combos, mandatory).** Do not plan-only, do not do a single-pass probe, do not declare "blocked" without an evidenced attempt and durable logs, and do not churn C6–C27 without a new statable reproducible failure supported by probe evidence. Work in small verified slices but make material progress every session. This handoff is the sole durable coordination artifact for this repo state.
+C28 item 1 (CLI↔API synthetic parity) is CLOSED — **no proven product gap** (see resolution below). **Start with C28 item 2 (config boundary contract) NOW.** Working tree clean; gates green; preflight ok; no bottlenecks. **Then C28 items 3-5, then execute the full C29 campaign (12 combos, mandatory).** Do not plan-only, do not do a single-pass probe, do not declare "blocked" without an evidenced attempt and durable logs, and do not churn C6–C27 without a new statable reproducible failure supported by probe evidence. Work in small verified slices but make material progress every session. This handoff is the sole durable coordination artifact for this repo state.
 
 ## Current baseline (last confirmed; reconfirm only if code/tests/env change)
 
@@ -19,8 +19,8 @@ C28 item 1 (CLI↔API synthetic parity) is CLOSED — **no proven product gap** 
 
 ## Known bottlenecks / environment notes
 
+- **NO BOTTLENECKS REMAIN.** Preflight `import numpy,pandas,scipy,pytest` ok. Working tree clean on `main` (`0617058`). No repo-level code/test blockers at handoff refresh.
 - **BOTTLENECK REMOVED (C28 item 1):** CLI↔API synthetic parity was blocking ("START HERE"). Root cause confirmed: CLI forwards `universe=None` → 5 ASSET assets (per campaign11o contract), while `BABConfig()` defaults to 8 named assets. API-equivalent run with `universe=None` produces `0.4124625210306529`, byte-identical to CLI `0.4124625210306529` (≤1e-12). **No product fix required; intended divergence documented with evidence.** Future agents must not re-probe this as a gap.
-- **No repo-level code/test blockers observed at handoff refresh.** Working tree clean on `main` (`38f56b4`).
 - **Historical CI/workflow diagnostics only:** `research_state/workflow_run_diagnostics.jsonl` contains prior run log excerpts/signals (e.g. historical invalid tool-argument/write failures and old traces in captured logs), not evidence of current source/test failure in this checkout. Treat as historical; do not use them to justify inaction.
 - **Session hygiene:** transient `/home/runner/work/_temp/kilo-tmp/*` logs may not persist across sessions. Preserve new probe/gate evidence to durable, uniquely named paths in `/home/runner/work/_temp/kilo-tmp/` and cite them in this handoff. Tracked `probe*`/`debug*`/`ast_probe.py` remain off-limits for edits/commits.
 
@@ -40,7 +40,7 @@ Primary evidence: `/home/runner/work/_temp/kilo-tmp/c28_bab_repro_config_cli_api
 
 **Status:** item 1 closed (no proven gap); items 2-5 remain REVIEW/PARTIAL pending canonical closure. Do not invent gaps.
 
-## Phase C — Execute C29 heavy campaign after C28 closure (≥12 combos, mandatory)
+## Phase C — Execute C29 heavy campaign after C28 closure (≥12 combos, mandatory — future agents CANNOT avoid this work)
 
 Evidence log: `/home/runner/work/_temp/kilo-tmp/c29_bab_realtime_e2e_interaction_stress_probe_evidence.log`
 Regressions for proven fixes: `tests/test_bab_cli_campaign29*.py` (or most specific allowed location). If no proven gaps: record explicit "no proven gaps" per area with evidence refs and refresh this handoff.
