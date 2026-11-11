@@ -1,19 +1,19 @@
 # INITIAL TASK MESSAGE (single durable handoff — leave for next agent; highest priority)
 
-**Timestamp (refreshed):** 2026-11-11T00:45:00Z (active handoff for next session)
+**Timestamp (refreshed):** 2026-11-11T00:45:18Z (active handoff for next session)
 **Repo:** `Crypto-Betting-Against-Beta` (repo-name priority is binding: every slice must advance **Betting Against Beta** correctness/robustness/reporting fidelity; no unrelated refactors)
-**HEAD/base:** `476a739` (`chore(kilo): checkpoint agent session`, 2026-11-11 00:29:49 +0000). Treat current HEAD as base and record exact HEAD when you run.
+**HEAD/base:** `2d867ac` (`chore(kilo): checkpoint agent session`, 2026-11-11). Treat current HEAD as base and record exact HEAD when you run.
 **Working tree (at refresh):** clean before this session's handoff update except `HANDOFF.md` updated in place (no competing handoff files; **`HANDOFF.md` is the single durable handoff**).
-**Environment (verified):** `python3 -c "import numpy,pandas,scipy,pytest"` → **rc=0** (numpy/pandas/scipy/pytest 9.2.0 available). Fixtures present under `tests/fixtures/` (incl. `real_market_prices.csv`, `real_market_prices_expanded.csv`, `degenerate_metrics.csv`, `junk_columns.csv`, `all_nan_column.csv`).
+**Environment (verified):** `python3 -c "import numpy,pandas,scipy,pytest"` → **rc=0** (numpy 2.5.4 / pandas 3.1.1 / scipy 1.18.1 / pytest 9.2.0). Fixtures present under `tests/fixtures/` (incl. `real_market_prices.csv`, `real_market_prices_expanded.csv`, `degenerate_metrics.csv`, `junk_columns.csv`, `all_nan_column.csv`).
 
-**Bottlenecks/status:** No in-repo blocked sessions identified. `research_state/workflow_run_diagnostics.jsonl` contains historical captured workflow runs (all concluded success) and log excerpts (timeouts/tool-arg noise in past agent logs) — **not a current blocker**; do not chase diagnostics archaeology. Prior campaigns C6–C19 reported closed with probe evidence; C19 regressions exist (`tests/test_bab_cli_campaign19_config_cost_sizing_fidelity.py`). **C20 executed on this HEAD (`476a739`) with probe evidence — explicit "no proven gaps" (see below). C21 is the immediate binding heavy campaign.**
+**Bottlenecks/status:** No in-repo blocked sessions identified. `research_state/workflow_run_diagnostics.jsonl` contains historical captured workflow runs (all concluded success) and log excerpts (timeouts/tool-arg noise in past agent logs) — **not a current blocker**; do not chase diagnostics archaeology. Prior campaigns C6–C19 reported closed with probe evidence; C19 regressions exist (`tests/test_bab_cli_campaign19_config_cost_sizing_fidelity.py`). **C20 executed on this HEAD (`2d867ac`) with probe evidence — explicit "no proven gaps" (see below). C21 is the immediate binding heavy campaign.**
 
-## Step 0 baseline/gates — VERIFIED on HEAD `476a739` (2026-11-11T00:45Z, `export PYTHONPATH=$PWD PATH=$HOME/.local/bin:$PATH`)
+## Step 0 baseline/gates — VERIFIED on HEAD `2d867ac` (2026-11-11T00:45Z, `export PYTHONPATH=$PWD PATH=$HOME/.local/bin:$PATH`)
 - `python3 -c "import numpy,pandas,scipy,pytest"` → **rc=0** ✓
-- `python3 -m pytest -q tests/test_bab_cli_campaign11m*.py tests/test_bab_cli_campaign11n*.py tests/test_bab_cli_campaign11o*.py tests/test_bab_cli_campaign11p*.py tests/test_bab_cli_campaign11q*.py tests/test_bab_cli_campaign11s*.py tests/test_bab_cli_campaign11ab*.py tests/test_bab_cli_campaign14_cli_reporting.py` → **164 passed in 206.49s, rc=0** ✓
+- `python3 -m pytest -q tests/test_bab_cli_campaign11m*.py tests/test_bab_cli_campaign11n*.py tests/test_bab_cli_campaign11o*.py tests/test_bab_cli_campaign11p*.py tests/test_bab_cli_campaign11q*.py tests/test_bab_cli_campaign11s*.py tests/test_bab_cli_campaign11ab*.py tests/test_bab_cli_campaign14_cli_reporting.py` → **164 passed in 197.65s, rc=0** ✓
 - `python3 -m pytest -q -k campaign_d tests/test_bab_data_loader*.py` → **883 passed, 5 skipped, 1808 deselected, rc=0** ✓ (warnings only)
-- `python3 -m pytest -q tests/test_bab_*.py tests/test_betting_against_beta*.py --ignore=tests/test_bab_data_loader* --ignore=tests/test_controller*` → **4782 passed, 35 skipped, rc=0** ✓ (exceeds 4764 hard floor; warnings only)
-- C19 regressions present: `tests/test_bab_cli_campaign19_config_cost_sizing_fidelity.py` ✓ (not rerun standalone this session; covered by full BAB floor)
+- `python3 -m pytest -q tests/test_bab_*.py tests/test_betting_against_beta*.py --ignore=tests/test_bab_data_loader* --ignore=tests/test_controller*` → **4782 passed, 35 skipped, rc=0** ✓ (hard floor met; warnings only)
+- C19 regressions present: `tests/test_bab_cli_campaign19_config_cost_sizing_fidelity.py` ✓ (covered by full BAB floor)
 
 **All gates GREEN.**
 
