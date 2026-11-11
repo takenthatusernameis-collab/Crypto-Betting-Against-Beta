@@ -298,44 +298,41 @@ def enforce_beta_neutrality(
     b_arr = b.to_numpy(dtype=float)
 
     for i in range(len(common_idx)):
-        row_w = w_arr[i]
         row_b = b_arr[i]
         finite = np.isfinite(row_b)
         if not np.any(finite):
             continue
-        w_f = row_w[finite]
         b_f = row_b[finite]
-        # Current portfolio beta.
-        denom = np.abs(w_f).sum()
-        if denom < 1e-18:
-            continue
-        port_beta = float(np.sum(w_f * b_f) / denom)
-        if abs(port_beta - target) <= tol:
-            continue
-
-        if not correction:
-            continue
-
-        # Minimum-norm correction that preserves dollar neutrality.
-        # Solve: minimize sum(delta_i^2) subject to
-        #   sum_i delta_i * b_i = residual   (beta constraint)
-        #   sum_i delta_i = 0                (dollar neutrality, when applicable)
-        # Solution via Lagrange multipliers:
-        #   delta_i = alpha * (b_i - mean(b))
-        #   alpha = residual / (sum(b_i^2) - sum(b_i)^2 / n)
-        residual = target - port_beta
+        # Pre-compute correction direction (depends only on betas, which are fixed).
         b_mean = float(np.sum(b_f)) / len(b_f)
         centered = b_f - b_mean
         s2_centered = float(np.sum(centered * centered))
         if s2_centered < 1e-18:
             continue
-        alpha = residual / s2_centered
-        delta = alpha * centered
-        new_w = w_f + delta
-        # Clamp to finite values.
-        new_w = np.where(np.isfinite(new_w), new_w, 0.0)
-        # Write back only the finite positions.
-        w_arr[i, :][finite] = new_w
+        # Iterate the minimum-norm correction until |port_beta - target| <= tol.
+        # Each pass applies delta_i = alpha * (b_i - mean(b)), which exactly fixes
+        # sum(delta * b) = residual and preserves sum(delta) = 0. Because gross
+        # exposure (denom) changes after each pass, one pass is not sufficient to
+        # drive beta to exactly ``target``; iterating converges. Cap at 50 passes.
+        for _ in range(50):
+            row_w = w_arr[i]
+            w_f = row_w[finite]
+            denom = np.abs(w_f).sum()
+            if denom < 1e-18:
+                break
+            port_beta = float(np.sum(w_f * b_f) / denom)
+            if abs(port_beta - target) <= tol:
+                break
+            if not correction:
+                break
+            residual = target - port_beta
+            alpha = residual / s2_centered
+            delta = alpha * centered
+            new_w = w_f + delta
+            # Clamp to finite values.
+            new_w = np.where(np.isfinite(new_w), new_w, 0.0)
+            # Write back only the finite positions.
+            w_arr[i, finite] = new_w
 
     out = _pd.DataFrame(w_arr, index=common_idx, columns=cols)
     out = out.replace([np.inf, -np.inf], np.nan).fillna(0.0)
