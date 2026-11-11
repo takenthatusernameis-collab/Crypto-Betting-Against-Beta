@@ -1,14 +1,14 @@
 # INITIAL TASK MESSAGE (single durable handoff — leave for next agent; highest priority)
 
-**Timestamp (refreshed):** 2026-11-11T05:20:45Z
+**Timestamp (refreshed):** 2026-11-11T05:21:46Z
 **Repo:** `Crypto-Betting-Against-Beta` (repo-name priority is binding: every slice must advance **Betting Against Beta** correctness/robustness/reporting fidelity; no unrelated refactors)
-**HEAD:** `51eb1ee` (`chore(kilo): checkpoint agent session`)
+**HEAD:** `8f0cf40` (`chore(kilo): checkpoint agent session`)
 **Working tree:** clean at refresh (`## main...origin/main`, no uncommitted changes). **`HANDOFF.md` is the single durable handoff — do not create competing handoff files.**
 
 **Environment (quick-verified this session):** `python3 -c "import numpy,pandas,scipy,pytest"` → **rc=0** (deps present). Fixtures present under `tests/fixtures/` (incl. `real_market_prices.csv`, `real_market_prices_expanded.csv`, `degenerate_metrics.csv`, `junk_columns.csv`, `all_nan_column.csv`, `messy_returns.csv`, `non_monotonic_dates.csv`, `real_data_defects.csv`, `benchmark_nan_window.csv`, `returns.json`).
 **Bottlenecks:** None identified in-repo. No blocked sessions/state files requiring intervention. `research_state/workflow_run_diagnostics.jsonl` contains historical concluded CI/run diagnostics only — **not** a current blocker; do not chase diagnostics archaeology. `bab-example` console entrypoint may not be installed on PATH in this env; use `python scripts/load_real_bab_example.py` or `python -m strategies.betting_against_beta.cli ...` as baseline.
 
-**Prior campaign closure (evidence-carrying, do not churn without new reproducible failure):** C6–C22 closed with evidence. C21/C22 → explicit **"no proven gaps"**. C23 **1 gap fixed** (CLI output-path validation timing in `cli.py`), 0 remaining gaps. C24 **EXECUTED** with probe evidence log `/home/runner/work/_temp/kilo-tmp/c24_bab_beta_attribution_regime_probe_evidence.log` (37 combos) → explicit **"no proven gaps"**, 0 modules touched. **C25 not yet executed** — it is the binding next campaign below.
+**Prior campaign closure (evidence-carrying, do not churn without new reproducible failure):** C6–C22 closed with evidence. C21/C22 → explicit **"no proven gaps"**. C23 **1 gap fixed** (CLI output-path validation timing in `cli.py`), 0 remaining gaps. C24 **EXECUTED** with probe evidence log `/home/runner/work/_temp/kilo-tmp/c24_bab_beta_attribution_regime_probe_evidence.log` (37 combos) → explicit **"no proven gaps"**, 0 modules touched. **C25 not yet executed** — previous probe attempt at `/home/runner/work/_temp/kilo-tmp/c25_bab_reporting_cli_contract_probe_evidence.log` failed due to missing `PYTHONPATH=$PWD`; must be re-run with correct environment. **REGRESSIONS DETECTED** (must be addressed in C25 or proven unrelated): CLI/API parity failures in `test_bab_cli_campaign11o_remaining_probe_regressions.py::test_synthetic_overrides_match_inprocess` (1 fail), `test_bab_cli_campaign11p_real_dryrun_synth_probe_regressions.py::test_synthetic_cli_matches_inprocess` (2 fails), `test_bab_backtest_contract_smoke.py::test_synthetic_cli_periods_and_tail_match_config_parity` (1 fail) — all show `final_cumulative` mismatch between CLI and in-process API.
 
 ---
 
@@ -16,11 +16,34 @@
 
 Last recorded on HEAD `d0d25b3` (2026-11-11, `export PYTHONPATH=$PWD PATH=$HOME/.local/bin:$PATH`):
 - `python3 -c "import numpy,pandas,scipy,pytest"` → **rc=0**
-- `python3 -m pytest -q tests/test_bab_cli_campaign11m*.py tests/test_bab_cli_campaign11n*.py tests/test_bab_cli_campaign11o*.py tests/test_bab_cli_campaign11p*.py tests/test_bab_cli_campaign11q*.py tests/test_bab_cli_campaign11s*.py tests/test_bab_cli_campaign11ab*.py tests/test_bab_cli_campaign14_cli_reporting.py` → **164 passed in 146.36s, rc=0**
-- `python3 -m pytest -q -k campaign_d tests/test_bab_data_loader*.py` → **883 passed, 5 skipped, 1808 deselected, rc=0**
-- `python3 -m pytest -q tests/test_bab_*.py tests/test_betting_against_beta*.py --ignore=tests/test_bab_data_loader* --ignore=tests/test_controller*` → **4782 passed, 35 skipped, rc=0** (hard floor)
+- `python3 -m pytest -q tests/test_bab_cli_campaign11m*.py tests/test_bab_cli_campaign11n*.py tests/test_bab_cli_campaign11o*.py tests/test_bab_cli_campaign11p*.py tests/test_bab_cli_campaign11q*.py tests/test_bab_cli_campaign11s*.py tests/test_bab_cli_campaign11ab*.py tests/test_bab_cli_campaign14_cli_reporting.py` → **164 passed in 146.36s, rc=0** (historical; **current run shows 4 failures** in campaign11o/11p — investigate before edits)
+- `python3 -m pytest -q -k campaign_d tests/test_bab_data_loader*.py` → **883 passed, 5 skipped, 1808 deselected, rc=0** (verified 2026-11-11T05:21Z)
+- `python3 -m pytest -q tests/test_bab_*.py tests/test_betting_against_beta*.py --ignore=tests/test_bab_data_loader* --ignore=tests/test_controller*` → **4782 passed, 35 skipped, rc=0** (historical; **not fully re-verified this session** — 4 known regressions above)
 
-**Not re-run in this refresh session** (handoff-only maintenance; no code edits). Carry forward unless you touch code/tests or observe regression. **If you edit anything, you MUST re-run Step 0 gates (and impacted suites) and record exact counts/rc before finishing.**
+**Partially verified this refresh (2026-11-11T05:21Z):**
+- campaign14: 17 passed
+- campaign11m: 28 passed
+- campaign11n: 18 passed
+- campaign11o: 18 passed, **1 FAILED** (parity)
+- campaign11p: 16 passed, **2 FAILED** (parity)
+- campaign11q: 33 passed
+- campaign11s: 16 passed
+- campaign11ab: 15 passed
+- campaign_d: 883 passed, 5 skipped
+- Core BAB (betting_against_beta*.py): 286 passed
+- bab_beta*: 262 passed
+- bab_quality*: 181 passed
+- bab_signals*: 82 passed
+- bab_regime*: 37 passed
+- bab_portfolio*: 68 passed
+- bab_sizing*: 23 passed
+- bab_strategy*: 70 passed
+- bab_backtest*: 64 passed, **1 FAILED** (parity)
+- bab_metrics*: 86 passed
+- bab_cli (base): 18 passed
+- data_sources/attribution/shorting/costs: 108 passed, 5 skipped
+
+**If you edit anything, you MUST re-run Step 0 gates (and impacted suites) and record exact counts/rc before finishing.**
 
 ---
 
@@ -31,9 +54,9 @@ Last recorded on HEAD `d0d25b3` (2026-11-11, `export PYTHONPATH=$PWD PATH=$HOME/
 ### 1) Stabilize baseline — Step 0 (MANDATORY before any edit)
 Run and record with `export PYTHONPATH=$PWD PATH=$HOME/.local/bin:$PATH`:
 - `python3 -c "import numpy,pandas,scipy,pytest"` → rc=0
-- campaign11 bundle + campaign14 → **expect ≥164 passed, rc=0**
-- `-k campaign_d tests/test_bab_data_loader*.py` → **expect ≥883 passed, 5 skipped, rc=0**
-- full BAB excl `data_loader`/`controller` → **expect ≥4782 passed, 35 skipped, rc=0** (hard floor; investigate any regression before production edits)
+- campaign11 bundle + campaign14 → **expect ≥164 passed, rc=0** (currently 4 parity failures — triage first)
+- `-k campaign_d tests/test_bab_data_loader*.py` → **expect ≥883 passed, 5 skipped, rc=0** (verified green)
+- full BAB excl `data_loader`/`controller` → **expect ≥4782 passed, 35 skipped, rc=0** (hard floor; 4 known parity regressions — investigate before production edits)
 
 If deps missing, install minimal needed deps and record; do not claim progress blocked without an evidenced attempt. Do not revert prior fixes without cause.
 
