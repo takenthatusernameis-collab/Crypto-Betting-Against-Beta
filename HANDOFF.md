@@ -1,14 +1,14 @@
 # INITIAL TASK MESSAGE (single durable handoff — leave for next agent; highest priority)
 
-**Timestamp (refreshed):** 2026-11-11T04:49:10Z
+**Timestamp (refreshed):** 2026-11-11T05:20:45Z
 **Repo:** `Crypto-Betting-Against-Beta` (repo-name priority is binding: every slice must advance **Betting Against Beta** correctness/robustness/reporting fidelity; no unrelated refactors)
-**HEAD:** `012a727` (`chore(kilo): checkpoint agent session`)
+**HEAD:** `51eb1ee` (`chore(kilo): checkpoint agent session`)
 **Working tree:** clean at refresh (`## main...origin/main`, no uncommitted changes). **`HANDOFF.md` is the single durable handoff — do not create competing handoff files.**
 
 **Environment (quick-verified this session):** `python3 -c "import numpy,pandas,scipy,pytest"` → **rc=0** (deps present). Fixtures present under `tests/fixtures/` (incl. `real_market_prices.csv`, `real_market_prices_expanded.csv`, `degenerate_metrics.csv`, `junk_columns.csv`, `all_nan_column.csv`, `messy_returns.csv`, `non_monotonic_dates.csv`, `real_data_defects.csv`, `benchmark_nan_window.csv`, `returns.json`).
-**Bottlenecks:** None identified in-repo. No blocked sessions/state files requiring intervention. `research_state/workflow_run_diagnostics.jsonl` contains historical concluded CI/run diagnostics only — **not** a current blocker; do not chase diagnostics archaeology. `bab-example` console entrypoint may not be installed on PATH in this env; use `python scripts/load_real_bab_example.py` or direct module/script execution (`python -m strategies.betting_against_beta.cli ...`) as baseline.
+**Bottlenecks:** None identified in-repo. No blocked sessions/state files requiring intervention. `research_state/workflow_run_diagnostics.jsonl` contains historical concluded CI/run diagnostics only — **not** a current blocker; do not chase diagnostics archaeology. `bab-example` console entrypoint may not be installed on PATH in this env; use `python scripts/load_real_bab_example.py` or `python -m strategies.betting_against_beta.cli ...` as baseline.
 
-**Prior campaign closure (evidence-carrying, do not churn without new reproducible failure):** C6–C22 closed with evidence. C21/C22 → explicit **"no proven gaps"**. C23 **1 gap fixed** (CLI output-path validation timing in `cli.py`), 0 remaining gaps. C24 **EXECUTED** (prior head) with probe evidence log `/home/runner/work/_temp/kilo-tmp/c24_bab_beta_attribution_regime_probe_evidence.log` (37 combos) → explicit **"no proven gaps"**, 0 modules touched.
+**Prior campaign closure (evidence-carrying, do not churn without new reproducible failure):** C6–C22 closed with evidence. C21/C22 → explicit **"no proven gaps"**. C23 **1 gap fixed** (CLI output-path validation timing in `cli.py`), 0 remaining gaps. C24 **EXECUTED** with probe evidence log `/home/runner/work/_temp/kilo-tmp/c24_bab_beta_attribution_regime_probe_evidence.log` (37 combos) → explicit **"no proven gaps"**, 0 modules touched. **C25 not yet executed** — it is the binding next campaign below.
 
 ---
 
@@ -40,15 +40,15 @@ If deps missing, install minimal needed deps and record; do not claim progress b
 ### 2) Campaigns 6–24 (historical closure — no churn)
 C6–C24 reported closed/evidenced above. **Do not churn C6–C24 without a new, statable, reproducible failure with probe evidence.**
 
-### 3) EXECUTE C25 — reporting fidelity, CLI error contracts & serialization robustness (≥12 combos, HEAVY) — BINDING
+### 3) EXECUTE C25 — reporting fidelity, CLI error contracts & serialization robustness (≥14 combos, HEAVY) — BINDING
 Goal: harden **reporting fidelity, CLI error contracts, and serialization robustness** of the BAB delivery surface (`cli.py`/`metrics.py`/reporting/scripts), plus cross-surface metric determinism under stressed numeric regimes. Produce real probe evidence (not summaries).
 
 **Evidence log (MANDATORY):** `/home/runner/work/_temp/kilo-tmp/c25_bab_reporting_cli_contract_probe_evidence.log`
 Record for each combo: cmd, rc, stdout, stderr, JSON validity/finiteness (strict `allow_nan=False` parse + finiteness walk where JSON produced), key sets, determinism/parity/invariant notes.
 
-**Required probe matrix (minimum 12 combos — execute all, add more if suspicious):**
+**Required probe matrix (minimum 14 combos — execute all, add more if suspicious):**
 1. **CLI `--output` unwritable path:** `--output /nonexistent_dir_xyz/out.json` → rc=1 clean error, zero stdout before error, no partial file, no Traceback.
-2. **CLI `--output` is a directory:** → rc=1 clean error, zero stdout before error (re-verify C23 fix holds).
+2. **CLI `--output` is a directory:** → rc=1 clean error, zero stdout before error, no Traceback (re-verify C23 fix holds).
 3. **CLI missing `--data` with `--from-prices`:** → rc=1 clean contract error, no Traceback.
 4. **CLI invalid `--long-quantile 1.5` / `--short-quantile 1.5`:** → rc=1 `BABConfigError`/clean config message, no Traceback.
 5. **CLI empty/whitespace `--universe ""`:** → rc=1 clean error, no Traceback.
@@ -59,7 +59,7 @@ Record for each combo: cmd, rc, stdout, stderr, JSON validity/finiteness (strict
 10. **Metrics finiteness under extreme costs:** `transaction_costs=0.5` + `slippage=0.5` → cumulative finite (≥0 where applicable), no inf/NaN, strict JSON finite, rc=0.
 11. **Cross-surface `final_cumulative` determinism (repeated runs):** same CLI args run 3× → byte-identical/stdout-identical results as applicable; same API config run 3× → identical `final_cumulative`.
 12. **CLI `--version` and `--help`:** rc=0, emits expected text, no Traceback.
-13. **`bab_backtest_report.py --json` on `tests/fixtures/real_market_prices.csv`:** rc=0, strict JSON finite, metrics finite, headline consistent with CLI/API where comparable.
+13. **`scripts/bab_backtest_report.py --json` (or equivalent module invocation) on `tests/fixtures/real_market_prices.csv`:** rc=0, strict JSON finite, metrics finite, headline consistent with CLI/API where comparable.
 14. **Large-report serialization:** synthetic `n_assets=100, n_days=1000` via API `report_to_json()` (and/or reporting path) → strict JSON finite, rc=0, completes without Traceback.
 
 **Execution notes:** use `tests/fixtures/*` and synthetic generation as needed; record exact commands and environment (`PYTHONPATH=$PWD`). Prefer deterministic seeds for parity checks. Capture both success and expected-failure contract behavior precisely.
