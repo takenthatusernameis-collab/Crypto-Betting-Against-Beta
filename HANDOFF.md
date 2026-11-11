@@ -1,25 +1,26 @@
 # INITIAL TASK MESSAGE (single durable handoff — leave for next agent; highest priority)
 
-**Timestamp (refreshed):** 2026-11-11T04:37:14Z
+**Timestamp (refreshed):** 2026-11-11T04:49:10Z
 **Repo:** `Crypto-Betting-Against-Beta` (repo-name priority is binding: every slice must advance **Betting Against Beta** correctness/robustness/reporting fidelity; no unrelated refactors)
-**HEAD/base:** `dbf2bc2` (`chore(kilo): checkpoint agent session`, 2026-11-11). Treat current HEAD as base and record exact HEAD when you run.
-**Working tree (at refresh):** clean (only `HANDOFF.md` updated in place this session). **`HANDOFF.md` is the single durable handoff — do not create competing handoff files.**
+**HEAD:** `012a727` (`chore(kilo): checkpoint agent session`)
+**Working tree:** clean at refresh (`## main...origin/main`, no uncommitted changes). **`HANDOFF.md` is the single durable handoff — do not create competing handoff files.**
 
 **Environment (quick-verified this session):** `python3 -c "import numpy,pandas,scipy,pytest"` → **rc=0** (deps present). Fixtures present under `tests/fixtures/` (incl. `real_market_prices.csv`, `real_market_prices_expanded.csv`, `degenerate_metrics.csv`, `junk_columns.csv`, `all_nan_column.csv`, `messy_returns.csv`, `non_monotonic_dates.csv`, `real_data_defects.csv`, `benchmark_nan_window.csv`, `returns.json`).
-**Bottlenecks:** None identified in-repo. No blocked sessions/state files. `research_state/workflow_run_diagnostics.jsonl` contains historical concluded run diagnostics only — **not** a current blocker; do not chase diagnostics archaeology. `bab-example` console entrypoint not installed on PATH in this env; use `python scripts/load_real_bab_example.py` or direct module/script execution as baseline when needed.
+**Bottlenecks:** None identified in-repo. No blocked sessions/state files requiring intervention. `research_state/workflow_run_diagnostics.jsonl` contains historical concluded CI/run diagnostics only — **not** a current blocker; do not chase diagnostics archaeology. `bab-example` console entrypoint may not be installed on PATH in this env; use `python scripts/load_real_bab_example.py` or direct module/script execution (`python -m strategies.betting_against_beta.cli ...`) as baseline.
 
-**Prior campaign closure (evidence-carrying, do not churn without new reproducible failure):** C6–C22 closed with evidence. C21/C22 → explicit **"no proven gaps"**. C23 **1 gap fixed** (CLI output-path validation timing in `cli.py`), 0 remaining gaps. C24 **EXECUTED** on prior head with probe evidence log `/home/runner/work/_temp/kilo-tmp/c24_bab_beta_attribution_regime_probe_evidence.log` (37 combos) → explicit **"no proven gaps"**, 0 modules touched. No new regressions added.
+**Prior campaign closure (evidence-carrying, do not churn without new reproducible failure):** C6–C22 closed with evidence. C21/C22 → explicit **"no proven gaps"**. C23 **1 gap fixed** (CLI output-path validation timing in `cli.py`), 0 remaining gaps. C24 **EXECUTED** (prior head) with probe evidence log `/home/runner/work/_temp/kilo-tmp/c24_bab_beta_attribution_regime_probe_evidence.log` (37 combos) → explicit **"no proven gaps"**, 0 modules touched.
 
 ---
 
 ## Step 0 baseline/gates — last verified baseline (carry forward unless touched/regressed)
-Verified on HEAD `d0d25b3` (2026-11-11, `export PYTHONPATH=$PWD PATH=$HOME/.local/bin:$PATH`) and recorded in this session:
+
+Last recorded on HEAD `d0d25b3` (2026-11-11, `export PYTHONPATH=$PWD PATH=$HOME/.local/bin:$PATH`):
 - `python3 -c "import numpy,pandas,scipy,pytest"` → **rc=0**
 - `python3 -m pytest -q tests/test_bab_cli_campaign11m*.py tests/test_bab_cli_campaign11n*.py tests/test_bab_cli_campaign11o*.py tests/test_bab_cli_campaign11p*.py tests/test_bab_cli_campaign11q*.py tests/test_bab_cli_campaign11s*.py tests/test_bab_cli_campaign11ab*.py tests/test_bab_cli_campaign14_cli_reporting.py` → **164 passed in 146.36s, rc=0**
 - `python3 -m pytest -q -k campaign_d tests/test_bab_data_loader*.py` → **883 passed, 5 skipped, 1808 deselected, rc=0**
 - `python3 -m pytest -q tests/test_bab_*.py tests/test_betting_against_beta*.py --ignore=tests/test_bab_data_loader* --ignore=tests/test_controller*` → **4782 passed, 35 skipped, rc=0** (hard floor)
 
-**No modules touched this session; baseline carries forward.** If you edit anything, you MUST re-run Step 0 gates (and impacted suites) and record exact counts/rc before finishing.
+**Not re-run in this refresh session** (handoff-only maintenance; no code edits). Carry forward unless you touch code/tests or observe regression. **If you edit anything, you MUST re-run Step 0 gates (and impacted suites) and record exact counts/rc before finishing.**
 
 ---
 
@@ -40,7 +41,7 @@ If deps missing, install minimal needed deps and record; do not claim progress b
 C6–C24 reported closed/evidenced above. **Do not churn C6–C24 without a new, statable, reproducible failure with probe evidence.**
 
 ### 3) EXECUTE C25 — reporting fidelity, CLI error contracts & serialization robustness (≥12 combos, HEAVY) — BINDING
-Goal: harden **reporting fidelity, CLI error contracts, and serialization robustness** of the BAB delivery surface (`cli.py`/`metrics.py`/reporting/scripts), the only non-locked modules, plus cross-surface metric determinism under stressed numeric regimes. Produce real probe evidence (not summaries).
+Goal: harden **reporting fidelity, CLI error contracts, and serialization robustness** of the BAB delivery surface (`cli.py`/`metrics.py`/reporting/scripts), plus cross-surface metric determinism under stressed numeric regimes. Produce real probe evidence (not summaries).
 
 **Evidence log (MANDATORY):** `/home/runner/work/_temp/kilo-tmp/c25_bab_reporting_cli_contract_probe_evidence.log`
 Record for each combo: cmd, rc, stdout, stderr, JSON validity/finiteness (strict `allow_nan=False` parse + finiteness walk where JSON produced), key sets, determinism/parity/invariant notes.
@@ -53,7 +54,7 @@ Record for each combo: cmd, rc, stdout, stderr, JSON validity/finiteness (strict
 5. **CLI empty/whitespace `--universe ""`:** → rc=1 clean error, no Traceback.
 6. **CLI benchmark missing from data columns:** real fixture with benchmark not present → rc=1 clean error or clean degenerate output, no Traceback.
 7. **`report_to_json` strictness on degenerate/synthetic runs:** `allow_nan=False` parse succeeds, finiteness walk passes, no `NaN`/`Infinity` tokens.
-8. **`tear_sheet()` on degenerate input:** renders without Traceback; non-finite metrics shown safely (e.g. `0.00%`), rc=0/clean behavior as applicable.
+8. **`tear_sheet()` on degenerate input:** renders without Traceback; non-finite metrics shown safely, rc=0/clean behavior as applicable.
 9. **CLI `--dry-run` no side effects:** valid dry-run rc=0, no file written, output path not created.
 10. **Metrics finiteness under extreme costs:** `transaction_costs=0.5` + `slippage=0.5` → cumulative finite (≥0 where applicable), no inf/NaN, strict JSON finite, rc=0.
 11. **Cross-surface `final_cumulative` determinism (repeated runs):** same CLI args run 3× → byte-identical/stdout-identical results as applicable; same API config run 3× → identical `final_cumulative`.
@@ -94,4 +95,4 @@ Update this file in place with: timestamp/HEAD/worktree state, Step 0 counts/rc 
 
 ---
 
-*Single durable handoff for `Crypto-Betting-Against-Beta`. Future agents: this handoff is binding — execute heavy work with probe evidence, remove bottlenecks if found, and leave a refreshed handoff.*
+*Single durable handoff for `Crypto-Betting-Against-Beta`. Future agents: execute heavy work with probe evidence, remove bottlenecks if found, and leave a refreshed handoff.*
