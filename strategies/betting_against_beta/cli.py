@@ -231,11 +231,13 @@ def main(argv=None) -> int:
                         "--universe must contain at least one non-empty asset token"
                     )
                 universe_arg = cleaned
-        # No --universe provided -> pass universe=None so config/strategy derive
-        # from data/synthetic defaults (historical CLI behavior); explicit
-        # --universe uses the provided list.
-        config = BABConfig(
-            universe=universe_arg,
+        # No --universe provided -> omit the ``universe`` kwarg entirely so
+        # BABConfig applies its documented default universe (BTC, ETH, SOL,
+        # BNB, XRP, ADA, AVAX, DOT). Passing ``universe=None`` explicitly
+        # overrides that default and silently shrinks the synthetic universe
+        # to a 5-asset fallback, producing a different cumulative path than
+        # the equivalent API/programmatic config (reporting-fidelity gap).
+        kw = dict(
             benchmark=args.benchmark,
             beta_window=args.beta_window,
             long_quantile=args.long_quantile,
@@ -244,10 +246,13 @@ def main(argv=None) -> int:
             transaction_costs=args.transaction_costs,
             slippage=args.slippage,
         )
+        if universe_arg is not None:
+            kw["universe"] = universe_arg
         # --from-prices is meaningless without a --data source; reject cleanly
         # instead of silently falling back to synthetic data.
         if args.from_prices and args.data is None:
             raise BABDataError("--from-prices requires --data")
+        config = BABConfig(**kw)
     except Exception as exc:
         print(f"Error creating config: {exc}")
         return 1
@@ -363,18 +368,10 @@ def main(argv=None) -> int:
 
     # --output handling: write defensively (path already validated).
     if args.output:
+        summary = _build_output_summary(result, config, cum_out)
+        # Ensure the summary is fully JSON-safe before writing.
+        payload = _json_safe(summary)
         try:
-            summary = _build_output_summary(result, config, cum_out)
-            # Ensure the summary is fully JSON-safe before writing.
-            payload = _json_safe(summary)
-            out_path.write_text(json.dumps(payload, indent=2, default=_json_default, allow_nan=False))
-        except Exception as exc:
-            print(f"Error writing output: {exc}")
-            return 1
-        try:
-            summary = _build_output_summary(result, config, cum_out)
-            # Ensure the summary is fully JSON-safe before writing.
-            payload = _json_safe(summary)
             out_path.write_text(json.dumps(payload, indent=2, default=_json_default, allow_nan=False))
         except Exception as exc:
             print(f"Error writing output: {exc}")
