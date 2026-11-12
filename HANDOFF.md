@@ -1,6 +1,6 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-12T04:19:05Z
+**Timestamp (refreshed):** 2026-11-12T05:00:57Z
 **HEAD:** `b181823` on `main` (working tree clean; diff vs `5c53e60` touched only handoff files, no source change)
 **Repo priority (binding):** advance **Betting Against Beta** correctness, robustness, CLI/API/reporting/metrics fidelity, or a newly proven regression. No unrelated refactors.
 
@@ -63,4 +63,4 @@ Every gate run writes a durable log under `/home/runner/work/_temp/kilo-tmp/` (s
 - **No commit/push unless explicitly requested.** Do not revert intentional changes.
 - Do not reopen C28–C39 without a new statable reproducible failure + durable evidence.
 
-(End of file - total 64 lines)
+(End of file - total 66 lines)
