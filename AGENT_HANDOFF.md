@@ -2,9 +2,9 @@
 
 **Canonical durable handoff:** [`HANDOFF.md`](HANDOFF.md) — single source of truth.
 
-- **Refreshed:** 2026-11-12T13:11:58Z
-- **HEAD:** `67a9eff2984081a4717ee1668c3c297b7734c6e1`
-- **State:** Tracked tree clean; deps verified OK. **C46 ROTATION CLOSED CLEAN — 38/38 PASS, 0 FAIL, no proven gaps** (durable logs: `/home/runner/work/_temp/kilo-tmp/c46_probes/` + gates `/home/runner/work/_temp/kilo-tmp/c46_gates/` Gate1 898p/5s, Gate2 2234p/5s, Gate3 164p, all rc=0).
-- **Binding next task:** Execute **C47 ROTATION** per `HANDOFF.md`: preflight, (re-)run Gate 1/2/3 with durable logs in `/home/runner/work/_temp/kilo-tmp/c47_gates/`, run the 38 NEW C47 probes (no C40–C46 reuse) via `/home/runner/work/_temp/kilo-tmp/c47_probes/c47_probe_runner.py` with per-probe logs+summary in `/home/runner/work/_temp/kilo-tmp/c47_probes/`, apply smallest proven fixes in allowed surfaces only + regression + full gates on any gap, refresh `HANDOFF.md`/pointer; if clean immediately define and start **C48**.
+- **Refreshed:** 2026-11-12T13:23:10Z
+- **HEAD:** `b05e938ca95413cb61b143c90f955b46793c9709`
+- **State:** Tracked tree clean; deps verified OK (Python 3.12.3). **C47 probes 38/38 PASS, 0 FAIL** with durable logs/summary in `/home/runner/work/_temp/kilo-tmp/c47_probes/`. **Gate 1 GREEN** (898p/5s rc=0, `/home/runner/work/_temp/kilo-tmp/c47_gates/gate1_20261112T131500Z.log`); **Gate 2/3 incomplete at handoff** (see `HANDOFF.md`, logs in `/home/runner/work/_temp/kilo-tmp/c47_gates/gate2_20261112T131500Z.log`, `gate3_20261112T131500Z.log`) — C47 not fully closed until all gates green.
+- **Binding next task:** Finalize C47 gate closure (confirm/rerun Gate 2/3 with durable completed logs), close C47 only if all gates green, handle any proven gap with smallest allowed fix + regression + full gates. **If C47 closes cleanly, immediately define and start C48** (≥20 NEW probes, no C40–C47 reuse, durable logs in `/home/runner/work/_temp/kilo-tmp/c48_probes/` + gates in `/home/runner/work/_temp/kilo-tmp/c48_gates/`) and record as binding next task in `HANDOFF.md`.
 
 Do not use this file for details; follow `HANDOFF.md` exactly.
