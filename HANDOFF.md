@@ -1,8 +1,8 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-12T20:52:00Z
-**HEAD at refresh:** `60de610a0d06859b8aa172439ced07ac5d9c5c90` (`chore(kilo): checkpoint agent session`, `main`)
-**Code state:** C53 unblocked the suite. Fixed 2 real, long-standing failures in `tests/test_controller_progress_accounting.py` (workflow pattern-sync assertions had a wrong premise: `.github/workflows/*` is protected in bash by `git restore`/`git clean`, not by a `case` pattern). Uncommitted: `tests/test_controller_progress_accounting.py` only. No product source changed.
+**Timestamp (refreshed):** 2026-11-12T21:39:15Z
+**HEAD at refresh:** `15b472166d72fadb55d510a85537a372e367aaa5` (`chore(kilo): checkpoint agent session`, `main`)
+**Code state:** C53 unblocked the suite and the fix is committed in `15b4721` (working tree clean; no uncommitted changes). Fixed 2 real, long-standing failures in `tests/test_controller_progress_accounting.py` (workflow pattern-sync assertions had a wrong premise: `.github/workflows/*` is protected by `git restore`/`git clean`, not a `case` pattern). No product source changed since C53.
 **Env (verified):** Python 3.12.3, Linux, repo root `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`; run from repo root with `PYTHONPATH=.`; deps importable (`numpy,pandas,scipy,pytest,hypothesis,coverage`).
 
 ## Why this handoff changed (read first)
@@ -55,13 +55,17 @@ FAILED ...::test_nested_workflow_pattern_is_present_in_workflow
 
 ## INITIAL MESSAGE FOR NEXT AGENTIC SESSION (binding, execute now)
 
-**Priority (binding):** advance **Crypto-Betting-Against-Beta** (market-neutral BAB: long low-beta / short high-beta vs BTC benchmark) with **real product value**. Probe-count quotas are abolished. No planning-only sessions. Heavy execution required.
+**Timestamp:** 2026-11-12T21:39:15Z
+**HEAD at refresh:** `15b472166d72fadb55d510a85537a372e367aaa5` (`chore(kilo): checkpoint agent session`, `main`)
+**Working tree:** clean (no uncommitted changes). C53 fix committed; no product source changed since C53.
 
-**Current state:** C53 unblocked the suite; **all 5068 tests pass with the controller file included** (2334 in the non-data_loader gate + 898 data_loader gate + rest). Uncommitted: `tests/test_controller_progress_accounting.py`. Coverage 99%. The product works end-to-end.
+**Priority (binding):** advance **Crypto-Betting-Against-Beta** — the BAB (Betting Against Beta) market-neutral product: long low-beta / short high-beta crypto vs BTC benchmark. Prioritize by the repo name: **real BAB product value first**. Probe-count quotas are abolished. No planning-only sessions. Heavy execution required.
+
+**Current state:** C53 CLOSED — suite unblocked. All tests pass with the controller file included (2334 non-data_loader + 898 data_loader + rest). Coverage **99%** (4535 stmts, 66 miss). CLI verified end-to-end (`--synthetic` → `0.413704 / 252`; real-prices fixture → `0.339735 / 398`; `--version` → `bab 0.1.0`).
 
 **Campaign C54 (binding — pick the highest-value item you can *prove*, in this order):**
 
-**Preflight (verify, record):**
+Preflight (verify, record):
 ```bash
 git rev-parse HEAD
 git status --short
@@ -93,7 +97,12 @@ This is the only substantive engineering work left, and it is *product* work, no
 
 **Step 5 — Only after Steps 1–4 are durably recorded:** if you still have capacity, add tests **only** for the residual missing lines listed above where you can show they represent reachable behavior, and re-measure. Do not invent probe volumes.
 
-**Before exit (mandatory):** full suite green (single command, no ignores) with a timestamped log under `/home/runner/work/_temp/kilo-tmp/c54_gates/`; refresh this file (timestamp/HEAD, what shipped, before/after evidence, residual debt with numbers, next concrete step); keep `AGENT_HANDOFF.md` pointer-only; commit nothing unless explicitly requested.
+**Bottlenecks removed (do not reintroduce):**
+- The C52-era "≥40 new adversarial probes per session, then C54/C55…" loop is abolished (probe-count quotas abolished). Coverage is already 99%; there is no meaningful new probe surface.
+- Gate 2's `--ignore=tests/test_controller_progress_accounting.py` is removed; that file hid 2 real failures. Never re-add any per-file `--ignore` to a gate.
+- `docs/unreachable_proofs.md` append-only busywork is flagged for replacement (Step 4).
+
+Before exit (mandatory): full suite green (single command, no ignores) with a timestamped log under `/home/runner/work/_temp/kilo-tmp/c54_gates/`; refresh this file (timestamp/HEAD, what shipped, before/after evidence, residual debt with numbers, next concrete step); keep `AGENT_HANDOFF.md` pointer-only; commit nothing unless explicitly requested.
 
 ## Completed campaigns (do not reopen without new reproducible failure + durable evidence)
 - **C42–C51:** CLOSED (historical probe campaigns; superseded by the policy above).
