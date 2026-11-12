@@ -1,8 +1,8 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-12T14:42:00Z
-**HEAD at refresh:** `f9d84f808b7a5259f5663fa6db4e0d5cda17f630` (`chore(kilo): checkpoint agent session`, 2026-11-12T14:28:46Z, `main`)
-**Working tree (tracked):** dirty at refresh — one intentional fix + one new regression test, both listed below. Untracked `/home/runner/work/_temp/kilo-tmp/` probe/log/gate artifacts exist and must not be committed.
+**Timestamp (refreshed):** 2026-11-12T14:36:43Z
+**HEAD at refresh:** `85f16528cae98e660e10874b7520211d8ffc54af` (`chore(kilo): checkpoint agent session`, 2026-11-12T14:35:29Z, `main`)
+**Working tree (tracked):** clean at refresh. Untracked `/home/runner/work/_temp/kilo-tmp/` probe/log/gate artifacts may exist and must not be committed.
 **Env (verified):** Python 3.12.3, Linux, repo root `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`; run commands from repo root with `PYTHONPATH=.`; deps importable (`numpy,pandas,scipy,pytest,hypothesis,coverage`).
 
 **Repo priority (binding):** advance **Crypto-Betting-Against-Beta** (market-neutral BAB: long low-beta / short high-beta vs BTC benchmark) via proven correctness/robustness work in allowed editable surfaces only. No unrelated refactors, no planning-only sessions. Heavy execution required.
@@ -10,29 +10,28 @@
 ## Bottlenecks cleared / status
 - **Single durable handoff:** this file is canonical. `AGENT_HANDOFF.md` pointer-only. No parallel TODO/session handoff files.
 - **Historical diagnostics only:** `research_state/workflow_run_diagnostics.jsonl` contains prior CI/log excerpts from other runs/heads; treat as historical, not evidence of current-checkout failure, and never as justification for inaction/"blocked".
-- **Env/blockers:** deps importable, Python 3.12.3, tracked tree at HEAD `f9d84f8`. No proven current source blocker recorded.
-- **Previous-session gap cleared (bottleneck removed):** The prior session wrote `C49 STARTED` with **zero** C49 artifacts (`c49_probes/`, `c49_gates/` were empty) and exited planning-only. This session executed C49 for real and closed it — see below. The next session must not repeat a planning-only turn.
-- **Gate invocation:** run from repo root with `PYTHONPATH=.`; G1 uses the explicit `tests/test_bab_data_loader_campaign_d*` file list + batch148/149/172; save timestamped durable logs under `/home/runner/work/_temp/kilo-tmp/c49_gates/`; always capture final summary + `rc`.
+- **Env/blockers:** deps importable, Python 3.12.3, tracked tree clean at HEAD `85f1652`. No proven current source blocker recorded.
+- **C49 closed and recorded:** prior planning-only gap cleared; C49 probes executed (67/67 PASS), gates 3/3 GREEN, and 2 proven fixes landed (`metrics.py` guards + `tests/test_bab_metrics_c49_regressions.py`). C50 is the only active campaign focus.
+- **Gate invocation:** run from repo root with `PYTHONPATH=.`; G1 uses explicit `tests/test_bab_data_loader_campaign_d*` file list + batch148/149/172; save timestamped durable logs under `/home/runner/work/_temp/kilo-tmp/c50_gates/`; always capture final summary + `rc`.
 
-## Gate status (C49; refreshed 2026-11-12T14:42:00Z, HEAD f9d84f8)
+## Gate status (baseline at HEAD 85f1652; last recorded C49 run 2026-11-12T14:42:00Z @ f9d84f8)
 
 | Gate | Status | Evidence / notes | Command | Log |
 |---|---|---|---|---|
-| 1 | **GREEN** | 898 passed, 5 skipped, 53 warnings, rc=0 | explicit `tests/test_bab_data_loader_campaign_d*` (32 files) + `tests/test_bab_data_loader_batch148.py tests/test_bab_data_loader_batch149.py tests/test_bab_data_loader_batch172.py` | `/home/runner/work/_temp/kilo-tmp/c49_gates/gate1_20261112T143031Z.log` |
-| 2 | **GREEN** | 2241 passed, 5 skipped, 41 warnings, rc=0 | `python3 -m pytest -q --ignore-glob='*data_loader*' --ignore=tests/test_controller_progress_accounting.py` | `/home/runner/work/_temp/kilo-tmp/c49_gates/gate2_20261112T143040Z.log` |
-| 3 | **GREEN** | 164 passed in 121.05s, rc=0 | campaign11ab/11m/11n/11o/11p/11q/11s/14 CLI bundle (8 files) | `/home/runner/work/_temp/kilo-tmp/c49_gates/gate3_20261112T143040Z.log` |
+| 1 | **GREEN (recorded)** | 898 passed, 5 skipped, 53 warnings, rc=0 | explicit `tests/test_bab_data_loader_campaign_d*` (32 files) + `tests/test_bab_data_loader_batch148.py tests/test_bab_data_loader_batch149.py tests/test_bab_data_loader_batch172.py` | `/home/runner/work/_temp/kilo-tmp/c49_gates/gate1_20261112T143031Z.log` |
+| 2 | **GREEN (recorded)** | 2241 passed, 5 skipped, 41 warnings, rc=0 | `python3 -m pytest -q --ignore-glob='*data_loader*' --ignore=tests/test_controller_progress_accounting.py` | `/home/runner/work/_temp/kilo-tmp/c49_gates/gate2_20261112T143040Z.log` |
+| 3 | **GREEN (recorded)** | 164 passed in 121.05s, rc=0 | campaign11ab/11m/11n/11o/11p/11q/11s/14 CLI bundle (8 files) | `/home/runner/work/_temp/kilo-tmp/c49_gates/gate3_20261112T143040Z.log` |
 
-**C49 CLOSED CLEAN — probes 67/67 PASS, 0 FAIL, all gates GREEN, 2 proven gaps fixed with regression tests.**
+**C49 CLOSED CLEAN (recorded).** C50 must re-run and durably log all 3 gates under `/home/runner/work/_temp/kilo-tmp/c50_gates/` before exit after any C50 changes.
 
-## C49 (this session) — result + proven fixes
+## C49 (prior session, recorded) — result + proven fixes
 - **Probes:** 67 NEW adversarial probes under `/home/runner/work/_temp/kilo-tmp/c49_probes/` (runner `c49_probe_runner.py`, per-probe logs `C49-001.log`..`C49-067.log`, summary `c49_probe_summary.{json,md}` timestamp `2026-11-12T14:30:15Z`). No C40–C48 reuse.
 - **Surfaces covered:** `metrics.py`, `attribution.py`, `quality.py`, `data_sources.py`/`DataCache`, `costs.py`, `regime.py`, `shorting.py`, `sizing.py`, `cli.py` (arg/error/reporting robustness, `--output` path validation, `_coerce_finite_scalar`, `_validate_rebalance_freq`).
-- **Two PROVEN gaps found + fixed (smallest allowed fixes):**
-  1. `metrics.py:sharpe_ratio` returned a misleading `-inf` when `risk_free` was NaN/±inf (silent wrong answer). Fix: guard non-finite `risk_free` → `np.nan` (metrics.py:35-37).
-  2. `metrics.py:turnover_series` crashed with `ValueError: could not convert string to float` on a non-numeric weight frame. Fix: coerce via `apply(pd.to_numeric, errors="coerce")` (metrics.py:236).
-- **Regression tests (new, must keep):** `tests/test_bab_metrics_c49_regressions.py` — 7 passed (`sharpe_ratio` non-finite `risk_free` param cases + finite-unchanged; `turnover_series` non-numeric frame no-raise + numeric frame unchanged).
-- **Intentionally modified tracked file (do not revert):** `strategies/betting_against_beta/metrics.py` (2 defensive guards above).
-- **Intentionally added tracked file:** `tests/test_bab_metrics_c49_regressions.py`.
+- **Proven gaps fixed (landed at HEAD 85f1652):**
+  1. `metrics.py:sharpe_ratio` guarded non-finite `risk_free` → `np.nan` (no misleading `-inf`).
+  2. `metrics.py:turnover_series` coerces non-numeric frames via `pd.to_numeric(..., errors="coerce")`.
+- **Regression tests (kept):** `tests/test_bab_metrics_c49_regressions.py` (7 tests). Must not be removed or weakened.
+- **Intentional tracked state:** `strategies/betting_against_beta/metrics.py` + `tests/test_bab_metrics_c49_regressions.py` are part of baseline; do not revert.
 
 ## Completed campaigns (do not reopen without new reproducible failure + durable evidence)
 - **C42:** CLOSED — 38/38. **C43:** 39/39. **C44:** 44/44. **C45:** 43/43. **C46:** 38/38, gates green.
