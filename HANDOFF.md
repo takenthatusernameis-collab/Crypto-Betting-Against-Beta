@@ -1,7 +1,7 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-12T12:09:27Z
-**HEAD:** `84b148eea42d5b5043c1ec2b524cbc9f076cae00` on `main`
+**Timestamp (refreshed):** 2026-11-12T12:11:07Z
+**HEAD:** `52f3b2e6aab5af68c666de7f917c90f1f9cd9bdb` on `main`
 **Working tree (tracked):** clean (`git status --short` empty). Untracked `/home/runner/work/_temp/kilo-tmp/` probe/log artifacts must not be committed.
 **Env:** Python 3.12.3, Linux, repo root, `PYTHONPATH=$PWD`. Deps re-verified OK (numpy, pandas, scipy, pytest, hypothesis, coverage import). No code changes made in this session; only untracked probe/runner scripts under `/home/runner/work/_temp/kilo-tmp/c45_probes/`.
 
@@ -16,7 +16,7 @@
 
 ## Gate floors (last recorded GREEN; re-run after any fix or if env/HEAD drift suspected)
 
-**Verified 2026-11-12T12:04:18Z (HEAD `2419313`):** Core BAB tests (86 passed), CLI campaign tests (32 passed), deps import OK. This session: HEAD advanced to `84b148e` (checkpoint, no source change), deps re-imported OK, working tree clean, C45 probes all PASS → no source regression introduced. Gate re-run not required absent code changes; re-run Gate 1/2/3 to completion with durable logs under `/home/runner/work/_temp/kilo-tmp/c46_gates/` if env/checkout uncertain or any fix is made.
+**Verified 2026-11-12T12:04:18Z (HEAD `2419313`):** Core BAB tests (86 passed), CLI campaign tests (32 passed), deps import OK. This session: HEAD advanced to `52f3b2e` (checkpoint, no source change), deps re-imported OK, working tree clean, C45 probes all PASS → no source regression introduced. Gate re-run not required absent code changes; re-run Gate 1/2/3 to completion with durable logs under `/home/runner/work/_temp/kilo-tmp/c46_gates/` if env/checkout uncertain or any fix is made.
 
 | Gate | Command (cwd=repo root, `PYTHONPATH=$PWD`) | Last recorded result | Log (ephemeral) |
 |---|---|---|---|
@@ -30,7 +30,7 @@
 - **C44 ROTATION** (2026-11-12T11:09:00Z, HEAD `238b034`): 44/44 PASS, 0 FAIL, no proven gaps. 7 cross-interactions.
 - **C45 ROTATION** (2026-11-12T12:09:27Z, HEAD `84b148e`): **CLOSED CLEAN — 43/43 PASS, 0 FAIL, 0 ERROR, no proven gaps.** All durable logs under `/home/runner/work/_temp/kilo-tmp/c45_probes/` (43 `.log` + `c45_probe_summary.json` + `c45_probe_summary.md`; runner `c45_probe_runner.py`). No code changes; no regressions. Two probes initially recorded as FAIL were probe-design errors (duplicate-timestamp dedup contract; single-sided signal not dollar-neutral per row), corrected to match actual contract — no source fix needed.
 
-## INITIAL MESSAGE FOR NEXT AGENTIC SESSION (binding, read first — 2026-11-12T12:09:27Z)
+## INITIAL MESSAGE FOR NEXT AGENTIC SESSION (binding, read first — 2026-11-12T12:11:07Z)
 - **Single durable handoff:** this file only. `AGENT_HANDOFF.md` pointer-only. `research_state/workflow_run_diagnostics.jsonl` is historical diagnostics, not a current blocker.
 - **Repo focus:** `Crypto-Betting-Against-Beta` (market-neutral BAB vs BTC). Deliver proven correctness/robustness in allowed surfaces only; **no planning-only turn**.
 - **Binding campaign:** **C46 ROTATION** (heavy, mandatory). C45 closed clean (43/43 PASS, no proven gaps). Do not declare "no proven gaps" or "blocked" without attempted probes and durable logs under `/home/runner/work/_temp/kilo-tmp/c46_probes/`.
