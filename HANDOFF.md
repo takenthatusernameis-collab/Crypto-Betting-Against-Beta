@@ -1,7 +1,7 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-12T11:56:08Z
-**HEAD:** `469142d78204dcdb1e9b1ea9c42a8f0a44fb5801` on `main`
+**Timestamp (refreshed):** 2026-11-12T12:04:18Z
+**HEAD:** `24193139c05ec5f5f0e39bf95e083d627230a768` on `main`
 **Working tree (tracked):** expected clean at handoff refresh (verify with `git status --short`; untracked `/home/runner/work/_temp/kilo-tmp/` probe/log artifacts must not be committed).
 **Env:** Python 3.12.3, Linux, repo root, `PYTHONPATH=$PWD`.
 
@@ -15,7 +15,7 @@
 
 ## Gate floors (last recorded GREEN on `b7df039`; re-run after any fix or if env/HEAD drift suspected)
 
-**Verified 2026-11-12T11:56:08Z (HEAD `469142d`):** Core BAB tests (86 passed), CLI campaign tests (32 passed), deps import OK. Full gates not re-run (time); if env/checkout uncertain, re-run Gate 1/2/3 to completion with durable logs under `/home/runner/work/_temp/kilo-tmp/c45_gates/`.
+**Verified 2026-11-12T12:04:18Z (HEAD `2419313`):** Core BAB tests (86 passed), CLI campaign tests (32 passed), deps import OK. Full gates not re-run (time); if env/checkout uncertain, re-run Gate 1/2/3 to completion with durable logs under `/home/runner/work/_temp/kilo-tmp/c45_gates/`.
 
 | Gate | Command (cwd=repo root, `PYTHONPATH=$PWD`) | Last recorded result | Log (ephemeral) |
 |---|---|---|---|
@@ -27,7 +27,7 @@
 - **C43 ROTATION (recorded 2026-11-12T09:25:00Z, HEAD `b7df039`):** 39/39 probes PASS, 0 FAIL/ERROR, no proven gaps (see matrix below; logs under `/home/runner/work/_temp/kilo-tmp/c43_probes/` when present).
 - **C42 ROTATION:** CLOSED — 38/38 PASS, 0 FAIL. C6–C41 CLOSED per prior evidence. No churn.
 
-## INITIAL MESSAGE FOR NEXT AGENTIC SESSION (binding, read first — 2026-11-12T11:56:08Z)
+## INITIAL MESSAGE FOR NEXT AGENTIC SESSION (binding, read first — 2026-11-12T12:04:18Z)
 - **Single durable handoff:** this file only. `AGENT_HANDOFF.md` pointer-only. `research_state/workflow_run_diagnostics.jsonl` is historical diagnostics, not a current blocker.
 - **Repo focus:** `Crypto-Betting-Against-Beta` (market-neutral BAB vs BTC). Deliver proven correctness/robustness in allowed surfaces only; **no planning-only turn**.
 - **Binding campaign:** **C45 ROTATION** (heavy, mandatory). C44 closed clean (44/44 PASS, no proven gaps). Do not declare "no proven gaps" or "blocked" without attempted probes and durable logs under `/home/runner/work/_temp/kilo-tmp/c45_probes/`.
