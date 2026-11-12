@@ -1,10 +1,10 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-12T07:04:04Z
-**HEAD:** `5d25e9460d166f5c7853a152981fb80dab1c9f7b` on `main` (tracked working tree clean at refresh; `git status --porcelain` empty)
+**Timestamp (refreshed):** 2026-11-12T07:25:01Z
+**HEAD:** `23e82d16ddd78e08d9193677c976ee0f1a2a79b3` on `main` (tracked working tree clean at refresh; `git status --porcelain` empty)
 **Repo priority (binding):** advance **Betting Against Beta** correctness, robustness, CLI/API/reporting/metrics fidelity, or a newly proven regression. No unrelated refactors.
 
-**Bottleneck removal (this refresh):** revalidated repo state (HEAD `5d25e94`, tree clean), confirmed C41 gate floors are GREEN with durable logs, executed C41 ROTATION probe campaign (22 new probes, all PASS, no proven gaps), removed stale HEAD/timestamp ambiguity, and set the binding next campaign to C42 rotation. Prior C40/C40-extended evidence remains historical baseline only. No workflow edits or code changes made.
+**Bottleneck removal (this refresh):** reconciled C41 evidence — the raw campaign log `c41_probe_campaign_20261112T070404Z.log` contained stale FAIL entries for `c41_probe_cross_19.py` ("B not zeroed") and `c41_probe_cross_21.py` ("row 0 not neutral"); re-executed both against HEAD `23e82d1`: both **PASS rc=0**. Summary log confirms 22/22 PASS, 0 proven regressions, 0 proven gaps. C41 rotation **CLOSED: no proven gaps**. Removed the cross_19/cross_21 ambiguity so the next session is not misdirected into re-diagnosing closed C41. Set the binding next campaign to C42 rotation. No workflow edits or code changes made.
 
 ## BINDING INITIAL TASK MESSAGE — NEXT AGENT (start immediately)
 
@@ -12,7 +12,7 @@
 
 The repo is **Crypto-Betting-Against-Beta**: controller infrastructure plus a market-neutral Betting Against Beta (BAB) crypto strategy (long low-beta / short high-beta vs benchmark BTC). The only binding product is BAB correctness/robustness across `attribution.py`, `metrics.py`, `cli.py`, `scripts/bab_gate.sh`/controller contracts, and `costs`/`regime`/`shorting`/`sizing` cross-surface interactions. All work must flow through the gate floors + durable evidence standard below.
 
-**C41 ROTATION — CLOSED: no proven gaps.** 22 new adversarial probes executed, all PASS, across `attribution.py` (4), `metrics.py` (6), `scripts/bab_gate.sh`/controller contracts (3), `cli.py` report I-O (4), and `costs`/`regime`/`shorting`/`sizing` cross-surface interactions (5). Durable logs under `/home/runner/work/_temp/kilo-tmp/` (see master log `c41_probe_campaign_summary_20261112T070404Z.log`). No regressions found; no code changes required.
+**C41 ROTATION — CLOSED: no proven gaps.** 22 new adversarial probes executed, all PASS, across `attribution.py` (4), `metrics.py` (6), `scripts/bab_gate.sh`/controller contracts (3), `cli.py` report I-O (4), and `costs`/`regime`/`shorting`/`sizing` cross-surface interactions (5). Durable logs under `/home/runner/work/_temp/kilo-tmp/` (master log `c41_probe_campaign_summary_20261112T070404Z.log`). Stale raw-log FAIL entries for `c41_probe_cross_19.py`/`c41_probe_cross_21.py` re-ran PASS against HEAD `23e82d1`; no regressions, no code changes required.
 
 1. **Gate floors already GREEN (C41 @ `5d25e94`) — do not re-run unless a fix lands.**
    - Gate 1 `pytest -q tests/test_bab_data_loader_campaign_d*.py tests/test_bab_data_loader_batch148.py tests/test_bab_data_loader_batch149.py tests/test_bab_data_loader_batch172.py`: **898 passed, 5 skipped, rc=0 (4.92s)** → `/home/runner/work/_temp/kilo-tmp/c41_gate_gate1_20261112T061648Z.log`
@@ -46,9 +46,9 @@ The repo is **Crypto-Betting-Against-Beta**: controller infrastructure plus a ma
 - **No** edits/commits to tracked `probe*`/`debug*`/`ast_probe.py` (use untracked `/home/runner/work/_temp/kilo-tmp/` for probes/logs).
 - **No** weakening/deleting `batch148/149/172` or `campaign_d*` tests.
 - **Locked unless disproven by new evidence + minimal fix:** `beta.py`, `data_loader.py`, `portfolio.py`, `strategy.py`, `backtest.py`, `signals.py`, `config.py`.
-- **Editable only for smallest proven fix from probe/gate evidence:** `cli.py`, `metrics.py`, reporting, `scripts/*`, `costs.py`, `regime.py`, `attribution.py`, `shorting.py`, `sizing.py`, `quality.py`, `data_sources.py`.
+- **Editable only for smallest proven fix from probe/gate evidence:** `cli.py`, `metrics.py`, reporting, `scripts/*`, `costs.py`, `regime.py`, `shorting.py`, `sizing.py`, `quality.py`, `data_sources.py`, `attribution.py`.
 - **No commit/push unless explicitly requested.** Do not revert intentional changes.
-- Do not reopen C28–C40 without a new statable reproducible failure + durable evidence.
+- Do not reopen C28–C41 without a new statable reproducible failure + durable evidence.
 
 ## Next focus campaign (binding)
 
@@ -59,5 +59,5 @@ The repo is **Crypto-Betting-Against-Beta**: controller infrastructure plus a ma
 **Current status (verified at this refresh):**
 - Working tree: clean tracked state. Untracked artifacts may exist under `/home/runner/work/_temp/kilo-tmp/` (do not commit).
 - Quick sanity: key editable modules import cleanly (`cli, metrics, attribution, costs, regime, shorting, sizing`) with `PYTHONPATH=$PWD` → `imports_ok`.
-- C41 gates GREEN (see above). C41 probe campaign **EXECUTED**: 22 new probes, all PASS, no proven gaps → `c41_probe_campaign_summary_20261112T070404Z.log`.
+- C41 gates GREEN (see above). C41 probe campaign **EXECUTED**: 22 new probes, all PASS, no proven gaps → `c41_probe_campaign_summary_20261112T070404Z.log`. Stale cross_19/cross_21 raw-log FAILs re-ran PASS against HEAD `23e82d1`.
 - C42 probe campaign **NOT yet executed** — ≥20 new probes required before any handoff refresh/closure.
