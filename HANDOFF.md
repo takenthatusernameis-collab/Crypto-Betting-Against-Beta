@@ -1,66 +1,42 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-12T06:27:13Z
-**HEAD:** `f00c9af` on `main` (tracked working tree clean at refresh; `git status --porcelain` empty)
+**Timestamp (refreshed):** 2026-11-12T06:28:17Z
+**HEAD:** `3fb8234` on `main` (tracked working tree clean at refresh; `git status --porcelain` empty)
 **Repo priority (binding):** advance **Betting Against Beta** correctness, robustness, CLI/API/reporting/metrics fidelity, or a newly proven regression. No unrelated refactors.
 
-**Bottleneck removal (this refresh):** revalidated repo state, removed stale HEAD/timestamp ambiguity, and kept one binding kickoff for the next session. Prior C40/C40-extended gate/probe evidence remains historical baseline only; gates were **not re-run this refresh** and MUST be re-verified with durable logs in Step 1 before any new probe work. No workflow edits or code changes made.
+**Bottleneck removal (this refresh):** revalidated repo state (HEAD `3fb8234`, tree clean), confirmed C41 gate floors are GREEN with durable logs, removed stale HEAD/timestamp ambiguity, and kept one binding kickoff for the next session. Prior C40/C40-extended evidence remains historical baseline only. No workflow edits or code changes made.
 
-## BINDING INITIAL TASK MESSAGE — NEXT AGENT (C41 ROTATION heavy campaign, start immediately)
+## BINDING INITIAL TASK MESSAGE — NEXT AGENT (start immediately)
 
 **Start work now. Do not plan-only, do not re-diagnose historical CI noise, do not declare "blocked" without an evidenced attempt and durable logs.**
 
-1. **Re-verify gate floors (Step 1) before any probe expansion.** Use system Python 3.12.3, repo root, `PYTHONPATH=$PWD`, no `.venv`. Every gate/probe run must emit a durable log under `/home/runner/work/_temp/kilo-tmp/` (command, start/end, summary, rc, duration, stdout+stderr). Timeout/interruption without observed final failure = **INCONCLUSIVE, not green**.
-2. **Execute Step 2 C41 ROTATION adversarial probe campaign (minimum 20 NEW probes).** Rotate shapes/cases; do not reuse C40/C40-extended probe scripts/shapes. Target unexhausted editable/allowed surfaces: `attribution.py`, `metrics.py`, `scripts/bab_gate.sh`/controller script contracts, deeper `cli`/report I-O and serialization edges, `costs/regime/shorting/sizing` cross-parameter interactions. Every probe: durable log with rc, duration, PASS/FAIL, and repro path. Smoke checks are insufficient.
+The repo is **Crypto-Betting-Against-Beta**: controller infrastructure plus a market-neutral Betting Against Beta (BAB) crypto strategy (long low-beta / short high-beta vs benchmark BTC). The only binding product is BAB correctness/robustness across `attribution.py`, `metrics.py`, `cli.py`, `scripts/bab_gate.sh`/controller contracts, and `costs`/`regime`/`shorting`/`sizing` cross-surface interactions. All work must flow through the gate floors + durable evidence standard below.
+
+1. **Gate floors already GREEN (C41 @ `3fb8234`) — do not re-run unless a fix lands.**
+   - Gate 1 `pytest -q tests/test_bab_data_loader_campaign_d*.py tests/test_bab_data_loader_batch148.py tests/test_bab_data_loader_batch149.py tests/test_bab_data_loader_batch172.py`: **898 passed, 5 skipped, rc=0 (4.92s)** → `/home/runner/work/_temp/kilo-tmp/c41_gate_gate1_20261112T061648Z.log`
+   - Gate 2 `pytest -q --ignore-glob='*data_loader*' --ignore=tests/test_controller_progress_accounting.py`: **2234 passed, 5 skipped, rc=0 (205.51s)** → `/home/runner/work/_temp/kilo-tmp/c41_gate_gate2_20261112T062047Z.log`
+   - Gate 3 `pytest -q tests/test_bab_cli_campaign11* tests/test_bab_cli_campaign14*`: **164 passed, rc=0 (77.97s)** → `/home/runner/work/_temp/kilo-tmp/c41_gate_gate3_20261112T062421Z.log`
+   - Environment: system Python 3.12.3 (`/usr/bin/python3`), repo root, `PYTHONPATH=$PWD`, no `.venv`. Declared deps in `requirements.txt` (`numpy`, `pandas`, `scipy`, `pytest`, `hypothesis`, `coverage`).
+
+2. **Execute Step 2 C41 ROTATION adversarial probe campaign (minimum 20 NEW probes).** Rotate shapes/cases; do not reuse C40/C40-extended probe scripts/shapes. Target unexhausted editable/allowed surfaces:
+   - `attribution.py`: `trade_attribution` / `attribution_totals` with singular/near-singular inputs, index misalignment, zero/NaN exposures, constant returns, missing dates, unknown method fallback.
+   - `metrics.py`: `compute_metrics`/`sharpe_ratio`/`sortino_ratio`/`calmar`/`max_drawdown`/`omega_ratio`/`tail_ratio` with non-finite returns (inf/-inf/NaN), zero/negative denominators, all-positive/flat equity, threshold at distribution extremes, <2 observations, `annual_factor` edge values (0, 1, 365, 10000), Series vs DataFrame coercion.
+   - `scripts/bab_gate.sh` / controller contracts: invalid/unknown gate selection, missing test globs, exit-code propagation on partial failure, parallel vs sequential interaction, timeout handling, output dir creation/permissions.
+   - `cli.py` / report I-O deeper: stdin/pipe `--data`, `--from-prices` duplicate timestamps (keep=first/last), `--universe` case/whitespace normalization, `--benchmark` alias resolution, `--output` format auto-detection, `--config` YAML/JSON merge precedence, `--dry-run` side-effect freedom, `--json` strict-finite nested output.
+   - Cross-parameter interactions: `costs`+`sizing` (cost model → vol-target leverage), `regime`+`shorting` (regime gating borrow availability), `metrics`+`attribution` (metrics on attributed residuals), `sizing`+`shorting` (weight caps vs borrow constraints).
+   - Every probe: durable log under `/home/runner/work/_temp/kilo-tmp/` with rc, duration, PASS/FAIL, repro path. Smoke checks are insufficient.
+
 3. **If any proven regression:** smallest fix in allowed area only → minimal regression test → re-run affected tests + all three gate floors → record evidence.
-4. **If no proven gaps:** record "C41 rotation: no proven gaps" with per-area/per-probe evidence and log paths.
+
+4. **If no proven gaps:** record **"C41 rotation: no proven gaps"** with per-area/per-probe evidence and log paths.
+
 5. **Before exit, refresh this same `HANDOFF.md`** (single durable handoff) with timestamp/HEAD, gate results+logs, full probe matrix outcomes, working-tree notes, and the next concrete heavy task.
 
 ### Step 0 — Controller/workflow sync
 - `.github/workflows/*` unchanged. **Do not edit** unless you reproduce a newly proven controller/workflow sync regression with durable evidence (smallest proven fix only).
 - `research_state/workflow_run_diagnostics.jsonl` contains **historical** CI/log excerpts/signals only; not evidence of a current checkout failure. Do not use it to justify inaction.
 
-### Step 1 — Gate floors (must be green with durable evidence)
-
-| Gate | Scope | Floor | Last recorded (C40 EXTENDED @ `7f44d02`, verify now) | Log path (historical) |
-|---|---|---:|---|---|
-| 1 | `pytest -q tests/test_bab_data_loader_campaign_d*.py tests/test_bab_data_loader_batch148.py tests/test_bab_data_loader_batch149.py tests/test_bab_data_loader_batch172.py` | ≥898 passed, 5 skipped, rc=0 | **898p/5s/rc=0 (6.42s)** | `/home/runner/work/_temp/kilo-tmp/c40_gate_gate1_20261112T052005Z.log` |
-| 2 | `pytest -q --ignore-glob='*data_loader*' --ignore=tests/test_controller_progress_accounting.py` | rc=0 (~2234 passed, 5 skipped) | **2234p/5s/rc=0 (401.09s)** | `/home/runner/work/_temp/kilo-tmp/c40_gate_gate2_20261112T052007Z.log` |
-| 3 | `pytest -q tests/test_bab_cli_campaign11* tests/test_bab_cli_campaign14*` | ≥164 passed, 0 failed, rc=0 | **164p/rc=0 (160.09s)** | `/home/runner/work/_temp/kilo-tmp/c40_gate_gate3_20261112T052006Z.log` |
-
-**If any floor red:** smallest proven fix in allowed areas only → minimal regression test → re-run affected + all floors → record evidence in refreshed handoff.
-
-### Step 2 — C41 ROTATION adversarial probe campaign (mandatory, ≥20 new probes)
-
-**Unexhausted surfaces to probe with NEW shapes/edge cases/parameter combinations (rotate; prior C40/C40-extended shapes alone = incomplete):**
-
-| Area | Required probe focus (non-exhaustive) |
-|---|---|
-| **`attribution.py`** | `run_attribution`: factor covariance singular/near-singular, `factor_returns` index misalignment with portfolio returns, zero/NaN factor exposures, `residual` computation with constant portfolio returns, multi-period attribution with missing dates, `benchmark` not in factor set, `method` unknown string fallback |
-| **`metrics.py`** | `compute_metrics`: non-finite returns (inf/-inf/NaN) propagation through all ratios, `sharpe`/`sortino`/`calmar` with zero/negative denominator, `max_drawdown` with all-positive/flat equity, `omega_ratio` threshold at distribution extremes, `tail_ratio` with <2 observations, `annual_factor` edge values (0, 1, 365, 10000), Series vs DataFrame input coercion |
-| **`scripts/bab_gate.sh` / controller contracts** | `--gate` selection logic with invalid/unknown gate names, missing test files glob, exit code propagation on partial failure, parallel vs sequential mode interaction, timeout handling, output directory creation/permissions |
-| **`cli.py` / report I-O deeper** | `--data` streaming stdin/pipe input, `--from-prices` with duplicate timestamps (keep=first/last), `--universe` case-insensitive/whitespace normalization, `--benchmark` alias resolution, `--output` format auto-detection from extension, `--config` YAML/JSON merge precedence, `--dry-run` side-effect freedom proof, `--json` output strict-finite with nested structures |
-| **Cross-parameter interactions** | `costs.py` + `sizing.py`: transaction cost model feeding into vol-target leverage calc; `regime.py` + `shorting.py`: regime state gating borrow availability; `metrics.py` + `attribution.py`: metric computation on attributed residuals; `sizing.py` + `shorting.py`: weight caps interaction with borrow constraints |
-
-**Per-probe record (required):** area, probe name/script, PASS/FAIL, rc, duration, repro log path. Contract-consistent behavior ≠ regression; document rationale in log. Any FAIL → triage and apply smallest proven fix path above.
-
-### Step 3 — Fix/closure & handoff refresh (mandatory before exit)
-- **If gaps found:** durable repro → smallest allowed fix → minimal regression test → re-run affected + all gate floors → record evidence.
-- **If no proven gaps after full Step 1+2:** record **"C41 rotation: no proven gaps"** with evidence summary, per-area probe counts, and log paths.
-- **Always refresh this `HANDOFF.md`** with: timestamp/HEAD, exact gate counts+rc+durations+durable log paths, extended probe outcomes (PASS/FAIL per area + names + repro paths), working-tree notes, and next concrete heavy task. Keep single, durable, unambiguous.
-
-## Current status (verified at this refresh)
-
-- **Working tree:** clean tracked state (`git status --porcelain` empty). Untracked artifacts may exist under `/home/runner/work/_temp/kilo-tmp/` (do not commit).
-- **Environment:** `python3` 3.12.3 at `/usr/bin/python3`; no `.venv`; run with `PYTHONPATH` set to repo root. Declared deps in `requirements.txt` (`numpy`, `pandas`, `scipy`, `pytest`, `hypothesis`, `coverage`).
-- **Quick sanity (this refresh):** key editable modules import cleanly (`cli, metrics, attribution, costs, regime, shorting, sizing`) with `PYTHONPATH=$PWD` → `imports_ok`. **Gate floors not re-run this refresh; Step 1 is mandatory.**
-- **C40 EXTENDED (historical, @ `7f44d02`):** Gate 1 898p/5s/rc=0 (6.42s); Gate 2 2234p/5s/rc=0 (401.09s); Gate 3 164p/rc=0 (160.09s). Extended probe campaign **46/46 PASS, 0 FAIL** (0.22s) — `/home/runner/work/_temp/kilo-tmp/c40_probe_extended_20261112T053137Z.log`. No regressions found across `costs/regime/shorting/sizing/cli/report` surfaces at that point.
-
-## Next focus campaign (binding)
-**Primary:** complete **C41 ROTATION** campaign above with ≥20 new probes and durable evidence, preserving all gate floors. **Do not stop at gate re-verification.**
-**If C41 rotation closes with no proven gaps:** refresh handoff and immediately define/execute **C42 rotation** targeting remaining unexhausted editable surfaces (e.g. deeper `quality.py`, `signals.py`, `portfolio.py` cross-module edges, `config.py` validation boundaries, `backtest.py` serialization/round-trip, `data_sources.py` emitter contracts) with the same heavy evidence standard (≥20 new probes, durable logs, gate floors green).
-
-## Locks / prohibitions
+### Locks / prohibitions
 - **No** edits to `.github/workflows/*` except newly proven controller/workflow sync regression with durable evidence.
 - **No** edits/commits to tracked `probe*`/`debug*`/`ast_probe.py` (use untracked `/home/runner/work/_temp/kilo-tmp/` for probes/logs).
 - **No** weakening/deleting `batch148/149/172` or `campaign_d*` tests.
@@ -69,4 +45,13 @@
 - **No commit/push unless explicitly requested.** Do not revert intentional changes.
 - Do not reopen C28–C40 without a new statable reproducible failure + durable evidence.
 
-(End of file)
+## Next focus campaign (binding)
+
+**Primary:** complete **C41 ROTATION** (≥20 new probes, durable evidence, all gate floors green) — this is the immediate binding task and must not stop at gate re-verification.
+
+**If C41 rotation closes with no proven gaps:** refresh handoff and immediately define/execute **C42 rotation** targeting remaining unexhausted editable surfaces (deeper `quality.py`, `signals.py`, `portfolio.py` cross-module edges, `config.py` validation boundaries, `backtest.py` serialization/round-trip, `data_sources.py` emitter contracts) with the same heavy evidence standard (≥20 new probes, durable logs, gate floors green).
+
+**Current status (verified at this refresh):**
+- Working tree: clean tracked state. Untracked artifacts may exist under `/home/runner/work/_temp/kilo-tmp/` (do not commit).
+- Quick sanity: key editable modules import cleanly (`cli, metrics, attribution, costs, regime, shorting, sizing`) with `PYTHONPATH=$PWD` → `imports_ok`.
+- C41 gates GREEN (see above). C41 probe campaign **NOT yet executed** — ≥20 new probes required before any handoff refresh/closure.
