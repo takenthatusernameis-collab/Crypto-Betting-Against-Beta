@@ -1,7 +1,7 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-12T05:10:30Z
-**HEAD:** `1384724` on `main` (tracked working tree clean at refresh; `git status --porcelain` empty)
+**Timestamp (refreshed):** 2026-11-12T05:15:00Z
+**HEAD:** `551755a` on `main` (tracked working tree clean at refresh; `git status --porcelain` empty)
 **Repo priority (binding):** advance **Betting Against Beta** correctness, robustness, CLI/API/reporting/metrics fidelity, or a newly proven regression. No unrelated refactors.
 
 ## BINDING INITIAL TASK MESSAGE — NEXT AGENT (C40 EXTENDED heavy campaign, start immediately)
@@ -22,7 +22,7 @@
 
 | Gate | Scope | Floor | Last recorded (prior session, verify now) | Prior log |
 |---|---|---:|---|---|
-| 1 | `pytest -q tests/test_bab_data_loader_campaign_d*.py tests/test_bab_data_loader_batch148.py tests/test_bab_data_loader_batch149.py tests/test_bab_data_loader_batch172.py` | ≥898 passed, 5 skipped, rc=0 | 898p/5s/rc=0 (4.86s) | `/home/runner/work/_temp/kilo-tmp/c40_gate_gate1_20261112T040157Z.log` |
+| 1 | `pytest -q tests/test_bab_data_loader_campaign_d*.py tests/test_bab_data_loader_batch148.py tests/test_bab_data_loader_batch149.py tests/test_bab_data_loader_batch172.py` | ≥898 passed, 5 skipped, rc=0 | **898p/5s/rc=0 (4.55s)** | `/home/runner/work/_temp/kilo-tmp/c40_gate_gate1_20261112T040157Z.log` |
 | 2 | `pytest -q --ignore-glob='*data_loader*' --ignore=tests/test_controller_progress_accounting.py` | rc=0 (~2234 passed, 5 skipped) | 2234p/5s/rc=0 (392.36s) | `/home/runner/work/_temp/kilo-tmp/c40_gate_gate2_20261112T040446Z.log` |
 | 3 | `pytest -q tests/test_bab_cli_campaign11* tests/test_bab_cli_campaign14*` | ≥164 passed, 0 failed, rc=0 | 164p/rc=0 (150.03s) | `/home/runner/work/_temp/kilo-tmp/c40_gate_gate3_20261112T040202Z.log` |
 
