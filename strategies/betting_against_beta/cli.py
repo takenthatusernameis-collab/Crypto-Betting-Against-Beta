@@ -475,6 +475,7 @@ def _extract_cumulative(result):
                         return backtest[col].iloc[-1]
                     except Exception:
                         continue
+            # No recognized cumulative column; fall through to generic handlers.
         # Series with a name containing 'cum'
         if hasattr(backtest, "iloc") and hasattr(backtest, "name"):
             name = str(getattr(backtest, "name", "") or "")
@@ -483,6 +484,16 @@ def _extract_cumulative(result):
                     return backtest.iloc[-1]
                 except Exception:
                     pass
+        # DataFrame without a recognized cumulative column: prefer the last
+        # scalar value over returning the whole frame (avoids ambiguous truth
+        # value). Fall back to returning the object if extraction is not possible.
+        if hasattr(backtest, "columns") and hasattr(backtest, "iloc"):
+            try:
+                if backtest.shape[1] > 0 and len(backtest) > 0:
+                    return backtest.iloc[-1, -1]
+            except Exception:
+                pass
+            return backtest
         # List / tuple / ndarray: take last element
         if isinstance(backtest, (list, tuple)):
             return backtest[-1] if backtest else None
