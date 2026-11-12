@@ -169,7 +169,7 @@ def test_main_top_level_generic_exception(monkeypatch, capsys):
     assert "ctorboom" in capsys.readouterr().out
 
 
-def test_main_print_block_outer_exception_swallowed(monkeypatch, capsys):
+def test_main_print_cumulative_failure_surfaces_error(monkeypatch, capsys):
     orig_print = print
     def flaky(*a, **k):
         if a and "Final cumulative" in str(a[0]):
@@ -177,7 +177,9 @@ def test_main_print_block_outer_exception_swallowed(monkeypatch, capsys):
         return orig_print(*a, **k)
     monkeypatch.setattr("builtins.print", flaky)
     rc = cli.main(["--synthetic"])
-    assert rc == 0  # 327-328
+    assert rc == 1  # C54 Step 2a: no silent swallow of output failure
+    out = capsys.readouterr().out
+    assert "Error printing cumulative return: print fail" in out
 
 
 def test_main_dry_run_outer_bab_and_generic(monkeypatch, tmp_path, capsys):

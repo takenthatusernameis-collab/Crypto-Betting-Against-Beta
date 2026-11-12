@@ -1,8 +1,8 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-12T22:03:11Z
-**HEAD at refresh:** `ba04287` (`chore(kilo): checkpoint agent session`, `main`)
-**Code state:** working tree clean at refresh; this handoff update is the only pending change. `ba04287` is a handoff-only checkpoint. No product or test code has changed since `15b4721` (C53).
+**Timestamp (refreshed):** 2026-11-12T22:10:30Z
+**HEAD at session start:** `65ab476` (working tree dirty; uncommitted C54 Step 2a/Step 4 changes present — see session log below)
+**Code state:** `cli.py` hardened (result-print/output-error surfacing path), `tests/test_bab_cli_coverage_push.py` regression updated, `docs/COVERAGE_NOTES.md` added, and `docs/unreachable_proofs.md` + `docs/unreachable_proofs_append_b150.py` removed. Focused CLI suites passed in-session; full-suite gate not re-run this session (last recorded C54 Step 1 baseline: 5069 passed / 35 skipped / RC=0, no ignores).
 **Repo:** `crypto-betting-against-beta` — BAB (Betting Against Beta) market-neutral product: long low-beta / short high-beta crypto vs BTC benchmark.
 
 ## Why this handoff changed (read first)
@@ -55,15 +55,33 @@ FAILED ...::test_nested_workflow_pattern_is_present_in_workflow
 
 **CLI verified working end-to-end:** `--synthetic` → `Final cumulative return: 0.413704 / Periods: 252`, rc=0; `--data tests/fixtures/real_market_prices.csv --from-prices --benchmark BTC` → `0.339735 / 398`, rc=0; `--version` → `bab 0.1.0`.
 
+
+
+## C54 Step 2a / Step 4 — session progress (2026-11-12T22:10:30Z, from HEAD `65ab476`, uncommitted)
+
+**Product/test changes shipped in working tree:**
+- `strategies/betting_against_beta/cli.py`: result reporting path no longer silently swallows stdout/output failures. `Final cumulative return` / `Periods` print failures now return rc=1 with surfaced error (best-effort secondary print guarded so a broken stdout cannot recurse). `periods` length coercion narrowed to `(TypeError, ValueError, OverflowError)` with safe fallback to `0`. This addresses the prior broad outer `except Exception: pass` on the print block (old line ~435 region) while preserving valid-path behavior.
+- `tests/test_bab_cli_coverage_push.py::test_main_print_cumulative_failure_surfaces_error`: updated from "swallowed => rc 0" to assert surfaced failure (`rc==1`, error message present) as regression for the new contract.
+- `docs/COVERAGE_NOTES.md`: added (<=40 lines) with measured 99% coverage, residual miss lines, and anti-probe-volume policy.
+- `docs/unreachable_proofs.md`, `docs/unreachable_proofs_append_b150.py`: deleted (append-only busywork removed per C54 Step 4).
+
+**Evidence (this session):**
+- Preflight: `deps ok` (numpy/pandas/scipy/pytest/hypothesis); HEAD `65ab476`, clean-before-edits.
+- Focused CLI baseline/regression: `python3 -m pytest -q tests/test_bab_cli.py tests/test_bab_cli_slice_i_defensive_invariants.py tests/test_bab_cli_warmup_parity_campaign11.py tests/test_bab_cli_coverage_push.py` → **86 passed** (5.43s). Additional targeted modules run earlier in session were green except environment-missing file (`tests/test_bab_cli_error_propagation.py` not present). `-k cli` run was started but not awaited to completion in this turn.
+- AST recount after edits: `cli.py` broad `except Exception` **29**, direct silent `pass` **8** at lines **87, 192, 432, 447, 483, 498, 507, 562** (line numbers shifted from pre-edit 470/485/494/435 due to inserted surfacing logic). Other module counts unchanged vs prior table except line drift not re-audited: `costs.py 3/2`, `config.py 1/1`, `regime.py 1/1`, `backtest.py 7/3`, `portfolio.py 7/2`, `strategy.py 7/1`, `beta.py 17/1`, `data_loader.py 167/85`.
+
+**Not done / blockers carried forward:** full-suite gate not re-run (long-running; run before commit/module-boundary claims). `cli._extract_cumulative` still contains broad/silent fallbacks at 432/447/483/498/507 and outer 562-area semantics need careful proof before narrowing (helpers 87/192 remain fallback-only candidates). No changes to `beta.py`/`data_loader.py`/`.github/workflows/*`.
+
+
 ## INITIAL MESSAGE FOR NEXT AGENTIC SESSION (binding, execute now)
 
-**Timestamp:** 2026-11-12T22:03:11Z
-**HEAD at refresh:** `ba04287`
-**Working tree:** clean at refresh; this handoff update is the only pending change. C53 fix committed; no product source changed since C53.
+**Timestamp:** 2026-11-12T22:10:30Z
+**HEAD at session start:** `65ab476`
+**Working tree:** **DIRTY (intentional, uncommitted C54 progress).** Changed: `strategies/betting_against_beta/cli.py`, `tests/test_bab_cli_coverage_push.py`; added `docs/COVERAGE_NOTES.md`; deleted `docs/unreachable_proofs.md`, `docs/unreachable_proofs_append_b150.py`; plus this handoff refresh. Do **not** revert. Do **not** commit/push unless explicitly requested.
 
 **Priority (binding):** advance **Crypto-Betting-Against-Beta** — the BAB (Betting Against Beta) market-neutral product: long low-beta / short high-beta crypto vs BTC benchmark. Prioritize by the repo name: **real BAB product value first**. Probe-count quotas are abolished. No planning-only sessions. Heavy execution required.
 
-**Current state:** C53 CLOSED — suite unblocked. Coverage **99%** (4535 stmts, 66 miss). CLI verified end-to-end (`--synthetic` → `0.413704 / 252`; real-prices fixture → `0.339735 / 398`; `--version` → `bab 0.1.0`).
+**Current state:** C53 + C54 Step 1 historically closed (last full gate recorded: **5069 passed / 35 skipped / RC=0**, no ignores, log `/home/runner/work/_temp/kilo-tmp/c54_gates/full_20261112T214930Z.log`). **C54 Step 2a in progress in `cli.py`:** prior silent-swallow print block hardened to surface output failures (regression updated). Focused CLI suites verified this session (**86 passed**). Full suite **not** re-run after these edits — must be run at module boundary / before claiming gate green.
 
 **Campaign C54 (binding — pick the highest-value item you can *prove*, in this order):**
 
@@ -75,11 +93,11 @@ python3 -c "import numpy,pandas,scipy,pytest,hypothesis,coverage; print('deps ok
 ```
 Run from repo root with `PYTHONPATH=.`.
 
-**Step 1 — Make the whole suite the gate (DONE in C54 Step 1, 2026-11-12T21:49:30Z).**
-The full suite ran with **no ignores**: **5069 passed, 35 skipped, RC=0** in 476.99s. Log: `/home/runner/work/_temp/kilo-tmp/c54_gates/full_20261112T214930Z.log`. Any future handoff that reports "gates green" while ignoring a test file is invalid. Do not re-add any per-file `--ignore` (especially not `tests/test_controller_progress_accounting.py`).
+**Step 1 — Make the whole suite the gate (DONE, do not regress).**
+Never re-add any per-file `--ignore` (especially not `tests/test_controller_progress_accounting.py`).
 
-**Step 2 — Attack the real quality debt: 244 broad `except Exception`, 103 direct silent `pass`.** ← **This is the binding next task.**
-This is the only substantive engineering work left, and it is *product* work, not probe work. The audit is AST-verified at `f940534`; use these exact counts and line numbers. "Silent" means the handler body is exactly `pass` (docstring ignored); a `return`/default/raise handler is not silent.
+**Step 2 — Attack the real quality debt (broad `except Exception` / direct silent `pass`) — BINDING NEXT TASK.**
+AST recount at 2026-11-12T22:10:30Z after this session's edits: `cli.py` **29 broad / 8 silent** (remaining silent lines: **87, 192, 432, 447, 483, 498, 507, 562**), `costs.py 3/2`, `config.py 1/1`, `regime.py 1/1`, `backtest.py 7/3`, `portfolio.py 7/2`, `strategy.py 7/1`; high-risk-only on proven defect: `beta.py 17/1`, `data_loader.py 167/85`. "Silent" = handler body exactly `pass`.
 
 | Module | broad `except Exception` | direct silent `pass` | Exact silent lines | Status |
 |---|---|---|---|---|
@@ -97,7 +115,7 @@ This is the only substantive engineering work left, and it is *product* work, no
 | `metrics.py`, `data_sources.py`, `attribution.py`, `shorting.py`, `sizing.py`, `data.py`, `errors.py` | 0 | 0 | — | clean |
 
 **Execution order (binding, smallest proven diff first):**
-1. `cli.py` first. Audit lines 470, 485, 494, and 435: each can silently substitute a wrong/default cumulative result. Narrow the exception or surface a diagnostic; add a regression that proves the invalid path no longer silently produces a plausible-looking number. Lines 87/192/549 are fallback helpers; only convert them if you can prove a real failure mode, otherwise document the intentional fallback in a test.
+1. **Continue `cli.py`.** Prior print-block silent swallow (~435 region) converted to surfaced failure with regression evidence. Audit remaining silent handlers at **432, 447, 483, 498, 507, 562** in `_extract_cumulative` (and confirm 87/192 are intentional fallbacks or convert with proof). For each: narrow/surface only on a proven invalid path, add regression proving no silent plausible wrong output, and prove valid-path behavior preserved (focused CLI tests + full suite at module boundary). Line numbers shifted after this session's edits—re-AST before each change.
 2. Then `costs.py` (59, 281), `config.py` (123), `regime.py` (139), `backtest.py` (116, 124, 160), `portfolio.py` (118, 131), `strategy.py` (396). One module per batch; do not mix modules in one commit.
 3. `beta.py` and `data_loader.py` remain high-risk. Touch them only for a *specific, reproducible defect*; no mechanical sweep and no 167-line refactor.
 
@@ -111,8 +129,7 @@ Rules for each conversion:
 **Step 3 — Performance (only if Step 2 is done or blocked).**
 `beta.py` rolling OLS has a numpy cache (`tests/test_beta_perf_numpy_cache.py`) and a perf bench (`scripts/perf_bench.py`). Measure, then optimize only with before/after numbers in the handoff. Correctness first; no speculative rewrites.
 
-**Step 4 — Delete the busywork (cheap, high signal).**
-`docs/unreachable_proofs.md` (2152 lines) and `docs/unreachable_proofs_append_b150.py` are an append-only log of "no reduction identified". They encode the anti-pattern this handoff removes. Replace with a short `docs/COVERAGE_NOTES.md` (<=40 lines) stating the measured 99% coverage, the residual missing lines, and that they are defensive fallbacks — unless you can show they hide a real defect. Do not delete evidence of a real defect.
+**Step 4 — Delete the busywork (DONE this session, uncommitted).** `docs/unreachable_proofs.md` and `docs/unreachable_proofs_append_b150.py` removed; replaced with `docs/COVERAGE_NOTES.md`.
 
 **Step 5 — Only after Steps 1–4 are durably recorded:** if you still have capacity, add tests **only** for the residual missing lines listed above where you can show they represent reachable behavior, and re-measure. Do not invent probe volumes.
 

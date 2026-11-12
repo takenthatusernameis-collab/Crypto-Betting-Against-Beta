@@ -426,14 +426,27 @@ def main(argv=None) -> int:
         cum_out = 1.0
     try:
         print(f"Final cumulative return: {cum_out:.6f}")
-        bt = getattr(result, "backtest", None)
+    except Exception as exc:
         try:
-            periods = int(len(bt)) if bt is not None and hasattr(bt, "__len__") else 0
+            print(f"Error printing cumulative return: {exc}")
         except Exception:
-            periods = 0
+            pass
+        return 1
+    bt = getattr(result, "backtest", None)
+    periods = 0
+    try:
+        if bt is not None and hasattr(bt, "__len__"):
+            periods = int(len(bt))
+    except (TypeError, ValueError, OverflowError):
+        periods = 0
+    try:
         print(f"Periods: {periods}")
-    except Exception:
-        pass
+    except Exception as exc:
+        try:
+            print(f"Error printing periods: {exc}")
+        except Exception:
+            pass
+        return 1
 
     # --output handling: write defensively (path already validated).
     if args.output:

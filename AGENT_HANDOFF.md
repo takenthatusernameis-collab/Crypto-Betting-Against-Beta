@@ -2,8 +2,7 @@
 
 **Canonical durable handoff:** [`HANDOFF.md`](HANDOFF.md) — single source of truth.
 
-- **Refreshed:** 2026-11-12T22:03:11Z
-- **HEAD:** `ba04287`
-- **State:** **C53 CLOSED + C54 Step 1 CLOSED.** Suite unblocked; full suite is the gate with **no ignores: 5069 passed / 35 skipped / RC=0** (476.99s). Coverage **99%** (4535 stmts / 66 miss). No product/test code changed since C53.
-- **Policy change (binding):** probe-count quotas abolished. The prior "≥40 new adversarial probes per session, then C54/C55…" loop was the bottleneck: coverage is already 99% (289 test files / 5069 tests for a 6.7k-line product), and Gate 2 hid the controller tests with `--ignore`.
-- **Next binding: C54 Step 2a** — reduce the **244 broad `except Exception` / 103 direct silent `pass`** (AST-verified: `cli.py` 7, `costs.py` 2, `config.py` 1, `regime.py` 1, `backtest.py` 3, `portfolio.py` 2, `strategy.py` 1; `data_loader.py` 85 and `beta.py` 1 are high-risk/proven-defect-only). Start with `cli.py` lines 470, 485, 494, 435. Full suite green after each module. Heavy execution required; no handoff-only turn; no probe-volume manufacturing.
+- **Refreshed:** 2026-11-12T22:10:30Z
+- **HEAD at session start:** `65ab476` (working tree dirty with uncommitted C54 Step 2a/Step 4 progress; see HANDOFF)
+- **State:** C53+C54 Step 1 closed historically (last recorded full gate: 5069 passed / 35 skipped / RC=0, no ignores). **C54 Step 2a in progress (cli.py):** result-print path now surfaces output failures instead of silently swallowing them (narrowed periods coercion; regression updated). Focused CLI suites green in-session (`tests/test_bab_cli*.py` targeted set: 86 passed). `docs/unreachable_proofs*` replaced by `docs/COVERAGE_NOTES.md`.
+- **Binding next action:** continue **C54 Step 2** in `strategies/betting_against_beta/cli.py` — audit remaining direct silent `except Exception: pass` handlers (AST @22:10Z: lines 87,192,432,447,483,498,507,562), convert only proven-invalid-path silences with regressions and prove valid-path behavior preserved; run module CLI/full gates as feasible before moving to `costs/config/regime/...`. No probe-volume work; no handoff-only session. Keep `PYTHONPATH=.` and no per-file ignores.
