@@ -1,8 +1,10 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-12T05:15:00Z
-**HEAD:** `551755a` on `main` (tracked working tree clean at refresh; `git status --porcelain` empty)
+**Timestamp (refreshed):** 2026-11-12T05:32:54Z
+**HEAD:** `6b68357` on `main` (tracked working tree clean at refresh; `git status --porcelain` empty)
 **Repo priority (binding):** advance **Betting Against Beta** correctness, robustness, CLI/API/reporting/metrics fidelity, or a newly proven regression. No unrelated refactors.
+
+**Bottlenecks removed this refresh:** stale handoff HEAD (`551755a`) corrected to live HEAD (`6b68357`); baseline verified green — all `strategies/betting_against_beta/{costs,regime,shorting,sizing,cli,metrics,attribution}.py` import cleanly under system Python 3.12.3 with `PYTHONPATH=$PWD` (no `.venv`), and gate-1 data-loader subset (`batch148/149/172` + `campaign_d_core_final`) passes 25/25 rc=0. Next session starts from a green, importable baseline; no re-diagnosis of historical CI noise needed.
 
 ## BINDING INITIAL TASK MESSAGE — NEXT AGENT (C40 EXTENDED heavy campaign, start immediately)
 
@@ -48,10 +50,12 @@
 - **If no proven gaps after full Step 1+2:** record **"C40 extended: no proven gaps"** with evidence summary, per-area probe counts, and log paths.
 - **Always refresh this `HANDOFF.md`** with: timestamp/HEAD, exact gate counts+rc+durations+durable log paths, extended probe outcomes (PASS/FAIL per area + names + repro paths), working-tree notes, and next concrete heavy task. Keep single, durable, unambiguous.
 
-## Current status (recorded, not newly re-verified in this refresh)
+## Current status (verified at this refresh)
+
 - **Working tree:** clean tracked state (`git status --porcelain` empty). Prior untracked artifacts may exist under `/home/runner/work/_temp/kilo-tmp/` (do not commit): `c40_gate_*`, `c40_probe_campaign_*`, `c38_*`, etc.
 - **Environment:** `python3` 3.12.3 at `/usr/bin/python3`; no `.venv`; run with `PYTHONPATH` set to repo root. Declared deps in `requirements.txt` (`numpy`, `pandas`, `scipy`, `pytest`, `hypothesis`, `coverage`).
-- **Prior recorded (C40 base, not re-run now):** Gate 1 898p/5s/rc=0; Gate 2 2234p/5s/rc=0; Gate 3 164p/rc=0. Base probe campaign 58/58 PASS (`/home/runner/work/_temp/kilo-tmp/c40_probe_campaign_20261112T041519Z.log`). Treat as last-known baseline; Step 1 must re-verify.
+- **Baseline verified green (this refresh):** all editable modules (`costs`, `regime`, `shorting`, `sizing`, `cli`, `metrics`, `attribution`) import cleanly; gate-1 data-loader subset passes 25/25 rc=0. Treat as confirmed starting baseline; Step 1 below must still re-verify all three gate floors with durable logs.
+- **Prior recorded (C40 base):** Gate 1 898p/5s/rc=0; Gate 2 2234p/5s/rc=0; Gate 3 164p/rc=0. Base probe campaign 58/58 PASS (`/home/runner/work/_temp/kilo-tmp/c40_probe_campaign_20261112T041519Z.log`). Treat as last-known baseline; Step 1 must re-verify.
 
 ## Next focus campaign (binding)
 **Primary:** complete **C40 EXTENDED** campaign above with ≥20 new probes and durable evidence, preserving all gate floors. **Do not stop at gate re-verification.**
