@@ -278,6 +278,11 @@ def apply_costs(returns, weights=None, transaction_costs=None, **kwargs):
             elif len(res.columns) == 1:
                 res.iloc[:, 0] = res.iloc[:, 0] - tc.reindex(res.index).fillna(0)
             return res
-    except Exception:
+    except TypeError:
+        # Non-numeric / incompatible-dtype returns (e.g. an object-d Series)
+        # cannot be cost-adjusted; return them unchanged.  Narrowed from
+        # ``except Exception`` so that a misaligned index, a corrupt returns
+        # object, or any other unexpected failure in this block now surfaces
+        # instead of being silently swallowed into "returns unchanged".
         pass
     return returns
