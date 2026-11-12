@@ -1,7 +1,7 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-12T09:35:00Z
-**HEAD:** `b7df039846bd790de468b0d8c9bc9a5b5ee88a7a` (`chore(kilo): checkpoint agent session`) on `main`
+**Timestamp (refreshed):** 2026-11-12T10:54:26Z
+**HEAD:** `b98c6e2` on `main` (gates previously confirmed GREEN on `b7df039`, working tree clean since)
 **Working tree (tracked):** clean. Untracked `/home/runner/work/_temp/kilo-tmp/` probe/log artifacts may exist and must not be committed.
 **Env:** Python 3.12.3, Linux, repo root, `PYTHONPATH=$PWD`.
 
@@ -13,7 +13,7 @@
 - **No proven runtime blocker reproduced:** core BAB modules import cleanly on current HEAD.
 - **Gate invocation note (current env):** pytest glob-expansion for `tests/test_bab_data_loader_campaign_d*.py` is brittle in this shell; Gate 1 was executed with explicit campaign_d file list. Gate 2/3 must run from repo root with `PYTHONPATH=$PWD` (running from wrong cwd produced `ModuleNotFoundError: strategies` collection failures in early attempt; corrected reruns launched).
 
-## Gate floors (current HEAD `b7df039`, 2026-11-12T08:57Z session — CONFIRMED)
+## Gate floors (gates confirmed GREEN on `b7df039`; tree unchanged since, HEAD `b98c6e2`)
 
 | Gate | Command (cwd=/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta, PYTHONPATH=$PWD) | Result | Log |
 |---|---|---|---|
@@ -27,15 +27,16 @@
 - **C42 ROTATION:** CLOSED — 38/38 adversarial probes PASS, 0 FAIL, no proven gaps. Evidence: `/home/runner/work/_temp/kilo-tmp/c42_probe_summary_20261112T082656Z.json` and `c42_probe_*`.
 - C6–C41 CLOSED per prior evidence. No churn.
 
-## INITIAL MESSAGE FOR NEXT AGENTIC SESSION (read this first)
+## INITIAL MESSAGE FOR NEXT AGENTIC SESSION (read this first — refreshed 2026-11-12T10:54:26Z)
 - **Single durable handoff:** this file only. `AGENT_HANDOFF.md` pointer-only. `research_state/workflow_run_diagnostics.jsonl` is historical diagnostics, not a current blocker.
 - **Repo focus:** `Crypto-Betting-Against-Beta` (market-neutral BAB vs BTC). Deliver proven correctness/robustness in allowed surfaces only; no planning-only turn.
+- **Binding campaign:** **C44 ROTATION** (heavy, mandatory). Do not declare "no proven gaps" or "blocked" without attempted probes and durable logs under `/home/runner/work/_temp/kilo-tmp/c44_probes/`.
 - **Immediate actions (in order):**
-  1. **Gates 1/2/3 CONFIRMED GREEN on `b7df039`** — no further gate action needed.
-  2. **C43 COMPLETE** — 39 probes PASS, no proven gaps. Evidence in `/home/runner/work/_temp/kilo-tmp/c43_probes/`.
-  3. Execute **≥20 NEW C44 adversarial probes** (new shapes/scripts, no C40–C43 reuse) with durable logs under `/home/runner/work/_temp/kilo-tmp/c44_probe_*.{log,json}` including id, target, shape, rc, duration, PASS/FAIL, repro.
+  1. Gates 1/2/3 CONFIRMED GREEN — no further gate action needed unless a fix is made.
+  2. C43 COMPLETE — 39 probes PASS, 0 FAIL, 0 ERROR, no proven gaps. Evidence in `/home/runner/work/_temp/kilo-tmp/c43_probes/`.
+  3. Execute **≥20 NEW C44 adversarial probes** (C44 shapes only, no C40–C43 reuse) across the new surfaces/cross-interactions in section BINDING INITIAL TASK below, with per-probe durable logs (id, target, shape, result, rc, duration, repro).
   4. On any proven gap: smallest fix in allowed editable area only → minimal regression → re-run affected tests + all three gates → capture evidence.
-  5. Refresh this file with full C44 matrix/evidence and next concrete task before exit. If C44 clean, **immediately define and start C45** (≥20 new probes, new shapes, binding).
+  5. Before exit: refresh this file with full C44 matrix/evidence, working-tree notes, and next concrete heavy task. If C44 closes cleanly, **immediately define and start C45** (≥20 new probes, new shapes, binding) and leave it as the next initial task message.
 
 ## C43 Rotation Results (2026-11-12T09:25:00Z, HEAD `b7df039`)
 
