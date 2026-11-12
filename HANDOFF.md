@@ -1,10 +1,10 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-12T06:09:01Z
-**HEAD:** `206da27` on `main` (tracked working tree clean at refresh; `git status --porcelain` empty)
+**Timestamp (refreshed):** 2026-11-12T06:10:27Z
+**HEAD:** `f00c9af` on `main` (tracked working tree clean at refresh; `git status --porcelain` empty)
 **Repo priority (binding):** advance **Betting Against Beta** correctness, robustness, CLI/API/reporting/metrics fidelity, or a newly proven regression. No unrelated refactors.
 
-**Bottleneck removal (this refresh):** consolidated handoff to current HEAD/timestamp and kept a single unambiguous kickoff. Prior C40/C40-extended evidence remains recorded below as historical baseline; gates were **not re-run this refresh** and MUST be re-verified with durable logs in Step 1 before any probe expansion. No workflow edits or code changes made.
+**Bottleneck removal (this refresh):** revalidated repo state, removed stale HEAD/timestamp ambiguity, and kept one binding kickoff for the next session. Prior C40/C40-extended gate/probe evidence remains historical baseline only; gates were **not re-run this refresh** and MUST be re-verified with durable logs in Step 1 before any new probe work. No workflow edits or code changes made.
 
 ## BINDING INITIAL TASK MESSAGE — NEXT AGENT (C41 ROTATION heavy campaign, start immediately)
 
