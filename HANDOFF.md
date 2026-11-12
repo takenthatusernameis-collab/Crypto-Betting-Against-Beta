@@ -1,7 +1,7 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-12T08:38:16Z
-**HEAD:** `0ef833ad204187676e5b7b3f85aa01b646973e48` on `main`
+**Timestamp (refreshed):** 2026-11-12T08:39:59Z
+**HEAD:** `c14cdc09e516b2225e2b3f7390dded0ce78b8ead` on `main`
 **Working tree (tracked):** clean at refresh. Untracked `/home/runner/work/_temp/kilo-tmp/` probe/log artifacts may exist and must not be committed.
 
 **Repo priority (binding):** advance **Crypto-Betting-Against-Beta** (market-neutral BAB: long low-beta / short high-beta vs BTC benchmark) via proven correctness/robustness work in allowed editable surfaces only. No unrelated refactors, no planning-only sessions.
@@ -11,12 +11,12 @@
 - **Historical diagnostics only:** `research_state/workflow_run_diagnostics.jsonl` contains captured CI/log excerpts from prior runs/heads (tool-arg noise, timeouts, old head SHAs). Treat as historical; not evidence of a current-checkout failure and must not justify inaction or "blocked" claims.
 - **No proven runtime blocker reproduced:** core BAB module imports `quality, signals, portfolio, config, backtest, data_sources, attribution, metrics, cli, costs, regime, shorting, sizing` cleanly (`PYTHONPATH=$PWD`).
 
-## Gate floors (last fresh verification, HEAD `0ef833a`, 2026-11-12T07:47Z)
-All GREEN with durable logs:
+## Gate floors (last fresh verification, HEAD `0ef833a`, 2026-11-12T07:47Z — carry-forward; re-verify on current HEAD before new work)
+All GREEN with durable logs (prior HEAD):
 - **Gate 1:** `PYTHONPATH=$PWD python3 -m pytest -q tests/test_bab_data_loader_campaign_d*.py tests/test_bab_data_loader_batch148.py tests/test_bab_data_loader_batch149.py tests/test_bab_data_loader_batch172.py` → **898 passed, 5 skipped** (rc=0). Log: `/home/runner/work/_temp/kilo-tmp/c42_gate_gate1_20261112T074740Z.log`
 - **Gate 2:** `PYTHONPATH=$PWD python3 -m pytest -q --ignore-glob='*data_loader*' --ignore=tests/test_controller_progress_accounting.py` → **2234 passed, 5 skipped** (rc=0). Log: `/home/runner/work/_temp/kilo-tmp/c42_gate_gate2_20261112T074748Z.log`
 - **Gate 3:** `PYTHONPATH=$PWD python3 -m pytest -q tests/test_bab_cli_campaign11* tests/test_bab_cli_campaign14*` → **164 passed** (rc=0). Log: `/home/runner/work/_temp/kilo-tmp/c42_gate_gate3_20261112T074750Z.log`
-Env: Python 3.12.3, repo root, `PYTHONPATH=$PWD`.
+Env: Python 3.12.3, repo root, `PYTHONPATH=$PWD`. **Step 1 of C43: re-run all three gates on `c14cdc0` and tee fresh durable logs under `/home/runner/work/_temp/kilo-tmp/c43_gate_{gate}_{ts}.log`; record rc/duration/counts here if they change.**
 
 ## Completed campaign (do not reopen without new reproducible failure + durable evidence)
 - **C42 ROTATION:** CLOSED — 38/38 adversarial probes PASS, 0 FAIL, no proven gaps. Full matrix/summary in prior durable logs: `/home/runner/work/_temp/kilo-tmp/c42_probe_summary_20261112T082656Z.json` and `c42_probe_*` logs.
