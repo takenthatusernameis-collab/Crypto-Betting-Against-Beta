@@ -1,14 +1,16 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-12T07:25:01Z
-**HEAD:** `23e82d16ddd78e08d9193677c976ee0f1a2a79b3` on `main` (tracked working tree clean at refresh; `git status --porcelain` empty)
+**Timestamp (refreshed):** 2026-11-12T07:26:26Z
+**HEAD:** `479d7aa5c2bb911d024f75b6fadae825c46035dd` on `main` (tracked working tree clean; `git status --porcelain` empty)
 **Repo priority (binding):** advance **Betting Against Beta** correctness, robustness, CLI/API/reporting/metrics fidelity, or a newly proven regression. No unrelated refactors.
 
-**Bottleneck removal (this refresh):** reconciled C41 evidence — the raw campaign log `c41_probe_campaign_20261112T070404Z.log` contained stale FAIL entries for `c41_probe_cross_19.py` ("B not zeroed") and `c41_probe_cross_21.py` ("row 0 not neutral"); re-executed both against HEAD `23e82d1`: both **PASS rc=0**. Summary log confirms 22/22 PASS, 0 proven regressions, 0 proven gaps. C41 rotation **CLOSED: no proven gaps**. Removed the cross_19/cross_21 ambiguity so the next session is not misdirected into re-diagnosing closed C41. Set the binding next campaign to C42 rotation. No workflow edits or code changes made.
+**Handoff staleness fixed at this refresh:** previous refresh cited HEAD `23e82d1`; actual HEAD is `479d7aa`. Working tree clean. No sessions are blocked. `research_state/workflow_run_diagnostics.jsonl` contains **historical** Oct-2026 CI/log excerpts only (stale `test_controller_progress_accounting.py`, `*/.github/workflows/*` pattern-sync, `monkeypatch` NameError, `KeyError: gross_return`, mixed timezones, missing pandas). These are NOT evidence of a current checkout failure and must not be used to justify inaction.
+
+**Bottleneck removal (this refresh):** C41 rotation is CLOSED — 22/22 probes PASS, 0 proven regressions, 0 proven gaps; stale `c41_probe_cross_19.py`/`c41_probe_cross_21.py` raw-log FAILs re-ran PASS against HEAD `23e82d1`. Cross_19/cross_21 ambiguity removed so the next session is not misdirected into re-diagnosing closed C41. No workflow edits or code changes made at this refresh. Set the binding next campaign to C42 rotation.
 
 ## BINDING INITIAL TASK MESSAGE — NEXT AGENT (start immediately)
 
-**Start work now. Do not plan-only, do not re-diagnose historical CI noise, do not declare "blocked" without an evidenced attempt and durable logs.**
+**Start work now. Do not plan-only. Do not re-diagnose historical CI noise. Do not declare "blocked" without an evidenced attempt and durable logs.**
 
 The repo is **Crypto-Betting-Against-Beta**: controller infrastructure plus a market-neutral Betting Against Beta (BAB) crypto strategy (long low-beta / short high-beta vs benchmark BTC). The only binding product is BAB correctness/robustness across `attribution.py`, `metrics.py`, `cli.py`, `scripts/bab_gate.sh`/controller contracts, and `costs`/`regime`/`shorting`/`sizing` cross-surface interactions. All work must flow through the gate floors + durable evidence standard below.
 
