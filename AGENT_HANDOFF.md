@@ -2,8 +2,8 @@
 
 **Canonical durable handoff:** [`HANDOFF.md`](HANDOFF.md) (single source of truth).
 
-- **Refreshed:** 2026-11-12T05:15:00Z
-- **HEAD:** `551755a`
-- **Immediate binding task:** **C40 EXTENDED adversarial probe campaign** — re-verify Gate 1/2/3 floors with durable logs, execute ≥20 NEW probes across `costs.py`/`regime.py`/`shorting.py`/`sizing.py`/`cli.py`/report CLI (editable surfaces only), fix only proven regressions with smallest allowed change + minimal regression + re-run all gates, then refresh `HANDOFF.md` with full evidence and next heavy task.
+- **Refreshed:** 2026-11-12T06:02:35Z
+- **HEAD:** `7f44d02`
+- **Immediate binding task:** **C41 ROTATION adversarial probe campaign** — re-verify Gate 1/2/3 floors with durable logs, execute ≥20 NEW probes across `attribution.py`/`metrics.py`/`scripts/bab_gate.sh`/controller contracts/deeper `cli`/report I-O/cross-parameter interactions (editable surfaces only), fix only proven regressions with smallest allowed change + minimal regression + re-run all gates, then refresh `HANDOFF.md` with full evidence and next heavy task.
 
 Do not use this file for task details; follow `HANDOFF.md` exactly. Keep handoff single and durable.
