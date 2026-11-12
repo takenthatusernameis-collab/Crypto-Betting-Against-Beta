@@ -1,6 +1,6 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-12T07:26:26Z
+**Timestamp (refreshed):** 2026-11-12T07:27:19Z
 **HEAD:** `479d7aa5c2bb911d024f75b6fadae825c46035dd` on `main` (tracked working tree clean; `git status --porcelain` empty)
 **Repo priority (binding):** advance **Betting Against Beta** correctness, robustness, CLI/API/reporting/metrics fidelity, or a newly proven regression. No unrelated refactors.
 
@@ -60,6 +60,6 @@ The repo is **Crypto-Betting-Against-Beta**: controller infrastructure plus a ma
 
 **Current status (verified at this refresh):**
 - Working tree: clean tracked state. Untracked artifacts may exist under `/home/runner/work/_temp/kilo-tmp/` (do not commit).
-- Quick sanity: key editable modules import cleanly (`cli, metrics, attribution, costs, regime, shorting, sizing`) with `PYTHONPATH=$PWD` → `imports_ok`.
+- Quick sanity: key editable modules import cleanly (`cli, metrics, attribution, costs, regime, shorting, sizing, quality, data_sources`) with `PYTHONPATH=$PWD` → `imports_ok`.
 - C41 gates GREEN (see above). C41 probe campaign **EXECUTED**: 22 new probes, all PASS, no proven gaps → `c41_probe_campaign_summary_20261112T070404Z.log`. Stale cross_19/cross_21 raw-log FAILs re-ran PASS against HEAD `23e82d1`.
 - C42 probe campaign **NOT yet executed** — ≥20 new probes required before any handoff refresh/closure.
