@@ -1,12 +1,14 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-12T07:37:51Z
-**HEAD:** `1a3143a153dfed9ff6399d84c09b354bec3c21e3` on `main` (tracked working tree clean; `git status --porcelain` empty)
+**Timestamp (refreshed):** 2026-11-12T07:38:48Z
+**HEAD:** `9919fc0` on `main` (tracked working tree clean; `git status --porcelain` empty)
 **Repo priority (binding):** advance **Betting Against Beta** correctness, robustness, CLI/API/reporting/metrics fidelity, or a newly proven regression. No unrelated refactors.
 
-**Handoff staleness fixed at this refresh:** prior handoff cited HEAD `479d7aa` and closed C41; actual HEAD advanced to `1a3143a` with clean tree. Quick sanity: editable/core modules import cleanly with `PYTHONPATH=$PWD` (`imports_ok`). `research_state/workflow_run_diagnostics.jsonl` remains **historical** Oct-2026 CI/log excerpts only — not evidence of current checkout failure and must not justify inaction.
+**Handoff staleness fixed at this refresh:** prior handoff cited HEAD `1a3143a`; actual HEAD advanced to `9919fc0` (checkpoint commit, clean tree). Corrected here. `research_state/workflow_run_diagnostics.jsonl` remains **historical** Oct-2026 CI/log excerpts only — not evidence of current checkout failure and must not justify inaction.
 
-**Bottleneck status:** no active blockers, no dirty tracked state, no workflow sync issue reproduced. C41 rotation is CLOSED (22/22 probes PASS, no proven gaps/regressions per prior durable logs under `/home/runner/work/_temp/kilo-tmp/`). Prior gate floors reported GREEN @ C41 and were not re-run at this refresh because no fix landed; re-verify with durable logs before/alongside any code change.
+**Bottleneck status:** no active blockers, no dirty tracked state, no workflow sync issue reproduced. The only staleness was the out-of-date HEAD reference in this file (now corrected to `9919fc0`). C41 rotation is CLOSED (22/22 probes PASS, no proven gaps/regressions per prior durable logs under `/home/runner/work/_temp/kilo-tmp/`). Gate baseline re-verified at this refresh: Gate 1 GREEN — `898 passed, 5 skipped, rc=0` (data_loader campaign_d + batch148/149/172). Gates 2/3 not re-run because the full suite exceeded a 5-min timeout; re-verify before/alongside any code change.
+
+C42: **NOT started** — required before closure of this session’s handoff.
 
 ## BINDING INITIAL TASK MESSAGE — NEXT AGENT (start immediately)
 
@@ -15,24 +17,24 @@
 The repo is **Crypto-Betting-Against-Beta** (market-neutral BAB: long low-beta / short high-beta vs BTC benchmark). Binding product work is BAB correctness/robustness across `quality.py`, `signals.py`, `portfolio.py`, `config.py`, `backtest.py`, `data_sources.py`, `attribution.py`, `metrics.py`, `cli.py`/reporting, `costs.py`, `regime.py`, `shorting.py`, `sizing.py`, and controller/gate contracts — driven by proven evidence only.
 
 1. **Establish/reconfirm gate baseline with durable logs before claiming progress (re-run if any fix lands or if baseline is in doubt).**
-   - Gate 1: `PYTHONPATH=$PWD python3 -m pytest -q tests/test_bab_data_loader_campaign_d*.py tests/test_bab_data_loader_batch148.py tests/test_bab_data_loader_batch149.py tests/test_bab_data_loader_batch172.py`
-   - Gate 2: `PYTHONPATH=$PWD python3 -m pytest -q --ignore-glob='*data_loader*' --ignore=tests/test_controller_progress_accounting.py`
-   - Gate 3: `PYTHONPATH=$PWD python3 -m pytest -q tests/test_bab_cli_campaign11* tests/test_bab_cli_campaign14*`
-   - Optional full gate: `scripts/bab_gate.sh` (self-contained; coverage optional).
-   - Environment: system Python 3.12.3, repo root, `PYTHONPATH=$PWD`. Declared deps: `numpy`, `pandas`, `scipy`, `pytest`, `hypothesis`, `coverage`.
-   - Prior C41 GREEN reference: Gate 1 898 passed/5 skipped rc=0, Gate 2 2234 passed/5 skipped rc=0, Gate 3 164 passed rc=0 (logs in `/home/runner/work/_temp/kilo-tmp/c41_gate_*`).
+    - Gate 1: `PYTHONPATH=$PWD python3 -m pytest -q tests/test_bab_data_loader_campaign_d*.py tests/test_bab_data_loader_batch148.py tests/test_bab_data_loader_batch149.py tests/test_bab_data_loader_batch172.py`  (GREEN @ this refresh: 898 passed/5 skipped rc=0)
+    - Gate 2: `PYTHONPATH=$PWD python3 -m pytest -q --ignore-glob='*data_loader*' --ignore=tests/test_controller_progress_accounting.py`
+    - Gate 3: `PYTHONPATH=$PWD python3 -m pytest -q tests/test_bab_cli_campaign11* tests/test_bab_cli_campaign14*`
+    - Optional full gate: `scripts/bab_gate.sh` (self-contained; coverage optional). NOTE: full suite may exceed short timeouts; run with adequate wall time.
+    - Environment: system Python 3.12.3, repo root, `PYTHONPATH=$PWD`. Declared deps: `numpy`, `pandas`, `scipy`, `pytest`, `hypothesis`, `coverage`.
+    - Prior C41 GREEN reference: Gate 1 898 passed/5 skipped rc=0, Gate 2 2234 passed/5 skipped rc=0, Gate 3 164 passed rc=0 (logs in `/home/runner/work/_temp/kilo-tmp/c41_gate_*`).
 
 2. **Immediate binding task: execute C42 ROTATION adversarial probe campaign (minimum 20 NEW probes).**
-   - **Do not reuse** C40/C40-extended/C41 probe scripts or shapes. Every probe must have durable log(s) under `/home/runner/work/_temp/kilo-tmp/` with rc, duration, PASS/FAIL, and repro path. Smoke checks are insufficient.
-   - **Required target surfaces/shapes (cover all):**
-     - `quality.py`: `data_quality_report` with None/empty/non-DataFrame, duplicate index, non-datetime index, large gaps, all-NaN columns, mixed dtypes.
-     - `signals.py`: `generate_bab_signals` with constant/all-same/NaN betas, <2 observations, empty universe, single asset, quantile boundary behavior.
-     - `portfolio.py`: `construct_portfolio` with dollar-neutral/long-only, weight caps, zero longs/shorts, NaN signals, misaligned index.
-     - `config.py`: `BABConfig` validation boundaries (vol_thresholds+vol_percentiles conflict, vol_hysteresis out of [0,1], beta_window < 1, long/short quantiles at 0/1, universe_override no overlap).
-     - `backtest.py`: `run_backtest` serialization/round-trip, NaN/inf in prices/returns, empty/single-row DataFrame, transaction-costs interaction.
-     - `data_sources.py`: emitter contracts, malformed CSV/JSON, missing benchmark column, duplicate timestamps, unsupported format.
-     - **Cross-parameter interactions:** `regime`+`sizing` (regime scale → vol-target leverage), `attribution`+`shorting` (attribution on borrow-constrained weights), `metrics`+`sizing` (metrics on sized portfolio).
-   - Record a probe matrix (probe id, target, shape, result, log path).
+    - **Do not reuse** C40/C40-extended/C41 probe scripts or shapes. Every probe must have durable log(s) under `/home/runner/work/_temp/kilo-tmp/` with rc, duration, PASS/FAIL, and repro path. Smoke checks are insufficient.
+    - **Required target surfaces/shapes (cover all):**
+      - `quality.py`: `data_quality_report` with None/empty/non-DataFrame, duplicate index, non-datetime index, large gaps, all-NaN columns, mixed dtypes.
+      - `signals.py`: `generate_bab_signals` with constant/all-same/NaN betas, <2 observations, empty universe, single asset, quantile boundary behavior.
+      - `portfolio.py`: `construct_portfolio` with dollar-neutral/long-only, weight caps, zero longs/shorts, NaN signals, misaligned index.
+      - `config.py`: `BABConfig` validation boundaries (vol_thresholds+vol_percentiles conflict, vol_hysteresis out of [0,1], beta_window < 1, long/short quantiles at 0/1, universe_override no overlap).
+      - `backtest.py`: `run_backtest` serialization/round-trip, NaN/inf in prices/returns, empty/single-row DataFrame, transaction-costs interaction.
+      - `data_sources.py`: emitter contracts, malformed CSV/JSON, missing benchmark column, duplicate timestamps, unsupported format.
+      - **Cross-parameter interactions:** `regime`+`sizing` (regime scale → vol-target leverage), `attribution`+`shorting` (attribution on borrow-constrained weights), `metrics`+`sizing` (metrics on sized portfolio).
+    - Record a probe matrix (probe id, target, shape, result, log path).
 
 3. **On proven regression:** apply smallest fix in allowed editable area only → add minimal regression test → re-run affected tests + all three gate floors → capture durable evidence.
 4. **If no proven gaps:** record **"C42 rotation: no proven gaps"** with per-area/per-probe evidence and log paths.
@@ -59,6 +61,7 @@ The repo is **Crypto-Betting-Against-Beta** (market-neutral BAB: long low-beta /
 
 **Current status (verified at this refresh):**
 - Working tree: clean tracked state. Untracked artifacts may exist under `/home/runner/work/_temp/kilo-tmp/` (do not commit).
-- Imports sanity: `quality, signals, portfolio, config, backtest, data_sources, attribution, metrics, cli, costs, regime, shorting, sizing` → `imports_ok` (PYTHONPATH=$PWD).
+- Imports sanity: `quality, signals, portfolio, config, backtest, data_sources, attribution, metrics, cli, costs, regime, shorting, sizing` → `imports_ok` (PYTHONPATH=$PWD, package path `strategies.betting_against_beta.*`).
 - C41: CLOSED, no proven gaps (prior evidence).
 - C42: **NOT started** — required before closure of this session’s handoff.
+- Gate 1 baseline: GREEN (898 passed/5 skipped rc=0) @ this refresh. Gates 2/3 pending re-verification.
