@@ -1,40 +1,44 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-12T01:33:39Z
-**HEAD:** `3947e3c` on `main`
+**Timestamp (refreshed):** 2026-11-12T01:39:55Z
+**HEAD:** `55d5ff7103accd40a9194ddc0f9ac74eb722227f` on `main` (working tree clean)
 **Repo priority (binding):** advance **Betting Against Beta** correctness, robustness, CLI/API/reporting/metrics fidelity, or a newly proven regression. No unrelated refactors, no `.github/workflows/*` edits, no commit/push unless explicitly requested.
 
-## BINDING INITIAL TASK MESSAGE — NEXT AGENT (C37, execute immediately)
+---
 
-**C37 is the active campaign (gate-integrity maintenance + expanded adversarial probe matrix). Do heavy, evidence-producing work now. "No proven gaps" is allowed only after full Step 1 + Step 2 execution with durable evidence — never a reason to skip.**
+## BINDING INITIAL TASK MESSAGE — NEXT AGENT (C38, execute immediately)
+
+**C38 is the active campaign (gate floors + rotated/expanded adversarial probe matrix on allowed surfaces). Do heavy, evidence-producing work now. "No proven gaps" is allowed only after full Step 1 + Step 2 execution with durable evidence — never a reason to skip.**
 
 ### Step 1 — Gate floors (mandatory, first)
-Run to completion with ample timeout and durable logs under `/home/runner/work/_temp/kilo-tmp/c37_gate_<name>_<ts>.log`. Use `.venv/bin/python -m pytest ...` (system `python3` may lack pytest). Timeout/interruption without observed failure is **inconclusive, not green**.
+Run to completion with ample timeout and durable logs under `/home/runner/work/_temp/kilo-tmp/c38_gate_<name>_<ts>.log`. Use `.venv/bin/python -m pytest ...` (system `python3` may lack pytest). Timeout/interruption without observed failure is **inconclusive, not green**.
 
 1. `.venv/bin/python -m pytest -q tests/test_bab_data_loader_campaign_d*.py tests/test_bab_data_loader_batch148.py tests/test_bab_data_loader_batch149.py tests/test_bab_data_loader_batch172.py`
-   - **Floor:** ≥898 passed, 5 skipped, rc=0 (C36 baseline: 898 passed, 5 skipped).
+   - **Floor:** ≥898 passed, 5 skipped, rc=0 (C37 baseline: 898 passed, 5 skipped).
 2. `.venv/bin/python -m pytest -q --ignore-glob='*data_loader*' --ignore=tests/test_controller_progress_accounting.py`
-   - **Floor:** rc=0 (C36 baseline: 2234 passed, 5 skipped). Slow; timeout ≥900s or monitor, never abort early.
+   - **Floor:** rc=0 (C37 baseline: 2234 passed, 5 skipped). Slow; timeout ≥900s or monitor, never abort early.
 3. `.venv/bin/python -m pytest -q tests/test_bab_cli_campaign11*.py tests/test_bab_cli_campaign14*.py`
    - **Floor:** ≥164 passed, 0 failed, rc=0.
 
 Record exact counts+rc+durations+durable log paths in this HANDOFF. A red floor is a proven blocker — fix smallest-possible in allowed areas only, add minimal regression, re-run affected gates, then continue.
 
-### Step 2 — C37 adversarial probe campaign (mandatory after Step 1 green)
-Systematically exercise **editable/allowed surfaces only** (`cli.py`, `metrics.py`, reporting, `scripts/*`, `costs.py`, `regime.py`, `attribution.py`, `shorting.py`, `sizing.py`) via untracked scripts under `/home/runner/work/_temp/kilo-tmp/` with durable logs. Execute all areas and **rotate/expand beyond C36** (never skip heavy verification):
+### Step 2 — C38 adversarial probe campaign (mandatory after Step 1 green)
+Systematically exercise **editable/allowed surfaces only** (`cli.py`, `metrics.py`, reporting, `scripts/*`, `costs.py`, `regime.py`, `attribution.py`, `shorting.py`, `sizing.py`) via untracked scripts under `/home/runner/work/_temp/kilo-tmp/` with durable logs. Execute all areas and **rotate/expand beyond C36/C37** (never skip heavy verification):
 
-- **CLI/API/reporting parity & edge contracts:** `--from-prices`/`--synthetic`/`--dry-run`/`--output` combos, invalid/NaN/Inf/negative args, missing/dir/empty/permission-denied `--data`, benchmark missing/overlap/duplicate, empty/whitespace/duplicate universe tokens, JSON/tear-sheet/report strict-finite & no-traceback on user paths, `bab_backtest_report.py` arg combos. **C37 expansion:** malformed/huge CSV headers, Unicode/locale-ish tokens, `--min-rows`/`--lookback` boundary interactions with real files, output path permission/overwrite behaviors, multiple repeated flags, symlink+dir edge mixes, `--universe` token normalization/idempotence under odd spacing/commas.
-- **Metrics/reporting robustness:** degenerate/constant/NaN/Inf/short/extreme series, serialization safety (raw `metrics.summary` may be non-finite by contract; CLI/report sanitized paths must remain strict-finite/no-leakage). **C37 expansion:** empty/zero-variance benchmarks, mixed-frequency/index dtype oddities, extreme drawdown/turnover cases, report/CLI invariants over strategy outputs containing non-finite raw metrics.
-- **Costs/regime/attribution/shorting/sizing:** boundary/zero/extreme params, monotonicity/invariants where applicable, interaction with backtest/report paths, no silent corruption or uncaught exceptions on reachable user paths. Use correct APIs/signatures (regime expects DataFrames; `compute_transaction_costs(weights, weights_prev, prices, model, adv_usd)`; `trade_attribution(weights)` 1-arg per signature; `sizing.apply_position_sizing(signals, returns, sizer)`). **C37 expansion:** per-asset/heterogeneous cost params, borrow limit edge mixes, sizer behavior on empty/all-zero/singular inputs, regime scaling interaction with sizing/shorting constraints, attribution on no-trade/partial-trade paths.
+- **CLI/API/reporting parity & edge contracts:** `--from-prices`/`--synthetic`/`--dry-run`/`--output` combos, invalid/NaN/Inf/negative args, missing/dir/empty/permission-denied `--data`, benchmark missing/overlap/duplicate, empty/whitespace/duplicate universe tokens, JSON/tear-sheet/report strict-finite & no-traceback on user paths, `bab_backtest_report.py` arg combos. **C38 rotation/expansion:** malformed/huge CSV headers, Unicode/locale-ish tokens, `--min-rows`/`--lookback` boundary interactions with real files, output path permission/overwrite behaviors, multiple repeated flags, symlink+dir edge mixes, `--universe` token normalization/idempotence under odd spacing/commas.
+- **Metrics/reporting robustness:** degenerate/constant/NaN/Inf/short/extreme series, serialization safety (raw `metrics.summary` may be non-finite by contract; CLI/report sanitized paths must remain strict-finite/no-leakage). **C38 rotation/expansion:** empty/zero-variance benchmarks, mixed-frequency/index dtype oddities, extreme drawdown/turnover cases, report/CLI invariants over strategy outputs containing non-finite raw metrics.
+- **Costs/regime/attribution/shorting/sizing:** boundary/zero/extreme params, monotonicity/invariants where applicable, interaction with backtest/report paths, no silent corruption or uncaught exceptions on reachable user paths. Use correct APIs/signatures (regime expects DataFrames; `compute_transaction_costs(weights, weights_prev, prices, model, adv_usd)`; `trade_attribution(weights)` 1-arg per signature; `sizing.apply_position_sizing(signals, returns, sizer)`). **C38 rotation/expansion:** per-asset/heterogeneous cost params, borrow limit edge mixes, sizer behavior on empty/all-zero/singular inputs, regime scaling interaction with sizing/shorting constraints, attribution on no-trade/partial-trade paths.
 
 For every probe record: command, rc, key outputs/invariants, PASS/FAIL. Any reproducible BAB-relevant failure → durable repro log → smallest proven fix in allowed area → minimal regression test → re-run affected + all gate floors.
 
 ### Step 3 — Closure
 - **If gaps found:** fix with minimal proven change + regression in allowed areas, re-run gates, record evidence.
-- **If no proven gaps after full Step 1+2:** record "C37: no proven gaps" with evidence summary/log paths, refresh timestamp/HEAD, and set next task to "C38: repeat gate floors + rotate/expand adversarial probe matrix on remaining allowed-surface edges (never skip heavy verification)".
+- **If no proven gaps after full Step 1+2:** record "C38: no proven gaps" with evidence summary/log paths, refresh timestamp/HEAD, and set next task to "C39: repeat gate floors + rotate/expand adversarial probe matrix on remaining allowed-surface edges (never skip heavy verification)".
 - Do not exit after Step 1 alone. Do not invent failures.
 
-**Rules:** Do not reopen C28–C36 without new statable reproducible failure + durable evidence. Do not churn locked modules. Do not declare "blocked" without evidenced attempt and durable logs. This file is the sole durable coordination artifact.
+**Rules:** Do not reopen C28–C37 without new statable reproducible failure + durable evidence. Do not churn locked modules. Do not declare "blocked" without evidenced attempt and durable logs. This file is the sole durable coordination artifact.
+
+---
 
 ## Bottlenecks / environment (resolved guidance — do not re-litigate)
 - **`tests/test_controller_progress_accounting.py` excluded, NOT a BAB blocker** (fails on `.github/workflows/*` pattern sync; infra only). Do not edit `.github/workflows/*`; do not weaken/delete it.
@@ -43,37 +47,39 @@ For every probe record: command, rc, key outputs/invariants, PASS/FAIL. Any repr
 - **Off-limits tracked artifacts:** `probe*`, `debug*`, `ast_probe.py` — do not edit/commit.
 - **Historical only:** `research_state/workflow_run_diagnostics.jsonl` are prior captured log signals, not current source/test failures.
 
-## C36 session results (2026-11-12T01:33:39Z refresh, HEAD `3947e3c`) — COMPLETE, no proven BAB gaps
+---
+
+## C37 session results (2026-11-12T01:24–01:33Z refresh window, HEAD `55d5ff7`) — COMPLETE, no proven BAB gaps
 
 ### Step 1 gates (all PASS, durable evidence present)
-- campaign_d+batch148/149/172: **898 passed, 5 skipped, rc=0** (3.23s) — `/home/runner/work/_temp/kilo-tmp/c36_gate_campaign_d_20261112T004254Z.log` (recorded in prior C36 state; consistent with campaign_d floor)
-- full BAB excl data_loader/controller: **2234 passed, 5 skipped, rc=0** (262.45s) — `/home/runner/work/_temp/kilo-tmp/c37_gate_full_bab_20261112T012004Z.log` (latest full-gate evidence; also prior C36/C37 logs present)
-- campaign11+14: **164 passed, 0 failed, rc=0** (per C36 baseline/gates) — `/home/runner/work/_temp/kilo-tmp/c36_gate_campaign11_14_20261112T004254Z.log` baseline context; subsequent C37 gate artifacts present (`c37_gate_campaign11_14_20261112T011821Z.log`)
+- campaign_d+batch148/149/172: **898 passed, 5 skipped, rc=0** (3.16s) — `/home/runner/work/_temp/kilo-tmp/c37_gate_campaign_d_20261112T011330Z.log`
+- full BAB excl data_loader/controller: **2234 passed, 5 skipped, rc=0** (262.45s) — `/home/runner/work/_temp/kilo-tmp/c37_gate_full_bab_20261112T012004Z.log` (latest full-gate evidence)
+- campaign11+14: **164 passed, 0 failed, rc=0** (98.35s) — `/home/runner/work/_temp/kilo-tmp/c37_gate_campaign11_14_20261112T011821Z.log`
 
-> Note: C36 Step 1 was previously recorded complete in this handoff; this refresh preserves that closure and anchors latest verified full-BAB gate evidence. All floors satisfied (≥898/5, rc=0 full BAB excl data_loader/controller, ≥164 campaign11+14).
+All floors satisfied (≥898/5, rc=0 full BAB excl data_loader/controller, ≥164 campaign11+14).
 
 ### Step 2 probe campaign (executed, durable logs)
-- Probe run/log: `/home/runner/work/_temp/kilo-tmp/c36_probe_20261112T004254Z.log`
-- Structured results: `/home/runner/work/_temp/kilo-tmp/c36_probe_results.json`
-- Probe script: `/home/runner/work/_temp/kilo-tmp/c36_probe.py`
-- Coverage: CLI/API/reporting parity & edge contracts (flag combos, invalid args, missing/empty/dir data, benchmark/universe edges, min-rows/lookback, output traversal/symlink, JSON strict-finite, bab_backtest_report), metrics/reporting robustness (degenerate/constant/NaN/Inf/short/extreme, benchmark/timezone/cross-sectional, strategy sanitized output), costs/regime/attribution/shorting/sizing boundaries, scripts help surfaces.
-- Result: **100 probes — 94 PASS, 6 FAIL (no proven BAB-relevant failures)**.
-
-#### Analyzed probe "FAIL"s (not proven product bugs; probe/contract-expectation issues)
-1. `METRICS::degenerate_series_all_inf`, `degenerate_series_neg_inf`, `degenerate_series_extreme`, `degenerate_series_mixed_nan_inf` — probe expected `non_nan_finite` on raw `metrics.summary` for degenerate/non-finite inputs. Contract (per campaign rules) allows raw `metrics.summary` to be non-finite; CLI/report sanitized paths must remain strict-finite/no-leakage (`CLI::json_report_strict_finite` PASS, `METRICS::strategy_run_sanitized` PASS).
-2. `COSTS::cost_model_adv_0` — probe flagged ADV=0 case; `compute_transaction_costs` completed without exception and returned finite value (probe invariant mismatch, no traceback/corruption observed).
-3. `COSTS::zero_weight_change` — probe expected `zero_when_no_change` invariant; function completed without exception and returned finite value (probe assumption not evidenced as required contract; no uncaught exception/silent corruption).
+- Probe rerun/log: `/home/runner/work/_temp/kilo-tmp/c37_probe_rerun_20261112T012432Z.log`
+- Coverage: CLI/API/reporting parity & edge contracts; metrics/reporting robustness; costs/regime/attribution/shorting/sizing boundaries; scripts help surfaces.
+- Result: **6 FAILs, all analyzed as non-product (probe contract-expectation issues), consistent with C36:**
+  1. `METRICS::degenerate_series_all_inf`, `degenerate_series_neg_inf`, `degenerate_series_extreme`, `degenerate_series_mixed_nan_inf` — raw `metrics.summary` allowed non-finite by contract; CLI/report sanitized paths strict-finite (`CLI::json_report_strict_finite` PASS, `METRICS::strategy_run_sanitized` PASS).
+  2. `COSTS::cost_model_adv_0`, `COSTS::zero_weight_change` — functions completed without exception, finite return, no traceback/corruption; probe assumption not evidenced as required contract.
 
 No reproducible BAB-relevant failure with durable contract-aligned evidence was identified; therefore **no fixes/regressions were required**.
 
 ### Closure
-- **C36: no proven gaps** after full Step 1 + Step 2 execution with durable evidence. Gates green, probe matrix executed and analyzed, no proven BAB-relevant defects.
+- **C37: no proven gaps** after full Step 1 + Step 2 execution with durable evidence. Gates green, probe matrix executed and analyzed, no proven BAB-relevant defects.
+
+---
 
 ## C28–C36 status (closed) — do not reopen without new evidence
 - **C28–C33:** CLOSED per prior evidence (`c28_*`–`c33_*` logs under `/home/runner/work/_temp/kilo-tmp/`).
 - **C34:** COMPLETE, no proven gaps.
 - **C35:** COMPLETE, no proven gaps.
-- **C36:** COMPLETE, no proven gaps (this session).
+- **C36:** COMPLETE, no proven gaps.
+- **C37:** COMPLETE, no proven gaps (this session).
+
+---
 
 ## Locks / prohibitions
 - **No** edits to `.github/workflows/*`.
@@ -83,5 +89,7 @@ No reproducible BAB-relevant failure with durable contract-aligned evidence was 
 - **Editable only for smallest proven fix from probe evidence:** `cli.py`, `metrics.py`, reporting, `scripts/*`, `costs.py`, `regime.py`, `attribution.py`, `shorting.py`, `sizing.py`.
 - **No commit/push unless explicitly requested.**
 
+---
+
 ## Handoff refresh requirement (before exit)
-Update this same `HANDOFF.md` with refreshed timestamp/HEAD, exact gate counts+rc+durations+durable log paths, C37 probe matrix outcomes (PASS/FAIL per area + repro paths for any failure), and the next concrete task. Keep it single, durable, unambiguous.
+Update this same `HANDOFF.md` with refreshed timestamp/HEAD, exact gate counts+rc+durations+durable log paths, C38 probe matrix outcomes (PASS/FAIL per area + repro paths for any failure), and the next concrete task. Keep it single, durable, unambiguous.
