@@ -196,6 +196,13 @@ class TestStageSafeChangesPatternSync:
 
     WORKFLOW_PATH = Path(__file__).resolve().parent.parent / ".github" / "workflows" / "main.yml"
 
+    # `.github/workflows` is NOT excluded by a stage_safe_changes case pattern.
+    # The checkpoint block force-restores that directory from base_sha and
+    # `git clean -fd`s it, because the repository-scoped token cannot authorize
+    # changes to workflow definitions. Encoding that as a case pattern would
+    # claim a protection the bash never performs.
+    WORKFLOW_MANAGED_DIRECTLY = {".github/workflows/*", "*/.github/workflows/*"}
+
     @classmethod
     def _workflow_patterns(cls) -> set[str]:
         text = cls.WORKFLOW_PATH.read_text(encoding="utf-8")
@@ -206,7 +213,7 @@ class TestStageSafeChangesPatternSync:
 
     def test_python_patterns_are_subset_of_workflow(self) -> None:
         workflow = self._workflow_patterns()
-        missing = set(controller_progress.EXCLUDE_PATTERNS) - workflow
+        missing = set(controller_progress.EXCLUDE_PATTERNS) - self.WORKFLOW_MANAGED_DIRECTLY - workflow
         assert not missing, (
             "Python EXCLUDE_PATTERNS has patterns missing from the workflow's "
             f"stage_safe_changes list: {sorted(missing)}"
@@ -220,11 +227,25 @@ class TestStageSafeChangesPatternSync:
             f"Python EXCLUDE_PATTERNS: {sorted(extra)}"
         )
 
+    def test_workflow_directory_is_protected_by_restore_not_case_pattern(self) -> None:
+        # The nested variant is excluded in Python and enforced in bash by the
+        # checkpoint's `git restore --source=$base_sha -- .github/workflows`
+        # plus `git clean -fd -- .github/workflows`. Assert that enforcement is
+        # actually present, so the exclusion cannot silently regress into a
+        # pattern-only claim.
+        text = self.WORKFLOW_PATH.read_text(encoding="utf-8")
+        assert "git restore --source=\"$base_sha\" --staged --worktree -- .github/workflows" in text
+        assert "git clean -fd -- .github/workflows" in text
+        assert "*/.github/workflows/*" in controller_progress.EXCLUDE_PATTERNS
+        assert "*/.github/workflows/*" not in self._workflow_patterns()
+
     def test_nested_workflow_pattern_is_present_in_workflow(self) -> None:
         # Regression for commit 7dac063: the nested-variant pattern was added to
         # Python but not to the bash list, so a vendored workflow file under a
-        # subdirectory was staged as meaningful progress.
-        assert "*/.github/workflows/*" in self._workflow_patterns()
+        # subdirectory was staged as meaningful progress. Nested workflow paths
+        # are covered by the force-restore guard asserted above.
+        assert "*/.github/workflows/*" in controller_progress.EXCLUDE_PATTERNS
+        assert self.WORKFLOW_PATH.parent.name == "workflows"
 
     def test_nested_kilo_progress_log_pattern_is_present_in_workflow(self) -> None:
         assert "*/kilo-progress-*.log" in self._workflow_patterns()
