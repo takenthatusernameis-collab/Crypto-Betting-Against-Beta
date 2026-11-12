@@ -1,6 +1,6 @@
 # Agent Handoff — Crypto-Betting-Against-Beta
 
-**Timestamp:** 2026-11-12T01:28:05Z
+**Timestamp:** 2026-11-12T03:15:18Z
 **Session ID:** Initial handoff for next agentic work session
 
 ---
@@ -26,12 +26,14 @@
 - Beta campaign heavy: **10 passed**
 - Beta adversarial hardening: **3 passed**
 
-### ❌ Known Failures (2 tests)
+### ❌ Known Failures (2 tests — BLOCKER for CI)
 **File:** `tests/test_controller_progress_accounting.py`
 - `TestStageSafeChangesPatternSync.test_python_patterns_are_subset_of_workflow`
 - `TestStageSafeChangesPatternSync.test_nested_workflow_pattern_is_present_in_workflow`
 
 **Root cause:** Python `EXCLUDE_PATTERNS` includes `'*/.github/workflows/*'` but the GitHub Actions workflow's `stage_safe_changes` list does not. This is a configuration sync issue between Python controller code and the CI workflow YAML.
+
+**Fix required:** Add `*/.github/workflows/*|` to the case statement in `.github/workflows/main.yml` line 1163.
 
 ---
 
@@ -66,7 +68,7 @@ tests/
 ├── test_bab_data_loader_comprehensive.py     # Data loader (16 pass)
 ├── test_bab_beta_campaign_heavy.py           # Beta heavy tests (10 pass)
 ├── test_beta_adversarial_hardening.py        # Adversarial beta (3 pass)
-├── test_controller_progress_accounting.py    # Controller sync (2 FAIL)
+├── test_controller_progress_accounting.py    # Controller sync (2 FAIL - BLOCKER)
 └── ... 100+ campaign test files (campaign_d, campaign11, campaign14, etc.)
 ```
 
@@ -74,32 +76,37 @@ tests/
 
 ## Immediate Next Actions (Priority Order)
 
-### 1. Fix Controller Test Failures (High Priority)
-**File:** `tests/test_controller_progress_accounting.py`
-**Action:** Sync `EXCLUDE_PATTERNS` in Python controller with `stage_safe_changes` in `.github/workflows/*.yml`
-- Add `'*/.github/workflows/*'` to workflow `stage_safe_changes` list
-- OR remove it from Python `EXCLUDE_PATTERNS` if intentional
-- Verify both tests pass after fix
+### 1. Fix Controller Test Failures (HIGHEST PRIORITY - BLOCKS CI)
+**File:** `.github/workflows/main.yml` line 1163
+**Action:** Add `*/.github/workflows/*|` to the `stage_safe_changes` case statement
+- Insert between `.github/workflows/*|` and `.venv/*|`
+- Verify: `python3 -m pytest -q tests/test_controller_progress_accounting.py` → **68 passed, rc=0**
 
-### 2. Run Full Test Suite & Identify Blockers
-**Command:** `python3 -m pytest -q --tb=short 2>&1 | tail -50`
-**Goal:** Complete test run to catalog all failures, not just the known 2
-- Many campaign test files exist — some may have hidden failures
-- Timeout risk: full suite >120s; run in batches if needed
+### 2. Run Full C38 Gate Floors (from HANDOFF.md Step 1)
+**Commands:**
+```bash
+# Gate 1: Data loader campaign_d + batch tests
+.venv/bin/python3 -m pytest -q tests/test_bab_data_loader_campaign_d*.py tests/test_bab_data_loader_batch148.py tests/test_bab_data_loader_batch149.py tests/test_bab_data_loader_batch172.py
+# Floor: ≥898 passed, 5 skipped, rc=0
 
-### 3. Validate CLI End-to-End with Real Data Path
+# Gate 2: Full BAB suite excl data_loader + controller
+.venv/bin/python3 -m pytest -q --ignore-glob='*data_loader*' --ignore=tests/test_controller_progress_accounting.py
+# Floor: rc=0 (baseline: 2234 passed, 5 skipped) — SLOW, use timeout ≥900s
+
+# Gate 3: CLI campaign11 + campaign14
+.venv/bin/python3 -m pytest -q tests/test_bab_cli_campaign11*.py tests/test_bab_cli_campaign14*.py
+# Floor: ≥164 passed, 0 failed, rc=0
+```
+
+### 3. C38 Adversarial Probe Campaign (HANDOFF.md Step 2)
+Systematically exercise editable surfaces: `cli.py`, `metrics.py`, reporting, `scripts/*`, `costs.py`, `regime.py`, `attribution.py`, `shorting.py`, `sizing.py` via untracked scripts under `/home/runner/work/_temp/kilo-tmp/`.
+
+### 4. Validate CLI End-to-End with Real Data Path
 **Test:** `python -m strategies.betting_against_beta.cli --data <sample.csv> --from-prices --benchmark BTC --dry-run`
 **Goal:** Ensure `--from-prices` path works (load_prices → returns conversion)
 
-### 4. Harden Data Loader Edge Cases
-**Files:** `strategies/betting_against_beta/data_loader.py`, `tests/test_bab_data_loader_*.py`
-**Focus:** Timezone handling, malformed dates, missing benchmark column, empty DataFrames
-- Campaign D tests suggest ongoing data loader hardening
-
 ### 5. Add Type Checking / Lint Gate
 **Action:** Install `mypy`, add `pyproject.toml` `[tool.mypy]` config, run `mypy strategies/`
-- Currently no static analysis in CI
-- Strategy code has type hints but some `noqa: ANN401` suppressions
 
 ---
 
@@ -134,7 +141,7 @@ python3 -m pytest tests/test_bab_cli_campaign11ab_cli_surfaces.py -q
 # Data loader campaigns
 python3 -m pytest tests/test_bab_data_loader_campaign_d*.py -q
 
-# Controller sync (currently 2 failures)
+# Controller sync (currently 2 failures - MUST FIX FIRST)
 python3 -m pytest tests/test_controller_progress_accounting.py -q
 
 # CLI smoke test (synthetic)
@@ -142,12 +149,22 @@ python -m strategies.betting_against_beta.cli --synthetic
 
 # CLI dry-run with data file
 python -m strategies.betting_against_beta.cli --data prices.csv --from-prices --benchmark BTC --dry-run
+
+# C38 Gate 1 (data loader)
+.venv/bin/python3 -m pytest -q tests/test_bab_data_loader_campaign_d*.py tests/test_bab_data_loader_batch148.py tests/test_bab_data_loader_batch149.py tests/test_bab_data_loader_batch172.py
+
+# C38 Gate 2 (full suite excl data_loader/controller)
+.venv/bin/python3 -m pytest -q --ignore-glob='*data_loader*' --ignore=tests/test_controller_progress_accounting.py
+
+# C38 Gate 3 (CLI campaigns)
+.venv/bin/python3 -m pytest -q tests/test_bab_cli_campaign11*.py tests/test_bab_cli_campaign14*.py
 ```
 
 ---
 
 ## Handoff Note for Next Agent
 
-> **Do not skip the controller test fix.** The 2 failures in `test_controller_progress_accounting.py` are a config drift between Python and YAML — trivial to fix but blocks CI green.
+> **DO NOT SKIP THE CONTROLLER TEST FIX.** The 2 failures in `test_controller_progress_accounting.py` are a config drift between Python and YAML — trivial to fix but blocks CI green. Fix `.github/workflows/main.yml` line 1163 first.
 > **Run campaign tests before touching modules.** The `campaign_d_*` and `campaign11*` files are living specifications for data loader and CLI respectively.
-> **Heavy work expected.** This repo is in active campaign-mode test expansion. Next session should allocate time for full test suite triage, not just the 2 known failures.
+> **Heavy work expected.** This repo is in active campaign-mode test expansion (C38). Next session must execute Step 0 (controller fix) → Step 1 (gate floors) → Step 2 (adversarial probes) → Step 3 (closure) per HANDOFF.md. Allocate time for full test suite triage, not just the 2 known failures.
+> **Durable logs required.** All gate runs must produce durable logs under `/home/runner/work/_temp/kilo-tmp/c38_gate_<name>_<ts>.log`. Timeout without observed failure = inconclusive.
