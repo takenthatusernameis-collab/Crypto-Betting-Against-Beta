@@ -2,6 +2,6 @@
 
 **Canonical durable handoff:** [`HANDOFF.md`](HANDOFF.md) — single source of truth.
 
-- **Refreshed:** 2026-11-12T15:58:23Z
-- **HEAD:** `6bfd629215e364b4b3807641dfda70d258dd747d`
-- **State:** Tracked tree clean. **C49 CLOSED CLEAN** — probes 67/67 PASS, gates 3/3 GREEN, 2 proven gaps fixed (`sharpe_ratio` non-finite `risk_free`; `turnover_series` non-numeric frame) with 7 regression tests (verified at HEAD `2e5519d`, metrics.py:36-38). **C50 PROBES COMPLETE** — 60/60 PASS, no proven gaps (timestamp `2026-11-12T15:52:04Z` @ HEAD `2697e5e`). **C50 GATES PENDING** — `c50_gates/` empty, must run all 3 gates now. Heavy execution required; no planning-only turn.
+- **Refreshed:** 2026-11-12T19:12:00Z
+- **HEAD:** `ae5e8c703d0e6b17d457589918a3106397840433`
+- **State:** Tracked tree clean. **C50 CLOSED CLEAN** — probes 60/60 PASS (no proven gaps, recorded prior), gates 3/3 GREEN this session (G1 898p/5s rc=0, G2 2263p/5s rc=0, G3 164p rc=0; logs in `/home/runner/work/_temp/kilo-tmp/c50_gates/`). Env deps installed. **Next binding: C51** — >=40 new adversarial probes (fresh shapes), smallest proven fixes + regressions if needed, all 3 gates green, then queue C52. Heavy execution required; no planning-only turn.

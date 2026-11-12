@@ -1,62 +1,48 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-12T15:58:23Z
-**HEAD at refresh:** `6bfd629215e364b4b3807641dfda70d258dd747d` (`chore(kilo): checkpoint agent session`, 2026-11-12T15:58:00Z, `main`)
-**Working tree (tracked):** clean at refresh. Untracked `/home/runner/work/_temp/kilo-tmp/` probe/log/gate artifacts may exist and must not be committed.
-**Env (verified):** Python 3.12.3, Linux, repo root `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`; run commands from repo root with `PYTHONPATH=.`; deps importable (`numpy,pandas,scipy,pytest,hypothesis,coverage`).
+**Timestamp (refreshed):** 2026-11-12T19:12:00Z
+**HEAD at refresh:** `ae5e8c703d0e6b17d457589918a3106397840433` (`chore: capture completed workflow run diagnostics`, 2026-11-12T10:56:33Z, `main`)
+**Working tree (tracked):** clean at refresh. Untracked `/home/runner/work/_temp/kilo-tmp/` probe/log/gate artifacts exist and must not be committed.
+**Env (verified):** Python 3.12.3, Linux, repo root `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`; run commands from repo root with `PYTHONPATH=.`; deps installed/importable in-session (`numpy,pandas,scipy,pytest,hypothesis,coverage`).
 
 **Repo priority (binding):** advance **Crypto-Betting-Against-Beta** (market-neutral BAB: long low-beta / short high-beta vs BTC benchmark) via proven correctness/robustness work in allowed editable surfaces only. No unrelated refactors, no planning-only sessions. Heavy execution required.
 
 ## Bottlenecks cleared / status
 - **Single durable handoff:** this file is canonical. `AGENT_HANDOFF.md` pointer-only. No parallel TODO/session handoff files.
 - **Historical diagnostics only:** `research_state/workflow_run_diagnostics.jsonl` contains prior CI/log excerpts from other runs/heads; treat as historical, not evidence of current-checkout failure, and never as justification for inaction/"blocked".
-- **Env/blockers:** deps importable, Python 3.12.3, tracked tree clean at HEAD `6bfd629`. No proven current source blocker recorded.
-- **C49 closed and recorded:** prior planning-only gap cleared; C49 probes executed (67/67 PASS), gates 3/3 GREEN, and 2 proven fixes landed (`metrics.py` guards + `tests/test_bab_metrics_c49_regressions.py`). Verified at HEAD `2e5519d` (metrics.py:36-38 guard present).
-- **C50 PROBES EXECUTED — GATES PENDING (bottleneck identified).** C50 probes completed: **60/60 PASS, 0 FAIL, no proven gaps** at `2026-11-12T15:52:04Z` (HEAD `2697e5e`, probes under `/home/runner/work/_temp/kilo-tmp/c50_probes/`, summary `c50_probe_summary.{json,md}`). **C50 gates NOT YET RUN** — `c50_gates/` directory exists but empty. This is the binding next task: run all 3 C50 gates now.
-- **Gate invocation:** run from repo root with `PYTHONPATH=.`; G1 uses explicit `tests/test_bab_data_loader_campaign_d*` file list + batch148/149/172; save timestamped durable logs under `/home/runner/work/_temp/kilo-tmp/c50_gates/`; always capture final summary + `rc`.
+- **Env/blockers cleared (this session):** runtime deps were missing at session start (`numpy,pandas,scipy,pytest,hypothesis,coverage`) — installed successfully; Python 3.12.3; tracked tree clean at HEAD `ae5e8c7`.
+- **C49 closed and recorded:** 67/67 PASS, gates 3/3 GREEN, 2 proven fixes landed (`metrics.py` guards + `tests/test_bab_metrics_c49_regressions.py`, 7 tests). Do not revert.
+- **C50 CLOSED CLEAN (this session).** Probes previously recorded 60/60 PASS, 0 FAIL, no proven gaps (`2026-11-12T15:52:04Z` @ HEAD `2697e5e`, summary noted in prior handoff). **All 3 C50 gates executed and GREEN 2026-11-12** with durable logs under `/home/runner/work/_temp/kilo-tmp/c50_gates/`. No fixes/regressions required.
+- **Gate invocation:** run from repo root with `PYTHONPATH=.`; G1 uses explicit `tests/test_bab_data_loader_campaign_d*` file list + batch148/149/172; save timestamped durable logs under `/home/runner/work/_temp/kilo-tmp/c<NN>_gates/`; always capture final summary + `rc`.
+- **Gate 3 filename note (corrected):** actual bundle files are `test_bab_cli_campaign11m_probe_regressions.py`, `test_bab_cli_campaign11o_remaining_probe_regressions.py`, `test_bab_cli_campaign11q_followup_probe_regressions.py`, `test_bab_cli_campaign11s_validation_edges.py` (not the `expanded_probe_regressions`/`campaign14`-only naming assumed in some prior text). Use the verified list below.
 
-## Gate status (baseline at HEAD 6bfd629; C49 last recorded 2026-11-12T14:42:00Z @ f9d84f8)
+## Gate status (C50, executed 2026-11-12 @ HEAD ae5e8c7)
 
 | Gate | Status | Evidence / notes | Command | Log |
 |---|---|---|---|---|
-| 1 | **GREEN (recorded C49)** | 898 passed, 5 skipped, 53 warnings, rc=0 | explicit `tests/test_bab_data_loader_campaign_d*` (32 files) + `tests/test_bab_data_loader_batch148.py tests/test_bab_data_loader_batch149.py tests/test_bab_data_loader_batch172.py` | `/home/runner/work/_temp/kilo-tmp/c49_gates/gate1_20261112T143031Z.log` |
-| 2 | **GREEN (recorded C49)** | 2241 passed, 5 skipped, 41 warnings, rc=0 | `python3 -m pytest -q --ignore-glob='*data_loader*' --ignore=tests/test_controller_progress_accounting.py` | `/home/runner/work/_temp/kilo-tmp/c49_gates/gate2_20261112T143040Z.log` |
-| 3 | **GREEN (recorded C49)** | 164 passed in 121.05s, rc=0 | campaign11ab/11m/11n/11o/11p/11q/11s/14 CLI bundle (8 files) | `/home/runner/work/_temp/kilo-tmp/c49_gates/gate3_20261112T143040Z.log` |
+| 1 | **GREEN** | 898 passed, 5 skipped, 53 warnings, rc=0 | explicit `tests/test_bab_data_loader_campaign_d*.py` + `tests/test_bab_data_loader_batch148.py tests/test_bab_data_loader_batch149.py tests/test_bab_data_loader_batch172.py` | `/home/runner/work/_temp/kilo-tmp/c50_gates/gate1_20261112T184245Z.log` (rc=0) |
+| 2 | **GREEN** | 2263 passed, 5 skipped, 41 warnings, rc=0 | `python3 -m pytest -q --ignore-glob='*data_loader*' --ignore=tests/test_controller_progress_accounting.py` | `/home/runner/work/_temp/kilo-tmp/c50_gates/gate2_20261112T190915Z.log` (rc=0) |
+| 3 | **GREEN** | 164 passed in 174.35s, rc=0 | campaign11ab/11m/11n/11o/11p/11q/11s/14 CLI bundle (8 files, verified names) | `/home/runner/work/_temp/kilo-tmp/c50_gates/gate3_20261112T190915Z.log` (rc=0) |
 
-**C49 CLOSED CLEAN (recorded).** C50 probes PASS (60/60, no gaps). **C50 GATES: NOT YET RUN.** Must run all 3 gates before exit and durably log under `/home/runner/work/_temp/kilo-tmp/c50_gates/`.
-
-## C49 (prior session, recorded) — result + proven fixes
-- **Probes:** 67 NEW adversarial probes under `/home/runner/work/_temp/kilo-tmp/c49_probes/` (runner `c49_probe_runner.py`, per-probe logs `C49-001.log`..`C49-067.log`, summary `c49_probe_summary.{json,md}` timestamp `2026-11-12T14:30:15Z`). No C40–C48 reuse.
-- **Surfaces covered:** `metrics.py`, `attribution.py`, `quality.py`, `data_sources.py`/`DataCache`, `costs.py`, `regime.py`, `shorting.py`, `sizing.py`, `cli.py` (arg/error/reporting robustness, `--output` path validation, `_coerce_finite_scalar`, `_validate_rebalance_freq`).
-- **Proven gaps fixed (landed at HEAD 85f1652):**
-  1. `metrics.py:sharpe_ratio` guarded non-finite `risk_free` → `np.nan` (no misleading `-inf`).
-  2. `metrics.py:turnover_series` coerces non-numeric frames via `pd.to_numeric(..., errors="coerce")`.
-- **Regression tests (kept):** `tests/test_bab_metrics_c49_regressions.py` (7 tests). Must not be removed or weakened.
-- **Intentional tracked state:** `strategies/betting_against_beta/metrics.py` + `tests/test_bab_metrics_c49_regressions.py` are part of baseline; do not revert.
-
-## C50 (current campaign) — probes result
-- **Probes executed:** 2026-11-12T15:52:04Z @ HEAD `2697e5e` — **60 NEW adversarial probes**, runner `c50_probe_runner.py`, per-probe logs `C50-001.log`..`C50-060.log`, summary `c50_probe_summary.{json,md}` under `/home/runner/work/_temp/kilo-tmp/c50_probes/`.
-- **Surfaces covered (new shapes only, no C40–C49 reuse):**
-  - **`cli.py` reporting/serialization deep edges (20 probes):** `_build_output_summary`, `_json_default`, `_json_safe`, `_extract_cumulative` with NaN/inf/mixed-dtype/`--output` to JSON; arg parsing where `argparse` `type=float` receives `inf`/`nan`/empty; `--output` parent-creation failure modes (permission-denied dir, symlink-outside-allowed-base); dry-run vs run divergence; rebalance freq validation; boolean coercion; universe/benchmark edge cases.
-  - **`data_loader.py` adversarial edges (10 probes):** datetime col + numeric col coercion, duplicate dates, all-NaN column, mixed tz-aware/naive index, Parquet/HDF5/Pickle round-trips on tiny frames (skipped when deps absent), `min_rows` boundaries, `benchmark` present/absent/in-bench-missing.
-  - **`quality.py` numeric-coercion + boundary paths (10 probes):** `detect_outliers` with `iqr==0` + `std>0` fallback; `detect_gaps` with duplicate timestamps and single-row; `data_quality_report` on non-numeric-only frames; `compute_quality` column set.
-  - **Cross-interaction probes (20 probes):** `costs.py`/`regime.py`/`shorting.py`/`sizing.py`/`attribution.py`/`portfolio.py`/`signals.py`/`backtest.py`/`beta.py`/`data_sources.py` — `apply_costs` with both `transaction_costs` and `slippage` kwargs + weight/model mismatch; `regime_scale_factors` vs `regime_scale_scalar` agreement on shared cfg; `ShortingConstraints` borrow-rate dict with non-string keys; `apply_position_sizing` `KellySizer`/`VolatilityTargetSizer`/`RiskParitySizer` with NaN/inf signal frames; `trade_attribution`+`attribution_totals` round-trip on frames carrying `cost_drag`/`slippage_drag` only (no `returns`).
-- **Result:** **60/60 PASS, 0 FAIL, no proven gaps.** No fixes required, no C50 regression tests added.
+## C50 (closed) — summary
+- **Probes:** 60 NEW adversarial probes, **60/60 PASS, 0 FAIL, no proven gaps** (recorded `2026-11-12T15:52:04Z` @ HEAD `2697e5e`; per-probe logs/summary noted under `/home/runner/work/_temp/kilo-tmp/c50_probes/` in prior state). Surfaces covered (no C40–C49 reuse): `cli.py` reporting/serialization/arg edges incl. `_build_output_summary`, `_json_default`, `_json_safe`, `_extract_cumulative`, `--output`/dry-run/rebalance/universe/benchmark; `data_loader.py` adversarial edges (datetime/numeric coercion, dup dates, all-NaN, mixed tz, format round-trips where deps present, `min_rows`, benchmark cases); `quality.py` numeric/boundary paths; cross-interaction `costs/regime/shorting/sizing/attribution/portfolio/signals/backtest/beta/data_sources`.
+- **Fixes/regressions:** none required.
+- **Gates:** 3/3 GREEN (logs above).
 
 ## Completed campaigns (do not reopen without new reproducible failure + durable evidence)
-- **C42:** CLOSED — 38/38. **C43:** 39/39. **C44:** 44/44. **C45:** 43/43. **C46:** 38/38, gates green.
-- **C47:** CLOSED CLEAN — 38/38 PASS, gates 3/3 GREEN.
-- **C48:** CLOSED CLEAN — 66/66 PASS, gates 3/3 GREEN.
+- **C42–C48:** CLOSED (see prior history; C48 66/66, gates green).
 - **C49:** **CLOSED CLEAN** — 67/67 PASS, gates 3/3 GREEN, 2 proven gaps fixed with 7 regression tests.
-- **C50:** **PROBES COMPLETE** — 60/60 PASS, no proven gaps. **GATES PENDING.**
+- **C50:** **CLOSED CLEAN** — 60/60 PASS probes, 3/3 gates GREEN, no fixes required.
 
-## INITIAL MESSAGE FOR NEXT AGENTIC SESSION (binding, execute now — refreshed 2026-11-12T15:58:23Z @ HEAD 6bfd629)
+## INITIAL MESSAGE FOR NEXT AGENTIC SESSION (binding, execute now — refreshed 2026-11-12T19:12:00Z @ HEAD ae5e8c7)
 
 **Priority (binding):** advance **Crypto-Betting-Against-Beta** (market-neutral BAB: long low-beta / short high-beta vs BTC benchmark) via proven correctness/robustness work in allowed editable surfaces only. No unrelated refactors, no planning-only sessions. Heavy execution required.
 
-**Current bottleneck — C50 gates not run.** C50 probes completed cleanly (60/60 PASS, no proven gaps) at `2026-11-12T15:52:04Z`. The `c50_gates/` directory exists but is empty. The next session must **run all 3 C50 gates now** and durably log results under `/home/runner/work/_temp/kilo-tmp/c50_gates/`.
+**Current state:** C50 CLOSED CLEAN (probes 60/60, gates 3/3 GREEN). Tracked tree clean at HEAD `ae5e8c7`. Deps installed in-session; ensure `numpy,pandas,scipy,pytest,hypothesis,coverage` importable before probing (install if missing — cleared bottleneck this session).
 
-**Preflight (verify first, record in this file on exit):**
+**Campaign C51 (binding, start immediately — do not declare complete until gates green):**
+
+**Preflight (verify first, record on exit):**
 ```bash
 git rev-parse HEAD
 git status --short
@@ -64,50 +50,30 @@ python3 -c "import numpy,pandas,scipy,pytest,hypothesis,coverage; print('deps ok
 ```
 Run from repo root with `PYTHONPATH=.`
 
-**Immediate execution (in order — this is the heavy working, do not skip steps):**
-1. **RUN C50 GATE 1 (mandatory) — Data loader campaign_d + batch148/149/172**
-   ```bash
-   PYTHONPATH=. python3 -m pytest -q \
-     tests/test_bab_data_loader_campaign_d*.py \
-     tests/test_bab_data_loader_batch148.py \
-     tests/test_bab_data_loader_batch149.py \
-     tests/test_bab_data_loader_batch172.py \
-     2>&1 | tee /home/runner/work/_temp/kilo-tmp/c50_gates/gate1_$(date -u +%Y%m%dT%H%M%SZ).log
-   ```
-   Capture final summary + `rc`. Log must show passed/failed/skipped counts.
+**Immediate execution (in order — heavy working, no planning-only):**
+1. **Create durable probe workspace:** `/home/runner/work/_temp/kilo-tmp/c51_probes/` and `/home/runner/work/_temp/kilo-tmp/c51_gates/`. All probe scripts, per-probe logs (`C51-NNN.log`), runner output, and `c51_probe_summary.{json,md}` must live there (untracked). Do not reuse C40–C50 shapes/ids.
+2. **Author and execute >=40 NEW adversarial probes (C51 shapes only)** targeting **not-yet-exhausted / cross-cutting edges** across allowed surfaces, with concrete reproducible inputs and durable per-probe pass/fail evidence:
+   - **`cli.py`**: `_run_strategy`/reporting paths when `strategy.run` returns objects with missing/odd attributes (e.g. no `backtest`, empty/None weights, non-DataFrame beta/signals/weights), `_json_safe` on deeply nested/mixed numpy scalars/NaT/Timestamp-like objects, `--output` overwrite of existing file vs directory edge, argument combinations that pass argparse but stress downstream validation (e.g. universe containing benchmark-only after normalization if applicable, whitespace/duplicate symbols), `--version`/help exit behavior isolation in subprocess probes, dry-run summary completeness with real-data-like fixtures.
+   - **`quality.py`**: `data_quality_report`/`compute_quality` with all-constant columns, single-column frames, zero-row-after-drop cases, inf-only series, extreme magnitude values, index with NaT rows, object-dtype numeric strings.
+   - **`data_sources.py`/`DataCache`**: cache key/expiry behavior, missing/empty fetch results, non-finite or non-numeric payload coercion boundaries, duplicate-key/overwrite semantics (probe-only unless proven product gap).
+   - **`costs.py` / `regime.py` / `shorting.py` / `sizing.py`**: boundary combos not in C50 (e.g. zero/negative-like guardable inputs where API permits, empty frames, misaligned indices/columns, NaN propagation, extreme rates/multipliers) — **probe for proven bugs only**; smallest fix in editable surface if reproducible.
+   - **`attribution.py` / `metrics.py` (guarded areas)**: `trade_attribution`/`attribution_totals` with mismatched columns/indices, all-zero or all-NaN returns/weights, empty inputs; `metrics` functions on constant/empty/NaN-heavy series (respect existing C49 guards — do not weaken).
+   - Prefer subprocess/isolated probes for CLI and import/runpy edges; keep probes untracked.
+3. **Triage:** classify each result as **pass / expected-fail (current contract) / proven gap**. For every proven gap: apply the **smallest fix in allowed editable surfaces only** (`cli.py`, `metrics.py`, reporting, `scripts/*`, `costs.py`, `regime.py`, `shorting.py`, `sizing.py`, `quality.py`, `data_sources.py`, `attribution.py`) + add minimal regression tests `tests/test_bab_*_c51_regressions.py` (or the narrowest appropriate existing test module only if clearly justified) + re-run affected tests.
+4. **Run all 3 gates (mandatory before exit) — durable logs under `/home/runner/work/_temp/kilo-tmp/c51_gates/`:**
+   - **Gate 1:** `PYTHONPATH=. python3 -m pytest -q tests/test_bab_data_loader_campaign_d*.py tests/test_bab_data_loader_batch148.py tests/test_bab_data_loader_batch149.py tests/test_bab_data_loader_batch172.py`
+   - **Gate 2:** `PYTHONPATH=. python3 -m pytest -q --ignore-glob='*data_loader*' --ignore=tests/test_controller_progress_accounting.py`
+   - **Gate 3:** `PYTHONPATH=. python3 -m pytest -q tests/test_bab_cli_campaign11ab_cli_surfaces.py tests/test_bab_cli_campaign11m_probe_regressions.py tests/test_bab_cli_campaign11n_expanded_probe_regressions.py tests/test_bab_cli_campaign11o_remaining_probe_regressions.py tests/test_bab_cli_campaign11p_real_dryrun_synth_probe_regressions.py tests/test_bab_cli_campaign11q_followup_probe_regressions.py tests/test_bab_cli_campaign11s_validation_edges.py tests/test_bab_cli_campaign14_cli_reporting.py` (use actual filenames present in `tests/`; record final list used)
+   Capture final summary + `rc` for each.
+5. **If all gates GREEN and no proven gaps remain:** record C51 CLOSED CLEAN here and set the next binding campaign to **C52** with the same heavy-execution bar (>=40 new adversarial probes on fresh shapes/surfaces, durable evidence, gates) — do not leave a planning-only state.
+6. **On any gate failure/proven gap:** smallest allowed fix + regression + full gate re-run; do not exit until state is durably recorded with evidence and a concrete next action.
 
-2. **RUN C50 GATE 2 (mandatory) — Non-data-loader test suite**
-   ```bash
-   PYTHONPATH=. python3 -m pytest -q \
-     --ignore-glob='*data_loader*' \
-     --ignore=tests/test_controller_progress_accounting.py \
-     2>&1 | tee /home/runner/work/_temp/kilo-tmp/c50_gates/gate2_$(date -u +%Y%m%dT%H%M%SZ).log
-   ```
-   Capture final summary + `rc`.
-
-3. **RUN C50 GATE 3 (mandatory) — CLI campaign bundle (campaign11ab/11m/11n/11o/11p/11q/11s/14)**
-   ```bash
-   PYTHONPATH=. python3 -m pytest -q \
-     tests/test_bab_cli_campaign11ab_cli_surfaces.py \
-     tests/test_bab_cli_campaign11m_expanded_probe_regressions.py \
-     tests/test_bab_cli_campaign11n_expanded_probe_regressions.py \
-     tests/test_bab_cli_campaign11o_expanded_probe_regressions.py \
-     tests/test_bab_cli_campaign11p_real_dryrun_synth_probe_regressions.py \
-     tests/test_bab_cli_campaign11q_expanded_probe_regressions.py \
-     tests/test_bab_cli_campaign11s_expanded_probe_regressions.py \
-     tests/test_bab_cli_campaign14_cli_reporting.py \
-     2>&1 | tee /home/runner/work/_temp/kilo-tmp/c50_gates/gate3_$(date -u +%Y%m%dT%H%M%SZ).log
-   ```
-   Capture final summary + `rc`.
-
-4. **ON ANY GATE FAILURE (proven regression from C50 probes):** smallest allowed fix in editable surfaces only (`cli.py`, `metrics.py`, `reporting`, `scripts/*`, `costs.py`, `regime.py`, `shorting.py`, `sizing.py`, `quality.py`, `data_sources.py`, `attribution.py`) + minimal regression test in `tests/test_bab_*_c50_regressions.py` + affected tests + full gate re-run; record matrix/results/state and next binding task here.
-
-5. **BEFORE EXIT (mandatory):** all 3 gates GREEN with timestamped logs under `/home/runner/work/_temp/kilo-tmp/c50_gates/`; refresh this file (timestamp/HEAD, gate results+log paths+rc, C50 state: probes 60/60 PASS, gates 3/3 GREEN or failure details+fixes, working-tree notes); keep `AGENT_HANDOFF.md` pointer-only. No planning-only exit. No commit/push unless explicitly requested. Do not revert intentional changes.
+**Before exit (mandatory):** all 3 gates GREEN with timestamped logs; refresh this file (timestamp/HEAD, gate results+log paths+rc, C51 probe matrix/summary/fixes or "no proven gaps", next binding campaign C52 or concrete blocker with evidence, working-tree notes); keep `AGENT_HANDOFF.md` pointer-only. No planning-only exit. No commit/push unless explicitly requested. Do not revert intentional changes.
 
 ## Locks / prohibitions
 - **No** edits to `.github/workflows/*` except a newly proven controller/workflow sync regression reproduced with durable evidence (smallest proven fix only).
 - **No** edits/commits to tracked `probe*`/`debug*`/`ast_probe.py` (use untracked `/home/runner/work/_temp/kilo-tmp/`).
 - **No** weakening/deleting `batch148/149/172` or `campaign_d*` tests.
-- **Locked unless disproven by new evidence + minimal fix:** `beta.py`, `data_loader.py` (body), `portfolio.py`, `strategy.py`, `backtest.py`, `signals.py`, `config.py`. (C50 may *probe* `data_loader.py` edges but any fix must be the smallest proven one; prefer reporting/CLI-level fixes if the behavior is only observable there.)
+- **Locked unless disproven by new evidence + minimal fix:** `beta.py`, `data_loader.py` (body), `portfolio.py`, `strategy.py`, `backtest.py`, `signals.py`, `config.py`. (Probes may exercise behavior; any fix must be the smallest proven one and only in these if strictly necessary and evidenced — prefer allowed surfaces.)
 - **Editable only for smallest proven fix from probe/gate evidence:** `cli.py`, `metrics.py`, reporting, `scripts/*`, `costs.py`, `regime.py`, `shorting.py`, `sizing.py`, `quality.py`, `data_sources.py`, `attribution.py`.
 - **No commit/push unless explicitly requested.** Do not revert intentional changes (notably `metrics.py` C49 guards and `tests/test_bab_metrics_c49_regressions.py`).
