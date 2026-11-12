@@ -1,6 +1,6 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-12T04:16:43Z
+**Timestamp (refreshed):** 2026-11-12T04:19:05Z
 **HEAD:** `b181823` on `main` (working tree clean; diff vs `5c53e60` touched only handoff files, no source change)
 **Repo priority (binding):** advance **Betting Against Beta** correctness, robustness, CLI/API/reporting/metrics fidelity, or a newly proven regression. No unrelated refactors.
 
