@@ -1,7 +1,7 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-12T06:02:35Z
-**HEAD:** `7f44d02` on `main` (tracked working tree clean at refresh; `git status --porcelain` empty)
+**Timestamp (refreshed):** 2026-11-12T06:06:28Z
+**HEAD:** `4adbc87` on `main` (tracked working tree clean at refresh; `git status --porcelain` empty)
 **Repo priority (binding):** advance **Betting Against Beta** correctness, robustness, CLI/API/reporting/metrics fidelity, or a newly proven regression. No unrelated refactors.
 
 **Bottlenecks removed this refresh:** stale handoff HEAD (`6b68357`) corrected to live HEAD (`7f44d02`); C40 EXTENDED campaign completed — all three gate floors re-verified green with durable logs, and 46 new adversarial probes executed across all editable surfaces (`costs.py`, `regime.py`, `shorting.py`, `sizing.py`, `cli.py`, `scripts/bab_backtest_report.py`) with **46/46 PASS, 0 FAIL**. No regressions found. Next session starts from a green, importable, probe-hardened baseline; no re-diagnosis needed.
