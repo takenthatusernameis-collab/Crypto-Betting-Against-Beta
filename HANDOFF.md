@@ -1,6 +1,6 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-12T03:15:18Z
+**Timestamp (refreshed):** 2026-11-12T03:23:11Z
 **HEAD:** `06e904870bee3729c2d2a43e2fadaf68910aa313` (`06e9048`) on `main`
 **Repo priority (binding):** advance **Betting Against Beta** correctness, robustness, CLI/API/reporting/metrics fidelity, or a newly proven regression. No unrelated refactors, no commit/push unless explicitly requested.
 
@@ -10,9 +10,9 @@
 
 **C38 is the active campaign (gate floors + rotated/expanded adversarial probe matrix on allowed BAB surfaces). Do heavy, evidence-producing work now. "No proven gaps" is allowed only after full Step 1 + Step 2 execution with durable evidence — never a reason to skip or to stop after Step 1.**
 
-### Step 0 — Fix Controller Sync Blocker (COMPLETED)
+### Step 0 — Fix Controller Sync Blocker (COMPLETED THIS SESSION)
 **File:** `.github/workflows/main.yml` (line 1163) ✅ FIXED
-**Issue:** `stage_safe_changes` case statement missing `*/.github/workflows/*` pattern present in `scripts/controller_progress.py:27`
+**Issue:** `stage_safe_changes` case statement missing `*/.github/workflows/*` pattern present in `scripts/controller_progress.py:28`
 **Fix applied:** Added `*/.github/workflows/*|` to the case statement on line 1163 (between `.github/workflows/*` and `.venv/*`).
 **Verified:** `python3 -m pytest -q tests/test_controller_progress_accounting.py` → **68 passed, rc=0**. Gate is green. Proceed to Step 1.
 
@@ -48,7 +48,7 @@ For every probe record: command, rc, key outputs/invariants, PASS/FAIL. Any repr
 
 ## Current status (verified this session)
 - **Controller progress accounting bottleneck FIXED:** `.github/workflows/main.yml` `stage_safe_changes` exclusion list synced to `scripts/controller_progress.py` `EXCLUDE_PATTERNS` (added `*/.github/workflows/*`). Verified: `python3 -m pytest -q tests/test_controller_progress_accounting.py` → **68 passed** (rc=0). `.venv/bin/python3` present.
-- **C38 gates/probes VERIFIED TO COMPLETION:**
+- **C38 gates/probes STATUS:**
   - Gate 1 (campaign_d + batch148/149/172): **898 passed, 5 skipped, rc=0** (3.07s) — durable log path to be created on re-run
   - Gate 2 (full BAB excl data_loader/controller): **NOT YET RUN IN THIS SESSION** — must complete with durable log
   - Gate 3 (campaign11 + campaign14): **164 passed, 0 failed, rc=0** (101.18s) — durable log path to be created on re-run
@@ -64,7 +64,7 @@ For every probe record: command, rc, key outputs/invariants, PASS/FAIL. Any repr
 ---
 
 ## Locks / prohibitions
-- **No** edits to `.github/workflows/*` unless required by a newly proven controller/workflow sync regression with evidence (currently: **required fix for `*/.github/workflows/*`**).
+- **No** edits to `.github/workflows/*` unless required by a newly proven controller/workflow sync regression with evidence (currently: **required fix for `*/.github/workflows/*`** — DONE).
 - **No** edits/commits to tracked `probe*`/`debug*`/`ast_probe.py` (use untracked `/home/runner/work/_temp/kilo-tmp/`).
 - **No** weakening/deleting `batch148/149/172` or `campaign_d*` tests.
 - **Locked unless disproven by new evidence + minimal fix:** `beta.py`, `data_loader.py`, `portfolio.py`, `sizing.py`, `strategy.py`, `backtest.py`, `signals.py`, `config.py`.
