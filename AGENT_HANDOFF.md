@@ -2,9 +2,8 @@
 
 **Canonical durable handoff:** [`HANDOFF.md`](HANDOFF.md) — single source of truth.
 
-- **Refreshed:** 2026-11-12T10:56:54Z
-- **HEAD:** `62c2788f0c572d0f6cc85823ae7fe555bd814cf7`
-- **State:** Handoff refreshed/bottlenecks cleared. Gates last recorded GREEN on `b7df039` (G1 898/5skip, G2 2234/5skip, G3 164). **C43 recorded COMPLETE** (39 probes PASS, no proven gaps; tmp evidence may be ephemeral). No new fixes made this session.
-- **Binding next task:** **C44 ROTATION** — preflight deps/env, (re-)run gates as needed with durable logs in `/home/runner/work/_temp/kilo-tmp/c44_gates/`, execute ≥20 NEW adversarial probes (no C40–C43 reuse) with durable logs under `/home/runner/work/_temp/kilo-tmp/c44_probes/` per `HANDOFF.md`, apply smallest proven fixes in allowed surfaces only + regression + full gates on any gap, refresh `HANDOFF.md`; if clean immediately define and start **C45**.
+- **Refreshed:** 2026-11-12T11:09:37Z
+- **HEAD:** `238b034bfa0a3d0a0bf7066c9dbe2404897413a4`
+- **State:** C44 ROTATION complete — 44/44 probes PASS, 0 FAIL, no proven gaps. Gates re-run GREEN (G1 898/5skip, G2 2234/5skip, G3 164). Working tree clean. **Binding next task: C45 ROTATION** — preflight deps/env, (re-)run gates as needed with durable logs in `/home/runner/work/_temp/kilo-tmp/c45_gates/`, execute ≥20 NEW adversarial probes (no C40–C44 reuse) with durable logs under `/home/runner/work/_temp/kilo-tmp/c45_probes/` per `HANDOFF.md`, apply smallest proven fixes in allowed surfaces only + regression + full gates on any gap, refresh `HANDOFF.md`; if clean immediately define and start **C46**.
 
 Do not use this file for details; follow `HANDOFF.md` exactly.
