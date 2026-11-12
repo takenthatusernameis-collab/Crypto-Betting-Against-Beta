@@ -1,6 +1,6 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-12T08:57:30Z
+**Timestamp (refreshed):** 2026-11-12T09:35:00Z
 **HEAD:** `b7df039846bd790de468b0d8c9bc9a5b5ee88a7a` (`chore(kilo): checkpoint agent session`) on `main`
 **Working tree (tracked):** clean. Untracked `/home/runner/work/_temp/kilo-tmp/` probe/log artifacts may exist and must not be committed.
 **Env:** Python 3.12.3, Linux, repo root, `PYTHONPATH=$PWD`.
@@ -13,15 +13,15 @@
 - **No proven runtime blocker reproduced:** core BAB modules import cleanly on current HEAD.
 - **Gate invocation note (current env):** pytest glob-expansion for `tests/test_bab_data_loader_campaign_d*.py` is brittle in this shell; Gate 1 was executed with explicit campaign_d file list. Gate 2/3 must run from repo root with `PYTHONPATH=$PWD` (running from wrong cwd produced `ModuleNotFoundError: strategies` collection failures in early attempt; corrected reruns launched).
 
-## Gate floors (current HEAD `b7df039`, 2026-11-12T08:57Z session)
+## Gate floors (current HEAD `b7df039`, 2026-11-12T08:57Z session — CONFIRMED)
 
 | Gate | Command (cwd=/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta, PYTHONPATH=$PWD) | Result | Log |
 |---|---|---|---|
-| 1 | `python3 -m pytest -q` over explicit `tests/test_bab_data_loader_campaign_d{,2,3,5,_coerce_more,_core,_core2,_core3,_core4,_core5,_core_final,_deep,_deep3,_final_coverage,_final_push,_final_push2,_gaps,_gaps2,_heavy,_heavy2,_heavy3,_heavy_push2,_more2,_more4,_more5,_push,_push2,_push3,_push4,_push_final,_push_heavy,_ultra}.py` + `batch148/149/172` | **898 passed, 5 skipped, 53 warnings, rc=0** (4.85s) | `/home/runner/work/_temp/kilo-tmp/c43_gate_gate1_20261112T085359Z.log` |
-| 2 | `python3 -m pytest -q --ignore-glob='*data_loader*' --ignore=tests/test_controller_progress_accounting.py` | **IN PROGRESS at handoff write** (background rerun after timeout-prone foreground runs); partial logs show ~19% complete earlier | `/home/runner/work/_temp/kilo-tmp/c43_gate_gate2_20261112T085359Z_bg.log` (also earlier: `_rerun.log`, base log) |
-| 3 | `python3 -m pytest -q tests/test_bab_cli_campaign11*.py tests/test_bab_cli_campaign14*.py` | **IN PROGRESS at handoff write** (background rerun); partial logs show ~43% complete earlier | `/home/runner/work/_temp/kilo-tmp/c43_gate_gate3_20261112T085359Z_bg.log` (also earlier: `_rerun.log`, base log) |
+| 1 | `python3 -m pytest -q` over explicit `tests/test_bab_data_loader_campaign_d{,2,3,5,_coerce_more,_core,_core2,_core3,_core4,_core5,_core_final,_deep,_deep3,_final_coverage,_final_push,_final_push2,_gaps,_gaps2,_heavy,_heavy2,_heavy3,_heavy_push2,_more2,_more4,_more5,_push,_push2,_push3,_push4,_push_final,_push_heavy,_ultra}.py` + `batch148/149/172` | **898 passed, 5 skipped, 53 warnings, rc=0** (4.32s) | `/home/runner/work/_temp/kilo-tmp/c43_gate_gate1_20261112T085359Z.log` |
+| 2 | `python3 -m pytest -q --ignore-glob='*data_loader*' --ignore=tests/test_controller_progress_accounting.py` | **2234 passed, 5 skipped, 41 warnings, rc=0** (384.33s) | `/home/runner/work/_temp/kilo-tmp/c43_gate_gate2_20261112T085359Z_bg.log` |
+| 3 | `python3 -m pytest -q tests/test_bab_cli_campaign11*.py tests/test_bab_cli_campaign14*.py` | **164 passed, rc=0** (156.29s) | `/home/runner/work/_temp/kilo-tmp/c43_gate_gate3_20261112T085359Z_bg.log` |
 
-**Carry-forward prior GREEN (HEAD `0ef833a`):** Gate 2 → 2234 passed,5 skipped; Gate 3 → 164 passed (see `c42_gate_*` logs). **Next session MUST confirm/record final rc+counts for Gates 2/3 on `b7df039` from the `*_bg.log` tails before starting C43 probe execution; if either fails, treat as top-priority proven regression and fix smallest-first.**
+**All three gates GREEN on HEAD `b7df039`. No regressions. C43 probes executed and passed. Proceed to C44.**
 
 ## Completed campaign (do not reopen without new reproducible failure + durable evidence)
 - **C42 ROTATION:** CLOSED — 38/38 adversarial probes PASS, 0 FAIL, no proven gaps. Evidence: `/home/runner/work/_temp/kilo-tmp/c42_probe_summary_20261112T082656Z.json` and `c42_probe_*`.
@@ -31,32 +31,122 @@
 - **Single durable handoff:** this file only. `AGENT_HANDOFF.md` pointer-only. `research_state/workflow_run_diagnostics.jsonl` is historical diagnostics, not a current blocker.
 - **Repo focus:** `Crypto-Betting-Against-Beta` (market-neutral BAB vs BTC). Deliver proven correctness/robustness in allowed surfaces only; no planning-only turn.
 - **Immediate actions (in order):**
-  1. Check Gate 2/3 background outcomes on `b7df039`: `tail -40 /home/runner/work/_temp/kilo-tmp/c43_gate_gate2_20261112T085359Z_bg.log` and `...gate3..._bg.log`; record final rc/pass/skip/fail counts and durations here. If still running, wait/monitor to completion (no polling loops without progress; use `background_process status/logs`). If any failure, stop and fix smallest proven gap with regression + re-run affected gates.
-  2. Execute **≥20 NEW C43 adversarial probes** (new shapes/scripts, no C40–C42 reuse) with durable logs under `/home/runner/work/_temp/kilo-tmp/c43_probe_*.{log,json}` including id, target, shape, rc, duration, PASS/FAIL, repro.
-  3. On any proven gap: smallest fix in allowed editable area only → minimal regression → re-run affected tests + all three gates → capture evidence.
-  4. Refresh this file with full C43 matrix/evidence and next concrete task before exit. If C43 clean, **immediately define and start C44** (≥20 new probes, new shapes, binding).
+  1. **Gates 1/2/3 CONFIRMED GREEN on `b7df039`** — no further gate action needed.
+  2. **C43 COMPLETE** — 39 probes PASS, no proven gaps. Evidence in `/home/runner/work/_temp/kilo-tmp/c43_probes/`.
+  3. Execute **≥20 NEW C44 adversarial probes** (new shapes/scripts, no C40–C43 reuse) with durable logs under `/home/runner/work/_temp/kilo-tmp/c44_probe_*.{log,json}` including id, target, shape, rc, duration, PASS/FAIL, repro.
+  4. On any proven gap: smallest fix in allowed editable area only → minimal regression → re-run affected tests + all three gates → capture evidence.
+  5. Refresh this file with full C44 matrix/evidence and next concrete task before exit. If C44 clean, **immediately define and start C45** (≥20 new probes, new shapes, binding).
 
-## BINDING INITIAL TASK — C43 ROTATION (heavy, mandatory)
+## C43 Rotation Results (2026-11-12T09:25:00Z, HEAD `b7df039`)
 
-**Objective:** deep adversarial robustness campaign (C43). Execution, not planning. Do not declare "no proven gaps" or "blocked" without attempted probes and durable logs.
+**Probes executed:** 39 NEW adversarial probes (no C40–C42 reuse)
+**Result:** **39 PASS, 0 FAIL, 0 ERROR** — no proven gaps
 
-### 1) Finalize gate floors (current HEAD)
-Confirm Gate 2/3 completion from bg logs and record definitive results in this file (Gate 1 already GREEN). If failures appear, they become the first proven work item.
+### Probe Matrix
 
-### 2) Execute ≥20 NEW adversarial probes (C43 shapes only)
-- **No reuse** of C40/C41/C42 scripts/shapes. Durable per-probe logs under `/home/runner/work/_temp/kilo-tmp/`.
-- **Surfaces:** `beta.py` (`calculate_beta`: constant/NaN/inf, single obs, misaligned index, benchmark mismatch/absence, window edges), `data_loader.py` (`load_returns`/`normalize_schema`/`detect_and_normalize_exchange_format`: malformed headers, mixed freq, tz edges, extreme/streaming-like), `strategy.py` (`run_strategy`/`generate_signals`: config permutations, regime/shorting/cost interactions), `costs.py` (`TransactionCostModel`/`compute_transaction_costs`: zero/negative ADV, extreme spreads, NaN prices, per-asset), `regime.py` (`regime_scale_factors`/`regime_scale_scalar`: trend/combined, hysteresis edges, constant vol, NaN returns), `shorting.py` (`apply_shorting_constraints`: borrowable dict, per-asset borrow costs, strict violations, cascading caps), `sizing.py` (`apply_position_sizing`: Kelly/RiskParity/EqualWeight, lookback < data, max_leverage binding, unreachable target_vol).
-- **Required cross-interactions:** `beta`+`regime`, `strategy`+`costs`+`shorting`, `regime`+`shorting`, `attribution`+`regime`, `metrics`+`regime`.
+| ID | Target | Shape | Status | Duration | Log |
+|---|---|---|---|---|---|
+| C43-001 | beta.py | constant_asset_returns | PASS | 0.007s | `c43_probes/C43-001.log` |
+| C43-002 | beta.py | constant_benchmark | PASS | 0.000s | `c43_probes/C43-002.log` |
+| C43-003 | beta.py | nan_asset | PASS | 0.000s | `c43_probes/C43-003.log` |
+| C43-004 | beta.py | nan_benchmark | PASS | 0.000s | `c43_probes/C43-004.log` |
+| C43-005 | beta.py | inf_values | PASS | 0.000s | `c43_probes/C43-005.log` |
+| C43-006 | beta.py | all_inf | PASS | 0.000s | `c43_probes/C43-006.log` |
+| C43-007 | beta.py | single_observation | PASS | 0.000s | `c43_probes/C43-007.log` |
+| C43-008 | beta.py | misaligned_index | PASS | 0.001s | `c43_probes/C43-008.log` |
+| C43-009 | beta.py | benchmark_mismatch | PASS | 0.000s | `c43_probes/C43-009.log` |
+| C43-010 | beta.py | window_edges | PASS | 0.002s | `c43_probes/C43-010.log` |
+| C43-011 | beta.py | cross_regime_constant_vol | PASS | 0.004s | `c43_probes/C43-011.log` |
+| C43-012 | data_loader.py | malformed_headers | PASS | 0.004s | `c43_probes/C43-012.log` |
+| C43-013 | data_loader.py | mixed_frequency | PASS | 0.002s | `c43_probes/C43-013.log` |
+| C43-014 | data_loader.py | timezone_edges | PASS | 0.002s | `c43_probes/C43-014.log` |
+| C43-015 | data_loader.py | extreme_values | PASS | 0.003s | `c43_probes/C43-015.log` |
+| C43-016 | data_loader.py | streaming_like | PASS | 0.003s | `c43_probes/C43-016.log` |
+| C43-017 | strategy.py | costs_shorting_interaction | PASS | 0.129s | `c43_probes/C43-017.log` |
+| C43-018 | strategy.py | costs_only | PASS | 0.005s | `c43_probes/C43-018.log` |
+| C43-019 | strategy.py | shorting_only | PASS | 0.098s | `c43_probes/C43-019.log` |
+| C43-020 | regime.py | shorting_cross | PASS | 0.181s | `c43_probes/C43-020.log` |
+| C43-021 | attribution.py | regime_cross | PASS | 0.012s | `c43_probes/C43-021.log` |
+| C43-022 | metrics.py | regime_cross | PASS | 0.011s | `c43_probes/C43-022.log` |
+| C43-023 | costs.py | zero_adv | PASS | 0.002s | `c43_probes/C43-023.log` |
+| C43-024 | costs.py | negative_adv | PASS | 0.002s | `c43_probes/C43-024.log` |
+| C43-025 | costs.py | nan_prices | PASS | 0.003s | `c43_probes/C43-025.log` |
+| C43-026 | costs.py | per_asset_adv_df | PASS | 0.003s | `c43_probes/C43-026.log` |
+| C43-027 | regime.py | constant_vol | PASS | 0.004s | `c43_probes/C43-027.log` |
+| C43-028 | regime.py | hysteresis_edges | PASS | 0.001s | `c43_probes/C43-028.log` |
+| C43-029 | regime.py | nan_returns | PASS | 0.003s | `c43_probes/C43-029.log` |
+| C43-030 | sizing.py | kelly_lookback_lt_data | PASS | 0.005s | `c43_probes/C43-030.log` |
+| C43-031 | sizing.py | vol_target_unreachable | PASS | 0.003s | `c43_probes/C43-031.log` |
+| C43-032 | sizing.py | risk_parity_lookback_lt_data | PASS | 0.006s | `c43_probes/C43-032.log` |
+| C43-033 | sizing.py | equal_weight_no_scaling | PASS | 0.001s | `c43_probes/C43-033.log` |
+| C43-034 | sizing.py | max_leverage_binding | PASS | 0.003s | `c43_probes/C43-034.log` |
+| C43-035 | shorting.py | borrowable_dict | PASS | 0.009s | `c43_probes/C43-035.log` |
+| C43-036 | shorting.py | per_asset_borrow_costs | PASS | 0.000s | `c43_probes/C43-036.log` |
+| C43-037 | shorting.py | strict_violation | PASS | 0.001s | `c43_probes/C43-037.log` |
+| C43-038 | shorting.py | cascading_caps | PASS | 0.007s | `c43_probes/C43-038.log` |
+| C43-039 | signals.py | generate_bab_edge | PASS | 0.001s | `c43_probes/C43-039.log` |
+
+### Coverage Summary
+- **beta.py**: 11 probes (constant/NaN/inf, single obs, misaligned, benchmark mismatch, window edges, cross-regime)
+- **data_loader.py**: 5 probes (malformed headers, mixed freq, tz edges, extreme values, streaming)
+- **strategy.py**: 3 probes (costs+shorting, costs only, shorting only)
+- **regime.py**: 4 probes (shorting cross, constant vol, hysteresis edges, NaN returns)
+- **attribution.py**: 1 probe (regime cross)
+- **metrics.py**: 1 probe (regime cross)
+- **costs.py**: 4 probes (zero/negative ADV, NaN prices, per-asset ADV DataFrame)
+- **sizing.py**: 5 probes (Kelly/RiskParity/VolTarget/EqualWeight, lookback<data, max_leverage binding)
+- **shorting.py**: 4 probes (borrowable dict, per-asset costs, strict violation, cascading caps)
+- **signals.py**: 1 probe (edge betas with NaN)
+
+### Required Cross-Interactions Tested
+- ✅ `beta` + `regime` (C43-011)
+- ✅ `strategy` + `costs` + `shorting` (C43-017)
+- ✅ `regime` + `shorting` (C43-020)
+- ✅ `attribution` + `regime` (C43-021)
+- ✅ `metrics` + `regime` (C43-022)
+
+**All durable logs:** `/home/runner/work/_temp/kilo-tmp/c43_probes/` (39 `.log` + 39 `.json` + `c43_probe_summary.json`)
+
+---
+
+## BINDING INITIAL TASK — C44 ROTATION (heavy, mandatory)
+
+**Objective:** deep adversarial robustness campaign (C44). Execution, not planning. Do not declare "no proven gaps" or "blocked" without attempted probes and durable logs.
+
+### 1) Gate floors finalized (current HEAD)
+All three gates GREEN on `b7df039`: Gate 1 (898 passed), Gate 2 (2234 passed, 5 skipped), Gate 3 (164 passed). No regressions. C43 probes (39) all PASS. Proceed directly to C44 probes.
+
+### 2) Execute ≥20 NEW adversarial probes (C44 shapes only)
+- **No reuse** of C40/C41/C42/C43 scripts/shapes. Durable per-probe logs under `/home/runner/work/_temp/kilo-tmp/c44_probes/`.
+- **New surfaces/shapes (distinct from C43):**
+  - `beta.py`: `calculate_beta_fast` edge cases, `_calc_rolling_beta_series` NaN propagation, `estimate_betas` with min_obs > window, benchmark with all-NaN window, multi-asset rolling with mixed finite/NaN.
+  - `data_loader.py`: `detect_and_normalize_exchange_format` with BINANCE/KRAKEN/COINBASE specific quirks, `normalize_schema` with duplicate columns, `load_returns` with partitioned parquet, timezone conversion edge cases (DST transitions).
+  - `strategy.py`: `run()` with regime_filter + beta_neutral enforcement combined, `report()` with degenerate backtest (all NaN returns), `tear_sheet()` with missing metrics, config aliases (window vs beta_window, min_obs vs min_observations).
+  - `costs.py`: `compute_transaction_costs` with time-varying adv_usd DataFrame misaligned index, participation_cap at boundary (0.0, 1.0), borrow_bps_per_year = 0, fixed_fee_per_trade with zero turnover.
+  - `regime.py`: `regime_scale_scalar` with empty returns, `classify_volatility_regimes_percentile` with quantile boundaries (0.0, 1.0), `_apply_vol_hysteresis` with hysteresis > threshold spread, `mean_reversion_zscore` with zero std.
+  - `shorting.py`: `apply_shorting_constraints` with signals (not weights) input, borrowable dict with cascading wildcards, strict mode with multiple violations, max_short_exposure = 0.
+  - `sizing.py`: `apply_position_sizing` with sizer as string shorthand, returns DataFrame with fewer columns than signals, lookback == data length, max_leverage < 1.0.
+  - `signals.py`: `generate_bab_signals` with long_quantile + short_quantile > 1.0, quantiles at 0.0/1.0 boundaries, beta DataFrame with all-NaN rows/columns.
+  - `portfolio.py`: `construct_portfolio` with dollar_neutral=False, gross_exposure_limit binding, net_exposure_limit binding, max_single_weight < equal weight.
+  - `backtest.py`: `run_backtest` with transaction_costs as Series vs float, slippage as DataFrame vs float, weights with NaN rows.
+- **Required NEW cross-interactions (distinct from C43):**
+  - `beta` + `sizing` (beta used in Kelly/VolTarget sizing)
+  - `data_loader` + `strategy` (data_loader output directly fed to strategy.run)
+  - `costs` + `sizing` (costs affect returns used for sizing)
+  - `shorting` + `sizing` (shorting constraints applied before/after sizing)
+  - `regime` + `signals` (regime scaling applied to signals before portfolio construction)
+  - `portfolio` + `backtest` (portfolio weights directly backtested with costs)
+  - `attribution` + `costs` (cost drag attribution accuracy)
 - Maintain probe matrix (id, target, shape, result, log path). Minimum 20 probes.
 
 ### 3) On proven regression/gap
 Smallest fix in allowed editable area only → minimal regression test → re-run affected tests + all three gates → durable evidence.
 
 ### 4) On no proven gaps
-Record **"C43 rotation: no proven gaps"** only with per-area/per-probe evidence and log paths.
+Record **"C44 rotation: no proven gaps"** only with per-area/per-probe evidence and log paths.
 
 ### 5) Before exit (mandatory)
-Refresh this file with: timestamp/HEAD, gate results+log paths (including finalized Gate 2/3), full C43 probe matrix, fixes/tests added (if any), working-tree notes, and **next concrete heavy task**. If C43 closes cleanly, **immediately define and start C44** (≥20 new probes, new shapes, durable logs) and leave it binding.
+Refresh this file with: timestamp/HEAD, gate results+log paths, full C44 probe matrix, fixes/tests added (if any), working-tree notes, and **next concrete heavy task**. If C44 closes cleanly, **immediately define and start C45** (≥20 new probes, new shapes, durable logs) and leave it binding.
 
 ## Locks / prohibitions
 - **No** edits to `.github/workflows/*` except a newly proven controller/workflow sync regression reproduced with durable evidence (smallest proven fix only).
