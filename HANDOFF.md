@@ -1,14 +1,14 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-12T02:13:46Z
-**HEAD:** `661d5655844af486367a26c75b1e475a180b5776` on `main` (working tree clean)
+**Timestamp (refreshed):** 2026-11-12T02:14:44Z
+**HEAD:** `48b39b4915b87536f7b31ee7f592bee0cdabb6d1` on `main` (working tree clean at handoff refresh)
 **Repo priority (binding):** advance **Betting Against Beta** correctness, robustness, CLI/API/reporting/metrics fidelity, or a newly proven regression. No unrelated refactors, no `.github/workflows/*` edits, no commit/push unless explicitly requested.
 
 ---
 
 ## BINDING INITIAL TASK MESSAGE — NEXT AGENT (C38, execute immediately)
 
-**C38 is the active campaign (gate floors + rotated/expanded adversarial probe matrix on allowed surfaces). Do heavy, evidence-producing work now. "No proven gaps" is allowed only after full Step 1 + Step 2 execution with durable evidence — never a reason to skip.**
+**C38 is the active campaign (gate floors + rotated/expanded adversarial probe matrix on allowed surfaces). Do heavy, evidence-producing work now. "No proven gaps" is allowed only after full Step 1 + Step 2 execution with durable evidence — never a reason to skip. C38 has NOT been executed at this HEAD yet — start with Step 1 now.**
 
 ### Step 1 — Gate floors (mandatory, first)
 Run to completion with ample timeout and durable logs under `/home/runner/work/_temp/kilo-tmp/c38_gate_<name>_<ts>.log`. Use `.venv/bin/python -m pytest ...` (system `python3` may lack pytest). Timeout/interruption without observed failure is **inconclusive, not green**.
@@ -37,6 +37,13 @@ For every probe record: command, rc, key outputs/invariants, PASS/FAIL. Any repr
 - Do not exit after Step 1 alone. Do not invent failures.
 
 **Rules:** Do not reopen C28–C37 without new statable reproducible failure + durable evidence. Do not churn locked modules. Do not declare "blocked" without evidenced attempt and durable logs. This file is the sole durable coordination artifact.
+
+---
+
+## C38 status (2026-11-12T02:14:44Z, HEAD `48b39b4`) — NOT STARTED / PENDING EXECUTION
+- **Step 1 gates:** not run at this HEAD in this session (handoff refresh only). Next agent must execute immediately and capture durable logs (`/home/runner/work/_temp/kilo-tmp/c38_gate_*`).
+- **Step 2 probes:** not run. Rotate/expand beyond C36/C37 per matrix above.
+- **Next concrete action:** run C38 Step 1 gate floors now; on green proceed to full Step 2 probe campaign; on red fix minimally with regression in allowed areas and re-gate; then close with evidence. No commit/push unless explicitly requested.
 
 ---
 
