@@ -1,8 +1,8 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-12T22:14:02Z
-**HEAD at session start:** `70bcaaac440a6366785abd71ba9fefbb20c1e337` (working tree CLEAN — all C54 session changes committed; nothing uncommitted)
-**Code state:** `cli.py` print-block hardened (output failures surface as rc=1); `tests/test_bab_cli_coverage_push.py` regression updated; `docs/COVERAGE_NOTES.md` added; `docs/unreachable_proofs.md` + `docs/unreachable_proofs_append_b150.py` deleted. Focused CLI suites passed (86 passed). Full suite **not** re-run after these edits — last recorded C54 Step 1 baseline: **5069 passed / 35 skipped / RC=0**, no ignores, log `/home/runner/work/_temp/kilo-tmp/c54_gates/full_20261112T214930Z.log`.
+**Timestamp (refreshed):** 2026-11-12T23:10:00Z
+**HEAD at session start:** `c568d0fc38cfdc09dcd5f494b35b8743ae64a411` (working tree NOT clean — C54 Step 2 cli.py changes + regressions uncommitted; see "What shipped" below)
+**Code state:** `cli.py` silent `except Exception: pass` reduced 8 -> 3 (lines 483, 498, 507 now surface corrupt cumulative extraction; line 562 returns str(obj) instead of raw; main() surfaces _extract_cumulative failures as rc=1 + message). `tests/test_bab_cli_c54_regressions.py` added (9 regressions). Full suite **5078 passed / 35 skipped / RC=0, no ignores**, log `/home/runner/work/_temp/kilo-tmp/c54_gates/full_20261112T230700Z.log`.
 **Repo:** `crypto-betting-against-beta` — BAB (Betting Against Beta) market-neutral product: long low-beta / short high-beta crypto vs BTC benchmark.
 
 ## Why this handoff changed (read first)
@@ -55,17 +55,25 @@ FAILED ...::test_nested_workflow_pattern_is_present_in_workflow
 
 **CLI verified working end-to-end:** `--synthetic` → `Final cumulative return: 0.413704 / Periods: 252`, rc=0; `--data tests/fixtures/real_market_prices.csv --from-prices --benchmark BTC` → `0.339735 / 398`, rc=0; `--version` → `bab 0.1.0`.
 
-## C54 Step 2 — in progress (attack broad `except Exception` / direct silent `pass`)
+## C54 Step 2 — IN PROGRESS / PARTIALLY DONE (attack broad `except Exception` / direct silent `pass`)
 
-**Binding next task:** continue **C54 Step 2** in `strategies/betting_against_beta/cli.py` — audit remaining direct silent `except Exception: pass` handlers (AST-verified at 2026-11-12T22:10Z: **8** silent at lines **87, 192, 432, 447, 483, 498, 507, 562**; broad count **29**), convert only proven-invalid-path silences with regressions, and prove valid-path behavior preserved. Then proceed module-by-module: `costs.py` (59, 281), `config.py` (123), `regime.py` (139), `backtest.py` (116, 124, 160), `portfolio.py` (118, 131), `strategy.py` (396). `beta.py` and `data_loader.py` are high-risk — touch only for a specific reproducible defect plus a regression; no mechanical sweep.
+**cli.py DONE (this session, 2026-11-12T23:10Z):** direct silent `pass` reduced **8 -> 3** (AST-verified).
+- Converted (proven-invalid-path silences now surface, valid-path unchanged):
+  - `_extract_cumulative` lines **483** (`backtest["cumulative"].iloc[-1]`), **498** (`backtest.iloc[-1]` cum-named Series), **507** (`backtest.iloc[-1, -1]`) — removed the bare `except Exception: pass` so a corrupt/unreadable cumulative column raises instead of silently falling through to a wrong value or the whole object. Narrowed the function-level `try/except: return None` to wrap only the defensive `getattr(result, "backtest", None)` so extraction failures propagate.
+  - `main()` (cumulative extraction block) — `_extract_cumulative` failures now `print("Error extracting cumulative return: ...")` and `return 1` instead of silently defaulting `cum_out = 1.0`.
+  - `_json_safe` line **562** (generic `obj.isoformat()`) — `except Exception: pass` -> `return str(obj)` (behavior-preserving; `_json_default` already does this).
+  - `_json_default` line **192** (generic `obj.isoformat()`) — `except Exception: pass` -> `return str(obj)` (behavior-preserving; two existing tests assert the str() fallback output).
+- Left silent (intentional valid-path fallbacks, each with a test): line **87** (`os.access` unreliable -> defer to actual write; `test_validate_output_path_os_access_raises_non_bab`), lines **433/447** (print-block inner "can't even print the error" fallback; rc=1 still surfaces the failure).
+- Test updates (encoded old silent fallthrough, now assert surface): `test_extract_cumulative_cumulative_column_raise_surfaces` (was `..._raises_then_cum_fallback`), `test_cli_extract_cumulative_series_cum_name_raises`, `test_cli_extract_cumulative_no_matching_column`, `test_main_cumulative_len_failure_surfaces` (was `test_main_print_block_periods_len_raises`), `test_main_extract_cumulative_raises` (now rc=1 + message).
+- New regression file: `tests/test_bab_cli_c54_regressions.py` (9 tests: corrupt cumulative column / cum-named series / bad last cell raise; valid path unchanged; main surfaces rc=1 + message; synthetic still prints cumulative rc=0; `_json_safe` isoformat fail -> str(obj)).
+- Verification: focused CLI suites 113 passed; full suite **5078 passed / 35 skipped / RC=0, no ignores** (baseline 5069 + 9 new), log `/home/runner/work/_temp/kilo-tmp/c54_gates/full_20261112T230700Z.log`. `--synthetic` → `Final cumulative return: 0.413704 / Periods: 252`, rc=0.
 
 **Execution order (binding, smallest proven diff first):**
 
-1. **Continue `cli.py`.** The print block (~432/447 region) already surfaces failures as rc=1 with regression evidence. Remaining silent handlers to audit: **432, 447, 483, 498, 507** inside `_extract_cumulative` (these can mask a failed cumulative extraction by returning/wrong-defaulting instead of surfacing) and **562** in `_json_safe`; confirm **87/192** are intentional valid-path fallbacks or convert with proof. For each: narrow/surface only on a proven invalid path, add regression proving no silent plausible wrong output, and prove valid-path behavior preserved (focused CLI tests + full suite at module boundary). **Re-AST before each change** — line numbers drift after edits.
-
-2. Then `costs.py` (59, 281), `config.py` (123), `regime.py` (139), `backtest.py` (116, 124, 160), `portfolio.py` (118, 131), `strategy.py` (396). One module per batch; do not mix modules in one commit.
-
-3. `beta.py` and `data_loader.py` remain high-risk. Touch them only for a *specific, reproducible defect*; no mechanical sweep and no 167-line refactor.
+1. **`cli.py` batch complete** (silent count 8 -> 3, evidence above). Do not re-open unless a reproducible failure.
+2. **`costs.py` (lines 59, 281)** — re-AST first, then convert only proven-invalid-path silences with regressions, full suite green at module boundary.
+3. `config.py` (123), `regime.py` (139), `backtest.py` (116, 124, 160), `portfolio.py` (118, 131), `strategy.py` (396). One module per batch; do not mix modules in one commit.
+4. `beta.py` and `data_loader.py` remain high-risk. Touch them only for a *specific, reproducible defect*; no mechanical sweep and no 167-line refactor.
 
 **Rules for each conversion:**
 - Convert the worst **silent** swallows into either a **narrowed exception type** or an **error that surfaces** (raise `BABDataError` with context, or record a diagnostic) — without changing behavior for valid inputs.
@@ -118,66 +126,60 @@ Before exit (mandatory): full suite green (single command, no ignores) with a ti
 # NEXT SESSION — BINDING TASK CAMPAIGN
 
 ## Objective
-**Reduce direct silent `except Exception: pass` handlers in `cli.py` from 8 to ≤4 with regression evidence**, then ship the same reduction in `costs.py` (2 handlers) in the same session if velocity allows. Each conversion must be the smallest proven diff, with a regression test proving invalid-path behavior now surfaces, and full suite green after the module boundary.
+**`cli.py` C54 Step 2 batch is DONE (direct silent `pass` 8 -> 3, full suite RC=0).** Continue **C54 Step 2** module-by-module, starting with `costs.py` (lines 59, 281): reduce its direct silent `except Exception: pass` handlers with regression evidence, smallest proven diff first, full suite green after the module boundary. Each conversion must prove invalid-path behavior now surfaces and valid-path behavior is preserved.
 
 ## Context
 - Product: **Crypto Betting Against Beta (BAB)** — market-neutral long low-beta / short high-beta vs BTC.
-- Current state: **99% coverage**, 5069 tests passing, **244 broad `except Exception`** (103 direct silent `pass`).
+- Current state: **99% coverage**, **5078** tests passing / 35 skipped / RC=0 (baseline 5069 + 9 new C54 cli.py regressions), **244 broad `except Exception`** (103 direct silent `pass`) across product modules.
+- `cli.py` silent `pass`: **8 -> 3** (lines 87, 433, 448 remain as intentional, tested fallbacks). Conversions shipped: `_extract_cumulative` lines 483/498/507 now surface corrupt cumulative extraction; `main()` surfaces `_extract_cumulative` failures as rc=1 + message; `_json_safe` 562 and `_json_default` 192 return `str(obj)` instead of raw/pass. Regressions in `tests/test_bab_cli_c54_regressions.py` (9 tests). Four existing tests updated to assert the new surface behavior.
 - **C54 Step 2** is the active campaign: eliminate silent swallows that can mask defects without changing valid-path behavior.
 - **This session must produce product code changes + regressions.** Updating handoff files alone is not progress.
 
 ## Concrete Work Plan (execute in order, stop if blocked)
 
-### 1. Re-AST `cli.py` to confirm current silent handler lines
+### 1. Re-AST `costs.py` to confirm current silent handler lines
 ```bash
 python3 -c "
-import ast, sys
-with open('strategies/betting_against_beta/cli.py') as f:
+import ast
+with open('strategies/betting_against_beta/costs.py') as f:
     tree = ast.parse(f.read())
 for node in ast.walk(tree):
     if isinstance(node, ast.ExceptHandler) and node.type and isinstance(node.type, ast.Name) and node.type.id == 'Exception':
         body = node.body
         if len(body) == 1 and isinstance(body[0], ast.Pass):
             print(f'Line {node.lineno}: silent pass')
-        elif len(body) == 1 and isinstance(body[0], ast.Expr) and isinstance(body[0].value, ast.Constant) and body[0].value.value is ...:
-            print(f'Line {node.lineno}: ellipsis')
         else:
             print(f'Line {node.lineno}: broad except (non-silent)')
 "
 ```
 Record line numbers — they drift after edits.
 
-### 2. Audit each of the 8 candidates in `cli.py`
+### 2. Audit each `costs.py` silent candidate
 For each line from the AST output, classify:
-- **Intentional valid-path fallback** — e.g., `os.access()` may not be reliable; deferring to actual write is correct behavior. Prove with a test that the fallback path executes and produces correct output for valid inputs.
-- **Proven-invalid-path silence** — e.g., `_extract_cumulative` returning `None`/`1.0` instead of surfacing a corrupted backtest object. Write a regression test that feeds a malformed `BABResult` and expects a raised error or recorded diagnostic, then convert the handler to raise `BABDataError` or record a diagnostic.
-
-**Priority order (highest defect risk first):**
-- Lines in `_extract_cumulative` (~432, 447, 483, 498, 507): can silently return wrong cumulative value
-- Line 562 in `_json_safe`: can silently drop non-serializable objects
-- Lines 87, 192: verify these are intentional (os.access fallback, isoformat fallback)
+- **Intentional valid-path fallback** — prove with a test that the fallback path executes and produces correct output for valid inputs. Leave silent.
+- **Proven-invalid-path silence** — write a regression test that feeds malformed input and expects a raised error / recorded diagnostic, then convert the handler to narrow the exception or surface an error.
 
 ### 3. For each proven-invalid-path silence:
 - **Narrow the exception** to the specific type that can occur on invalid input (e.g., `KeyError`, `AttributeError`, `IndexError`), OR
-- **Raise `BABDataError`** with context (`f"failed to extract cumulative: {e}"`), OR
-- **Record a diagnostic** (if the module has a diagnostics collector; otherwise raise)
+- **Raise `BABDataError`** with context, OR
+- **Record a diagnostic**
 
-Add a regression test in `tests/test_bab_cli_c54_regressions.py` (create if missing) that:
+Add regression test(s) in `tests/test_bab_costs_c54_regressions.py` (create if missing) that:
 - Feeds the exact malformed input that previously silent-swallowed
-- Asserts the new behavior (raises `BABDataError` / records diagnostic / returns sentinel that callers must check)
-- Asserts valid-path behavior is unchanged (run the existing CLI smoke tests)
+- Asserts the new behavior (raises / records diagnostic)
+- Asserts valid-path behavior is unchanged (run existing costs/CLI smoke tests)
 
 ### 4. Run verification after each conversion
 ```bash
-# Focused CLI tests
-python3 -m pytest -q tests/test_bab_cli*.py
-# Full suite at module boundary (after cli.py batch done)
-python3 -m pytest -q --ignore=tests/test_data_loader* --ignore=tests/test_controller* 2>&1 | tail -5
+# Focused costs + CLI tests
+python3 -m pytest -q tests/test_bab_costs*.py tests/test_bab_cli*.py
+# Full suite at module boundary (single command, no ignores)
+python3 -m pytest -q
 ```
 If any conversion breaks valid-path behavior, **revert that conversion only**.
 
-### 5. If `cli.py` batch completes (silent count reduced with evidence) and time permits:
-Repeat steps 1–4 for `costs.py` (lines 59, 281 per handoff; re-AST first).
+### 5. If `costs.py` batch completes (silent count reduced with evidence) and time permits:
+Repeat steps 1–4 for `config.py` (line 123), `regime.py` (139), `backtest.py` (116, 124, 160), `portfolio.py` (118, 131), `strategy.py` (396). One module per batch; do not mix modules in one commit.
 
 ### 6. Before exit (mandatory)
 - Full suite green (single command, no ignores): `python3 -m pytest -q`
@@ -187,8 +189,8 @@ Repeat steps 1–4 for `costs.py` (lines 59, 281 per handoff; re-AST first).
 - **No commit unless explicitly requested**
 
 ## Success Criteria (non-negotiable)
-- At least **one product-code change + regression test** shipped in this session, OR reproducible proof that all 8 candidates in `cli.py` are intentional valid-path fallbacks.
-- Silent `pass` count in `cli.py` measurably reduced (target: ≤4) with AST evidence in handoff.
+- At least **one product-code change + regression test** shipped in this session, OR reproducible proof that every candidate in the batch is an intentional valid-path fallback.
+- Direct silent-`pass` count in the module measurably reduced with AST evidence in handoff.
 - Full suite passes with RC=0, no `--ignore`.
 - Handoff refreshed with evidence, not just intent.
 

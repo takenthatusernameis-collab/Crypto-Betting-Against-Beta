@@ -193,8 +193,10 @@ def test_cli_extract_cumulative_no_matching_column():
     class FakeResult:
         backtest = FakeDF()
 
-    # Falls through to the final `return backtest` (a non-None object), not None.
-    assert _extract_cumulative(FakeResult()) is not None
+    # A DataFrame whose last-cell access fails must surface instead of
+    # falling through and returning the whole object.
+    with pytest.raises(AttributeError):
+        _extract_cumulative(FakeResult())
 
 
 def test_cli_extract_cumulative_series_cum_name_raises():
@@ -211,10 +213,10 @@ def test_cli_extract_cumulative_series_cum_name_raises():
         def __len__(self):
             return 5  # must be > 0 to skip the empty early-return at line 359
 
+    # A cum-named Series whose iloc[-1] fails must surface instead of falling
+    # through and returning the raw object.
     class FakeResult:
         backtest = BadSeries()
 
-    # Falls through the try/except and ultimately returns the object itself (line 387).
-    result = _extract_cumulative(FakeResult())
-    assert result is not None
-    assert isinstance(result, BadSeries)
+    with pytest.raises(TypeError):
+        _extract_cumulative(FakeResult())

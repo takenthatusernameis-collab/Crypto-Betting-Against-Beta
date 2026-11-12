@@ -96,7 +96,7 @@ def test_extract_cumulative_variants():
     assert cli._extract_cumulative(SimpleNamespace(backtest=df)) == 1.2
     df2 = pd.DataFrame({"cum_ret": [1.0, 1.3]})
     assert cli._extract_cumulative(SimpleNamespace(backtest=df2)) == 1.3
-    # cumulative column access raises -> falls through to cum search
+    # cumulative column access raises -> surfaces instead of falling through
     class BadCol(pd.DataFrame):
         @property
         def _constructor(self): return BadCol
@@ -104,7 +104,8 @@ def test_extract_cumulative_variants():
             if key == "cumulative": raise RuntimeError("x")
             return super().__getitem__(key)
     bad = BadCol({"cumulative": [1,2], "cum_x": [1, 1.5]})
-    assert cli._extract_cumulative(SimpleNamespace(backtest=bad)) == 1.5
+    with pytest.raises(RuntimeError, match="x"):
+        cli._extract_cumulative(SimpleNamespace(backtest=bad))
     ser = pd.Series([1.0, 1.4], name="cumulative_return")
     assert cli._extract_cumulative(SimpleNamespace(backtest=ser)) == 1.4
     ser2 = pd.Series([1.0, 1.4], name="other")

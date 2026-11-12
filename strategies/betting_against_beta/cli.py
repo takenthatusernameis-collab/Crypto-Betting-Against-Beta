@@ -190,7 +190,7 @@ def _json_default(obj):
         try:
             return obj.isoformat()
         except Exception:
-            pass
+            return str(obj)
     if isinstance(obj, (set, frozenset)):
         return [_json_default(v) for v in obj]
     if isinstance(obj, bytes):
@@ -417,13 +417,14 @@ def main(argv=None) -> int:
         print(f"Error running strategy: {exc}")
         return 1
 
-    # Extract cumulative return defensively; never let a bad value crash the CLI.
+    # Extract cumulative return; surface extraction failures instead of fabricating 1.0.
     try:
         cum_out = _coerce_finite_scalar(
             _extract_cumulative(result), default=1.0
         )
-    except Exception:
-        cum_out = 1.0
+    except Exception as exc:
+        print(f"Error extracting cumulative return: {exc}")
+        return 1
     try:
         print(f"Final cumulative return: {cum_out:.6f}")
     except Exception as exc:
@@ -466,54 +467,47 @@ def _extract_cumulative(result):
     """Best-effort extraction of the final cumulative return from a BABResult.
 
     Handles DataFrame, Series, list, and arbitrary objects. Returns None
-    (never raises) when no cumulative value can be found.
+    when no cumulative value can be found; raises on a genuine failure to
+    read a recognized cumulative column instead of silently falling through
+    to a wrong value or the whole object.
     """
     try:
         backtest = getattr(result, "backtest", None)
-        if backtest is None:
-            return None
-        if hasattr(backtest, "__len__") and len(backtest) == 0:
-            return None
-        # DataFrame with columns
-        if hasattr(backtest, "columns") and hasattr(backtest, "iloc"):
-            cols = list(backtest.columns)
-            if "cumulative" in cols:
-                try:
-                    return backtest["cumulative"].iloc[-1]
-                except Exception:
-                    pass
-            for col in cols:
-                if "cum" in str(col).lower():
-                    try:
-                        return backtest[col].iloc[-1]
-                    except Exception:
-                        continue
-            # No recognized cumulative column; fall through to generic handlers.
-        # Series with a name containing 'cum'
-        if hasattr(backtest, "iloc") and hasattr(backtest, "name"):
-            name = str(getattr(backtest, "name", "") or "")
-            if "cum" in name.lower():
-                try:
-                    return backtest.iloc[-1]
-                except Exception:
-                    pass
-        # DataFrame without a recognized cumulative column: prefer the last
-        # scalar value over returning the whole frame (avoids ambiguous truth
-        # value). Fall back to returning the object if extraction is not possible.
-        if hasattr(backtest, "columns") and hasattr(backtest, "iloc"):
-            try:
-                if backtest.shape[1] > 0 and len(backtest) > 0:
-                    return backtest.iloc[-1, -1]
-            except Exception:
-                pass
-            return backtest
-        # List / tuple / ndarray: take last element
-        if isinstance(backtest, (list, tuple)):
-            return backtest[-1] if backtest else None
-        # Single scalar
-        return backtest
     except Exception:
         return None
+    if backtest is None:
+        return None
+    if hasattr(backtest, "__len__") and len(backtest) == 0:
+        return None
+    # DataFrame with columns
+    if hasattr(backtest, "columns") and hasattr(backtest, "iloc"):
+        cols = list(backtest.columns)
+        if "cumulative" in cols:
+            return backtest["cumulative"].iloc[-1]
+        for col in cols:
+            if "cum" in str(col).lower():
+                try:
+                    return backtest[col].iloc[-1]
+                except Exception:
+                    continue
+        # No recognized cumulative column; fall through to generic handlers.
+    # Series with a name containing 'cum'
+    if hasattr(backtest, "iloc") and hasattr(backtest, "name"):
+        name = str(getattr(backtest, "name", "") or "")
+        if "cum" in name.lower():
+            return backtest.iloc[-1]
+    # DataFrame without a recognized cumulative column: prefer the last
+    # scalar value over returning the whole frame (avoids ambiguous truth
+    # value). Fall back to returning the object if extraction is not possible.
+    if hasattr(backtest, "columns") and hasattr(backtest, "iloc"):
+        if backtest.shape[1] > 0 and len(backtest) > 0:
+            return backtest.iloc[-1, -1]
+        return backtest
+    # List / tuple / ndarray: take last element
+    if isinstance(backtest, (list, tuple)):
+        return backtest[-1] if backtest else None
+    # Single scalar
+    return backtest
 
 
 def _json_safe(obj):
@@ -560,7 +554,7 @@ def _json_safe(obj):
         try:
             return obj.isoformat()
         except Exception:
-            pass
+            return str(obj)
     return obj
 
 

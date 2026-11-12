@@ -79,16 +79,19 @@ def test_json_safe_generic_isoformat_exception():
     assert r is not None
 
 
-def test_extract_cumulative_cumulative_column_raises_then_cum_fallback():
+def test_extract_cumulative_cumulative_column_raise_surfaces():
+    # A corrupted "cumulative" column must surface instead of falling through
+    # to a different "cum" column and returning a wrong value.
     class BadDF(pd.DataFrame):
         @property
         def _constructor(self): return BadDF
         def __getitem__(self, key):
             if key == "cumulative":
-                raise RuntimeError("boom")  # 381-382
+                raise RuntimeError("boom")
             return super().__getitem__(key)
     df = BadDF({"cumulative": [1, 2], "cum_x": [1, 9.9]})
-    assert cli._extract_cumulative(SimpleNamespace(backtest=df)) == 9.9
+    with pytest.raises(RuntimeError, match="boom"):
+        cli._extract_cumulative(SimpleNamespace(backtest=df))
 
 
 def test_extract_cumulative_outer_exception():
@@ -101,13 +104,15 @@ def test_extract_cumulative_outer_exception():
 
 def test_main_extract_cumulative_raises(monkeypatch, capsys):
     monkeypatch.setattr(cli, "_extract_cumulative", lambda r: (_ for _ in ()).throw(RuntimeError("x")))
-    rc = cli.main(["--synthetic"])  # 317-318
-    assert rc == 0
+    rc = cli.main(["--synthetic"])
+    assert rc == 1
     captured = capsys.readouterr().out
-    assert "Final cumulative return" in captured
+    assert "Error extracting cumulative return: x" in captured
 
 
-def test_main_print_block_periods_len_raises(monkeypatch, capsys):
+def test_main_cumulative_len_failure_surfaces(monkeypatch, capsys):
+    # backtest.__len__ raising surfaces at cumulative extraction (rc=1) instead
+    # of being silently swallowed into a fabricated 1.0 cumulative.
     class BadLen(pd.DataFrame):
         @property
         def _constructor(self): return BadLen
@@ -117,9 +122,10 @@ def test_main_print_block_periods_len_raises(monkeypatch, capsys):
         def __init__(self, c): pass
         def run(self, **k): return res
     monkeypatch.setattr(cli, "BABStrategy", FS)
-    rc = cli.main(["--synthetic"])  # 324-325
-    assert rc == 0
-    assert "Periods: 0" in capsys.readouterr().out
+    rc = cli.main(["--synthetic"])
+    assert rc == 1
+    out = capsys.readouterr().out
+    assert "Error extracting cumulative return: badlen" in out
 
 
 def test_main_dry_run_data_non_bab_exception(monkeypatch, tmp_path, capsys):
