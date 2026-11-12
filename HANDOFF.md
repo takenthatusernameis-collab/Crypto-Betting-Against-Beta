@@ -1,10 +1,10 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-12T06:06:28Z
-**HEAD:** `4adbc87` on `main` (tracked working tree clean at refresh; `git status --porcelain` empty)
+**Timestamp (refreshed):** 2026-11-12T06:07:56Z
+**HEAD:** `7475a93` on `main` (tracked working tree clean at refresh; `git status --porcelain` empty)
 **Repo priority (binding):** advance **Betting Against Beta** correctness, robustness, CLI/API/reporting/metrics fidelity, or a newly proven regression. No unrelated refactors.
 
-**Bottlenecks removed this refresh:** stale handoff HEAD (`6b68357`) corrected to live HEAD (`7f44d02`); C40 EXTENDED campaign completed — all three gate floors re-verified green with durable logs, and 46 new adversarial probes executed across all editable surfaces (`costs.py`, `regime.py`, `shorting.py`, `sizing.py`, `cli.py`, `scripts/bab_backtest_report.py`) with **46/46 PASS, 0 FAIL**. No regressions found. Next session starts from a green, importable, probe-hardened baseline; no re-diagnosis needed.
+**Bottleneck removal (this refresh):** consolidated handoff to current HEAD/timestamp and kept a single unambiguous kickoff. Prior C40/C40-extended evidence remains recorded below as historical baseline; gates were **not re-run this refresh** and MUST be re-verified with durable logs in Step 1 before any probe expansion. No workflow edits or code changes made.
 
 ## BINDING INITIAL TASK MESSAGE — NEXT AGENT (C41 ROTATION heavy campaign, start immediately)
 
@@ -17,12 +17,12 @@
 5. **Before exit, refresh this same `HANDOFF.md`** (single durable handoff) with timestamp/HEAD, gate results+logs, full probe matrix outcomes, working-tree notes, and the next concrete heavy task.
 
 ### Step 0 — Controller/workflow sync
-- `.github/workflows/*` unchanged vs prior verified state. **Do not edit** unless you reproduce a newly proven controller/workflow sync regression with durable evidence (smallest proven fix only).
+- `.github/workflows/*` unchanged. **Do not edit** unless you reproduce a newly proven controller/workflow sync regression with durable evidence (smallest proven fix only).
 - `research_state/workflow_run_diagnostics.jsonl` contains **historical** CI/log excerpts/signals only; not evidence of a current checkout failure. Do not use it to justify inaction.
 
 ### Step 1 — Gate floors (must be green with durable evidence)
 
-| Gate | Scope | Floor | Last recorded (this refresh, verify now) | Log path |
+| Gate | Scope | Floor | Last recorded (C40 EXTENDED @ `7f44d02`, verify now) | Log path (historical) |
 |---|---|---:|---|---|
 | 1 | `pytest -q tests/test_bab_data_loader_campaign_d*.py tests/test_bab_data_loader_batch148.py tests/test_bab_data_loader_batch149.py tests/test_bab_data_loader_batch172.py` | ≥898 passed, 5 skipped, rc=0 | **898p/5s/rc=0 (6.42s)** | `/home/runner/work/_temp/kilo-tmp/c40_gate_gate1_20261112T052005Z.log` |
 | 2 | `pytest -q --ignore-glob='*data_loader*' --ignore=tests/test_controller_progress_accounting.py` | rc=0 (~2234 passed, 5 skipped) | **2234p/5s/rc=0 (401.09s)** | `/home/runner/work/_temp/kilo-tmp/c40_gate_gate2_20261112T052007Z.log` |
@@ -51,10 +51,10 @@
 
 ## Current status (verified at this refresh)
 
-- **Working tree:** clean tracked state (`git status --porcelain` empty). Prior untracked artifacts may exist under `/home/runner/work/_temp/kilo-tmp/` (do not commit): `c40_gate_*`, `c40_probe_campaign_*`, `c40_probe_extended_*`, `c38_*`, etc.
+- **Working tree:** clean tracked state (`git status --porcelain` empty). Untracked artifacts may exist under `/home/runner/work/_temp/kilo-tmp/` (do not commit).
 - **Environment:** `python3` 3.12.3 at `/usr/bin/python3`; no `.venv`; run with `PYTHONPATH` set to repo root. Declared deps in `requirements.txt` (`numpy`, `pandas`, `scipy`, `pytest`, `hypothesis`, `coverage`).
-- **Baseline verified green (this refresh):** all editable modules (`costs`, `regime`, `shorting`, `sizing`, `cli`, `metrics`, `attribution`) import cleanly; gate-1 data-loader subset passes 25/25 rc=0. Treat as confirmed starting baseline; Step 1 below must still re-verify all three gate floors with durable logs.
-- **C40 EXTENDED completed (this refresh):** Gate 1 898p/5s/rc=0 (6.42s); Gate 2 2234p/5s/rc=0 (401.09s); Gate 3 164p/rc=0 (160.09s). Extended probe campaign **46/46 PASS, 0 FAIL** (0.22s total) — `/home/runner/work/_temp/kilo-tmp/c40_probe_extended_20261112T053137Z.log`. No regressions found across all 6 editable surfaces.
+- **Quick sanity (this refresh):** key editable modules import cleanly (`cli, metrics, attribution, costs, regime, shorting, sizing`) with `PYTHONPATH=$PWD` → `imports_ok`. **Gate floors not re-run this refresh; Step 1 is mandatory.**
+- **C40 EXTENDED (historical, @ `7f44d02`):** Gate 1 898p/5s/rc=0 (6.42s); Gate 2 2234p/5s/rc=0 (401.09s); Gate 3 164p/rc=0 (160.09s). Extended probe campaign **46/46 PASS, 0 FAIL** (0.22s) — `/home/runner/work/_temp/kilo-tmp/c40_probe_extended_20261112T053137Z.log`. No regressions found across `costs/regime/shorting/sizing/cli/report` surfaces at that point.
 
 ## Next focus campaign (binding)
 **Primary:** complete **C41 ROTATION** campaign above with ≥20 new probes and durable evidence, preserving all gate floors. **Do not stop at gate re-verification.**
