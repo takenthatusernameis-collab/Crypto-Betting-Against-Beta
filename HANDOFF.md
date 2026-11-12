@@ -1,7 +1,7 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-12T11:09:37Z
-**HEAD:** `238b034bfa0a3d0a0bf7066c9dbe2404897413a4` on `main`
+**Timestamp (refreshed):** 2026-11-12T11:56:08Z
+**HEAD:** `469142d78204dcdb1e9b1ea9c42a8f0a44fb5801` on `main`
 **Working tree (tracked):** expected clean at handoff refresh (verify with `git status --short`; untracked `/home/runner/work/_temp/kilo-tmp/` probe/log artifacts must not be committed).
 **Env:** Python 3.12.3, Linux, repo root, `PYTHONPATH=$PWD`.
 
@@ -15,6 +15,8 @@
 
 ## Gate floors (last recorded GREEN on `b7df039`; re-run after any fix or if env/HEAD drift suspected)
 
+**Verified 2026-11-12T11:56:08Z (HEAD `469142d`):** Core BAB tests (86 passed), CLI campaign tests (32 passed), deps import OK. Full gates not re-run (time); if env/checkout uncertain, re-run Gate 1/2/3 to completion with durable logs under `/home/runner/work/_temp/kilo-tmp/c45_gates/`.
+
 | Gate | Command (cwd=repo root, `PYTHONPATH=$PWD`) | Last recorded result | Log (ephemeral) |
 |---|---|---|---|
 | 1 | `python3 -m pytest -q` over explicit `tests/test_bab_data_loader_campaign_d{,2,3,5,_coerce_more,_core,_core2,_core3,_core4,_core5,_core_final,_deep,_deep3,_final_coverage,_final_push,_final_push2,_gaps,_gaps2,_heavy,_heavy2,_heavy3,_heavy_push2,_more2,_more4,_more5,_push,_push2,_push3,_push4,_push_final,_push_heavy,_ultra}.py` + `tests/test_bab_data_loader_batch148.py tests/test_bab_data_loader_batch149.py tests/test_bab_data_loader_batch172.py` | **898 passed, 5 skipped, rc=0** | `/home/runner/work/_temp/kilo-tmp/c44_gates/c44_gate1_20261112T110100Z.log` |
@@ -25,7 +27,7 @@
 - **C43 ROTATION (recorded 2026-11-12T09:25:00Z, HEAD `b7df039`):** 39/39 probes PASS, 0 FAIL/ERROR, no proven gaps (see matrix below; logs under `/home/runner/work/_temp/kilo-tmp/c43_probes/` when present).
 - **C42 ROTATION:** CLOSED — 38/38 PASS, 0 FAIL. C6–C41 CLOSED per prior evidence. No churn.
 
-## INITIAL MESSAGE FOR NEXT AGENTIC SESSION (binding, read first — 2026-11-12T11:09:37Z)
+## INITIAL MESSAGE FOR NEXT AGENTIC SESSION (binding, read first — 2026-11-12T11:56:08Z)
 - **Single durable handoff:** this file only. `AGENT_HANDOFF.md` pointer-only. `research_state/workflow_run_diagnostics.jsonl` is historical diagnostics, not a current blocker.
 - **Repo focus:** `Crypto-Betting-Against-Beta` (market-neutral BAB vs BTC). Deliver proven correctness/robustness in allowed surfaces only; **no planning-only turn**.
 - **Binding campaign:** **C45 ROTATION** (heavy, mandatory). C44 closed clean (44/44 PASS, no proven gaps). Do not declare "no proven gaps" or "blocked" without attempted probes and durable logs under `/home/runner/work/_temp/kilo-tmp/c45_probes/`.
