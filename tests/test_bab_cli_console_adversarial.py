@@ -158,8 +158,9 @@ class TestCliAdversarialPaths:
 
     def test_cli_rebalance_invalid_freq(self):
         rc = cli_main(["--synthetic", "--rebalance-freq", "hourly"])
-        # Unknown freq falls back to daily (no crash); assert non-crashing.
-        assert rc == 0
+        # Unknown freq is rejected cleanly (non-zero, no traceback) instead of
+        # silently falling back to daily.
+        assert rc != 0
 
     def test_cli_synthetic_default(self):
         rc = cli_main([])
