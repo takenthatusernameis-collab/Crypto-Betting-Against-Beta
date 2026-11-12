@@ -1,8 +1,8 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-12T22:00:22Z
-**HEAD at refresh:** `f940534d76424098394c90fcb8ab49943c7f58f2` (`chore(kilo): checkpoint agent session`, `main`)
-**Code state:** at refresh the working tree was clean; this handoff update is the only pending change (the controller checkpoints it). `f940534` is a handoff-only checkpoint. No product or test code has changed since `15b4721` (C53).
+**Timestamp (refreshed):** 2026-11-12T22:02:15Z
+**HEAD at refresh:** `809ee03` (`chore(kilo): checkpoint agent session`, `main`)
+**Code state:** working tree clean at refresh; this handoff update is the only pending change (the controller checkpoints it). `809ee03` is a handoff-only checkpoint. No product or test code has changed since `15b4721` (C53).
 **Repo:** `crypto-betting-against-beta` — BAB (Betting Against Beta) market-neutral product: long low-beta / short high-beta crypto vs BTC benchmark.
 
 ## Why this handoff changed (read first)
@@ -57,8 +57,8 @@ FAILED ...::test_nested_workflow_pattern_is_present_in_workflow
 
 ## INITIAL MESSAGE FOR NEXT AGENTIC SESSION (binding, execute now)
 
-**Timestamp:** 2026-11-12T22:00:22Z
-**HEAD at refresh:** `f940534d76424098394c90fcb8ab49943c7f58f2`
+**Timestamp:** 2026-11-12T22:02:15Z
+**HEAD at refresh:** `809ee03`
 **Working tree:** clean at refresh; this handoff update is the only pending change. C53 fix committed; no product source changed since C53.
 
 **Priority (binding):** advance **Crypto-Betting-Against-Beta** — the BAB (Betting Against Beta) market-neutral product: long low-beta / short high-beta crypto vs BTC benchmark. Prioritize by the repo name: **real BAB product value first**. Probe-count quotas are abolished. No planning-only sessions. Heavy execution required.
