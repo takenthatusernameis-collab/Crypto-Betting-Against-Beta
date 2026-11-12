@@ -1,7 +1,7 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-12T19:12:00Z
-**HEAD at refresh:** `ae5e8c703d0e6b17d457589918a3106397840433` (`chore: capture completed workflow run diagnostics`, 2026-11-12T10:56:33Z, `main`)
+**Timestamp (refreshed):** 2026-11-12T19:18:39Z
+**HEAD at refresh:** `ae012ca3b6cac44f5552b042261e82ac4c2b13d5` (`chore(kilo): checkpoint agent session`, 2026-11-12T19:18:30Z, `main`)
 **Working tree (tracked):** clean at refresh. Untracked `/home/runner/work/_temp/kilo-tmp/` probe/log/gate artifacts exist and must not be committed.
 **Env (verified):** Python 3.12.3, Linux, repo root `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`; run commands from repo root with `PYTHONPATH=.`; deps installed/importable in-session (`numpy,pandas,scipy,pytest,hypothesis,coverage`).
 
@@ -10,11 +10,11 @@
 ## Bottlenecks cleared / status
 - **Single durable handoff:** this file is canonical. `AGENT_HANDOFF.md` pointer-only. No parallel TODO/session handoff files.
 - **Historical diagnostics only:** `research_state/workflow_run_diagnostics.jsonl` contains prior CI/log excerpts from other runs/heads; treat as historical, not evidence of current-checkout failure, and never as justification for inaction/"blocked".
-- **Env/blockers cleared (this session):** runtime deps were missing at session start (`numpy,pandas,scipy,pytest,hypothesis,coverage`) — installed successfully; Python 3.12.3; tracked tree clean at HEAD `ae5e8c7`.
+- **Env/blockers cleared (this session):** runtime deps were missing at session start (`numpy,pandas,scipy,pytest,hypothesis,coverage`) — installed successfully; Python 3.12.3; tracked tree clean at HEAD `ae012ca`.
 - **C49 closed and recorded:** 67/67 PASS, gates 3/3 GREEN, 2 proven fixes landed (`metrics.py` guards + `tests/test_bab_metrics_c49_regressions.py`, 7 tests). Do not revert.
-- **C50 CLOSED CLEAN (this session).** Probes previously recorded 60/60 PASS, 0 FAIL, no proven gaps (`2026-11-12T15:52:04Z` @ HEAD `2697e5e`, summary noted in prior handoff). **All 3 C50 gates executed and GREEN 2026-11-12** with durable logs under `/home/runner/work/_temp/kilo-tmp/c50_gates/`. No fixes/regressions required.
+- **C50 CLOSED CLEAN.** Probes previously recorded 60/60 PASS, 0 FAIL, no proven gaps (`2026-11-12T15:52:04Z` @ HEAD `2697e5e`). All 3 C50 gates executed and GREEN 2026-11-12 with durable logs under `/home/runner/work/_temp/kilo-tmp/c50_gates/`. No fixes/regressions required.
 - **Gate invocation:** run from repo root with `PYTHONPATH=.`; G1 uses explicit `tests/test_bab_data_loader_campaign_d*` file list + batch148/149/172; save timestamped durable logs under `/home/runner/work/_temp/kilo-tmp/c<NN>_gates/`; always capture final summary + `rc`.
-- **Gate 3 filename note (corrected):** actual bundle files are `test_bab_cli_campaign11m_probe_regressions.py`, `test_bab_cli_campaign11o_remaining_probe_regressions.py`, `test_bab_cli_campaign11q_followup_probe_regressions.py`, `test_bab_cli_campaign11s_validation_edges.py` (not the `expanded_probe_regressions`/`campaign14`-only naming assumed in some prior text). Use the verified list below.
+- **Gate 3 filename note (corrected):** actual bundle files are `test_bab_cli_campaign11m_probe_regressions.py`, `test_bab_cli_campaign11o_remaining_probe_regressions.py`, `test_bab_cli_campaign11q_followup_probe_regressions.py`, `test_bab_cli_campaign11s_validation_edges.py` (not the `expanded_probe_regressions`/`campaign14`-only naming assumed in some prior text). Use the verified list below; C51 gate 3 list verified against `tests/` in the HANDOFF body.
 
 ## Gate status (C50, executed 2026-11-12 @ HEAD ae5e8c7)
 
@@ -34,11 +34,11 @@
 - **C49:** **CLOSED CLEAN** — 67/67 PASS, gates 3/3 GREEN, 2 proven gaps fixed with 7 regression tests.
 - **C50:** **CLOSED CLEAN** — 60/60 PASS probes, 3/3 gates GREEN, no fixes required.
 
-## INITIAL MESSAGE FOR NEXT AGENTIC SESSION (binding, execute now — refreshed 2026-11-12T19:12:00Z @ HEAD ae5e8c7)
+## INITIAL MESSAGE FOR NEXT AGENTIC SESSION (binding, execute now — refreshed 2026-11-12T19:18:39Z @ HEAD ae012ca)
 
 **Priority (binding):** advance **Crypto-Betting-Against-Beta** (market-neutral BAB: long low-beta / short high-beta vs BTC benchmark) via proven correctness/robustness work in allowed editable surfaces only. No unrelated refactors, no planning-only sessions. Heavy execution required.
 
-**Current state:** C50 CLOSED CLEAN (probes 60/60, gates 3/3 GREEN). Tracked tree clean at HEAD `ae5e8c7`. Deps installed in-session; ensure `numpy,pandas,scipy,pytest,hypothesis,coverage` importable before probing (install if missing — cleared bottleneck this session).
+**Current state:** C50 CLOSED CLEAN (probes 60/60, gates 3/3 GREEN). Tracked tree clean at HEAD `ae012ca`. Deps installed in-session; ensure `numpy,pandas,scipy,pytest,hypothesis,coverage` importable before probing (install if missing — cleared bottleneck this session). **C51 has not been started (no `c51_gates`/`c51_probes` artifacts).**
 
 **Campaign C51 (binding, start immediately — do not declare complete until gates green):**
 
