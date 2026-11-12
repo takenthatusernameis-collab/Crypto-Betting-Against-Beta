@@ -33,6 +33,8 @@ def sharpe_ratio(returns, risk_free: float = 0.0, periods_per_year: int = 252):
     if len(r) < 2:
         return np.nan
     periods = max(int(periods_per_year), 1)
+    if risk_free is None or not np.isfinite(float(risk_free)):
+        return np.nan
     rf_per_period = risk_free / periods
     excess = r - rf_per_period
     mean_excess = excess.mean()
@@ -233,7 +235,7 @@ def turnover_series(weights_df):
         return pd.Series(dtype="float64")
     if not isinstance(weights_df, pd.DataFrame) or weights_df.empty:
         return pd.Series(dtype="float64")
-    w = weights_df.astype("float64").copy()
+    w = weights_df.apply(pd.to_numeric, errors="coerce").astype("float64")
     return w.diff().abs().sum(axis=1).fillna(0.0)
 
 
