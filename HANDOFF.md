@@ -1,6 +1,6 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-12T06:10:27Z
+**Timestamp (refreshed):** 2026-11-12T06:27:13Z
 **HEAD:** `f00c9af` on `main` (tracked working tree clean at refresh; `git status --porcelain` empty)
 **Repo priority (binding):** advance **Betting Against Beta** correctness, robustness, CLI/API/reporting/metrics fidelity, or a newly proven regression. No unrelated refactors.
 
