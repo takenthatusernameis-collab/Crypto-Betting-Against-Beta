@@ -1,8 +1,8 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-12T23:18:00Z
-**HEAD at session start:** `c568d0fc38cfdc09dcd5f494b35b8743ae64a411` (working tree NOT clean — C54 Step 2 costs.py change + regression test uncommitted; see "What shipped" below)
-**Code state:** `cli.py` silent `except Exception: pass` reduced 8 -> 3 (lines 87, 433, 448 remain intentional, tested). `costs.py` line **281** narrowed `except Exception` -> `except TypeError` (the only costs.py candidate that was a proven-invalid-path silence; line 59 is an intentional CPython-deterministic freeze fallback, closed-without-edit at `tests/test_bab_coverage_campaign7_microgaps.py:210`). New regression file `tests/test_bab_costs_c54_regressions.py` (5 tests). Full suite **5083 passed / 35 skipped / RC=0, no ignores** (5078 + 5 new), log `/home/runner/work/_temp/kilo-tmp/c54_gates/full_20261112T231800Z.log`.
+**Timestamp (refreshed):** 2026-11-12T23:32:08Z
+**HEAD at session start:** `c3296ca chore(kilo): checkpoint agent session` (working tree clean — C54 Step 2 cli.py + costs.py committed)
+**Code state:** `cli.py` silent `except Exception: pass` reduced 8 -> 3 (lines 87, 433, 448 remain intentional, tested). `costs.py` line **281** narrowed `except Exception` -> `except TypeError` (proven-invalid-path silence; line 59 is an intentional CPython-deterministic freeze fallback, closed-without-edit at `tests/test_bab_coverage_campaign7_microgaps.py:210`). `config.py` batch CLOSED: sole silent candidate line 123 (`__post_init__` freeze `object.__setattr__(self, "_frozen", True)`) is the same intentional CPython-deterministic freeze fallback class as costs.py line 59 — left silent, covered by `test_frozen_exception_pass_defensive` (`tests/test_bab_coverage_campaign7_microgaps.py:210`) and `test_frozen_config_attribute_mutation_raises` (`tests/test_bab_config_deep_coverage.py:26`). Zero conversions, all candidates proven intentional valid-path fallbacks. Full suite **5083 passed / 35 skipped / RC=0, no ignores**, log `/home/runner/work/_temp/kilo-tmp/c54_gates/full_20261112T231800Z.log`.
 **Repo:** `crypto-betting-against-beta` — BAB (Betting Against Beta) market-neutral product: long low-beta / short high-beta crypto vs BTC benchmark.
 
 ## Why this handoff changed (read first)
@@ -55,33 +55,21 @@ FAILED ...::test_nested_workflow_pattern_is_present_in_workflow
 
 **CLI verified working end-to-end:** `--synthetic` → `Final cumulative return: 0.413704 / Periods: 252`, rc=0; `--data tests/fixtures/real_market_prices.csv --from-prices --benchmark BTC` → `0.339735 / 398`, rc=0; `--version` → `bab 0.1.0`.
 
-## C54 Step 2 — IN PROGRESS / PARTIALLY DONE (attack broad `except Exception` / direct silent `pass`)
+## C54 Step 2 — COMPLETE for cli.py + costs.py + config.py (attack broad `except Exception` / direct silent `pass`)
 
-**cli.py DONE (2026-11-12T23:10Z):** direct silent `pass` reduced **8 -> 3** (AST-verified).
-- Converted (proven-invalid-path silences now surface, valid-path unchanged):
-  - `_extract_cumulative` lines **483** (`backtest["cumulative"].iloc[-1]`), **498** (`backtest.iloc[-1]` cum-named Series), **507** (`backtest.iloc[-1, -1]`) — removed the bare `except Exception: pass` so a corrupt/unreadable cumulative column raises instead of silently falling through to a wrong value or the whole object. Narrowed the function-level `try/except: return None` to wrap only the defensive `getattr(result, "backtest", None)` so extraction failures propagate.
-  - `main()` (cumulative extraction block) — `_extract_cumulative` failures now `print("Error extracting cumulative return: ...")` and `return 1` instead of silently defaulting `cum_out = 1.0`.
-  - `_json_safe` line **562** (generic `obj.isoformat()`) — `except Exception: pass` -> `return str(obj)` (behavior-preserving; `_json_default` already does this).
-  - `_json_default` line **192** (generic `obj.isoformat()`) — `except Exception: pass` -> `return str(obj)` (behavior-preserving; two existing tests assert the str() fallback output).
-- Left silent (intentional valid-path fallbacks, each with a test): line **87** (`os.access` unreliable -> defer to actual write; `test_validate_output_path_os_access_raises_non_bab`), lines **433/447** (print-block inner "can't even print the error" fallback; rc=1 still surfaces the failure).
-- Test updates (encoded old silent fallthrough, now assert surface): `test_extract_cumulative_cumulative_column_raise_surfaces` (was `..._raises_then_cum_fallback`), `test_cli_extract_cumulative_series_cum_name_raises`, `test_cli_extract_cumulative_no_matching_column`, `test_main_cumulative_len_failure_surfaces` (was `test_main_print_block_periods_len_raises`), `test_main_extract_cumulative_raises` (now rc=1 + message).
-- New regression file: `tests/test_bab_cli_c54_regressions.py` (9 tests: corrupt cumulative column / cum-named series / bad last cell raise; valid path unchanged; main surfaces rc=1 + message; synthetic still prints cumulative rc=0; `_json_safe` isoformat fail -> str(obj)).
-- Verification: focused CLI suites 113 passed; full suite **5078 passed / 35 skipped / RC=0, no ignores** (baseline 5069 + 9 new), log `/home/runner/work/_temp/kilo-tmp/c54_gates/full_20261112T230700Z.log`. `--synthetic` → `Final cumulative return: 0.413704 / Periods: 252`, rc=0.
+**cli.py DONE (2026-11-12T23:10Z):** direct silent `pass` reduced **8 -> 3** (AST-verified). Lines 483, 498, 507 (`_extract_cumulative`), main() cumulative block, `_json_safe` 562, `_json_default` 192 converted. Left silent (intentional valid-path fallbacks, each with a test): line **87** (`os.access`), lines **433/447** (print-block fallback). Regression file `tests/test_bab_cli_c54_regressions.py` (9 tests).
 
-**costs.py DONE (this session, 2026-11-12T23:18Z):** AST re-probe found **3** candidates (lines 59, 264, 281). Two classified, one converted:
+**costs.py DONE (2026-11-12T23:18Z):** AST re-probe found 3 candidates (lines 59, 264, 281). Line 59 (freeze) intentional, left silent. Line 264 (`apply_costs` compute-failure fallback) intentional, tested by `test_compute_failure_falls_back_to_zero_costs` (`tests/test_betting_against_beta_costs.py:411`), left silent. Line 281 converted `except Exception` -> `except TypeError` (proven-invalid-path: corrupt index previously swallowed, returned `returns` unchanged). Regression file `tests/test_bab_costs_c54_regressions.py` (5 tests). Silent count **2 -> 1**.
 
-- **Line 59** (`__post_init__` freeze `object.__setattr__(self, "_frozen", True)`): **intentional valid-path fallback, left silent.** On CPython this path is deterministic — `object.__setattr__` cannot fail for a normal instance, so the `except Exception: pass` is dead defensive armor. Closed-without-edit by `tests/test_bab_coverage_campaign7_microgaps.py:210` (`test_frozen_exception_pass_defensive`), which asserts the freeze actually works via the `__setattr__` override. Converting it would add noise with no reachable defect.
-- **Line 264** (`apply_costs` compute-failure fallback): **intentional valid-path fallback, left silent.** Explicitly tested by `test_compute_failure_falls_back_to_zero_costs` (`tests/test_betting_against_beta_costs.py:411`) — a failing `compute_transaction_costs` must yield zero costs, not raise. This is the designed contract for a cost-computation failure, not a swallow.
-- **Line 281** (`apply_costs` cost-adjustment block): **CONVERTED — proven-invalid-path silence.** Narrowed `except Exception` -> `except TypeError`. The broad handler swallowed *every* failure in the subtraction/reindex block — including a corrupt `tc` index — and returned `returns` unchanged, masking wrong data. The only legitimate reason to fall through is that `returns` is non-numeric (object dtype), which raises `TypeError` on arithmetic; that case is preserved. Evidence: with `pd.Series.reindex` patched to raise `ValueError("corrupt index")`, the old code returned `returns` unchanged; the new code surfaces `ValueError`. Direct silent-`pass` count in costs.py: **2 -> 1** (line 59 remains).
-- New regression file: `tests/test_bab_costs_c54_regressions.py` (5 tests: `test_apply_costs_surfaces_non_typeerror_in_adjustment_block`, `test_apply_costs_object_dtype_returns_still_falls_through`, `test_apply_costs_valid_dataframe_adjustment_unchanged`, `test_apply_costs_valid_series_adjustment_unchanged`, `test_apply_costs_zero_costs_returns_unchanged`).
-- Verification: focused costs suites **76 passed**; full suite **5083 passed / 35 skipped / RC=0, no ignores** (5078 + 5 new), log `/home/runner/work/_temp/kilo-tmp/c54_gates/full_20261112T231800Z.log`.
+**config.py CLOSED (this session, 2026-11-12T23:32Z):** AST re-probe found **1** silent candidate (line 123). Classified as intentional CPython-deterministic freeze fallback (`object.__setattr__(self, "_frozen", True)` in `__post_init__`) — same class as costs.py line 59. Left silent, closed-without-edit via existing freeze-enforcement tests. **Zero conversions.** Silent count **1 -> 1** (all candidates intentional).
 
 **Execution order (binding, smallest proven diff first):**
 
-1. **`cli.py` batch complete** (silent count 8 -> 3, evidence above). Do not re-open unless a reproducible failure.
-2. **`costs.py` batch complete** (silent count 2 -> 1, evidence above). Do not re-open unless a reproducible failure.
-3. `config.py` (123), `regime.py` (139), `backtest.py` (116, 124, 160), `portfolio.py` (118, 131), `strategy.py` (396). One module per batch; do not mix modules in one commit.
-4. `beta.py` and `data_loader.py` remain high-risk. Touch them only for a *specific, reproducible defect*; no mechanical sweep and no 167-line refactor.
+1. **`cli.py` batch complete** (silent count 8 -> 3). Do not re-open unless a reproducible failure.
+2. **`costs.py` batch complete** (silent count 2 -> 1). Do not re-open unless a reproducible failure.
+3. **`config.py` batch closed** (all candidates intentional valid-path fallbacks, zero conversions). Do not re-open unless a reproducible failure.
+4. `regime.py` (line 139), `backtest.py` (116, 124, 160), `portfolio.py` (118, 131), `strategy.py` (396). One module per batch; do not mix modules in one commit.
+5. `beta.py` and `data_loader.py` remain high-risk. Touch them only for a *specific, reproducible defect*; no mechanical sweep and no 167-line refactor.
 
 **Rules for each conversion:**
 - Convert the worst **silent** swallows into either a **narrowed exception type** or an **error that surfaces** (raise `BABDataError` with context, or record a diagnostic) — without changing behavior for valid inputs.
@@ -134,22 +122,22 @@ Before exit (mandatory): full suite green (single command, no ignores) with a ti
 # NEXT SESSION — BINDING TASK CAMPAIGN
 
 ## Objective
-**`cli.py` (silent 8 -> 3) and `costs.py` (silent 2 -> 1) C54 Step 2 batches are DONE.** Continue **C54 Step 2** module-by-module, starting with `config.py` (line 123): reduce its direct silent `except Exception: pass` handlers with regression evidence, smallest proven diff first, full suite green after the module boundary. Each conversion must prove invalid-path behavior now surfaces and valid-path behavior is preserved.
+**`cli.py` (silent 8 -> 3), `costs.py` (silent 2 -> 1), and `config.py` (silent 1 -> 1, all intentional) C54 Step 2 batches are DONE/CLOSED.** Continue **C54 Step 2** module-by-module, starting with **`regime.py` (line 139)**: reduce its direct silent `except Exception: pass` handler with regression evidence, smallest proven diff first, full suite green after the module boundary. Each conversion must prove invalid-path behavior now surfaces and valid-path behavior is preserved.
 
 ## Context
 - Product: **Crypto Betting Against Beta (BAB)** — market-neutral long low-beta / short high-beta vs BTC.
-- Current state: **99% coverage**, **5083** tests passing / 35 skipped / RC=0 (baseline 5078 + 5 new C54 costs.py regressions), **244 broad `except Exception`** (103 direct silent `pass`) across product modules.
-- `cli.py` silent `pass`: **8 -> 3** (lines 87, 433, 448 remain as intentional, tested fallbacks). `costs.py` silent `pass`: **2 -> 1** (line 59 remains an intentional CPython-deterministic freeze fallback; line 281 narrowed to `except TypeError`).
+- Current state: **99% coverage**, **5083** tests passing / 35 skipped / RC=0, **244 broad `except Exception`** (103 direct silent `pass`) across product modules.
+- `cli.py` silent `pass`: **8 -> 3** (lines 87, 433, 448 intentional). `costs.py` silent `pass`: **2 -> 1** (line 59 intentional freeze). `config.py` silent `pass`: **1 -> 1** (line 123 intentional freeze, all candidates proven intentional).
 - **C54 Step 2** is the active campaign: eliminate silent swallows that can mask defects without changing valid-path behavior.
 - **This session must produce product code changes + regressions.** Updating handoff files alone is not progress.
 
 ## Concrete Work Plan (execute in order, stop if blocked)
 
-### 1. Re-AST `config.py` to confirm current silent handler lines
+### 1. Re-AST `regime.py` to confirm current silent handler lines
 ```bash
 python3 -c "
 import ast
-with open('strategies/betting_against_beta/config.py') as f:
+with open('strategies/betting_against_beta/regime.py') as f:
     tree = ast.parse(f.read())
 for node in ast.walk(tree):
     if isinstance(node, ast.ExceptHandler) and node.type and isinstance(node.type, ast.Name) and node.type.id == 'Exception':
@@ -160,34 +148,34 @@ for node in ast.walk(tree):
             print(f'Line {node.lineno}: broad except (non-silent)')
 "
 ```
-Record line numbers — they drift after edits.
+Record line numbers — they drift after edits. (Confirmed at 2026-11-12T23:32Z: line 139 silent pass in `apply_regime_scaling`; no other silent handlers.)
 
-### 2. Audit each `config.py` silent candidate
-For each line from the AST output, classify:
+### 2. Audit the `regime.py` silent candidate
+For line 139 (`apply_regime_scaling` volatility-regime block, `# fail graceful`), classify:
 - **Intentional valid-path fallback** — prove with a test that the fallback path executes and produces correct output for valid inputs. Leave silent.
 - **Proven-invalid-path silence** — write a regression test that feeds malformed input and expects a raised error / recorded diagnostic, then convert the handler to narrow the exception or surface an error.
 
 ### 3. For each proven-invalid-path silence:
-- **Narrow the exception** to the specific type that can occur on invalid input (e.g., `KeyError`, `AttributeError`, `IndexError`), OR
+- **Narrow the exception** to the specific type that can occur on invalid input (e.g., `KeyError`, `AttributeError`, `IndexError`, `TypeError`), OR
 - **Raise `BABDataError`** with context, OR
 - **Record a diagnostic**
 
-Add regression test(s) in `tests/test_bab_config_c54_regressions.py` (create if missing) that:
+Add regression test(s) in `tests/test_bab_regime_c54_regressions.py` (create if missing) that:
 - Feeds the exact malformed input that previously silent-swallowed
 - Asserts the new behavior (raises / records diagnostic)
-- Asserts valid-path behavior is unchanged (run existing config smoke tests)
+- Asserts valid-path behavior is unchanged (run existing regime smoke tests)
 
 ### 4. Run verification after each conversion
 ```bash
-# Focused config tests
-python3 -m pytest -q tests/test_bab_config*.py
+# Focused regime tests
+python3 -m pytest -q tests/test_bab_regime*.py
 # Full suite at module boundary (single command, no ignores)
 python3 -m pytest -q
 ```
 If any conversion breaks valid-path behavior, **revert that conversion only**.
 
-### 5. If `config.py` batch completes (silent count reduced with evidence) and time permits:
-Repeat steps 1–4 for `regime.py` (139), `backtest.py` (116, 124, 160), `portfolio.py` (118, 131), `strategy.py` (396). One module per batch; do not mix modules in one commit.
+### 5. If `regime.py` batch completes (silent count reduced with evidence) and time permits:
+Repeat steps 1–4 for `backtest.py` (116, 124, 160), `portfolio.py` (118, 131), `strategy.py` (396). One module per batch; do not mix modules in one commit.
 
 ### 6. Before exit (mandatory)
 - Full suite green (single command, no ignores): `python3 -m pytest -q`
