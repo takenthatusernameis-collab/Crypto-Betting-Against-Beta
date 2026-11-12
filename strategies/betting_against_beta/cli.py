@@ -198,6 +198,16 @@ def _json_default(obj):
             return obj.decode("utf-8", errors="replace")
         except Exception:
             return repr(obj)
+    # Coerce non-finite floats to 0.0 for JSON safety
+    if isinstance(obj, float):
+        return 0.0 if not math.isfinite(obj) else obj
+    if isinstance(obj, (_np.floating,)):
+        f = float(obj)
+        return 0.0 if not math.isfinite(f) else f
+    if isinstance(obj, (_np.integer,)):
+        return int(obj)
+    if isinstance(obj, (_np.bool_,)):
+        return bool(obj)
     # Last resort: stringify
     return str(obj)
 
@@ -213,12 +223,12 @@ def main(argv=None) -> int:
         parser.add_argument("--data", type=str, help="Path to returns data (CSV/JSON/Parquet/HDF5/Pickle). Use --from-prices to treat this as a price series instead.")
         parser.add_argument("--benchmark", type=str, default="BTC", help="Benchmark symbol (default: BTC)")
         parser.add_argument("--universe", type=str, nargs="*", action="store", default=argparse.SUPPRESS, help="Universe of assets")
-        parser.add_argument("--beta-window", type=int, default=90, help="Beta estimation window")
-        parser.add_argument("--long-quantile", type=float, default=0.3, help="Long quantile")
-        parser.add_argument("--short-quantile", type=float, default=0.3, help="Short quantile")
+        parser.add_argument("--beta-window", type=str, default="90", help="Beta estimation window")
+        parser.add_argument("--long-quantile", type=str, default="0.3", help="Long quantile")
+        parser.add_argument("--short-quantile", type=str, default="0.3", help="Short quantile")
         parser.add_argument("--rebalance-freq", type=str, default="daily", help="Rebalance frequency")
-        parser.add_argument("--transaction-costs", type=float, default=0.0, help="Transaction costs")
-        parser.add_argument("--slippage", type=float, default=0.0, help="Slippage")
+        parser.add_argument("--transaction-costs", type=str, default="0.0", help="Transaction costs")
+        parser.add_argument("--slippage", type=str, default="0.0", help="Slippage")
         parser.add_argument("--output", type=str, help="Output JSON file for results summary")
         parser.add_argument("--synthetic", action="store_true", help="Use synthetic data")
         parser.add_argument(
@@ -233,8 +243,12 @@ def main(argv=None) -> int:
         )
 
         args = parser.parse_args(argv)
-    except SystemExit:
-        raise
+    except SystemExit as exc:
+        # argparse's --version and --help use exit code 0; re-raise so callers can catch
+        if exc.code == 0:
+            raise
+        # Other argparse errors (unknown flags, etc.) use exit code 2
+        return exc.code
     except Exception as exc:
         print(f"Error parsing arguments: {exc}")
         return 1
@@ -247,10 +261,8 @@ def main(argv=None) -> int:
             #    `--universe --synthetic`) -> not a real universe request; fall
             #    back to defaults/synthetic (historical behavior, expected by
             #    existing tests).
-            #  * explicit empty/whitespace-only tokens (`""`, `"   "`) -> the
-            #    caller asked for a universe containing a non-asset token.
-            #    Reject cleanly instead of silently dropping the whole
-            #    explicit universe and reporting a different one.
+            #  * explicit empty/whitespace-only tokens (`""`, `"   "`) -> strip them
+            #    and use the remaining real tokens.
             if len(universe_arg) == 0:
                 universe_arg = None
             else:
@@ -260,19 +272,39 @@ def main(argv=None) -> int:
                         "--universe must contain at least one non-empty asset token"
                     )
                 universe_arg = cleaned
-        # ``no --universe`` => ``universe=None`` => synthetic 5-asset default
-        # (per campaign11o contract). Always forward ``universe_arg`` (None when
-        # --universe is absent) so CLI and BABStrategy(benchmark=..., universe=None)
-        # generate identical synthetic data; omitting it would resurrect the
-        # 8-asset default / 5-asset None reporting-fidelity gap.
+
+        # Validate and convert numeric string arguments
+        def _parse_int(val, name):
+            try:
+                return int(val)
+            except (ValueError, TypeError):
+                raise BABDataError(f"{name} must be an integer, got {val!r}")
+
+        def _parse_float(val, name):
+            try:
+                f = float(val)
+                if not math.isfinite(f):
+                    raise BABDataError(f"{name} must be finite, got {val!r}")
+                return f
+            except BABDataError:
+                raise
+            except (ValueError, TypeError):
+                raise BABDataError(f"{name} must be a number, got {val!r}")
+
+        beta_window = _parse_int(args.beta_window, "--beta-window")
+        long_quantile = _parse_float(args.long_quantile, "--long-quantile")
+        short_quantile = _parse_float(args.short_quantile, "--short-quantile")
+        transaction_costs = _parse_float(args.transaction_costs, "--transaction-costs")
+        slippage = _parse_float(args.slippage, "--slippage")
+
         kw = dict(
             benchmark=args.benchmark,
-            beta_window=args.beta_window,
-            long_quantile=args.long_quantile,
-            short_quantile=args.short_quantile,
+            beta_window=beta_window,
+            long_quantile=long_quantile,
+            short_quantile=short_quantile,
             rebalance_freq=args.rebalance_freq,
-            transaction_costs=args.transaction_costs,
-            slippage=args.slippage,
+            transaction_costs=transaction_costs,
+            slippage=slippage,
             universe=universe_arg,
         )
         # --from-prices is meaningless without a --data source; reject cleanly
@@ -280,6 +312,9 @@ def main(argv=None) -> int:
         if args.from_prices and args.data is None:
             raise BABDataError("--from-prices requires --data")
         config = BABConfig(**kw)
+    except BABDataError as exc:
+        print(f"Error creating config: {exc}")
+        return 1
     except Exception as exc:
         print(f"Error creating config: {exc}")
         return 1
