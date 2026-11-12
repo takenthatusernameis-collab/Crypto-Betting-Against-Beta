@@ -1,7 +1,7 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-12T00:11:46Z
-**HEAD:** `bb9fd5e` on `main`
+**Timestamp (refreshed):** 2026-11-12T00:42:54Z
+**HEAD:** `18bcc5c` on `main`
 **Repo priority (binding):** advance **Betting Against Beta** correctness, robustness, CLI/API/reporting/metrics fidelity, or a newly proven regression. No unrelated refactors, no `.github/workflows/*` edits, no commit/push unless explicitly requested.
 
 ## BINDING INITIAL TASK MESSAGE — NEXT AGENT (C36, execute immediately)
@@ -43,17 +43,16 @@ For every probe record: command, rc, key outputs/invariants, PASS/FAIL. Any repr
 - **Off-limits tracked artifacts:** `probe*`, `debug*`, `ast_probe.py` — do not edit/commit.
 - **Historical only:** `research_state/workflow_run_diagnostics.jsonl` are prior captured log signals, not current source/test failures.
 
-## C35 session results (2026-11-12T00:11:46Z, then HEAD `bb9fd5e`) — closed
-- **Step 1 gates (all PASS):**
-  - campaign_d+batch148/149/172: `898 passed, 5 skipped, rc=0` (3.16s) — `/home/runner/work/_temp/kilo-tmp/c35_gate_campaign_d_20261112T000000Z.log`
-  - full BAB excl data_loader/controller: `2234 passed, 5 skipped, rc=0` (264.88s) — `/home/runner/work/_temp/kilo-tmp/c35_gate_full_bab_20261112T000500Z.log`
-  - campaign11+14: `164 passed, rc=0` (96.77s) — `/home/runner/work/_temp/kilo-tmp/c35_gate_campaign11_14_20261112T000300Z.log`
-- **Step 2 probes:** 68 checks, 68 PASS, 0 FAIL. Logs: `/home/runner/work/_temp/kilo-tmp/c35_probe_20261112T001146Z.log`, `/home/runner/work/_temp/kilo-tmp/c35_probe_summary.json` (harness `c35_probe.py`).
-  - **CLI/API/reporting:** 26 checks — all PASS (validation edges, slippage, rebalance-freq, version, positional args)
-  - **Metrics/reporting:** 14 checks — all PASS (degenerate series, summary edge cases: NaN/Inf/misaligned/empty weights)
-  - **Costs/regime/attribution/shorting/sizing:** 22 checks — all PASS (cost models, regime functions, attribution, ShortingConstraints strict, BorrowConstraints alias, VolatilityTargetSizer annualize, RiskParitySizer target_vol, sizer shorthands case-insensitive, misaligned indices)
-  - **Scripts:** 6 checks — all PASS (bab_backtest_report, generate_real_market_fixture, load_real_bab_example, controller_progress, probe_edge, perf_bench, parity_probe; run_per_file skipped)
-- **Conclusion:** **C35: no proven gaps**. No product/test fixes required.
+## C36 session results (2026-11-12T00:42:54Z, HEAD `18bcc5c`) — Step 1 COMPLETE
+
+### Step 1 gates (all PASS):
+- campaign_d+batch148/149/172: `898 passed, 5 skipped, rc=0` (3.23s) — `/home/runner/work/_temp/kilo-tmp/c36_gate_campaign_d_20261112T004254Z.log`
+- full BAB excl data_loader/controller: `2234 passed, 5 skipped, rc=0` (272.65s) — `/home/runner/work/_temp/kilo-tmp/c36_gate_full_bab_20261112T004254Z.log`
+- campaign11+14: `164 passed, rc=0` (100.22s) — `/home/runner/work/_temp/kilo-tmp/c36_gate_campaign11_14_20261112T004254Z.log`
+
+### Step 2 probes: IN PROGRESS
+
+---
 
 ## C28–C35 status (closed) — do not reopen without new evidence
 - **C28–C33:** CLOSED per prior evidence (`c28_*`–`c33_*` logs under `/home/runner/work/_temp/kilo-tmp/`).

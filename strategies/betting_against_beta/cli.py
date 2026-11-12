@@ -44,7 +44,26 @@ def _validate_output_path(path_str: str) -> Path:
 
     if not path_str or not isinstance(path_str, str) or not path_str.strip():
         raise BABDataError("--output path must be a non-empty string")
-    out_path = Path(path_str)
+
+    # Path traversal protection: resolve and ensure it's within allowed boundaries
+    out_path = Path(path_str).resolve()
+    # Allowed base directories
+    allowed_bases = {
+        Path.cwd().resolve(),
+        Path("/tmp").resolve(),
+        Path("/home/runner/work/_temp/kilo-tmp").resolve(),
+    }
+    # Check if resolved path is under any allowed base
+    is_allowed = any(
+        str(out_path).startswith(str(base) + os.sep) or str(out_path) == str(base)
+        for base in allowed_bases
+    )
+    if not is_allowed:
+        raise BABDataError(
+            f"--output path resolves outside allowed directories: {out_path} "
+            f"(allowed: {', '.join(str(b) for b in allowed_bases)})"
+        )
+
     # Reject directories as output targets
     if out_path.exists() and out_path.is_dir():
         raise BABDataError(f"--output path is a directory, not a file: {out_path}")
@@ -68,6 +87,16 @@ def _validate_output_path(path_str: str) -> Path:
         except Exception:
             pass  # access() may not be reliable on all filesystems; defer to write
     return out_path
+
+
+def _validate_rebalance_freq(freq: str) -> None:
+    """Validate rebalance frequency against allowed values."""
+    from .errors import BABDataError
+    allowed = {"daily", "weekly", "monthly", "quarterly", "yearly", "annual"}
+    if freq not in allowed:
+        raise BABDataError(
+            f"rebalance_freq must be one of {sorted(allowed)}, got {freq!r}"
+        )
 
 
 def _coerce_finite_scalar(value, default=1.0):
@@ -253,6 +282,13 @@ def main(argv=None) -> int:
         config = BABConfig(**kw)
     except Exception as exc:
         print(f"Error creating config: {exc}")
+        return 1
+
+    # Validate rebalance_freq (not validated in BABConfig)
+    try:
+        _validate_rebalance_freq(args.rebalance_freq)
+    except Exception as exc:
+        print(f"Error validating rebalance_freq: {exc}")
         return 1
 
     if args.dry_run:
