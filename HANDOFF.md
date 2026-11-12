@@ -1,6 +1,6 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-12T08:39:59Z
+**Timestamp (refreshed):** 2026-11-12T08:52:34Z
 **HEAD:** `c14cdc09e516b2225e2b3f7390dded0ce78b8ead` on `main`
 **Working tree (tracked):** clean at refresh. Untracked `/home/runner/work/_temp/kilo-tmp/` probe/log artifacts may exist and must not be committed.
 
@@ -22,9 +22,14 @@ Env: Python 3.12.3, repo root, `PYTHONPATH=$PWD`. **Step 1 of C43: re-run all th
 - **C42 ROTATION:** CLOSED — 38/38 adversarial probes PASS, 0 FAIL, no proven gaps. Full matrix/summary in prior durable logs: `/home/runner/work/_temp/kilo-tmp/c42_probe_summary_20261112T082656Z.json` and `c42_probe_*` logs.
 - C6–C41 CLOSED per prior evidence. No churn.
 
+## INITIAL MESSAGE FOR NEXT AGENTIC SESSION (read this first)
+- **Single durable handoff:** this file only. `AGENT_HANDOFF.md` is pointer-only. `research_state/workflow_run_diagnostics.jsonl` is historical diagnostics; do not treat as current blocker.
+- **Repo focus:** `Crypto-Betting-Against-Beta` (market-neutral BAB vs BTC). Deliver proven correctness/robustness in allowed surfaces only; no planning-only turn.
+- **Start now:** re-verify gates on current HEAD, run ≥20 NEW C43 adversarial probes with durable logs, fix only smallest proven gaps with regressions, refresh this file before exit. If C43 is clean, immediately define and start C44 with ≥20 new probes and leave it binding.
+
 ## BINDING INITIAL TASK — C43 ROTATION (heavy, mandatory, start immediately)
 
-**Objective:** execute a deep adversarial robustness campaign (C43). This is execution work, not planning. Do not declare "no proven gaps" or "blocked" without attempted probes and durable logs.
+**Objective:** execute a deep adversarial robustness campaign (C43). This is execution work, not planning. Do not declare "no proven gaps" or "blocked" without attempted probes and durable logs. Absence of a pre-known bug is not permission to stop; exhaust the required probe matrix and cross-interactions.
 
 ### 1) Re-verify gate floors first (capture fresh durable logs for current HEAD)
 Run Gate 1/2/3 to completion with `PYTHONPATH=$PWD` and tee logs under `/home/runner/work/_temp/kilo-tmp/c43_gate_{gate}_{ts}.log`. Record rc/duration/counts in this file if anything changes or before exit.
