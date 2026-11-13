@@ -8,9 +8,38 @@ rather than raising.
 
 from __future__ import annotations
 
+import numpy as np
 import pandas as pd
 
 ATTRIBUTION_COLUMNS = ["gross_return", "cost_drag", "slippage_drag", "net_return"]
+
+
+def _finite_series(values, index) -> pd.Series:
+    """Return ``values`` as a finite ``float64`` Series aligned to ``index``.
+
+    Every non-finite entry (NaN, +inf, -inf) becomes ``0.0``.  This is
+    provably identical to the previous
+    ``pd.Series(values, index=index).astype("float64")
+    .replace([inf,-inf], nan).fillna(0.0)`` (finite values are untouched;
+    NaN/inf/-inf all collapse to 0.0) but avoids the per-series pandas
+    ``astype``/``replace_list``/``fillna`` block-manager passes: a single
+    ``to_numpy`` + ``np.where`` repair, with a C-level ``isfinite`` fast path
+    that skips the repair entirely when the input is already finite.
+    """
+    series = pd.Series(values, index=index)
+    try:
+        arr = series.to_numpy(dtype=float, copy=False)
+        if not np.all(np.isfinite(arr)):
+            arr = np.where(np.isfinite(arr), arr, 0.0)
+        return pd.Series(arr, index=index)
+    except (TypeError, ValueError):
+        # Defensive fallback: preserve the original replace+fillna semantics if
+        # the numeric conversion or fast-path repair fails for any reason.
+        return (
+            series.astype("float64")
+            .replace([float("inf"), float("-inf")], float("nan"))
+            .fillna(0.0)
+        )
 
 
 def trade_attribution(backtest: pd.DataFrame) -> pd.DataFrame:
@@ -26,19 +55,32 @@ def trade_attribution(backtest: pd.DataFrame) -> pd.DataFrame:
     slip = backtest.get("slippage_drag", zero)
 
     frame = pd.DataFrame(index=idx)
-    frame["gross_return"] = pd.Series(gross, index=idx).astype("float64").replace([float("inf"), float("-inf")], float("nan")).fillna(0.0)
-    frame["cost_drag"] = pd.Series(cost, index=idx).astype("float64").replace([float("inf"), float("-inf")], float("nan")).fillna(0.0)
-    frame["slippage_drag"] = pd.Series(slip, index=idx).astype("float64").replace([float("inf"), float("-inf")], float("nan")).fillna(0.0)
+    frame["gross_return"] = _finite_series(gross, idx)
+    frame["cost_drag"] = _finite_series(cost, idx)
+    frame["slippage_drag"] = _finite_series(slip, idx)
 
     if "returns" in backtest.columns:
-        frame["net_return"] = pd.Series(backtest["returns"], index=idx).astype("float64").replace([float("inf"), float("-inf")], float("nan")).fillna(0.0)
+        frame["net_return"] = _finite_series(backtest["returns"], idx)
     else:
         frame["net_return"] = (
             frame["gross_return"] - frame["cost_drag"] - frame["slippage_drag"]
         )
-    frame["net_return"] = frame["net_return"].replace([float("inf"), float("-inf")], float("nan")).fillna(0.0)
+        frame["net_return"] = _finite_series(frame["net_return"], idx)
 
     return frame[ATTRIBUTION_COLUMNS]
+
+
+def _finite_sum(values) -> float:
+    """Sum a series after repairing non-finite entries to ``0.0``.
+
+    Equivalent to the previous
+    ``pd.Series(values).replace([inf,-inf], nan).fillna(0.0).sum()``: a
+    single ``to_numpy`` + ``np.where`` finite repair, then a vectorized sum.
+    """
+    arr = pd.Series(values).to_numpy(dtype=float, copy=False)
+    if not np.all(np.isfinite(arr)):
+        arr = np.where(np.isfinite(arr), arr, 0.0)
+    return float(arr.sum())
 
 
 def attribution_totals(attribution_df: pd.DataFrame) -> dict:
@@ -53,11 +95,11 @@ def attribution_totals(attribution_df: pd.DataFrame) -> dict:
             "slippage_share": 0.0,
         }
     df = attribution_df
-    gross = float(pd.Series(df["gross_return"]).replace([float("inf"), float("-inf")], float("nan")).fillna(0.0).sum()) if "gross_return" in df.columns else 0.0
-    cost = float(pd.Series(df["cost_drag"]).replace([float("inf"), float("-inf")], float("nan")).fillna(0.0).sum()) if "cost_drag" in df.columns else 0.0
-    slip = float(pd.Series(df["slippage_drag"]).replace([float("inf"), float("-inf")], float("nan")).fillna(0.0).sum()) if "slippage_drag" in df.columns else 0.0
+    gross = _finite_sum(df["gross_return"]) if "gross_return" in df.columns else 0.0
+    cost = _finite_sum(df["cost_drag"]) if "cost_drag" in df.columns else 0.0
+    slip = _finite_sum(df["slippage_drag"]) if "slippage_drag" in df.columns else 0.0
     if "net_return" in df.columns:
-        net = float(pd.Series(df["net_return"]).replace([float("inf"), float("-inf")], float("nan")).fillna(0.0).sum())
+        net = _finite_sum(df["net_return"])
     else:
         net = gross - cost - slip
     denom = abs(gross)
