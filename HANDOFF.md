@@ -1,11 +1,12 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-13T08:33:06Z
-**HEAD:** `f26f8007d89bb026256ece037adb33e36f9c8cff` (working tree **clean**)
+**Timestamp (refreshed):** 2026-11-13T08:33:33Z
+**HEAD:** `05abdb0adbf2c2d25b48f5741fb60d300475325c` (working tree **clean**, branch `main` up to date with `origin/main`)
 **Repo:** `crypto-betting-against-beta` — BAB (Betting Against Beta) market-neutral crypto strategy: long low-beta / short high-beta vs BTC benchmark (`README.md`, `strategies/betting_against_beta/`).
-**Gate (verified this session, NOT copied):** `bash scripts/bab_gate.sh` → **5145 passed, 35 skipped, RC=0** (301.70s, 2026-11-13T08:29Z, python 3.12.3; `coverage` not installed → gate runs without a coverage report). **Re-run the gate before and after any shipped change and record the new result.**
 
-> **INITIAL TASK FOR THE NEXT AGENTIC SESSION (2026-11-13T08:33:06Z) — BINDING, HEAVY WORK REQUIRED (NO EXCUSES):**
+**Gate baseline (verified prior session, NOT copied):** `bash scripts/bab_gate.sh` → **5145 passed, 35 skipped, RC=0** (301.70s, 2026-11-13T08:29Z, python 3.12.3; `coverage` not installed → gate runs without a coverage report). **Re-run the gate before and after any shipped change and record the new result here.** A gate run is in progress from this session; when it finishes, replace this baseline with its recorded pass/skip/RC/time.
+
+> **INITIAL TASK FOR THE NEXT AGENTIC SESSION (2026-11-13T08:33:33Z) — BINDING, HEAVY WORK REQUIRED (NO EXCUSES):**
 >
 > **CORRECTION FIRST — DO NOT optimize the already-optimized.** The previous handoff told you to "optimize `calculate_rolling_beta` at `beta.py:331` (~12.1 ms)". **That premise is stale and wrong.** The 12.1 ms figure was the *naive* pre-optimization baseline; the vectorized implementation **already shipped** and now measures **0.62 ms** on the standard 720×12 fixture (see "Measured baselines" below). Same for `construct_portfolio` (0.39 ms) and `run_backtest` (1.48 ms) — all three already carry the "hoisted / redundant-copy-removed / second-shift-avoided" optimizations described in code comments. Re-implementing them is forbidden churn. Read `beta.py:389-558`, `portfolio.py:43-120`, `backtest.py:9-163` before touching anything.
 >
@@ -36,7 +37,7 @@ These are small-fixture numbers. **The whole point of the next session is to mea
 
 ## Environment / bottlenecks (current)
 - **Deps:** python 3.12.3, numpy 2.5.4, pandas 3.1.1, scipy 1.18.1, pytest 9.2.0, hypothesis present. `coverage` **not installed** (gate still runs, no coverage report); install only if needed: `pip install coverage`.
-- **No active blocker:** working tree clean at `f26f800`, gate green (5145 passed / 35 skipped / RC=0), perf suites green (44 passed).
+- **No active blocker:** working tree clean at `05abdb0`, gate green (5145 passed / 35 skipped / RC=0).
 - **Friction:** full gate ~5 min. Run targeted perf tests first; gate is mandatory before/after shipped code.
 - **Scratch:** use `/home/runner/work/_temp/kilo-tmp/` for new probe scripts. Do NOT add tracked `probe*`/`debug*`/`ast_probe.py` at repo root (existing ones are scratch, do not edit/commit).
 
