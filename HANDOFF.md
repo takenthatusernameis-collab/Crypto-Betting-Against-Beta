@@ -1,14 +1,9 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-13T18:40:11Z
-**HEAD:** `9f481e4` — `chore(kilo): checkpoint agent session` (2026-11-13 18:28:52 +0000)
-**Working tree:** clean **except** three intended new R2 test files (uncommitted; controller
-checkpoints):
-  `tests/test_bab_stress_regimes.py`, `tests/test_bab_stress_horizon.py`,
-  `tests/test_bab_scale_perf_guard.py`. `scripts/bab_r2_preflight.py` remains as the
-  enforcement artifact. R2 is SHIPPED this session; measured evidence below.
-**Repo:** `crypto-betting-against-beta` — BAB (Betting Against Beta) market-neutral crypto strategy: long
-low-beta / short high-beta vs a BTC benchmark (`README.md`, `strategies/betting_against_beta/`).
+**Timestamp (refreshed):** 2026-11-13T20:27:40Z
+**HEAD:** `4850f3c` — `chore: capture completed workflow run diagnostics` (main)
+**Working tree (at refresh):** modified `HANDOFF.md`, `AGENT_HANDOFF.md`, `research_state/workflow_run_diagnostics.jsonl` (handoff/diagnostics refresh) + **untracked** R2 campaign files from prior session: `tests/test_bab_stress_regimes.py`, `tests/test_bab_stress_horizon.py`, `tests/test_bab_scale_perf_guard.py`, `scripts/bab_r2_preflight.py`. `__pycache__` artifacts are local noise (gitignored) — do not commit.
+**Repo:** `crypto-betting-against-beta` — BAB (Betting Against Beta) market-neutral crypto strategy: long low-beta / short high-beta vs a BTC benchmark (`README.md`, `strategies/betting_against_beta/`).
 
 > **This is the single source of truth.** `AGENT_HANDOFF.md` is a pointer only. Read this whole file
 > before doing anything. Do not create a second handoff. If a number here conflicts with a live run,
@@ -20,54 +15,38 @@ low-beta / short high-beta vs a BTC benchmark (`README.md`, `strategies/betting_
 
 ```bash
 python3 scripts/bab_r2_preflight.py
+ls tests/test_bab_stress_regimes.py tests/test_bab_stress_horizon.py tests/test_bab_scale_perf_guard.py 2>&1
+python3 -m pytest --version 2>&1 || echo "pytest-missing"
 ```
 
-R2 is **SHIPPED** (evidence in "R2 SHIPPED — measured results" below). The preflight confirms
-the three R2 campaign files exist and pass, and refreshes the live scale baseline against the
-R2-C ceilings. Paste its output into session evidence. Then proceed to the binding initial task
-for this session (next section).
+**Preflight result (this refresh, 2026-11-13T20:27:40Z @ `4850f3c`):** R2 files **present but preflight FAILED (rc=1)** in this environment because `pytest` is not installed (`python3 -m pytest` -> `No module named pytest`). R2 was marked shipped in prior handoff text but is **NOT re-verified green on this checkout/env** — treat R2 as *unverified until proven*.
+
+Paste preflight + pytest-availability output into session evidence. Then execute the binding initial task below.
 
 ---
 
-## R2 SHIPPED — Economic Stress & Scale Robustness (complete, 2026-11-13T18:40:11Z)
+## BINDING INITIAL TASK (next session) — Unblock env, re-verify R2, then ship **R3 — Execution Realism** (heavy, non-optional)
 
-**Inference from the repo name:** `crypto-betting-against-beta` → the BAB engine *is* the product.
-Correctness (R1) is locked and oracle-verified; robustness (R2) is now shipped. Measured evidence is
-recorded below. Stages R2-A / R2-B / R2-C descriptions remain as the shipped spec reference.
+**Inference from repo name:** `crypto-betting-against-beta` → the BAB engine is the product. R1 locked; R2 files exist but must be re-proven green on current HEAD/env before any "shipped" claim. Biggest remaining trading risk is **execution realism** (flat bps, no partial-fill/impact integration, no borrow asymmetry surfaced in backtest, no rebalance-frequency sensitivity).
 
-## BINDING INITIAL TASK FOR NEXT SESSION — Ship **R3 — Execution Realism** (heavy, non-optional)
+**No partial completion.** Session is not done until: (1) R2 suites green and recorded, (2) R3-A + R3-B implemented with targeted regression tests and measured numbers, (3) `bash scripts/bab_gate.sh` RC=0 recorded, (4) this handoff refreshed with evidence. If one stage blocks, record exact evidence and continue to next — do not stop.
 
-**Inference from the repo name:** `crypto-betting-against-beta` → the BAB engine *is* the product.
-Correctness (R1) and regime/scale robustness (R2) are locked/shipped. The remaining existential risk
-for a *trading strategy* is **execution realism**: the engine prices trades at flat bps with no
-partial-fill model, no borrow-cost asymmetry for the short leg, and no rebalance-frequency
-sensitivity. R3 builds those against the five R2 hostile regimes with **measured numbers**, and
-re-verifies finiteness / dollar neutrality / causality after each change.
+### Stage 0 — Remove environment/verification bottleneck (mandatory)
+- Install/enable test deps in env (`pytest` + `numpy`/`pandas` as needed by gate; `requirements.txt`/editable install). Record exact commands and versions.
+- Run: `python3 scripts/bab_r2_preflight.py` (must pass), then:
+  `PYTHONPATH=. python3 -m pytest tests/test_bab_stress_regimes.py tests/test_bab_stress_horizon.py tests/test_bab_scale_perf_guard.py -q`
+- If any R2 test fails on `4850f3c`, treat as **current defect**: fix with smallest proven change + keep/add regression; record root cause. Do **not** weaken assertions/ceilings.
 
-**Partial completion is not acceptable.** The session is **not done** until R3-A and R3-B are green,
-targeted suites pass, `bash scripts/bab_gate.sh` returns RC=0 with recorded numbers, and this
-handoff is refreshed. If one stage is blocked, record exact evidence and move to the next —
-**do not stop the session**.
+### R3-A — Cost & execution realism beyond flat bps
+- Wire realistic execution into backtest/strategy path (`costs.py`/`shorting.py`/`backtest.py`/`strategy.py` as needed): square-root impact/participation-aware cost path available, partial-fill/slippage realism, borrow-cost asymmetry for shorts (exposed in results/attribution).
+- Add regression tests asserting: `cost_drag`/`slippage_drag`/borrow drag finite and ≥ 0; `max|Σw| ≤ 1e-9` when dollar-neutral; all backtest columns finite across the five R2 hostile regimes; costs-on vs costs-off measured (drawdown/turnover) per regime.
 
-### R3-A — Cost & execution model beyond flat bps
-Extend `costs.py`/`shorting.py` (square-root impact model, partial-fill slippage, borrow-cost
-asymmetry on the short leg) wired into `BABStrategy`; add regression tests asserting:
-cost_drag / slippage_drag / borrow_drag finite and ≥ 0; dollar neutrality (`max|Σw| ≤ 1e-9`)
-preserved under DN; finiteness of all backtest columns under all five R2 regimes. Record per-regime
-drawdown / turnover with execution costs on vs off.
+### R3-B — Rebalance-frequency sensitivity (execution x regime)
+- Sweep `rebalance_freq` {daily, weekly, monthly} × 5 R2 hostile regimes × DN on/off.
+- Assert finiteness, dollar neutrality, causality; record turnover, max drawdown, Sharpe per cell; no non-finite cumulative or DN breach. Regression baseline = R2 daily numbers.
 
-### R3-B — Rebalance-frequency sensitivity on R2 regimes
-Sweep `rebalance_freq` {daily, weekly, monthly} × the five R2 hostile regimes × DN on/off.
-Assert finiteness, dollar neutrality, causality; record turnover, max drawdown, Sharpe per cell;
-assert no cell produces non-finite cumulative or DN breach. Regression baseline = R2 daily numbers.
-
-### MANDATORY PRE-CHECK (do not skip)
-```bash
-python3 scripts/bab_r2_preflight.py
-ls tests/test_bab_stress_regimes.py tests/test_bab_stress_horizon.py tests/test_bab_scale_perf_guard.py 2>&1
-```
-The preflight confirms the three R2 files exist and pass and refreshes the live scale baseline.
-All three R2 files must be present and green before R3 work counts as on a green foundation.
+### MANDATORY EVIDENCE TO RECORD
+- Preflight output (post-fix), targeted R2 + R3 command results, `bash scripts/bab_gate.sh` RC/counts/timing, per-regime/cell measured metrics, and any defect+fix. Refresh `HANDOFF.md` (and keep `AGENT_HANDOFF.md` pointer-only). Commit nothing unless explicitly requested.
 
 ### API facts you must use (verified this session — do not guess)
 - `from strategies.betting_against_beta import BABStrategy`
@@ -121,7 +100,9 @@ Measure `BABStrategy.run` at **5000×200** and **5000×500** (`beta_neutral=True
 warm. Assert the ceilings in the table above (≤ 0.8 s, ≤ 2.0 s). Fail loudly if a change regresses
 scale runtime by an order of magnitude. This makes scale regressions *impossible to ignore*.
 
-### R2 SHIPPED — measured results (2026-11-13T18:40:11Z, median of 9 warm reps unless noted)
+### R2 SHIPPED — prior-session measured results (historical; UNVERIFIED on 4850f3c/this env — pytest missing)
+
+**Historical evidence (2026-11-13T18:40:11Z, prior session, median of 9 warm reps unless noted).** Re-run and re-record on current HEAD/env after Stage 0.
 
 **R2-A — hostile regimes** (`tests/test_bab_stress_regimes.py`): 5 regimes × 8 configs = 40 runs,
 all green. Worst case across the matrix: max drawdown -1.0000 (corr→1 bn=True,dn=False,costs=0.001;
@@ -161,26 +142,15 @@ No genuine product defect found; nothing weakened.
 
 ---
 
-## State reconciliation (verified this session, 2026-11-13T18:29:42Z)
+## State reconciliation (verified this session, 2026-11-13T20:27:40Z)
 
-**Gate baseline:** `bash scripts/bab_gate.sh` → **5373 passed, 35 skipped, RC=0** (wall-clock
-**656.99 s** ≈ 657 s on this host; coverage ~97%). A full-gate re-run was started this session
-immediately after R2 shipped; record its result here once it finishes.
+**R2 (current checkout/env):** three R2 campaign files are present but **UNVERIFIED** — `python3 scripts/bab_r2_preflight.py` → rc=1 because `pytest` is not installed in this environment (`No module named pytest`). Prior-session "R2 SHIPPED" measured results remain below as **historical evidence** (not re-run on `4850f3c`).
 
-- The **657 s** figure is the honest wall-clock on this host. A prior record said ~446 s. Treat the
-  gate as **"≤ 15 min"** budget; do not panic at 657 s, and do not claim 446 s as current.
-- The 35 "skipped" are pytest deselected skips; a raw `--collect-only` counts 5408, of which 35 are
-  skipped at run time — that 35-gap is expected, not a regression.
-- **R2 files:** all three present and passing (`tests/test_bab_stress_regimes.py`,
-  `tests/test_bab_stress_horizon.py`, `tests/test_bab_scale_perf_guard.py` — 155 passed this
-  session; preflight confirms presence + pass).
+**Gate:** last recorded green baseline **5373 passed, 35 skipped, RC=0** (~657 s, ~97% cov) on prior host; **not re-run this session** (env missing pytest; full gate ≤15 min budget). Re-run required after env fix before closing R3.
 
-**R1 campaign — CLOSED (do not reopen):**
-- R1-A Causality / no-lookahead — `tests/test_bab_causal_no_lookahead.py`.
-- R1-B Real-data E2E invariants — `tests/test_bab_real_data_e2e.py` (68 tests / 10 fixtures).
-- R1-C Independent naive-oracle parity — `tests/test_bab_real_data_oracle.py` (51 tests,
-  `np.linalg.lstsq` + loop oracle vs product at `rtol=atol=1e-12`).
-- R1-D E2E performance guard — `tests/test_bab_e2e_performance_guard.py`.
+**R1 campaign — CLOSED (do not reopen):** R1-A/B/C/D suites remain the locked correctness/oracle/perf baseline.
+
+- **No active blocker in repo logic recorded; active blocker is environment:** install pytest/deps, re-verify R2, then execute R3.
 
 **Empirical evidence (this checkout, current HEAD):**
 - Oracle parity (real fixtures, `beta_window=90`, `min_obs=60`): rolling-beta / signal / portfolio /
