@@ -1,13 +1,13 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-13T02:53:43Z
-**HEAD:** `43a2313 chore(kilo): checkpoint agent session` (working tree clean; Step 3d committed)
+**Timestamp (refreshed):** 2026-11-13T02:54:50Z
+**HEAD:** `fe8119b chore(kilo): checkpoint agent session` (working tree clean; last work `43a2313` Step 3d committed)
 **Repo:** `crypto-betting-against-beta` — BAB (Betting Against Beta) market-neutral crypto strategy: long low-beta / short high-beta vs BTC benchmark (see `README.md`, `strategies/betting_against_beta/`).
 **Prioritization:** The repo name is the strategy itself. The gatekeeper hot path is `validate_returns_dataframe` (data_loader.py:1471) — every backtest run must pass validation before any BAB signal/portfolio work. Step 3d (object-frame `_series_is_parseable`) is shipped; the remaining measured leverage is the **numeric-frame** validation hot path = Step 3e.
 
-## CURRENT STATE (verified this session, 2026-11-13T02:53:43Z)
+## CURRENT STATE (verified this session, 2026-11-13T02:54:50Z)
 
-- **Full gate — GREEN:** `python3 -m pytest -q -p no:cacheprovider` → **5130 passed / 35 skipped / RC=0** in ~289s (single command, no `--ignore`). Warnings are pre-existing (RuntimeWarning, PytestRemovedIn10Warning on class-scoped fixtures).
+- **Full gate — GREEN:** `python3 -m pytest -q -p no:cacheprovider` → **5130 passed / 35 skipped / RC=0** in 287.64s (single command, no `--ignore`). Warnings are pre-existing (RuntimeWarning, PytestRemovedIn10Warning on class-scoped fixtures).
 - **Step 3d-focused tests green:** `tests/test_validation_performance.py` → 15 passed (includes `TestSeriesIsParseableEquivalence` oracle cases).
 - **Data-loader regression subset expected green:** `test_bab_data_loader_batch62.py test_bab_data_loader_numeric_qc.py test_bab_data_loader_bottleneck_branches.py test_bab_data_loader_edge_cases.py test_betting_against_beta_data_loader.py test_bab_zero_silent_error.py`.
 
