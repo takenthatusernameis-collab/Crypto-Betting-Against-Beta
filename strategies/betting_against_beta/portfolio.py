@@ -107,52 +107,28 @@ def construct_portfolio(signals_df, dollar_neutral=True, gross_exposure_limit=No
         n_long = long_mask.sum(axis=1).astype(np.int64)
         n_short = short_mask.sum(axis=1).astype(np.int64)
 
-        def _write_book(mask, row_counts, weights_1d):
-            """Assign one weight per selected cell, or surface the failure.
+        # Build the equal-weight book with a single broadcast product per side.
+        #
+        # For each row the per-cell weight is a constant (1/n_long on long cells,
+        # -1/n_short on short cells), so the full (n_rows, n_cols) book is just
+        # ``mask * row_weight`` broadcast across columns.  The previous
+        # ``np.repeat`` + boolean-mask scatter materialized several large
+        # temporaries (``np.repeat``, ``mask & row[:, None]``) and a
+        # double-``sum`` fan-out sanity check, all of which dominated the
+        # production-scale profile.  The denominators are guarded with
+        # ``np.where`` so rows with no longs/shorts divide by 1 and yield 0.
+        with np.errstate(divide='ignore', invalid='ignore'):
+            long_w = np.where(n_long > 0, 1.0 / np.where(n_long > 0, n_long, 1), 0.0)
+            short_w = np.where(n_short > 0, -1.0 / np.where(n_short > 0, n_short, 1), 0.0)
 
-            The weights are computed once per row and fanned out to the selected
-            cells; if that fan-out raises (shape mismatch, read-only buffer,
-            exotic dtype) the resulting book would have *missing* positions
-            rather than wrong ones, and a silent swallow would return a
-            plausible-looking empty/partial book.  The outer handler converts
-            the failure into an explicit ``BABPortfolioError``.
-            """
-            mask = np.asarray(mask, dtype=bool)
-            row_counts = np.asarray(row_counts, dtype=np.int64)
-            w_row = np.asarray(weights_1d, dtype=float)
-            expected = int(row_counts.sum())
-            fanned = np.repeat(w_row, row_counts)
-            if fanned.shape[0] != expected or mask.sum() != expected:
-                # A fan-out that does not line up with the selected cells would
-                # leave positions unwritten (a silently truncated book).
-                raise BABPortfolioError(
-                    "weight fan-out does not match selected cells: "
-                    f"{fanned.shape[0]} weights for {expected} cells"
-                )
-            w_arr[mask] = fanned
-
-        w_arr = np.zeros((n_rows, n_cols), dtype=float)
-
-        long_rows = n_long > 0
-        if np.any(long_rows):
-            long_w = np.zeros(n_rows, dtype=float)
-            with np.errstate(divide='ignore', invalid='ignore'):
-                np.divide(1.0, n_long, out=long_w, where=long_rows)
-            long_w[~np.isfinite(long_w)] = 0.0
-            long_cell = long_mask & long_rows[:, None]
-            if np.any(long_cell):
-                _write_book(long_cell, long_mask[long_rows].sum(axis=1), long_w[long_rows])
-
+        # Short side is only written when dollar_neutral or the row has no longs.
         short_rows = (n_short > 0) & (dn | (n_long == 0))
-        if np.any(short_rows):
-            short_w = np.zeros(n_rows, dtype=float)
-            with np.errstate(divide='ignore', invalid='ignore'):
-                np.divide(-1.0, n_short, out=short_w, where=short_rows)
-            short_w[~np.isfinite(short_w)] = 0.0
-            short_cell = short_mask & short_rows[:, None]
-            if np.any(short_cell):
-                _write_book(short_cell, short_mask[short_rows].sum(axis=1), short_w[short_rows])
+        if dn:
+            short_scale = short_w
+        else:
+            short_scale = np.where(short_rows, short_w, 0.0)
 
+        w_arr = long_mask * long_w[:, None] + short_mask * short_scale[:, None]
         w_arr[~np.isfinite(w_arr)] = 0.0
         if np.any(w_arr < -1e12) or np.any(w_arr > 1e12):
             np.clip(w_arr, -1e12, 1e12, out=w_arr)

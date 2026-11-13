@@ -105,6 +105,25 @@ class TestConstructPortfolioPerformance:
             f"{signals.shape}; performance regression"
         )
 
+    def test_portfolio_stage_perf_ceiling(self):
+        """Per-stage non-regression ceiling for the portfolio build.
+
+        Generous bound (well above the measured few-ms single-call cost and far
+        above CI noise) so it stays stable on shared runners while guarding
+        against a catastrophic slowdown of ``construct_portfolio``.  Measures the
+        broadcast-product build at 2500x120 (the production hot path) and only
+        the build itself (no beta/signal recomputation).
+        """
+        returns = generate_synthetic_returns(n_days=2500, n_assets=120, seed=1234)
+        beta = calculate_rolling_beta(returns, "BTC", window=90, min_obs=60)
+        signals = generate_bab_signals(beta, long_quantile=0.3, short_quantile=0.3)
+        construct_portfolio(signals)  # warm
+        _, elapsed = _time_it(construct_portfolio, signals, dollar_neutral=True)
+        assert elapsed < 1.0, (
+            f"construct_portfolio took {elapsed:.3f}s on {signals.shape}; "
+            "portfolio-stage perf regression"
+        )
+
 
 class TestConstructPortfolioEdgeCases:
     def test_mixed_and_non_numeric_signals_equivalence(self):

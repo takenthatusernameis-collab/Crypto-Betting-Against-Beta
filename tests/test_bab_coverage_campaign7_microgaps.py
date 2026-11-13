@@ -109,44 +109,44 @@ class TestPortfolioMicrogaps:
         assert (w.to_numpy() == 0.0).all()
 
     def test_long_cell_assignment_surfaces_error(self, monkeypatch):
-        # portfolio.py:118-127 _write_book raises BABPortfolioError on fan-out
-        # mismatch; the outer handler (179) re-raises instead of silently
-        # returning a truncated book.  A flaky np.repeat that fails on the long
-        # side now surfaces rather than being swallowed.
+        # A failure while building the long side must surface as
+        # BABPortfolioError rather than being swallowed into a truncated book.
+        # Make ``np.isfinite`` raise on the long-weight guard (first call);
+        # the outer handler (portfolio.py) re-raises.
         import pytest
         from strategies.betting_against_beta.portfolio import BABPortfolioError
         sig = pd.DataFrame({"A": [1, 1], "B": [-1, -1]})
         import strategies.betting_against_beta.portfolio as pmod
-        real_repeat = pmod.np.repeat
+        real_isfinite = pmod.np.isfinite
         calls = {"n": 0}
 
-        def flaky_repeat(a, repeats, *args, **kwargs):
+        def flaky_isfinite(a, *args, **kwargs):
             calls["n"] += 1
             if calls["n"] == 1:
-                raise RuntimeError("repeat fail")
-            return real_repeat(a, repeats, *args, **kwargs)
-        monkeypatch.setattr(pmod.np, "repeat", flaky_repeat)
+                raise RuntimeError("long-side isfinite fail")
+            return real_isfinite(a, *args, **kwargs)
+        monkeypatch.setattr(pmod.np, "isfinite", flaky_isfinite)
         with pytest.raises(BABPortfolioError):
             construct_portfolio(sig)
 
     def test_short_cell_assignment_surfaces_error(self, monkeypatch):
-        # portfolio.py:131-132 _write_book raises on fan-out mismatch; the
-        # outer handler (179) re-raises.  A flaky np.repeat that fails on the
-        # short side now surfaces rather than being swallowed.
+        # Short-side analogue: make ``np.isfinite`` fail on a later call (the
+        # post-build cleanup) so a partial short book is never silently
+        # returned; the outer handler must surface BABPortfolioError.
         import pytest
         from strategies.betting_against_beta.portfolio import BABPortfolioError
         sig = pd.DataFrame({"A": [1, 1], "B": [-1, -1]})
         import strategies.betting_against_beta.portfolio as pmod
-        real_repeat = pmod.np.repeat
+        real_isfinite = pmod.np.isfinite
         calls = {"n": 0}
 
-        def flaky_repeat(a, repeats, *args, **kwargs):
+        def flaky_isfinite(a, *args, **kwargs):
             calls["n"] += 1
-            # second repeat is short side
+            # fail on the post-build cleanup (call 2), after both sides written
             if calls["n"] == 2:
-                raise RuntimeError("repeat fail")
-            return real_repeat(a, repeats, *args, **kwargs)
-        monkeypatch.setattr(pmod.np, "repeat", flaky_repeat)
+                raise RuntimeError("short-side isfinite fail")
+            return real_isfinite(a, *args, **kwargs)
+        monkeypatch.setattr(pmod.np, "isfinite", flaky_isfinite)
         with pytest.raises(BABPortfolioError):
             construct_portfolio(sig)
 
