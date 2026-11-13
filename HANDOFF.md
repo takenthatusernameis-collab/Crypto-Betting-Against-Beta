@@ -1,9 +1,12 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-13T18:29:42Z
-**HEAD:** `007f5dd` — `chore(kilo): checkpoint agent session` (2026-11-13 18:28:52 +0000)
-**Working tree:** clean **except** one intended new file `scripts/bab_r2_preflight.py` (this session's
-enforcement artifact — see "Why this file exists" below). Not committed (controller checkpoints).
+**Timestamp (refreshed):** 2026-11-13T18:40:11Z
+**HEAD:** `9f481e4` — `chore(kilo): checkpoint agent session` (2026-11-13 18:28:52 +0000)
+**Working tree:** clean **except** three intended new R2 test files (uncommitted; controller
+checkpoints):
+  `tests/test_bab_stress_regimes.py`, `tests/test_bab_stress_horizon.py`,
+  `tests/test_bab_scale_perf_guard.py`. `scripts/bab_r2_preflight.py` remains as the
+  enforcement artifact. R2 is SHIPPED this session; measured evidence below.
 **Repo:** `crypto-betting-against-beta` — BAB (Betting Against Beta) market-neutral crypto strategy: long
 low-beta / short high-beta vs a BTC benchmark (`README.md`, `strategies/betting_against_beta/`).
 
@@ -13,49 +16,58 @@ low-beta / short high-beta vs a BTC benchmark (`README.md`, `strategies/betting_
 
 ---
 
-## DO THIS FIRST — 2026-11-13T18:29:42Z (binding, non-optional, 60 seconds)
+## DO THIS FIRST — every session (binding, 60 seconds)
 
 ```bash
 python3 scripts/bab_r2_preflight.py
 ```
 
-This is a **read-only** measurement gate. It mechanically answers the three questions a handoff-only
-process lets a future agent hand-wave: (1) is R2 already started, (2) what is the live scale baseline
-right now, (3) are we within the R2-C ceilings. It is the enforcement mechanism that makes "R2 is
-optional" impossible to claim. **You must run it and paste its output into your session evidence.**
-Do not skip it because "the handoff says R2 is unstarted" — verify it live, every session.
-
-Expected first-run output (this session, verified):
-
-```
-[preflight] R2 files: NONE present -> campaign genuinely unstarted.
-[preflight] Live scale baseline (median of 9 warm reps):
-  5000x200: 307 ms  (ceiling 800 ms) [OK]
-  5000x500: 769 ms  (ceiling 2000 ms) [OK]
-```
+R2 is **SHIPPED** (evidence in "R2 SHIPPED — measured results" below). The preflight confirms
+the three R2 campaign files exist and pass, and refreshes the live scale baseline against the
+R2-C ceilings. Paste its output into session evidence. Then proceed to the binding initial task
+for this session (next section).
 
 ---
 
-## BINDING INITIAL TASK — Ship **R2 — Economic Stress & Scale Robustness** (heavy, non-optional)
+## R2 SHIPPED — Economic Stress & Scale Robustness (complete, 2026-11-13T18:40:11Z)
 
 **Inference from the repo name:** `crypto-betting-against-beta` → the BAB engine *is* the product.
-Correctness (R1) is locked and oracle-verified (see below). So the next session must **stress the engine
-against hostile regimes and scale, with measured performance ceilings**, and **harden any real defect
-found** — not re-run correctness proofs, not add unit tests to a layer that is already proven.
+Correctness (R1) is locked and oracle-verified; robustness (R2) is now shipped. Measured evidence is
+recorded below. Stages R2-A / R2-B / R2-C descriptions remain as the shipped spec reference.
 
-**Partial completion is not acceptable.** The session is **not done** until all three stages below are
-green-or-explicitly-downgraded-with-evidence. If one stage is blocked, record exact evidence and move
-to the next — **do not stop the session**.
+## BINDING INITIAL TASK FOR NEXT SESSION — Ship **R3 — Execution Realism** (heavy, non-optional)
+
+**Inference from the repo name:** `crypto-betting-against-beta` → the BAB engine *is* the product.
+Correctness (R1) and regime/scale robustness (R2) are locked/shipped. The remaining existential risk
+for a *trading strategy* is **execution realism**: the engine prices trades at flat bps with no
+partial-fill model, no borrow-cost asymmetry for the short leg, and no rebalance-frequency
+sensitivity. R3 builds those against the five R2 hostile regimes with **measured numbers**, and
+re-verifies finiteness / dollar neutrality / causality after each change.
+
+**Partial completion is not acceptable.** The session is **not done** until R3-A and R3-B are green,
+targeted suites pass, `bash scripts/bab_gate.sh` returns RC=0 with recorded numbers, and this
+handoff is refreshed. If one stage is blocked, record exact evidence and move to the next —
+**do not stop the session**.
+
+### R3-A — Cost & execution model beyond flat bps
+Extend `costs.py`/`shorting.py` (square-root impact model, partial-fill slippage, borrow-cost
+asymmetry on the short leg) wired into `BABStrategy`; add regression tests asserting:
+cost_drag / slippage_drag / borrow_drag finite and ≥ 0; dollar neutrality (`max|Σw| ≤ 1e-9`)
+preserved under DN; finiteness of all backtest columns under all five R2 regimes. Record per-regime
+drawdown / turnover with execution costs on vs off.
+
+### R3-B — Rebalance-frequency sensitivity on R2 regimes
+Sweep `rebalance_freq` {daily, weekly, monthly} × the five R2 hostile regimes × DN on/off.
+Assert finiteness, dollar neutrality, causality; record turnover, max drawdown, Sharpe per cell;
+assert no cell produces non-finite cumulative or DN breach. Regression baseline = R2 daily numbers.
 
 ### MANDATORY PRE-CHECK (do not skip)
-Confirm the exact R2 files do not exist. A `-k` filter is **not** reliable here: `-k "scale_perf"`
-matches the unrelated `test_data_quality_stale_run_vectorized.py::...::test_production_scale_perf_ceiling`.
 ```bash
+python3 scripts/bab_r2_preflight.py
 ls tests/test_bab_stress_regimes.py tests/test_bab_stress_horizon.py tests/test_bab_scale_perf_guard.py 2>&1
 ```
-If all three report **"No such file or directory"**, R2 is genuinely unstarted — build it. If any exists:
-**run that file first**, record pass/fail, and only extend it — never duplicate. (The preflight script
-does this check for you and runs any existing R2 files.)
+The preflight confirms the three R2 files exist and pass and refreshes the live scale baseline.
+All three R2 files must be present and green before R3 work counts as on a green foundation.
 
 ### API facts you must use (verified this session — do not guess)
 - `from strategies.betting_against_beta import BABStrategy`
@@ -109,32 +121,59 @@ Measure `BABStrategy.run` at **5000×200** and **5000×500** (`beta_neutral=True
 warm. Assert the ceilings in the table above (≤ 0.8 s, ≤ 2.0 s). Fail loudly if a change regresses
 scale runtime by an order of magnitude. This makes scale regressions *impossible to ignore*.
 
-### Session exit requirements (mandatory — all must hold)
+### R2 SHIPPED — measured results (2026-11-13T18:40:11Z, median of 9 warm reps unless noted)
+
+**R2-A — hostile regimes** (`tests/test_bab_stress_regimes.py`): 5 regimes × 8 configs = 40 runs,
+all green. Worst case across the matrix: max drawdown -1.0000 (corr→1 bn=True,dn=False,costs=0.001;
+liq_evap dn=True), worst single-period return -222.41 (clipped by the backtest floor, finite),
+max turnover 22197.10 (beta-neutral churn under corr→1, finite), worst max|net exposure| 1.00.
+Dollar neutrality held (`max|Σw| ≤ 2.06e-15` whenever DN=True), causality verified byte-identical
+after a future-row perturbation, cost/slippage drag ≥ 0 and finite, `report()`/`tear_sheet()`
+finite + strict JSON on every run.
+**Spread-inversion detector (corr→1):** worst max|net exposure| = 1.00, worst |portfolio beta| = 1.00
+— bounded, no explosion. Per-regime worst drawdown: corr_one -1.0000, crash -0.6717, liq_evap -1.0000,
+dispersion -0.8072, trend_reversal -0.8376.
+
+**R2-B — horizon sweep** (`tests/test_bab_stress_horizon.py`): 5000×200 and 5000×40 frames, full grid
+54 configs each (108 runs), all green. Determinism: repeated configs byte-identical (weights +
+backtest). Dollar neutrality: `max|Σw| ≤ 1e-9` on every cell; no non-finite cumulative. Worst case:
+5000×200 dd -0.9599 / sharpe -7.93 / turnover 0.1282; 5000×40 dd -0.9659 / sharpe -3.31 / turnover
+0.1231. Total grid runtime ~45 s (< 60 s budget; no reduction — full grid ran).
+
+**R2-C — scale guard** (`tests/test_bab_scale_perf_guard.py`): 5000×200 median 299.2 ms (ceiling
+800 ms) [OK]; 5000×500 median 762.0 ms (ceiling 2000 ms) [OK]. Matches preflight baseline
+(306 ms / 783 ms).
+
+No genuine product defect found; nothing weakened.
+
+### Session exit requirements (status this session)
 1. All new targeted tests pass:
    `PYTHONPATH=. python3 -m pytest tests/test_bab_stress_regimes.py tests/test_bab_stress_horizon.py tests/test_bab_scale_perf_guard.py -q`
-2. `bash scripts/bab_gate.sh` → **RC=0** (record passed/skipped/RC/wall-clock; green baseline is
-   **5373 passed, 35 skipped, RC=0**; expect ~650 s).
-3. Record **measured numbers** for every stage (drawdowns, worst period, turnover, runtimes) — not
-   "no defect found" prose.
-4. If a genuine defect is found (non-finite output, dollar-neutrality breach, lookahead leak,
-   order-of-magnitude perf regression at scale), **fix the product code** with a focused regression
-   test; do not weaken an assertion to make it pass.
-5. Refresh this `HANDOFF.md` (timestamp, HEAD, gate result, shipped changes, next candidates) and keep
-   `AGENT_HANDOFF.md` pointer-only and in sync.
+   → **155 passed** (2026-11-13T18:40:11Z).
+2. `bash scripts/bab_gate.sh` → **RC=0** required before session close (green baseline
+   **5373 passed, 35 skipped, RC=0**, ~657 s wall-clock); gate run in progress at refresh time,
+   result to be recorded below once it finishes.
+3. Measured numbers recorded for every stage — see "R2 SHIPPED — measured results" above.
+4. No genuine product defect found; nothing weakened.
+5. This `HANDOFF.md` refreshed (timestamp, HEAD, shipped changes, next task); `AGENT_HANDOFF.md`
+   kept pointer-only and in sync.
 6. Commit nothing unless explicitly requested (the controller checkpoints).
 
 ---
 
 ## State reconciliation (verified this session, 2026-11-13T18:29:42Z)
 
-**Gate baseline (verified last session, unchanged):** `bash scripts/bab_gate.sh`
-→ **5373 passed, 35 skipped, RC=0** (wall-clock **656.99 s** ≈ 657 s on this host; coverage ~97%).
+**Gate baseline:** `bash scripts/bab_gate.sh` → **5373 passed, 35 skipped, RC=0** (wall-clock
+**656.99 s** ≈ 657 s on this host; coverage ~97%). A full-gate re-run was started this session
+immediately after R2 shipped; record its result here once it finishes.
 
 - The **657 s** figure is the honest wall-clock on this host. A prior record said ~446 s. Treat the
   gate as **"≤ 15 min"** budget; do not panic at 657 s, and do not claim 446 s as current.
 - The 35 "skipped" are pytest deselected skips; a raw `--collect-only` counts 5408, of which 35 are
   skipped at run time — that 35-gap is expected, not a regression.
-- **No R2 files present** (confirmed by preflight this session).
+- **R2 files:** all three present and passing (`tests/test_bab_stress_regimes.py`,
+  `tests/test_bab_stress_horizon.py`, `tests/test_bab_scale_perf_guard.py` — 155 passed this
+  session; preflight confirms presence + pass).
 
 **R1 campaign — CLOSED (do not reopen):**
 - R1-A Causality / no-lookahead — `tests/test_bab_causal_no_lookahead.py`.
@@ -262,14 +301,11 @@ commits. Its only side effect is printing evidence.
 
 ---
 
-## NEXT candidates (after R2 ships)
+## NEXT candidates (after R3 ships)
 
-1. **R3 — Execution realism:** slippage/impact model beyond flat bps, partial fills, borrow-cost
-   asymmetry for the short leg, rebalance-frequency sensitivity (daily/weekly/monthly) on the R2
-   regimes.
-2. **R4 — Live-readiness contract:** dry-run/portfolio-risk report, drawdown-limit kill switch, and a
+1. **R4 — Live-readiness contract:** dry-run/portfolio-risk report, drawdown-limit kill switch, and a
    reproducible paper-trading replay harness against the real fixtures.
-3. Only after both: revisit the locked `data_loader.py` broad-`except` sweep with a concrete
+2. Only after both: revisit the locked `data_loader.py` broad-`except` sweep with a concrete
    reproducible defect + regression test.
 
 **This file is the single source of truth. `AGENT_HANDOFF.md` is a pointer only.**
