@@ -150,29 +150,33 @@ def construct_portfolio(signals_df, dollar_neutral=True, gross_exposure_limit=No
                 _write_book(short_cell, short_mask[short_rows].sum(axis=1), short_w[short_rows])
 
         w_arr[~np.isfinite(w_arr)] = 0.0
-        w_arr = np.clip(w_arr, -1e12, 1e12)
-        w_arr[~np.isfinite(w_arr)] = 0.0
+        if np.any(w_arr < -1e12) or np.any(w_arr > 1e12):
+            np.clip(w_arr, -1e12, 1e12, out=w_arr)
+            w_arr[~np.isfinite(w_arr)] = 0.0
         if dn:
             both = (n_long > 0) & (n_short > 0)
             if np.any(both):
-                for i in np.nonzero(both)[0]:
-                    row = w_arr[i]
-                    long_sum = float(row[row > 0].sum())
-                    short_sum = float(row[row < 0].sum())
-                    if long_sum > 1e-18:
-                        row[row > 0] = row[row > 0] / long_sum
-                    if short_sum < -1e-18:
-                        row[row < 0] = row[row < 0] / (-short_sum)
-                    w_arr[i] = row
+                both_idx = np.nonzero(both)[0]
+                w_b = w_arr[both_idx]
+                pos = np.where(w_b > 0.0, w_b, 0.0)
+                neg = np.where(w_b < 0.0, w_b, 0.0)
+                long_sum = pos.sum(axis=1)
+                short_sum = neg.sum(axis=1)
+                with np.errstate(divide='ignore', invalid='ignore'):
+                    pos_scale = np.where(long_sum > 1e-18, 1.0 / long_sum, 1.0)
+                    neg_scale = np.where(short_sum < -1e-18, -1.0 / short_sum, 1.0)
+                w_arr[both_idx] = pos * pos_scale[:, None] + neg * neg_scale[:, None]
             net = w_arr.sum(axis=1)
-            both = (n_long > 0) & (n_short > 0)
-            if np.any(both & (np.abs(net) > 1e-12)):
-                for i in np.nonzero(both & (np.abs(net) > 1e-12))[0]:
-                    row = w_arr[i]
-                    long_sum = float(row[row > 0].sum())
-                    if long_sum > 1e-18:
-                        row[row > 0] = row[row > 0] * (1.0 - net[i]) / long_sum
-                    w_arr[i] = row
+            need_fix = both & (np.abs(net) > 1e-12)
+            if np.any(need_fix):
+                fix_idx = np.nonzero(need_fix)[0]
+                w_f = w_arr[fix_idx]
+                pos = np.where(w_f > 0.0, w_f, 0.0)
+                neg = np.where(w_f < 0.0, w_f, 0.0)
+                long_sum = pos.sum(axis=1)
+                with np.errstate(divide='ignore', invalid='ignore'):
+                    scale = np.where(long_sum > 1e-18, (1.0 - net[fix_idx]) / long_sum, 1.0)
+                w_arr[fix_idx] = pos * scale[:, None] + neg
             w_arr[~np.isfinite(w_arr)] = 0.0
     except BABPortfolioError:
         raise
