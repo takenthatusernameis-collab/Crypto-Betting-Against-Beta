@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import numpy as _np
 import pandas as pd
+import pytest
 
 import strategies.betting_against_beta.strategy as strategy_mod
 from strategies.betting_against_beta.strategy import BABStrategy
@@ -148,8 +149,16 @@ class _ExplodingAllFloatNumpy(pd.DataFrame):
         raise RuntimeError("fillna boom")
 
 
-def test_run_finiteness_fallback_double_failure_is_swallowed(monkeypatch):
-    """Exercise strategy.py lines 381-385 including final pass."""
+def test_run_finiteness_fallback_double_failure_surfaces(monkeypatch):
+    """Exercise strategy.py lines 381-385 including final pass.
+
+    The double-failure path (to_numpy raises *and* replace/fillna raises) no
+    longer silently swallows: it surfaces as ``BABDataError`` so a corrupt,
+    non-finite frame cannot be passed into ``run_backtest`` and silently
+    produce wrong P&L.
+    """
+    from strategies.betting_against_beta.errors import BABDataError
+
     returns = _base_returns()
     strat = BABStrategy(
         benchmark="BTC",
@@ -164,13 +173,5 @@ def test_run_finiteness_fallback_double_failure_is_swallowed(monkeypatch):
         return _ExplodingAllFloatNumpy(real_construct(*args, **kwargs))
 
     monkeypatch.setattr(strategy_mod, "construct_portfolio", _construct)
-    # Must not raise; run_backtest may also struggle but strategy should reach it
-    # with the (unfixed) weights object — if run_backtest fails, that's a real issue,
-    # but the finiteness guard's own exception path is exercised.
-    try:
-        res = strat.run(returns_df=returns)
-        assert res is not None
-    except Exception:
-        # The guard swallowed its own errors (381-385). If downstream fails due to
-        # this pathological mock, the defensive lines are still exercised; accept.
-        pass
+    with pytest.raises(BABDataError, match="weight finiteness cleanup failed"):
+        strat.run(returns_df=returns)

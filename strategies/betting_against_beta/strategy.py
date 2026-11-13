@@ -390,11 +390,18 @@ class BABStrategy:
             if not _np.isfinite(wa2).all():
                 wa2 = _np.where(_np.isfinite(wa2), wa2, 0.0)
                 weights.iloc[:] = wa2
-        except Exception:
+        except Exception as exc:
             try:
                 weights = weights.replace([_np.inf, -_np.inf], 0.0).fillna(0.0)
-            except Exception:
-                pass
+            except Exception as exc2:
+                # The fallback also failed: weights is uncoercible (exotic
+                # dtype, read-only buffer, overridden replace/fillna).  A
+                # silent swallow here would pass a corrupt, non-finite frame
+                # into run_backtest and silently produce wrong P&L, so surface
+                # it as a BABDataError with both exceptions chained.
+                raise BABDataError(
+                    f"weight finiteness cleanup failed: {exc2} (outer: {exc})"
+                ) from exc2
         backtest = run_backtest(returns, weights, transaction_costs=cfg.transaction_costs, slippage=getattr(cfg, "slippage", 0.0))
 
         result = BABResult(
