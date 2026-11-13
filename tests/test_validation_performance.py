@@ -247,6 +247,80 @@ class TestSeriesIsParseableEquivalence:
         self._assert_same(s)
 
 
+class TestMaxConsecutiveEqualFiniteOracle:
+    """Randomized oracle for the bincount-based run-length detector."""
+
+    @staticmethod
+    def _reference(arr):
+        arr = np.asarray(arr, dtype=float)
+        best = 0
+        run = 0
+        prev = None
+        prev_finite = False
+        for v in arr:
+            fin = bool(np.isfinite(v))
+            if fin and prev_finite and v == prev:
+                run += 1
+            else:
+                run = 1
+            if fin and run > best:
+                best = run
+            prev = v
+            prev_finite = fin
+        return best
+
+    def test_random_arrays_match_oracle(self):
+        rng = np.random.default_rng(1234)
+        for _ in range(300):
+            n = int(rng.integers(0, 60))
+            arr = rng.normal(0.0, 1.0, size=n)
+            if n:
+                arr[rng.random(n) < 0.2] = np.nan
+                arr[rng.random(n) < 0.1] = np.inf
+                arr[rng.random(n) < 0.1] = -np.inf
+                for _ in range(3):
+                    i0 = int(rng.integers(0, n))
+                    i1 = int(rng.integers(i0, n))
+                    arr[i0 : i1 + 1] = 0.5
+            assert dl._max_consecutive_equal_finite(arr) == self._reference(arr)
+
+    def test_large_constant_and_alternating(self):
+        assert dl._max_consecutive_equal_finite(np.zeros(5000)) == 5000
+        assert dl._max_consecutive_equal_finite(np.tile([1.0, 2.0], 2500)) == 1
+
+
+class TestNumericFrameFastPathEquivalence:
+    """Pin the numeric fast path in the campaign against the per-column oracle."""
+
+    def test_all_numeric_frame_uses_numeric_path_matches_oracle(self):
+        df = _numeric_frame(n_days=500, n_assets=40)
+        got = dl._run_data_quality_campaign(df)
+        expected = _oracle_quality(df)
+        pd.testing.assert_frame_equal(got, expected)
+
+    def test_numeric_stale_column_raise_matches_oracle(self):
+        df = _numeric_frame(n_days=400, n_assets=10)
+        df["FROZEN"] = 0.5
+        with pytest.raises(BABDataError, match="Stale/frozen data"):
+            dl._run_data_quality_campaign(df)
+        with pytest.raises(BABDataError, match="Stale/frozen data"):
+            _oracle_quality(df)
+
+    def test_numeric_mixed_nan_and_finite_matches_oracle(self):
+        df = _numeric_frame(n_days=300, n_assets=20)
+        df.loc[df.index[:100], "A0"] = np.nan
+        df.loc[df.index[:50], "A1"] = np.inf
+        got = dl._run_data_quality_campaign(df, min_finite_fraction=0.5)
+        expected = _oracle_quality(df, min_finite_fraction=0.5)
+        pd.testing.assert_frame_equal(got, expected)
+
+    def test_short_rows_numeric(self):
+        df = _numeric_frame(n_days=1, n_assets=3)
+        got = dl._run_data_quality_campaign(df)
+        expected = _oracle_quality(df)
+        pd.testing.assert_frame_equal(got, expected)
+
+
 class TestValidationPerformance:
     N_DAYS = 2000
     N_ASSETS = 100
@@ -266,5 +340,12 @@ class TestValidationPerformance:
         _, elapsed = _timed(dl._run_data_quality_campaign, numeric_frame)
         assert elapsed < 3.0, (
             f"_run_data_quality_campaign took {elapsed:.3f}s for "
+            f"{numeric_frame.shape}; performance regression"
+        )
+
+    def test_validate_returns_is_fast(self, numeric_frame):
+        _, elapsed = _timed(dl.validate_returns_dataframe, numeric_frame)
+        assert elapsed < 1.0, (
+            f"validate_returns_dataframe took {elapsed:.3f}s for "
             f"{numeric_frame.shape}; performance regression"
         )

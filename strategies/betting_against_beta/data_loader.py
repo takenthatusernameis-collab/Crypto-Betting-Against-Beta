@@ -1073,7 +1073,7 @@ def _drop_all_nan_columns(df: pd.DataFrame) -> pd.DataFrame:
     # failure (e.g. a DataFrame subclass whose ``__getitem__`` raises) falls
     # back to the slow per-column branch, which is itself defensive.
     try:
-        if all(pd.api.types.is_numeric_dtype(df[col]) for col in df.columns):
+        if all(pd.api.types.is_numeric_dtype(dt) for dt in df.dtypes):
             arr = df.to_numpy(dtype=float, copy=False)
             finite = np.isfinite(arr)
             keep_mask = finite.any(axis=0)
@@ -1296,10 +1296,14 @@ def _coerce_numeric(df: pd.DataFrame) -> pd.DataFrame:
 def _max_consecutive_equal_finite(arr):
     """Maximum run length of consecutive equal *finite* values in ``arr``.
 
-    Vectorized: group boundaries are placed wherever the value changes or a
-    non-finite entry appears, then the largest finite group is counted. This
-    matches the per-element ``arr[i] == arr[i-1] and isfinite(both)`` check
-    used by the stale-data campaign without a Python loop over every row.
+    Group boundaries are placed wherever the value changes or a non-finite entry
+    appears, then the largest finite group is counted. This matches the
+    per-element ``arr[i] == arr[i-1] and isfinite(both)`` check used by the
+    stale-data campaign without a Python loop over every row.
+
+    Group sizes are tallied with a single :func:`numpy.bincount` over the
+    cumulative group ids (group ids are already small non-negative integers), so
+    no sorting pass (``np.unique``/``np.sort``) is needed.
     """
     arr = np.asarray(arr, dtype=float)
     n = arr.shape[0]
@@ -1312,10 +1316,8 @@ def _max_consecutive_equal_finite(arr):
     if n > 1:
         changed[1:] = (arr[1:] != arr[:-1]) | (~finite[1:]) | (~finite[:-1])
     group_id = np.cumsum(changed)
-    valid_groups = group_id[finite]
-    if valid_groups.size == 0:
-        return 0
-    _, counts = np.unique(valid_groups, return_counts=True)
+    # Only finite members contribute to a run; tally their group sizes.
+    counts = np.bincount(group_id[finite])
     return int(counts.max()) if counts.size else 0
 
 
@@ -1407,7 +1409,7 @@ def _run_data_quality_campaign(
     # frame instead of a per-column Python loop. Semantics, thresholds and raise
     # ordering are identical to the per-column branch below.
     try:
-        if all(pd.api.types.is_numeric_dtype(cleaned[col]) for col in cleaned.columns):
+        if all(pd.api.types.is_numeric_dtype(dt) for dt in cleaned.dtypes):
             arr2 = cleaned.to_numpy(dtype=float, copy=False)
             finite_mask = np.isfinite(arr2)
             finite_counts = finite_mask.sum(axis=0)
@@ -1673,8 +1675,21 @@ def validate_returns_dataframe(
             allow_duplicate_timestamps=allow_duplicate_timestamps,
         )
 
-    # Per-asset minimum history
-    finite_counts = pd.DataFrame(cleaned).apply(lambda s: int(np.isfinite(s.to_numpy()).sum()))
+    # Per-asset minimum history. A single vectorized pass over the numeric
+    # block avoids constructing one Series + Python ``apply`` per column.
+    # Equivalent to ``DataFrame.apply(lambda s: int(isfinite(s.to_numpy()).sum()))``
+    # for the all-numeric frame produced by ``_coerce_numeric``; if coercion was
+    # skipped (``quality=False`` still runs coerce above) fall back to the
+    # per-column path for any non-numeric frame.
+    try:
+        finite_counts = np.isfinite(cleaned.to_numpy(dtype=float, copy=False)).sum(axis=0)
+        finite_counts = pd.Series(
+            finite_counts.astype(np.int64), index=cleaned.columns
+        )
+    except (TypeError, ValueError):
+        finite_counts = pd.DataFrame(cleaned).apply(
+            lambda s: int(np.isfinite(s.to_numpy()).sum())
+        )
     short = finite_counts[finite_counts < min_rows]
     if len(short) > 0:
         details = ", ".join(f"{col}={int(n)}" for col, n in short.sort_values().items())
