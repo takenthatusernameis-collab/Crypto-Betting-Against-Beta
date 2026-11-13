@@ -1,7 +1,7 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-13T16:22:02Z
-**HEAD:** `1757442` — `chore(kilo): checkpoint agent session` (working tree: 2 uncommitted test files, see below)
+**Timestamp (refreshed):** 2026-11-13T17:24:19Z
+**HEAD:** `f7fe638` — `chore(kilo): checkpoint agent session` (working tree: clean)
 **Repo:** `crypto-betting-against-beta` — BAB (Betting Against Beta) market-neutral crypto strategy: long low-beta / short high-beta vs a BTC benchmark (`README.md`, `strategies/betting_against_beta/`).
 
 > This is the **single source of truth**. `AGENT_HANDOFF.md` is a pointer only.
@@ -9,14 +9,12 @@
 
 ---
 
-## State reconciliation (2026-11-13T16:22:02Z)
+## State reconciliation (2026-11-13T17:24:19Z)
 
 **Gate is GREEN:** `bash scripts/bab_gate.sh` → **5373 passed, 35 skipped, RC=0, ~446 s**
 (baseline was 5204 passed; **+169** new tests, zero regressions).
 
-**Working tree:** clean except the two intended test deliverables (NOT yet committed — controller checkpoints):
-- `M  tests/test_bab_real_data_e2e.py` — R1-B finalized (253 insertions / 50 deletions)
-- `?? tests/test_bab_real_data_oracle.py` — R1-C new (51 tests)
+**Working tree:** clean (all R1 deliverables committed).
 
 **R1 campaign status — ALL STAGES SHIPPED:**
 - R1-A Causality / no-lookahead — **SHIPPED** (`tests/test_bab_causal_no_lookahead.py`).
@@ -34,7 +32,7 @@
 
 ---
 
-## INITIAL TASK FOR THE NEXT AGENTIC SESSION (2026-11-13T16:22:02Z) — BINDING
+## INITIAL TASK FOR THE NEXT AGENTIC SESSION (2026-11-13T17:24:19Z) — BINDING
 
 > **Inference from repo name:** `crypto-betting-against-beta` → the BAB engine *is* the product. Correctness (R1) is now locked and oracle-verified. A trading strategy's remaining existential risk is **regime breakdown** (the BAB trade historically fails exactly when the spread inverts: crashes, correlation→1, liquidity evaporation, leverage-driven deleveraging) and **scale**. The next session must therefore **stress the engine against hostile regimes and scale, with measured performance ceilings**, and **harden any real defect found** — not re-run correctness proofs.
 >
