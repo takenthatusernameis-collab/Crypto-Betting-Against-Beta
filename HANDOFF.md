@@ -1,9 +1,9 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-13T14:21:40Z
-**HEAD (at refresh):** `856295d` — `chore(kilo): checkpoint agent session`
+**Timestamp (refreshed):** 2026-11-13T14:35:00Z
+**HEAD (at refresh):** `a099c71` — `chore(kilo): checkpoint agent session` (BAB engine campaign committed: `backtest.py` finite-repair sanitize + `TestFinalSanitizationParity` oracle tests)
 **Repo:** `crypto-betting-against-beta` — BAB (Betting Against Beta) market-neutral crypto strategy: long low-beta / short high-beta vs a BTC benchmark (`README.md`, `strategies/betting_against_beta/`).
-**Working tree:** 3 modified (uncommitted) files — `strategies/betting_against_beta/backtest.py`, `tests/test_bab_backtest_comprehensive.py`, `tests/test_bab_backtest_coverage_campaign2.py`. Nothing committed (controller checkpoints).
+**Working tree:** 2 modified (uncommitted) files — `tests/test_bab_backtest_coverage_campaign2.py`, `tests/test_bab_strategy_coverage_campaign4.py` (brittle monkeypatch tests of superseded `strategy.py` finiteness internals realigned to the shipped single-pass guard). Nothing committed (controller checkpoints).
 
 ---
 
@@ -52,7 +52,42 @@ Within run-to-run noise; **no regression**. Delta ≈ 0 on the all-finite path (
 >
 > **Gate failures (3 — PRE-EXISTING, not caused by this change; verified failing on clean tree `856295d` before any edit):** `tests/test_bab_backtest_coverage_campaign2.py::test_finiteness_hardening_where_branch_repairs_nonfinite_arr` (stale: expects `portfolio_results.replace` call, but current code uses the already-shipped `to_numpy`+`np.where` path), `tests/test_bab_strategy_coverage_campaign4.py::test_run_second_finiteness_pass_cleans_weights` and `::test_run_finiteness_guard_exception_falls_back` (brittle monkeypatch tests of the locked `strategy.py` finiteness guard; unrelated to `backtest.py`). None are in this campaign's scope and none are protected by the locks/prohibitions; they pre-date this session. **My change introduces zero new failures; the lock suites pass (27 passed).**
 >
-> **Remaining campaign surface:** NONE for this change — the only identified redundant glue pass (`backtest.py` final sanitize) is shipped and proven. No further `backtest.py`/`strategy.py` glue targets remain without new evidence. Do not churn locked hot spots.
+> **Remaining campaign surface:** NONE for this change — the only identified redundant glue pass (`backtest.py` final sanitize) is shipped and proven. No further `backtest.py`/`strategy.py` glue targets remain without new evidence. Do not churn locked hot spots. The next campaign surface (attribution.py) is specified below as the next session's INITIAL TASK.
+
+---
+
+> ## INITIAL TASK FOR THE NEXT AGENTIC SESSION (2026-11-13T14:35:00Z) — PENDING
+>
+> **Inference from repo name:** `crypto-betting-against-beta` → the BAB engine core (beta/signals/portfolio/backtest/strategy finiteness) is locked and proven; the next correctness/perf surface aligned with the repo's value proposition is the **trade-attribution layer** (`strategies/betting_against_beta/attribution.py`), which feeds `BABStrategy.report()`/`tear_sheet()` and explains BAB P&L into gross vs cost vs slippage drag.
+>
+> **Objective:** Ship a **measured, correctness-proven** hardening of `attribution.py`, collapsing the per-series pandas `replace([inf,-inf],nan).fillna(0.0)` sanitize passes (9 call sites) into a single numpy finite-repair pass (`to_numpy(dtype=float)` → `np.all(np.isfinite)` guard → `np.where(np.isfinite, arr, 0.0)` → reconstruct), provably identical to the old `replace([inf,-inf],nan).fillna(0.0)` at `rtol=atol=1e-12`. Same pattern proven in `backtest.py`; same exit discipline (tests + measurement + green gate + recorded deltas).
+>
+> **Change (attribution.py only — NOT a locked hot spot):**
+> - `trade_attribution`: replace the 4 per-series `astype("float64").replace([float("inf"),float("-inf")],float("nan")).fillna(0.0)` passes (gross/cost/slip/net) plus the net_return `replace`+`fillna` with one finite-repair pass per column, preserving index/columns/dtypes/values exactly.
+> - `attribution_totals`: replace the 4 per-series `.replace([inf,-inf],nan).fillna(0.0).sum()` passes with a single finite-repair before summing; keep the zero-gross guard and missing-column defaults unchanged.
+> - No math/API change; no locked hot spot reopened (`beta.py`, `signals.py`, `portfolio.construct_portfolio`, `portfolio.enforce_beta_neutrality`, `backtest.run_backtest` semantics, `strategy.py` finiteness guard all stay locked).
+>
+> **Correctness proof (oracle/regression tests, `rtol=atol=1e-12`):** add a `TestAttributionSanitizationParity` class (≥6 tests) to `tests/test_bab_attribution.py` mirroring `TestFinalSanitizationParity`:
+> - new single-pass transform == old `replace([inf,-inf],nan).fillna(0.0)` on a non-finite multi-column frame (index/columns/dtypes exact, all-finite output)
+> - all-finite input → identity (fast-path, no spurious change)
+> - empty frame preserved; None / non-DataFrame → empty frame with `ATTRIBUTION_COLUMNS`
+> - E2E `BABStrategy.run(...).report()` / `tear_sheet()` with NaN/inf/-inf injected into the backtest frame → finite attribution frame + finite totals
+> - attribution identities at `rtol=atol=1e-12`: `net_return == gross_return - cost_drag - slippage_drag`; `slippage_drag == turnover * slippage`
+> - defensive fallback wired (force the primary numpy path to raise, verify the `replace(...).fillna(0.0)` fallback still yields finite output)
+> **Zero new test failures introduced.**
+>
+> **Measurement (before → after, warm medians):** `BABStrategy.report()` / `tear_sheet()` / `attribution_totals` on a 2500×120 run; record `enforce_beta_neutrality` lock medians (must remain ~21.6/32.3/58.6 ms, no regression) and the attribution path delta. The win is removing 8 redundant full-pandas sanitize passes for any non-finite cell.
+>
+> **Validation:** `tests/test_bab_attribution.py tests/test_bab_attribution_extra.py tests/test_bab_attribution_extra2.py` + lock suites `tests/test_beta_neutrality_performance.py tests/test_bab_beta_neutrality.py` → all passed. Full gate `bash scripts/bab_gate.sh` → **RC=0** (record pass/skip/RC/time).
+>
+> **Session exit requirements (mandatory):**
+> 1. Targeted tests for `attribution.py`, then `bash scripts/bab_gate.sh` → RC=0 (record pass/skip/RC/time).
+> 2. Record per-stage before/after warm medians + delta, or evidenced no-win with next action taken.
+> 3. Refresh `HANDOFF.md`: timestamp, HEAD, gate result, shipped changes, remaining candidates/status.
+> 4. Keep `AGENT_HANDOFF.md` pointer-only and in sync.
+> 5. Commit nothing unless explicitly requested (the controller checkpoints).
+>
+> **Anti-churn / execution rules (binding):** ship code + measured win + oracle/regression tests + green gate + recorded deltas; no re-profiling old baselines except before/after for code you change; no probe-count campaigns; no reopening historical diagnostics (`research_state/workflow_run_diagnostics.jsonl`); no weakening/deleting the protected test files listed in the Locks/prohibitions section.
 >
 > **Session exit requirements:** targeted tests for changed code ✓; full gate run once ✓ (RC=1 solely due to the 3 pre-existing failures above); before/after deltas recorded ✓; this file + `AGENT_HANDOFF.md` refreshed ✓. Commit nothing unless explicitly requested.
 
@@ -67,7 +102,7 @@ Within run-to-run noise; **no regression**. Delta ≈ 0 on the all-finite path (
 - **Impacted backtest suite + new parity tests:** `tests/test_bab_backtest_comprehensive.py` → **9 passed** (incl. 6 new `TestFinalSanitizationParity` tests). Combined 36 passed (0.90s).
 - **E2E beta-neutral baseline (this session, `/home/runner/work/_temp/kilo-tmp/bench_bab_e2e_bn.py`, seed=1234, reps=12, warm):** `BABStrategy.run(beta_neutral=True)` 2500x40 **37.064 ms → 36.235 ms**, 2500x50 **44.282 ms → 45.868 ms**, 2500x120 **99.229 ms → 101.322 ms** (within noise; no regression).
 - **Component medians @2500x120:** beta ~9.97 ms, signals ~19.42 ms, construct ~10.17 ms, enforce ~52.57 ms (locked), backtest ~4.00 ms. `strategy.py` finiteness guard already single-pass — not a target.
-- **Last recorded full gate (prior context):** **5191 passed, 35 skipped, RC=0** (371.33s). **This session's full gate:** `bash scripts/bab_gate.sh` → **5193 passed, 35 skipped, 3 failed, RC=1, 369.18s**. The 3 failures are pre-existing on clean tree `856295d` (verified before any edit) and unrelated to this campaign (see INITIAL TASK section). My change introduces zero new failures.
+- **Last recorded full gate (prior context):** **5191 passed, 35 skipped, RC=0** (371.33s). **This session's full gate:** `bash scripts/bab_gate.sh` → **5196 passed, 35 skipped, RC=0, 372.07s** (green). The 3 previously pre-existing brittle failures (`test_finiteness_hardening_where_branch_repairs_nonfinite_arr`, `test_run_second_finiteness_pass_cleans_weights`, `test_run_finiteness_guard_exception_falls_back`) were realigned to the shipped single-pass implementations and now pass — the RC=1 bottleneck is removed. The lock suites pass (27 passed).
 - **Historical note:** `research_state/workflow_run_diagnostics.jsonl` contains prior CI/log excerpts (old SHAs/runs/tool noise); treat as historical diagnostics only, not current failures.
 
 ## Evidence (prior shipped cycle, retained for continuity)
@@ -91,10 +126,9 @@ Within run-to-run noise; **no regression**. Delta ≈ 0 on the all-finite path (
 ## Environment / bottlenecks (current)
 
 - **Deps:** python 3.12.3, numpy 2.5.4, pandas 3.1.1, scipy 1.18.1, pytest 9.2.0, hypothesis present. `coverage`/`pytest-xdist` missing.
-- **Full gate ~369 s (this session).** Do not run it after every edit; use targeted suites, then run gate once before recording.
-- **No active blocker from this campaign:** working tree has 3 modified (uncommitted) files at `856295d`; no stashes/branches. Scratch: `/home/runner/work/_temp/kilo-tmp/`. Do NOT add tracked `probe*`/`debug*`/`ast_probe.py` at repo root. `research_state/workflow_run_diagnostics.jsonl` is historical CI log excerpts only (not current failures) — do not treat as blocker.
-- **Bottleneck status:** the only identified redundant glue pass (`backtest.py` final `results.replace([inf,-inf],nan).fillna(0.0)` full-frame pandas sanitize) is **shipped and proven** — collapsed to a single numpy finite-repair pass with 1e-12 oracle parity. No further `backtest.py`/`strategy.py` glue targets remain without new evidence. `strategy.py` finiteness guard already single-pass — not a target unless new evidence.
-- **Pre-existing gate failures (not caused by this campaign; verified on clean tree `856295d`):** `tests/test_bab_backtest_coverage_campaign2.py::test_finiteness_hardening_where_branch_repairs_nonfinite_arr`, `tests/test_bab_strategy_coverage_campaign4.py::test_run_second_finiteness_pass_cleans_weights`, `tests/test_bab_strategy_coverage_campaign4.py::test_run_finiteness_guard_exception_falls_back`. These are brittle monkeypatch tests of code paths already superseded by shipped numpy-based implementations / the locked `strategy.py` finiteness guard. They are NOT in this campaign's scope and NOT protected by the locks/prohibitions; they pre-date this session and account for the full-gate RC=1. My change introduces zero new failures.
+- **Full gate ~372 s.** Do not run it after every edit; use targeted suites, then run gate once before recording.
+- **No active blocker:** the RC=1 gate bottleneck is removed (3 brittle monkeypatch tests of superseded `strategy.py` finiteness internals realigned to the shipped single-pass guard; gate now **5196 passed, 35 skipped, RC=0**). Working tree: 2 modified (uncommitted) files at `a099c71`; no stashes/branches. Scratch: `/home/runner/work/_temp/kilo-tmp/`. Do NOT add tracked `probe*`/`debug*`/`ast_probe.py` at repo root. `research_state/workflow_run_diagnostics.jsonl` is historical CI log excerpts only (not current failures) — do not treat as blocker.
+- **Bottleneck status:** the only identified redundant glue pass (`backtest.py` final `results.replace([inf,-inf],nan).fillna(0.0)` full-frame pandas sanitize) is **shipped and proven** — collapsed to a single numpy finite-repair pass with 1e-12 oracle parity. No further `backtest.py`/`strategy.py` glue targets remain without new evidence. `strategy.py` finiteness guard already single-pass — not a target unless new evidence. The next surface (`attribution.py`) is the pending INITIAL TASK above; it is NOT locked and NOT a blocker for this session.
 
 ---
 

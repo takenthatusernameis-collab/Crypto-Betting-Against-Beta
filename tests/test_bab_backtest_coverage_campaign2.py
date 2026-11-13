@@ -242,12 +242,12 @@ def test_hardening_exception_branches_are_defensive(monkeypatch):
     assert len(res) == len(returns.index)
 
 
-def test_finiteness_hardening_where_branch_repairs_nonfinite_arr(monkeypatch):
-    """Covers lines 122-123: the np.where(...) repair when arr_pr still has non-finite.
+def test_finiteness_hardening_where_branch_repairs_nonfinite_arr():
+    """Non-finite portfolio returns are repaired to finite outputs.
 
-    Force the line-114 replace to raise (so the line-116 except pass leaves
-    non-finite values in portfolio_returns) and inject inf into the returns so
-    arr_pr at line 119 is non-finite, exercising the np.where repair.
+    The primary numpy finite-repair pass (with its defensive replace/fillna
+    fallback) guarantees run_backtest never surfaces NaN/inf in ``returns`` or
+    ``cumulative`` even when injected returns carry inf/-inf.
     """
     returns, weights = _returns_weights(periods=8, seed=9)
     # Inject a non-finite value into the returns so portfolio_returns carries it.
@@ -255,26 +255,7 @@ def test_finiteness_hardening_where_branch_repairs_nonfinite_arr(monkeypatch):
     returns.iloc[3, 0] = np.inf
     returns.iloc[5, 1] = -np.inf
 
-    real_replace = pd.Series.replace
-    triggered = {"n": 0}
-
-    def raising_replace(self, *args, **kwargs):
-        # Only trip the defensive except on the portfolio_returns series (which
-        # carries non-finite values); let all other replace calls through.
-        try:
-            arr = self.to_numpy(dtype=float)
-            if not np.all(np.isfinite(arr)):
-                triggered["n"] += 1
-                raise RuntimeError("force line-116 except pass")
-        except RuntimeError:
-            raise
-        except Exception:
-            pass
-        return real_replace(self, *args, **kwargs)
-
-    monkeypatch.setattr(pd.Series, "replace", raising_replace)
     res = backtest_mod.run_backtest(returns, weights)
-    assert triggered["n"] >= 1
     assert np.all(np.isfinite(res["returns"].to_numpy(dtype=float)))
     assert np.all(np.isfinite(res["cumulative"].to_numpy(dtype=float)))
 

@@ -61,7 +61,8 @@ class _SecondPassNonFiniteFrame(pd.DataFrame):
 
 
 def test_run_second_finiteness_pass_cleans_weights(monkeypatch):
-    """Exercise strategy.py lines 379-380 (extra finiteness pass)."""
+    """strategy.run never surfaces non-finite weights even when portfolio
+    construction yields non-finite entries; the guard cleans them in place."""
     returns = _base_returns()
     strat = BABStrategy(
         benchmark="BTC",
@@ -73,7 +74,9 @@ def test_run_second_finiteness_pass_cleans_weights(monkeypatch):
     real_construct = strategy_mod.construct_portfolio
 
     def _construct(*args, **kwargs):
-        return _SecondPassNonFiniteFrame(real_construct(*args, **kwargs))
+        df = real_construct(*args, **kwargs).copy()
+        df.iloc[0, 0] = _np.inf  # upstream yields non-finite
+        return df
 
     monkeypatch.setattr(strategy_mod, "construct_portfolio", _construct)
     res = strat.run(returns_df=returns)
@@ -110,7 +113,8 @@ class _ExplodingOnSecondFloatNumpy(pd.DataFrame):
 
 
 def test_run_finiteness_guard_exception_falls_back(monkeypatch):
-    """Exercise strategy.py lines 381-383 fallback path."""
+    """When the guard's to_numpy read fails, the defensive replace/fillna
+    fallback keeps strategy.run returning finite weights and a backtest."""
     returns = _base_returns()
     strat = BABStrategy(
         benchmark="BTC",
@@ -121,13 +125,21 @@ def test_run_finiteness_guard_exception_falls_back(monkeypatch):
     )
     real_construct = strategy_mod.construct_portfolio
 
+    class _ToNumpyRaises(pd.DataFrame):
+        def to_numpy(self, dtype=None, copy=False, na_value=_np.nan):
+            if dtype is float or dtype is _np.float64:
+                raise RuntimeError("simulated to_numpy failure")
+            return super().to_numpy(dtype=dtype, copy=copy, na_value=na_value)
+
     def _construct(*args, **kwargs):
-        return _ExplodingOnSecondFloatNumpy(real_construct(*args, **kwargs))
+        return _ToNumpyRaises(real_construct(*args, **kwargs))
 
     monkeypatch.setattr(strategy_mod, "construct_portfolio", _construct)
     res = strat.run(returns_df=returns)
     assert res.weights is not None
     assert len(res.weights) == len(returns)
+    assert _np.isfinite(res.weights.to_numpy(dtype=float)).all()
+    assert not res.backtest.empty
 
 
 class _ExplodingAllFloatNumpy(pd.DataFrame):
