@@ -2,14 +2,14 @@
 
 **Repo:** `crypto-betting-against-beta` — Betting Against Beta (BAB) market-neutral crypto strategy (long low-beta / short high-beta vs benchmark, default BTC). See `README.md`, `strategies/betting_against_beta/`.
 
-**Refreshed:** 2026-11-13T22:06:11Z
+**Refreshed:** 2026-11-13T22:07:36Z
 **HEAD:** `3c585f2` (`chore(kilo): checkpoint agent session`, main)
 **Working tree:** clean at refresh
 **Single source of truth:** this file. `AGENT_HANDOFF.md` is a pointer only. Read this whole file before doing anything. Do not create parallel handoff docs. If live evidence conflicts with recorded numbers here, **live run wins** — re-measure, record the delta, and update this file.
 
 ---
 
-## INITIAL TASK FOR NEXT SESSION (binding, timestamped 2026-11-13T22:06:11Z)
+## INITIAL TASK FOR NEXT SESSION (binding, timestamped 2026-11-13T22:07:36Z)
 
 **Objective:** complete **R3 (Execution Realism)** end-to-end on current `HEAD` with hard evidence. Partial completion is not acceptable. Ship code/tests/evidence; do not stop at analysis.
 
@@ -61,7 +61,7 @@ PYTHONPATH=. "$VENV/bin/python" scripts/bab_r2_preflight.py; echo "PREFLIGHT_RC=
 
 ## Current state snapshot (verified at refresh unless noted)
 
-- **HEAD / tree:** `3c585f2`, clean (`git status` clean at 2026-11-13T22:06:11Z).
+- **HEAD / tree:** `3c585f2`, clean (`git status` clean at 2026-11-13T22:07:36Z).
 - **R1:** closed/locked (per prior verified handoff; do not reopen without new reproducible evidence).
 - **R2:** previously re-verified green on `5e715c5` (2026-11-13T21:27:51Z): preflight `RC=0`; `tests/test_bab_stress_regimes.py tests/test_bab_stress_horizon.py tests/test_bab_scale_perf_guard.py` => 155 passed, 6 warnings, ~31.9s; scale medians 5000×200=164ms (≤800ms), 5000×500=384ms (≤2000ms). **Not re-run this refresh** — live run on current HEAD is required at session start.
 - **R3-A code:** shipped in-tree (execution realism plumbing present): `strategies/betting_against_beta/config.py` (R3-A fields/coercion/validation incl. `cost_model`, `prices`, `adv_usd`, `partial_fill`, `max_participation`), `strategies/betting_against_beta/strategy.py` (`_resolve_cost_model`, `run()` wiring), `strategies/betting_against_beta/backtest.py` (cost_model path, opt-in participation-aware slippage/partial-fill behavior), `strategies/betting_against_beta/costs.py` (`TransactionCostModel`, `compute_transaction_costs`).
