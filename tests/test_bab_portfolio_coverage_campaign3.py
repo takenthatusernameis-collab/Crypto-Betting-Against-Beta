@@ -162,18 +162,21 @@ class TestNonNumericAndDefensiveBranches:
         w = construct_portfolio(sig)
         assert np.isfinite(w.to_numpy()).all()
 
-    def test_outer_exception_returns_zero_frame(self, monkeypatch):
+    def test_outer_exception_surfaces_error(self, monkeypatch):
         sig = pd.DataFrame({"A": [1, 1], "B": [-1, -1]})
-        # Break np.where to force outer exception path (159-161)
+        # Break np.where to force outer exception path (179).  The outer
+        # handler now re-raises as BABPortfolioError rather than silently
+        # returning a zero frame (which would report "no positions").
+        import pytest
+        from strategies.betting_against_beta.portfolio import BABPortfolioError
         real_where = np.where
 
         def boom(*a, **k):
             raise RuntimeError("boom")
 
         monkeypatch.setattr(np, "where", boom)
-        w = construct_portfolio(sig)
-        assert w.shape == sig.shape
-        assert (w.to_numpy() == 0.0).all()
+        with pytest.raises(BABPortfolioError):
+            construct_portfolio(sig)
 
 
 class TestDollarNeutralRenormalization:

@@ -108,8 +108,13 @@ class TestPortfolioMicrogaps:
         assert w.shape == sig.shape
         assert (w.to_numpy() == 0.0).all()
 
-    def test_long_cell_assignment_except_pass(self, monkeypatch):
-        # portfolio.py:118-119 defensive.
+    def test_long_cell_assignment_surfaces_error(self, monkeypatch):
+        # portfolio.py:118-127 _write_book raises BABPortfolioError on fan-out
+        # mismatch; the outer handler (179) re-raises instead of silently
+        # returning a truncated book.  A flaky np.repeat that fails on the long
+        # side now surfaces rather than being swallowed.
+        import pytest
+        from strategies.betting_against_beta.portfolio import BABPortfolioError
         sig = pd.DataFrame({"A": [1, 1], "B": [-1, -1]})
         import strategies.betting_against_beta.portfolio as pmod
         real_repeat = pmod.np.repeat
@@ -121,11 +126,15 @@ class TestPortfolioMicrogaps:
                 raise RuntimeError("repeat fail")
             return real_repeat(a, repeats, *args, **kwargs)
         monkeypatch.setattr(pmod.np, "repeat", flaky_repeat)
-        w = construct_portfolio(sig)
-        assert np.isfinite(w.to_numpy()).all()
+        with pytest.raises(BABPortfolioError):
+            construct_portfolio(sig)
 
-    def test_short_cell_assignment_except_pass(self, monkeypatch):
-        # portfolio.py:131-132 defensive.
+    def test_short_cell_assignment_surfaces_error(self, monkeypatch):
+        # portfolio.py:131-132 _write_book raises on fan-out mismatch; the
+        # outer handler (179) re-raises.  A flaky np.repeat that fails on the
+        # short side now surfaces rather than being swallowed.
+        import pytest
+        from strategies.betting_against_beta.portfolio import BABPortfolioError
         sig = pd.DataFrame({"A": [1, 1], "B": [-1, -1]})
         import strategies.betting_against_beta.portfolio as pmod
         real_repeat = pmod.np.repeat
@@ -138,8 +147,8 @@ class TestPortfolioMicrogaps:
                 raise RuntimeError("repeat fail")
             return real_repeat(a, repeats, *args, **kwargs)
         monkeypatch.setattr(pmod.np, "repeat", flaky_repeat)
-        w = construct_portfolio(sig)
-        assert np.isfinite(w.to_numpy()).all()
+        with pytest.raises(BABPortfolioError):
+            construct_portfolio(sig)
 
     def test_dollar_neutral_net_correction_renormalizes_longs(self):
         # portfolio.py:152-157 executes when net remains != 0 after first renorm.
