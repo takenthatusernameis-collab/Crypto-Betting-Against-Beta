@@ -352,4 +352,4 @@ class TestAttributionSanitizationParity:
         # Every column must be finite despite the forced primary-path failure.
         assert np.all(real_isfinite(out.to_numpy(dtype=float)))
         totals = attribution_mod.attribution_totals(out)
-        assert all(np.isfinite(float(v)) for v in totals.values())
+        assert all(real_isfinite(float(v)) for v in totals.values())

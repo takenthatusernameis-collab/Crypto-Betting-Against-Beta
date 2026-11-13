@@ -32,7 +32,7 @@ def _finite_series(values, index) -> pd.Series:
         if not np.all(np.isfinite(arr)):
             arr = np.where(np.isfinite(arr), arr, 0.0)
         return pd.Series(arr, index=index)
-    except (TypeError, ValueError):
+    except Exception:
         # Defensive fallback: preserve the original replace+fillna semantics if
         # the numeric conversion or fast-path repair fails for any reason.
         return (
@@ -77,10 +77,21 @@ def _finite_sum(values) -> float:
     ``pd.Series(values).replace([inf,-inf], nan).fillna(0.0).sum()``: a
     single ``to_numpy`` + ``np.where`` finite repair, then a vectorized sum.
     """
-    arr = pd.Series(values).to_numpy(dtype=float, copy=False)
-    if not np.all(np.isfinite(arr)):
-        arr = np.where(np.isfinite(arr), arr, 0.0)
-    return float(arr.sum())
+    try:
+        arr = pd.Series(values).to_numpy(dtype=float, copy=False)
+        if not np.all(np.isfinite(arr)):
+            arr = np.where(np.isfinite(arr), arr, 0.0)
+        return float(arr.sum())
+    except Exception:
+        # Defensive fallback: preserve the original replace+fillna semantics if
+        # the numeric conversion or fast-path repair fails for any reason.
+        return float(
+            pd.Series(values)
+            .astype("float64")
+            .replace([float("inf"), float("-inf")], float("nan"))
+            .fillna(0.0)
+            .sum()
+        )
 
 
 def attribution_totals(attribution_df: pd.DataFrame) -> dict:
