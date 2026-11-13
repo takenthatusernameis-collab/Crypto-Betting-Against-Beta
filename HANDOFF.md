@@ -1,18 +1,18 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-13T03:07:24Z
-**HEAD:** `951a506 chore(kilo): checkpoint agent session` (working tree clean; last work `43a2313` Step 3d committed; gate re-confirmed green at 03:07:24Z)
+**Timestamp (refreshed):** 2026-11-13T03:40:43Z
+**HEAD:** `c5b60b9 chore(kilo): checkpoint agent session` (working tree clean; last work `43a2313` Step 3d committed; gate re-confirmed GREEN at 03:40:43Z)
 **Repo:** `crypto-betting-against-beta` — BAB (Betting Against Beta) market-neutral crypto strategy: long low-beta / short high-beta vs BTC benchmark (see `README.md`, `strategies/betting_against_beta/`).
 
 ## INITIAL TASK MESSAGE FOR THE NEXT AGENTIC SESSION (timestamped, repo-name-prioritized)
 
-> **Priority basis:** The repository *name* is the strategy — `crypto-betting-against-beta` = the BAB pipeline. Every run of that pipeline funnels through one gatekeeper: `validate_returns_dataframe` (`strategies/betting_against_beta/data_loader.py:1471`). Nothing in the strategy (beta, signals, portfolio, backtest) executes before validation passes. Therefore the highest-leverage work available is to speed up that gatekeeper's remaining measured hotspot.
+> **Priority basis:** The repository *name* is the strategy — `crypto-betting-against-beta` = the BAB pipeline. Every run of that pipeline funnels through one gatekeeper: `validate_returns_dataframe` (`strategies/betting_against_beta/data_loader.py:1473`). Nothing in the strategy (beta, signals, portfolio, backtest) executes before validation passes. Therefore the highest-leverage work available is to speed up that gatekeeper's remaining measured hotspot.
 >
 > **Binding next action — Step 3e: optimize the numeric-frame `validate_returns_dataframe` hot path.** Do not defer, do not substitute probe/coverage churn, do not reopen closed campaigns without a new reproducible defect. Execute end-to-end. This is the remaining measured leverage in the BAB data pipeline; the future agent must not avoid it.
 >
 > **Entry criteria (mandatory before writing code):**
-> 1. Re-confirm full gate green: `python3 -m pytest -q -p no:cacheprovider` → RC=0 (verified this session: **5130 passed / 35 skipped / RC=0**, 287.44s).
-> 2. Re-measure isolated baselines (record medians): `validate_returns_dataframe` on numeric 720x12 and 2000x100, plus a cProfile breakdown confirming `_run_data_quality_campaign` (data_loader.py:1322), `_drop_all_nan_columns` (data_loader.py:1058), `_normalize_columns` (data_loader.py:986), `_max_consecutive_equal_finite` (data_loader.py:1296) as the current top contributors.
+> 1. Re-confirm full gate green: `python3 -m pytest -q -p no:cacheprovider` → RC=0 (verified this session: **5137 passed / 35 skipped / RC=0**, 287.66s).
+> 2. Re-measure isolated baselines (record medians): `validate_returns_dataframe` on numeric 720x12 and 2000x100, plus a cProfile breakdown confirming `_run_data_quality_campaign` (data_loader.py:1324), `_drop_all_nan_columns` (data_loader.py:1058), `_normalize_columns` (data_loader.py:986), `_max_consecutive_equal_finite` (data_loader.py:1296) as the current top contributors.
 >
 > **Execution plan (measured; choose by evidence, no guessing):**
 > 1. Pick the highest-leverage target by measurement (likely `_run_data_quality_campaign` per-column stale/finite checks and/or batching `_max_consecutive_equal_finite` over whole numeric frames, or removing redundant column copies/coercions between helpers). Treat pandas per-column access as the cost driver; prefer whole-frame/numpy operations where semantics are identical.
@@ -23,9 +23,9 @@
 >
 > **Before exit (mandatory):** full gate green; record before/after benchmark + isolated/cProfile numbers (or "no measurable win" with evidence and the next measured target); refresh timestamp/HEAD, shipped/uncommitted changes, residual debt with numbers; keep `AGENT_HANDOFF.md` pointer-only; commit nothing unless explicitly requested.
 
-## CURRENT STATE (verified this session, 2026-11-13T03:00:20Z)
+## CURRENT STATE (verified this session, 2026-11-13T03:40:43Z)
 
-- **Full gate — GREEN:** `python3 -m pytest -q -p no:cacheprovider` → **5130 passed / 35 skipped / RC=0** in 287.50s (single command, no `--ignore`). Re-confirmed at handoff refresh 2026-11-13T03:07:24Z. Warnings are pre-existing (RuntimeWarning, PytestRemovedIn10Warning on class-scoped fixtures).
+- **Full gate — GREEN:** `python3 -m pytest -q -p no:cacheprovider` → **5137 passed / 35 skipped / RC=0** in 287.66s (single command, no `--ignore`). Warnings are pre-existing (RuntimeWarning, PytestRemovedIn10Warning on class-scoped fixtures).
 - **Step 3d-focused tests green:** `tests/test_validation_performance.py` → 15 passed (includes `TestSeriesIsParseableEquivalence` oracle cases).
 - **Data-loader regression subset expected green:** `test_bab_data_loader_batch62.py test_bab_data_loader_numeric_qc.py test_bab_data_loader_bottleneck_branches.py test_bab_data_loader_edge_cases.py test_betting_against_beta_data_loader.py test_bab_zero_silent_error.py`.
 
@@ -46,7 +46,7 @@
 
 Object-frame validation is no longer dominated by parseability; numeric validation remains on its fast path but is now the dominant measurable target inside `validate_returns_dataframe`.
 
-### Baselines re-measured at handoff refresh (2026-11-13T03:00:20Z, medians of 7 runs)
+### Baselines re-measured at handoff refresh (2026-11-13T03:40:43Z, medians of 7 runs)
 
 | target | median | min |
 |---|---:|---:|
@@ -99,7 +99,7 @@ Object-frame validation is no longer dominated by parseability; numeric validati
 - Commit nothing unless explicitly requested.
 
 ## Completed campaigns (do not reopen without new reproducible failure + durable evidence)
-- **C42–C53:** CLOSED (historical). **C54 Step 1:** full-suite gate (no ignores). **Step 2:** broad-silent audit complete (no justified conversions). **Step 3:** `beta.py` perf shipped (`8c2830a`). **Step 3b:** `construct_portfolio` vectorized DN fixup shipped (`83ff28e`). **Step 3c:** `validate_returns_dataframe` numeric fast path (`_drop_all_nan_columns` + `_run_data_quality_campaign`) shipped, gate-confirmed at **5127 passed / RC=0** (`c40dd50`). **Step 3d:** `_series_is_parseable` object-frame hot path vectorized with oracle-equivalence tests, gate-confirmed at **5130 passed / 35 skipped / RC=0** (committed `43a2313`). **Step 4:** `docs/COVERAGE_NOTES.md`.
+- **C42–C53:** CLOSED (historical). **C54 Step 1:** full-suite gate (no ignores). **Step 2:** broad-silent audit complete (no justified conversions). **Step 3:** `beta.py` perf shipped (`8c2830a`). **Step 3b:** `construct_portfolio` vectorized DN fixup shipped (`83ff28e`). **Step 3c:** `validate_returns_dataframe` numeric fast path (`_drop_all_nan_columns` + `_run_data_quality_campaign`) shipped, gate-confirmed at **5127 passed / RC=0** (`c40dd50`). **Step 3d:** `_series_is_parseable` object-frame hot path vectorized with oracle-equivalence tests, gate-confirmed at **5137 passed / 35 skipped / RC=0** (committed `43a2313`). **Step 4:** `docs/COVERAGE_NOTES.md`.
 
 ---
 **This file is the single source of truth. `AGENT_HANDOFF.md` is a pointer only.**
