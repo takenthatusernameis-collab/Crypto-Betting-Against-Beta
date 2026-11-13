@@ -376,8 +376,10 @@ class BABStrategy:
             )
 
         # Explicit finiteness guard (single pass; construct_portfolio already
-        # returns finite weights, this is a defensive final clamp). Operate
-        # in-place on the existing DataFrame to avoid an extra allocation.
+        # returns finite weights, this is a defensive final clamp).  One
+        # conversion + one clamp + one write; the previous second read/clamp
+        # pass was provably redundant (the first pass already made every entry
+        # finite, so the second isfinite check could only ever be all-True).
         try:
             wa = weights.to_numpy(dtype=float)
             if not _np.isfinite(wa).all():
@@ -385,11 +387,6 @@ class BABStrategy:
                     wa = wa.copy()
                 wa[~_np.isfinite(wa)] = 0.0
                 weights.iloc[:] = wa
-            # Extra pass
-            wa2 = weights.to_numpy(dtype=float)
-            if not _np.isfinite(wa2).all():
-                wa2 = _np.where(_np.isfinite(wa2), wa2, 0.0)
-                weights.iloc[:] = wa2
         except Exception as exc:
             try:
                 weights = weights.replace([_np.inf, -_np.inf], 0.0).fillna(0.0)

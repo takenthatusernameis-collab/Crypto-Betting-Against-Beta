@@ -52,11 +52,23 @@ def run_backtest(returns_df, weights_df, transaction_costs=0.0, slippage=0.0,
         else:
             pass
 
-    # Clean weights of NaN/inf
+    # Clean weights of NaN/inf.  Fast-path the common case where weights are
+    # already finite (the beta-neutral path in BABStrategy.run clamps non-finite
+    # entries to 0.0 before calling run_backtest): a single C-level isfinite scan
+    # avoids the expensive pandas replace_list/block-manager pass entirely.
+    # When non-finite values are present, fall back to the original replace+
+    # fillna so the repaired result is byte-for-byte identical; if the numeric
+    # conversion itself fails, still attempt the replace fallback (matching the
+    # original "try and swallow" guarantee) rather than leaving weights dirty.
     try:
-        weights = weights.replace([np.inf, -np.inf], np.nan).fillna(0.0)
+        _w_arr = weights.to_numpy(dtype=float)
+        if not np.all(np.isfinite(_w_arr)):
+            weights = weights.replace([np.inf, -np.inf], np.nan).fillna(0.0)
     except (TypeError, ValueError):
-        pass
+        try:
+            weights = weights.replace([np.inf, -np.inf], np.nan).fillna(0.0)
+        except (TypeError, ValueError):
+            pass
 
     # Shift once and reuse: lagged weights (no lookahead) for both returns and
     # turnover, avoiding a second ``shift`` allocation.
@@ -107,22 +119,24 @@ def run_backtest(returns_df, weights_df, transaction_costs=0.0, slippage=0.0,
         period_costs = period_costs.reindex(portfolio_returns.index).fillna(0.0)
         portfolio_returns = portfolio_returns - period_costs.astype(float)
 
-    # Calculate cumulative returns
-    portfolio_returns = portfolio_returns.fillna(0.0)
-    # Ensure finiteness - replace any remaining non-finite
+    # Calculate cumulative returns.
+    # The previous code ran three redundant cleaning passes on
+    # portfolio_returns (fillna(0.0) -> replace inf -> fillna(0.0) -> a
+    # separate isfinite/where repair).  All three reduce to the same thing:
+    # every non-finite entry (NaN, inf, -inf) becomes 0.0.  A single
+    # to_numpy + np.where(isfinite, arr, 0.0) pass produces a byte-identical
+    # result (NaN is not finite, so it is mapped to 0.0 exactly as before)
+    # without the pandas replace_list/block-manager churn.
     try:
-        portfolio_returns = portfolio_returns.replace([np.inf, -np.inf], 0.0)
-        portfolio_returns = portfolio_returns.fillna(0.0)
+        _pr_arr = portfolio_returns.to_numpy(dtype=float)
+        if not np.all(np.isfinite(_pr_arr)):
+            _pr_arr = np.where(np.isfinite(_pr_arr), _pr_arr, 0.0)
+            portfolio_returns = pd.Series(_pr_arr, index=portfolio_returns.index)
     except Exception:
-        pass
-    # Extra hardening: force all finite
-    try:
-        arr_pr = portfolio_returns.to_numpy(dtype=float)
-        if not np.all(np.isfinite(arr_pr)):
-            arr_pr = np.where(np.isfinite(arr_pr), arr_pr, 0.0)
-            portfolio_returns = pd.Series(arr_pr, index=portfolio_returns.index)
-    except Exception:
-        pass
+        try:
+            portfolio_returns = portfolio_returns.replace([np.inf, -np.inf], 0.0).fillna(0.0)
+        except Exception:
+            pass
     portfolio_returns_filled = portfolio_returns.clip(lower=-1.0 + 1e-12)
     try:
         log_returns = np.log1p(portfolio_returns_filled.to_numpy(dtype=float))
