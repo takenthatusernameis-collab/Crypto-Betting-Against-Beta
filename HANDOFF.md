@@ -1,11 +1,11 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-13T06:35:30Z
-**HEAD:** `230e2c07d1379d29367fb73e362da29c131a87ca` (working tree **dirty** — uncommitted Step 3e changes below)
+**Timestamp (refreshed):** 2026-11-13T07:24:33Z
+**HEAD:** `230e2c07d1379d29367fb73e362da29c131a87ca` (working tree **dirty** — uncommitted Step 3e changes)
 **Repo:** `crypto-betting-against-beta` — BAB (Betting Against Beta) market-neutral crypto strategy: long low-beta / short high-beta vs BTC benchmark (`README.md`, `strategies/betting_against_beta/`).
-**Gate (verified this session, NOT assumed):** `bash scripts/bab_gate.sh` → **5144 passed, 35 skipped, RC=0** (313.09s, 2026-11-13T06:35Z, python 3.12.3; coverage not installed). Re-run gate before/after any further change.
+**Gate (verified this session):** `bash scripts/bab_gate.sh` → **5144 passed, 35 skipped, RC=0** (303.24s, 2026-11-13T07:24Z, python 3.12.3; coverage not installed). Re-run gate before/after any further change.
 
-> **INITIAL TASK FOR THE NEXT AGENTIC SESSION (2026-11-13T06:35:30Z) — BINDING, HEAVY WORK REQUIRED:**
+> **INITIAL TASK FOR THE NEXT AGENTIC SESSION (2026-11-13T07:24:33Z) — BINDING, HEAVY WORK REQUIRED:**
 > **Start Step 3f (end-to-end `BABStrategy.run()` hot spots) with shipped code + oracle-equivalence/perf-ceiling tests + full green gate.** Do not re-profile the recorded Step 3e baselines except before/after code you ship. Measurement-only or handoff-only churn is forbidden. No commits unless explicitly requested.
 
 ## Step 3e — SHIPPED IN WORKING TREE (uncommitted), verified
