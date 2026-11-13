@@ -12,7 +12,7 @@ from .backtest import run_backtest
 from .beta import calculate_rolling_beta
 from .config import BABConfig
 from .data import generate_synthetic_returns
-from .data_loader import load_returns
+from .data_loader import load_prices, load_returns
 from .portfolio import construct_portfolio
 from .signals import generate_bab_signals
 from . import metrics
@@ -25,43 +25,43 @@ from .sizing import KellySizer, VolatilityTargetSizer, RiskParitySizer, EqualWei
 
 
 def _normalize_position_sizer(ps):
-    """Coerce a dict shorthand into a sizer instance, or return as-is.
+        """Coerce a dict shorthand into a sizer instance, or return as-is.
 
-    Recognized shorthands:
-      * ``{"type": "equal"}`` -> :class:`EqualWeightSizer`
-      * ``{"type": "kelly", ...}`` -> :class:`KellySizer`
-      * ``{"type": "vol_target", ...}`` -> :class:`VolatilityTargetSizer`
-      * ``{"type": "risk_parity", ...}`` -> :class:`RiskParitySizer`
+        Recognized shorthands:
+          * ``{"type": "equal"}`` -> :class:`EqualWeightSizer`
+          * ``{"type": "kelly", ...}`` -> :class:`KellySizer`
+          * ``{"type": "vol_target", ...}`` -> :class:`VolatilityTargetSizer`
+          * ``{"type": "risk_parity", ...}`` -> :class:`RiskParitySizer`
 
-    Any other dict raises ``BABDataError`` so misconfiguration surfaces loudly
-    instead of being silently ignored.
-    """
-    if not isinstance(ps, dict):
-        return ps
-    s = str(ps.get("type", "")).lower()
-    if s == "equal":
-        return EqualWeightSizer(max_leverage=float(ps.get("max_leverage", 1.0)))
-    if s in ("kelly", "kelly_fraction"):
-        return KellySizer(
-            lookback=int(ps.get("lookback", 60)),
-            max_leverage=float(ps.get("max_leverage", 1.0)),
-            fraction=float(ps.get("fraction", 1.0)),
-        )
-    if s in ("vol_target", "volatility_target", "voltarget"):
-        return VolatilityTargetSizer(
-            target_vol=float(ps.get("target_vol", 0.10)),
-            lookback=int(ps.get("lookback", 60)),
-            annualize=int(ps.get("annualize", 252)),
-            max_leverage=float(ps.get("max_leverage", 2.0)),
-        )
-    if s in ("risk_parity", "riskparity", "rp"):
-        return RiskParitySizer(
-            lookback=int(ps.get("lookback", 60)),
-            max_leverage=float(ps.get("max_leverage", 1.0)),
-            target_vol=ps.get("target_vol"),
-            annualize=int(ps.get("annualize", 252)),
-        )
-    raise BABDataError(f"position_sizer dict has unknown type: {s!r}")
+        Any other dict raises ``BABDataError`` so misconfiguration surfaces loudly
+        instead of being silently ignored.
+        """
+        if not isinstance(ps, dict):
+            return ps
+        s = str(ps.get("type", "")).lower()
+        if s == "equal":
+            return EqualWeightSizer(max_leverage=float(ps.get("max_leverage", 1.0)))
+        if s in ("kelly", "kelly_fraction"):
+            return KellySizer(
+                lookback=int(ps.get("lookback", 60)),
+                max_leverage=float(ps.get("max_leverage", 1.0)),
+                fraction=float(ps.get("fraction", 1.0)),
+            )
+        if s in ("vol_target", "volatility_target", "voltarget"):
+            return VolatilityTargetSizer(
+                target_vol=float(ps.get("target_vol", 0.10)),
+                lookback=int(ps.get("lookback", 60)),
+                annualize=int(ps.get("annualize", 252)),
+                max_leverage=float(ps.get("max_leverage", 2.0)),
+            )
+        if s in ("risk_parity", "riskparity", "rp"):
+            return RiskParitySizer(
+                lookback=int(ps.get("lookback", 60)),
+                max_leverage=float(ps.get("max_leverage", 1.0)),
+                target_vol=ps.get("target_vol"),
+                annualize=int(ps.get("annualize", 252)),
+            )
+        raise BABDataError(f"position_sizer dict has unknown type: {s!r}")
 
 
 def _rebalance_mask(index, freq: str) -> "pd.Series":  # noqa: ANN401
@@ -163,7 +163,9 @@ class BABStrategy:
                       'vol_hysteresis', 'trend_ma_window', 'trend_z_window', 'regime_scale_high',
                       'regime_scale_low', 'beta_neutral', 'beta_neutral_enforcement', 'beta_target',
                       'beta_tolerance', 'max_beta_drift', 'tracking_error_tolerance', 'tracking_error_limit',
-                      'enable_tracking_error_monitoring', 'beta_neutral_correction', 'beta_neutral_adjustment']:
+                      'enable_tracking_error_monitoring', 'beta_neutral_correction', 'beta_neutral_adjustment',
+                      # R3-A: realistic execution cost model plumbing
+                      'cost_model', 'prices', 'adv_usd', 'partial_fill', 'max_participation']:
                 if k in kwargs:
                     cfg_kwargs[k] = kwargs[k]
             # aliases
@@ -207,6 +209,57 @@ class BABStrategy:
             benchmark_name=cfg.benchmark,
             seed=cfg.synthetic_seed,
         )
+
+    @staticmethod
+    def _resolve_cost_model(cfg) -> tuple:
+        """Resolve the R3-A execution-cost plumbing from config.
+
+        Returns ``(cost_model, prices_df, adv_usd)`` where ``cost_model`` is a
+        ``TransactionCostModel`` instance or ``None``. When ``cost_model`` is
+        ``None`` the returned tuple is ``(None, None, None)`` so the caller can
+        pass the whole tuple into ``run_backtest`` and get byte-identical
+        pre-R3 behavior (flat ``transaction_costs``/``slippage`` only).
+
+        Raises ``BABDataError`` on a wrong-typed ``cost_model`` so a
+        misconfiguration surfaces loudly instead of being silently ignored.
+        """
+        import pandas as pd  # local import keeps module import light
+
+        from .costs import TransactionCostModel as _TCM
+
+        cm = getattr(cfg, "cost_model", None)
+        if cm is None:
+            return None, None, None
+        if isinstance(cm, dict):
+            try:
+                cm = _TCM(**cm)
+            except (TypeError, ValueError) as e:
+                raise BABDataError(f"cost_model dict is invalid: {e}") from e
+        if not isinstance(cm, _TCM):
+            raise BABDataError(
+                f"cost_model must be a TransactionCostModel, dict, or None, "
+                f"got {type(cm).__name__}"
+            )
+
+        prices = getattr(cfg, "prices", None)
+        adv = getattr(cfg, "adv_usd", None)
+
+        # Resolve prices: a path string is loaded via the data loader; a
+        # DataFrame is used directly; anything else is treated as absent so
+        # the impact term is skipped (not an error) for that asset.
+        prices_df = None
+        if prices is not None:
+            if isinstance(prices, str):
+                try:
+                    prices_df = load_prices(prices, benchmark=getattr(cfg, "benchmark", None))
+                except Exception as e:
+                    raise BABDataError(f"failed to load prices from {prices!r}: {e}") from e
+            elif isinstance(prices, pd.DataFrame):
+                prices_df = prices
+            else:
+                # Unknown prices type: skip impact rather than crash.
+                prices_df = None
+        return cm, prices_df, adv
 
     def run(self, returns_df: object | None = None) -> BABResult:  # noqa: ANN401
         """Run the full strategy pipeline and return results."""
@@ -399,7 +452,24 @@ class BABStrategy:
                 raise BABDataError(
                     f"weight finiteness cleanup failed: {exc2} (outer: {exc})"
                 ) from exc2
-        backtest = run_backtest(returns, weights, transaction_costs=cfg.transaction_costs, slippage=getattr(cfg, "slippage", 0.0))
+        # R3-A: resolve the realistic execution-cost plumbing. When cost_model is
+        # None this returns (None, None, None) and the run_backtest call below
+        # falls through to the flat transaction_costs/slippage path, which is
+        # byte-identical to pre-R3 behavior.
+        cost_model, prices_df, adv_usd = self._resolve_cost_model(cfg)
+        partial_fill = bool(getattr(cfg, "partial_fill", False))
+
+        backtest = run_backtest(
+            returns,
+            weights,
+            transaction_costs=cfg.transaction_costs,
+            slippage=getattr(cfg, "slippage", 0.0),
+            cost_model=cost_model,
+            prices_df=prices_df,
+            adv_usd=adv_usd,
+            partial_fill=partial_fill,
+            max_participation=getattr(cfg, "max_participation", 0.10),
+        )
 
         result = BABResult(
             config=cfg,

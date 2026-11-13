@@ -6,10 +6,46 @@ import pandas as pd
 from .costs import TransactionCostModel, compute_transaction_costs
 
 
+def _adv_series_local(adv_usd):
+    """Normalize adv_usd to an asset-indexed Series/DataFrame, or None."""
+    if adv_usd is None:
+        return None
+    if isinstance(adv_usd, dict):
+        return pd.Series(adv_usd, dtype="float64")
+    if isinstance(adv_usd, pd.Series):
+        return adv_usd.astype("float64")
+    if isinstance(adv_usd, pd.DataFrame):
+        return adv_usd.astype("float64")
+    return None
+
+
+def _clean_frame_local(df):
+    if df is None:
+        return None
+    df = pd.DataFrame(df)
+    if df.empty:
+        return None
+    return df.replace([np.inf, -np.inf], np.nan)
+
+
 def run_backtest(returns_df, weights_df, transaction_costs=0.0, slippage=0.0,
                  tc=None, slippage_cost=None, cost_model=None,
-                 prices_df=None, adv_usd=None):
-    """Run simple backtest."""
+                 prices_df=None, adv_usd=None, partial_fill=False,
+                 max_participation=0.10):
+    """Run simple backtest.
+
+    Parameters
+    ----------
+    partial_fill : bool, optional
+        Opt-in participation-aware slippage realism. When True, realized
+        slippage is scaled by the fraction of the ADV liquidity budget that a
+        trade consumes, so a large order in a thin asset is penalized more
+        than a small one. When False (default) the slippage path is a no-op
+        and the result is bit-identical to the flat-slippage path.
+    max_participation : float, optional
+        Fraction of ADV that may be consumed by a single trade when
+        ``partial_fill`` is enabled (in (0, 1]).
+    """
     # Allow alternative parameter names for flexibility
     if tc is not None and transaction_costs == 0.0:
         transaction_costs = tc
@@ -51,6 +87,7 @@ def run_backtest(returns_df, weights_df, transaction_costs=0.0, slippage=0.0,
             weights.columns = returns.columns
         else:
             pass
+    columns = list(weights.columns)
 
     # Clean weights of NaN/inf.  Fast-path the common case where weights are
     # already finite (the beta-neutral path in BABStrategy.run clamps non-finite
@@ -97,6 +134,46 @@ def run_backtest(returns_df, weights_df, transaction_costs=0.0, slippage=0.0,
 
     slip_val = float(slippage) if slippage is not None else 0.0
     slippage_drag = weight_changes_s * slip_val
+
+    # R3-A: opt-in participation-aware partial-fill realism. When enabled the
+    # realized slippage is scaled by how much of the ADV liquidity budget each
+    # trade consumes, so a large order in a thin asset is penalized more than
+    # a small one. When disabled this is a no-op (slippage_drag is unchanged).
+    if partial_fill and slip_val > 0:
+        try:
+            _prices = _clean_frame_local(prices_df)
+            _adv_input = adv_usd if adv_usd is not None else (
+                cost_model.adv_usd if cost_model is not None else None
+            )
+            _adv_series = _adv_series_local(_adv_input)
+            if _prices is not None and _adv_series is not None:
+                _prices = _prices.reindex(index=common_idx, columns=columns)
+                if isinstance(_adv_series, pd.DataFrame):
+                    _adv_aligned = _adv_series.reindex(index=common_idx, columns=columns)
+                else:
+                    _adv_aligned = pd.DataFrame(
+                        np.tile(
+                            _adv_series.reindex(columns).to_numpy(dtype=float),
+                            (len(common_idx), 1),
+                        ),
+                        index=common_idx,
+                        columns=columns,
+                    )
+                _trade = (weights - w_shifted_filled).abs()
+                _participation = (_trade * _prices / _adv_aligned).fillna(0.0)
+                _ratio = (_participation / float(max_participation)).clip(
+                    lower=0.0, upper=1.0
+                ).to_numpy(dtype=float)
+                # Effective slippage per unit of turnover: base rate scaled by
+                # (1 + participation_ratio), so a trade that exhausts the entire
+                # ADV budget pays twice the base slippage.
+                _multiplier = 1.0 + _ratio
+                _scaled_drag = slip_val * (_trade.to_numpy(dtype=float) * _multiplier).sum(axis=1)
+                slippage_drag = pd.Series(_scaled_drag, index=common_idx)
+        except Exception:
+            # Any failure in the partial-fill path leaves the flat slippage
+            # drag intact (never NaN/inf, never a crash).
+            pass
 
     # Apply transaction costs if any
     if tc_val > 0:

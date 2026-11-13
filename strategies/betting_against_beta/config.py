@@ -101,6 +101,20 @@ class BABConfig:
     enable_tracking_error_monitoring: bool = False
     beta_neutral_correction: bool = True
     beta_neutral_adjustment: bool = True
+    # R3-A: realistic execution cost model (impact/participation/borrow asymmetry).
+    # When None the strategy uses only the flat transaction_costs/slippage path
+    # (byte-identical to pre-R3). A dict is coerced into TransactionCostModel.
+    cost_model: Optional[object] = None
+    # R3-A: prices DataFrame (or loader path) required for the square-root
+    # impact term. When None the impact term is skipped (not an error).
+    prices: Optional[object] = None
+    # R3-A: ADV in dollars per asset (dict/Series/DataFrame). When None the
+    # impact term is skipped for all assets.
+    adv_usd: Optional[object] = None
+    # R3-A: opt-in participation-aware partial-fill realism. When False the
+    # slippage path is a no-op (bit-identical to flat slippage only).
+    partial_fill: bool = False
+    max_participation: float = 0.10
 
     def __post_init__(self):
         # Normalize shorting_constraints if passed as dict
@@ -116,6 +130,43 @@ class BABConfig:
                 raise BABConfigError(
                     f"shorting_constraints dict is invalid: {e}"
                 ) from e
+        # R3-A: normalize cost_model dict -> TransactionCostModel (mirror the
+        # shorting_constraints dict-coercion pattern; wrong types raise loudly).
+        if isinstance(self.cost_model, dict):
+            from .costs import TransactionCostModel as _TCM
+            try:
+                object.__setattr__(
+                    self,
+                    "cost_model",
+                    _TCM(**self.cost_model),
+                )
+            except (TypeError, ValueError) as e:
+                raise BABConfigError(f"cost_model dict is invalid: {e}") from e
+        if self.cost_model is not None and not isinstance(
+            self.cost_model, (dict, type(None))
+        ):
+            from .costs import TransactionCostModel as _TCM
+            if not isinstance(self.cost_model, _TCM):
+                raise BABConfigError(
+                    f"cost_model must be a TransactionCostModel, dict, or None, "
+                    f"got {type(self.cost_model).__name__}"
+                )
+        # R3-A: partial_fill must be a bool.
+        if not isinstance(self.partial_fill, bool):
+            raise BABConfigError(
+                f"partial_fill must be a bool, got {type(self.partial_fill).__name__}"
+            )
+        # R3-A: max_participation must be in (0, 1].
+        if not isinstance(self.max_participation, (int, float)) or isinstance(
+            self.max_participation, bool
+        ):
+            raise BABConfigError(
+                f"max_participation must be a number, got {type(self.max_participation).__name__}"
+            )
+        elif not (0.0 < float(self.max_participation) <= 1.0):
+            raise BABConfigError(
+                f"max_participation must be in (0, 1], got {self.max_participation}"
+            )
         self._validate_ranges()
         # Freeze after validation to prevent downstream mutation
         try:
