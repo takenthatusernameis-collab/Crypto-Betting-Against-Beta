@@ -1,60 +1,61 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-13T13:22:21Z
-**HEAD (at refresh):** `aaa1494` — `chore(kilo): checkpoint agent session`
+**Timestamp (refreshed):** 2026-11-13T13:32:15Z
+**HEAD (at refresh):** `c5b271c` — `chore(kilo): checkpoint agent session`
 **Repo:** `crypto-betting-against-beta` — BAB (Betting Against Beta) market-neutral crypto strategy: long low-beta / short high-beta vs a BTC benchmark (`README.md`, `strategies/betting_against_beta/`).
 
 ---
 
-## State reconciliation (handoff refresh session, 2026-11-13T13:22:21Z)
+## State reconciliation (handoff refresh, 2026-11-13T13:32:15Z)
 
-`enforce_beta_neutrality` remains **verified/closed for this cycle** (no regression). Sanity/lock checks re-run on current HEAD:
+Repo prioritized by name (**Crypto-Betting-Against-Beta**) → next focus is BAB engine correctness/perf hardening in the end-to-end `beta_neutral=True` run path (core strategy value). Tree is clean at `c5b271c` (no uncommitted code changes in this refresh). `research_state/workflow_run_diagnostics.jsonl` is **historical CI log excerpts only** (old SHAs/tool noise/collection issues in past runs) — not current-checkout failures; do not reopen as blockers.
+
+**Lock checks (this refresh, current checkout):**
 - Env: python 3.12.3, numpy 2.5.4, pandas 3.1.1, scipy 1.18.1, pytest 9.2.0 (`coverage`/`pytest-xdist` absent).
-- `PYTHONPATH="$PWD" python3 scripts/bench_beta_neutrality.py --reps 35 --profile` (warm medians): 2500x40 **21.538 ms** (21.538/20.822/28.904), 2500x50 **30.155 ms** (28.298/33.472), 2500x120 **57.767 ms** (56.704/59.378); construct ~2.3/2.8/5.9 ms; run_backtest ~2.74/2.97/4.69 ms. Profile hot spot remains inside `portfolio.py:enforce_beta_neutrality` (locked).
-- `PYTHONPATH="$PWD" python3 -m pytest -q tests/test_beta_neutrality_performance.py tests/test_bab_beta_neutrality.py` → **27 passed** (0.82s).
-- Prior full gate on parent checkpoint context: **5191 passed, 35 skipped, RC=0** (371.33s). Not rerun this handoff-only refresh.
+- `PYTHONPATH="$PWD" python3 scripts/bench_beta_neutrality.py --reps 35 --profile` (warm medians): enforce 2500x40 **20.241 ms** (19.745/21.935), 2500x50 **28.590 ms** (27.883/32.257), 2500x120 **55.128 ms** (53.110/62.235); construct ~2.44/3.05/5.80 ms; run_backtest ~2.44/3.28/4.17 ms. Profile hot spot remains `portfolio.py:enforce_beta_neutrality` (locked).
+- `PYTHONPATH="$PWD" python3 -m pytest -q tests/test_beta_neutrality_performance.py tests/test_bab_beta_neutrality.py` → **27 passed** (0.83s).
+- Last recorded full gate (prior context): **5191 passed, 35 skipped, RC=0**. Not rerun in this handoff-only refresh.
 
-**Bottleneck diagnosis for next campaign (measured, 2500x120, beta_neutral=True, synthetic seed=1234):**
-- End-to-end `BABStrategy.run(beta_neutral=True)` warm medians: 2500x40 **35.272 ms** (27.084/40.168), 2500x50 **45.309 ms** (34.463/52.950), 2500x120 **94.282 ms** (85.473/142.669) (`/home/runner/work/_temp/kilo-tmp/bench_bab_e2e_bn.py`).
-- Single-run component breakdown @2500x120: `calculate_rolling_beta` ~18.29 ms, `generate_bab_signals` ~6.33 ms, `construct_portfolio` ~12.45 ms, `enforce_beta_neutrality` ~73.07 ms, finiteness guard (`strategy.py:381-404`) ~0.26 ms (small but easy single-pass cleanup), `run_backtest` ~6.69 ms; total parts ~117.09 ms (one sample).
-- Locked hot paths (`beta.py`, `signals.py`, `construct_portfolio`, `enforce_beta_neutrality`, core backtest logic) must not be reopened without a **new reproducible regression + evidence**. The remaining legal campaign surface is integration/allocation work in `BABStrategy.run`/call-chain glue (e.g. collapse double finiteness `to_numpy`+`iloc` pass in `strategy.py:381-404` to one pass, remove redundant work/alignment/copies where provable, trim avoidable `backtest.py` cleaning/allocation passes without changing semantics) while preserving public API and oracle behavior.
+**E2E beta-neutral baselines (this refresh, current checkout, `/home/runner/work/_temp/kilo-tmp/bench_bab_e2e_bn.py`, seed=1234, reps=12, warm):** `BABStrategy.run(beta_neutral=True)` 2500x40 **37.199 ms** (33.122/50.771), 2500x50 **45.437 ms** (41.486/53.225), 2500x120 **95.680 ms** (87.116/108.183).
 
-This handoff removes the main session-start bottleneck: fresh lock-check baselines + E2E breakdown are recorded; next session must do **code+oracle+gate** work, not rediscover baselines. `research_state/workflow_run_diagnostics.jsonl` remains **historical CI log excerpts only** (not current-checkout failures). Working tree in this refresh includes handoff doc updates.
+**Component medians @2500x120 (single-component bench, current checkout):** `calculate_rolling_beta` ~9.97 ms, `generate_bab_signals` ~19.42 ms, `construct_portfolio` ~10.17 ms, `enforce_beta_neutrality` ~52.57 ms (locked), `run_backtest` ~4.00 ms. `strategy.py:381-404` finiteness guard is **already single-pass** in current HEAD (prior target satisfied) — do not churn it without new evidence.
+
+**Remaining legal campaign surface (evidence-based):** integration/allocation glue only — primarily `backtest.py` redundant pandas passes (e.g. final `results.replace([np.inf,-np.inf], np.nan).fillna(0.0)` sanitization is a full-frame pandas pass after cumulative/column construction; can be collapsed to a single numpy finite-pass over the result buffer with **provably identical** semantics/index/columns/dtypes behavior) and any other provably-redundant clean/convert/alignment work in BN call chain (`strategy.py`/`backtest.py`) without changing math/API. Locked: `beta.py`, `signals.py`, `construct_portfolio`, `enforce_beta_neutrality`, core `run_backtest` P&L/cost/turnover semantics.
 
 ---
 
-> ## INITIAL TASK FOR THE NEXT AGENTIC SESSION (2026-11-13T13:22:21Z) — BINDING, HEAVY EXECUTION (NO MEASUREMENT-ONLY / NO CHURN)
+> ## INITIAL TASK FOR THE NEXT AGENTIC SESSION (2026-11-13T13:32:15Z) — BINDING, HEAVY EXECUTION (NO MEASUREMENT-ONLY / NO CHURN)
 >
-> **Objective:** Deliver a **measured, correctness-proven optimization or correctness hardening** in the end-to-end `beta_neutral=True` `BABStrategy.run` path at 2500×120, without reopening locked hot spots.
+> **Objective:** Ship a **measured, correctness-proven** E2E `beta_neutral=True` `BABStrategy.run` improvement/hardening at 2500×120 by optimizing `backtest.py` + call-chain glue (no reopening locked hot spots).
 >
-> **Non-negotiable constraints:** Do **not** reopen `beta.py`, `signals.py`, shipped `construct_portfolio`, `enforce_beta_neutrality`, or core `run_backtest` semantics without a **new reproducible regression + evidence**. No probe-count churn, no "no reduction identified" artifacts, no reopening historical diagnostics (`research_state/workflow_run_diagnostics.jsonl`), no `data_loader.py` broad silent-except sweep, no weakening perf/oracle tests.
+> **Non-negotiable constraints:** Do **not** reopen `beta.py`, `signals.py`, shipped `construct_portfolio`, `enforce_beta_neutrality`, or core `run_backtest` semantics/math without a **new reproducible regression + evidence**. No probe-count churn, no "no reduction identified" artifacts, no reopening historical diagnostics, no `data_loader.py` broad silent-except sweep, no weakening perf/oracle tests/gates.
 >
 > **Execute in order (minimum expected work):**
-> 1. **Lock checks (quick, once):** `python3 -c "import numpy,pandas,scipy,pytest; print(...)"`; `PYTHONPATH="$PWD" python3 scripts/bench_beta_neutrality.py --reps 35 --profile`; `PYTHONPATH="$PWD" python3 -m pytest -q tests/test_beta_neutrality_performance.py tests/test_bab_beta_neutrality.py`. Confirm medians are in-family with this handoff (~21–22 ms @2500x40, ~30 ms @2500x50, ~58 ms @2500x120 for enforce-only on this host class; E2E BN run ~35/45/94 ms). If regressed, treat as blocker and fix with evidence before other work.
-> 2. **Implement (code, not just profiling):** optimize `strategy.py` integration path for `beta_neutral=True` at 2500×120. Primary targets with existing evidence: collapse the finiteness guard double pass/write in `strategy.py:381-404` to a single safe pass (preserve current exception/fallback semantics and BABDataError surfacing), remove avoidable redundant allocations/copies/reindex/`to_numpy` in the BN run path and adjacent call chain (`strategy.py` glue, `backtest.py` repeated clean/convert passes) **only where semantics are provably unchanged**. Create/use a reproducible E2E bench under `/home/runner/work/_temp/kilo-tmp/` for before/after.
-> 3. **Correctness proof:** add/update targeted oracle/regression tests for every changed behavior path (including NaN/inf/non-finite cleanup, alignment/index-column preservation, BN behavior as applicable) with `rtol=atol=1e-12` for numerical parity claims. Do not weaken existing assertions or the 0.25s enforce perf ceiling.
-> 4. **Validation:** run smallest relevant targeted suites (must include `tests/test_beta_neutrality_performance.py` and `tests/test_bab_beta_neutrality.py` when affected), iterate, then run `bash scripts/bab_gate.sh` once at end → **RC=0** (record pass/skip/RC/time).
+> 1. **Lock checks (quick, once):** `python3 -c "import numpy,pandas,scipy,pytest; print(...)"`; `PYTHONPATH="$PWD" python3 scripts/bench_beta_neutrality.py --reps 35 --profile`; `PYTHONPATH="$PWD" python3 -m pytest -q tests/test_beta_neutrality_performance.py tests/test_bab_beta_neutrality.py`. Confirm in-family with this handoff (~20/29/55 ms enforce-only; ~37/45/96 ms E2E BN on this host class). If regressed, fix with evidence before other work.
+> 2. **Implement (code, not just profiling):** target `strategies/betting_against_beta/backtest.py` final sanitization/allocation passes (primary: replace final `results.replace([np.inf,-np.inf], np.nan).fillna(0.0)` with a single finite-repair pass over result values preserving index/columns/dtypes/values exactly, including NaN/inf behavior) and any other provably-safe redundant work in BN glue. Keep `strategy.py` finiteness guard as-is unless a proven win. Use reproducible before/after E2E bench in `/home/runner/work/_temp/kilo-tmp/`.
+> 3. **Correctness proof:** add/update targeted oracle/regression tests for every changed behavior path (NaN/inf/-inf in returns/weights/cost paths, index/column preservation, cumulative/drag/turnover parity) with `rtol=atol=1e-12` where numerical parity is claimed. Do not weaken existing assertions or 0.25s enforce perf ceiling.
+> 4. **Validation:** run smallest relevant targeted suites (must include impacted backtest/BAB tests + lock suites when affected), iterate, then `bash scripts/bab_gate.sh` once at end → **RC=0** (record pass/skip/RC/time).
 > 5. **Record + handoff:** update this file with timestamp, HEAD, exact before/after warm medians (enforce + E2E BN @2500x40/50/120), deltas, what changed/disproven, gate result, remaining best next candidate. Keep `AGENT_HANDOFF.md` pointer-only and in sync.
 >
-> **Fallback ladder (if a concrete attempt yields no safe/measurable win):** record measured numbers and attempted diff, **revert non-winning code**, then execute the next concrete fix in the same campaign (e.g. `backtest.py` redundant `replace/fillna/to_numpy`/cast passes or alignment churn in BN E2E path) with tests — **do not stop at profiling**.
+> **Fallback ladder (if a concrete attempt yields no safe/measurable win):** record measured numbers and attempted diff, **revert non-winning code**, then execute the next concrete fix in the same campaign (e.g. other `backtest.py` redundant casts/alignment or safe `strategy.py` glue) with tests — **do not stop at profiling**.
 >
 > **Session incomplete until:** code change(s) attempted with evidence, oracle/regression proof for any change, targeted tests + full gate RC=0, and before/after deltas recorded here. No commit unless explicitly requested.
 
 ---
 
-## Evidence (current HEAD, refreshed 2026-11-13T13:22:21Z)
+## Evidence (current HEAD, refreshed 2026-11-13T13:32:15Z)
 
 - **Env:** python 3.12.3, numpy 2.5.4, pandas 3.1.1, scipy 1.18.1, pytest 9.2.0. `coverage`/`pytest-xdist` not installed.
 - **Lock checks (this refresh):** `PYTHONPATH="$PWD" python3 scripts/bench_beta_neutrality.py --reps 35 --profile`
-  - 2500x40: `enforce_beta_neutrality` **21.538 ms** (min 20.822 / max 28.904), construct 2.302 ms, run_backtest 2.737 ms
-  - 2500x50: `enforce_beta_neutrality` **30.155 ms** (min 28.298 / max 33.472), construct 2.801 ms, run_backtest 2.973 ms
-  - 2500x120: `enforce_beta_neutrality` **57.767 ms** (min 56.704 / max 59.378), construct 5.925 ms, run_backtest 4.686 ms
+  - 2500x40: `enforce_beta_neutrality` **20.241 ms** (min 19.745 / max 21.935), construct 2.439 ms, run_backtest 2.435 ms
+  - 2500x50: `enforce_beta_neutrality` **28.590 ms** (min 27.883 / max 32.257), construct 3.048 ms, run_backtest 3.277 ms
+  - 2500x120: `enforce_beta_neutrality` **55.128 ms** (min 53.110 / max 62.235), construct 5.800 ms, run_backtest 4.170 ms
   - cProfile confirms dominant time remains in `portfolio.py:enforce_beta_neutrality` (locked hot spot; no regression evidence).
-- **Targeted lock tests:** `PYTHONPATH="$PWD" python3 -m pytest -q tests/test_beta_neutrality_performance.py tests/test_bab_beta_neutrality.py` → **27 passed** (0.82s).
-- **E2E beta-neutral baseline (this refresh, `/home/runner/work/_temp/kilo-tmp/bench_bab_e2e_bn.py`, seed=1234, reps=12):** `BABStrategy.run(beta_neutral=True)` warm medians 2500x40 **35.272 ms** (27.084/40.168), 2500x50 **45.309 ms** (34.463/52.950), 2500x120 **94.282 ms** (85.473/142.669).
-- **Component breakdown @2500x120 (single sample):** beta 18.29 ms, signals 6.33 ms, construct 12.45 ms, enforce 73.07 ms, finite-guard 0.26 ms, backtest 6.69 ms (parts total 117.09 ms). Note variance vs e2e median; use repeated warm medians for before/after claims.
-- **Last recorded full gate (prior checkpoint context):** `bash scripts/bab_gate.sh` → **5191 passed, 35 skipped, RC=0** (371.33s). Not rerun in this handoff-only refresh.
-- **Historical note:** `research_state/workflow_run_diagnostics.jsonl` contains prior CI/log excerpts (old SHAs/runs/tool noise); treat as historical diagnostics only, not current failures.
+- **Targeted lock tests:** `PYTHONPATH="$PWD" python3 -m pytest -q tests/test_beta_neutrality_performance.py tests/test_bab_beta_neutrality.py` → **27 passed** (0.83s).
+- **E2E beta-neutral baseline (this refresh, `/home/runner/work/_temp/kilo-tmp/bench_bab_e2e_bn.py`, seed=1234, reps=12, warm):** `BABStrategy.run(beta_neutral=True)` 2500x40 **37.199 ms** (33.122/50.771), 2500x50 **45.437 ms** (41.486/53.225), 2500x120 **95.680 ms** (87.116/108.183).
+- **Component medians @2500x120 (single-component bench):** beta ~9.97 ms, signals ~19.42 ms, construct ~10.17 ms, enforce ~52.57 ms (locked), backtest ~4.00 ms. `strategy.py` finiteness guard already single-pass in HEAD c5b271c.
+- **Last recorded full gate (prior context):** `bash scripts/bab_gate.sh` → **5191 passed, 35 skipped, RC=0** (371.33s). Not rerun in this handoff-only refresh.
+- **Historical note:** `research_state/workflow_run_diagnostics.jsonl` contains prior CI/log excerpts (old SHAs/runs/tool noise); treat as historical diagnostics only, not current failures. Working tree clean.
 
 ## Evidence (prior shipped cycle, retained for continuity)
 
@@ -77,9 +78,9 @@ This handoff removes the main session-start bottleneck: fresh lock-check baselin
 ## Environment / bottlenecks (current)
 
 - **Deps:** python 3.12.3, numpy 2.5.4, pandas 3.1.1, scipy 1.18.1, pytest 9.2.0, hypothesis present. `coverage`/`pytest-xdist` missing.
-- **Full gate ~371 s (observed this session).** Do not run it after every edit; use targeted suites, then run gate once before recording.
-- **No active blocker:** no stashes/branches noted. Working tree clean. Scratch: `/home/runner/work/_temp/kilo-tmp/`. Do NOT add tracked `probe*`/`debug*`/`ast_probe.py` at repo root.
-- **Removable bottleneck (next campaign):** `strategy.py:381-404` finiteness guard does `weights.to_numpy(dtype=float)` twice plus `weights.iloc[:] = wa` write — collapsible to a single pass; `strategy.py:363` redundant Series extraction; `backtest.py` repeated alignment/cleaning passes. Attack these with measured before/after.
+- **Full gate ~371 s (prior observed).** Do not run it after every edit; use targeted suites, then run gate once before recording.
+- **No active blocker:** working tree clean at `c5b271c`, no stashes/branches noted. Scratch: `/home/runner/work/_temp/kilo-tmp/`. Do NOT add tracked `probe*`/`debug*`/`ast_probe.py` at repo root. `research_state/workflow_run_diagnostics.jsonl` is historical CI log excerpts only (not current failures) — do not treat as blocker.
+- **Removable bottleneck (next campaign):** `backtest.py` final `results.replace([np.inf,-np.inf], np.nan).fillna(0.0)` is a full-frame pandas pass; replace with provably-equivalent single finite-repair pass (and audit other redundant cleans/casts/alignment in BN path) with oracle parity + measured before/after. `strategy.py` finiteness guard already single-pass — not a target unless new evidence.
 
 ---
 
