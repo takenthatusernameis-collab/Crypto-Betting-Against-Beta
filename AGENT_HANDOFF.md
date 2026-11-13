@@ -2,14 +2,14 @@
 
 **Canonical durable handoff:** [`HANDOFF.md`](HANDOFF.md) — single source of truth. Read it in full before starting.
 
-- **Refreshed:** 2026-11-13T20:46:15Z
-- **HEAD:** `d8cf5b1` (main). Working tree: clean.
-- **Env:** sandbox ships with **no** numpy/pandas/pytest — install into the venv at `/home/runner/work/_temp/kilo-tmp/bab-venv` (exact block at top of `HANDOFF.md`) before anything else.
-- **State:** R1 CLOSED. R2 green at `258f660` (155 passed, ~35.5 s) but **must be re-verified vs `d8cf5b1`** (backtest.py/config.py/strategy.py changed for R3-A). R3-A **execution-realism code SHIPPED** at `d8cf5b1` (`config.py` fields+validation, `strategy._resolve_cost_model()` wired into `run()`, `backtest.py` cost_model path + opt-in partial-fill; locked 5 columns preserved). Remaining: R3-A regression tests (`tests/test_bab_execution_realism_r3.py` not yet written), R3-B rebalance-frequency sweep, `bash scripts/bab_gate.sh` RC=0 vs `d8cf5b1`, then refresh `HANDOFF.md`.
-- **NEXT SESSION BINDING INITIAL TASK (DO FIRST, heavy):**
-  1. **Unblock env** (venv block at top of `HANDOFF.md`); run `PYTHONPATH=. python3 scripts/bab_r2_preflight.py` (must print `PREFLIGHT_RC=0`, 155 passed) — re-verify R2 against `d8cf5b1`, do not assume it is still green.
-  2. **Write R3-A regression tests** (`tests/test_bab_execution_realism_r3.py`) on the 5 R2 hostile regimes: finite drags ≥ 0, DN `max|Σw|≤1e-9`, costs on/off measured, borrow asymmetry strict, backward-compat byte-identical default path, `report()`/`tear_sheet()` finite + strict JSON, wrong-typed `cost_model` raises loudly.
-  3. **R3-B:** rebalance-freq {daily,weekly,monthly} × 5 hostile regimes × DN on/off with measured turnover/drawdown/Sharpe per cell; assert turnover ordering (weekly/monthly ≤ daily), not a hard-coded number.
-  4. **Exit:** targeted suites + `bash scripts/bab_gate.sh` RC=0 with recorded numbers; refresh `HANDOFF.md` with evidence. Commit nothing unless explicitly requested.
-- **Confirmed gap (do not re-discover):** R3-A code is done; the missing piece is the regression-test file + R3-B measurements + gate. `backtest.py` default (no-model) path is intended byte-identical to pre-R3 but unproven against `d8cf5b1` — re-verify.
-- **Bottleneck removed:** env now installable in one idempotent block; preflight forces env-verification (Stage 0) before claiming R2/R3; no probe/churn campaigns; `research_state/workflow_run_diagnostics.jsonl` is historical only.
+- **Refreshed:** 2026-11-13T20:48:44Z
+- **HEAD:** `d8cf5b1` (main). Working tree: clean at refresh.
+- **Env:** sandbox has no deps by default; idempotent venv/bootstrap+preflight block is at top of `HANDOFF.md` (`/home/runner/work/_temp/kilo-tmp/bab-venv`). **Do not** claim pytest/numpy missing.
+- **Verified this refresh (on `d8cf5b1`):** `PREFLIGHT_RC=0`; R2 (stress/horizon/scale) **155 passed, 6 warnings, ~30.8 s**; scale **5000×200=161 ms**, **5000×500=377 ms** (within ceilings). R2 is green against `d8cf5b1`.
+- **State:** R1 closed. R3-A execution-realism code shipped at `d8cf5b1`; **missing work** is `tests/test_bab_execution_realism_r3.py`, R3-B rebalance-frequency sensitivity sweep/measurements, and `bash scripts/bab_gate.sh` RC=0 on final HEAD.
+- **NEXT SESSION BINDING INITIAL TASK (heavy, no partial completion):**
+  1. Run env bootstrap + preflight (top of `HANDOFF.md`) and confirm `PREFLIGHT_RC=0`.
+  2. Write and pass R3-A regression tests (`tests/test_bab_execution_realism_r3.py`, 5 hostile regimes): finite columns, `cost_drag>=0`, DN `max|Σw|<=1e-9`, costs-on/off deltas, borrow asymmetry, byte-identical no-model path, finite report/tear_sheet + strict JSON, wrong-typed config raises loudly.
+  3. Implement/measure R3-B: `rebalance_freq` {daily,weekly,monthly} × 5 hostile regimes × DN on/off with R3-A cost model; record turnover/drawdown/Sharpe/cost_drag per cell, assert invariants and turnover ordering, no daily regression vs R2.
+  4. Run targeted R2+R3 + `bash scripts/bab_gate.sh` (RC=0), refresh `HANDOFF.md` with concrete evidence. Commit nothing unless explicitly requested.
+- **Bottlenecks removed:** env install automated; R2 re-verified on current HEAD; no probe/churn campaigns; `research_state/workflow_run_diagnostics.jsonl` historical only. Do not stop at analysis.

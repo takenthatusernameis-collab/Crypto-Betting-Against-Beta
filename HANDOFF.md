@@ -1,71 +1,81 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-13T20:46:15Z
-**HEAD:** `d8cf5b1` — `chore(kilo): checkpoint agent session` (main). Working tree: clean.
+**Timestamp (refreshed):** 2026-11-13T20:48:44Z
+**HEAD:** `d8cf5b1` — `chore(kilo): checkpoint agent session` (main). Working tree: clean at refresh.
 **Repo:** `crypto-betting-against-beta` — BAB (Betting Against Beta) market-neutral crypto strategy: long low-beta / short high-beta vs a BTC benchmark (`README.md`, `strategies/betting_against_beta/`).
 
-> **This is the single source of truth.** `AGENT_HANDOFF.md` is a pointer only. Read this whole file
-> before doing anything. Do not create a second handoff. If a number here conflicts with a live run,
-> **the live run wins** — re-record it and note the delta.
+> **This is the single source of truth.** `AGENT_HANDOFF.md` is a pointer only. Read this whole file before doing anything. Do not create a second handoff. If a number here conflicts with a live run, **the live run wins** — re-record it and note the delta.
+
+## INITIAL TASK FOR NEXT SESSION (clear, binding, timestamped)
+
+**As of 2026-11-13T20:48:44Z on `d8cf5b1`: complete R3 (Execution Realism) end-to-end.** This is not optional and not partially satisfiable.
+
+### Verified this refresh (env bottleneck removed)
+- Env bootstrap used: `/home/runner/work/_temp/kilo-tmp/bab-venv` with `numpy==2.5.4 pandas==3.1.1 scipy==1.18.1 pytest==9.2.0 hypothesis==6.170.15 coverage==7.17.3`.
+- `PYTHONPATH=. "$VENV/bin/python" scripts/bab_r2_preflight.py` => **`PREFLIGHT_RC=0`**.
+- R2 suites on `d8cf5b1`: `tests/test_bab_stress_regimes.py tests/test_bab_stress_horizon.py tests/test_bab_scale_perf_guard.py` => **155 passed, 6 warnings, ~30.8 s**.
+- Live scale (median, 9 warm reps, this run): **5000×200 = 161 ms** (ceiling 800 ms), **5000×500 = 377 ms** (ceiling 2000 ms). Default/no-model path still within R2-C ceilings on `d8cf5b1`.
+
+### Current state (do not rediscover)
+- **R1:** closed/locked.
+- **R2:** re-verified green on `d8cf5b1` this refresh (above). Keep green.
+- **R3-A code:** SHIPPED at `d8cf5b1` (`config.py:104-117,133-169` fields+dict-coercion/validation incl. `cost_model`/`partial_fill`/`max_participation`; `strategy.py` `_resolve_cost_model()` + wired `run()` args; `backtest.py` cost_model path and opt-in participation-aware slippage; locked columns preserved `["returns","gross_return","cost_drag","slippage_drag","cumulative"]`).
+- **R3-A tests:** **MISSING** (`tests/test_bab_execution_realism_r3.py` does not exist).
+- **R3-B:** not implemented/measured (rebalance-frequency sensitivity sweep).
+- **Full gate:** not re-run this refresh; prior baseline 5373 passed / 35 skipped / RC=0 (~657 s). Must be proven green on final `HEAD` before closing R3.
+
+### Required work order (heavy; do all)
+1. **Start-of-session (every session, ~90s, no excuses):** run env bootstrap + preflight block below; paste output in your notes/handoff refresh. Do not claim blockers like "pytest missing" — install into the venv.
+2. **R3-A regression tests** — create `tests/test_bab_execution_realism_r3.py` (reuse `tests/test_bab_stress_regimes.py` hostile-regime builders; do not duplicate injectors):
+   - Run on the 5 R2 hostile regimes with cost model wired: all backtest columns finite; `cost_drag` finite and `≥ 0`; dollar-neutral runs have `max|Σw| ≤ 1e-9`; `report()`/`tear_sheet()` finite and `report_to_json` strict JSON.
+   - **Costs-on vs costs-off per regime:** record drawdown, turnover, total `cost_drag` deltas; assert model-on total drag `≥` flat-only when impact/borrow positive.
+   - **Borrow asymmetry:** identical borrow cost, more short notional ⇒ strictly higher `cost_drag` than long-biased book.
+   - **Backward-compat:** `cost_model=None` path byte-identical to pre-R3 flat path (`transaction_costs`/`slippage` only).
+   - **Validation:** wrong-typed `cost_model` / invalid config raises `BABConfigError` or `BABDataError` loudly (never silently ignored).
+3. **R3-B rebalance-frequency sensitivity** (execution × regime): sweep `rebalance_freq ∈ {daily, weekly, monthly}` × 5 R2 hostile regimes × dollar_neutral on/off with R3-A cost model enabled.
+   - Assert: outputs finite, DN when configured, causality preserved (betas at `t` use data ≤ `t`), no non-finite cumulative or `|Σw|` breach.
+   - Record per-cell turnover, max drawdown, Sharpe and cost_drag; assert turnover ordering holds (weekly/monthly should reduce turnover vs daily) — no hard-coded targets except invariants/ceilings.
+   - Daily cells must not regress vs R2 recorded behavior/ceilings.
+4. **Gate and evidence:** run targeted R2 + R3 suites, then `bash scripts/bab_gate.sh` and record RC/counts/timing + per-regime/per-cell metrics + any defect+fix in `HANDOFF.md`. Keep `AGENT_HANDOFF.md` as pointer only. Commit nothing unless explicitly requested.
+
+**Completion bar (all required):** R2 still green on final HEAD, R3-A tests written+green, R3-B implemented+measured+green, `bash scripts/bab_gate.sh` RC=0 recorded, `HANDOFF.md` refreshed with concrete evidence. If a stage blocks, record exact error/evidence and continue to next unblocked stage — do not stop at analysis.
 
 ---
 
 ## DO THIS FIRST — every session (binding, ~90 seconds)
 
-The environment in this sandbox has **no Python deps by default** (numpy/pandas/pytest all missing).
-Remove that bottleneck first, then run the preflight. Do not skip to "work" on a broken env.
+The sandbox has **no Python deps by default**. Env bottleneck is solved by this idempotent block — run it before any work.
 
 ```bash
-# 1. Remove env bottleneck (idempotent; reuses the venv if present).
+# 1. Remove env bottleneck (idempotent; reuses venv if present).
 VENV=/home/runner/work/_temp/kilo-tmp/bab-venv
 if [ ! -d "$VENV" ]; then python3 -m venv "$VENV"; fi
 "$VENV/bin/python" -m pip install --quiet --upgrade pip
 "$VENV/bin/python" -m pip install --quiet "numpy==2.5.4" "pandas==3.1.1" "scipy==1.18.1" "pytest==9.2.0" "hypothesis" "coverage"
 
-# 2. Preflight (read-only measurement): R2 pass/fail + live scale baseline.
+# 2. Preflight (read-only): R2 pass/fail + live scale baseline.
 cd /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
 PYTHONPATH=. "$VENV/bin/python" scripts/bab_r2_preflight.py; echo "PREFLIGHT_RC=$?"
 ```
 
-**IMPORTANT state delta since the last R2 verification:** `backtest.py`/`config.py`/`strategy.py` changed at `d8cf5b1` (R3-A wiring committed after R2 was last proven green at `258f660`). The default (no-model) path is *intended* to be byte-identical, but that is **unproven against `d8cf5b1`**. Re-run the preflight and reconcile R2 against `d8cf5b1` before treating R2 as shipped. Do **not** claim R2 green on `d8cf5b1` without a fresh `PREFLIGHT_RC=0`.
-
-**Status correction (resolves the prior "unverified" bottleneck):** the earlier `rc=1 / "No module named pytest"` was purely an environment artifact, not a product defect. The env fix is the top-of-file venv block. Do **not** claim "pytest missing" as a blocker — install it.
+**Do not** claim "pytest/numpy missing" as a blocker. **Do not** claim R2/R3 green without fresh command evidence on current `HEAD`. If preflight or tests fail, record exact output and fix/continue per completion bar.
 
 ---
 
-## BINDING INITIAL TASK (next session) — Finish **R3 — Execution Realism** (heavy, non-optional)
+## R3 execution details (file:line anchors — do not re-discover)
 
-**Inference from repo name (`crypto-betting-against-beta`):** the BAB engine is the product. R1 (correctness/oracle/perf) is closed. R2 (regime + horizon + scale stress) was green at `258f660` but must be re-verified against `d8cf5b1` (see Stage 0). The next existential risk for a *trading* strategy is **execution realism**.
+**R3-A shipped (committed `d8cf5b1`):**
+- `config.py:104-117` — `cost_model`, `prices`, `adv_usd`, `partial_fill`, `max_participation`.
+- `config.py:133-169` — dict coercion/validation for `cost_model` (mirrors `shorting_constraints`), `BABConfigError` on wrong type; `partial_fill` bool; `max_participation ∈ (0,1]`.
+- `strategy.py` — `_resolve_cost_model(cfg)` + `run()` passes `cost_model`, `prices_df`, `adv_usd`, `partial_fill`, `max_participation` to `run_backtest()`. No-model path remains flat/pre-R3.
+- `backtest.py` — `cost_model` path uses `compute_transaction_costs(...)`; opt-in participation-aware slippage; no-op when disabled.
+- Locked backtest columns unchanged: `["returns","gross_return","cost_drag","slippage_drag","cumulative"]`.
 
-**R3-A code is SHIPPED** (committed at `d8cf5b1` — see "Confirmed gap / done" below). What remains is the **test + measure + gate** work:
+**R3-A TODO (`tests/test_bab_execution_realism_r3.py`, new):** reuse `tests/test_bab_stress_regimes.py` (`REGIMES`/`REGIME_BUILDERS`/`_base_frame`) over 5 hostile regimes. Cover: finite columns + `cost_drag>=0` + DN `max|Σw|<=1e-9`; costs-on/off recorded deltas (model-on total drag `>=` flat-only when impact/borrow positive); borrow asymmetry (more short notional => strictly higher drag); backward-compat byte-identical default/no-model path; `report()`/`tear_sheet()` finite + strict JSON; wrong-typed `cost_model` raises loudly.
 
-**No partial completion.** Session is not done until: (1) R2 re-verified green on `d8cf5b1` (preflight `rc=0`, 155 passed), (2) R3-A regression tests written and green, (3) R3-B rebalance-frequency sweep implemented and measured, (4) `bash scripts/bab_gate.sh` RC=0 recorded, (5) this handoff refreshed with evidence. If one stage blocks, record exact evidence and continue to the next — do not stop.
+**R3-B TODO:** sweep `rebalance_freq ∈ {daily,weekly,monthly}` × 5 hostile regimes × DN on/off with R3-A cost model enabled. Assert finite outputs, DN/causality/column invariants, no `|Σw|` breach; record turnover/max drawdown/Sharpe/cost_drag per cell; assert turnover ordering weekly/monthly < or ≤ daily trend as measured (invariant-based, no hard-coded numbers except ceilings/non-regression vs R2 daily). Daily cells must not regress vs R2.
 
-### R3-A status — code done, tests missing (file:line evidence — do not re-discover)
-
-**DONE (committed `d8cf5b1`):**
-- `config.py:104-117` — `cost_model`, `prices`, `adv_usd`, `partial_fill`, `max_participation` fields added to `BABConfig`.
-- `config.py:133-169` — `__post_init__` coerces a dict `cost_model` into `TransactionCostModel` (mirrors `shorting_constraints` dict-coercion at `config.py:121-132`); raises `BABConfigError` on wrong type; validates `partial_fill` is bool and `max_participation ∈ (0,1]`.
-- `strategy.py` — added `_resolve_cost_model(cfg)` static method; `run()` now passes `cost_model`, `prices_df`, `adv_usd`, `partial_fill`, `max_participation` into `run_backtest()`. When `cost_model is None`, returns `(None, None, None)` → byte-identical pre-R3 flat path.
-- `backtest.py:189-197` — `cost_model` path still applies `compute_transaction_costs(weights, weights_prev, prices_df, cost_model, adv_usd=...)`.
-- `backtest.py:138-176` — opt-in `partial_fill`/`max_participation` participation-aware slippage; no-op when disabled (bit-identical to flat slippage).
-- Locked columns preserved: `["returns","gross_return","cost_drag","slippage_drag","cumulative"]` (backtest.py:241-247).
-
-**TODO — R3-A regression tests (new file `tests/test_bab_execution_realism_r3.py`):**
-Reuse the R2 hostile-regime injector from `tests/test_bab_stress_regimes.py` (`REGIMES`/`REGIME_BUILDERS`/`_base_frame`; do not duplicate the injector). On the **five R2 hostile regimes**, assert:
-- With `cost_model` wired: all backtest columns finite; `cost_drag` finite and `≥ 0`; `max|Σw| ≤ 1e-9` when dollar-neutral; every column finite across all five regimes.
-- **Costs-on vs costs-off per regime:** drawdown, turnover, and total `cost_drag` with model on vs off (record deltas; assert model-on total drag `≥` flat-only when impact/borrow positive).
-- **Borrow asymmetry:** under identical borrow cost, a book with more short notional pays strictly more `cost_drag` than a long-biased book.
-- **Backward-compat:** `cost_model=None` path byte-identical to pre-R3 flat path (compare to a run with `transaction_costs=cfg.transaction_costs`).
-- `report()`/`tear_sheet()` finite + strict JSON on every wired run.
-- Wrong-typed `cost_model` raises `BABConfigError`/`BABDataError` (never silently ignored).
-
-### R3-B — Rebalance-frequency sensitivity (execution × regime)
-- Sweep `rebalance_freq` ∈ {`daily`, `weekly`, `monthly`} × the **5 R2 hostile regimes** × dollar_neutral on/off (with the R3-A cost model enabled), asserting: all outputs finite; dollar neutrality when configured; causality (betas at `t` use only data ≤ `t`); no non-finite cumulative or `|Σw|` breach.
-- **Record** turnover, max drawdown, Sharpe per cell, and the measured relationship between rebalance frequency and turnover (weekly/monthly should reduce turnover vs daily; assert the ordering holds, not a hard-coded number). Regression baseline = R2 daily numbers for the daily cells (must not regress vs R2-A recorded worst-case drawdowns).
-
-### MANDATORY EVIDENCE TO RECORD (paste into the refresh)
-- Preflight output (post-env-setup) vs `d8cf5b1`; targeted R2 + R3 command results; `bash scripts/bab_gate.sh` RC/counts/timing; per-regime/per-cell measured metrics; any defect+fix. Refresh `HANDOFF.md` (keep `AGENT_HANDOFF.md` pointer-only). Commit nothing unless explicitly requested.
+**Evidence to record on completion:** preflight on final HEAD, targeted R2+R3 pytest outputs, `bash scripts/bab_gate.sh` RC/counts/timing, per-regime/per-cell metrics table/summary, defects fixed (if any), and refreshed handoff text. Keep `AGENT_HANDOFF.md` pointer-only. No commits unless explicitly requested.
 
 ### API facts you must use (verified — do not guess)
 - `from strategies.betting_against_beta import BABStrategy`
@@ -88,10 +98,10 @@ Reuse the R2 hostile-regime injector from `tests/test_bab_stress_regimes.py` (`R
 
 ---
 
-## R2 VERIFIED GREEN — measured results (at `258f660`, 2026-11-13T20:30:49Z; **RE-VERIFY vs `d8cf5b1`**)
-- **R2-A** (`tests/test_bab_stress_regimes.py`) + **R2-B** (`tests/test_bab_stress_horizon.py`) + **R2-C** (`tests/test_bab_scale_perf_guard.py`): **155 passed, 6 warnings, ~35.5 s**, preflight `rc=0`.
-- **R2-C scale** (that env, median of 9 warm reps): 5000×200 = **161 ms** (≤ 800 ms); 5000×500 = **392 ms** (≤ 2000 ms).
-- Prior-session full-gate green baseline: **5373 passed, 35 skipped, RC=0** (~657 s, ~97% cov). Re-run `bash scripts/bab_gate.sh` this session against `d8cf5b1` before closing R3.
+## R2 VERIFIED GREEN — measured results
+- **At `258f660`, 2026-11-13T20:30:49Z:** R2-A/B/C **155 passed, 6 warnings, ~35.5 s**, preflight `rc=0`; scale 5000×200 **161 ms**, 5000×500 **392 ms**.
+- **Re-verified at `d8cf5b1`, 2026-11-13T20:48:44Z (this refresh):** preflight **`PREFLIGHT_RC=0`**; R2-A/B/C **155 passed, 6 warnings, ~30.8 s**; scale 5000×200 **161 ms** (≤800), 5000×500 **377 ms** (≤2000). R3-A wiring did not regress default/no-model R2 path on this host.
+- Prior full-gate baseline (historical, earlier session): **5373 passed, 35 skipped, RC=0** (~657 s). Must be re-run and recorded on final R3 HEAD.
 
 ---
 
