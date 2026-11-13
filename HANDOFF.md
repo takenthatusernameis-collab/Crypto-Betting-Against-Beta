@@ -1,7 +1,7 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-13T01:08:55Z
-**HEAD:** `fbcfa9a chore(kilo): checkpoint agent session` (working tree had no product-source modifications at audit; handoff docs refreshed this session)
+**Timestamp (refreshed):** 2026-11-13T01:12:00Z
+**HEAD:** `24f74ef chore(kilo): checkpoint agent session` (working tree clean; no product-source modifications this session; handoff docs refreshed)
 **Code state:** `cli.py` broad silent `except Exception: pass` **8 -> 3** (intentional: 87, 433, 448). `costs.py` **2 -> 1** (intentional: 59). `config.py` **1 -> 1** (intentional: 123). `regime.py` **1 -> 0**. `backtest.py` **3 -> 3** (intentional: 116, 124, 160). No product-code changes shipped this session.
 **Gates (verified):** **5090 passed / 35 skipped / RC=0** (single command `python3 -m pytest -q`, no ignores), 2026-11-13T00:52Z, log: `/home/runner/work/_temp/kilo-tmp/c54_gates/full_20261113T005000Z.log` (288.83s, warnings only).
 **Repo:** `crypto-betting-against-beta` — BAB (Betting Against Beta) market-neutral product: long low-beta / short high-beta crypto vs BTC benchmark.
@@ -52,27 +52,37 @@ Prior handoff stated: "continue C54 Step 2 with `portfolio.py` (AST-confirmed si
 
 **Corrected:** `portfolio.py`/`strategy.py` have **no broad/bare silent `Exception: pass`** candidates (AST this session). Prior line refs (portfolio 118,131; strategy 396) were stale/incorrect.
 
-**Next concrete step (execute, smallest proven diff first):**
-1. **AST-audit remaining modules for direct `except Exception: pass` / bare silent pass:** `signals.py`, `metrics.py`, `attribution.py`, `quality.py`, `data.py`, `data_sources.py`, `sizing.py`, `shorting.py` (and re-confirm `beta.py` only if a specific reproducible defect is in scope).
-   ```bash
-   python3 - <<'PY'
-   import ast, pathlib
-   mods = ['signals','metrics','attribution','quality','data','data_sources','sizing','shorting']
-   for m in mods:
-       p = pathlib.Path(f'strategies/betting_against_beta/{m}.py')
-       src = p.read_text(); tree = ast.parse(src)
-       hits=[]
-       for n in ast.walk(tree):
-           if isinstance(n, ast.ExceptHandler) and len(n.body)==1 and isinstance(n.body[0], ast.Pass):
-               if n.type is None: hits.append((n.lineno,'bare'))
-               elif isinstance(n.type, ast.Name) and n.type.id=='Exception': hits.append(n.lineno)
-       print(m, hits)
-   PY
-   ```
-2. For any hit, classify **intentional valid-path fallback** (leave silent, document proof/test) vs **proven-invalid-path silence** (narrow exception or `raise BABDataError` with context + regression in `tests/test_bab_<module>_c54_regressions.py`, prove valid-path preserved).
-3. One module per batch; run focused module tests then `python3 -m pytest -q` at module boundary (no ignores). Revert any conversion that changes valid-path behavior.
-4. **`beta.py` and `data_loader.py` remain high-risk:** touch only for a specific, reproducible defect; no mechanical sweep (167 broad / 85 silent in `data_loader.py`).
-5. **No handoff-only execution session:** leave product-code change + regression evidence, or reproducible proof every candidate in the audited batch is intentional. If audit finds no broad-silent candidates, record that evidence and stop.
+**C54 Step 2 — COMPLETE with evidence (2026-11-13T01:10Z AST audit):**
+- `signals.py`, `metrics.py`, `attribution.py`, `quality.py`, `data.py`, `data_sources.py`, `sizing.py`, `shorting.py` → **zero** direct `except Exception: pass` / bare silent `pass` hits (AST command recorded below, run clean).
+- `beta.py` line 130 hit = intentional `min_obs` coercion fallback (`except Exception: pass` returning `np.nan`), not a C54 broad-silent target; **do not sweep** without a specific reproducible defect (policy: HANDOFF locks).
+- `data_loader.py` (167 broad / 85 silent) — off-limits for mechanical sweep; touch only for a specific reproducible defect.
+- Zero product-code conversions made; none justified. Full suite stayed green (5090 passed / 35 skipped / RC=0).
+- Audit command (re-runnable, write-only in /tmp):
+  ```bash
+  python3 - <<'PY'
+  import ast, pathlib
+  base = pathlib.Path('strategies/betting_against_beta')
+  mods = ['signals','metrics','attribution','quality','data','data_sources','sizing','shorting','beta','portfolio','strategy','cli','backtest','costs','config','regime']
+  for m in mods:
+      p = base / f'{m}.py'
+      if not p.exists(): print(m, 'MISSING'); continue
+      tree = ast.parse(p.read_text()); hits=[]
+      for n in ast.walk(tree):
+          if isinstance(n, ast.ExceptHandler) and len(n.body)==1 and isinstance(n.body[0], ast.Pass):
+              if n.type is None: hits.append((n.lineno,'bare'))
+              elif isinstance(n.type, ast.Name) and n.type.id=='Exception': hits.append(n.lineno)
+      print(m, hits)
+  PY
+  ```
+
+**Binding next focus — Step 3 Performance (execute now; Step 2 done, nothing blocked):**
+`beta.py` rolling OLS is the remaining performance surface. Measure first, optimize only with before/after numbers; correctness first.
+- Baseline (2026-11-13T01:10Z, `python3 scripts/perf_bench.py`, PYTHONPATH=.):
+  - `calculate_rolling_beta` median: **1.02 ms** (shape 720x12)
+  - full `BABStrategy.run` median: **17.23 ms**
+  - tracemalloc peak per run: **0.56 MB**
+- Benchmark tooling: `scripts/perf_bench.py`; perf tests `tests/test_beta_performance.py`, `tests/test_beta_perf_numpy_cache.py`.
+- Acceptance: a reproducible optimization diff with before/after numbers from `scripts/perf_bench.py`, focused perf tests green, then full `python3 -m pytest -q` green (no ignores). No optimization without measured delta.
 
 ## Step 3 — Performance (only if Step 2 is done or blocked with evidence)
 
@@ -82,11 +92,23 @@ Prior handoff stated: "continue C54 Step 2 with `portfolio.py` (AST-confirmed si
 
 `docs/unreachable_proofs.md` removed; `docs/COVERAGE_NOTES.md` is the compact note (anti-probe-volume policy).
 
+## Binding focus campaign — next session (cannot be deferred without reproducible evidence)
+
+Repo `crypto-betting-against-beta` = BAB market-neutral crypto product (long low-beta / short high-beta vs BTC). Product is feature-complete and coverage-saturated (99%); **no more probe-volume busywork**. The only remaining concrete engineering campaign is **Step 3 Performance** on `beta.py` rolling OLS. Every future session must:
+
+1. Run `python3 scripts/perf_bench.py` (baseline: rolling beta 1.02 ms, full run 17.23 ms, peak 0.56 MB) and record the numbers in this handoff before proposing any change.
+2. Ship at most one measurable optimization diff to `beta.py` rolling OLS with before/after benchmark numbers.
+3. Add/extend a regression test under `tests/test_beta_*perf*.py` proving the delta, then run `python3 -m pytest -q` (single command, no ignores, RC=0).
+4. Refresh this handoff (timestamp/HEAD, before/after numbers, residual debt) and re-run the full gate before exit.
+5. If no reproducible, measurable perf win exists, record that evidence with numbers and stop — do not manufacture probe volume or handoff churn. Deferral requires reproducible evidence that the baseline is already optimal, not opinion.
+
 ## Bottlenecks removed (do not reintroduce)
 
 - Probe-count quotas abolished; 99% coverage — no new probe surface.
 - Never re-add per-file `--ignore` to a gate.
-- No handoff-only churn: update handoff only to record shipped evidence or a definitive "no candidates" audit.
+- No handoff-only churn: update handoff only to record shipped evidence or a definitive "no candidates / no measurable win" audit.
+- `beta.py`/`data_loader.py` broad-silent sweep blocked unless a specific reproducible defect is in scope (high-risk, 167/85 silent in `data_loader.py`).
+- No blocked sessions: Step 2 audit is complete with zero candidates; nothing is waiting on another session.
 
 Before exit (mandatory): full suite green (single command, no ignores) with a timestamped log under `/home/runner/work/_temp/kilo-tmp/c54_gates/` when re-run; refresh this file (timestamp/HEAD, what shipped, before/after evidence, residual debt with numbers, next concrete step); keep `AGENT_HANDOFF.md` pointer-only; commit nothing unless explicitly requested.
 
