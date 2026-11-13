@@ -304,42 +304,43 @@ def enforce_beta_neutrality(
     w_arr = out.to_numpy(dtype=float, copy=True)
     b_arr = b.to_numpy(dtype=float)
 
-    for i in range(len(common_idx)):
-        row_b = b_arr[i]
-        finite = np.isfinite(row_b)
-        if not np.any(finite):
-            continue
-        b_f = row_b[finite]
-        # Pre-compute correction direction (depends only on betas, which are fixed).
-        b_mean = float(np.sum(b_f)) / len(b_f)
-        centered = b_f - b_mean
-        s2_centered = float(np.sum(centered * centered))
-        if s2_centered < 1e-18:
-            continue
-        # Iterate the minimum-norm correction until |port_beta - target| <= tol.
-        # Each pass applies delta_i = alpha * (b_i - mean(b)), which exactly fixes
-        # sum(delta * b) = residual and preserves sum(delta) = 0. Because gross
-        # exposure (denom) changes after each pass, one pass is not sufficient to
-        # drive beta to exactly ``target``; iterating converges. Cap at 50 passes.
-        for _ in range(50):
-            row_w = w_arr[i]
-            w_f = row_w[finite]
-            denom = np.abs(w_f).sum()
-            if denom < 1e-18:
-                break
-            port_beta = float(np.sum(w_f * b_f) / denom)
-            if abs(port_beta - target) <= tol:
-                break
-            if not correction:
-                break
-            residual = target - port_beta
-            alpha = residual / s2_centered
-            delta = alpha * centered
-            new_w = w_f + delta
-            # Clamp to finite values.
-            new_w = np.where(np.isfinite(new_w), new_w, 0.0)
-            # Write back only the finite positions.
-            w_arr[i, finite] = new_w
+    # --- Vectorized minimum-norm beta correction ---------------------------
+    # Each row independently iterates the same up-to-50-pass update; we run the
+    # passes over the full (n_rows, n_cols) arrays with an active-row mask so
+    # converged / degenerate rows drop out without per-row Python overhead.
+    finite_mask = np.isfinite(b_arr)  # (n_rows, n_cols)
+
+    # Per-row pre-computes (depend only on betas, fixed across passes).
+    b_sum = np.sum(np.where(finite_mask, b_arr, 0.0), axis=1)
+    b_count = finite_mask.sum(axis=1).astype(np.float64)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        b_mean = np.where(b_count > 0, b_sum / b_count, 0.0)
+    centered = np.where(finite_mask, b_arr - b_mean[:, None], 0.0)
+    s2_centered = np.sum(centered * centered, axis=1)
+
+    # Rows that never enter the inner loop (skip semantics).
+    done = (~finite_mask.any(axis=1)) | (s2_centered < 1e-18) | (not correction)
+
+    for _ in range(50):
+        # denom = sum |w| over finite-beta positions per row.
+        denom = np.sum(np.abs(np.where(finite_mask, w_arr, 0.0)), axis=1)
+        # port_beta = sum(w * b) over finite-beta positions / denom.
+        wb_sum = np.sum(np.where(finite_mask, w_arr * b_arr, 0.0), axis=1)
+        with np.errstate(divide="ignore", invalid="ignore"):
+            port_beta = np.where(denom >= 1e-18, wb_sum / denom, 0.0)
+
+        # Rows that break this pass (no further correction).
+        done = done | (denom < 1e-18) | (np.abs(port_beta - target) <= tol)
+        active = ~done
+        if not active.any():
+            break
+
+        residual = target - port_beta[active]
+        alpha = residual / s2_centered[active]
+        delta = alpha[:, None] * centered[active]
+        new_w = w_arr[active] + delta
+        new_w = np.where(np.isfinite(new_w), new_w, 0.0)
+        w_arr[active] = new_w
 
     out = _pd.DataFrame(w_arr, index=common_idx, columns=cols)
     out = out.replace([np.inf, -np.inf], np.nan).fillna(0.0)
