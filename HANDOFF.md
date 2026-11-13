@@ -1,10 +1,10 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-13T04:35:23Z
+**Timestamp (refreshed):** 2026-11-13T04:37:34Z
 **HEAD:** `918c6bc chore(kilo): checkpoint agent session` (clean working tree at handoff write; last substantive work: `43a2313` Step 3d)
 **Repo:** `crypto-betting-against-beta` — BAB (Betting Against Beta) market-neutral crypto strategy: long low-beta / short high-beta vs BTC benchmark (`README.md`, `strategies/betting_against_beta/`).
 
-> **INITIAL TASK FOR THE NEXT AGENTIC SESSION (2026-11-13T04:35:23Z):**
+> **INITIAL TASK FOR THE NEXT AGENTIC SESSION (2026-11-13T04:37:34Z):**
 > Execute **Step 3e — reduce `validate_returns_dataframe` from ~8 ms to ≤4 ms median on the 2000x100 numeric gate frame**, then **Step 3f — reduce `BABStrategy.run()` end-to-end synthetic-path overhead**. This is the next heavy-work campaign. Work through the measured plan below end-to-end; do not substitute probe/coverage churn, do not reopen closed campaigns without a new reproducible defect, do not edit workflows or weaken locked tests, and commit nothing unless explicitly requested.
 
 ## Priority basis (repo name first)
