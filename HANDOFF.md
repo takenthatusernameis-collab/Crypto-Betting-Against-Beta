@@ -1,30 +1,30 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-13T10:29:56Z
+**Timestamp (refreshed):** 2026-11-13T10:36:11Z
 **HEAD:** `36d6eec` (working tree **clean**)
 **Repo:** `crypto-betting-against-beta` — BAB (Betting Against Beta) market-neutral crypto strategy: long low-beta / short high-beta vs BTC benchmark (`README.md`, `strategies/betting_against_beta/`).
 
-**Gate baseline (verified):** `bash scripts/bab_gate.sh` → **5172 passed, 35 skipped, RC=0** (303.71s, python 3.12.3; `coverage` not installed → gate runs without a coverage report). **Re-run the gate before and after any shipped change and record the new result here.**
+**Gate baseline (verified 2026-11-13T10:29Z, HEAD 36d6eec):** `bash scripts/bab_gate.sh` → **5172 passed, 35 skipped, RC=0** (303.71s, python 3.12.3; `coverage` not installed → no coverage report). **Re-run the gate before and after any shipped change and record the new result here.**
 
 ---
 
-> **INITIAL TASK FOR THE NEXT AGENTIC SESSION (2026-11-13T10:29:56Z) — BINDING, HEAVY WORK REQUIRED (NO MEASUREMENT-ONLY TURNS, NO CHURN):**
+> **INITIAL TASK FOR THE NEXT AGENTIC SESSION (2026-11-13T10:36:11Z) — BINDING, HEAVY EXECUTION (NO MEASUREMENT-ONLY / NO CHURN):**
 >
-> **The current top production-scale hot spot is `construct_portfolio` (`portfolio.py:43`), NOT beta and NOT signals anymore.** Measured warm medians at 2500×50 (this environment): `beta` 3.25 ms, `signals` 4.40 ms (shipped: removed redundant copies, int8 scatter, early flat-row return; byte-for-byte vs original), `portfolio` **3.27 ms** (~11 ms at 2500×120; **top target — OPTIMIZATION PENDING**), `run_backtest` 1.79 ms (fallback target). End-to-end `BABStrategy.run` ~18.6 ms. Do **not** re-open beta or signals: `beta.py` and `signals.py` are shipped and locked (see "What is ALREADY shipped").
+> **Mission:** Ship a real, oracle-equivalent performance improvement in the BAB runtime hot path with full regression protection. This is implementation work, not another survey.
 >
-> **Your actual job: ship one end-to-end stage optimization for `construct_portfolio`, with oracle tests + perf ceiling + full gate, OR (if it yields no win) for `run_backtest`'s repeated `to_numpy(dtype=float)`/index alignment (`backtest.py:39-78`), and record evidence for anything skipped.**
+> **Primary target (current top hot spot): `construct_portfolio` (`strategies/betting_against_beta/portfolio.py:43`, perf-critical paths around `_write_book` ~110-158 and `enforce_beta_neutrality` ~331-360).** Production-scale warm medians measured 2026-11-13T10:29:56Z @ 2500×50: `beta` 3.25 ms (shipped/locked), `signals` 4.40 ms (shipped/locked), **`portfolio` 3.27 ms** (~11 ms @ 2500×120, optimization pending), `run_backtest` 1.79 ms, `BABStrategy.run` ~18.6 ms. **Do not reopen `beta.py` or `signals.py` without a new reproducible regression and evidence.**
 >
-> 1. **Do NOT do the trivial `is_numeric_dtype` dtype-check micro-tweak.** A prior attempt plus a `trunc`-equality cleaning path measured **slower** and was reverted. The real cost is elsewhere: profile `construct_portfolio` at 2500×120 with `cProfile` (`python -m cProfile -s tottime`), and look at:
->    - the `_write_book` fan-out and `np.repeat` / boolean-mask assignment (`portfolio.py:110-158`), and
->    - the **per-row Python loops** in `enforce_beta_neutrality` (`portfolio.py:331-360`, one 50-iteration inner loop per row) and `enforce_beta_neutrality`'s `weights.loc[common_idx, common_cols]` / `to_numpy(copy=True)` (two full copies of the weights+beta frames).
-> 2. **Try a genuinely different implementation** (e.g. build the weight matrix with `np.add.at` / `np.repeat`-free per-row scatter, or hoist the beta-neutral correction into a single vectorized pass over the `(n,k)` arrays instead of the per-row `for i in range(len(common_idx))` loop with a 50-step inner iteration). Measure warm medians before/after.
-> 3. **Prove oracle equivalence** to the current implementation on the 2500×120 fixture and on randomized inputs with NaN/inf/degeneracy, tolerance `1e-12`, unchanged error messages/ordering (`tests/test_portfolio_performance.py` has a row-wise oracle; extend it).
-> 4. **Add a generous, CI-stable perf-ceiling test** in `tests/test_portfolio_performance.py` (or a new class there), then run targeted tests, then full `bash scripts/bab_gate.sh` RC=0. Record before/after warm medians + delta here.
-> 5. If `construct_portfolio` yields no measurable win after a genuine implementation attempt, record the evidence (what you tried, the numbers) and **immediately move to `run_backtest` / the next candidate**; do NOT stop the session at measurement/profiling only.
+> **Required execution (complete in this order):**
+> 1. **Baseline/profile now:** capture warm medians for `construct_portfolio` at 2500×50 and 2500×120 (and cProfile at 2500×120, `-s tottime`) in `/home/runner/work/_temp/kilo-tmp/` scratch; identify the dominant cost you will attack (e.g. `_write_book` boolean-mask/repeat scatter, per-row `enforce_beta_neutrality` loop over `i` with 50-step inner iteration, or redundant `weights.loc`/`to_numpy(copy=True)` copies).
+> 2. **Implement one materially different optimization** in `construct_portfolio` (vectorized/array-based scatter or hoisted/vectorized beta-neutral correction over `(n,k)` arrays, etc.). **Do NOT retry the known-bad `is_numeric_dtype` dtype-check micro-tweak or add `DataFrame.copy()`/extra copies** — prior attempts measured slower/regressed.
+> 3. **Prove oracle equivalence:** outputs must match current behavior within `1e-12` (including NaN/inf/degenerate/tie cases, shape/index/column alignment, and unchanged error messages/ordering where applicable). Extend/add tests in `tests/test_portfolio_performance.py` (row-wise/randomized oracle coverage) as needed.
+> 4. **Add/adjust a generous CI-stable perf-ceiling test** for the optimized path (same perf test module unless a better home is required), then run targeted portfolio/perf tests.
+> 5. **Gate:** run `bash scripts/bab_gate.sh` → must be **RC=0**. Record pass/skip/RC/time.
+> 6. **Record evidence in this file:** before/after warm medians + deltas (2500×50, 2500×120), what changed, what was disproven, and remaining candidates.
 >
-> **Trap to avoid:** the raw `beta_arr`/`signals_arr` are already minimal; do not re-add `DataFrame.copy()` "just in case" (it is a real cost). Do not re-implement beta's stacked `_rolling_sum_finite` or signals' double-argsort.
+> **Fallback (only if portfolio shows no measurable win after a genuine attempt):** document numbers/evidence, revert non-winning code, and immediately apply the same cycle to `run_backtest` (`strategies/betting_against_beta/backtest.py:39-78`, repeated `to_numpy(dtype=float)` / index alignment / shift reuse opportunities) — do **not** end the session at profiling.
 >
-> **This task is mandatory and non-deferrable.** The session is not complete until: a real implementation attempt is made, oracle equivalence is proven, a perf-ceiling test exists, the full gate is RC=0, and before/after numbers + deltas are recorded in this file.
+> **Session is incomplete until:** a real implementation attempt is made, oracle equivalence is proven, a perf ceiling exists/holds, full gate is RC=0, and before/after deltas are recorded here. Keep `AGENT_HANDOFF.md` pointer-only and in sync. No commits unless explicitly requested. No edits to `.github/workflows/*`. No tracked probe/debug artifacts at repo root.
 
 ## Measured baselines (THIS environment, 2026-11-13T10:29:56Z — production scale 2500×50, warm medians of 25 reps)
 - `calculate_rolling_beta` — **3.25 ms**
