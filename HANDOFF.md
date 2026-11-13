@@ -1,7 +1,7 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-13T17:37:15Z
-**HEAD:** `e7254ab` — `chore(kilo): checkpoint agent session` (working tree: clean)
+**Timestamp (refreshed):** 2026-11-13T17:38:47Z
+**HEAD:** `f890175` — `chore(kilo): checkpoint agent session` (working tree: clean)
 **Repo:** `crypto-betting-against-beta` — BAB (Betting Against Beta) market-neutral crypto strategy: long low-beta / short high-beta vs a BTC benchmark (`README.md`, `strategies/betting_against_beta/`).
 
 > This is the **single source of truth**. `AGENT_HANDOFF.md` is a pointer only.
