@@ -2,7 +2,7 @@
 
 **Canonical durable handoff:** [`HANDOFF.md`](HANDOFF.md) — single source of truth.
 
-- **Refreshed:** 2026-11-13T01:39:13Z
-- **HEAD:** `8c2830a chore(kilo): checkpoint agent session`
-- **State:** `beta.py` rolling-OLS perf campaign **SHIPPED/CLOSED** in `8c2830a` (pandas rolling → numpy `_rolling_sum`). Measured: rolling beta **1.02 → 0.70 ms**, full `BABStrategy.run` **17.23 → 8.5 ms** (-51%). Gate green: **5110 passed / 35 skipped / RC=0** (`python3 -m pytest -q -p no:cacheprovider`, 2026-11-13).
-- **Binding next action:** Execute **Step 3b** in `HANDOFF.md` — optimize `portfolio.py::construct_portfolio`, now the **#1 hot spot** (~40% of `run()`, tottime 0.087s/0.270s; already labeled "vectorized" at `portfolio.py:50`). Baseline/profile-first, one measured optimization diff, add a perf regression test, run the full gate. Do not reopen `beta.py` (done). `data_loader.validate_returns_dataframe` is an optional high-risk secondary target only.
+- **Refreshed:** 2026-11-13T01:40:42Z
+- **HEAD:** `1d6bb94 chore(kilo): checkpoint agent session`
+- **State:** `beta.py` rolling-OLS perf **CLOSED** (`8c2830a`). Measured now (720x12): rolling beta **0.71 ms**, full `BABStrategy.run` **8.63 ms**, peak **0.57 MB**. Last recorded full gate: **5110 passed / 35 skipped / RC=0**.
+- **Binding next action:** Execute **Step 3b** in `HANDOFF.md` — optimize `strategies/betting_against_beta/portfolio.py::construct_portfolio` (current #1 hot spot: cum 0.140s / tot 0.112s in 20-run cProfile, ~4.86 ms median/call). Baseline/profile first, one measured optimization, correctness + perf regression proof, full honest gate. Do not reopen `beta.py`. Optional high-risk secondary only after evidenced exhaustion: `data_loader` validation path.

@@ -1,100 +1,67 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-13T01:39:13Z
-**HEAD:** `8c2830a chore(kilo): checkpoint agent session` (working tree clean)
-**Repo:** `crypto-betting-against-beta` — BAB (Betting Against Beta) market-neutral product: long low-beta / short high-beta crypto vs BTC benchmark.
+**Timestamp (refreshed):** 2026-11-13T01:40:42Z
+**HEAD:** `1d6bb94 chore(kilo): checkpoint agent session` (working tree clean)
+**Repo:** `crypto-betting-against-beta` — BAB (Betting Against Beta) market-neutral crypto strategy: long low-beta / short high-beta vs BTC benchmark (see `README.md`, `strategies/betting_against_beta/`).
 
-## READ THIS FIRST — what changed since the previous handoff
+## CURRENT STATE (verified this session)
 
-The previous handoff's binding instruction was **"Step 3 Performance on `beta.py` rolling OLS" with baseline rolling beta 1.02 ms / full run 17.23 ms.**
+- **Product/gates (from latest recorded full run in repo state, 2026-11-13):** `python3 -m pytest -q -p no:cacheprovider` → **5110 passed / 35 skipped / RC=0** (single command, no `--ignore`). Do not regress gate honesty.
+- **Perf baseline measured now (2026-11-13T01:40:42Z, `PYTHONPATH=. python3 scripts/perf_bench.py`, median of 5, 720x12 synthetic):**
+  - `calculate_rolling_beta` **0.71 ms**
+  - full `BABStrategy.run` **8.63 ms**
+  - tracemalloc peak / run **0.57 MB**
+- **Hotspot profile measured now (20-run cProfile of `BABStrategy().run`, 720x12 synthetic):**
+  - **#1 `portfolio.py:43 construct_portfolio` — cumtime 0.140s, tottime 0.112s (~41% of profiled time / 33% self)** ← primary optimization target
+  - `data_loader.load_returns` / `validate_returns_dataframe` / `_run_data_quality_campaign` path ~0.077s cum (~22%, high-risk)
+  - `beta.py:331 calculate_rolling_beta` ~0.022s cum (already optimized)
+  - `backtest.py` path ~0.050s cum
+  - Isolated stage: `construct_portfolio` median **4.86 ms/call** (signals from 720x12 beta frame)
 
-**That step is ALREADY DONE and shipped in HEAD (`8c2830a`).** A prior session replaced pandas `rolling().sum()` with a numpy cumulative-sum `_rolling_sum` helper (`beta.py:292`), hoisting benchmark rolling sums out of the per-asset path. Measured this session (2026-11-13T01:39:13Z, `PYTHONPATH=. python3 scripts/perf_bench.py`, median of 5, 3 consecutive runs stable):
+**What is closed (do not reopen without a new reproducible defect + durable evidence):**
+`beta.py` rolling-OLS optimization shipped in `8c2830a` (numpy `_rolling_sum`), full run ~17.2 → ~8.5 ms; values/oracles covered by `tests/test_beta_performance.py`, `tests/test_beta_perf_numpy_cache.py`. Further `beta.py` work requires new failing evidence + before/after numbers.
 
-| Metric | Handoff baseline (pre-8c2830a) | Current HEAD (measured now) | Delta |
-|---|---|---|---|
-| `calculate_rolling_beta` (720x12) | 1.02 ms | **0.70 ms** | **-31%** |
-| full `BABStrategy.run` | 17.23 ms | **8.5 ms** | **-51%** |
-| tracemalloc peak / run | 0.56 MB | 0.57 MB | flat |
+## NEXT FOCUS CAMPAIGN — Step 3b: measurable `construct_portfolio` optimization (BINDING, HEAVY WORK)
 
-**Do NOT reopen `beta.py` rolling OLS.** It is optimized, numerically equivalent to the oracle (`tests/test_beta_performance.py`, `tests/test_beta_perf_numpy_cache.py`), and covered by regression tests. Further work there needs a new reproducible defect + before/after numbers, not intuition.
+`strategies/betting_against_beta/portfolio.py::construct_portfolio` is labeled "vectorized" but remains the dominant hot spot by tottime and a top cumtime contributor. This is the only authorized primary performance campaign. Execute end-to-end; do not substitute probe volume, coverage churn, or handoff-only edits for measured product improvement.
 
-## Measured gate (honest, this session)
+### Required execution plan
 
-- `python3 -m pytest -q -p no:cacheprovider` (single command, no ignores) → **5110 passed / 35 skipped / RC=0** (289.26s), 2026-11-13.
-- Perf tests: `tests/test_beta_performance.py tests/test_beta_perf_numpy_cache.py tests/test_data_quality_stale_run_vectorized.py` → **29 passed / RC=0** (27.41s).
-- Note: suite count rose 5090 → 5110 because `tests/test_data_quality_stale_run_vectorized.py` (108 lines) shipped with `8c2830a`. That is the *only* new test file this session; it is a legit regression guard, not probe volume.
+1. **Baseline & reproduce (before any edit):** capture and record in commit/handoff notes: `PYTHONPATH=. python3 scripts/perf_bench.py`, isolated `construct_portfolio` median, and cProfile totals for `construct_portfolio` (cum/tot) on the same 720x12 synthetic setup. Treat the numbers above as current reference; re-measure in your environment and report deltas.
+2. **Implement one focused optimization in `construct_portfolio`** (or a directly supporting helper in `portfolio.py`) targeting measured overhead (e.g. avoid unnecessary `signals_df.copy()`/dtype coercion passes when already numeric, reduce per-row Python loops in dollar-neutral rebalance/net fixup, eliminate redundant allocations/mask recomputations) **without changing the public contract**: inputs/outputs, index/columns, dtypes, NaN/inf handling, `BABPortfolioError`/`BABDataError` conditions, dollar-neutral/gross/net/max-position/max-turnover semantics, and risk checks must remain behavior-compatible.
+3. **Prove correctness:** add or extend a durable regression/perf-guard test under `tests/` (e.g. `tests/test_portfolio_performance.py` or existing perf-pattern tests) that (a) asserts numerical equivalence vs a clear oracle/reference path for representative and edge cases and (b) encodes a reasonable, non-flaky performance expectation consistent with repo style (avoid brittle micro-thresholds; justify with measured before/after).
+4. **Prove improvement:** report before/after for `scripts/perf_bench.py` (full run + beta stage) and `construct_portfolio` cum/tottime or isolated median. A “win” must be reproducible and explained; if profiling shows no meaningful win after a serious attempt, record concrete evidence (profiles/numbers) and stop — do **not** ship speculative churn.
+5. **Full honest gate:** `python3 -m pytest -q -p no:cacheprovider` (single command, no `--ignore`, RC=0). Run relevant targeted perf/portfolio tests first for fast feedback, but final proof is the full gate.
 
-## NEXT FOCUS CAMPAIGN — Step 3b: `construct_portfolio` is the new #1 hot spot (EXECUTE THIS)
+### Secondary (only if Step 3b is measurably exhausted with evidence)
 
-The previous campaign exhausted the easy `beta.py` win. The **next real heavy work** is `portfolio.py::construct_portfolio`. Fresh cProfile of `BABStrategy().run()` over 20 iterations (720x12 synthetic, 2026-11-13T01:39:13Z):
-
-| Rank | Location | cumtime | tottime | Share |
-|---|---|---|---|---|
-| **1** | **`portfolio.py:43 construct_portfolio`** | **0.109s** | **0.087s** | **~40%** |
-| 2 | `strategy.py:181 _load_returns` → `data_loader.py:1848 load_returns` → `validate_returns_dataframe` (line 1372) → `_run_data_quality_campaign` (1258) | 0.077s | — | ~28% |
-| 3 | `beta.py:331 calculate_rolling_beta` (already optimized) | 0.022s | 0.003s | ~8% |
-| 4 | `backtest.py:9 run_backtest` | 0.050s | — | ~18% |
-
-`construct_portfolio` is **already documented as "vectorized"** (`portfolio.py:50`) yet is still 40% of runtime and the single largest `tottime` (0.087s / 0.270s = 32% pure self time). This is genuine, reproducible headroom — not churn.
-
-**Binding instructions for the next session (heavy work, cannot be deferred without reproducible evidence):**
-
-1. **Baseline first.** Run `PYTHONPATH=. python3 scripts/perf_bench.py` AND the cProfile snippet below; record numbers in this handoff *before* proposing any change. Current baseline to beat: full run **8.5 ms**, `construct_portfolio` cumtime **0.109 s** / tottime **0.087 s** over 20 runs.
-   ```bash
-   PYTHONPATH=. python3 - <<'PY'
-   import cProfile, pstats, io, numpy as np, pandas as pd
-   from strategies.betting_against_beta import BABStrategy
-   rng=np.random.default_rng(7)
-   df=pd.DataFrame(rng.normal(0.0005,0.02,size=(720,12)),
-       index=pd.bdate_range("2022-01-03",periods=720),
-       columns=["BTC","ETH","SOL","BNB","XRP","ADA","AVAX","DOT","DOGE","LINK","MATIC","ARB"])
-   s=BABStrategy(); s.run(returns_df=df)
-   pr=cProfile.Profile(); pr.enable()
-   for _ in range(20): s.run(returns_df=df)
-   pr.disable(); st=pstats.Stats(pr); st.sort_stats('tottime')
-   buf=io.StringIO(); st.stream=buf; st.print_stats(15); print(buf.getvalue())
-   PY
-   ```
-2. **Optimize at most one hot path in `portfolio.py`** (`construct_portfolio`): look for redundant per-call allocations/copies (`signals_df.copy()` at line 83, `np.trunc` + nested `np.where` at 97-98, repeated `np.asarray`/`isinstance` checks, boolean-mask reductions). Preserve exact numeric contract and dtype/`BABPortfolioError` behavior. Every optimization must carry before/after numbers from steps 1 and 3.
-3. **Optional secondary target (only if portfolio is exhausted):** `data_loader.validate_returns_dataframe` runs the full data-quality campaign (`_run_data_quality_campaign`, 0.029s) on *every* `run()` via `_load_returns` (`strategy.py:181`). Measure whether structural validation alone suffices when data is already trusted; do not weaken correctness/error surfacing. This module is **high-risk** (167 broad / 85 silent `except` handlers) — touch only for a measured win with tests, never a mechanical sweep.
-4. **Prove it.** Add/extend a regression test under `tests/test_*perf*.py` that would fail on the old implementation (values identical to oracle + timing delta is the pattern used by `test_beta_performance.py`), then run the **full gate** `python3 -m pytest -q -p no:cacheprovider` (single command, no `--ignore`, RC=0).
-5. **If no reproducible, measurable win exists** in `construct_portfolio`, record that with the profile numbers and stop. Do not manufacture probe volume or handoff-only churn. Deferral requires reproducible evidence that the baseline is already optimal, not opinion.
-
-## Policy (unchanged, binding)
-
-- **The product is saturated:** ~99% coverage, 5110 tests for a ~6.8k-line product. **Probe-count quotas are abolished.** Do not author probes for their own sake.
-- **Every session must ship a durable, verifiable product improvement** (correctness, robustness, or measured performance) with tests as proof — or record evidence that none exists and stop.
-- **Gates must be honest.** Never re-add per-file `--ignore` to a gate.
+- **`data_loader.validate_returns_dataframe` / `_run_data_quality_campaign` invoked on every run:** potential to skip redundant heavy validation when inputs are already validated/trusted — **high-risk module** (167 broad / 85 silent `except` handlers per prior audit). Any change requires a specific, measured win, zero correctness regression, and targeted tests. No mechanical exception-sweep refactors.
 
 ## Bottlenecks removed (do not reintroduce)
 
-- `beta.py` rolling OLS optimization: **DONE / CLOSED** (numpy `_rolling_sum`, -51% full-run). Do not reopen without a new defect.
-- Probe-count quotas abolished; 99% coverage — no new probe surface.
-- No handoff-only churn: update this file only to record shipped evidence or a definitive "no candidates / no measurable win" audit with numbers.
+- `beta.py` rolling OLS: **DONE/CLOSED** (`8c2830a`).
+- Probe-count quotas abolished; suite/product saturated (~99% coverage). No new probe campaigns.
+- No handoff-only churn without shipped, verifiable evidence (or a definitive evidence-backed “no measurable win” conclusion).
 
 ## Locks / prohibitions
 
 - **No** edits to `.github/workflows/*`.
-- **No** edits/commits to tracked `probe*`/`debug*`/`ast_probe.py`; use untracked `/home/runner/work/_temp/kilo-tmp/`.
+- **No** edits/commits to tracked `probe*`/`debug*`/`ast_probe.py`; use untracked `/home/runner/work/_temp/kilo-tmp/` for scratch.
 - **No** weakening/deleting `batch148/149/172`, `campaign_d*`, or `tests/test_bab_*_c5*_regressions.py`.
-- `data_loader.py` broad-silent sweep stays blocked (high-risk: 167 broad / 85 silent handlers) unless a specific reproducible defect is in scope.
+- `data_loader.py` broad-silent `except` sweep remains blocked unless tied to a specific reproducible defect + tests.
 - Commit nothing unless explicitly requested.
 
 ## Completed campaigns (do not reopen without new reproducible failure + durable evidence)
 
-- **C42–C53:** CLOSED (historical probe campaigns; superseded).
-- **C54 Step 1:** CLOSED — full suite is the gate, no ignores.
-- **C54 Step 2 (broad-silent audit):** COMPLETE — zero justified conversions; `portfolio/strategy` have no broad/bare silent `Exception: pass`; `beta.py:130` min_obs fallback intentional.
-- **C54 Step 4:** CLOSED — `docs/COVERAGE_NOTES.md`.
-- **C54 Step 3 (beta.py rolling OLS perf):** CLOSED / SHIPPED in `8c2830a` — numpy `_rolling_sum`, rolling beta 1.02→0.70 ms, full run 17.23→8.5 ms.
+- **C42–C53:** CLOSED (historical). **C54 Step 1:** full-suite gate (no ignores). **Step 2:** broad-silent audit complete (no justified conversions). **Step 3:** `beta.py` perf shipped (`8c2830a`). **Step 4:** `docs/COVERAGE_NOTES.md`.
 
 ## Before exit (mandatory)
 
 1. Full gate green: `python3 -m pytest -q -p no:cacheprovider` → RC=0, single command, no ignores.
-2. Record before/after benchmark numbers (and cProfile delta) in this file.
-3. Refresh timestamp/HEAD + what shipped + residual debt with numbers.
+2. Record before/after benchmark + cProfile/isolated numbers for any perf work in this handoff (or state “no measurable win” with evidence).
+3. Refresh timestamp/HEAD, shipped changes, residual debt with numbers.
 4. Keep `AGENT_HANDOFF.md` pointer-only.
 5. Commit nothing unless explicitly requested.
 
 ---
-**This handoff is the single source of truth. `AGENT_HANDOFF.md` is a pointer only.**
+**This file is the single source of truth. `AGENT_HANDOFF.md` is a pointer only.**
