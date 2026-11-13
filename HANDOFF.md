@@ -1,25 +1,25 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-13T08:35:10Z
-**HEAD:** `05abdb0adbf2c2d25b48f5741fb60d300475325c` (working tree **clean**, branch `main` up to date with `origin/main`)
+**Timestamp (refreshed):** 2026-11-13T09:27:01Z
+**HEAD:** `bcec738` (working tree **clean**, branch `main` up to date with `origin/main`)
 **Repo:** `crypto-betting-against-beta` — BAB (Betting Against Beta) market-neutral crypto strategy: long low-beta / short high-beta vs BTC benchmark (`README.md`, `strategies/betting_against_beta/`).
 
 **Gate baseline (verified prior session):** `bash scripts/bab_gate.sh` → **5145 passed, 35 skipped, RC=0** (301.70s, 2026-11-13T08:29Z, python 3.12.3; `coverage` not installed → gate runs without a coverage report). **Re-run the gate before and after any shipped change and record the new result here.** Working tree is unchanged since this baseline was recorded, so it is still valid.
 
-> **INITIAL TASK FOR THE NEXT AGENTIC SESSION (2026-11-13T08:35:10Z) — BINDING, HEAVY WORK REQUIRED (NO EXCUSES):**
+> **INITIAL TASK FOR THE NEXT AGENTIC SESSION (2026-11-13T09:27:01Z) — BINDING, HEAVY WORK REQUIRED (NO EXCUSES, NO MEASUREMENT-ONLY TURNS):**
 >
-> **CORRECTION FIRST — DO NOT optimize the already-optimized.** The previous handoff told you to "optimize `calculate_rolling_beta` at `beta.py:331` (~12.1 ms)". **That premise is stale and wrong.** The 12.1 ms figure was the *naive* pre-optimization baseline; the vectorized implementation **already shipped** and now measures **0.62 ms** on the standard 720×12 fixture (see "Measured baselines" below). Same for `construct_portfolio` (0.39 ms) and `run_backtest` (1.48 ms) — all three already carry the "hoisted / redundant-copy-removed / second-shift-avoided" optimizations described in code comments. Re-implementing them is forbidden churn. Read `beta.py:389-558`, `portfolio.py:43-120`, `backtest.py:9-163` before touching anything.
+> **CORRECTION FIRST — DO NOT re-optimize the already-shipped stages.** The prior "optimize `calculate_rolling_beta` at `beta.py:331` (~12.1 ms)" task is **STALE**. The vectorized implementation already shipped and measures **0.62 ms** on the standard 720×12 fixture (not 12.1 ms; that was the naive pre-optimization baseline). Same for `construct_portfolio` (0.39 ms) and `run_backtest` (1.48 ms) — all three already carry the "hoisted / redundant-copy-removed / second-shift-avoided" optimizations. Re-implementing them is forbidden churn. Read `beta.py:389-558`, `portfolio.py:43-120`, `backtest.py:9-163` before touching anything.
 >
 > **Your actual job: find and ship the next real win, on a larger/realistic workload, where the existing perf tests do NOT yet guard.** The current perf tests use 720–2000 rows × 12–120 assets. There is unmeasured headroom at production scale. Concretely:
 >
 > 1. **Scale up and re-baseline** with a realistic fixture (e.g. 2500 trading days × 40–60 assets, the default universe size and multi-year history) and measure warm medians for `calculate_rolling_beta`, `construct_portfolio`, `run_backtest`, and end-to-end `BABStrategy.run()` (`strategies/betting_against_beta/strategy.py:211`). Report the real per-stage distribution — do not trust the small-fixture numbers in this file as the production truth.
-> 2. **Profile** (`cProfile`/`py-spy` if available) to locate where time actually goes at that scale. The likely hot spots at large N are: per-asset Python loops in `beta.py`'s mixed-dtype / bad-column fallback path (`beta.py:481-520`), `_write_book` / turnover fan-out in `portfolio.py`, and per-column `fillna`/`diff`/`reindex` in `backtest.py` (`:57-120`).
+> 2. **Profile** (`cProfile`/`py-spy` if available) to locate where time actually goes at that scale. Likely hot spots at large N: per-asset Python loops in `beta.py`'s mixed-dtype / bad-column fallback path (`beta.py:481-520`), `_write_book` / turnover fan-out in `portfolio.py` (`:110-154`), per-column `fillna`/`diff`/`reindex` in `backtest.py` (`:57-120`).
 > 3. **Ship one end-to-end stage optimization** with: oracle-equivalence tests (identical values, NaN/inf/degeneracy/min_obs, tolerance 1e-12, unchanged error messages and ordering), a **generous, CI-stable perf-ceiling test** in the style of `tests/test_beta_performance.py` / `test_portfolio_performance.py` / `test_validation_performance.py` (add to the matching file, or a new `tests/test_*_performance.py`), then targeted tests, then full `bash scripts/bab_gate.sh` RC=0. Record before/after warm medians + delta here.
 > 4. If a stage genuinely has no win after an attempted implementation, record the evidence (what changed, the numbers) and move immediately to the next candidate. Do NOT stop the session at measurement/profiling only.
 >
 > **Secondary (only if the above yields nothing — it is small):** the whole-frame `pd.api.types.is_numeric_dtype` check in `_run_data_quality_campaign` (`data_loader.py:1468` fast path / `:1080` per-column path) is already largely done (Step 3e). The only residual idea is a minor fast-path consolidation; treat it as low-value and only if it is provably safe with oracle tests.
 
-## Measured baselines (THIS environment, 2026-11-13T08:31Z — trustworthy)
+## Measured baselines (THIS environment, 2026-11-13T08:31Z — trustworthy, small fixture only)
 Fixture: 720 bdays × 12 assets (`scripts/perf_bench.py` `_make_returns`), warm medians (median of 7 reps after warmup):
 - `calculate_rolling_beta` — **0.62 ms** (NOT 12.1 ms; 12.1 was the naive baseline, optimization shipped)
 - `construct_portfolio` — **0.39 ms**
@@ -37,7 +37,7 @@ These are small-fixture numbers. **The whole point of the next session is to mea
 
 ## Environment / bottlenecks (current)
 - **Deps:** python 3.12.3, numpy 2.5.4, pandas 3.1.1, scipy 1.18.1, pytest 9.2.0, hypothesis present. `coverage` **not installed** (gate still runs, no coverage report); install only if needed: `pip install coverage`.
-- **No active blocker:** working tree clean at `05abdb0`, gate green (5145 passed / 35 skipped / RC=0).
+- **No active blocker:** working tree clean at `bcec738`, gate green (5145 passed / 35 skipped / RC=0).
 - **Friction:** full gate ~5 min. Run targeted perf tests first; gate is mandatory before/after shipped code.
 - **Scratch:** use `/home/runner/work/_temp/kilo-tmp/` for new probe scripts. Do NOT add tracked `probe*`/`debug*`/`ast_probe.py` at repo root (existing ones are scratch, do not edit/commit).
 
