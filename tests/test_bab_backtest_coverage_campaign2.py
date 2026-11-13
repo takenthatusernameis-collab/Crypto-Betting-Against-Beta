@@ -175,22 +175,33 @@ def test_cumulative_fallback_sanitizes_nonfinite_cumprod(monkeypatch):
     assert cum[0] > 0
 
 
-def test_final_sanitization_handles_nonfinite_result_columns(monkeypatch):
+def test_final_sanitization_defensive_replace_fallback_wired(monkeypatch):
     returns, weights = _returns_weights(periods=8, seed=7)
     real_replace = pd.DataFrame.replace
+    real_to_numpy = pd.DataFrame.to_numpy
     triggered = {"n": 0}
 
     def raising_replace(self, *args, **kwargs):
         # Only the final results frame (5-column portfolio result) should trip the
         # defensive except branch; all other replace calls pass through untouched.
-        if set(["returns", "gross_return", "cost_drag", "slippage_drag", "cumulative"]).issubset(self.columns):
+        if set(["returns", "gross_return", "cost_drag", "slippage_drag", "cumulative"]).issubset(
+            getattr(self, "columns", [])
+        ):
             triggered["n"] += 1
             raise RuntimeError("force final-sanitization except branch")
         return real_replace(self, *args, **kwargs)
 
+    def raising_to_numpy(self, *args, **kwargs):
+        # Force the primary numpy repair path to fail so the defensive
+        # ``results.replace(...)`` fallback is reached.
+        if len(getattr(self, "columns", [])) == 5:
+            raise RuntimeError("force primary path except")
+        return real_to_numpy(self, *args, **kwargs)
+
     monkeypatch.setattr(pd.DataFrame, "replace", raising_replace)
+    monkeypatch.setattr(pd.DataFrame, "to_numpy", raising_to_numpy)
     res = backtest_mod.run_backtest(returns, weights)
-    # The defensive except branch must have been exercised (returns frame un-sanitized).
+    # The defensive replace fallback must have been exercised.
     assert triggered["n"] >= 1
     assert isinstance(res, pd.DataFrame)
     assert list(res.columns) == ["returns", "gross_return", "cost_drag", "slippage_drag", "cumulative"]

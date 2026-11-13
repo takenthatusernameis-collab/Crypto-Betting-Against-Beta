@@ -168,10 +168,21 @@ def run_backtest(returns_df, weights_df, transaction_costs=0.0, slippage=0.0,
         'slippage_drag': slippage_drag.fillna(0.0),
         'cumulative': cumulative_returns
     }, index=common_idx)
-    # Final sanitization
+    # Final sanitization: single finite-repair pass over the result buffer.
+    # Every non-finite entry (NaN, inf, -inf) becomes 0.0, preserving
+    # index/columns/dtypes/values exactly — provably identical to
+    # results.replace([inf,-inf],nan).fillna(0.0) but without the full-frame
+    # pandas replace_list/block-manager pass. All five result columns are
+    # float64, so one to_numpy + where + reconstruct keeps dtypes exact.
     try:
-        results = results.replace([np.inf, -np.inf], np.nan).fillna(0.0)
+        _r_arr = results.to_numpy(dtype=float, copy=False)
+        if not np.all(np.isfinite(_r_arr)):
+            _r_arr = np.where(np.isfinite(_r_arr), _r_arr, 0.0)
+            results = pd.DataFrame(_r_arr, index=results.index, columns=results.columns)
     except Exception:
-        pass
+        try:
+            results = results.replace([np.inf, -np.inf], np.nan).fillna(0.0)
+        except Exception:
+            pass
 
     return results
