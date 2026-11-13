@@ -29,6 +29,10 @@ _EXCHANGE_LOW_KEYS = {"low", "low price"}
 _EXCHANGE_VOL_KEYS = {"volume", "vol", "base volume", "quote volume", "trading volume", "volume btc", "volume usd"}
 _EXCHANGE_SYMBOL_KEYS = {"symbol", "ticker", "pair", "market", "asset", "coin", "currency", "contract", "instrument", "tradingpair"}
 
+# int64 bit pattern of pandas NaT (== np.iinfo(np.int64).min), used to mask
+# NaT-involved diffs without pulling a Series through ``to_series().diff()``.
+_I64_NAT = np.iinfo(np.int64).min
+
 
 def _not_null(v) -> bool:
     try:
@@ -1357,6 +1361,7 @@ def _max_consecutive_equal_finite_frame(arr):
 
 def _run_data_quality_campaign(
     df: pd.DataFrame,
+    arr: np.ndarray | None = None,
     max_return_abs: float | None = None,
     max_gap_days: float | None = None,
     stale_run_threshold: int | None = None,
@@ -1404,7 +1409,7 @@ def _run_data_quality_campaign(
         min_finite_fraction = 0.0
 
     try:
-        arr_all = cleaned.to_numpy(dtype=float)
+        arr_all = arr if arr is not None else cleaned.to_numpy(dtype=float)
         if np.isfinite(arr_all).any():
             abs_arr = np.abs(arr_all)
             finite_abs = abs_arr[np.isfinite(abs_arr)]
@@ -1421,14 +1426,12 @@ def _run_data_quality_campaign(
 
     if isinstance(cleaned.index, pd.DatetimeIndex) and len(cleaned.index) > 1 and max_gap_days is not None and max_gap_days != float("inf"):
         try:
-            gaps = cleaned.index.to_series().diff()
-            if gaps.notna().any():
-                max_gap = gaps.max()
-                if pd.notna(max_gap):
-                    try:
-                        max_gap_days_actual = max_gap.total_seconds() / 86400.0
-                    except Exception:
-                        max_gap_days_actual = float(max_gap)
+            ts = cleaned.index.to_numpy(dtype="datetime64[ns]")
+            if ts.size > 1:
+                gaps = np.diff(ts).view("i8")  # int64 nanoseconds; NaT -> iNaT
+                valid = gaps != _I64_NAT
+                if valid.any():
+                    max_gap_days_actual = int(gaps[valid].max()) / 86400e9
                     if max_gap_days_actual > float(max_gap_days):
                         raise BABDataError(
                             f"Data gap too large: {max_gap_days_actual:.2f} days exceeds threshold {float(max_gap_days):.2f} days"
@@ -1444,7 +1447,7 @@ def _run_data_quality_campaign(
     # ordering are identical to the per-column branch below.
     try:
         if all(pd.api.types.is_numeric_dtype(dt) for dt in cleaned.dtypes):
-            arr2 = cleaned.to_numpy(dtype=float, copy=False)
+            arr2 = arr if arr is not None else cleaned.to_numpy(dtype=float, copy=False)
             finite_mask = np.isfinite(arr2)
             finite_counts = finite_mask.sum(axis=0)
             total = int(arr2.shape[0])
@@ -1461,10 +1464,13 @@ def _run_data_quality_campaign(
                 max_allowed_stale = max(int(stale_run_threshold), 50)
                 stale = np.flatnonzero(finite_counts >= int(stale_run_threshold))
                 if stale.size:
-                    max_runs = _max_consecutive_equal_finite_frame(arr2)
+                    # Per-column stale-run scans only for columns meeting the
+                    # finite-count threshold (non-stale columns can never raise);
+                    # avoids the full-frame (n, m) cumsum/bincount temporaries
+                    # of _max_consecutive_equal_finite_frame.
                     for j in stale:
                         j = int(j)
-                        max_run = int(max_runs[j])
+                        max_run = _max_consecutive_equal_finite(arr2[:, j])
                         if max_run >= max_allowed_stale:
                             col = cleaned.columns[j]
                             raise BABDataError(
@@ -1653,7 +1659,12 @@ def validate_returns_dataframe(
     if cleaned.empty:
         raise BABDataError("Returns DataFrame is empty after cleaning")
 
-    if np.isinf(cleaned.to_numpy()).any():
+    # Hoist a single float64 view of the cleaned frame; reused for the inf
+    # guard below, the quality campaign (passed in), and the per-asset finite
+    # history count after the campaign, avoiding repeated to_numpy passes.
+    arr = cleaned.to_numpy(dtype=float, copy=False)
+
+    if np.isinf(arr).any():
         raise BABDataError("Returns DataFrame contains infinite values")
 
     # Benchmark-presence check MUST run before the comprehensive data-quality
@@ -1704,6 +1715,7 @@ def validate_returns_dataframe(
     if quality:
         cleaned = _run_data_quality_campaign(
             cleaned,
+            arr=arr,
             max_return_abs=max_return_abs,
             max_gap_days=max_gap_days,
             stale_run_threshold=stale_run_threshold,
@@ -1718,7 +1730,7 @@ def validate_returns_dataframe(
     # skipped (``quality=False`` still runs coerce above) fall back to the
     # per-column path for any non-numeric frame.
     try:
-        finite_counts = np.isfinite(cleaned.to_numpy(dtype=float, copy=False)).sum(axis=0)
+        finite_counts = np.isfinite(arr).sum(axis=0)
         finite_counts = pd.Series(
             finite_counts.astype(np.int64), index=cleaned.columns
         )
