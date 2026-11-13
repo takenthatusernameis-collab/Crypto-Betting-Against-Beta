@@ -1,43 +1,39 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-13T11:44:22Z
-**HEAD:** `e5dc8ce` — prior session's `construct_portfolio` broadcast-product work is **committed**; tree was clean at handoff start (this refresh adds only the handoff/benchmark/oracle-guard files).
+**Timestamp (refreshed):** 2026-11-13T13:02:01Z
+**HEAD:** `c138353` — `chore: capture completed workflow run diagnostics` (latest commit on `main`; checkout not re-verified as clean by a fresh commit in this session).
 **Repo:** `crypto-betting-against-beta` — BAB (Betting Against Beta) market-neutral crypto strategy: long low-beta / short high-beta vs a BTC benchmark (`README.md`, `strategies/betting_against_beta/`).
 
-**Gate baseline (verified 2026-11-13T11:35Z at `e5dc8ce`):** `bash scripts/bab_gate.sh` → **5173 passed, 35 skipped, RC=0** (303.59s, python 3.12.3; `coverage` not installed → no coverage report). **Re-run with the new oracle guard (2026-11-13T11:42Z):** **5182 passed, 35 skipped, RC=0** (304.58s). **Bench re-verified (2026-11-13T11:44Z):** `PYTHONPATH="$PWD" python3 scripts/bench_beta_neutrality.py --reps 15` → 2500×40: **209.5 ms**, 2500×50: **212.3 ms**, 2500×120: **244.9 ms** (vs construct ~1.8–3.0 ms, backtest ~1.7–2.9 ms) — `enforce_beta_neutrality` remains the dominant hot spot.
+**State reconciliation (this session):** prior handoff (`2026-11-13T11:44Z`, `e5dc8ce`) stated `enforce_beta_neutrality` optimization/scaffold work was pending. Current checkout now contains `scripts/bench_beta_neutrality.py`, `tests/test_beta_neutrality_performance.py`, and a vectorized masked-pass implementation in `strategies/betting_against_beta/portfolio.py:enforce_beta_neutrality`. **No benchmark, targeted tests, or full gate were re-run in this session** (deps were missing at start), so oracle equivalence, performance win, and gate health at `c138353` are **unverified here** and must be proven before claiming completion.
+
+**Historical gate baselines (as previously recorded, not re-run now):**
+- 2026-11-13T11:35Z @ `e5dc8ce`: `bash scripts/bab_gate.sh` → 5173 passed / 35 skipped / RC=0 (303.59s).
+- 2026-11-13T11:42Z @ `e5dc8ce` (+oracle guard): 5182 passed / 35 skipped / RC=0 (304.58s).
+- 2026-11-13T11:44Z bench @ `e5dc8ce`: 2500×40 209.5 ms, 2500×50 212.3 ms, 2500×120 244.9 ms (`enforce_beta_neutrality`, warm medians).
 
 ---
 
-> ## INITIAL TASK FOR THE NEXT AGENTIC SESSION (2026-11-13T11:44:00Z) — BINDING, HEAVY EXECUTION (NO MEASUREMENT-ONLY / NO CHURN):
+> ## INITIAL TASK FOR THE NEXT AGENTIC SESSION (2026-11-13T13:02:01Z) — BINDING, HEAVY EXECUTION (NO MEASUREMENT-ONLY / NO CHURN):
 >
-> **Mission:** Ship a **vectorized, oracle-equivalent `enforce_beta_neutrality`** in `strategies/betting_against_beta/portfolio.py:232-346`. This is the dominant remaining hot spot by a wide margin. The per-row Python loop (line 307, up to 50 inner iterations) costs **~208–249 ms** at production scale, while `run_backtest` is **~1.7–2.7 ms** and `construct_portfolio` is **~1.8–3.0 ms**. Do **not** spend the session on `run_backtest`; it is noise next to this stage.
->
-> **Why this is the target (fresh measurements, 2026-11-13T11:35Z, warm medians, 15 reps):**
->
-> | Stage | 2500×40 | 2500×50 | 2500×120 |
-> |---|---|---|---|
-> | `enforce_beta_neutrality` | **212.9 ms** | **215.3 ms** | **249.2 ms** |
-> | `construct_portfolio` | 1.83 ms | 2.18 ms | 2.95 ms |
-> | `run_backtest` | 1.67 ms | 1.78 ms | 2.67 ms |
->
-> cProfile at 2500×120 (20 reps): the function body is **4.29 s tottime of 6.83 s total**, with ~735k `np.sum` calls — the 50-pass Python loop dominates. It is called from `strategy.py:364` whenever `beta_neutral=True` / `beta_neutral_enforcement=True`; at production scale it dominates the pipeline (249 ms vs ~2–3 ms for the other stages).
+> **Mission:** **Verify, harden, and close** the `enforce_beta_neutrality` optimization at HEAD. The vectorized implementation and perf/oracle scaffolding appear present in-tree but are **not yet evidenced at `c138353`**. Do **not** reopen `beta.py`, `signals.py`, or shipped `construct_portfolio`/`run_backtest` without a new reproducible regression + evidence.
 >
 > **Required execution (complete in this order):**
-> 1. **Reproduce the baseline now:**
+> 1. **Install/confirm deps and reproduce baseline now (before changing code):**
+>    `python3 -c "import numpy,pandas,scipy,pytest; print('deps ok')"`
 >    `PYTHONPATH="$PWD" python3 scripts/bench_beta_neutrality.py --reps 35`
 >    `PYTHONPATH="$PWD" python3 scripts/bench_beta_neutrality.py --profile`
->    Record the numbers. Scratch goes in `/home/runner/work/_temp/kilo-tmp/`.
-> 2. **Implement one materially different optimization:** replace the per-row loop with a 2-D vectorized correction over the `(n_rows, n_assets)` arrays. Precompute per row: finite-beta mask, `b_mean`, `centered = b_f - b_mean`, `s2_centered`; then run the same up-to-50-pass update over all rows with an **active-row mask**. Preserve every break condition exactly: `s2_centered < 1e-18` skip, `denom < 1e-18` break, `|port_beta - target| <= tol` break, `correction=False` no-op. Preserve the public signature, index/column alignment, non-finite cleaning, and unused-parameter behavior (`max_drift`, tracking-error args are currently unused — keep them unused).
-> 3. **Prove oracle equivalence:** `tests/test_beta_neutrality_performance.py` already contains `_reference_enforce` (the row-wise oracle) and randomized cases. Extend it with randomized NaN/inf/tie/all-equal-beta/zero-row/all-NaN-beta/misaligned-index cases. Require `rtol=atol=1e-12` and identical index/columns. Add an explicit `correction=False` case.
-> 4. **Add/adjust a CI-stable perf ceiling** for the optimized path, then **tighten it to the achieved win** (e.g. `< 0.08 s` at 2500×120 if you reach >3×). The existing ceiling is `< 1.5 s` and is only a non-regression guard, not the win.
-> 5. **Targeted tests** (fast, use during iteration):
+>    Record warm medians (min/max) and profile tottime/call counts. Scratch in `/home/runner/work/_temp/kilo-tmp/`.
+> 2. **Validate current implementation against contract:** `strategies/betting_against_beta/portfolio.py:enforce_beta_neutrality` must preserve all semantics: `s2_centered < 1e-18` skip, `denom < 1e-18` break, `|port_beta - target| <= tol` break, `correction=False` no-op, same up-to-50-pass convergence, NaN/inf cleaning, index/column alignment/intersection, non-finite-target/tolerance handling, and unused params (`max_drift`, tracking-error args) remain behavior-compatible/unused as today. If any divergence is found, fix it with the smallest oracle-equivalent change.
+> 3. **Prove oracle equivalence at 1e-12:** extend `tests/test_beta_neutrality_performance.py` as needed to cover randomized NaN/inf, tie/all-equal-beta, zero-row, all-NaN-beta, misaligned index/columns, single-row/column, and explicit `correction=False` cases. Require `rtol=atol=1e-12` and identical index/columns. Do not weaken existing assertions or the existing perf guard without evidence.
+> 4. **Performance closeout:** if the current vectorization is a real win (target: materially below prior ~210–250 ms, ideally >3× at 2500×120), **tighten** the CI-stable perf ceiling in `tests/test_beta_neutrality_performance.py` to the achieved safe bound (e.g. `< 0.08 s` only if demonstrated with margin on this runner). If no measurable win or parity is unstable, document numbers, revert non-winning code, and move down the fallback ladder (do not stop).
+> 5. **Targeted tests (iterate fast):**
 >    `PYTHONPATH="$PWD" python3 -m pytest -q tests/test_beta_neutrality_performance.py tests/test_bab_beta_neutrality.py tests/test_bab_portfolio_coverage_campaign.py tests/test_bab_portfolio_coverage_campaign3.py tests/test_bab_portfolio_uncovered_branches.py tests/test_bab_signals_portfolio_edgecases.py`
-> 6. **Full gate:** `bash scripts/bab_gate.sh` → must be **RC=0**. Record pass/skip/RC/time (full gate is ~5 min; run it once at the end, not after every edit).
-> 7. **Record evidence in this file:** before/after warm medians + deltas, profile before/after, what changed, what was disproven, remaining candidates. Refresh the timestamp/HEAD/gate/shipped/status. Keep `AGENT_HANDOFF.md` pointer-only and in sync.
+> 6. **Full gate (once, at end):** `bash scripts/bab_gate.sh` → must be **RC=0**. Record pass/skip/RC/time.
+> 7. **Record evidence in this file:** before/after warm medians + deltas, profile before/after, what changed, what was disproven, remaining candidates. Refresh timestamp/HEAD/gate/shipped/status. Keep `AGENT_HANDOFF.md` pointer-only and in sync.
 >
-> **Fallback ladder (if no measurable win after a genuine attempt):** document the numbers, **revert the non-winning code**, and move to the next stage: profile `BABStrategy.run` end-to-end with `beta_neutral=True` at 2500×120 for redundant DataFrame copies/reindex/`to_numpy` passes in `strategy.py`. Do **not** stop at profiling. Do **not** reopen `beta.py`, `signals.py`, or the shipped `construct_portfolio` broadcast product without a new reproducible regression + evidence.
+> **Fallback ladder (if verification shows no win or correctness issues that cannot be fixed safely):** document the numbers, **revert the non-winning/incorrect change**, then profile `BABStrategy.run` end-to-end with `beta_neutral=True` at 2500×120 for redundant DataFrame copies/reindex/`to_numpy` passes in `strategy.py:364+`. Do **not** stop at profiling. Do **not** reopen historical diagnostics (`research_state/workflow_run_diagnostics.jsonl`) as current failures.
 >
-> **Session is incomplete until:** a real vectorized implementation is attempted, oracle equivalence is proven at 1e-12, a tightened perf ceiling exists and holds, the full gate is RC=0, and before/after deltas are recorded here.
+> **Session is incomplete until:** benchmarked baseline is recorded at current HEAD, oracle equivalence is proven at 1e-12 (or a regression fixed), a tightened/safe perf ceiling is in place, targeted tests + full gate are RC=0, and before/after deltas/status are recorded here.
 
 ## SHIPPED / SCAFFOLDED (do NOT reopen without new evidence)
 - `beta.py` `calculate_rolling_beta`: 2-D stacked rolling sums, hoisted benchmark sums, single `to_numpy(dtype=float)`, vectorized finiteness pass. **Locked.**
