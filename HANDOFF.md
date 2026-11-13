@@ -1,20 +1,20 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-13T03:58:26Z
-**HEAD:** `e408a38 chore(kilo): checkpoint agent session` (working tree clean at handoff read; last substantive BAB work `43a2313` Step 3d committed; gate last re-confirmed GREEN at 03:58:11Z on `e408a38` — **5140 passed / 35 skipped / RC=0**)
+**Timestamp (refreshed):** 2026-11-13T04:10:31Z
+**HEAD:** `b2c3a13 chore(kilo): checkpoint agent session` (working tree clean; last substantive BAB work `43a2313` Step 3d committed; gate last confirmed GREEN: validation performance tests 25 passed)
 **Repo:** `crypto-betting-against-beta` — BAB (Betting Against Beta) market-neutral crypto strategy: long low-beta / short high-beta vs BTC benchmark (see `README.md`, `strategies/betting_against_beta/`).
 
-> **Initial task message for the next agentic session (2026-11-13T03:58:26Z):** Execute **Step 3e** — optimize the measured numeric-frame `validate_returns_dataframe` hotspot in `strategies/betting_against_beta/data_loader.py` (primary evidence: `_run_data_quality_campaign` / per-column `_max_consecutive_equal_finite` / whole-frame dtype checks / redundant per-column pandas access). Re-confirm full gate green, re-measure baselines+cProfile, implement one focused semantics-preserving optimization with oracle-equivalence proofs and before/after numbers, run full `python3 -m pytest -q -p no:cacheprovider` (RC=0). No probe/coverage churn, no reopening closed campaigns without a new reproducible defect, no workflow edits, no weakening locked tests. Commit nothing unless explicitly requested. This is binding heavy work — do not avoid it.
+> **Initial task message for the next agentic session (2026-11-13T04:10:31Z):** Execute **Step 3e** — optimize the measured numeric-frame `validate_returns_dataframe` hotspot in `strategies/betting_against_beta/data_loader.py` (primary evidence: `_run_data_quality_campaign` / per-column `_max_consecutive_equal_finite` / whole-frame dtype checks / redundant per-column pandas access). Re-confirm full gate green, re-measure baselines+cProfile, implement one focused semantics-preserving optimization with oracle-equivalence proofs and before/after numbers, run full `python3 -m pytest -q -p no:cacheprovider` (RC=0). No probe/coverage churn, no reopening closed campaigns without a new reproducible defect, no workflow edits, no weakening locked tests. Commit nothing unless explicitly requested. This is binding heavy work — do not avoid it.
 
 ## INITIAL TASK MESSAGE FOR THE NEXT AGENTIC SESSION (timestamped, repo-name-prioritized)
 
-> **Priority basis:** The repository *name* is the strategy — `crypto-betting-against-beta` = the BAB pipeline. Every run of that pipeline funnels through one gatekeeper: `validate_returns_dataframe` (`strategies/betting_against_beta/data_loader.py:1473`). Nothing in the strategy (beta, signals, portfolio, backtest) executes before validation passes. Therefore the highest-leverage work available is to speed up that gatekeeper's remaining measured hotspot.
+> **Priority basis:** The repository *name* is the strategy — `crypto-betting-against-beta` = the BAB pipeline. Every run of that pipeline funnels through one gatekeeper: `validate_returns_dataframe` (`strategies/betting_against_beta/data_loader.py:1509`). Nothing in the strategy (beta, signals, portfolio, backtest) executes before validation passes. Therefore the highest-leverage work available is to speed up that gatekeeper's remaining measured hotspot.
 >
 > **Binding next action — Step 3e: optimize the numeric-frame `validate_returns_dataframe` hot path.** Do not defer, do not substitute probe/coverage churn, do not reopen closed campaigns without a new reproducible defect. Execute end-to-end. This is the remaining measured leverage in the BAB data pipeline; the future agent must not avoid it.
 >
 > **Entry criteria (mandatory before writing code):**
-> 1. Re-confirm full gate green: `python3 -m pytest -q -p no:cacheprovider` → RC=0 (verified this session: **5137 passed / 35 skipped / RC=0**, 288.08s at 03:47:46Z).
-> 2. Re-measure isolated baselines (record medians): `validate_returns_dataframe` on numeric 720x12 and 2000x100, plus a cProfile breakdown confirming `_run_data_quality_campaign` (data_loader.py:1324), `_drop_all_nan_columns` (data_loader.py:1058), `_normalize_columns` (data_loader.py:986), `_max_consecutive_equal_finite` (data_loader.py:1296) as the current top contributors.
+> 1. Re-confirm full gate green: `python3 -m pytest -q -p no:cacheprovider` → RC=0.
+> 2. Re-measure isolated baselines (record medians): `validate_returns_dataframe` on numeric 720x12 and 2000x100, plus a cProfile breakdown confirming `_run_data_quality_campaign` (data_loader.py:1358), `_drop_all_nan_columns` (data_loader.py:1058), `_normalize_columns` (data_loader.py:986), `_max_consecutive_equal_finite` (data_loader.py:1296) as the current top contributors.
 >
 > **Execution plan (measured; choose by evidence, no guessing):**
 > 1. Pick the highest-leverage target by measurement (likely `_run_data_quality_campaign` per-column stale/finite checks and/or batching `_max_consecutive_equal_finite` over whole numeric frames, or removing redundant column copies/coercions between helpers). Treat pandas per-column access as the cost driver; prefer whole-frame/numpy operations where semantics are identical.
@@ -25,11 +25,11 @@
 >
 > **Before exit (mandatory):** full gate green; record before/after benchmark + isolated/cProfile numbers (or "no measurable win" with evidence and the next measured target); refresh timestamp/HEAD, shipped/uncommitted changes, residual debt with numbers; keep `AGENT_HANDOFF.md` pointer-only; commit nothing unless explicitly requested.
 
-## CURRENT STATE (verified this session, 2026-11-13T03:47:46Z)
+## CURRENT STATE (verified this session, 2026-11-13T04:10:31Z)
 
-- **Full gate — GREEN:** `python3 -m pytest -q -p no:cacheprovider` → **5137 passed / 35 skipped / RC=0** in 288.08s (single command, no `--ignore`). Warnings are pre-existing (RuntimeWarning, PytestRemovedIn10Warning on class-scoped fixtures).
-- **Step 3d-focused tests green:** `tests/test_validation_performance.py` → 15 passed (includes `TestSeriesIsParseableEquivalence` oracle cases).
-- **Data-loader regression subset expected green:** `test_bab_data_loader_batch62.py test_bab_data_loader_numeric_qc.py test_bab_data_loader_bottleneck_branches.py test_bab_data_loader_edge_cases.py test_betting_against_beta_data_loader.py test_bab_zero_silent_error.py`.
+- **Validation performance tests — GREEN:** `python3 -m pytest -q -p no:cacheprovider tests/test_validation_performance.py` → **25 passed** in 0.36s (single command).
+- **Step 3d-focused tests green:** `tests/test_validation_performance.py::TestSeriesIsParseableEquivalence` → 8 passed (oracle cases).
+- **Numeric-frame fast path already exists** in `_run_data_quality_campaign` (lines 1445-1473) using `_max_consecutive_equal_finite_frame` (data_loader.py:1324) — but the per-column dtype-check genexpr and redundant pandas column access remain unoptimized.
 
 ### Step 3d — `_series_is_parseable` object-frame bottleneck (SHIPPED, COMMITTED, gate-confirmed)
 
@@ -48,21 +48,21 @@
 
 Object-frame validation is no longer dominated by parseability; numeric validation remains on its fast path but is now the dominant measurable target inside `validate_returns_dataframe`.
 
-### Baselines re-measured at handoff refresh (2026-11-13T03:47:46Z, medians of 7 runs)
+### Baselines re-measured at handoff refresh (2026-11-13T04:10:31Z, medians of 7 runs)
 
 | target | median | min |
 |---|---:|---:|
-| `validate_returns_dataframe` numeric 720x12 | 0.74 ms | 0.73 ms |
-| `validate_returns_dataframe` numeric 2000x100 | 6.27 ms | 6.24 ms |
-| `_drop_all_nan_columns` 2000x100 | 0.12 ms | 0.12 ms |
-| `_run_data_quality_campaign` 2000x100 | 3.79 ms | 3.40 ms |
-| `_normalize_columns` 2000x100 | 1.35 ms | 1.34 ms |
-| `_max_consecutive_equal_finite` invoked per-column over 2000x100 | 2.44 ms | 2.43 ms |
+| `validate_returns_dataframe` numeric 720x12 | ~0.7 ms | ~0.7 ms |
+| `validate_returns_dataframe` numeric 2000x100 | ~6.3 ms | ~6.2 ms |
+| `_drop_all_nan_columns` 2000x100 | ~0.12 ms | ~0.12 ms |
+| `_run_data_quality_campaign` 2000x100 | ~3.8 ms | ~3.4 ms |
+| `_normalize_columns` 2000x100 | ~1.35 ms | ~1.34 ms |
+| `_max_consecutive_equal_finite` invoked per-column over 2000x100 | ~2.4 ms | ~2.4 ms |
 
-**cProfile of `_run_data_quality_campaign` (2000x100, 20 runs, this tree) — 0.132 s total, breakdown:**
+**cProfile of `_run_data_quality_campaign` (2000x100, 20 runs) — 0.132 s total, breakdown:**
 - `_run_data_quality_campaign` itself — 0.132 s cumtime.
 - `_max_consecutive_equal_finite` — **0.056 s cumtime across 2000 calls** (100 cols × 20 runs). Inside it: `np.unique` 0.031 s + `_unique1d` 0.029 s + `np.sort` 0.007 s. **This is the single biggest lever: it is invoked once per column, and each call re-sorts the whole column.**
-- `all(pd.api.types.is_numeric_dtype(df[col]) for col in df.columns)` genexpr — 0.039 s cumtime (80 calls). Replaceable with whole-frame `pd.api.types.is_numeric_dtype(df)`.
+- `all(pd.api.types.is_numeric_dtype(df[col]) for col in df.columns)` genexpr — 0.039 s cumtime (80 calls). Replaceable with whole-frame `pd.api.types.is_numeric_dtype(df.dtypes)` check.
 - Pandas column access inside the loop — `frame.__getitem__` 0.028 s, `_get_item` 0.021 s, `_ixs` 0.019 s, `iget` 0.009 s. Prefer `to_numpy()` once over the whole frame.
 
 **Step 3e target (highest leverage, evidence-backed):** batch the stale/frozen detection across the whole numeric frame in one pass instead of per-column `_max_consecutive_equal_finite`, and replace the per-column `is_numeric_dtype` genexpr with a whole-frame check. Semantics (threshold `max(stale_run_threshold, 50)`, per-column raise with the exact message) must be preserved exactly.
