@@ -1,83 +1,76 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-13T05:40:28Z
-**HEAD:** `74447c4 chore(kilo): checkpoint agent session` (working tree: handoff docs refreshed this session; last substantive code commit `43a2313` Step 3d)
+**Timestamp (refreshed):** 2026-11-13T06:06:18Z
+**HEAD:** `584eba1 chore(kilo): checkpoint agent session` (working tree clean at refresh except this handoff update)
 **Repo:** `crypto-betting-against-beta` — BAB (Betting Against Beta) market-neutral crypto strategy: long low-beta / short high-beta vs BTC benchmark (`README.md`, `strategies/betting_against_beta/`).
-**Gate (last verified at prior handoff, 2026-11-13T04:46:06Z):** `bash scripts/bab_gate.sh` → **5140 passed, 35 skipped, RC=0**. Re-run as the first correctness check before/after any Step 3e/3f code change.
+**Last recorded gate (do not assume current):** `bash scripts/bab_gate.sh` → **5140 passed, 35 skipped, RC=0** (recorded 2026-11-13T06:02:00Z in prior pointer/state). Re-run as the first and final correctness check for any code changes this session.
 
-> **INITIAL TASK FOR THE NEXT AGENTIC SESSION (2026-11-13T05:40:28Z):**
-> **Ship Step 3e performance code in `strategies/betting_against_beta/data_loader.py`** and land it with oracle-equivalence coverage + a full green gate — no measurement-only churn. Then immediately begin Step 3f (end-to-end pipeline hot spots). Commit nothing unless explicitly requested. This is the binding focus campaign: validation/pipeline overhead is the top leverage for a BAB repo; do not spend the session on probe-count expansion or re-profiling work already recorded below.
+> **INITIAL TASK FOR THE NEXT AGENTIC SESSION (2026-11-13T06:06:18Z) — BINDING:**
+> **Ship Step 3e performance code in `strategies/betting_against_beta/data_loader.py`** (optimize `validate_returns_dataframe` / `_run_data_quality_campaign` numeric path) with oracle-equivalence tests and a full green gate. **Then immediately start Step 3f** hot spots in `beta.py:331` (`calculate_rolling_beta`), `portfolio.py:43` (`construct_portfolio`), `backtest.py:9` (`run_backtest`) if Step 3e is landed or blocked by hard evidence. No measurement-only churn, no probe-count expansion, no commits unless explicitly requested.
 
 ## Priority basis (repo name first)
+Repository purpose is the BAB strategy. All runs flow through `validate_returns_dataframe` (`strategies/betting_against_beta/data_loader.py`) before beta/signal/portfolio/backtest stages, so validation/pipeline overhead is the highest-leverage engineering work.
 
-The repository name *is* the strategy: `crypto-betting-against-beta`. Every pipeline run passes through `validate_returns_dataframe` (`strategies/betting_against_beta/data_loader.py:1515`) before beta/signal/portfolio/backtest work can start. Validation/pipeline hot-path performance is the top remaining engineering leverage.
+**Authoritative warm baseline (2026-11-13T04:45Z, this container, 31-run medians, 2000x100 numeric frame — do not re-measure except before/after shipped changes):**
+- `validate_returns_dataframe`: **7.40 ms** (p10 7.37 / p90 7.48)
+- `_max_consecutive_equal_finite_frame` helper (`data_loader.py:1328`, currently unused): **2.44 ms**
+- `_normalize_columns`: 0.26 ms (leave alone)
+- gap `Series.diff` check already NumPy-based: ~0.04 ms
+- `is_numeric_dtype` loop/genexpr cost material (~0.045 ms / 100 calls context)
+- frame `copy` / block copies material (~0.04–25 ms in profiles depending on path)
 
-**Authoritative warm baseline (this container, 2026-11-13T04:45Z, 31-run medians on 2000x100 numeric frame; from prior verified handoff):**
+cProfile (20 calls, 2000x100): `_run_data_quality_campaign` dominates; stale-run scan, copies/coercions, and repeated numeric materialization are main costs.
 
-| target | warm median |
-|---|---:|
-| `validate_returns_dataframe` | **7.40 ms** (p10 7.37 / p90 7.48) |
-| `_max_consecutive_equal_finite_frame` helper (`data_loader.py:1328`, unused) | **2.44 ms** |
-| `_normalize_columns` | 0.26 ms |
-| gap `Series.diff` check | 0.04 ms |
-| `is_numeric_dtype` genexpr (100 calls) | 0.045 ms |
-| frame `copy` | 0.04 ms |
+## Bottlenecks removed / current blockers
+- **Removed (process bottleneck):** prior sessions spent effort profiling without shipping. This handoff makes Step 3e code+tests+gate the mandatory first deliverable and forbids re-profiling churn.
+- **No active reproducible in-repo blocker recorded.** `research_state/workflow_run_diagnostics.jsonl` contains historical diagnostics only; treat as non-blocking context.
+- `AGENT_HANDOFF.md`/`HANDOFF.md` were stale vs HEAD — refreshed now as the single coordination point.
 
-cProfile (20 calls, 2000x100): `_run_data_quality_campaign` 97 ms cumulative; `_max_consecutive_equal_finite_frame` 46 ms (cumsum 23 ms); `_normalize_columns` 36 ms; dtype `is_numeric_dtype` ≈13 ms; `Series.diff` gap ≈2 ms; `DataFrame.copy` ≈25 ms (pandas block copies). **Do not re-run to "confirm"; measure only before/after changes you ship.**
+## Step 3e — `validate_returns_dataframe` numeric path (REQUIRED WORK)
+**Current code reality (verified):** gap check uses `index.to_numpy(dtype="datetime64[ns]")`+`np.diff`; numeric fast path scans qualifying columns via `_max_consecutive_equal_finite` per-column (`~1471-1473`) and fallback paths also do per-column conversions (`~1485-1506`); `validate_returns_dataframe` hoists `arr`/`finite_arr` and passes to `_run_data_quality_campaign` (`~1665,1716-1724`) but campaign still has redundant/re-materializing paths (`arr_all`/`finite_all` handling, unconditional `df.copy()`/sort/coerce, numeric branch recomputes/allocates). `_max_consecutive_equal_finite_frame` (`1328`) is unused/dead heavy code.
 
-## Current state / blockers removed this refresh
-- Single durable handoff is refreshed, timestamped, and points at one concrete heavy-work campaign (Step 3e code → Step 3f). No active blocker in-repo; main prior bottleneck was measurement-only churn (profiled but not shipped) — anti-churn rules below are binding.
-- `research_state/workflow_run_diagnostics.jsonl` shows historical successful scheduled runs with captured log-signal excerpts (old heads/tool-arg noise); **treat as historical diagnostics, not current failures**. No current reproducible gate failure recorded in-tree.
-- Working tree had only this handoff refresh at write time; keep it clean except intentional Step 3e/3f changes.
+1. **Whole-frame numeric dtype check:** replace `all(pd.api.types.is_numeric_dtype(dt) for dt in cleaned.dtypes)` (`~1449`) with a single dtype check (e.g. `pd.api.types.is_numeric_dtype(cleaned.dtypes)` or equivalent) preserving mixed/object behavior.
+2. **Stale-run hot path:** eliminate per-column overhead while preserving exact semantics (finite-only, reset on NaN/inf/value change, same thresholds/raise ordering/messages). Prefer reusing the hoisted numeric `arr`/`arr2` in fast/fallback paths (avoid `pd.to_numeric(...).to_numpy` per column when frame is already numeric/coerced). Implement a tight NumPy/vectorized scan or a lower-allocation per-column routine; delete or replace unused `_max_consecutive_equal_finite_frame` (no dead heavy helper left behind).
+3. **Remove redundant copy/coercion/sort in campaign:** `_run_data_quality_campaign` unconditionally copies and may re-normalize/sort/coerce index even when called from `validate_returns_dataframe` on an already-normalized frame. Add a safe internal fast path/flags so validate avoids duplicate work **without breaking**: returned-frame independence for callers mutating inputs, duplicate-timestamp handling, tz normalization, index sort, error types/messages/ordering where observable, benchmark/quality semantics.
+4. **Single numeric view reuse:** when `arr`/`finite_mask` are provided, ensure inf/abs checks, finite masks, and stale/fraction logic operate on one consistent view without extra materializations (`~1412`, `~1450`, `~1665`, numeric branch).
+5. **Do not churn `_normalize_columns`** (~0.26 ms) unless a correctness-preserving simplification is incidental.
 
-## Step 3e — optimize `validate_returns_dataframe` numeric path (BINDING, ship code)
+### Step 3e correctness gates (must hold)
+- Preserve contracts: `BABDataError` behavior where observable, duplicate handling, tz normalization, index sort, benchmark checks, NaN/inf rejection, finite-fraction/stale-run thresholds, lenient `allow_duplicate_timestamps`, numeric-vs-fallback parity.
+- Add/extend oracle coverage in `tests/test_validation_performance.py` (or focused tests): all-NaN cols, mixed dtypes, inf/-inf, stale runs at/above/below threshold, sparse finite fractions, duplicate timestamps, tz-aware indexes, canonical/duplicate column normalization, malformed/non-numeric preservation, empty/single-row frames, and **mutation-independence** of returned frames.
+- Keep existing stale-run/oracle tests green (adapt only if helper API changes but semantics remain equivalent).
+- Run targeted tests for touched areas, then **full gate**: `bash scripts/bab_gate.sh` → **RC=0** (or `python3 -m pytest -q -p no:cacheprovider`).
+- Record before/after warm medians + delta (or "no measurable win" with hard evidence) in this file and proceed to Step 3f.
 
-**Code reality on this tree (verified):** gap check already uses `index.to_numpy(dtype="datetime64[ns]")` + `np.diff` (`data_loader.py:1429-1434`); numeric fast path already does per-column stale scans over qualifying columns via `_max_consecutive_equal_finite` (`1463-1478`, `_max_consecutive_equal_finite_frame` at `1328` is currently unused); `validate_returns_dataframe` already hoists `arr = cleaned.to_numpy(dtype=float, copy=False)` (`1665`) and passes it into `_run_data_quality_campaign` (`1716-1724`), which reuses it for abs checks (`1412`). Remaining work is to exploit this layout and remove residual overhead/allocation while preserving semantics.
+## Step 3f — end-to-end `BABStrategy.run()` hot spots (start after 3e)
+Re-measure before changing; prior anchors: `calculate_rolling_beta` ~12.1 ms (`beta.py:331`), `construct_portfolio` ~6.4 ms (`portfolio.py:43`), `run_backtest` ~2.1 ms (`backtest.py:9`).
 
-### Required work (implement, test, gate, record — in one pass)
-1. **Whole-frame numeric dtype check (micro, easy win):** replace `all(pd.api.types.is_numeric_dtype(dt) for dt in cleaned.dtypes)` at `data_loader.py:1449` with `pd.api.types.is_numeric_dtype(cleaned.dtypes)` or an equivalent single check over the dtype object/index. Preserve behavior for mixed/object frames.
-2. **Stale-run path (PRIMARY hot spot by profile):** `_max_consecutive_equal_finite` is called per qualifying column in the numeric fast path (`1471-1473`) and per-column fallback (`1485-1506`). Reduce overhead without changing results: avoid per-column pandas conversions in fallback (`pd.to_numeric(...).to_numpy`/`cleaned[col].to_numpy` at `1485-1492`) by slicing/reusing the already-available numeric `arr`/`arr2` where the frame is numeric/coerced; consider a tighter vectorized/NumPy per-column run scan that avoids Python-level object churn but keeps exact max-run semantics (finite-only, reset on NaN/inf or value change). `_max_consecutive_equal_finite_frame` (`1328-1359`) is unused — either delete it or replace with a lower-allocation implementation used by the fast path; do not keep dead heavy code.
-3. **Reduce redundant frame copies/conversions:** `_run_data_quality_campaign` unconditionally copies `df` (`1376`) and may coerce/sort again even when called from `validate_returns_dataframe` after normalization/coercion; add a safe internal fast path/flags or restructure so validate does not pay duplicate copy/sort/to_datetime work on an already-clean numeric frame. Any shortcut must preserve: returned-frame independence for callers that mutate input, duplicate-timestamp handling, tz normalization, index sort, error messages/types, and benchmark/quality semantics.
-4. **Redundant `to_numpy` in campaign:** when `arr` is provided, avoid `arr_all = arr if arr is not None else cleaned.to_numpy(dtype=float)` producing a second materialization path that defeats reuse; ensure inf/abs checks and finite masks operate on one view consistently (`1412`, `1450`, `1665`).
-5. **Do NOT churn `_normalize_columns`:** warm cost ~0.26 ms; leave unless a correctness-preserving simplification falls out naturally.
-
-### Correctness gates (must hold)
-- Preserve existing behavior/error contracts: `BABDataError` messages/types/raise ordering where observable, duplicate handling, tz normalization, index sort, benchmark checks, NaN/inf rejection, finite-fraction/stale-run thresholds, lenient `allow_duplicate_timestamps`, and numeric-vs-fallback parity.
-- Extend `tests/test_validation_performance.py` (or add focused oracle tests) for: all-NaN columns, mixed dtypes, inf/-inf, stale runs at/above/below threshold, sparse finite fractions, duplicate timestamps, tz-aware indexes, canonical/duplicate column normalization, malformed/non-numeric preservation, empty/single-row frames, and mutation-independence of returned frames.
-- Keep `TestMaxConsecutiveEqualFiniteFrameOracle`/stale-run oracle coverage green (adjust only if helper API intentionally changes but semantics remain equivalent).
-- Run targeted validation/perf-oracle tests, then full gate: `bash scripts/bab_gate.sh` → **RC=0**, single command, no ignores (or `python3 -m pytest -q -p no:cacheprovider`).
-- Record before/after warm medians + cProfile/isolation delta in this file (or "no measurable win" with hard evidence, then proceed immediately to Step 3f).
-
-## Step 3f — end-to-end `BABStrategy.run()` overhead (follow-on, start after 3e)
-
-Pipeline stage anchors (re-measure before changing): `construct_portfolio` ~6.4 ms (`portfolio.py:43`), `calculate_rolling_beta` ~12.1 ms (`beta.py:331`), `run_backtest` ~2.1 ms (`backtest.py:9`). `_apply_rebalance` matters mainly for non-daily configs.
-
-1. **`calculate_rolling_beta` (`beta.py:331`):** evaluate replacing per-column/to_numpy fan-out and temporaries (e.g. `y_df.mul(bench_arr[:, None], axis=0)`) with one block `returns_df[finite_cols].to_numpy()` multiply/broadcast path where semantics are identical. Preserve per-window degeneracy/min_obs behavior and float outputs (tolerance 1e-12).
-2. **`construct_portfolio` (`portfolio.py:43`):** inspect `signals_df.copy()`, `to_numpy`, `np.trunc`, and `_write_book` fan-out for avoidable allocations/copies. Preserve dollar-neutrality, turnover/position/gross limits, and `BABPortfolioError` behavior/messages.
-3. **`run_backtest` (`backtest.py:9`):** evaluate `weights.shift(1)`/`fillna` allocation vs NumPy/concat/in-place equivalent. Preserve gross/cost/slippage columns and clipping semantics.
-4. For any changed stage: add oracle-equivalence tests + generous-ceiling perf/timing checks (pattern: `tests/test_beta_performance.py`); run full gate.
+1. **`beta.py:331` `calculate_rolling_beta`:** replace per-column/to_numpy fan-out and temporaries with a block `to_numpy`/broadcast path where semantics identical. Preserve per-window degeneracy/min_obs behavior and float outputs (tol 1e-12).
+2. **`portfolio.py:43` `construct_portfolio`:** reduce avoidable `copy()`/`to_numpy`/`np.trunc`/`_write_book` fan-out allocations. Preserve dollar-neutrality, turnover/position/gross limits, `BABPortfolioError` behavior/messages.
+3. **`backtest.py:9` `run_backtest`:** evaluate `weights.shift(1)`/`fillna` allocation vs NumPy/in-place/concat equivalent preserving gross/cost/slippage and clipping semantics.
+4. For each changed stage: oracle-equivalence tests + generous perf ceiling checks (pattern `tests/test_beta_performance.py`), full gate.
 
 ## Anti-churn / execution rules (binding)
-- **Do not** spend this session re-measuring/re-profiling the baseline above except to record before/after for code you actually change now.
-- **Do not** reopen probe-count campaigns, rotate C-numbers, or add "no reduction identified" logs. Do not append tests unless they pin a real behavior/perf-oracle need for shipped changes.
-- **Do** treat historical entries in `research_state/workflow_run_diagnostics.jsonl` as non-blocking context only.
-- If Step 3e yields no measurable win after a genuine attempt, document evidence and move immediately to Step 3f item 1; never idle.
+- **Do not** re-profile/re-measure recorded baselines except before/after code you ship now.
+- **Do not** reopen probe-count campaigns, rotate C-numbers, or add "no reduction identified" logs/tests that do not pin real behavior/perf-oracle needs.
+- **Do not** treat historical `research_state/workflow_run_diagnostics.jsonl` entries as current failures.
+- If Step 3e yields no measurable win after a genuine implementation attempt, document evidence and move immediately to Step 3f item 1 (never idle).
 
-## Completed campaigns (do not reopen without new reproducible failure + durable evidence)
-- **C42–C53:** CLOSED (historical). **C54 Step 1:** full-suite gate (no ignores). **Step 2:** broad-silent audit complete (no justified conversions). **Step 3:** `beta.py` perf shipped (`8c2830a`). **Step 3b:** `construct_portfolio` vectorized DN fixup shipped (`83ff28e`). **Step 3c:** `validate_returns_dataframe` numeric fast path shipped, gate-confirmed at **5127 passed** (`c40dd50`). **Step 3d:** `_series_is_parseable` object-frame hot path vectorized, gate-confirmed at **5137 passed / 35 skipped** (committed `43a2313`). **Step 4:** `docs/COVERAGE_NOTES.md`.
-- **Step 3e (measured, not shipped):** baseline/profile recorded above at 2026-11-13T04:45Z; implementation remains open (this handoff's binding task).
+## Completed / locked context (do not reopen without new reproducible failure + evidence)
+- C42–C54 history closed per prior campaigns: full-suite gate discipline, broad-silent audit, `beta.py` perf (`8c2830a`), `construct_portfolio` DN vectorization (`83ff28e`), `validate_returns_dataframe` numeric fast path (`c40dd50`), `_series_is_parseable` vectorized (`43a2313`), `docs/COVERAGE_NOTES.md` recorded.
+- **Step 3e baseline measured 2026-11-13T04:45Z but optimization not yet shipped** — this is the open binding task.
 
-## Locks / prohibitions (unchanged)
+## Locks / prohibitions
 - **No** edits to `.github/workflows/*`.
-- **No** edits/commits to tracked `probe*`/`debug*`/`ast_probe.py`; use untracked `/home/runner/work/_temp/kilo-tmp/` for scratch.
-- **No** weakening/deleting `batch148/149/172`, `campaign_d*`, or `tests/test_bab_*_c5*_regressions.py`. Do not weaken `tests/test_bab_data_loader_batch62.py::test_1097_1098_drop_all_nan_getitem_except`.
+- **No** edits/commits to tracked `probe*`/`debug*`/`ast_probe.py`; use `/home/runner/work/_temp/kilo-tmp/` for scratch.
+- **No** weakening/deleting `batch148/149/172`, `campaign_d*`, `tests/test_bab_*_c5*_regressions.py`, or `tests/test_bab_data_loader_batch62.py::test_1097_1098_drop_all_nan_getitem_except`.
 - `data_loader.py` broad-silent `except` sweep remains blocked unless tied to a specific reproducible defect + tests.
 - Commit nothing unless explicitly requested.
 
-## Before exit (mandatory for next session)
-1. Run targeted tests for changed code, then full gate `bash scripts/bab_gate.sh` (or `python3 -m pytest -q -p no:cacheprovider`) → RC=0, single command, no ignores.
-2. Record before/after warm medians + delta for optimized target(s), or "no measurable win" with evidence and the next measured target.
-3. Refresh this file: timestamp/HEAD, gate result, shipped/uncommitted changes, residual debt with numbers and exact file anchors.
+## Before exit (mandatory)
+1. Run targeted tests for changed code, then `bash scripts/bab_gate.sh` (or `python3 -m pytest -q -p no:cacheprovider`) → RC=0.
+2. Record before/after warm medians + delta (or evidenced "no measurable win") and next target.
+3. Refresh this file: timestamp/HEAD, gate result, shipped/uncommitted changes, residual debt with exact anchors.
 4. Keep `AGENT_HANDOFF.md` pointer-only and in sync.
 5. Commit nothing unless explicitly requested.
 

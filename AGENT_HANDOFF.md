@@ -2,9 +2,7 @@
 
 **Canonical durable handoff:** [`HANDOFF.md`](HANDOFF.md) — single source of truth.
 
-- **Refreshed:** 2026-11-13T06:05:00Z
-- **HEAD:** `c7a39ea chore(kilo): checkpoint agent session` (working tree: Step 3e code shipped uncommitted; last substantive code `43a2313` Step 3d)
-- **Gate:** `bash scripts/bab_gate.sh` — last verified 2026-11-13T06:02:00Z: **5140 passed / 35 skipped / RC=0** (re-run before/after any Step 3f changes).
-- **Binding next action (initial task):** **Ship Step 3f code** in `beta.py:331` (`calculate_rolling_beta`), `portfolio.py:43` (`construct_portfolio`), `backtest.py:9` (`run_backtest`): replace per-column/to_numpy fan-out with block NumPy paths, add oracle-equivalence coverage, run full gate, record before/after. No measurement-only churn; no commits unless explicitly requested.
-
-(End of file - total 8 lines)
+- **Refreshed:** 2026-11-13T06:06:18Z
+- **HEAD:** `584eba1 chore(kilo): checkpoint agent session`
+- **Last recorded gate:** `bash scripts/bab_gate.sh` → **5140 passed / 35 skipped / RC=0** (2026-11-13T06:02:00Z; re-run before/after any changes).
+- **Binding next action (initial task):** **Ship Step 3e** in `strategies/betting_against_beta/data_loader.py` (`validate_returns_dataframe` / `_run_data_quality_campaign`: whole-frame dtype check, stale-run hot path reuse/vectorization, remove redundant copy/coercion/materialization while preserving semantics) with oracle-equivalence tests + full gate; then proceed to **Step 3f** (`beta.py:331`, `portfolio.py:43`, `backtest.py:9`). No measurement-only churn. No commits unless explicitly requested.
