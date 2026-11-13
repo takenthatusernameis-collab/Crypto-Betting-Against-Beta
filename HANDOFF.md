@@ -1,44 +1,50 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-13T07:24:33Z
-**HEAD:** `230e2c07d1379d29367fb73e362da29c131a87ca` (working tree **dirty** — uncommitted Step 3e changes)
+**Timestamp (refreshed):** 2026-11-13T07:32:16Z
+**HEAD:** `d412bb1283b8562a4b87b3c70ad17e700dc4e07b` (working tree **clean**)
 **Repo:** `crypto-betting-against-beta` — BAB (Betting Against Beta) market-neutral crypto strategy: long low-beta / short high-beta vs BTC benchmark (`README.md`, `strategies/betting_against_beta/`).
-**Gate (verified this session):** `bash scripts/bab_gate.sh` → **5144 passed, 35 skipped, RC=0** (303.24s, 2026-11-13T07:24Z, python 3.12.3; coverage not installed). Re-run gate before/after any further change.
+**Gate (last verified, recorded):** `bash scripts/bab_gate.sh` → **5144 passed, 35 skipped, RC=0** (303.24s, 2026-11-13T07:24Z, python 3.12.3; coverage not installed). **Re-run gate before and after any shipped change and record the new result.**
 
-> **INITIAL TASK FOR THE NEXT AGENTIC SESSION (2026-11-13T07:24:33Z) — BINDING, HEAVY WORK REQUIRED:**
-> **Start Step 3f (end-to-end `BABStrategy.run()` hot spots) with shipped code + oracle-equivalence/perf-ceiling tests + full green gate.** Do not re-profile the recorded Step 3e baselines except before/after code you ship. Measurement-only or handoff-only churn is forbidden. No commits unless explicitly requested.
+> **INITIAL TASK FOR THE NEXT AGENTIC SESSION (2026-11-13T07:32:16Z) — BINDING, HEAVY WORK REQUIRED (NO EXCUSES):**
+> **Execute Step 3f: deliver a real, measured optimization for `BABStrategy.run()` hot spots with production code, oracle-equivalence tests, and a full green gate.** This is not a planning/profiling-only session. For each stage you touch: (1) re-baseline warm median before edit, (2) implement the optimization, (3) add/extend oracle-equivalence tests proving identical behavior on edge cases (NaN/inf/degeneracy/min_obs/tolerance 1e-12, constraints/errors unchanged), (4) add a generous perf-ceiling/non-regression test in the style of `tests/test_beta_performance.py`, (5) run targeted tests, then `bash scripts/bab_gate.sh` RC=0, (6) record before/after medians + delta in this file.
+>
+> **Required starting order:** `strategies/betting_against_beta/beta.py:331` `calculate_rolling_beta` → `strategies/betting_against_beta/portfolio.py:43` `construct_portfolio` → `strategies/betting_against_beta/backtest.py:9` `run_backtest` (all exercised by `BABStrategy.run`, `strategies/betting_against_beta/strategy.py:211`). Do not stop at measurement: ship at least one stage end-to-end unless you can document a concrete, attempted implementation with evidence of no measurable win; in that case move immediately to the next stage and ship it. Measurement-only, handoff-only, or test-churn-only turns are forbidden. No commits unless explicitly requested.
 
-## Step 3e — SHIPPED IN WORKING TREE (uncommitted), verified
-- **Code:** `strategies/betting_against_beta/data_loader.py:1483-1498` — replaced per-column Python stale-run loop in `_run_data_quality_campaign` numeric fast path with vectorized ` _max_consecutive_equal_finite_frame(arr2)` scan; raises on lowest column index meeting threshold, preserving exact `BABDataError` message/ordering. Secondary dtype-check micro-optimization (`:1468`/`:1080`) not done (low value).
-- **Tests:** `tests/test_validation_performance.py` extended with `TestNumericFrameStaleBatchEquivalence` cases: multi-column lowest-index-wins, threshold boundary (at/ below), NaN/inf-split runs, randomized stale-vs-oracle equivalence (40 seeds). Targeted suites passed (validation perf 29, related loader/quality 130).
-- **Gate:** `bash scripts/bab_gate.sh` → **5144 passed, 35 skipped, RC=0**.
+## Step 3e — SHIPPED / VERIFIED (present in codebase)
+- **Code:** `strategies/betting_against_beta/data_loader.py` numeric fast path in `_run_data_quality_campaign` uses vectorized `_max_consecutive_equal_finite_frame` (`:1328`, invoked `:1489`) for stale-run detection; preserves exact `BABDataError` message/ordering and lowest-column-index-first semantics. Secondary whole-frame `is_numeric_dtype` micro-optimization at `:1468`/`:1080` remains low-value/optional only if safe.
+- **Tests:** `tests/test_validation_performance.py` includes `TestNumericFrameStaleBatchEquivalence` (multi-column lowest-index-wins, threshold boundary, NaN/inf-split runs, randomized oracle equivalence).
+- **Gate (last recorded):** `bash scripts/bab_gate.sh` → **5144 passed, 35 skipped, RC=0** (2026-11-13T07:24Z). Re-run to confirm before/after new work.
 
-**Measured delta (warm medians, 2000×100 numeric frame + BTC, same container, 2026-11-13):**
-| Measurement | Before (prior handoff) | After (this session) |
-|---|---:|---:|
-| `validate_returns_dataframe` | 6.54 ms (p10 6.47 / p90 6.66) | **5.61 ms** (p10 5.17 / p90 5.99) |
-| `_run_data_quality_campaign` | — (dominant inside validate) | **1.82 ms** (p10 1.80 / p90 1.88) |
-| `_max_consecutive_equal_finite_frame` (full 2000×100) | n/a | **1.34 ms** (p10 1.33 / p90 1.37) |
+**Recorded Step 3e delta (warm medians, 2000×100 numeric frame + BTC, 2026-11-13):** `validate_returns_dataframe` 6.54→**5.61 ms** (~14%), `_run_data_quality_campaign` **1.82 ms**, `_max_consecutive_equal_finite_frame` **1.34 ms**.
 
-Validate improved ~14%; stale scan now vectorized (no per-column Python loop on clean numeric frames).
+## Step 3f — REQUIRED NEXT WORK (exact anchors, heavy implementation)
+Re-baseline each stage in this environment before editing (prior numbers are indicative only):
+1. `strategies/betting_against_beta/beta.py:331` `calculate_rolling_beta` (~12.1 ms prior): optimize block `to_numpy`/broadcast/rolling paths; preserve per-window degeneracy/min_obs behavior and float tolerance 1e-12.
+2. `strategies/betting_against_beta/portfolio.py:43` `construct_portfolio` (~6.4 ms prior): reduce avoidable `copy()`/`to_numpy`/`np.trunc`/`_write_book`/fan-out allocations; preserve dollar-neutrality, turnover/position/gross/net/single-weight limits, and `BABPortfolioError` semantics.
+3. `strategies/betting_against_beta/backtest.py:9` `run_backtest` (~2.1 ms prior): optimize `shift(1)`/`fillna`/diff/cost application while preserving lag/no-lookahead, gross/cost/slippage/clipping, finiteness hardening, and column/index alignment.
 
-## Step 3f — REQUIRED NEXT WORK (exact anchors, start here)
-Re-measure each stage before changing; prior anchors (pre-3e context, re-baseline before edits):
-1. `strategies/betting_against_beta/beta.py:331` `calculate_rolling_beta` (~12.1 ms prior): block `to_numpy`/broadcast path; preserve per-window degeneracy/min_obs, float tol 1e-12.
-2. `strategies/betting_against_beta/portfolio.py:43` `construct_portfolio` (~6.4 ms prior): reduce avoidable `copy()`/`to_numpy`/`np.trunc`/`_write_book` allocations; preserve dollar-neutrality, turnover/position/gross limits, `BABPortfolioError`.
-3. `strategies/betting_against_beta/backtest.py:9` `run_backtest` (~2.1 ms prior): `weights.shift(1)`/`fillna` vs NumPy/in-place equivalent; preserve gross/cost/slippage/clipping.
+**End-to-end context:** `strategies/betting_against_beta/strategy.py:211` `BABStrategy.run()` orchestrates load→beta→signals→rebalance→portfolio→shorting/sizing/regime/beta-neutral→finiteness clamp→backtest; do not break pipeline contracts. Use `scripts/perf_bench.py` as a starting pattern if helpful, but prefer stage-level microbenchmarks matching existing perf-test style.
 
-Per stage: oracle-equivalence + generous perf-ceiling tests (pattern `tests/test_beta_performance.py`), then full gate `bash scripts/bab_gate.sh` RC=0. Record before/after warm medians + delta here.
+**Deliverables per shipped stage:** implementation + oracle-equivalence tests + perf-ceiling test (generous, CI-stable) + targeted suite pass + full gate RC=0 + recorded before/after warm medians and delta in this section. If no win after genuine attempt, record exact evidence and proceed to next stage immediately.
 
 ## Environment / bottlenecks (current)
-- **Deps present:** `pip install -r requirements.txt` done earlier (numpy 2.5.4, pandas 3.1.1, scipy 1.18.1, pytest 9.2.0, hypothesis). `coverage` not installed (gate runs without coverage report). Optional: `pip install coverage`.
-- **No active blocker:** gate green, Step 3e delivered. `research_state/workflow_run_diagnostics.jsonl` is historical/non-blocking context only.
+- **Deps:** numpy 2.5.4, pandas 3.1.1, scipy 1.18.1, pytest 9.2.0, hypothesis present. `coverage` **not installed** (gate still runs, no coverage report); install only if needed: `pip install coverage`.
+- **No active blocker:** working tree clean, Step 3e present, recorded gate green. `research_state/workflow_run_diagnostics.jsonl` is historical/non-blocking.
+- **Potential friction:** full gate ~5 min; run targeted tests first, but gate is mandatory before/after shipped code.
 
 ## Anti-churn / execution rules (binding)
-- **Do not** re-profile/re-measure recorded baselines except before/after code you ship now.
-- **Do not** reopen probe-count campaigns, rotate C-numbers, or add "no reduction identified" logs/tests that do not pin real behavior/perf-oracle needs.
-- **Do not** treat historical `research_state/workflow_run_diagnostics.jsonl` entries as current failures.
-- If a Step 3f item yields no measurable win after genuine implementation, document evidence here and move to next item (never idle).
+- **Ship code, not commentary:** progress = merged optimization + tests + green gate + recorded deltas.
+- **No** re-profiling of old recorded baselines except as before/after measurements for code you change now.
+- **No** probe-count campaigns, C-number rotation, or "no reduction identified" artifacts that do not pin real behavior/perf needs.
+- **No** reopening historical diagnostics as current failures.
+- If a stage yields no measurable win after a genuine implementation attempt, document evidence (what changed, numbers) and immediately move to the next stage; do not stop the session.
+
+## Session exit requirements (mandatory)
+1. Targeted tests for changed code, then `bash scripts/bab_gate.sh` → RC=0 (record pass/skip/RC/time).
+2. Record per-stage before/after warm medians + delta, or evidenced no-win with next action taken.
+3. Refresh this file: timestamp, HEAD, gate result, shipped changes, remaining Step 3f anchors/status.
+4. Keep `AGENT_HANDOFF.md` pointer-only and in sync.
+5. Commit nothing unless explicitly requested.
 
 ## Locks / prohibitions
 - **No** edits to `.github/workflows/*`.
