@@ -22,6 +22,7 @@ import pandas as pd
 import pytest
 
 from strategies.betting_against_beta import data_loader as dl
+from strategies.betting_against_beta.data_loader import _series_is_parseable, _strip_units_and_parse
 from strategies.betting_against_beta.errors import BABDataError
 
 
@@ -90,6 +91,31 @@ def _oracle_quality(
                     f"Stale/frozen data detected in column '{col}': {max_run} consecutive equal values"
                 )
     return cleaned
+
+
+def _oracle_series_is_parseable(series):
+    """Explicit per-cell oracle for _series_is_parseable semantics."""
+    try:
+        total = 0
+        parseable = 0
+        for v in series:
+            if v is None:
+                parseable += 1
+                continue
+            if isinstance(v, float) and np.isnan(v):
+                parseable += 1
+                continue
+            total += 1
+            try:
+                _strip_units_and_parse(v)
+                parseable += 1
+            except Exception:
+                continue
+        if total == 0:
+            return True
+        return parseable >= max(1, int(total * 0.5))
+    except Exception:
+        return False
 
 
 def _numeric_frame(n_days=500, n_assets=30, seed=11, inject=None):
@@ -185,6 +211,40 @@ class TestQualityCampaignEquivalence:
         )
         out = dl._run_data_quality_campaign(df)
         assert list(out.columns) == ["a", "b"]
+
+
+class TestSeriesIsParseableEquivalence:
+    def _assert_same(self, series):
+        assert _series_is_parseable(series) == _oracle_series_is_parseable(series)
+
+    def test_representative_cases_match_oracle(self):
+        cases = [
+            pd.Series([1, 2, 3.5]),
+            pd.Series(["1", "2", "3"]),
+            pd.Series(["$1", "2%", "1,000.5", "€3"]),
+            pd.Series(["1,5", "1.000,50"]),
+            pd.Series([None, np.nan, "NA", "n/a", ""]),
+            pd.Series(["abc", "def"]),
+            pd.Series(["--", "-"]),
+            pd.Series(["1.2.3", "1e", "1..2"]),
+            pd.Series(["1", "abc", "2%", "1.2.3", None]),
+            pd.Series([None, np.nan]),
+            pd.Series([], dtype=object),
+            pd.Series(["1", "2", "abc", "def"]),  # 50% boundary
+            pd.Series(["1", "abc", "def", "ghi"]),  # below 50%
+        ]
+        for s in cases:
+            self._assert_same(s)
+
+    def test_large_numeric_string_column_matches_oracle(self):
+        rng = np.random.default_rng(7)
+        s = pd.Series(rng.normal(0, 0.02, 5000).astype(str))
+        self._assert_same(s)
+
+    def test_large_object_with_units_and_garbage_matches_oracle(self):
+        vals = ["$1.2", "2%", "abc", "1,000.5", "1.5", "1.2.3", None, np.nan, "NA"]
+        s = pd.Series(vals * 300)
+        self._assert_same(s)
 
 
 class TestValidationPerformance:

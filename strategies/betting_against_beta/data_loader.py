@@ -1196,24 +1196,59 @@ def _strip_units_and_parse(x):
 def _series_is_parseable(series: pd.Series) -> bool:
     """True if at least 50% of non-NA cells parse as numbers via _strip_units_and_parse."""
     try:
-        total = 0
-        parseable = 0
-        for v in series:
+        values = series.to_numpy(dtype=object, copy=False)
+        n = len(values)
+        if n == 0:
+            return True
+
+        # Vectorized cheap pass: catch plain numeric values/strings and real NaN/None.
+        # A cell is parseable if _strip_units_and_parse does not raise; NaN/None are
+        # treated as parseable but excluded from the non-NA total.
+        coerced = pd.to_numeric(series, errors="coerce")
+        c_arr = coerced.to_numpy(dtype=float, copy=False) if isinstance(coerced, pd.Series) else np.asarray(coerced, dtype=float)
+        na_mask = ~np.isfinite(c_arr)
+        # Identify true NaN/None (parseable, excluded from total) vs failed coercions
+        # that may still be parseable by _strip_units_and_parse (units/%, commas, etc.).
+        parseable_na = 0
+        pending = np.zeros(n, dtype=bool)
+        for i in range(n):
+            if not na_mask[i]:
+                continue
+            v = values[i]
             if v is None:
-                parseable += 1
+                parseable_na += 1
                 continue
             if isinstance(v, float) and np.isnan(v):
-                parseable += 1
+                parseable_na += 1
                 continue
-            total += 1
-            try:
-                _strip_units_and_parse(v)
-                parseable += 1
-            except Exception:
-                continue
+            pending[i] = True
+
+        total = n - parseable_na
         if total == 0:
             return True
-        return parseable >= max(1, int(total * 0.5))
+
+        parseable = int((~na_mask).sum()) + parseable_na
+        threshold = max(1, int(total * 0.5))
+        if parseable >= threshold:
+            return True
+
+        # Only cells that to_numeric could not coerce but are non-NA may still be
+        # parseable via _strip_units_and_parse (e.g. "$1", "1,000.5", "2%", "1,5").
+        remaining_needed = threshold - parseable
+        pending_count = int(pending.sum())
+        if pending_count < remaining_needed:
+            return False
+
+        for i in np.flatnonzero(pending):
+            try:
+                _strip_units_and_parse(values[i])
+                parseable += 1
+                if parseable >= threshold:
+                    return True
+            except Exception:
+                continue
+
+        return parseable >= threshold
     except Exception:
         return False
 
