@@ -16,6 +16,7 @@ import pytest
 
 from strategies.betting_against_beta.data_loader import _run_data_quality_campaign
 from strategies.betting_against_beta.data_loader import _max_consecutive_equal_finite
+from strategies.betting_against_beta.data_loader import _max_consecutive_equal_finite_frame
 
 
 def _max_consecutive_equal_finite_reference(arr):
@@ -33,6 +34,20 @@ def _max_consecutive_equal_finite_reference(arr):
             max_run = max(max_run, run)
         prev = v
     return max_run
+
+
+def _max_consecutive_equal_finite_frame_reference(arr):
+    """Per-column oracle: ``[_max_consecutive_equal_finite(arr[:, j]) ...]``."""
+    arr = np.asarray(arr, dtype=float)
+    if arr.ndim == 1:
+        return np.array([_max_consecutive_equal_finite_reference(arr)], dtype=np.int64)
+    if arr.ndim != 2:
+        return np.zeros(0, dtype=np.int64)
+    n, m = arr.shape
+    return np.array(
+        [_max_consecutive_equal_finite_reference(arr[:, j]) for j in range(m)],
+        dtype=np.int64,
+    )
 
 
 class TestMaxConsecutiveEqualFinite:
@@ -106,3 +121,84 @@ class TestStaleRunCampaignRejection:
         df = pd.DataFrame({"BTC": np.linspace(0.01, 0.02, 200), "ETH": arr})
         with pytest.raises(Exception):
             _run_data_quality_campaign(df, stale_run_threshold=50)
+
+
+class TestMaxConsecutiveEqualFiniteFrame:
+    """Oracle-equivalence + perf-ceiling for the 2-D frame helper.
+
+    The 2-D path was re-implemented from a ``cumsum`` + ``bincount`` group-size
+    tally to a single ``maximum.accumulate`` run-length pass. These tests prove
+    the new implementation is numerically identical to the per-column 1-D oracle
+    (including NaN/inf/constant/degenerate inputs) and that it stays fast at
+    production scale.
+    """
+
+    @pytest.mark.parametrize(
+        "arr",
+        [
+            np.array([[1.0, 1.0], [1.0, 2.0], [2.0, 2.0], [3.0, 3.0]]),
+            np.array([[1.0, 1.0, 1.0, 1.0, 1.0]]),
+            np.array([[1.0], [2.0], [3.0], [4.0], [5.0]]),
+            np.array([[0.0, 0.0, 0.0]]),
+            np.array([[np.nan, np.nan, np.nan]]),
+            np.array([[np.nan, 1.0, 1.0, np.nan, 1.0, 1.0, 1.0]]),
+            np.array([[1.0, np.nan, 1.0, 1.0, np.nan, 1.0, 1.0, 1.0]]),
+            np.array([[1.0, 1.0, np.inf, 1.0, 1.0, 1.0]]),
+            np.array([[-0.0, -0.0, 1.0]]),
+            np.array([[1e-300, 1e-300, 1e-300, 2e-300]]),
+            np.array([[1.0, 2.0], [np.nan, np.nan]]),
+            np.array([[1.0, 1.0, 1.0], [1.0, 1.0, 1.0], [1.0, 1.0, 1.0]]),
+            np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]),
+            np.array([[1.0, 1.0, 2.0], [1.0, 2.0, 2.0], [2.0, 2.0, 2.0]]),
+            np.array([[], []], dtype=float).reshape(0, 2),
+        ],
+    )
+    def test_matches_per_column_oracle(self, arr):
+        got = _max_consecutive_equal_finite_frame(arr)
+        expected = _max_consecutive_equal_finite_frame_reference(arr)
+        assert got.dtype == np.int64
+        assert got.shape == expected.shape
+        np.testing.assert_array_equal(got, expected)
+
+    def test_all_nan_columns_return_zero(self):
+        arr = np.array([[1.0, np.nan], [1.0, np.nan], [1.0, np.nan]])
+        got = _max_consecutive_equal_finite_frame(arr)
+        np.testing.assert_array_equal(got, np.array([3, 0]))
+
+    def test_constant_column_returns_length(self):
+        arr = np.full((100, 4), 0.5)
+        got = _max_consecutive_equal_finite_frame(arr)
+        np.testing.assert_array_equal(got, np.array([100, 100, 100, 100]))
+
+    def test_stale_run_in_middle_column(self):
+        rng = np.random.default_rng(0)
+        arr = rng.normal(0, 0.02, (250, 5))
+        arr[50:110, 2] = 0.7  # 60-length stale run in column 2
+        got = _max_consecutive_equal_finite_frame(arr)
+        assert int(got[2]) == 60
+
+    def test_1d_input_routes_through_1d_helper(self):
+        arr = np.array([1.0, 1.0, 1.0, 2.0, 2.0])
+        got = _max_consecutive_equal_finite_frame(arr)
+        np.testing.assert_array_equal(got, np.array([3]))
+
+    def test_non_2d_returns_empty(self):
+        arr = np.array([[[1.0]]])
+        got = _max_consecutive_equal_finite_frame(arr)
+        assert got.shape == (0,)
+
+    def test_production_scale_perf_ceiling(self):
+        """2500 x 61 frame must complete well under 10 ms (generous CI ceiling)."""
+        import time
+
+        rng = np.random.default_rng(1234)
+        arr = rng.normal(0, 0.02, (2500, 61))
+        # warmup (lazy numpy dispatch / allocation)
+        _max_consecutive_equal_finite_frame(arr)
+        start = time.perf_counter()
+        _max_consecutive_equal_finite_frame(arr)
+        elapsed = time.perf_counter() - start
+        assert elapsed < 0.01, (
+            f"_max_consecutive_equal_finite_frame took {elapsed:.4f}s on "
+            "2500x61; stale-scan perf regression"
+        )

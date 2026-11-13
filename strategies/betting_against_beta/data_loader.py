@@ -1330,11 +1330,27 @@ def _max_consecutive_equal_finite_frame(arr):
 
     Equivalent to ``[_max_consecutive_equal_finite(arr[:, j]) for j in range(m)]``
     but computed with a single vectorized pass over the whole numeric frame
-    instead of one Python call per column. Group boundaries are placed wherever
-    the value changes or a non-finite entry appears (identical to the 1-D
-    helper), then finite members are tallied per (column, group) with one
-    :func:`numpy.bincount` over a flattened index, and the per-column max is the
-    max over that column's group counts.
+    instead of one Python call per column.
+
+    Semantics (identical to the 1-D helper and the per-column loop oracle):
+      * a "run" is a maximal stretch of consecutive equal *finite* values;
+      * a non-finite entry or a value change breaks the run (a NaN never
+        continues a run, even if the previous value was also NaN);
+      * the per-column result is the length of the longest such run, or 0 if
+        the column has no finite values.
+
+    Implementation: instead of tallying group sizes with ``np.cumsum`` +
+    ``np.bincount`` (which allocates a group-id buffer, a flattened index, and
+    a bincount array), each cell's run length is derived directly from the
+    position of its group's start via ``np.maximum.accumulate``. ``idx - start
+    + 1`` is the length of the run the cell belongs to; the per-column max is
+    then ``max(run_len, where=finite)``. This is a single fused pass with no
+    intermediate group-id/bucket buffers and matches the bincount result
+    exactly (verified against the 1-D oracle on random, stale-run, all-NaN,
+    constant, and single-row inputs).
+
+    ``np.int32`` indices are used for the position arithmetic (n <= 2**31-1 for
+    any realistic returns frame); the final per-column max is cast to int64.
     """
     arr = np.asarray(arr, dtype=float)
     if arr.ndim != 2:
@@ -1347,16 +1363,19 @@ def _max_consecutive_equal_finite_frame(arr):
     finite = np.isfinite(arr)
     if not finite.any():
         return np.zeros(m, dtype=np.int64)
-    changed = np.ones((n, m), dtype=bool)
+    # A cell is a group start iff it is the first row, or its value differs
+    # from the previous row, or either cell is non-finite.  This is exactly the
+    # boundary rule used by the 1-D helper.
+    is_start = np.ones((n, m), dtype=bool)
     if n > 1:
-        changed[1:] = (arr[1:] != arr[:-1]) | (~finite[1:]) | (~finite[:-1])
-    # cumsum along axis 0 gives per-column contiguous 1-based group ids.
-    group_id = np.cumsum(changed, axis=0) - 1  # 0-based per column
-    col_idx = np.broadcast_to(np.arange(m, dtype=np.int64)[None, :], (n, m))
-    flat = (group_id[finite] * m + col_idx[finite]).astype(np.int64, copy=False)
-    size = (int(group_id.max()) + 1) * m
-    counts = np.bincount(flat, minlength=size).reshape(-1, m)
-    return counts.max(axis=0).astype(np.int64, copy=False)
+        is_start[1:] = (arr[1:] != arr[:-1]) | (~finite[1:]) | (~finite[:-1])
+    idx = np.arange(n, dtype=np.int32)[:, None]
+    start_pos = np.where(is_start, idx, np.int32(0))
+    group_start = np.maximum.accumulate(start_pos, axis=0)
+    run_len = idx - group_start + np.int32(1)
+    # Only finite cells belong to a real run; non-finite cells contribute 0.
+    run_len = np.where(finite, run_len, np.int32(0))
+    return run_len.max(axis=0).astype(np.int64, copy=False)
 
 
 def _run_data_quality_campaign(
