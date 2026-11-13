@@ -1,7 +1,7 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-13T03:00:20Z
-**HEAD:** `951a506 chore(kilo): checkpoint agent session` (working tree clean; last work `43a2313` Step 3d committed)
+**Timestamp (refreshed):** 2026-11-13T03:07:24Z
+**HEAD:** `951a506 chore(kilo): checkpoint agent session` (working tree clean; last work `43a2313` Step 3d committed; gate re-confirmed green at 03:07:24Z)
 **Repo:** `crypto-betting-against-beta` — BAB (Betting Against Beta) market-neutral crypto strategy: long low-beta / short high-beta vs BTC benchmark (see `README.md`, `strategies/betting_against_beta/`).
 
 ## INITIAL TASK MESSAGE FOR THE NEXT AGENTIC SESSION (timestamped, repo-name-prioritized)
@@ -25,7 +25,7 @@
 
 ## CURRENT STATE (verified this session, 2026-11-13T03:00:20Z)
 
-- **Full gate — GREEN:** `python3 -m pytest -q -p no:cacheprovider` → **5130 passed / 35 skipped / RC=0** in 287.44s (single command, no `--ignore`). Re-confirmed at handoff refresh. Warnings are pre-existing (RuntimeWarning, PytestRemovedIn10Warning on class-scoped fixtures).
+- **Full gate — GREEN:** `python3 -m pytest -q -p no:cacheprovider` → **5130 passed / 35 skipped / RC=0** in 287.50s (single command, no `--ignore`). Re-confirmed at handoff refresh 2026-11-13T03:07:24Z. Warnings are pre-existing (RuntimeWarning, PytestRemovedIn10Warning on class-scoped fixtures).
 - **Step 3d-focused tests green:** `tests/test_validation_performance.py` → 15 passed (includes `TestSeriesIsParseableEquivalence` oracle cases).
 - **Data-loader regression subset expected green:** `test_bab_data_loader_batch62.py test_bab_data_loader_numeric_qc.py test_bab_data_loader_bottleneck_branches.py test_bab_data_loader_edge_cases.py test_betting_against_beta_data_loader.py test_bab_zero_silent_error.py`.
 
