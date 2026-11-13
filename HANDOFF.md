@@ -1,11 +1,11 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-13T07:32:16Z
+**Timestamp (refreshed):** 2026-11-13T07:48:12Z
 **HEAD:** `d412bb1283b8562a4b87b3c70ad17e700dc4e07b` (working tree **clean**)
 **Repo:** `crypto-betting-against-beta` — BAB (Betting Against Beta) market-neutral crypto strategy: long low-beta / short high-beta vs BTC benchmark (`README.md`, `strategies/betting_against_beta/`).
 **Gate (last verified, recorded):** `bash scripts/bab_gate.sh` → **5144 passed, 35 skipped, RC=0** (303.24s, 2026-11-13T07:24Z, python 3.12.3; coverage not installed). **Re-run gate before and after any shipped change and record the new result.**
 
-> **INITIAL TASK FOR THE NEXT AGENTIC SESSION (2026-11-13T07:32:16Z) — BINDING, HEAVY WORK REQUIRED (NO EXCUSES):**
+> **INITIAL TASK FOR THE NEXT AGENTIC SESSION (2026-11-13T07:48:12Z) — BINDING, HEAVY WORK REQUIRED (NO EXCUSES):**
 > **Execute Step 3f: deliver a real, measured optimization for `BABStrategy.run()` hot spots with production code, oracle-equivalence tests, and a full green gate.** This is not a planning/profiling-only session. For each stage you touch: (1) re-baseline warm median before edit, (2) implement the optimization, (3) add/extend oracle-equivalence tests proving identical behavior on edge cases (NaN/inf/degeneracy/min_obs/tolerance 1e-12, constraints/errors unchanged), (4) add a generous perf-ceiling/non-regression test in the style of `tests/test_beta_performance.py`, (5) run targeted tests, then `bash scripts/bab_gate.sh` RC=0, (6) record before/after medians + delta in this file.
 >
 > **Required starting order:** `strategies/betting_against_beta/beta.py:331` `calculate_rolling_beta` → `strategies/betting_against_beta/portfolio.py:43` `construct_portfolio` → `strategies/betting_against_beta/backtest.py:9` `run_backtest` (all exercised by `BABStrategy.run`, `strategies/betting_against_beta/strategy.py:211`). Do not stop at measurement: ship at least one stage end-to-end unless you can document a concrete, attempted implementation with evidence of no measurable win; in that case move immediately to the next stage and ship it. Measurement-only, handoff-only, or test-churn-only turns are forbidden. No commits unless explicitly requested.
@@ -37,7 +37,7 @@ Re-baseline each stage in this environment before editing (prior numbers are ind
 - **No** re-profiling of old recorded baselines except as before/after measurements for code you change now.
 - **No** probe-count campaigns, C-number rotation, or "no reduction identified" artifacts that do not pin real behavior/perf needs.
 - **No** reopening historical diagnostics as current failures.
-- If a stage yields no measurable win after a genuine implementation attempt, document evidence (what changed, numbers) and immediately move to the next stage; do not stop the session.
+- If a stage yields no measurable win after a genuine implementation attempt, document evidence (what changed, numbers) and immediately move to next stage; do not stop the session.
 
 ## Session exit requirements (mandatory)
 1. Targeted tests for changed code, then `bash scripts/bab_gate.sh` → RC=0 (record pass/skip/RC/time).
