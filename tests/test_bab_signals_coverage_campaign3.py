@@ -118,18 +118,17 @@ class TestNonNumericDtypeHandling:
 
 class TestDefensiveExceptionFallbacks:
     def test_to_numeric_outer_failure_falls_back(self, monkeypatch):
-        # Force outer try to fail via broken copy (numeric fast path), inner try also fails -> zero frame (136-142)
+        # Force the outer numeric-fast-path try to fail via broken to_numpy;
+        # the inner to_numeric fallback then also fails -> zero frame (136-142)
         df = pd.DataFrame({"A": [0.1, 0.2], "B": [0.3, 0.4], "C": [0.5, 0.6]})
 
         class BadDF(pd.DataFrame):
-            _copy_count = 0
             @property
             def _constructor(self):
                 return BadDF
-            def copy(self, *a, **k):
-                BadDF._copy_count += 1
-                # First copy in outer try (line 132) fails; second in inner try (138) also fails
-                raise RuntimeError("no copy")
+
+            def to_numpy(self, *a, **k):
+                raise RuntimeError("no to_numpy")
 
         bdf = BadDF(df)
         out = generate_bab_signals(bdf)
@@ -158,10 +157,19 @@ class TestDefensiveExceptionFallbacks:
         assert set(np.unique(out.to_numpy())).issubset({-1, 0, 1})
 
     def test_copy_failure_in_fallback_still_returns_frame(self, monkeypatch):
-        # Outer except enters inner try; if inner copy/apply/to_numpy raise -> zero frame
+        # Outer to_numpy fails and the inner to_numeric fallback also fails ->
+        # defensive zero frame instead of propagating the coercion error.
         df = pd.DataFrame({"A": [0.1, 0.2], "B": [0.3, 0.4], "C": [0.5, 0.6]})
-        # Make all(dtypes numeric) path raise via broken copy, and inner apply fail
-        monkeypatch.setattr(pd.DataFrame, "copy", lambda self, *a, **k: (_ for _ in ()).throw(RuntimeError("no copy")))
-        out = generate_bab_signals(df)
-        assert out.shape == df.shape
+
+        class BadDF(pd.DataFrame):
+            @property
+            def _constructor(self):
+                return BadDF
+
+            def to_numpy(self, *a, **k):
+                raise RuntimeError("no to_numpy")
+
+        bdf = BadDF(df)
+        out = generate_bab_signals(bdf)
+        assert out.shape == bdf.shape
         assert (out.to_numpy() == 0).all()

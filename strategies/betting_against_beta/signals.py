@@ -127,37 +127,40 @@ def generate_bab_signals(betas_df, long_quantile=0.3, short_quantile=0.3):
         sq = 1.0
 
     try:
-        # Fast path: when every column is already numeric
         if all(pd.api.types.is_numeric_dtype(s) for s in betas_df.dtypes):
-            beta_df = betas_df.copy()
+            # to_numpy(dtype=float) already copies into a fresh float64 buffer,
+            # so the previous extra DataFrame.copy() was redundant.
+            beta_arr = betas_df.to_numpy(dtype=float)
         else:
-            beta_df = betas_df.apply(pd.to_numeric, errors="coerce")
-        beta_arr = beta_df.to_numpy(dtype=float)
+            beta_arr = betas_df.apply(pd.to_numeric, errors="coerce").to_numpy(dtype=float)
     except Exception:
         try:
-            beta_df = betas_df.copy()
-            beta_df = beta_df.apply(pd.to_numeric, errors="coerce")
-            beta_arr = beta_df.to_numpy(dtype=float)
+            beta_arr = betas_df.apply(pd.to_numeric, errors="coerce").to_numpy(dtype=float)
         except Exception:
             return pd.DataFrame(0, index=betas_df.index, columns=betas_df.columns, dtype="int64")
     finite = np.isfinite(beta_arr)
     counts = finite.sum(axis=1)
     n_rows, n_cols = beta_arr.shape
 
-    signals_arr = np.zeros((n_rows, n_cols), dtype=np.int64)
-
     # Only rows with at least 2 finite betas can form a long/short spread.
     valid = counts >= 2
     if not np.any(valid):
-        # Final finiteness guard
-        signals_arr = np.where(np.isfinite(signals_arr), signals_arr, 0)
-        return pd.DataFrame(signals_arr, index=betas_df.index, columns=betas_df.columns)
+        # Every row is flat; the output is all zeros by construction, so skip
+        # the full argsort/rank/mask work entirely.
+        return pd.DataFrame(
+            np.zeros((n_rows, n_cols), dtype=np.int64),
+            index=betas_df.index,
+            columns=betas_df.columns,
+        )
 
-    # Per-row rank of each column by beta value
+    # Per-row rank of each column by beta value, preserving the original
+    # double-argsort semantics exactly (primary = raw double-argsort; only the
+    # exception fallback maps non-finite entries to +inf). The surrounding
+    # allocation reductions (dropped copy / dead zeros array / impossible
+    # finiteness guards) keep the stage faster without changing selection.
     try:
         rank = np.argsort(np.argsort(beta_arr, axis=1, kind="stable"), axis=1, kind="stable")
     except Exception:
-        # Fallback
         rank = np.argsort(np.argsort(np.where(finite, beta_arr, np.inf), axis=1), axis=1)
 
     cnt_valid = counts[valid]
@@ -184,9 +187,9 @@ def generate_bab_signals(betas_df, long_quantile=0.3, short_quantile=0.3):
     long_mask = finite & (rank < n_long_full[:, None])
     short_mask = finite & (rank >= (cnt_col - n_short_full[:, None]))
     short_mask = short_mask & ~long_mask
-    signals_arr = long_mask.astype(np.int64) - short_mask.astype(np.int64)
-
-    # Final finiteness guard
-    signals_arr = np.where(np.isfinite(signals_arr), signals_arr, 0)
-    signals_arr = np.clip(signals_arr, -1, 1)
+    # Cells are exactly {1, -1} or 0; int8 halves the final 2-D allocation and
+    # stays bit-identical once widened to the int64 frame below.
+    signals_arr = (
+        long_mask.astype(np.int8) - short_mask.astype(np.int8)
+    ).astype(np.int64)
     return pd.DataFrame(signals_arr, index=betas_df.index, columns=betas_df.columns)
