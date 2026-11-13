@@ -2,11 +2,11 @@
 
 **Canonical durable handoff:** [`HANDOFF.md`](HANDOFF.md) — single source of truth. Read it in full before starting.
 
-- **Refreshed:** 2026-11-13T20:48:44Z
-- **HEAD:** `d8cf5b1` (main). Working tree: clean at refresh.
+- **Refreshed:** 2026-11-13T21:27:51Z
+- **HEAD:** `5e715c5` (main). Working tree: clean at refresh.
 - **Env:** sandbox has no deps by default; idempotent venv/bootstrap+preflight block is at top of `HANDOFF.md` (`/home/runner/work/_temp/kilo-tmp/bab-venv`). **Do not** claim pytest/numpy missing.
-- **Verified this refresh (on `d8cf5b1`):** `PREFLIGHT_RC=0`; R2 (stress/horizon/scale) **155 passed, 6 warnings, ~30.8 s**; scale **5000×200=161 ms**, **5000×500=377 ms** (within ceilings). R2 is green against `d8cf5b1`.
-- **State:** R1 closed. R3-A execution-realism code shipped at `d8cf5b1`; **missing work** is `tests/test_bab_execution_realism_r3.py`, R3-B rebalance-frequency sensitivity sweep/measurements, and `bash scripts/bab_gate.sh` RC=0 on final HEAD.
+- **Verified this refresh (on `5e715c5`):** `PREFLIGHT_RC=0`; R2 (stress/horizon/scale) **155 passed, 6 warnings, ~31.9 s**; scale **5000×200=164 ms**, **5000×500=384 ms** (within ceilings). R2 is green against `5e715c5`.
+- **State:** R1 closed. R3-A execution-realism code shipped at `5e715c5`; **missing work** is `tests/test_bab_execution_realism_r3.py`, R3-B rebalance-frequency sensitivity sweep/measurements, and `bash scripts/bab_gate.sh` RC=0 on final HEAD.
 - **NEXT SESSION BINDING INITIAL TASK (heavy, no partial completion):**
   1. Run env bootstrap + preflight (top of `HANDOFF.md`) and confirm `PREFLIGHT_RC=0`.
   2. Write and pass R3-A regression tests (`tests/test_bab_execution_realism_r3.py`, 5 hostile regimes): finite columns, `cost_drag>=0`, DN `max|Σw|<=1e-9`, costs-on/off deltas, borrow asymmetry, byte-identical no-model path, finite report/tear_sheet + strict JSON, wrong-typed config raises loudly.
