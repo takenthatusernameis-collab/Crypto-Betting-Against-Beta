@@ -2,7 +2,7 @@
 
 **Canonical durable handoff:** [`HANDOFF.md`](HANDOFF.md) — single source of truth.
 
-- **Refreshed:** 2026-11-13T04:46:06Z
-- **HEAD:** `f99de99 chore(kilo): checkpoint agent session` (clean tree at handoff write; last substantive work `43a2313` Step 3d)
-- **Gate:** `bash scripts/bab_gate.sh` → **5140 passed / 35 skipped / RC=0** (verified this session).
-- **Binding next action (initial task):** **Ship Step 3e code** — reduce `validate_returns_dataframe` from ~7.4 ms to ≤4 ms warm median on the 2000x100 numeric gate frame (primary target: `_max_consecutive_equal_finite_frame` at data_loader.py:1324; then dtype genexpr at 1446, gap `Series.diff` at 1424, and redundant `to_numpy` conversions). Measurement/profiling is DONE and verified (see HANDOFF.md) — go straight to implementation, add oracle-equivalence tests, run the full gate, record before/after. Then Step 3f (end-to-end `BABStrategy.run()` overhead). Commit nothing unless explicitly requested.
+- **Refreshed:** 2026-11-13T05:37:40Z
+- **HEAD:** `74447c4 chore(kilo): checkpoint agent session` (handoff docs refreshed this session; last substantive code `43a2313` Step 3d)
+- **Gate:** `bash scripts/bab_gate.sh` — last verified 2026-11-13T04:46:06Z: **5140 passed / 35 skipped / RC=0** (re-run before/after Step 3e/3f changes).
+- **Binding next action (initial task):** **Ship Step 3e code** in `strategies/betting_against_beta/data_loader.py`: optimize numeric-frame `validate_returns_dataframe` (warm baseline ~7.40 ms on 2000x100; focus stale-run path `data_loader.py:1463-1506`, dtype check at 1449, and duplicate copy/`to_numpy` work in quality campaign/validate per `HANDOFF.md`). Add oracle-equivalence coverage, run full gate, record before/after; then start Step 3f (`beta.py:331`, `portfolio.py:43`, `backtest.py:9`). No measurement-only churn; no commits unless explicitly requested.
