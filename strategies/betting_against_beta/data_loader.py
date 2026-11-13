@@ -1321,6 +1321,40 @@ def _max_consecutive_equal_finite(arr):
     return int(counts.max()) if counts.size else 0
 
 
+def _max_consecutive_equal_finite_frame(arr):
+    """Per-column max run of consecutive equal *finite* values, vectorized.
+
+    Equivalent to ``[_max_consecutive_equal_finite(arr[:, j]) for j in range(m)]``
+    but computed with a single vectorized pass over the whole numeric frame
+    instead of one Python call per column. Group boundaries are placed wherever
+    the value changes or a non-finite entry appears (identical to the 1-D
+    helper), then finite members are tallied per (column, group) with one
+    :func:`numpy.bincount` over a flattened index, and the per-column max is the
+    max over that column's group counts.
+    """
+    arr = np.asarray(arr, dtype=float)
+    if arr.ndim != 2:
+        if arr.ndim == 1:
+            return np.array([_max_consecutive_equal_finite(arr)], dtype=np.int64)
+        return np.zeros(0, dtype=np.int64)
+    n, m = arr.shape
+    if n == 0:
+        return np.zeros(m, dtype=np.int64)
+    finite = np.isfinite(arr)
+    if not finite.any():
+        return np.zeros(m, dtype=np.int64)
+    changed = np.ones((n, m), dtype=bool)
+    if n > 1:
+        changed[1:] = (arr[1:] != arr[:-1]) | (~finite[1:]) | (~finite[:-1])
+    # cumsum along axis 0 gives per-column contiguous 1-based group ids.
+    group_id = np.cumsum(changed, axis=0) - 1  # 0-based per column
+    col_idx = np.broadcast_to(np.arange(m, dtype=np.int64)[None, :], (n, m))
+    flat = (group_id[finite] * m + col_idx[finite]).astype(np.int64, copy=False)
+    size = (int(group_id.max()) + 1) * m
+    counts = np.bincount(flat, minlength=size).reshape(-1, m)
+    return counts.max(axis=0).astype(np.int64, copy=False)
+
+
 def _run_data_quality_campaign(
     df: pd.DataFrame,
     max_return_abs: float | None = None,
@@ -1426,14 +1460,16 @@ def _run_data_quality_campaign(
             if stale_run_threshold is not None and int(stale_run_threshold) > 0:
                 max_allowed_stale = max(int(stale_run_threshold), 50)
                 stale = np.flatnonzero(finite_counts >= int(stale_run_threshold))
-                for j in stale:
-                    j = int(j)
-                    max_run = _max_consecutive_equal_finite(arr2[:, j])
-                    if max_run >= max_allowed_stale:
-                        col = cleaned.columns[j]
-                        raise BABDataError(
-                            f"Stale/frozen data detected in column '{col}': {max_run} consecutive equal values"
-                        )
+                if stale.size:
+                    max_runs = _max_consecutive_equal_finite_frame(arr2)
+                    for j in stale:
+                        j = int(j)
+                        max_run = int(max_runs[j])
+                        if max_run >= max_allowed_stale:
+                            col = cleaned.columns[j]
+                            raise BABDataError(
+                                f"Stale/frozen data detected in column '{col}': {max_run} consecutive equal values"
+                            )
             return cleaned
     except BABDataError:
         raise

@@ -248,7 +248,7 @@ class TestSeriesIsParseableEquivalence:
 
 
 class TestMaxConsecutiveEqualFiniteOracle:
-    """Randomized oracle for the bincount-based run-length detector."""
+    """Randomized oracle for the bincount-based run-length detector (1-D)."""
 
     @staticmethod
     def _reference(arr):
@@ -287,6 +287,72 @@ class TestMaxConsecutiveEqualFiniteOracle:
     def test_large_constant_and_alternating(self):
         assert dl._max_consecutive_equal_finite(np.zeros(5000)) == 5000
         assert dl._max_consecutive_equal_finite(np.tile([1.0, 2.0], 2500)) == 1
+
+
+class TestMaxConsecutiveEqualFiniteFrameOracle:
+    """Randomized oracle for the vectorized per-column run-length detector."""
+
+    @staticmethod
+    def _reference_frame(arr):
+        arr = np.asarray(arr, dtype=float)
+        if arr.ndim != 2:
+            return np.array([dl._max_consecutive_equal_finite(arr)], dtype=np.int64)
+        return np.array([dl._max_consecutive_equal_finite(arr[:, j]) for j in range(arr.shape[1])], dtype=np.int64)
+
+    def test_random_frames_match_per_column_oracle(self):
+        rng = np.random.default_rng(2026)
+        for _ in range(200):
+            n = int(rng.integers(0, 300))
+            m = int(rng.integers(1, 20))
+            arr = rng.normal(0.0, 1.0, size=(n, m))
+            if n:
+                arr[rng.random((n, m)) < 0.2] = np.nan
+                arr[rng.random((n, m)) < 0.1] = np.inf
+                arr[rng.random((n, m)) < 0.1] = -np.inf
+                for _ in range(3):
+                    j = int(rng.integers(0, m))
+                    i0 = int(rng.integers(0, n))
+                    i1 = int(rng.integers(i0, n))
+                    arr[i0 : i1 + 1, j] = 0.5
+            got = dl._max_consecutive_equal_finite_frame(arr)
+            expected = self._reference_frame(arr)
+            assert got.shape == expected.shape
+            assert np.array_equal(got, expected)
+
+    def test_edge_cases(self):
+        assert np.array_equal(
+            dl._max_consecutive_equal_finite_frame(np.zeros((5, 3))), np.array([5, 5, 5])
+        )
+        assert np.array_equal(
+            dl._max_consecutive_equal_finite_frame(np.full((4, 2), np.nan)), np.array([0, 0])
+        )
+        assert np.array_equal(
+            dl._max_consecutive_equal_finite_frame(np.tile([[1.0, 2.0]], (3, 1))),
+            np.array([3, 3]),
+        )
+        # 1-D passthrough still works
+        assert np.array_equal(
+            dl._max_consecutive_equal_finite_frame(np.array([1.0, 1.0, np.nan, 1.0])),
+            np.array([2]),
+        )
+        assert dl._max_consecutive_equal_finite_frame(np.zeros((0, 3))).shape == (3,)
+
+
+class TestNumericFrameStaleBatchEquivalence:
+    """The numeric fast path must raise on the same columns as the per-column oracle."""
+
+    def _stale_columns(self, df, stale_run_threshold=None):
+        try:
+            dl._run_data_quality_campaign(df, stale_run_threshold=stale_run_threshold)
+            return None
+        except BABDataError as exc:
+            return str(exc)
+
+    def test_stale_detection_matches_oracle(self):
+        df = _numeric_frame(n_days=400, n_assets=10)
+        df["FROZEN"] = 0.5
+        df["ALSO_FROZEN"] = 1.0
+        assert self._stale_columns(df) == self._stale_columns(_oracle_quality(df))
 
 
 class TestNumericFrameFastPathEquivalence:
