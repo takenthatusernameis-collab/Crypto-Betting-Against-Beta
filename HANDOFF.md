@@ -1,12 +1,18 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-13T06:06:18Z
-**HEAD:** `584eba1 chore(kilo): checkpoint agent session` (working tree clean at refresh except this handoff update)
+**Timestamp (refreshed):** 2026-11-13T06:07:30Z
+**HEAD:** `800b989d chore(kilo): checkpoint agent session` (working tree clean at refresh)
 **Repo:** `crypto-betting-against-beta` — BAB (Betting Against Beta) market-neutral crypto strategy: long low-beta / short high-beta vs BTC benchmark (`README.md`, `strategies/betting_against_beta/`).
-**Last recorded gate (do not assume current):** `bash scripts/bab_gate.sh` → **5140 passed, 35 skipped, RC=0** (recorded 2026-11-13T06:02:00Z in prior pointer/state). Re-run as the first and final correctness check for any code changes this session.
+**Last recorded gate (do not assume current):** `bash scripts/bab_gate.sh` → **5140 passed, 35 skipped, RC=0** (recorded 2026-11-13T06:02:00Z). Re-run as the first and final correctness check for any code changes this session.
 
-> **INITIAL TASK FOR THE NEXT AGENTIC SESSION (2026-11-13T06:06:18Z) — BINDING:**
-> **Ship Step 3e performance code in `strategies/betting_against_beta/data_loader.py`** (optimize `validate_returns_dataframe` / `_run_data_quality_campaign` numeric path) with oracle-equivalence tests and a full green gate. **Then immediately start Step 3f** hot spots in `beta.py:331` (`calculate_rolling_beta`), `portfolio.py:43` (`construct_portfolio`), `backtest.py:9` (`run_backtest`) if Step 3e is landed or blocked by hard evidence. No measurement-only churn, no probe-count expansion, no commits unless explicitly requested.
+> **INITIAL TASK FOR THE NEXT AGENTIC SESSION (2026-11-13T06:07:30Z) — BINDING, HEAVY WORK REQUIRED:**
+> **You MUST ship Step 3e performance code in `strategies/betting_against_beta/data_loader.py`** (`validate_returns_dataframe` / `_run_data_quality_campaign`, numeric path) with oracle-equivalence tests and a full green gate (`bash scripts/bab_gate.sh`, RC=0). This is the highest-leverage BAB pipeline hot path; measurement-only or handoff-only churn is forbidden.
+> 1. **Before coding:** run targeted baseline sanity for touched area if needed, then implement (do not re-profile recorded 2000x100 medians except before/after your shipped change).
+> 2. **Implement Step 3e:** whole-frame numeric dtype check, stale-run hot path reuse/vectorization with exact semantics, remove redundant copy/coercion/sort/materialization in campaign fast/fallback paths, single numeric view reuse, remove/replace dead `_max_consecutive_equal_finite_frame` if superseded (preserve behavior).
+> 3. **Tests:** add/extend oracle coverage in `tests/test_validation_performance.py` (or focused tests) for all-NaN cols, mixed dtypes, inf/-inf, stale runs at/above/below threshold, sparse finite fractions, duplicate timestamps, tz-aware indexes, canonical/duplicate column normalization, malformed/non-numeric preservation, empty/single-row frames, mutation-independence.
+> 4. **Gate:** targeted tests for touched areas, then full `bash scripts/bab_gate.sh` → RC=0.
+> 5. **Immediately after Step 3e lands (or is blocked by hard evidence): start Step 3f** — `beta.py:331` `calculate_rolling_beta`, `portfolio.py:43` `construct_portfolio`, `backtest.py:9` `run_backtest` with before/after measurement, oracle-equivalence/perf-ceiling tests, and full gate.
+> No probe-count expansion, no "no reduction identified" churn, no commits unless explicitly requested. If no measurable Step 3e win after a genuine implementation, document evidence here and move directly to Step 3f.1 in the same session.
 
 ## Priority basis (repo name first)
 Repository purpose is the BAB strategy. All runs flow through `validate_returns_dataframe` (`strategies/betting_against_beta/data_loader.py`) before beta/signal/portfolio/backtest stages, so validation/pipeline overhead is the highest-leverage engineering work.
@@ -23,8 +29,10 @@ cProfile (20 calls, 2000x100): `_run_data_quality_campaign` dominates; stale-run
 
 ## Bottlenecks removed / current blockers
 - **Removed (process bottleneck):** prior sessions spent effort profiling without shipping. This handoff makes Step 3e code+tests+gate the mandatory first deliverable and forbids re-profiling churn.
-- **No active reproducible in-repo blocker recorded.** `research_state/workflow_run_diagnostics.jsonl` contains historical diagnostics only; treat as non-blocking context.
-- `AGENT_HANDOFF.md`/`HANDOFF.md` were stale vs HEAD — refreshed now as the single coordination point.
+- **Removed (staleness):** `HANDOFF.md`/`AGENT_HANDOFF.md` refreshed to HEAD `800b989d` (2026-11-13T06:07:30Z) as single coordination point.
+- **Env note (not a code blocker):** `python3 -m coverage`/`import coverage` is unavailable in this container, but `scripts/bab_gate.sh` runs pytest without coverage when missing; core deps present include `numpy`, `pandas`, `scipy`, `pytest`, `hypothesis` (verify before running). If gate reporting requires coverage, `pip install -r requirements.txt` (no workflow/config edits).
+- **No active reproducible in-repo product blocker recorded.** `research_state/workflow_run_diagnostics.jsonl` is historical CI/log diagnostics only (old runs, tool-arg noise, transient env issues from prior sandboxes); treat as non-blocking context, not justification for inaction.
+
 
 ## Step 3e — `validate_returns_dataframe` numeric path (REQUIRED WORK)
 **Current code reality (verified):** gap check uses `index.to_numpy(dtype="datetime64[ns]")`+`np.diff`; numeric fast path scans qualifying columns via `_max_consecutive_equal_finite` per-column (`~1471-1473`) and fallback paths also do per-column conversions (`~1485-1506`); `validate_returns_dataframe` hoists `arr`/`finite_arr` and passes to `_run_data_quality_campaign` (`~1665,1716-1724`) but campaign still has redundant/re-materializing paths (`arr_all`/`finite_all` handling, unconditional `df.copy()`/sort/coerce, numeric branch recomputes/allocates). `_max_consecutive_equal_finite_frame` (`1328`) is unused/dead heavy code.
