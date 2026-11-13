@@ -7,6 +7,8 @@ from typing import Optional, Union
 import numpy as np
 import pandas as pd
 
+from .errors import BABDataError
+
 
 def calculate_realized_volatility(returns: pd.DataFrame, window: int = 20, use_ewma: bool = False) -> pd.DataFrame:
     """Calculate realized volatility (raw or EWMA) over rolling window."""
@@ -136,8 +138,8 @@ def apply_regime_scaling(
                 if col in vol_regimes.columns:
                     scaled.loc[vol_regimes[col] == 2, col] *= scale_high_vol  # high vol
                     scaled.loc[vol_regimes[col] == 0, col] *= scale_low_vol  # low vol
-        except Exception:
-            pass  # fail gracefully
+        except Exception as exc:
+            raise BABDataError(f"regime scaling failed: {exc}") from exc
     return scaled
 
 

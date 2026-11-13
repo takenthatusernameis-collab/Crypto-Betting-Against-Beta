@@ -201,9 +201,9 @@ def test_apply_regime_scaling_exception_in_classification():
         bad = pd.DataFrame({"A": [0.01, 0.02, 0.03]}, index=sig.index)
         # monkey patch
         bad.__class__ = type('BadDF2', (pd.DataFrame,), {'columns': property(lambda self: (_ for _ in ()).throw(RuntimeError("boom")))})
-    out = regime.apply_regime_scaling(sig, returns=bad)
-    assert isinstance(out, pd.DataFrame)
-    assert len(out) == 3
+    from strategies.betting_against_beta.errors import BABDataError
+    with pytest.raises(BABDataError, match="regime scaling failed"):
+        regime.apply_regime_scaling(sig, returns=bad)
 
 
 def test_apply_regime_scaling_returns_causes_exception():
