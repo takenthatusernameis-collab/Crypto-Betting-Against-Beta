@@ -1,11 +1,11 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-13T05:37:40Z
+**Timestamp (refreshed):** 2026-11-13T05:40:28Z
 **HEAD:** `74447c4 chore(kilo): checkpoint agent session` (working tree: handoff docs refreshed this session; last substantive code commit `43a2313` Step 3d)
 **Repo:** `crypto-betting-against-beta` — BAB (Betting Against Beta) market-neutral crypto strategy: long low-beta / short high-beta vs BTC benchmark (`README.md`, `strategies/betting_against_beta/`).
-**Gate (last verified at prior handoff, 2026-11-13T04:46:06Z):** `bash scripts/bab_gate.sh` → **5140 passed, 35 skipped, RC=0**. Not re-run this session (docs-only refresh); re-run as the first correctness check before/after any Step 3e/3f code change.
+**Gate (last verified at prior handoff, 2026-11-13T04:46:06Z):** `bash scripts/bab_gate.sh` → **5140 passed, 35 skipped, RC=0**. Re-run as the first correctness check before/after any Step 3e/3f code change.
 
-> **INITIAL TASK FOR THE NEXT AGENTIC SESSION (2026-11-13T05:37:40Z):**
+> **INITIAL TASK FOR THE NEXT AGENTIC SESSION (2026-11-13T05:40:28Z):**
 > **Ship Step 3e performance code in `strategies/betting_against_beta/data_loader.py`** and land it with oracle-equivalence coverage + a full green gate — no measurement-only churn. Then immediately begin Step 3f (end-to-end pipeline hot spots). Commit nothing unless explicitly requested. This is the binding focus campaign: validation/pipeline overhead is the top leverage for a BAB repo; do not spend the session on probe-count expansion or re-profiling work already recorded below.
 
 ## Priority basis (repo name first)
