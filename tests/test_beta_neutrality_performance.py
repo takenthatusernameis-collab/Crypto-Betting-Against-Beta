@@ -1,13 +1,9 @@
 """Oracle-equivalence and performance guard for beta-neutrality enforcement.
 
 ``enforce_beta_neutrality`` is the dominant production hot spot when
-``beta_neutral=True`` (measured ~210 ms @ 2500x40 and ~245 ms @ 2500x120,
-versus ~2 ms for ``run_backtest``).  The reference implementation below is the
-row-wise semantics that any vectorized rewrite must reproduce within 1e-12.
-
-The performance ceiling is intentionally generous (well above the current
-few-hundred-ms cost and far above CI noise); it is a non-regression guard, not
-a substitute for the measured win required by ``HANDOFF.md``.
+``beta_neutral=True``. A vectorized implementation is shipped; the reference
+implementation below is the row-wise semantics that any rewrite must reproduce
+within 1e-12.
 """
 
 from __future__ import annotations
@@ -138,6 +134,8 @@ def _random_case(seed, n_rows, n_assets, n_finite_beta=1.0, n_nonfinite_beta=0):
         (4, 25, 9, -0.1, 1e-3, True),
         (5, 25, 9, 0.0, 1e-4, False),
         (6, 40, 12, 0.5, 1e-8, True),
+        (7, 1, 7, 0.0, 1e-4, True),  # single row
+        (8, 9, 1, 0.0, 1e-4, True),  # single column
     ],
 )
 def test_reference_oracle_matches(seed, n_rows, n_assets, target, tol, correction):
@@ -149,6 +147,25 @@ def test_reference_oracle_matches(seed, n_rows, n_assets, target, tol, correctio
         weights, betas, target_beta=target, tolerance=tol, correction=correction
     )
     pd.testing.assert_frame_equal(got, expected, check_exact=False, rtol=1e-12, atol=1e-12)
+
+
+@pytest.mark.parametrize("seed", [101, 202, 303, 404, 505])
+def test_randomized_nan_inf_oracle(seed):
+    """Randomized NaN/inf/tie-heavy cases must match oracle at 1e-12."""
+    rng = np.random.default_rng(seed)
+    n_rows = int(rng.integers(2, 40))
+    n_assets = int(rng.integers(2, 20))
+    weights, betas = _random_case(seed, n_rows, n_assets, n_finite_beta=0.6, n_nonfinite_beta=6)
+    # Force some rows to all-equal beta / zero weights / all-nan beta.
+    if n_rows >= 3:
+        betas.iloc[0, :] = 0.7  # tie/all-equal-beta
+        weights.iloc[1, :] = 0.0  # zero-row
+        betas.iloc[2, :] = np.nan  # all-NaN-beta
+    got = enforce_beta_neutrality(weights, betas, target_beta=0.0, tolerance=1e-4)
+    expected = _reference_enforce(weights, betas, target_beta=0.0, tolerance=1e-4)
+    pd.testing.assert_frame_equal(got, expected, check_exact=False, rtol=1e-12, atol=1e-12)
+    assert got.index.equals(weights.index.intersection(betas.index))
+    assert got.columns.equals(weights.columns.intersection(betas.columns))
 
 
 def test_reference_oracle_handles_degenerate_frames():
@@ -181,6 +198,20 @@ def test_reference_oracle_handles_degenerate_frames():
     )
 
 
+def test_correction_false_noop_and_shapes():
+    """Explicit correction=False must be a no-op and preserve aligned shape."""
+    dates = pd.date_range("2024-01-01", periods=6)
+    cols = ["A", "B", "C"]
+    rng = np.random.default_rng(77)
+    weights = pd.DataFrame(rng.normal(0, 0.3, size=(6, 3)), index=dates, columns=cols)
+    betas = pd.DataFrame(rng.normal(1.0, 0.5, size=(6, 3)), index=dates, columns=cols)
+    got = enforce_beta_neutrality(weights, betas, correction=False)
+    expected = _reference_enforce(weights, betas, correction=False)
+    pd.testing.assert_frame_equal(got, expected, check_exact=False, rtol=1e-12, atol=1e-12)
+    assert got.index.equals(dates)
+    assert list(got.columns) == cols
+
+
 def test_reference_oracle_handles_misaligned_frames():
     rng = np.random.default_rng(11)
     w_dates = pd.date_range("2024-01-01", periods=8)
@@ -194,14 +225,30 @@ def test_reference_oracle_handles_misaligned_frames():
     got = enforce_beta_neutrality(weights, betas)
     expected = _reference_enforce(weights, betas)
     pd.testing.assert_frame_equal(got, expected, check_exact=False, rtol=1e-12, atol=1e-12)
+    assert list(got.columns) == ["B", "C", "D"]
+
+
+def test_single_row_column_and_alignment_oracle():
+    # single row
+    w = pd.DataFrame([[0.5, -0.5, 0.0]], index=[0], columns=["A", "B", "C"])
+    b = pd.DataFrame([[1.2, 0.8, 1.0]], index=[0], columns=["A", "B", "C"])
+    pd.testing.assert_frame_equal(
+        enforce_beta_neutrality(w, b), _reference_enforce(w, b), rtol=1e-12, atol=1e-12
+    )
+    # single column
+    w = pd.DataFrame([[0.5], [-0.2], [0.1]], index=[0, 1, 2], columns=["A"])
+    b = pd.DataFrame([[1.1], [0.9], [1.3]], index=[0, 1, 2], columns=["A"])
+    pd.testing.assert_frame_equal(
+        enforce_beta_neutrality(w, b), _reference_enforce(w, b), rtol=1e-12, atol=1e-12
+    )
 
 
 def test_enforce_beta_neutrality_perf_ceiling():
     """Non-regression ceiling for the dominant beta-neutral hot spot.
 
-    Current measured warm median is ~0.21-0.25 s at 2500x40-120.  The bound is
-    deliberately loose for shared runners; the optimization campaign must still
-    record a measured win and tighten this bound.
+    Measured warm median at HEAD (python 3.12, numpy 2.5.4, pandas 3.1.1):
+      2500x40  ~21.7 ms, 2500x50 ~20.9 ms, 2500x120 ~63.7 ms.
+    Bound tightened from 1.5 s to 0.25 s with margin for shared runners.
     """
     returns = generate_synthetic_returns(n_days=2500, n_assets=120, seed=1234)
     beta = calculate_rolling_beta(returns, "BTC", window=90, min_obs=60)
@@ -212,7 +259,7 @@ def test_enforce_beta_neutrality_perf_ceiling():
     start = time.perf_counter()
     enforce_beta_neutrality(weights, beta)
     elapsed = time.perf_counter() - start
-    assert elapsed < 1.5, (
+    assert elapsed < 0.25, (
         f"enforce_beta_neutrality took {elapsed:.3f}s at {weights.shape}; "
-        "beta-neutral perf regression"
+        "beta-neutral perf regression (expected < 0.25 s on this workload)"
     )
