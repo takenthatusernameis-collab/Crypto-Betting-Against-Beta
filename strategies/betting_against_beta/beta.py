@@ -361,6 +361,31 @@ def _rolling_sum_finite(arr, window, min_periods):
     return sums, counts
 
 
+def _rolling_sum_finite_stack(arr, window, min_periods):
+    """Rolling window sums for an **all-finite** array, 1-D or 2-D, in one pass.
+
+    Semantically identical to :func:`_rolling_sum_finite` but stacks every
+    input column into a single 2-D buffer so one ``cumsum`` pass produces all
+    rolling sums. Callers must guarantee finiteness; otherwise the NaN
+    propagation semantics of ``_rolling_sum`` are lost.
+    """
+    arr = np.asarray(arr, dtype=float)
+    if arr.ndim == 1:
+        return _rolling_sum_finite(arr, window, min_periods)
+    n, k = arr.shape
+    idx = np.arange(n)
+    starts = np.maximum(0, idx - window + 1)
+    ends = idx + 1
+    csum = np.empty((n + 1, k), dtype=float)
+    csum[0] = 0.0
+    np.cumsum(arr, axis=0, out=csum[1:])
+    sums = csum[ends] - csum[starts]
+    counts = np.minimum(idx + 1, window).astype(np.int64)
+    too_short = counts < min_periods
+    sums = np.where(too_short[:, None], np.nan, sums)
+    return sums, counts
+
+
 def calculate_rolling_beta(returns_df, benchmark_name, window=90, min_obs=60):
     """Calculate rolling beta for all assets vs benchmark."""
     if returns_df is None:
@@ -390,6 +415,31 @@ def calculate_rolling_beta(returns_df, benchmark_name, window=90, min_obs=60):
     bench_arr = bench_vals
     b_has_bad = not np.all(np.isfinite(bench_arr))
 
+    def _finalize_betas(beta_arr):
+        """Apply degenerate / insufficient-observation masks to a (n,) or (n,k) array.
+
+        ``denom_shared`` and ``obs_short`` are resolved from the enclosing
+        scope at call time (closure late-binding); they are computed by the
+        single stacked rolling-sum pass in the finite-columns path just before
+        this is invoked.
+        """
+        beta_arr = np.asarray(beta_arr, dtype=float)
+        # Degeneracy is PER-ROW (per-window), derived from the shared denominator
+        # cnt*xx - x^2. It is zero exactly when the benchmark has zero variance
+        # within that window. A whole-series np.std(bench_arr) check would
+        # collapse the entire beta series to NaN on any benchmark NaN, which is
+        # undefined-beta poisoning rather than undefined beta -- it silently
+        # flattens real signals in windows with plenty of valid observations.
+        degenerate = (~np.isfinite(denom_shared)) | (np.abs(denom_shared) < 1e-12)
+        if beta_arr.ndim == 1:
+            bad = degenerate.ravel() | obs_short | ~np.isfinite(beta_arr)
+            return np.where(bad, np.nan, beta_arr)
+        deg = degenerate.reshape(-1)
+        bad = deg[:, None] | obs_short[:, None] | ~np.isfinite(beta_arr)
+        return np.where(bad, np.nan, beta_arr)
+
+    asset_cols = [c for c in returns_df.columns if c != benchmark_name]
+
     # Benchmark rolling sums are asset-independent; hoist them out so every
     # asset reuses the same cnt / x_sum / xx_sum instead of recomputing them.
     # CRITICAL: ``ones`` is the benchmark's *finite* mask, not a constant 1.0.
@@ -409,30 +459,6 @@ def calculate_rolling_beta(returns_df, benchmark_name, window=90, min_obs=60):
     # Shared denominator component across all assets: cnt*xx - x^2, shape (n, 1).
     denom_shared = cnt_f[:, None] * xx_sum_f[:, None] - x_sum_f[:, None] * x_sum_f[:, None]
     obs_short = (cnt_f < min_obs) | np.isnan(cnt_f)  # shape (n,)
-
-    def _finalize_betas(beta_arr):
-        """Apply degenerate / insufficient-observation masks to a (n,) beta array."""
-        beta_arr = np.asarray(beta_arr, dtype=float).copy()
-        # Degeneracy is PER-ROW (per-window), derived from the shared denominator
-        # cnt*xx - x^2. It is zero exactly when the benchmark has zero variance
-        # within that window. A whole-series np.std(bench_arr) check would
-        # collapse the entire beta series to NaN on any benchmark NaN, which is
-        # undefined-beta poisoning rather than undefined beta -- it silently
-        # flattens real signals in windows with plenty of valid observations.
-        degenerate = (~np.isfinite(denom_shared)) | (np.abs(denom_shared) < 1e-12)
-        if beta_arr.ndim == 1:
-            beta_arr = np.where(degenerate.ravel(), np.nan, beta_arr)
-            beta_arr = np.where(~np.isfinite(beta_arr), np.nan, beta_arr)
-            beta_arr = np.where(obs_short, np.nan, beta_arr)
-            return beta_arr
-        else:
-            deg = degenerate.reshape(-1)
-            beta_arr = np.where(deg[:, None], np.nan, beta_arr)
-            beta_arr = np.where(~np.isfinite(beta_arr), np.nan, beta_arr)
-            beta_arr = np.where(obs_short[:, None], np.nan, beta_arr)
-            return beta_arr
-
-    asset_cols = [c for c in returns_df.columns if c != benchmark_name]
 
     try:
         asset_betas = {}
