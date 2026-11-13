@@ -1,18 +1,13 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-13T15:27:36Z
+**Timestamp (refreshed):** 2026-11-13T15:30:44Z
 **HEAD:** `2cbd77a` — `chore(kilo): checkpoint agent session` (R1-A causal harness + R1-D perf guard committed; tree clean)
 **Repo:** `crypto-betting-against-beta` — BAB (Betting Against Beta) market-neutral crypto strategy: long low-beta / short high-beta vs a BTC benchmark (`README.md`, `strategies/betting_against_beta/`).
 **Working tree:** CLEAN — no uncommitted changes, no stashes, no branches.
 
 ---
 
-## State reconciliation (2026-11-13T15:27:36Z)
-
-**HANDOFF.md was stale.** It claimed HEAD `960e277`, 2 modified uncommitted files, and R1 PENDING. Reality at this session start:
-- HEAD is `2cbd77a`; the tree is clean.
-- The attribution task (`_finite_series`/`_finite_sum` single-pass sanitize + `TestAttributionSanitizationParity`) shipped at `960e277` and is CLOSED.
-- The prior RC=1 gate bottleneck (broken defensive-fallback test + missing `_finite_sum` fallback) is removed; gate is GREEN.
+## State reconciliation (2026-11-13T15:30:44Z)
 
 **Gate is GREEN:** `bash scripts/bab_gate.sh` → **5204 passed, 35 skipped, RC=0, ~372 s**.
 
@@ -31,7 +26,7 @@ Interpretation: the core engine is correct and causal on real data, but **indepe
 
 ---
 
-## INITIAL TASK FOR THE NEXT AGENTIC SESSION (2026-11-13T15:27:36Z) — BINDING
+## INITIAL TASK FOR THE NEXT AGENTIC SESSION (2026-11-13T15:30:44Z) — BINDING
 
 > **Inference from repo name:** `crypto-betting-against-beta` → the BAB engine is the product. The core math (`beta.py`, `signals.py`, `portfolio.py`, `backtest.py`, `strategy.py` finiteness) is locked, optimized, and proven. The highest-value remaining work is **independent-oracle parity on real data plus a complete real-data E2E invariant suite**. This is the **BAB Real-Data Correctness Campaign (R1), stages B-finalize + C**.
 >
@@ -117,3 +112,5 @@ Interpretation: the core engine is correct and causal on real data, but **indepe
 ---
 
 **This file is the single source of truth. `AGENT_HANDOFF.md` is a pointer only.**
+
+(End of file - total 119 lines)
