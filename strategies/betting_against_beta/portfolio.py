@@ -80,7 +80,9 @@ def construct_portfolio(signals_df, dollar_neutral=True, gross_exposure_limit=No
         # Clean signals elementwise
         try:
             if all(pd.api.types.is_numeric_dtype(s) for s in signals_df.dtypes):
-                numeric = signals_df.copy()
+                # to_numpy(dtype=float) already materializes a converted copy;
+                # the extra signals_df.copy() was redundant.
+                arr = signals_df.to_numpy(dtype=float)
             else:
                 try:
                     numeric = signals_df.apply(pd.to_numeric, errors="coerce")
@@ -91,11 +93,13 @@ def construct_portfolio(signals_df, dollar_neutral=True, gross_exposure_limit=No
                             numeric[col] = pd.to_numeric(numeric[col], errors="coerce")
                         except Exception:
                             numeric[col] = 0.0
-            arr = numeric.to_numpy(dtype=float)
+                arr = numeric.to_numpy(dtype=float)
         except Exception:
             return _pd.DataFrame(0.0, index=index, columns=columns)
         iv = np.trunc(arr)
-        clean_arr = np.where(iv == 1.0, 1, np.where(iv == -1.0, -1, 0)).astype(np.int64)
+        # trunc(1.5)=1 -> long, trunc(-1.5)=-1 -> short, everything else -> 0,
+        # matching _clean_signal_value / the row-wise oracle exactly.
+        clean_arr = (iv == 1.0).astype(np.int8) - (iv == -1.0).astype(np.int8)
         long_mask = clean_arr == 1
         short_mask = clean_arr == -1
         short_mask = short_mask & ~long_mask

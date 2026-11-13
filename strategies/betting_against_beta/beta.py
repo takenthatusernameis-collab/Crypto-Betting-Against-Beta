@@ -435,23 +435,36 @@ def calculate_rolling_beta(returns_df, benchmark_name, window=90, min_obs=60):
     asset_cols = [c for c in returns_df.columns if c != benchmark_name]
 
     try:
-        # Fast path: all-finite assets are computed at once from a single 2-D
-        # conversion plus lean (mask-free) cumulative-sum rolling windows. This
-        # removes the per-asset Python loop and the redundant pandas
-        # DataFrame/mul/to_numpy round-trips. Assets that contain any
-        # non-finite value fall back to the per-series safe path.
+        asset_betas = {}
         finite_cols = []
         bad_cols = []
-        for c in asset_cols:
-            try:
-                a_arr = returns_df[c].to_numpy(dtype=float, copy=False)
-            except Exception:
+
+        asset_arr = None
+        col_all_finite = None
+        try:
+            asset_arr = returns_df[asset_cols].to_numpy(dtype=float)
+        except (TypeError, ValueError):
+            asset_arr = None
+
+        if asset_arr is not None:
+            # Single 2-D conversion; classify finiteness column-wise in one
+            # vectorized pass instead of per-column to_numpy/isfinite round-trips.
+            col_all_finite = np.isfinite(asset_arr).all(axis=0)
+            for c, allf in zip(asset_cols, col_all_finite):
+                (finite_cols if bool(allf) else bad_cols).append(c)
+        else:
+            # Mixed/uncoercible dtypes: classify per column so numeric columns
+            # still use the fast path and only uncoercible columns fall back.
+            for c in asset_cols:
                 try:
-                    a_arr = np.asarray(returns_df[c], dtype=float)
+                    a_arr = returns_df[c].to_numpy(dtype=float, copy=False)
                 except Exception:
-                    bad_cols.append(c)
-                    continue
-            (finite_cols if np.all(np.isfinite(a_arr)) else bad_cols).append(c)
+                    try:
+                        a_arr = np.asarray(returns_df[c], dtype=float)
+                    except Exception:
+                        bad_cols.append(c)
+                        continue
+                (finite_cols if np.all(np.isfinite(a_arr)) else bad_cols).append(c)
 
         # The vectorized finite path derives the OLS y-sum over *all* asset
         # observations, but the benchmark-derived cnt/x-sum/xy-sum only cover
@@ -464,12 +477,14 @@ def calculate_rolling_beta(returns_df, benchmark_name, window=90, min_obs=60):
             bad_cols = list(asset_cols)
             finite_cols = []
 
-        asset_betas = {}
-
         if finite_cols:
             # All columns here are finite (b_has_bad was handled above), so a
             # single 2-D conversion and mask-free rolling sums are exact.
-            y_arr = returns_df[finite_cols].to_numpy(dtype=float)
+            if asset_arr is not None and col_all_finite is not None:
+                finite_idx = np.flatnonzero(col_all_finite)
+                y_arr = asset_arr[:, finite_idx]
+            else:
+                y_arr = returns_df[finite_cols].to_numpy(dtype=float)
             xy_arr = y_arr * bench_arr[:, None]
             y_sum_f, _ = _rolling_sum_finite(y_arr, window, min_obs)
             xy_sum_f, _ = _rolling_sum_finite(xy_arr, window, min_obs)

@@ -86,6 +86,25 @@ class TestRollingBetaPerformance:
             f"{self.N_ASSETS} assets x {self.N_DAYS} days; performance regression"
         )
 
+    def test_beta_stage_perf_ceiling(self, big_df):
+        """Per-stage non-regression ceiling for the beta stage.
+
+        Bound is generous (well above the measured ~ms single-call cost and far
+        above CI noise) so the test stays stable on shared runners while still
+        guarding against a catastrophic slowdown of ``calculate_rolling_beta``.
+        """
+        _, elapsed = _time_it(
+            calculate_rolling_beta,
+            big_df,
+            "BTC",
+            window=self.WINDOW,
+            min_obs=self.MIN_OBS,
+        )
+        assert elapsed < 1.0, (
+            f"calculate_rolling_beta took {elapsed:.3f}s on {self.N_ASSETS}x{self.N_DAYS}; "
+            "beta-stage perf regression"
+        )
+
     def test_scaling_is_sub_quadratic_per_asset(self):
         """Each additional asset should cost ~O(N) not O(N*W) per window."""
         small = generate_synthetic_returns(n_days=500, n_assets=10, seed=1)
