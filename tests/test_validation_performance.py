@@ -348,11 +348,18 @@ class TestNumericFrameStaleBatchEquivalence:
         except BABDataError as exc:
             return str(exc)
 
+    def _oracle_stale_columns(self, df, stale_run_threshold=None):
+        try:
+            _oracle_quality(df, stale_run_threshold=stale_run_threshold)
+            return None
+        except BABDataError as exc:
+            return str(exc)
+
     def test_stale_detection_matches_oracle(self):
         df = _numeric_frame(n_days=400, n_assets=10)
         df["FROZEN"] = 0.5
         df["ALSO_FROZEN"] = 1.0
-        assert self._stale_columns(df) == self._stale_columns(_oracle_quality(df))
+        assert self._stale_columns(df) == self._oracle_stale_columns(df)
 
 
 class TestNumericFrameFastPathEquivalence:
