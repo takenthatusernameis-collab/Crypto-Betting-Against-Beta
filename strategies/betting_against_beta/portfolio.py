@@ -103,6 +103,30 @@ def construct_portfolio(signals_df, dollar_neutral=True, gross_exposure_limit=No
         n_long = long_mask.sum(axis=1).astype(np.int64)
         n_short = short_mask.sum(axis=1).astype(np.int64)
 
+        def _write_book(mask, row_counts, weights_1d):
+            """Assign one weight per selected cell, or surface the failure.
+
+            The weights are computed once per row and fanned out to the selected
+            cells; if that fan-out raises (shape mismatch, read-only buffer,
+            exotic dtype) the resulting book would have *missing* positions
+            rather than wrong ones, and a silent swallow would return a
+            plausible-looking empty/partial book.  The outer handler converts
+            the failure into an explicit ``BABPortfolioError``.
+            """
+            mask = np.asarray(mask, dtype=bool)
+            row_counts = np.asarray(row_counts, dtype=np.int64)
+            w_row = np.asarray(weights_1d, dtype=float)
+            expected = int(row_counts.sum())
+            fanned = np.repeat(w_row, row_counts)
+            if fanned.shape[0] != expected or mask.sum() != expected:
+                # A fan-out that does not line up with the selected cells would
+                # leave positions unwritten (a silently truncated book).
+                raise BABPortfolioError(
+                    "weight fan-out does not match selected cells: "
+                    f"{fanned.shape[0]} weights for {expected} cells"
+                )
+            w_arr[mask] = fanned
+
         w_arr = np.zeros((n_rows, n_cols), dtype=float)
 
         long_rows = n_long > 0
@@ -113,10 +137,7 @@ def construct_portfolio(signals_df, dollar_neutral=True, gross_exposure_limit=No
             long_w[~np.isfinite(long_w)] = 0.0
             long_cell = long_mask & long_rows[:, None]
             if np.any(long_cell):
-                try:
-                    w_arr[long_cell] = np.repeat(long_w[long_rows], long_mask[long_rows].sum(axis=1))
-                except Exception:
-                    pass
+                _write_book(long_cell, long_mask[long_rows].sum(axis=1), long_w[long_rows])
 
         short_rows = (n_short > 0) & (dn | (n_long == 0))
         if np.any(short_rows):
@@ -126,10 +147,7 @@ def construct_portfolio(signals_df, dollar_neutral=True, gross_exposure_limit=No
             short_w[~np.isfinite(short_w)] = 0.0
             short_cell = short_mask & short_rows[:, None]
             if np.any(short_cell):
-                try:
-                    w_arr[short_cell] = np.repeat(short_w[short_rows], short_mask[short_rows].sum(axis=1))
-                except Exception:
-                    pass
+                _write_book(short_cell, short_mask[short_rows].sum(axis=1), short_w[short_rows])
 
         w_arr[~np.isfinite(w_arr)] = 0.0
         w_arr = np.clip(w_arr, -1e12, 1e12)
@@ -156,9 +174,14 @@ def construct_portfolio(signals_df, dollar_neutral=True, gross_exposure_limit=No
                         row[row > 0] = row[row > 0] * (1.0 - net[i]) / long_sum
                     w_arr[i] = row
             w_arr[~np.isfinite(w_arr)] = 0.0
-    except Exception:
-        return _pd.DataFrame(0.0, index=signals_df.index if hasattr(signals_df, 'index') else None,
-                             columns=signals_df.columns if hasattr(signals_df, 'columns') else None)
+    except BABPortfolioError:
+        raise
+    except Exception as exc:
+        # A failure here means no usable book could be built (uncoercible
+        # dtypes, exotic index/columns, unusable frame).  Returning an
+        # all-zero frame would report "no positions" instead of a defect, so
+        # surface it with the original exception attached.
+        raise BABPortfolioError(f"portfolio construction failed: {exc}") from exc
 
     weights = _pd.DataFrame(w_arr, index=index, columns=columns)
 
