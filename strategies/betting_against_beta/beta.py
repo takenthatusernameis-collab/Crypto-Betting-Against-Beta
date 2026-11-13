@@ -328,6 +328,39 @@ def _rolling_sum(arr, window, min_periods):
     return sums, counts
 
 
+def _rolling_sum_finite(arr, window, min_periods):
+    """Rolling window sum for an **all-finite** array (1-D or 2-D).
+
+    Semantically identical to :func:`_rolling_sum` on all-finite input, but
+    skips the ``isfinite``/``where``/``ones`` masks and the ``cones`` cumulative
+    sum. Because every entry is finite, the per-window valid count is simply
+    ``min(i + 1, window)`` and is identical across columns, so ``counts`` is
+    returned as a 1-D array. Callers must guarantee finiteness (the rolling
+    fast path only routes finite asset columns here); otherwise the NaN
+    propagation semantics of ``_rolling_sum`` are lost.
+    """
+    arr = np.asarray(arr, dtype=float)
+    idx = np.arange(arr.shape[0])
+    starts = np.maximum(0, idx - window + 1)
+    ends = idx + 1
+    if arr.ndim == 1:
+        csum = np.concatenate(([0.0], np.cumsum(arr)))
+        sums = csum[ends] - csum[starts]
+    else:
+        n, k = arr.shape
+        csum = np.empty((n + 1, k), dtype=float)
+        csum[0] = 0.0
+        np.cumsum(arr, axis=0, out=csum[1:])
+        sums = csum[ends] - csum[starts]
+    counts = np.minimum(idx + 1, window).astype(np.int64)
+    too_short = counts < min_periods
+    if arr.ndim == 1:
+        sums = np.where(too_short, np.nan, sums)
+    else:
+        sums = np.where(too_short[:, None], np.nan, sums)
+    return sums, counts
+
+
 def calculate_rolling_beta(returns_df, benchmark_name, window=90, min_obs=60):
     """Calculate rolling beta for all assets vs benchmark."""
     if returns_df is None:
@@ -367,18 +400,12 @@ def calculate_rolling_beta(returns_df, benchmark_name, window=90, min_obs=60):
     # length instead would let a single NaN in the benchmark inflate ``cnt``,
     # loosen the min_obs gate, and corrupt the shared denominator -- producing
     # a finite beta from one valid observation in an otherwise-NaN window.
-    # Benchmark rolling sums are asset-independent; hoist them out so every
-    # asset reuses the same cnt / x_sum / xx_sum instead of recomputing them.
-    # CRITICAL: ``ones`` is the benchmark's *finite* mask, not a constant 1.0.
-    # pandas rolling .sum() skips NaN, so x_sum / xx_sum already sum only the
-    # finite benchmark observations per window. ``cnt`` MUST match that: it is
-    # the number of valid benchmark observations in each window, used both for
-    # the OLS denominator (cnt*xx - x^2) and the min_obs gate. Counting window
-    # length instead would let a single NaN in the benchmark inflate ``cnt``,
-    # loosen the min_obs gate, and corrupt the shared denominator -- producing
-    # a finite beta from one valid observation in an otherwise-NaN window.
-    x_sum_f, cnt_f = _rolling_sum(bench_arr, window, min_obs)
-    xx_sum_f, _ = _rolling_sum(bench_arr * bench_arr, window, min_obs)
+    if b_has_bad:
+        x_sum_f, cnt_f = _rolling_sum(bench_arr, window, min_obs)
+        xx_sum_f, _ = _rolling_sum(bench_arr * bench_arr, window, min_obs)
+    else:
+        x_sum_f, cnt_f = _rolling_sum_finite(bench_arr, window, min_obs)
+        xx_sum_f, _ = _rolling_sum_finite(bench_arr * bench_arr, window, min_obs)
     # Shared denominator component across all assets: cnt*xx - x^2, shape (n, 1).
     denom_shared = cnt_f[:, None] * xx_sum_f[:, None] - x_sum_f[:, None] * x_sum_f[:, None]
     obs_short = (cnt_f < min_obs) | np.isnan(cnt_f)  # shape (n,)
@@ -408,10 +435,11 @@ def calculate_rolling_beta(returns_df, benchmark_name, window=90, min_obs=60):
     asset_cols = [c for c in returns_df.columns if c != benchmark_name]
 
     try:
-        # Fast path: all-finite assets are computed at once with DataFrame
-        # rolling (vectorized across columns) plus numpy broadcasting. This
-        # removes the per-asset Python loop over rolling calls. Assets that
-        # contain any non-finite value fall back to the per-series safe path.
+        # Fast path: all-finite assets are computed at once from a single 2-D
+        # conversion plus lean (mask-free) cumulative-sum rolling windows. This
+        # removes the per-asset Python loop and the redundant pandas
+        # DataFrame/mul/to_numpy round-trips. Assets that contain any
+        # non-finite value fall back to the per-series safe path.
         finite_cols = []
         bad_cols = []
         for c in asset_cols:
@@ -425,13 +453,26 @@ def calculate_rolling_beta(returns_df, benchmark_name, window=90, min_obs=60):
                     continue
             (finite_cols if np.all(np.isfinite(a_arr)) else bad_cols).append(c)
 
+        # The vectorized finite path derives the OLS y-sum over *all* asset
+        # observations, but the benchmark-derived cnt/x-sum/xy-sum only cover
+        # the finite-benchmark observations. When the benchmark itself has
+        # non-finite entries those sets differ, so the paired y-sum would be
+        # inflated and betas wrong. In that case fall back to the per-series
+        # path, which masks on the *pairwise* finite mask (benchmark & asset)
+        # and therefore matches the naive per-window OLS oracle exactly.
+        if b_has_bad:
+            bad_cols = list(asset_cols)
+            finite_cols = []
+
         asset_betas = {}
 
         if finite_cols:
-            y_df = returns_df[finite_cols]
-            xy_df = y_df.mul(bench_arr[:, None], axis=0)
-            y_sum_f, _ = _rolling_sum(y_df.to_numpy(dtype=float), window, min_obs)
-            xy_sum_f, _ = _rolling_sum(xy_df.to_numpy(dtype=float), window, min_obs)
+            # All columns here are finite (b_has_bad was handled above), so a
+            # single 2-D conversion and mask-free rolling sums are exact.
+            y_arr = returns_df[finite_cols].to_numpy(dtype=float)
+            xy_arr = y_arr * bench_arr[:, None]
+            y_sum_f, _ = _rolling_sum_finite(y_arr, window, min_obs)
+            xy_sum_f, _ = _rolling_sum_finite(xy_arr, window, min_obs)
             num = cnt_f[:, None] * xy_sum_f - x_sum_f[:, None] * y_sum_f
             with np.errstate(invalid="ignore", divide="ignore"):
                 beta = _finalize_betas(num / denom_shared)
