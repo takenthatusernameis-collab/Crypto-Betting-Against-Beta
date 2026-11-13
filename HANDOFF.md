@@ -1,10 +1,10 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-13T11:44:00Z
+**Timestamp (refreshed):** 2026-11-13T11:44:22Z
 **HEAD:** `e5dc8ce` — prior session's `construct_portfolio` broadcast-product work is **committed**; tree was clean at handoff start (this refresh adds only the handoff/benchmark/oracle-guard files).
 **Repo:** `crypto-betting-against-beta` — BAB (Betting Against Beta) market-neutral crypto strategy: long low-beta / short high-beta vs a BTC benchmark (`README.md`, `strategies/betting_against_beta/`).
 
-**Gate baseline (verified 2026-11-13T11:35Z at `e5dc8ce`):** `bash scripts/bab_gate.sh` → **5173 passed, 35 skipped, RC=0** (303.59s, python 3.12.3; `coverage` not installed → no coverage report). **Re-run with the new oracle guard (2026-11-13T11:42Z):** **5182 passed, 35 skipped, RC=0** (304.58s).
+**Gate baseline (verified 2026-11-13T11:35Z at `e5dc8ce`):** `bash scripts/bab_gate.sh` → **5173 passed, 35 skipped, RC=0** (303.59s, python 3.12.3; `coverage` not installed → no coverage report). **Re-run with the new oracle guard (2026-11-13T11:42Z):** **5182 passed, 35 skipped, RC=0** (304.58s). **Bench re-verified (2026-11-13T11:44Z):** `PYTHONPATH="$PWD" python3 scripts/bench_beta_neutrality.py --reps 15` → 2500×40: **209.5 ms**, 2500×50: **212.3 ms**, 2500×120: **244.9 ms** (vs construct ~1.8–3.0 ms, backtest ~1.7–2.9 ms) — `enforce_beta_neutrality` remains the dominant hot spot.
 
 ---
 
