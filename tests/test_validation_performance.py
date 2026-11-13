@@ -361,6 +361,82 @@ class TestNumericFrameStaleBatchEquivalence:
         df["ALSO_FROZEN"] = 1.0
         assert self._stale_columns(df) == self._oracle_stale_columns(df)
 
+    def test_stale_multi_column_lowest_index_wins(self):
+        df = _numeric_frame(n_days=400, n_assets=10)
+        cols = list(df.columns)
+        # Force stale runs in two columns; highest-index first in assignment order
+        df[cols[7]] = 0.5
+        df[cols[2]] = 1.0
+        with pytest.raises(BABDataError) as excinfo:
+            dl._run_data_quality_campaign(df)
+        msg = str(excinfo.value)
+        assert f"column '{cols[2]}'" in msg
+        assert f"column '{cols[7]}'" not in msg
+        # oracle must agree
+        assert self._stale_columns(df) == self._oracle_stale_columns(df)
+
+    def test_stale_run_at_threshold_boundary(self):
+        n = 60
+        idx = pd.bdate_range("2020-01-01", periods=n)
+        rng = np.random.default_rng(1)
+        df = pd.DataFrame(rng.normal(0, 0.01, size=(n, 2)), index=idx, columns=["A", "B"])
+        # exactly threshold run in B only
+        df.loc[df.index[:50], "B"] = 0.5
+        with pytest.raises(BABDataError, match="column 'B'"):
+            dl._run_data_quality_campaign(df, stale_run_threshold=50)
+        # below threshold: 49-run should not trigger when threshold is 50
+        df2 = pd.DataFrame(rng.normal(0, 0.01, size=(n, 2)), index=idx, columns=["A", "B"])
+        df2.loc[df2.index[:49], "B"] = 0.5
+        out = dl._run_data_quality_campaign(df2, stale_run_threshold=50)
+        pd.testing.assert_frame_equal(out, df2)
+
+    def test_stale_with_nans_and_inf_splits_runs(self):
+        n = 200
+        idx = pd.bdate_range("2020-01-01", periods=n)
+        rng = np.random.default_rng(0)
+        df = pd.DataFrame(rng.normal(0, 0.01, size=(n, 3)), index=idx, columns=["A", "B", "C"])
+        # long equal run interrupted by NaN and inf so no segment >= 50
+        df.loc[df.index[:30], "B"] = 1.0
+        df.loc[df.index[30], "B"] = np.nan
+        df.loc[df.index[31:61], "B"] = 1.0
+        df.loc[df.index[61], "B"] = np.inf
+        df.loc[df.index[62:92], "B"] = 1.0
+        out = dl._run_data_quality_campaign(df)
+        pd.testing.assert_frame_equal(out, df)
+
+    def test_stale_vectorized_matches_oracle_randomized(self):
+        rng = np.random.default_rng(20261113)
+        for seed in range(40):
+            n = int(rng.integers(60, 180))
+            m = int(rng.integers(2, 8))
+            idx = pd.bdate_range("2019-01-01", periods=n)
+            data = rng.normal(0, 0.02, size=(n, m))
+            cols = [f"C{i}" for i in range(m)]
+            df = pd.DataFrame(data, index=idx, columns=cols)
+            # inject some NaNs/inf and occasional long runs
+            mask_nan = rng.random((n, m)) < 0.05
+            df = df.mask(mask_nan)
+            for _ in range(2):
+                j = int(rng.integers(0, m))
+                i0 = int(rng.integers(0, max(1, n - 10)))
+                run = int(rng.integers(1, 70))
+                df.iloc[i0 : min(n, i0 + run), j] = 0.123
+            try:
+                got = dl._run_data_quality_campaign(df)
+                got_err = None
+            except BABDataError as exc:
+                got = None
+                got_err = str(exc)
+            try:
+                exp = _oracle_quality(df)
+                exp_err = None
+            except BABDataError as exc:
+                exp = None
+                exp_err = str(exc)
+            assert got_err == exp_err, f"seed={seed} got={got_err} exp={exp_err}"
+            if got is not None:
+                pd.testing.assert_frame_equal(got, exp)
+
 
 class TestNumericFrameFastPathEquivalence:
     """Pin the numeric fast path in the campaign against the per-column oracle."""

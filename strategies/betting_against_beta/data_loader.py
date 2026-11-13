@@ -1484,18 +1484,16 @@ def _run_data_quality_campaign(
                 max_allowed_stale = max(int(stale_run_threshold), 50)
                 stale = np.flatnonzero(finite_counts >= int(stale_run_threshold))
                 if stale.size:
-                    # Per-column stale-run scans only for columns meeting the
-                    # finite-count threshold (non-stale columns can never raise);
-                    # avoids the full-frame (n, m) cumsum/bincount temporaries
-                    # of _max_consecutive_equal_finite_frame.
-                    for j in stale:
-                        j = int(j)
-                        max_run = _max_consecutive_equal_finite(arr2[:, j])
-                        if max_run >= max_allowed_stale:
-                            col = cleaned.columns[j]
-                            raise BABDataError(
-                                f"Stale/frozen data detected in column '{col}': {max_run} consecutive equal values"
-                            )
+                    # Vectorized per-column stale-run scan; raise on the lowest
+                    # column index meeting the threshold (matches prior loop order).
+                    max_runs = _max_consecutive_equal_finite_frame(arr2)
+                    violators = np.flatnonzero(max_runs >= max_allowed_stale)
+                    if violators.size:
+                        j = int(violators[0])
+                        col = cleaned.columns[j]
+                        raise BABDataError(
+                            f"Stale/frozen data detected in column '{col}': {int(max_runs[j])} consecutive equal values"
+                        )
             return cleaned
     except BABDataError:
         raise
