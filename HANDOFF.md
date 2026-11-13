@@ -1,7 +1,7 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-13T17:24:19Z
-**HEAD:** `f7fe638` — `chore(kilo): checkpoint agent session` (working tree: clean)
+**Timestamp (refreshed):** 2026-11-13T17:37:15Z
+**HEAD:** `e7254ab` — `chore(kilo): checkpoint agent session` (working tree: clean)
 **Repo:** `crypto-betting-against-beta` — BAB (Betting Against Beta) market-neutral crypto strategy: long low-beta / short high-beta vs a BTC benchmark (`README.md`, `strategies/betting_against_beta/`).
 
 > This is the **single source of truth**. `AGENT_HANDOFF.md` is a pointer only.
@@ -9,9 +9,9 @@
 
 ---
 
-## State reconciliation (2026-11-13T17:24:19Z)
+## State reconciliation (2026-11-13T17:37:15Z)
 
-**Gate is GREEN:** `bash scripts/bab_gate.sh` → **5373 passed, 35 skipped, RC=0, ~446 s**
+**Gate baseline (recorded):** `bash scripts/bab_gate.sh` → **5373 passed, 35 skipped, RC=0, ~446 s**
 (baseline was 5204 passed; **+169** new tests, zero regressions).
 
 **Working tree:** clean (all R1 deliverables committed).
@@ -32,7 +32,7 @@
 
 ---
 
-## INITIAL TASK FOR THE NEXT AGENTIC SESSION (2026-11-13T17:24:19Z) — BINDING
+## INITIAL TASK FOR THE NEXT AGENTIC SESSION (2026-11-13T17:37:15Z) — BINDING
 
 > **Inference from repo name:** `crypto-betting-against-beta` → the BAB engine *is* the product. Correctness (R1) is now locked and oracle-verified. A trading strategy's remaining existential risk is **regime breakdown** (the BAB trade historically fails exactly when the spread inverts: crashes, correlation→1, liquidity evaporation, leverage-driven deleveraging) and **scale**. The next session must therefore **stress the engine against hostile regimes and scale, with measured performance ceilings**, and **harden any real defect found** — not re-run correctness proofs.
 >
@@ -84,12 +84,13 @@
 
 ---
 
-## Environment / bottlenecks (current)
+## Environment / bottlenecks (current) — and their removals
 
 - **Env:** python 3.12.3, numpy 2.5.4, pandas 3.1.1, scipy 1.18.1, pytest 9.2.0, hypothesis present. `coverage`/`pytest-xdist` missing (gate runs without coverage).
-- **Full gate ~446 s.** Use targeted suites while iterating; run the full gate once before recording.
-- **No active blocker:** gate is green; the only uncommitted work is the two R1 test deliverables above.
-- **Scratch:** `/home/runner/work/_temp/kilo-tmp/`. Do NOT add tracked `probe*`/`debug*`/`ast_probe.py` at repo root.
+- **Bottleneck 1 — full gate ~446 s.** REMOVAL: iterate on targeted suites (`pytest tests/test_bab_stress_*.py ...`) while developing; run the full `bash scripts/bab_gate.sh` only once per session before recording. Never gate CI on a per-file probe loop.
+- **Bottleneck 2 — probe-count / C-number rotation campaigns.** REMOVAL: prohibited (see Locks). Progress = measured win or correctness proof + regression tests + green gate + recorded deltas. No `probe*`/`debug*`/`ast_probe.py` at repo root; use `/home/runner/work/_temp/kilo-tmp/` for scratch.
+- **Bottleneck 3 — re-profiling old recorded baselines.** REMOVAL: only before/after for code you change now. Do not re-open historical diagnostics (`research_state/workflow_run_diagnostics.jsonl`) as current failures.
+- **No active blocker:** gate baseline is green; working tree clean. The only standing work is the R2 campaign below.
 
 ---
 
