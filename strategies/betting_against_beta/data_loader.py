@@ -1362,6 +1362,7 @@ def _max_consecutive_equal_finite_frame(arr):
 def _run_data_quality_campaign(
     df: pd.DataFrame,
     arr: np.ndarray | None = None,
+    finite_mask: np.ndarray | None = None,
     max_return_abs: float | None = None,
     max_gap_days: float | None = None,
     stale_run_threshold: int | None = None,
@@ -1408,17 +1409,35 @@ def _run_data_quality_campaign(
     if min_finite_fraction is None:
         min_finite_fraction = 0.0
 
+    # Compute the numeric view + finite mask ONCE and reuse it for the
+    # implausible-return guard below and the numeric fast path further down.
+    # Previously each path re-ran np.isfinite over the whole (n, m) frame.
+    arr_all = None
+    finite_all = None
+    if (
+        finite_mask is not None
+        and arr is not None
+        and finite_mask.shape == cleaned.shape
+        and arr.shape == cleaned.shape
+    ):
+        # Caller (validate_returns_dataframe) already computed this mask on the
+        # same frame; reuse it instead of re-running np.isfinite. The shape
+        # guards also cover the duplicate-timestamp drop path, where cleaned
+        # is smaller than the original frame.
+        arr_all = arr
+        finite_all = finite_mask
     try:
-        arr_all = arr if arr is not None else cleaned.to_numpy(dtype=float)
-        if np.isfinite(arr_all).any():
+        if arr_all is None:
+            arr_all = cleaned.to_numpy(dtype=float)
+            finite_all = np.isfinite(arr_all)
+        if finite_all.any():
             abs_arr = np.abs(arr_all)
-            finite_abs = abs_arr[np.isfinite(abs_arr)]
-            if finite_abs.size > 0:
-                max_abs = float(np.nanmax(finite_abs))
-                if max_abs > float(max_return_abs):
-                    raise BABDataError(
-                        f"Implausible return detected: |r| = {max_abs:.6g} exceeds threshold {float(max_return_abs):.6g}"
-                    )
+            abs_arr[~finite_all] = 0.0
+            max_abs = float(abs_arr.max())
+            if max_abs > float(max_return_abs):
+                raise BABDataError(
+                    f"Implausible return detected: |r| = {max_abs:.6g} exceeds threshold {float(max_return_abs):.6g}"
+                )
     except BABDataError:
         raise
     except Exception:
@@ -1447,9 +1466,10 @@ def _run_data_quality_campaign(
     # ordering are identical to the per-column branch below.
     try:
         if all(pd.api.types.is_numeric_dtype(dt) for dt in cleaned.dtypes):
-            arr2 = arr if arr is not None else cleaned.to_numpy(dtype=float, copy=False)
-            finite_mask = np.isfinite(arr2)
-            finite_counts = finite_mask.sum(axis=0)
+            arr2 = arr_all if arr_all is not None else cleaned.to_numpy(dtype=float, copy=False)
+            if finite_all is None:
+                finite_all = np.isfinite(arr2)
+            finite_counts = finite_all.sum(axis=0)
             total = int(arr2.shape[0])
             if total > 0 and float(min_finite_fraction) > 0:
                 fracs = finite_counts / total
@@ -1663,6 +1683,7 @@ def validate_returns_dataframe(
     # guard below, the quality campaign (passed in), and the per-asset finite
     # history count after the campaign, avoiding repeated to_numpy passes.
     arr = cleaned.to_numpy(dtype=float, copy=False)
+    finite_arr = np.isfinite(arr)
 
     if np.isinf(arr).any():
         raise BABDataError("Returns DataFrame contains infinite values")
@@ -1699,7 +1720,8 @@ def validate_returns_dataframe(
                 bf = bench_map[str(benchmark).strip().lower()]
                 cleaned = cleaned.rename(columns={bf: benchmark})
         bench_series = cleaned[benchmark]
-        if not np.isfinite(bench_series.to_numpy()).any():
+        bench_finite = finite_arr[:, cleaned.columns.get_loc(benchmark)]
+        if not bench_finite.any():
             raise BABDataError(
                 f"Benchmark '{benchmark}' has no finite return values; "
                 "cannot estimate betas against it (missing benchmark coverage or stale data)"
@@ -1716,6 +1738,7 @@ def validate_returns_dataframe(
         cleaned = _run_data_quality_campaign(
             cleaned,
             arr=arr,
+            finite_mask=finite_arr,
             max_return_abs=max_return_abs,
             max_gap_days=max_gap_days,
             stale_run_threshold=stale_run_threshold,
@@ -1730,7 +1753,7 @@ def validate_returns_dataframe(
     # skipped (``quality=False`` still runs coerce above) fall back to the
     # per-column path for any non-numeric frame.
     try:
-        finite_counts = np.isfinite(arr).sum(axis=0)
+        finite_counts = finite_arr.sum(axis=0)
         finite_counts = pd.Series(
             finite_counts.astype(np.int64), index=cleaned.columns
         )
