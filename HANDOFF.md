@@ -1,7 +1,7 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Timestamp (refreshed):** 2026-11-13T17:38:47Z
-**HEAD:** `f890175` — `chore(kilo): checkpoint agent session` (working tree: clean)
+**Timestamp (refreshed):** 2026-11-13T18:15:16Z
+**HEAD:** `0f1bd55` — `chore(kilo): checkpoint agent session` (2026-11-13 17:47:02 +0000, working tree: clean)
 **Repo:** `crypto-betting-against-beta` — BAB (Betting Against Beta) market-neutral crypto strategy: long low-beta / short high-beta vs a BTC benchmark (`README.md`, `strategies/betting_against_beta/`).
 
 > This is the **single source of truth**. `AGENT_HANDOFF.md` is a pointer only.
@@ -9,12 +9,12 @@
 
 ---
 
-## State reconciliation (2026-11-13T17:37:15Z)
+## State reconciliation (2026-11-13T18:15:16Z)
 
-**Gate baseline (recorded):** `bash scripts/bab_gate.sh` → **5373 passed, 35 skipped, RC=0, ~446 s**
-(baseline was 5204 passed; **+169** new tests, zero regressions).
+**Gate baseline (recorded, unchanged):** `bash scripts/bab_gate.sh` → **5373 passed, 35 skipped, RC=0, ~446 s**
+(baseline was 5204 passed; **+169** R1 tests, zero regressions). HEAD advanced via checkpoint commits after baseline; no product/test changes since recorded gate.
 
-**Working tree:** clean (all R1 deliverables committed).
+**Working tree:** clean. No active blockers. All R1 deliverables committed. R2 stress/scale campaign **not started** (no `tests/test_bab_stress_*` / `tests/test_bab_scale_perf_guard.py` present).
 
 **R1 campaign status — ALL STAGES SHIPPED:**
 - R1-A Causality / no-lookahead — **SHIPPED** (`tests/test_bab_causal_no_lookahead.py`).
@@ -32,7 +32,7 @@
 
 ---
 
-## INITIAL TASK FOR THE NEXT AGENTIC SESSION (2026-11-13T17:37:15Z) — BINDING
+## INITIAL TASK FOR THE NEXT AGENTIC SESSION (2026-11-13T18:15:16Z) — BINDING (DO FIRST)
 
 > **Inference from repo name:** `crypto-betting-against-beta` → the BAB engine *is* the product. Correctness (R1) is now locked and oracle-verified. A trading strategy's remaining existential risk is **regime breakdown** (the BAB trade historically fails exactly when the spread inverts: crashes, correlation→1, liquidity evaporation, leverage-driven deleveraging) and **scale**. The next session must therefore **stress the engine against hostile regimes and scale, with measured performance ceilings**, and **harden any real defect found** — not re-run correctness proofs.
 >
