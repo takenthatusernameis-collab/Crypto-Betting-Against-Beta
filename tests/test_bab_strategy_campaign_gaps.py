@@ -115,6 +115,7 @@ class TestFreezeFallback:
         cfg.dollar_neutral = True
         cfg.transaction_costs = 0.0
         cfg.slippage = 0.0
+        cfg.cost_model = None  # freeze-fallback test targets object.__setattr__, not cost-model validation
         cfg.max_turnover = None
         cfg.max_position_size = None
         cfg.gross_exposure_limit = None
