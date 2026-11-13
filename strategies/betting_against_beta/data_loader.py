@@ -1229,6 +1229,32 @@ def _coerce_numeric(df: pd.DataFrame) -> pd.DataFrame:
 
 
 
+def _max_consecutive_equal_finite(arr):
+    """Maximum run length of consecutive equal *finite* values in ``arr``.
+
+    Vectorized: group boundaries are placed wherever the value changes or a
+    non-finite entry appears, then the largest finite group is counted. This
+    matches the per-element ``arr[i] == arr[i-1] and isfinite(both)`` check
+    used by the stale-data campaign without a Python loop over every row.
+    """
+    arr = np.asarray(arr, dtype=float)
+    n = arr.shape[0]
+    if n == 0:
+        return 0
+    finite = np.isfinite(arr)
+    if not finite.any():
+        return 0
+    changed = np.ones(n, dtype=bool)
+    if n > 1:
+        changed[1:] = (arr[1:] != arr[:-1]) | (~finite[1:]) | (~finite[:-1])
+    group_id = np.cumsum(changed)
+    valid_groups = group_id[finite]
+    if valid_groups.size == 0:
+        return 0
+    _, counts = np.unique(valid_groups, return_counts=True)
+    return int(counts.max()) if counts.size else 0
+
+
 def _run_data_quality_campaign(
     df: pd.DataFrame,
     max_return_abs: float | None = None,
@@ -1330,16 +1356,11 @@ def _run_data_quality_campaign(
             if stale_run_threshold is not None and int(stale_run_threshold) > 0 and finite_count >= int(stale_run_threshold):
                 # Allow very short runs of identical values (common in some fixtures/tests)
                 max_allowed_stale = max(int(stale_run_threshold), 50)  # be very lenient
-                run = 1
-                for i in range(1, len(arr)):
-                    if np.isfinite(arr[i]) and np.isfinite(arr[i - 1]) and arr[i] == arr[i - 1]:
-                        run += 1
-                        if run >= max_allowed_stale:
-                            raise BABDataError(
-                                f"Stale/frozen data detected in column '{col}': {run} consecutive equal values"
-                            )
-                    else:
-                        run = 1
+                max_run = _max_consecutive_equal_finite(arr)
+                if max_run >= max_allowed_stale:
+                    raise BABDataError(
+                        f"Stale/frozen data detected in column '{col}': {max_run} consecutive equal values"
+                    )
     except BABDataError:
         raise
     except Exception:

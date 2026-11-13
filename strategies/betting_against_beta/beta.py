@@ -289,6 +289,45 @@ def _calc_rolling_beta_series(bench_arr, a_arr, window, min_obs):
     return rolling_betas_arr
 
 
+def _rolling_sum(arr, window, min_periods):
+    """NaN-safe rolling window sum matching pandas ``.rolling(window, min_periods).sum()``.
+
+    Non-finite entries are masked to 0.0 before the cumulative sum and counted
+    separately via ``ones`` so a single NaN does not poison the window sum.
+    Windows with fewer than ``min_periods`` valid observations emit NaN.
+    """
+    arr = np.asarray(arr, dtype=float)
+    if arr.ndim == 1:
+        n = arr.shape[0]
+        finite = np.isfinite(arr)
+        safe = np.where(finite, arr, 0.0)
+        ones = np.where(finite, 1.0, 0.0)
+        csum = np.concatenate(([0.0], np.cumsum(safe)))
+        cones = np.concatenate(([0.0], np.cumsum(ones)))
+        idx = np.arange(n)
+        starts = np.maximum(0, idx - window + 1)
+        ends = idx + 1
+        sums = csum[ends] - csum[starts]
+        counts = cones[ends] - cones[starts]
+        too_short = counts < min_periods
+        sums = np.where(too_short, np.nan, sums)
+        return sums, counts
+    n, k = arr.shape[0], arr.shape[1]
+    finite = np.isfinite(arr)
+    safe = np.where(finite, arr, 0.0)
+    ones = np.where(finite, 1.0, 0.0)
+    csum = np.concatenate((np.zeros((1, k)), np.cumsum(safe, axis=0)), axis=0)
+    cones = np.concatenate((np.zeros((1, k)), np.cumsum(ones, axis=0)), axis=0)
+    idx = np.arange(n)
+    starts = np.maximum(0, idx - window + 1)
+    ends = idx + 1
+    sums = csum[ends] - csum[starts]
+    counts = cones[ends] - cones[starts]
+    too_short = counts < min_periods
+    sums = np.where(too_short, np.nan, sums)
+    return sums, counts
+
+
 def calculate_rolling_beta(returns_df, benchmark_name, window=90, min_obs=60):
     """Calculate rolling beta for all assets vs benchmark."""
     if returns_df is None:
@@ -328,16 +367,18 @@ def calculate_rolling_beta(returns_df, benchmark_name, window=90, min_obs=60):
     # length instead would let a single NaN in the benchmark inflate ``cnt``,
     # loosen the min_obs gate, and corrupt the shared denominator -- producing
     # a finite beta from one valid observation in an otherwise-NaN window.
-    ones_s = pd.Series(np.where(np.isfinite(bench_arr), 1.0, 0.0))
-    x_s = pd.Series(bench_arr)
-    xx_s = x_s * x_s
-    cnt_s = ones_s.rolling(window=window, min_periods=min_obs).sum()
-    x_sum_s = x_s.rolling(window=window, min_periods=min_obs).sum()
-    xx_sum_s = xx_s.rolling(window=window, min_periods=min_obs).sum()
-
-    cnt_f = cnt_s.to_numpy(dtype=float, copy=False)
-    x_sum_f = x_sum_s.to_numpy(dtype=float, copy=False)
-    xx_sum_f = xx_sum_s.to_numpy(dtype=float, copy=False)
+    # Benchmark rolling sums are asset-independent; hoist them out so every
+    # asset reuses the same cnt / x_sum / xx_sum instead of recomputing them.
+    # CRITICAL: ``ones`` is the benchmark's *finite* mask, not a constant 1.0.
+    # pandas rolling .sum() skips NaN, so x_sum / xx_sum already sum only the
+    # finite benchmark observations per window. ``cnt`` MUST match that: it is
+    # the number of valid benchmark observations in each window, used both for
+    # the OLS denominator (cnt*xx - x^2) and the min_obs gate. Counting window
+    # length instead would let a single NaN in the benchmark inflate ``cnt``,
+    # loosen the min_obs gate, and corrupt the shared denominator -- producing
+    # a finite beta from one valid observation in an otherwise-NaN window.
+    x_sum_f, cnt_f = _rolling_sum(bench_arr, window, min_obs)
+    xx_sum_f, _ = _rolling_sum(bench_arr * bench_arr, window, min_obs)
     # Shared denominator component across all assets: cnt*xx - x^2, shape (n, 1).
     denom_shared = cnt_f[:, None] * xx_sum_f[:, None] - x_sum_f[:, None] * x_sum_f[:, None]
     obs_short = (cnt_f < min_obs) | np.isnan(cnt_f)  # shape (n,)
@@ -389,8 +430,8 @@ def calculate_rolling_beta(returns_df, benchmark_name, window=90, min_obs=60):
         if finite_cols:
             y_df = returns_df[finite_cols]
             xy_df = y_df.mul(bench_arr[:, None], axis=0)
-            y_sum_f = y_df.rolling(window=window, min_periods=min_obs).sum().to_numpy(dtype=float)
-            xy_sum_f = xy_df.rolling(window=window, min_periods=min_obs).sum().to_numpy(dtype=float)
+            y_sum_f, _ = _rolling_sum(y_df.to_numpy(dtype=float), window, min_obs)
+            xy_sum_f, _ = _rolling_sum(xy_df.to_numpy(dtype=float), window, min_obs)
             num = cnt_f[:, None] * xy_sum_f - x_sum_f[:, None] * y_sum_f
             with np.errstate(invalid="ignore", divide="ignore"):
                 beta = _finalize_betas(num / denom_shared)
