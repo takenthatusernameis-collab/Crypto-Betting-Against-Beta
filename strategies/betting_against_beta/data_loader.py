@@ -1066,6 +1066,35 @@ def _drop_all_nan_columns(df: pd.DataFrame) -> pd.DataFrame:
     """
     if df is None or not isinstance(df, pd.DataFrame) or df.empty:
         return df
+    # Fast path: a genuine numeric frame can be classified with one vectorized
+    # pass instead of a per-column Python loop. A column is kept iff it has at
+    # least one finite value or (as a fallback) at least one non-null entry.
+    # This is numerically identical to the per-column branch below. Any access
+    # failure (e.g. a DataFrame subclass whose ``__getitem__`` raises) falls
+    # back to the slow per-column branch, which is itself defensive.
+    try:
+        if all(pd.api.types.is_numeric_dtype(df[col]) for col in df.columns):
+            arr = df.to_numpy(dtype=float, copy=False)
+            finite = np.isfinite(arr)
+            keep_mask = finite.any(axis=0)
+            if not keep_mask.all():
+                nonnull = (~pd.isna(df)).to_numpy()
+                keep_mask = keep_mask | nonnull.any(axis=0)
+            if not keep_mask.any():
+                raise BABDataError(
+                    "All columns are entirely NaN; no usable return data remains."
+                )
+            if keep_mask.all():
+                return df
+            keep = [col for col, k in zip(df.columns, keep_mask) if k]
+            try:
+                return df[keep]
+            except Exception:
+                return df
+    except BABDataError:
+        raise
+    except Exception:
+        pass
     keep = []
     for col in df.columns:
         try:
@@ -1338,6 +1367,41 @@ def _run_data_quality_campaign(
         except Exception:
             pass
 
+    # Fast path: numeric frames (the common case after coercion) can run the
+    # finite-fraction / stale-run checks with one vectorized pass over the whole
+    # frame instead of a per-column Python loop. Semantics, thresholds and raise
+    # ordering are identical to the per-column branch below.
+    try:
+        if all(pd.api.types.is_numeric_dtype(cleaned[col]) for col in cleaned.columns):
+            arr2 = cleaned.to_numpy(dtype=float, copy=False)
+            finite_mask = np.isfinite(arr2)
+            finite_counts = finite_mask.sum(axis=0)
+            total = int(arr2.shape[0])
+            if total > 0 and float(min_finite_fraction) > 0:
+                fracs = finite_counts / total
+                below = np.flatnonzero(fracs < float(min_finite_fraction))
+                if below.size:
+                    col = cleaned.columns[int(below[0])]
+                    frac = float(fracs[int(below[0])])
+                    raise BABDataError(
+                        f"Column '{col}' has insufficient finite data: {frac:.2%} < {float(min_finite_fraction):.2%}"
+                    )
+            if stale_run_threshold is not None and int(stale_run_threshold) > 0:
+                max_allowed_stale = max(int(stale_run_threshold), 50)
+                stale = np.flatnonzero(finite_counts >= int(stale_run_threshold))
+                for j in stale:
+                    j = int(j)
+                    max_run = _max_consecutive_equal_finite(arr2[:, j])
+                    if max_run >= max_allowed_stale:
+                        col = cleaned.columns[j]
+                        raise BABDataError(
+                            f"Stale/frozen data detected in column '{col}': {max_run} consecutive equal values"
+                        )
+            return cleaned
+    except BABDataError:
+        raise
+    except Exception:
+        pass
     try:
         for col in cleaned.columns:
             try:
