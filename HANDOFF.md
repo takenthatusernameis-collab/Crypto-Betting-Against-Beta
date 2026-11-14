@@ -2,15 +2,15 @@
 
 **Repo:** `crypto-betting-against-beta` — Betting Against Beta (BAB) market-neutral crypto strategy (long low-beta / short high-beta vs benchmark, default BTC). See `README.md`, `strategies/betting_against_beta/`. **Priority basis (repo name):** the repo *is* the BAB strategy engine, so strategy correctness, realism, and live/execution-readiness outrank tooling, diagnostics archaeology, and coverage-chasing.
 
-**Refreshed:** 2026-11-14T05:20:27Z (UTC)
-**HEAD at refresh:** `1e067e3` (main, `git rev-parse --short HEAD` at refresh). **Live run wins** — if any recorded number conflicts with live output on current `HEAD`, re-measure, record the delta, and update this file immediately.
+**Refreshed:** 2026-11-14T06:19:45Z (UTC)
+**HEAD at refresh:** `34e734b` (main, `git rev-parse --short HEAD` at refresh). **Live run wins** — if any recorded number conflicts with live output on current `HEAD`, re-measure, record the delta, and update this file immediately.
 **Single source of truth:** this file. `AGENT_HANDOFF.md` is a pointer only. Read this whole file before doing anything. Do not create parallel handoff/session docs. (`.kilo/task_handoff.md` removed — duplicate source of truth.)
 
 ---
 
-## INITIAL TASK MESSAGE (START HERE, 2026-11-14T05:20:27Z UTC) — BINDING
+## INITIAL TASK MESSAGE (START HERE, 2026-11-14T06:19:45Z UTC) — BINDING
 
-**Baseline verified green on `1e067e3` (2026-11-14T05:20:27Z):** R2 preflight RC=0 (155 passed, 151 ms @5000×200 / 381 ms @5000×500, within ceilings), R4 preflight RC=0 (31 R4 + 217 R2/R3 baseline passed), R5 integration RC=0 (23 passed), R5-D CLI productization verified (`--adapter paper --reconcile --output` emits execution + reconciliation sidecars, strict-JSON-safe, default-path byte-identical when unconfigured). **R1–R5 + R5-D are complete; do not reopen them without new reproducible evidence of a defect.**
+**Baseline verified green on `34e734b` (2026-11-14T06:19:45Z):** R2 preflight RC=0 (155 passed, 37.87s @5000×200 / 425 ms @5000×500, within ceilings), R4 preflight RC=0 (31 R4 + 217 R2/R3 baseline passed), R5 integration RC=0 (23 passed, 18.10s), R5-D CLI productization verified (`--adapter paper --reconcile --output` emits execution + reconciliation sidecars, strict-JSON-safe, default-path byte-identical: 0.413704 / 252 periods). **Full gate RC=0 on `34e734b` (5644 passed / 35 skipped / 426.48s / coverage 93%) — blocker cleared.** R1–R5 + R5-D are complete; do not reopen them without new reproducible evidence of a defect.
 
 **Immediate sequence (execute now, in order):**
 1. **Environment/bootstrap (idempotent, do not treat as blocker):**
@@ -27,13 +27,14 @@
    PYTHONPATH=. "$VENV/bin/python" -m pytest tests/test_bab_execution_integration_r5.py -q -p no:cacheprovider; echo "R5_TESTS_RC=$?"
    # R5-D CLI sanity: additive flags, strict-JSON-safe, default-path invariant
    PYTHONPATH=. "$VENV/bin/python" -m strategies.betting_against_beta.cli --synthetic --adapter paper --reconcile --output /tmp/bab_r5d_sanity.json; echo "R5D_CLI_RC=$?"
+   PYTHONPATH=. "$VENV/bin/python" -m strategies.betting_against_beta.cli --synthetic; echo "DEFAULT_PATH_RC=$?"
    ```
    If any fail: fix the regression first (smallest fix + targeted regression test), record evidence, re-run, then continue.
-3. **Full gate (blocking on current HEAD — last recorded green was on `479ee9f`, NOT `1e067e3`):**
+3. **Full gate (green on current HEAD `34e734b` — re-run before any release-grade claim):**
    ```bash
    PATH="$VENV/bin:$PATH" bash scripts/bab_gate.sh; echo "GATE_RC=$?"
    ```
-   Record RC/counts/timings/coverage in this handoff. Re-run before any merge/release-grade claim.
+   Record RC/counts/timings/coverage in this handoff. Last green: `34e734b` (5644 passed / 35 skipped / 426.48s / coverage 93%).
 4. **Next focus campaign (binds the session — do not stop at analysis): R5-E execution-realism / live-readiness hardening (additive, deterministic, no live creds, no faking).** Wire realism into `PaperAdapter`/`MockAdapter` (partial fill, slippage, `max_participation` caps) and broaden `reconcile_costs`/`reconcile_fills_to_backtest` to production fill schemas already representable by adapters; add deterministic stress fixtures + focused regression tests; preserve default-path invariance and existing `--dry-run`/`--output` contracts. Live venue execution with real credentials is an **external dependency** — proceed only when creds/sandbox/fill data are actually available; do not fake.
 5. **Proof sequence:** targeted R5-E tests → `PYTHONPATH=. "$VENV/bin/python" -m pytest tests/test_bab_execution_integration_r5.py -q -p no:cacheprovider` → `PYTHONPATH=. "$VENV/bin/python" scripts/bab_r2_preflight.py` → `PYTHONPATH=. "$VENV/bin/python" scripts/bab_r4_preflight.py` → `PATH="$VENV/bin:$PATH" bash scripts/bab_gate.sh`. Record all RCs/counts/timings in this handoff.
 
@@ -43,18 +44,21 @@
 
 ---
 
-## VERIFIED EVIDENCE SNAPSHOT (live on current HEAD `1e067e3`)
+## VERIFIED EVIDENCE SNAPSHOT (live on current HEAD `34e734b`)
 
-Captured on HEAD `1e067e3` (2026-11-14T05:20:27Z UTC). Re-verified live this session (env: `VENV=/home/runner/work/_temp/kilo-tmp/bab-venv` present).
+Captured on HEAD `34e734b` (2026-11-14T06:19:45Z UTC). Re-verified live this session (env: `VENV=/home/runner/work/_temp/kilo-tmp/bab-venv` present). A real regression surfaced during the gate run (see BOTTLENECK CLEARED below) and was fixed before this refresh.
 
 | Check | Command | Live result |
 |---|---|---|
-| R2 preflight | `PYTHONPATH=. "$VENV/bin/python" scripts/bab_r2_preflight.py` | RC=0 — 155 passed, 6 warnings, 33.19s |
-| Live scale (median/9 warm) | same preflight | 5000×200 = 151 ms (≤800), 5000×500 = 381 ms (≤2000) [OK] |
-| R4 preflight | `PYTHONPATH=. "$VENV/bin/python" scripts/bab_r4_preflight.py` | RC=0 — R4-A/B/C present + green; R2/R3 baseline green (31 R4 + 217 baseline passed, 14 warnings, ~45.1s total) |
-| R5 integration tests | `PYTHONPATH=. "$VENV/bin/python" -m pytest tests/test_bab_execution_integration_r5.py -q -p no:cacheprovider` | RC=0 — 23 passed, 9.30s |
-| R5-D CLI sanity | `--synthetic --adapter paper --reconcile --output /tmp/bab_r5d_sanity.json` | RC=0 — PaperAdapter (1 batch, 2 intents, 2 fills), execution + reconciliation sidecars written, strict-JSON-safe, default-path byte-identical when unconfigured |
-| Full gate | `PATH="$VENV/bin:$PATH" bash scripts/bab_gate.sh` | **Not run on `1e067e3` yet** (last recorded green on `479ee9f`: 5644 passed / 35 skipped / 437.58s / coverage 94%). **Blocker to clear:** run gate on current HEAD before any release-grade claim. |
+| R2 preflight | `PYTHONPATH=. "$VENV/bin/python" scripts/bab_r2_preflight.py` | RC=0 — 155 passed, 6 warnings, 37.87s |
+| Live scale (median/9 warm) | same preflight | 5000×200 = 197 ms (≤800), 5000×500 = 425 ms (≤2000) [OK] |
+| R4 preflight | `PYTHONPATH=. "$VENV/bin/python" scripts/bab_r4_preflight.py` | RC=0 — R4-A/B/C present + green; R2/R3 baseline green (31 R4 + 217 baseline passed, 14 warnings, ~52.8s total) |
+| R5 integration tests | `PYTHONPATH=. "$VENV/bin/python" -m pytest tests/test_bab_execution_integration_r5.py -q -p no:cacheprovider` | RC=0 — 23 passed, 18.10s |
+| R5-D CLI sanity | `--synthetic --adapter paper --reconcile --output /tmp/bab_r5d_sanity.json` | RC=0 — PaperAdapter (1 batch, 2 intents, 2 fills), execution + reconciliation sidecars written, strict-JSON-safe, default-path byte-identical when unconfigured (0.413704 / 252 periods) |
+| Default-path CLI | `--synthetic` (no adapter) | RC=0 — 0.413704 / 252 periods, byte-identical to pre-R5-D behavior |
+| Full gate | `PATH="$VENV/bin:$PATH" bash scripts/bab_gate.sh` | RC=0 — 5644 passed / 35 skipped / 426.48s / coverage 93% on `34e734b` |
+
+**BOTTLENECK CLEARED (this session):** The full gate on `34e734b` initially failed 14 CLI tests (root cause: `cli.py` always passed `execution_adapter=` to `BABStrategy(...)` even when `None`, breaking fakes/monkeypatches whose `__init__` accepts only `config`). Fixed in `strategies/betting_against_beta/cli.py:506` — `execution_adapter` is now passed only when an adapter is actually configured, preserving default-path byte-identical behavior. Gate re-run: green (5644 passed / 35 skipped).
 
 `VENV=/home/runner/work/_temp/kilo-tmp/bab-venv` may or may not exist on a fresh runner; bootstrap idempotently.
 
@@ -68,7 +72,8 @@ Captured on HEAD `1e067e3` (2026-11-14T05:20:27Z UTC). Re-verified live this ses
   - **R4-B** drawdown-limit kill switch: `max_drawdown_limit` in `BABConfig`/`_validate_ranges`, `strategies/betting_against_beta/risk.py` (`apply_kill_switch`, `KillSwitchEvent`), integrated in `run()`/`report()`; `None` preserves pre-R4 default-path behavior. `tests/test_bab_drawdown_kill_switch_r4.py`.
   - **R4-C** deterministic paper-trading replay harness: `strategies/betting_against_beta/replay.py` (`ReplayHarness`) with stable schema, SHA-256 checksum, byte-identical artifacts on identical inputs. `tests/test_bab_replay_harness_r4.py`.
 - **R5:** **COMPLETE** (2026-11-14T04:19:52Z) — R5-A execution adapter contract, R5-B modeled-vs-executed cost reconciliation, R5-C executed-fills backtest reconciliation. `tests/test_bab_execution_integration_r5.py` — 23 passed.
-- **R5-D:** **COMPLETE** (verified 2026-11-14T05:20:27Z on `1e067e3`) — CLI `--adapter` (paper/mock), `--reconcile`, `--fills`; execution + reconciliation artifacts sidecar `--output`; strict-JSON-safe; default-path byte-identical when unconfigured. `strategies/betting_against_beta/cli.py` modified (additive only).
+- **R5-D:** **COMPLETE** (verified 2026-11-14T06:19:45Z on `34e734b`) — CLI `--adapter` (paper/mock), `--reconcile`, `--fills`; execution + reconciliation artifacts sidecar `--output`; strict-JSON-safe; default-path byte-identical when unconfigured. `strategies/betting_against_beta/cli.py` modified (additive only; `execution_adapter` passed only when an adapter is configured).
+- **Full gate:** **GREEN on `34e734b`** (2026-11-14T06:19:45Z) — 5644 passed / 35 skipped / 426.48s / coverage 93%. Re-run before any release-grade claim.
 
 ---
 

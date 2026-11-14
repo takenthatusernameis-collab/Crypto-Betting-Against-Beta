@@ -503,7 +503,13 @@ def main(argv=None) -> int:
 
     try:
         adapter, fills_path = _build_adapter(args)
-        strategy = BABStrategy(config, execution_adapter=adapter)
+        # Only pass execution_adapter when an adapter is actually configured so
+        # the default path (no adapter) stays byte-identical to pre-R5 behavior
+        # and remains compatible with strategies constructed with `config` only.
+        if adapter is not None:
+            strategy = BABStrategy(config, execution_adapter=adapter)
+        else:
+            strategy = BABStrategy(config)
         if args.synthetic or args.data is None:
             result = strategy.run()
         else:
