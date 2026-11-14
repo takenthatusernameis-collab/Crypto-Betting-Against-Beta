@@ -234,10 +234,10 @@ class BABConfig:
 
         if self.trend_z_window is not None:
             if not isinstance(self.trend_z_window, int) or isinstance(self.trend_z_window, bool):
-            errors.append(
-                f"trend_z_window must be an int or None, got "
-                f"{type(self.trend_z_window).__name__}"
-            )
+                errors.append(
+                    f"trend_z_window must be an int or None, got "
+                    f"{type(self.trend_z_window).__name__}"
+                )
             elif self.trend_z_window < 1:
                 errors.append(f"trend_z_window must be >= 1 when set, got {self.trend_z_window}")
 
