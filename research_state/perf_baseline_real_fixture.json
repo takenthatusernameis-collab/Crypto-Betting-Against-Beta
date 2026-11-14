@@ -1,0 +1,20 @@
+{
+  "command": "python scripts/perf_baseline.py --record --dataset tests/fixtures/real_market_prices.csv --output research_state/perf_baseline_real_fixture.json --repeats 3",
+  "metrics": {
+    "benchmark": "BTC",
+    "beta_ms_median": 0.4852,
+    "beta_ms_min": 0.456,
+    "dataset": "tests/fixtures/real_market_prices.csv",
+    "full_ms_median": 3.1852,
+    "full_ms_min": 3.1496,
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "peak_tracemalloc_mb": 0.3441,
+    "repeats": 3,
+    "shape": [
+      398,
+      9
+    ],
+    "warmup": 1
+  }
+}
