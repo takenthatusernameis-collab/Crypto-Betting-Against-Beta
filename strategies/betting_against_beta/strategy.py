@@ -528,7 +528,10 @@ class BABStrategy:
 
             _cost_model_for_exec, _prices_for_exec, _adv_for_exec = self._resolve_cost_model(cfg)
             _batches = order_batches_from_weights(
-                final_weights, prices_df=_prices_for_exec, adv_usd=_adv_for_exec
+                final_weights,
+                prices_df=_prices_for_exec,
+                adv_usd=_adv_for_exec,
+                max_participation=getattr(cfg, "max_participation", 0.10),
             )
             _all_batches = []
             _all_fills = []

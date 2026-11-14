@@ -89,13 +89,14 @@ def _fill_cost(fill: dict, transaction_costs: float, slippage: float) -> float:
     """Cost of a single fill as a fraction of portfolio value.
 
     Weights are fractions of a $1.0 portfolio, so cost fraction =
-    |order_weight| * (tx_rate + slippage_rate). ``notional_usd`` on the fill
-    is informational metadata only.
+    |filled_weight| * (tx_rate + slippage_rate). Uses realized ``filled_weight``,
+    not target ``order_weight``, so partial/rejected fills are costed at what
+    was actually executed.
     """
-    order_w = abs(float(fill.get("order_weight", 0.0) or 0.0))
+    filled_w = abs(float(fill.get("filled_weight", 0.0) or 0.0))
     tx = float(fill.get("transaction_costs", transaction_costs) or transaction_costs)
     slip = float(fill.get("slippage", slippage) or slippage)
-    return order_w * (tx + slip)
+    return filled_w * (tx + slip)
 
 
 def _date_key(date) -> str:
@@ -270,19 +271,31 @@ def reconcile_fills_to_backtest(
 
     # Fill costs grouped by date.
     fill_costs_by_date: dict[str, float] = {}
+    # Realized fill deltas grouped by (date, asset) for position tracking.
+    fill_deltas_by_date: dict[str, dict[str, float]] = {}
     if fills:
         for fill in fills:
             date = _date_key(fill.get("date", ""))
+            asset = str(fill.get("asset", ""))
+            filled_w = float(fill.get("filled_weight", 0.0) or 0.0)
             fill_costs_by_date[date] = fill_costs_by_date.get(date, 0.0) + _fill_cost(
                 fill, transaction_costs, slippage
             )
+            if asset:
+                fill_deltas_by_date.setdefault(date, {})
+                fill_deltas_by_date[date][asset] = (
+                    fill_deltas_by_date[date].get(asset, 0.0) + filled_w
+                )
 
     # Model backtest equity.
     model_cumulative = None
     if isinstance(backtest, pd.DataFrame) and "cumulative" in backtest.columns:
         model_cumulative = backtest["cumulative"].reindex(idx).fillna(1.0)
 
-    # Realized replay: equity compounds from lagged weights dot returns minus costs.
+    # Realized replay: equity compounds from realized (filled) weights dot
+    # period returns minus fill-level costs. Realized positions are built up
+    # from fill deltas rather than replaying target weights, so partial and
+    # rejected fills are reflected in the realized equity curve.
     per_period: list[dict] = []
     deltas: list[float] = []
     equity_value = 1.0
@@ -291,6 +304,11 @@ def reconcile_fills_to_backtest(
     for t in range(n):
         date = idx[t]
         date_key = _date_key(date)
+        # Apply fill deltas for this date to realized positions before pricing.
+        date_fills = fill_deltas_by_date.get(date_key, {})
+        for asset, filled_w in date_fills.items():
+            if asset in col_pos:
+                prev_w[col_pos[asset]] += filled_w
         period_ret = float(np.dot(prev_w, r_arr[t]))
         if not math.isfinite(period_ret):
             period_ret = 0.0
@@ -313,13 +331,6 @@ def reconcile_fills_to_backtest(
                 "delta": delta,
             }
         )
-
-        row_w = w.iloc[t]
-        for c in cols:
-            try:
-                prev_w[col_pos[c]] = float(row_w[c])
-            except (TypeError, ValueError):
-                prev_w[col_pos[c]] = 0.0
 
     deltas_arr = np.array(deltas, dtype=float)
     aggregate = {

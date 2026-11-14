@@ -34,9 +34,16 @@ class OrderIntent:
     target_weight: float
     current_weight: float
     order_weight: float  # target_weight - current_weight
+    requested_weight: Optional[float] = None  # = order_weight; what the adapter is asked to fill
     notional_usd: Optional[float] = None
     price: Optional[float] = None
+    adv_usd: Optional[float] = None  # average daily volume in USD for this asset
+    max_participation: Optional[float] = None  # participation cap in (0,1]
     metadata: dict = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        if self.requested_weight is None:
+            object.__setattr__(self, "requested_weight", self.order_weight)
 
     def to_dict(self) -> dict:
         return {
@@ -45,8 +52,11 @@ class OrderIntent:
             "target_weight": float(self.target_weight),
             "current_weight": float(self.current_weight),
             "order_weight": float(self.order_weight),
+            "requested_weight": float(self.requested_weight),
             "notional_usd": self.notional_usd,
             "price": self.price,
+            "adv_usd": self.adv_usd,
+            "max_participation": self.max_participation,
             "metadata": self.metadata,
         }
 
@@ -84,34 +94,153 @@ class ExecutionAdapter(Protocol):
 class PaperAdapter:
     """Deterministic paper-trading adapter.
 
-    Every intent fills in full at the intent's price (or target weight if no
-    price). Records every submitted intent and produced fill. No slippage,
-    no partial fills, no network — suitable for deterministic tests and
-    paper-trading dry runs.
+    Default path (no ``prices_df``/``adv_usd``/``partial_fill``): every intent
+    fills in full at the intent's price, slippage = 0.0, status = "filled" —
+    byte-identical to the pre-R5-E behavior.
+
+    Realism path (``partial_fill=True`` with ``prices_df`` and ``adv_usd``
+    supplied): deterministic partial-fill modeling via a ``max_participation``
+    cap, plus sqrt-impact slippage.  Fill records expose
+    ``requested_weight``, ``filled_weight``, ``fill_ratio``, ``order_weight``,
+    ``notional_usd``, ``price``, ``slippage``, ``status``, and an explicit
+    ``reason`` where applicable.
     """
 
-    def __init__(self, prices_df: Optional[pd.DataFrame] = None) -> None:
+    def __init__(
+        self,
+        prices_df: Optional[pd.DataFrame] = None,
+        adv_usd: Optional[object] = None,
+        partial_fill: bool = False,
+        max_participation: float = 0.10,
+    ) -> None:
         self.prices = prices_df
+        self.adv_usd = adv_usd
+        self.partial_fill = bool(partial_fill)
+        self.max_participation = float(max_participation)
         self.submitted: list[OrderBatch] = []
         self.fills: list[dict] = []
+
+    def _price_for(self, date_key: str, asset: str) -> Optional[float]:
+        if self.prices is None or asset not in self.prices.columns:
+            return None
+        try:
+            sub = self.prices[asset]
+            if date_key in sub.index:
+                v = sub.loc[date_key]
+                return float(v) if pd.notna(v) else None
+            ts = pd.Timestamp(date_key)
+            if ts in sub.index:
+                v = sub.loc[ts]
+                return float(v) if pd.notna(v) else None
+        except (TypeError, ValueError, KeyError):
+            pass
+        return None
+
+    def _adv_for(self, date_key: str, asset: str) -> Optional[float]:
+        if self.adv_usd is None:
+            return None
+        try:
+            if isinstance(self.adv_usd, dict):
+                v = self.adv_usd.get(asset)
+                return float(v) if v is not None else None
+            if isinstance(self.adv_usd, pd.Series):
+                v = self.adv_usd.get(asset)
+                return float(v) if v is not None and pd.notna(v) else None
+            if isinstance(self.adv_usd, pd.DataFrame):
+                if asset in self.adv_usd.columns:
+                    sub = self.adv_usd[asset]
+                    if date_key in sub.index:
+                        v = sub.loc[date_key]
+                        return float(v) if pd.notna(v) else None
+                    try:
+                        ts = pd.Timestamp(date_key)
+                        if ts in sub.index:
+                            v = sub.loc[ts]
+                            return float(v) if pd.notna(v) else None
+                    except Exception:
+                        pass
+        except (TypeError, ValueError, KeyError):
+            pass
+        return None
 
     def submit_intents(self, batch: OrderBatch) -> list[dict]:
         self.submitted.append(batch)
         fills: list[dict] = []
         for intent in batch.intents:
-            fill = {
-                "date": intent.date,
-                "asset": intent.asset,
-                "filled_weight": float(intent.target_weight),
-                "order_weight": float(intent.order_weight),
-                "price": intent.price,
-                "notional_usd": intent.notional_usd,
-                "slippage": 0.0,
-                "status": "filled",
-            }
+            date_key = intent.date
+            asset = intent.asset
+            order_w = float(intent.order_weight)
+            requested_w = float(intent.requested_weight)
+            # Intent-level data (populated by order_batches_from_weights) takes
+            # precedence; adapter-level prices_df/adv_usd are fallbacks.
+            price = intent.price
+            if price is None and self.prices is not None:
+                price = self._price_for(date_key, asset)
+            notional = intent.notional_usd
+            if notional is None and price is not None:
+                notional = abs(order_w) * price
+            adv = intent.adv_usd
+            if adv is None and self.adv_usd is not None:
+                adv = self._adv_for(date_key, asset)
+            max_participation = intent.max_participation
+            if max_participation is None:
+                max_participation = self.max_participation
+
+            # Realism path: intent carries price + adv_usd + max_participation
+            # (populated by order_batches_from_weights) and notional is positive.
+            # Otherwise default full-fill / zero-slippage behavior
+            # (byte-identical to pre-R5-E).
+            realism = (
+                price is not None
+                and adv is not None
+                and adv > 0
+                and max_participation is not None
+                and notional is not None
+                and notional > 0
+            )
+
+            if not realism:
+                fill = {
+                    "date": date_key,
+                    "asset": asset,
+                    "requested_weight": requested_w,
+                    "filled_weight": order_w,
+                    "fill_ratio": 1.0,
+                    "order_weight": order_w,
+                    "notional_usd": notional,
+                    "price": price,
+                    "slippage": 0.0,
+                    "status": "filled",
+                    "reason": None,
+                }
+            else:
+                participation = notional / adv
+                if participation > max_participation:
+                    fill_ratio = max(max_participation / participation, 1e-12)
+                    fill_ratio = min(fill_ratio, 1.0)
+                else:
+                    fill_ratio = 1.0
+                filled_w = order_w * fill_ratio
+                slip = 0.0005 * math.sqrt(min(participation, max_participation))
+                slip = min(slip, 0.01)
+                status = "partial" if fill_ratio < 1.0 - 1e-12 else "filled"
+                reason = "participation_cap" if status == "partial" else None
+                fill = {
+                    "date": date_key,
+                    "asset": asset,
+                    "requested_weight": requested_w,
+                    "filled_weight": filled_w,
+                    "fill_ratio": float(fill_ratio),
+                    "order_weight": order_w,
+                    "notional_usd": notional,
+                    "price": price,
+                    "slippage": float(slip),
+                    "status": status,
+                    "reason": reason,
+                }
             fills.append(fill)
-            self.fills.append(fill)  # kept for test inspection
-        return fills  # returns fills for this batch only
+            self.fills.append(fill)
+        return fills
 
     def flush(self) -> list[dict]:
         # All fills are already returned by submit_intents; nothing buffered.
@@ -150,12 +279,15 @@ class MockAdapter:
                 fill = {
                     "date": intent.date,
                     "asset": intent.asset,
-                    "filled_weight": float(intent.target_weight),
+                    "requested_weight": float(intent.requested_weight),
+                    "filled_weight": float(intent.order_weight),
+                    "fill_ratio": 1.0,
                     "order_weight": float(intent.order_weight),
                     "price": intent.price,
                     "notional_usd": intent.notional_usd,
                     "slippage": 0.0,
                     "status": "filled",
+                    "reason": None,
                 }
             fills.append(fill)
             self.fills.append(fill)  # kept for test inspection
@@ -170,6 +302,7 @@ def order_batches_from_weights(
     weights: pd.DataFrame,
     prices_df: Optional[pd.DataFrame] = None,
     adv_usd: Optional[object] = None,
+    max_participation: Optional[float] = None,
 ) -> list[OrderBatch]:
     """Build deterministic OrderBatch list from a weights DataFrame.
 
@@ -197,6 +330,36 @@ def order_batches_from_weights(
                 sub = prices[c].reindex(idx)
                 price_map[c] = sub.to_dict()
 
+    # Align adv_usd to weights universe (sorted, deterministic). Supports
+    # dict (asset-indexed), Series (asset-indexed), or DataFrame (date x asset).
+    adv_map: dict = {}
+    if adv_usd is not None:
+        try:
+            if isinstance(adv_usd, dict):
+                for c in cols:
+                    v = adv_usd.get(c)
+                    if v is not None:
+                        try:
+                            adv_map[c] = float(v)
+                        except (TypeError, ValueError):
+                            pass
+            elif isinstance(adv_usd, pd.Series):
+                for c in cols:
+                    if c in adv_usd.index:
+                        v = adv_usd.loc[c]
+                        try:
+                            adv_map[c] = float(v)
+                        except (TypeError, ValueError):
+                            pass
+            elif isinstance(adv_usd, pd.DataFrame):
+                adv_df = adv_usd.sort_index()
+                for c in cols:
+                    if c in adv_df.columns:
+                        sub = adv_df[c].reindex(idx)
+                        adv_map[c] = sub.to_dict()
+        except Exception:
+            adv_map = {}
+
     batches: list[OrderBatch] = []
     prev = {c: 0.0 for c in cols}
     for t in range(n):
@@ -221,6 +384,7 @@ def order_batches_from_weights(
                 continue
             notional = None
             price = None
+            intent_adv = None
             if c in price_map:
                 p = price_map[c].get(date_key)
                 if p is not None:
@@ -229,6 +393,17 @@ def order_batches_from_weights(
                         notional = abs(order_w) * price
                     except (TypeError, ValueError):
                         price = None
+            if c in adv_map:
+                adv_entry = adv_map[c]
+                if isinstance(adv_entry, dict):
+                    intent_adv = adv_entry.get(date_key)
+                else:
+                    intent_adv = adv_entry
+                if intent_adv is not None:
+                    try:
+                        intent_adv = float(intent_adv)
+                    except (TypeError, ValueError):
+                        intent_adv = None
             intents.append(
                 OrderIntent(
                     date=date_key,
@@ -236,8 +411,11 @@ def order_batches_from_weights(
                     target_weight=target,
                     current_weight=current,
                     order_weight=order_w,
+                    requested_weight=order_w,
                     notional_usd=notional,
                     price=price,
+                    adv_usd=intent_adv,
+                    max_participation=max_participation,
                 )
             )
             prev[c] = target
