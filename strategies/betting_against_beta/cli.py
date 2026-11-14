@@ -180,6 +180,30 @@ def _validate_rebalance_freq(freq: str) -> None:
         raise BABDataError(f"rebalance_freq must be one of {sorted(allowed)}, got {freq!r}")
 
 
+def _apply_freshness_guard(returns_df, max_staleness_days, max_gap_days) -> bool:
+    """P8: fail loudly when loaded data is stale or gappy beyond thresholds.
+
+    No-op when neither threshold is set. Returns False on violation so the
+    caller can exit non-zero without writing output.
+    """
+    if max_staleness_days is None and max_gap_days is None:
+        return True
+    from .data_loader import validate_freshness
+
+    try:
+        validate_freshness(
+            returns_df,
+            max_staleness_days=(
+                max_staleness_days if max_staleness_days is not None else 2.0
+            ),
+            max_gap_days=(max_gap_days if max_gap_days is not None else 7.0),
+        )
+    except BABDataError as exc:
+        print(f"Data freshness check failed: {exc}")
+        return False
+    return True
+
+
 def _coerce_finite_scalar(value, default=1.0):
     """Coerce a possibly-nan/inf scalar to a finite float, never raising."""
     import numpy as _np
@@ -363,6 +387,33 @@ def main(argv=None) -> int:
                 "(deterministic fixture). Ignored unless --adapter mock."
             ),
         )
+        parser.add_argument(
+            "--paper-trading",
+            action="store_true",
+            help=(
+                "P8: run in paper-trading (dry-run) mode. Consumes BABStrategy "
+                "weights, emits timestamped orders/fills to --output (JSONL) plus a "
+                "diagnostics.jsonl sidecar. No network, no auth required."
+            ),
+        )
+        parser.add_argument(
+            "--max-staleness-days",
+            type=float,
+            default=None,
+            help=(
+                "P8: max staleness in days for the loaded data (default 2). "
+                "Validated when set; fails loudly on violation."
+            ),
+        )
+        parser.add_argument(
+            "--max-gap-days",
+            type=float,
+            default=None,
+            help=(
+                "P8: max gap in days between consecutive rows (default 7). "
+                "Validated when set; fails loudly on violation."
+            ),
+        )
 
         args = parser.parse_args(argv)
     except SystemExit as exc:
@@ -494,9 +545,17 @@ def main(argv=None) -> int:
 
                 try:
                     if getattr(args, "from_prices", False):
-                        load_prices(args.data, benchmark=args.benchmark, min_rows=config.min_rows)
+                        loaded = load_prices(
+                            args.data, benchmark=args.benchmark, min_rows=config.min_rows
+                        )
                     else:
-                        load_returns(args.data, benchmark=args.benchmark, min_rows=config.min_rows)
+                        loaded = load_returns(
+                            args.data, benchmark=args.benchmark, min_rows=config.min_rows
+                        )
+                    if not _apply_freshness_guard(
+                        loaded, args.max_staleness_days, args.max_gap_days
+                    ):
+                        return 1
                     print(
                         f"data:             {args.data} (valid, --from-prices={args.from_prices})"
                     )
@@ -560,6 +619,10 @@ def main(argv=None) -> int:
                 raise
             except Exception as exc:
                 raise BABDataError(str(exc)) from exc
+            if not _apply_freshness_guard(
+                returns_df, args.max_staleness_days, args.max_gap_days
+            ):
+                return 1
             try:
                 result = strategy.run(returns_df=returns_df)
             except BABDataError:
@@ -572,6 +635,54 @@ def main(argv=None) -> int:
     except Exception as exc:
         print(f"Error running strategy: {exc}")
         return 1
+
+    # P8: paper-trading path. Emits timestamped orders/fills to --output (JSONL)
+    # plus a diagnostics.jsonl sidecar. Dry-run by default; no network/auth.
+    if args.paper_trading:
+        if not args.output:
+            print("Error: --paper-trading requires --output")
+            return 1
+        try:
+            out_path = _validate_output_path(args.output)
+        except Exception as exc:
+            print(f"Error validating output path: {exc}")
+            return 1
+        diag_path = out_path.parent / "diagnostics.jsonl"
+        from .execution import PaperExecutionEngine
+
+        backtest_pnl = None
+        bt = getattr(result, "backtest", None)
+        if bt is not None and hasattr(bt, "columns") and hasattr(bt, "iloc"):
+            cols = list(bt.columns)
+            if "cumulative" in cols and len(bt) > 0:
+                try:
+                    backtest_pnl = float(bt["cumulative"].iloc[-1]) - 1.0
+                except Exception:
+                    backtest_pnl = None
+
+        engine = PaperExecutionEngine(log_path=out_path, diagnostics_path=diag_path)
+        report = engine.execute(
+            result.weights,
+            betas_df=result.betas,
+            signals_df=result.signals,
+            returns_df=result.returns,
+            backtest_pnl=backtest_pnl,
+        )
+        print(f"Paper trading: {report.n_orders} orders, {report.n_fills} fills")
+        print(f"  output:       {out_path}")
+        print(f"  diagnostics:  {diag_path}")
+        if report.pnl is not None:
+            diff = (
+                f"{(report.pnl - report.backtest_pnl):.6f}"
+                if report.backtest_pnl is not None
+                else "n/a"
+            )
+            print(
+                f"  paper_pnl={report.pnl:.6f} "
+                f"backtest_pnl={report.backtest_pnl} "
+                f"diff={diff}"
+            )
+        return 0
 
     # Extract cumulative return; surface extraction failures instead of fabricating 1.0.
     try:

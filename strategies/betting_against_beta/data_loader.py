@@ -2712,6 +2712,72 @@ def validate_prices(df: pd.DataFrame) -> pd.DataFrame | None:
     return None
 
 
+def validate_freshness(
+    df: pd.DataFrame,
+    max_staleness_days: float = 2.0,
+    max_gap_days: float = 7.0,
+    reference_date: object | None = None,
+) -> bool:
+    """Validate that ``df`` is fresh and gap-free relative to ``reference_date``.
+
+    Raises :class:`BABDataError` when the most recent row is older than
+    ``max_staleness_days`` relative to ``reference_date`` (defaults to now), or
+    when any inter-row gap exceeds ``max_gap_days``. Returns ``True`` when the
+    data passes both checks. Intended for live/near-real-time feeds; callers
+    opt in via CLI flags (never implicit, no silent fallback).
+
+    ``reference_date`` defaults to the current UTC date. Pass a fixed value in
+    tests / historical backtests so the check is deterministic.
+    """
+    if df is None or not isinstance(df, pd.DataFrame) or df.empty:
+        return True
+    if not isinstance(df.index, pd.DatetimeIndex) or len(df.index) < 2:
+        return True
+
+    if reference_date is None:
+        reference = pd.Timestamp.now("UTC").tz_convert(None).normalize()
+    else:
+        try:
+            reference = pd.Timestamp(reference_date)
+        except (TypeError, ValueError):
+            reference = pd.Timestamp.now("UTC").tz_convert(None).normalize()
+    # Keep comparison tz-naive so it works with tz-naive DatetimeIndexes.
+    try:
+        if getattr(reference, "tz", None) is not None:
+            reference = reference.tz_convert(None)
+        reference = reference.normalize()
+    except Exception:
+        pass
+
+    last_date = df.index.max()
+    try:
+        if getattr(last_date, "tz", None) is not None:
+            last_date = last_date.tz_convert(None)
+    except Exception:
+        pass
+    try:
+        staleness = (reference - last_date).days
+    except TypeError:
+        staleness = (pd.Timestamp(reference) - pd.Timestamp(last_date)).days
+    if staleness > float(max_staleness_days):
+        raise BABDataError(
+            f"Data is stale: last date {pd.Timestamp(last_date).date()} is "
+            f"{staleness} day(s) old (max_staleness_days={max_staleness_days}, "
+            f"reference={reference.date()})"
+        )
+
+    gaps = df.index.to_series().diff().dropna()
+    if not gaps.empty:
+        max_gap = gaps.max()
+        max_gap_days_td = pd.Timedelta(days=float(max_gap_days))
+        if max_gap > max_gap_days_td:
+            raise BABDataError(
+                f"Data gap exceeds {max_gap_days} day(s): largest gap is "
+                f"{max_gap} (max_gap_days={max_gap_days})"
+            )
+    return True
+
+
 __all__ = [
     "BABDataError",
     "clean_data",
@@ -2731,6 +2797,7 @@ __all__ = [
     "load_returns_from_prices",
     "normalize_schema",
     "standardize_columns",
+    "validate_freshness",
     "validate_prices",
     "validate_returns_dataframe",
 ]

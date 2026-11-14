@@ -659,6 +659,24 @@ def main(argv: list[str] | None = None) -> int:
             "coverage, and outcome/error context. Never persists raw ToS text or secrets."
         ),
     )
+    parser.add_argument(
+        "--max-staleness-days",
+        type=float,
+        default=None,
+        help=(
+            "P8: max staleness in days for the produced data (default 2). "
+            "Validated before writing; fails loudly on violation."
+        ),
+    )
+    parser.add_argument(
+        "--max-gap-days",
+        type=float,
+        default=None,
+        help=(
+            "P8: max gap in days between consecutive rows (default 7). "
+            "Validated before writing; fails loudly on violation."
+        ),
+    )
     args = parser.parse_args(argv)
 
     try:
@@ -733,6 +751,26 @@ def main(argv: list[str] | None = None) -> int:
             mode = "created"
 
         load_prices(final_df, benchmark=args.benchmark, min_rows=2)
+
+        # P8: opt-in data freshness / staleness guard before writing output.
+        if args.max_staleness_days is not None or args.max_gap_days is not None:
+            from strategies.betting_against_beta.data_loader import validate_freshness
+
+            try:
+                idx_df = final_df.copy()
+                idx_df.index = pd.to_datetime(idx_df["date"])
+                validate_freshness(
+                    idx_df,
+                    max_staleness_days=(
+                        args.max_staleness_days if args.max_staleness_days is not None else 2.0
+                    ),
+                    max_gap_days=(args.max_gap_days if args.max_gap_days is not None else 7.0),
+                )
+            except BABDataError as exc:
+                print(f"Data freshness check failed: {exc}", file=sys.stderr)
+                _safe_write_failure_metadata(args, str(exc))
+                return 1
+
         final_df.to_csv(out_path, index=False)
 
         _write_metadata(args, _build_metadata(args=args, mode=mode, final_df=final_df))

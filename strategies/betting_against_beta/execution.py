@@ -16,8 +16,10 @@ import contextlib
 import json
 import math
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Protocol, runtime_checkable
 
+import numpy as np
 import pandas as pd
 
 
@@ -377,6 +379,29 @@ def _date_key(date) -> str:
         return str(date)
 
 
+def _finite(value, default=0.0):
+    """Coerce ``value`` to a finite float, returning ``default`` on failure.
+
+    The try/except lives outside any loop so it does not trigger PERF203.
+    """
+    try:
+        v = float(value)
+    except (TypeError, ValueError):
+        return default
+    return v if math.isfinite(v) else default
+
+
+def _as_timestamp(value):
+    """Coerce ``value`` to a Timestamp, returning None on failure.
+
+    Kept out of loop bodies to avoid PERF203.
+    """
+    try:
+        return pd.Timestamp(value)
+    except Exception:
+        return None
+
+
 def order_batches_from_weights(
     weights: pd.DataFrame,
     prices_df: pd.DataFrame | None = None,
@@ -537,3 +562,395 @@ def _sanitize_for_json(obj):
 def execution_payload_to_json(payload: dict) -> str:
     """Serialize an execution payload to strict JSON (allow_nan=False)."""
     return json.dumps(_sanitize_for_json(payload), indent=2, default=str, allow_nan=False)
+
+
+# ---------------------------------------------------------------------------
+# P8: canonical execution types + paper-trading engine
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class Order:
+    """A single timestamped order emitted by the paper-trading engine.
+
+    Strict-JSON-safe: every field is a primitive or a dict of primitives.
+    """
+
+    date: str
+    asset: str
+    side: str  # "buy" | "sell"
+    weight: float  # signed target weight for this asset
+    price: float | None = None
+    notional_usd: float | None = None
+    status: str = "pending"
+    metadata: dict = field(default_factory=dict)
+
+    def to_dict(self) -> dict:
+        return {
+            "date": self.date,
+            "asset": self.asset,
+            "side": self.side,
+            "weight": float(self.weight),
+            "price": self.price,
+            "notional_usd": self.notional_usd,
+            "status": self.status,
+            "metadata": self.metadata,
+        }
+
+
+@dataclass(frozen=True)
+class Fill:
+    """A single simulated fill emitted by the paper-trading engine."""
+
+    date: str
+    asset: str
+    side: str
+    weight: float  # filled weight
+    price: float | None = None
+    notional_usd: float | None = None
+    slippage: float = 0.0
+    status: str = "filled"
+    metadata: dict = field(default_factory=dict)
+
+    def to_dict(self) -> dict:
+        return {
+            "date": self.date,
+            "asset": self.asset,
+            "side": self.side,
+            "weight": float(self.weight),
+            "price": self.price,
+            "notional_usd": self.notional_usd,
+            "slippage": float(self.slippage),
+            "status": self.status,
+            "metadata": self.metadata,
+        }
+
+
+@dataclass(frozen=True)
+class StrategyDiagnostics:
+    """Per-rebalance signal/regime diagnostics.
+
+    Emitted once per rebalance date; persisted to diagnostics.jsonl alongside
+    paper fills and included in ExecutionReport.
+    """
+
+    date: str
+    beta_mean: float | None = None
+    beta_median: float | None = None
+    beta_std: float | None = None
+    beta_min: float | None = None
+    beta_max: float | None = None
+    long_beta_boundary: float | None = None
+    short_beta_boundary: float | None = None
+    long_assets: list[str] = field(default_factory=list)
+    short_assets: list[str] = field(default_factory=list)
+    n_long: int = 0
+    n_short: int = 0
+    turnover: float | None = None
+    hhi: float | None = None
+    beta_neutrality_error: float | None = None
+    metadata: dict = field(default_factory=dict)
+
+    def to_dict(self) -> dict:
+        return {
+            "date": self.date,
+            "beta_mean": self.beta_mean,
+            "beta_median": self.beta_median,
+            "beta_std": self.beta_std,
+            "beta_min": self.beta_min,
+            "beta_max": self.beta_max,
+            "long_beta_boundary": self.long_beta_boundary,
+            "short_beta_boundary": self.short_beta_boundary,
+            "long_assets": list(self.long_assets),
+            "short_assets": list(self.short_assets),
+            "n_long": int(self.n_long),
+            "n_short": int(self.n_short),
+            "turnover": self.turnover,
+            "hhi": self.hhi,
+            "beta_neutrality_error": self.beta_neutrality_error,
+            "metadata": self.metadata,
+        }
+
+
+@dataclass(frozen=True)
+class ExecutionReport:
+    """Deterministic execution report produced by PaperExecutionEngine."""
+
+    mode: str
+    n_orders: int
+    n_fills: int
+    orders: list[Order] = field(default_factory=list)
+    fills: list[Fill] = field(default_factory=list)
+    diagnostics: list[StrategyDiagnostics] = field(default_factory=list)
+    pnl: float | None = None
+    backtest_pnl: float | None = None
+    metadata: dict = field(default_factory=dict)
+
+    def to_dict(self) -> dict:
+        return {
+            "mode": self.mode,
+            "n_orders": int(self.n_orders),
+            "n_fills": int(self.n_fills),
+            "orders": [o.to_dict() for o in self.orders],
+            "fills": [f.to_dict() for f in self.fills],
+            "diagnostics": [d.to_dict() for d in self.diagnostics],
+            "pnl": self.pnl,
+            "backtest_pnl": self.backtest_pnl,
+            "metadata": self.metadata,
+        }
+
+
+def _write_jsonl(path, records) -> None:
+    """Write strict-JSON-safe records, one per line, creating parent dirs."""
+    out = Path(path)
+    parent = out.parent
+    if str(parent) and str(parent) != ".":
+        parent.mkdir(parents=True, exist_ok=True)
+    with out.open("w", encoding="utf-8") as fh:
+        for rec in records:
+            fh.write(json.dumps(_sanitize_for_json(rec), allow_nan=False) + "\n")
+
+
+def _safe_float(value, default=0.0):
+    try:
+        if value is None:
+            return float(default)
+        f = float(value)
+        return f if math.isfinite(f) else float(default)
+    except (TypeError, ValueError):
+        return float(default)
+
+
+class PaperExecutionEngine:
+    """Deterministic paper-trading engine (dry-run, no network).
+
+    Consumes BABStrategy weights, emits timestamped orders/fills to a local
+    JSONL log, computes per-rebalance StrategyDiagnostics, and reconciles
+    paper P&L against the backtest. Reuses OrderIntent/OrderBatch/PaperAdapter.
+    """
+
+    def __init__(
+        self,
+        mode: str = "paper",
+        prices_df: pd.DataFrame | None = None,
+        adv_usd: object | None = None,
+        partial_fill: bool = False,
+        max_participation: float = _DEFAULT_MAX_PARTICIPATION,
+        log_path: str | Path | None = None,
+        diagnostics_path: str | Path | None = None,
+    ) -> None:
+        if mode != "paper":
+            raise ValueError(f"PaperExecutionEngine only supports mode='paper', got {mode!r}")
+        self.mode = mode
+        self.max_participation = float(max_participation)
+        self.adapter = PaperAdapter(
+            prices_df=prices_df,
+            adv_usd=adv_usd,
+            partial_fill=partial_fill,
+            max_participation=max_participation,
+        )
+        self.log_path = Path(log_path) if log_path else None
+        self.diagnostics_path = Path(diagnostics_path) if diagnostics_path else None
+        self.orders: list[Order] = []
+        self.fills: list[Fill] = []
+        self.diagnostics: list[StrategyDiagnostics] = []
+
+    def _diagnostics_for_date(
+        self,
+        date_key: str,
+        weights_row,
+        betas_row,
+        prev_weights: dict,
+    ) -> StrategyDiagnostics:
+        w: dict = {}
+        for asset in weights_row.index:
+            w[asset] = _finite(weights_row[asset])
+        long_assets = sorted(a for a, v in w.items() if v > 0)
+        short_assets = sorted(a for a, v in w.items() if v < 0)
+        turnover = sum(abs(v - prev_weights.get(a, 0.0)) for a, v in w.items())
+        gross = sum(abs(v) for v in w.values())
+        hhi = sum((v / gross) ** 2 for v in w.values()) if gross > 0 else 0.0
+
+        beta_mean = beta_median = beta_std = beta_min = beta_max = None
+        long_beta_boundary = short_beta_boundary = None
+        beta_neutrality_error = None
+        if betas_row is not None:
+            bv: dict = {}
+            try:
+                assets = list(betas_row.index)
+            except AttributeError:
+                assets = []
+            for a in assets:
+                bv[a] = _finite(betas_row[a])
+            if bv:
+                vals = sorted(bv.values())
+                n = len(vals)
+                beta_mean = float(np.mean(vals))
+                beta_median = float(np.median(vals))
+                beta_std = float(np.std(vals))
+                beta_min = float(vals[0])
+                beta_max = float(vals[-1])
+                li = max(0, min(n - 1, int(n * 0.3)))
+                si = max(0, min(n - 1, int(n * (1 - 0.3))))
+                long_beta_boundary = float(vals[li])
+                short_beta_boundary = float(vals[si])
+                port_beta = sum(w.get(a, 0.0) * bv.get(a, 0.0) for a in bv)
+                beta_neutrality_error = abs(port_beta)
+
+        return StrategyDiagnostics(
+            date=date_key,
+            beta_mean=_safe_float(beta_mean),
+            beta_median=_safe_float(beta_median),
+            beta_std=_safe_float(beta_std),
+            beta_min=_safe_float(beta_min),
+            beta_max=_safe_float(beta_max),
+            long_beta_boundary=_safe_float(long_beta_boundary),
+            short_beta_boundary=_safe_float(short_beta_boundary),
+            long_assets=long_assets,
+            short_assets=short_assets,
+            n_long=len(long_assets),
+            n_short=len(short_assets),
+            turnover=_safe_float(turnover),
+            hhi=_safe_float(hhi),
+            beta_neutrality_error=_safe_float(beta_neutrality_error),
+        )
+
+    def _paper_pnl(self, returns_df) -> float | None:
+        if (
+            returns_df is None
+            or not isinstance(returns_df, pd.DataFrame)
+            or returns_df.empty
+            or not self.fills
+        ):
+            return None
+        ret = returns_df.sort_index()
+        dates = list(ret.index)
+        import bisect
+
+        total = 0.0
+        for f in self.fills:
+            try:
+                ts = pd.Timestamp(f.date)
+            except Exception:
+                continue
+            j = bisect.bisect_right(dates, ts)
+            if j >= len(dates):
+                continue
+            nxt = dates[j]
+            asset = f.asset
+            if asset not in ret.columns:
+                continue
+            try:
+                r = float(ret.loc[nxt, asset])
+            except (KeyError, TypeError, ValueError):
+                continue
+            if not math.isfinite(r):
+                continue
+            total += float(f.weight) * r
+        return _safe_float(total)
+
+    def _persist(self, report: ExecutionReport) -> None:
+        if self.log_path is not None:
+            _write_jsonl(self.log_path, [f.to_dict() for f in self.fills])
+        if self.diagnostics_path is not None:
+            _write_jsonl(self.diagnostics_path, [d.to_dict() for d in self.diagnostics])
+
+    def execute(
+        self,
+        weights_df: pd.DataFrame,
+        betas_df: pd.DataFrame | None = None,
+        signals_df: pd.DataFrame | None = None,
+        returns_df: pd.DataFrame | None = None,
+        backtest_pnl: float | None = None,
+    ) -> ExecutionReport:
+        """Run paper execution over ``weights_df`` and return an ExecutionReport.
+
+        One order per non-zero weight change; fills simulated by the PaperAdapter
+        (full fill at intent price by default, participation-capped partial
+        fills when prices/adv_usd are configured). Diagnostics are computed per
+        rebalance date and both fills and diagnostics are persisted to JSONL.
+        """
+        if not isinstance(weights_df, pd.DataFrame) or weights_df.empty:
+            report = ExecutionReport(
+                mode=self.mode, n_orders=0, n_fills=0, backtest_pnl=backtest_pnl
+            )
+            self._persist(report)
+            return report
+
+        w = weights_df.sort_index()
+        cols = [str(c) for c in sorted(w.columns)]
+        w = w[cols]
+        idx = list(w.index)
+        n = len(idx)
+
+        betas = None
+        if betas_df is not None and not betas_df.empty:
+            betas = betas_df.sort_index()
+            try:
+                betas = betas.reindex(index=idx)
+            except Exception:
+                betas = None
+
+        batches = order_batches_from_weights(w, max_participation=self.max_participation)
+        batch_by_date = {b.date: b for b in batches}
+
+        prev: dict = dict.fromkeys(cols, 0.0)
+        for t in range(n):
+            date = idx[t]
+            ts = _as_timestamp(date)
+            date_key = ts.isoformat() if ts is not None else str(date)
+            row_w = w.iloc[t]
+            cur: dict = {c: _finite(row_w[c]) for c in cols}
+
+            betas_row = None
+            if betas is not None and ts is not None and ts in betas.index:
+                betas_row = betas.loc[ts]
+            self.diagnostics.append(
+                self._diagnostics_for_date(date_key, pd.Series(cur), betas_row, prev)
+            )
+
+            batch = batch_by_date.get(date_key)
+            if batch is not None:
+                fills = self.adapter.submit_intents(batch)
+                for intent, fill in zip(batch.intents, fills):
+                    side = "buy" if intent.order_weight > 0 else "sell"
+                    self.orders.append(
+                        Order(
+                            date=intent.date,
+                            asset=intent.asset,
+                            side=side,
+                            weight=intent.order_weight,
+                            price=intent.price,
+                            notional_usd=intent.notional_usd,
+                            status="pending",
+                        )
+                    )
+                    fill_weight = fill.get("filled_weight", 0.0)
+                    fill_side = "buy" if fill_weight > 0 else "sell"
+                    self.fills.append(
+                        Fill(
+                            date=fill.get("date", date_key),
+                            asset=fill.get("asset", intent.asset),
+                            side=fill_side,
+                            weight=float(fill_weight or 0.0),
+                            price=fill.get("price"),
+                            notional_usd=fill.get("notional_usd"),
+                            slippage=float(fill.get("slippage", 0.0) or 0.0),
+                            status=fill.get("status", "filled"),
+                        )
+                    )
+            prev = cur
+
+        self.adapter.flush()
+        report = ExecutionReport(
+            mode=self.mode,
+            n_orders=len(self.orders),
+            n_fills=len(self.fills),
+            orders=list(self.orders),
+            fills=list(self.fills),
+            diagnostics=list(self.diagnostics),
+            pnl=self._paper_pnl(returns_df),
+            backtest_pnl=backtest_pnl,
+        )
+        self._persist(report)
+        return report
