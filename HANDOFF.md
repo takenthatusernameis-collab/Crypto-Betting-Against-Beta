@@ -2,13 +2,13 @@
 
 **Canonical durable handoff (single source of truth).** Do not create parallel handoff/session docs; update this file only.
 
-- **Timestamp (UTC):** 2026-11-14T17:39:23Z
+- **Timestamp (UTC):** 2026-11-14T17:41:57Z
 - **Repo:** `Crypto-Betting-Against-Beta`
-- **HEAD:** `591d248` (`chore(kilo): checkpoint agent session`)
+- **HEAD:** `8cdeaf1` (`docs: refresh canonical handoff with verified P6 binding task (2026-11-14T17:39:23Z)`)
 - **Branch:** `main`
-- **Working tree:** clean (verified this session)
+- **Working tree:** clean (verified 2026-11-14T17:41:57Z)
 
-## INITIAL TASK MESSAGE (START HERE, 2026-11-14T17:39:23Z UTC) — BINDING
+## INITIAL TASK MESSAGE (START HERE, 2026-11-14T17:41:57Z UTC) — BINDING
 
 This is the only active task. Execute in order. No archaeology (`probe_*.py`, `debug_*.py`, `ast_probe.py`), no new handoff/session docs, no re-verification of green areas unless your change touches them. If blocked, record exact command + output and continue with the next unblocked priority. **Never stop at analysis — produce code, tests, and evidence.**
 
@@ -62,4 +62,4 @@ Harden and operationalize the public fetch path for reproducible research runs. 
 ### Protocol
 1. Read this file fully. 2. Execute P6 (tests + metadata/audit output + docs + verification + commit + handoff refresh). 3. Refresh this handoff before stopping. 4. Keep `AGENT_HANDOFF.md` as a pointer only.
 
-**Next Agent Mandatory:** Complete **Priority 6** end-to-end (resilience/coverage tests, `--metadata-out` JSON audit sidecar, README docs, verification, commit, handoff refresh) before any new feature work. Report: `git log -1 --oneline`, `git status --short`, `ruff check .`, targeted test output, smoke output, and perf-check evidence.
+**Next Agent Mandatory (2026-11-14T17:41:57Z UTC):** Complete **Priority 6** end-to-end (resilience/coverage tests, `--metadata-out` JSON audit sidecar, README docs, verification, commit, handoff refresh) before any new feature work. Do not stop at analysis. Report: `git log -1 --oneline`, `git status --short`, `ruff check .`, targeted test output, smoke output, and perf-check evidence.
