@@ -78,19 +78,28 @@ def test_diagnostics_schema_and_invariants(tmp_path):
         assert abs(obj["hhi"] - d.hhi) < 1e-12
 
 
-def test_diagnostics_beta_neutrality_near_zero_for_dollar_neutral(tmp_path):
+def test_diagnostics_beta_neutrality_near_zero_for_beta_neutral(tmp_path):
+    # ``dollar_neutral=True`` alone does NOT imply beta neutrality: the benchmark
+    # (BTC, beta=1.0) can carry a nonzero weight, so portfolio beta drifts.  Beta
+    # neutrality is enforced only when ``beta_neutral=True`` (the config knob that
+    # routes the weights through enforce_beta_neutrality).  Verify that knob.
     returns = generate_synthetic_returns(
         n_days=100, n_assets=8, benchmark_name="BTC", seed=5
     )
     strategy = BABStrategy(
-        BABConfig(benchmark="BTC", beta_window=20, min_observations=5, dollar_neutral=True)
+        BABConfig(
+            benchmark="BTC",
+            beta_window=20,
+            min_observations=5,
+            dollar_neutral=True,
+            beta_neutral=True,
+        )
     )
     result = strategy.run(returns_df=returns)
     engine = PaperExecutionEngine()
     report = engine.execute(
         result.weights, betas_df=result.betas, returns_df=result.returns
     )
-    # Dollar-neutral portfolio beta (weighted by long/short) should be small.
     errors = [
         d.beta_neutrality_error
         for d in report.diagnostics
