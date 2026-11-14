@@ -1,133 +1,59 @@
-# HANDOFF: Crypto-Betting-Against-Beta — Next Agentic Work Session
-**Timestamp:** 2026-11-14T09:24:23Z
-**Repository:** Crypto-Betting-Against-Beta
-**Branch:** main (clean, up-to-date with origin)
-**Status:** ✅ ALL TESTS PASSING (308 test files, 1000+ tests)
+# HANDOFF: Crypto-Betting-Against-Beta — Canonical Durable Session Handoff
+**Timestamp (UTC):** 2026-11-14T09:35:56Z
+**Repository:** Crypto-Betting-Against-Beta (`/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`)
+**Branch/HEAD:** `main...origin/main`, `fadfcef` (working tree clean at handoff write)
+**Single source of truth:** this file. Do not create parallel handoff/session docs; if evidence conflicts, trust live output and update this file.
 
----
+## INITIAL TASK MESSAGE (START HERE, 2026-11-14T09:35:56Z UTC) — BINDING
 
-## 🎯 Project Summary
-**Crypto-Betting-Against-Beta** implements a production-grade **Betting Against Beta (BAB)** strategy for crypto — a market-neutral approach that goes long low-beta assets and short high-beta assets vs a benchmark (default BTC), following the Frazzini-Pedersen methodology.
+**Mission (repo-prioritized):** advance the **Crypto Betting Against Beta (BAB)** strategy from “feature-complete, tests-green historically” to **production-hardened and evidence-backed**. This repo is a quantitative crypto strategy codebase (beta estimation, BAB signals/portfolio, backtest, costs/slippage/partial-fill, risk/regime/beta-neutrality, execution/reconciliation, CLI, data loading/quality). Future work must materially improve correctness confidence, performance, real-data robustness, or developer/ops quality gates — **not** docs/probe archaeology.
 
-**Core Pipeline:**
-1. Load/validate returns (synthetic or real CSV/JSON/Parquet/HDF5)
-2. Rolling OLS beta estimation (configurable window, min observations)
-3. Rank by beta → long lowest quantile, short highest quantile
-4. Construct dollar-neutral equal-weight portfolio
-5. Backtest with 1-day lagged weights (no lookahead), optional costs
+### Non-negotiable operating rules
+- **Do heavy work every session:** run real commands, capture evidence (RC, counts, timings, key excerpts), and leave the repo in a measurably better or better-understood state. No “status-only” sessions.
+- **No claim without proof:** verify in this environment before asserting pass/fail/perf. Historical claims below are context, not proof.
+- **No scope theater:** no new lettered campaign docs, no root probe/debug script sprawl, no `.github/workflows/*` edits, no tracked `.cov*`/cache churn. Keep diffs focused and reviewable.
+- **Preserve behavior unless a fix is justified:** default-path invariance matters; if you change semantics, add/adjust tests and document rationale here with evidence.
+- **Canonical handoff only:** update this file (and only this file) as the durable handoff.
 
----
-
-## ✅ Current Health: GREEN
-| Area | Status | Notes |
-|------|--------|-------|
-| Core Strategy Tests | ✅ 86/86 pass | `test_betting_against_beta.py` |
-| CLI Tests | ✅ 18/18 pass | `test_bab_cli.py` |
-| Execution Cost Model (R3) | ✅ 48/48 pass | `test_betting_against_beta_costs.py` |
-| Execution Integration (R5) | ✅ 23/23 pass | `test_bab_execution_integration_r5.py` |
-| Drawdown Kill Switch (R4) | ✅ 11/11 pass | `test_bab_drawdown_kill_switch_r4.py` |
-| Beta Neutrality | ✅ 9/9 pass | `test_bab_beta_neutrality.py` |
-| Replay Harness (R4) | ✅ 12/12 pass | `test_bab_replay_harness_r4.py` |
-| Quality/Comprehensive | ✅ 100+ pass | `test_bab_quality*.py` |
-| Controller Progress | ✅ 69/69 pass | `test_controller_progress_accounting.py` |
-
-**Total test suite:** 308 files, 1000+ tests — all green.
-
----
-
-## 🏗️ Implemented Features (R1–R5 Complete)
-
-| Release | Feature | Key Modules |
-|---------|---------|-------------|
-| **R1** | Core BAB pipeline | `beta.py`, `signals.py`, `portfolio.py`, `backtest.py`, `strategy.py` |
-| **R2** | Data loading, CLI, quality | `data_loader.py`, `cli.py`, `quality.py`, `data_sources.py` |
-| **R3** | Realistic execution costs | `costs.py` (TransactionCostModel: linear fee, bid-ask, sqrt impact, borrow, participation cap) |
-| **R4** | Risk controls | `risk.py` (KillSwitchEvent, apply_kill_switch), `replay.py` (deterministic harness) |
-| **R5** | Execution adapters | `execution.py` (PaperAdapter, MockAdapter, reconciliation) |
-
-**Advanced Features:**
-- **Position Sizing:** Kelly, Volatility Target, Risk Parity, Equal Weight (`sizing.py`)
-- **Shorting Constraints:** `shorting.py` (borrow availability, locate fees, max short %)
-- **Regime Filtering:** `regime.py` (volatility/trend regimes, scalar scaling)
-- **Beta Neutrality:** `portfolio.py::enforce_beta_neutrality()` (causal, preserves $ neutrality)
-- **Attribution:** `attribution.py` (trade-level, cost/slippage decomposition)
-
----
-
-## 🔴 Known Historical Bottlenecks (Resolved → Monitor)
-
-| Issue | Resolution | Watch For |
-|-------|------------|-----------|
-| `test_controller_progress_accounting.py` pattern sync | Fixed: `*/.github/workflows/*` now in both Python EXCLUDE_PATTERNS and workflow `stage_safe_changes` | Re-run after any workflow YAML change |
-| `test_bab_beta_edgecases.py`, `test_bab_backtest_edgecases.py`, `test_bab_data_loader_edgecases.py` | Files deleted/renamed — tests consolidated into campaign suites | If edge-case regressions appear, check campaign_* files |
-| Kilo edit tool invalid arguments | Agent-side tooling issue (malformed `oldString`/`filePath`) | Not a code issue — monitor agent logs |
-| CI cancelled runs (Oct 27–29) | Workflow timeout/agent stall | Ensure `timeout` configs adequate |
-
----
-
-## 🎯 NEXT FOCUS CAMPAIGN (Priority Order)
-
-### 1. **Add Lint/Type Checking Infrastructure** (HIGH)
+### Bootstrap & fast verification (use absolute/inline paths; do not rely on unset shell vars)
 ```bash
-# No mypy/ruff/pyright config exists — add:
-# pyproject.toml → [tool.ruff], [tool.mypy]
-# CI: run on PR
+cd /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
+git status --short --branch
+git rev-parse --short HEAD
+python3 --version
+python3 -m pytest --version
+python3 -c "import numpy, pandas, scipy; print('deps ok')"
+python3 -m pytest -q tests/test_betting_against_beta.py tests/test_bab_cli.py
+python3 -m strategies.betting_against_beta.cli --synthetic
 ```
-**Why:** 308 test files, zero static analysis. Silent bugs in type hints, unused imports, dead code.
+Record actual outputs/RCs in your session notes and reflect any material finding in this handoff.
 
-### 2. **Performance Optimization** (HIGH)
-- `test_bab_execution_integration_r5.py` → 13s
-- `test_bab_replay_harness_r4.py` → 10s
-- `test_bab_cli_campaign11p_*.py` → 15s
-- **Target:** Profile hot paths (`costs.py::compute_transaction_costs`, `beta.py::calculate_rolling_beta`, `execution.py::reconcile_fills_to_backtest`)
+### Priority campaign (execute in order; complete what you start or leave crisp evidence)
+1. **Full-suite health baseline (HIGHEST, mandatory first real task):**
+   - Run: `python3 -m pytest -q --tb=line --durations=20` (full `tests/`, ~300+ files; expect multi-minute runtime). Capture pass/fail/skip counts, total time, slowest tests, and any flakes.
+   - If anything fails, **fix root cause** (not by weakening assertions) and re-run impacted scope then full suite as feasible. This is the gate for all other work.
+2. **Performance profiling & targeted optimization (HIGH):**
+   - Profile known hot/slow areas with evidence: `beta.py` rolling beta, `backtest.py` lag/cost/partial-fill paths, `costs.py` transaction cost computation, `execution.py`/reconciliation paths, CLI end-to-end. Use `--durations`, `time`, and `cProfile`/`python -X importtime` or targeted benchmarks as appropriate.
+   - Implement at least one **behavior-preserving** optimization or a clearly-justified fix with before/after measurements and tests proving equivalence on representative cases (synthetic + fixture data).
+3. **Static analysis / quality gate in-repo (HIGH, no workflow edits):**
+   - Add minimal, sane `[tool.ruff]` and/or `[tool.mypy]` (or equivalent) config in `pyproject.toml` and make the codebase pass a defined command set (e.g. `ruff check` on scoped paths, targeted mypy). Prefer incremental, high-signal rules; fix real issues found. Document exact commands and results here.
+4. **Real-data & edge hardening (MEDIUM-HIGH):**
+   - Exercise `tests/fixtures/real_market_prices*.csv`, `real_market_returns.csv` and defect fixtures via CLI and `BABStrategy`/loader/quality paths. Add or strengthen tests for timezone/coercion, missing symbols, NaN/inf/duplicate dates, and execution/cost realism edge cases (e.g. participation/negative-sqrt or bound issues in modeled costs) **with evidence**.
+5. **Close with evidence:** update this file with timestamp, HEAD, commands run, results, files changed, regressions/risks, and the next binding task.
 
-### 3. **Real-Data Integration Hardening** (MEDIUM)
-- Current fixtures: `tests/fixtures/real_market_prices*.csv`
-- Add: multi-exchange, missing-symbol handling, timezone alignment tests
-- Validate `data_loader.py` coercion paths (line 817 warning: `dateutil` fallback)
+### Known focus hints (validate, don’t assume)
+- Prior handoffs flagged slow tests (execution integration/replay/CLI campaigns) and absent lint/type gates; `pyproject.toml` currently has no `[tool.ruff]/[tool.mypy]`.
+- `research_state/workflow_run_diagnostics.jsonl` contains historical CI/agent diagnostics (including prior `kilo_edit_tool_invalid_arguments` log signals); treat as historical/non-blocking context unless reproduced live.
+- Real-data fixtures exist in `tests/fixtures/`; use them instead of inventing external data sources. No real-venue credentials available — do not fake.
 
-### 4. **Documentation & Examples** (MEDIUM)
-- README is good but `docs/COVERAGE_NOTES.md` is only coverage notes
-- Add: architecture diagram, config reference, migration guide (R1→R5)
+### Escalation/blockers
+- If full suite or key tests cannot run due to environment issues, capture exact errors, remediate minimally, and document. If a true external dependency blocks progress, record it explicitly with evidence and proceed with the highest-value unblocked heavy work.
+- CI workflow pattern-sync issues (historical) must be handled atomically in controller/workflow if ever touched — but **prefer not touching `.github/workflows/*`** in this campaign.
 
-### 5. **Property-Based Test Expansion** (LOW)
-- `test_bab_property_invariants.py` exists (hypothesis) — expand invariants:
-  - Dollar-neutrality preservation under all sizers
-  - Beta-neutrality causal guarantee
-  - Kill-switch idempotence
+## Historical context (unverified snapshot from prior sessions; re-verify live)
+- Strategy/modules reported complete through R1–R5 (core BAB, data/CLI/quality, execution costs, risk/replay, execution adapters) plus sizing/shorting/regime/beta-neutrality/attribution features under `strategies/betting_against_beta/`.
+- Prior notes claimed large green test suites (300+ files / 1000+ tests). Treat as stale until reproduced by current full-suite baseline.
+- `AGENT_HANDOFF.md` is a pointer; `AGENT_TASK_2026-11-14.md` is legacy/superseded by this canonical handoff.
 
----
-
-## 🚀 Immediate Actionable Commands
-```bash
-# Quick health check
-python -m pytest tests/test_betting_against_beta.py -q
-
-# Full suite (will take 3-5 min)
-python -m pytest -q --tb=line 2>&1 | tail -20
-
-# Profile a slow test
-python -m pytest tests/test_bab_execution_integration_r5.py::test_e2e_paper_adapter_then_reconcile -v --tb=short --durations=10
-
-# Run with coverage
-python -m pytest --cov=strategies --cov=scripts --cov-report=term-missing
-```
-
----
-
-## 📋 Agent Instructions: DO NOT AVOID HEAVY WORK
-- **Run the full test suite** before claiming completion — 308 files is the reality
-- **Profile before optimizing** — use `--durations=20` and `cProfile`
-- **Add static analysis** — this repo has NONE; it's a gap, not a feature
-- **Test real data paths** — synthetic data hides timezone/coercion bugs
-- **Update this HANDOFF.md** with new timestamp, status, and next focus
-
----
-
-**Next Session Goal:** Establish lint/type CI gate + profile top 3 slow tests + add 1 real-data integration test.
-
-**Blocker Escalation:** If CI workflow pattern sync fails again, fix `scripts/controller_progress.py` EXCLUDE_PATTERNS AND `.github/workflows/main.yml` stage_safe_changes atomically.
-
----
-
-*Generated by Kilo agentic session — 2026-11-14T09:24:23Z*
+## Session log
+- **2026-11-14T09:35:56Z (handoff consolidation):** Audited repo state (HEAD `fadfcef`, clean tree), read README/pyproject/workflow head, existing handoffs, research_state, and fixtures. Established this file as the single durable, timestamped, binding task message and removed parallel-handoff ambiguity by superseding stale task-doc guidance. No product code/tests changed; **no test/build evidence collected this step** — next agent must execute Priority 1 immediately.
