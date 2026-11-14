@@ -24,6 +24,7 @@ from .shorting import ShortingConstraints
 from .sizing import KellySizer, VolatilityTargetSizer, RiskParitySizer, EqualWeightSizer
 from . import risk as _risk
 from .risk import KillSwitchEvent
+from . import execution as _execution
 
 
 def _normalize_position_sizer(ps):
@@ -139,6 +140,7 @@ class BABResult:
     weights: object  # pd.DataFrame of portfolio weights
     backtest: object  # pd.DataFrame of backtest results
     kill_switch: object = None  # KillSwitchEvent from risk.py
+    execution: object = None  # R5-A: execution adapter payload (intents/fills) or None
 
 
 class BABStrategy:
@@ -157,6 +159,9 @@ class BABStrategy:
         if config is None and kwargs:
             # Support flexible kwargs
             cfg_kwargs = {}
+            # R5-A: execution_adapter is NOT a config field — it is popped
+            # after BABConfig construction so unknown-field rejection never
+            # triggers and it is stored on the strategy instance instead.
             for k in ['universe', 'benchmark', 'beta_window', 'rebalance_freq', 'long_quantile',
                       'short_quantile', 'dollar_neutral', 'min_observations', 'data_source',
                       'min_rows', 'transaction_costs', 'slippage', 'max_turnover', 'max_position_size',
@@ -178,6 +183,12 @@ class BABStrategy:
                 cfg_kwargs['min_observations'] = kwargs['min_obs']
             config = BABConfig(**cfg_kwargs)
         self.config = config or BABConfig()
+        # R5-A: execution adapter (None => default path, byte-identical).
+        self.execution_adapter = None
+        if config is None:
+            self.execution_adapter = kwargs.pop("execution_adapter", None)
+        elif "execution_adapter" in kwargs:
+            self.execution_adapter = kwargs.pop("execution_adapter")
         # Cached result of the last ``run()``; powers the report()/tear_sheet()
         # accessors without requiring callers to re-run the pipeline.
         self._last_result: object | None = None  # noqa: ANN401
@@ -505,6 +516,37 @@ class BABStrategy:
                     max_participation=getattr(cfg, "max_participation", 0.10),
                 )
 
+        # R5-A: Execution adapter integration (additive, default path unchanged).
+        # When an adapter is configured, order intents are generated from
+        # period-to-period weight changes and submitted; fills are recorded on
+        # the result for downstream reconciliation (R5-B / R5-C). When no
+        # adapter is configured (default), execution_payload stays None and
+        # run() is byte-identical to pre-R5 behavior.
+        execution_payload = None
+        if self.execution_adapter is not None:
+            from .execution import order_batches_from_weights, execution_payload_to_json
+
+            _cost_model_for_exec, _prices_for_exec, _adv_for_exec = self._resolve_cost_model(cfg)
+            _batches = order_batches_from_weights(
+                final_weights, prices_df=_prices_for_exec, adv_usd=_adv_for_exec
+            )
+            _all_batches = []
+            _all_fills = []
+            for _batch in _batches:
+                _fills = self.execution_adapter.submit_intents(_batch)
+                _all_batches.append(_batch.to_dict())
+                _all_fills.extend(_fills)
+            _flushed = self.execution_adapter.flush()
+            _all_fills.extend(_flushed)
+            execution_payload = {
+                "adapter": type(self.execution_adapter).__name__,
+                "n_batches": len(_batches),
+                "n_intents": sum(len(b.intents) for b in _batches),
+                "n_fills": len(_all_fills),
+                "batches": _all_batches,
+                "fills": _all_fills,
+            }
+
         result = BABResult(
             config=cfg,
             returns=returns,
@@ -513,6 +555,7 @@ class BABStrategy:
             weights=final_weights,
             backtest=final_backtest,
             kill_switch=kill_switch_event,
+            execution=execution_payload,
         )
         # Cache so report()/tear_sheet() can be called without re-running.
         self._last_result = result
