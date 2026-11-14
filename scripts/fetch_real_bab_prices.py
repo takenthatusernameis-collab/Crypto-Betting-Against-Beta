@@ -485,6 +485,90 @@ def _fetch_coinbase_exchange_public(
     return df[cols]
 
 
+def _safe_write_failure_metadata(args, error: str) -> None:
+    """Best-effort failure metadata write; never raises from the error path."""
+    if not args.metadata_out:
+        return
+    try:
+        meta = _build_metadata(
+            args=args, mode="failed", final_df=None, error=error
+        )
+    except Exception:
+        # Even metadata construction can fail (bad args); skip silently rather
+        # than mask the original fetch/update error.
+        return
+    try:
+        _write_metadata(args, meta)
+    except Exception:
+        return
+
+
+def _write_metadata(args, meta: dict) -> None:
+    """Write the JSON audit sidecar if --metadata-out was requested."""
+    if not args.metadata_out:
+        return
+    out_path = Path(args.metadata_out)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(out_path, "w", encoding="utf-8") as fh:
+        json.dump(meta, fh, indent=2, sort_keys=True)
+        fh.write("\n")
+
+
+def _build_metadata(
+    *,
+    args,
+    mode: str,
+    final_df: pd.DataFrame | None,
+    error: str | None = None,
+) -> dict:
+    """Build a machine-readable audit trail dict (no secrets/ToS text)."""
+    symbols = _parse_symbols(args.universe, args.benchmark)
+    # Validate date args (raises BABDataError on bad format) — results unused here.
+    _parse_iso_date(args.start, "--start")
+    _parse_iso_date(args.end, "--end")
+    meta: dict = {
+        "tool": "scripts/fetch_real_bab_prices.py",
+        "source": args.source,
+        "benchmark": args.benchmark,
+        "universe": symbols,
+        "request_range": {"start": args.start, "end": args.end},
+        "quote_currency": getattr(args, "quote_currency", "USD"),
+        "request_settings": {
+            "timeout_seconds": float(args.request_timeout),
+            "max_requests_per_second": float(args.max_requests_per_second),
+            "max_retries": COINBASE_PUBLIC_MAX_RETRIES,
+            "user_agent": COINBASE_PUBLIC_USER_AGENT,
+        },
+        "tos_acknowledged": bool(args.accept_terms == COINBASE_PUBLIC_TOS_ACK)
+        if args.source == COINBASE_PUBLIC_SOURCE
+        else False,
+        "fetch_time_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "mode": mode,
+    }
+    if args.source == COINBASE_PUBLIC_SOURCE:
+        meta["source_url_base"] = COINBASE_PUBLIC_BASE_URL
+        meta["tos_flag_only"] = True
+    if args.source == "fixture" and args.fixture_path:
+        meta["source"] = f"fixture:{args.fixture_path}"
+    if args.seed is not None:
+        meta["seed"] = int(args.seed)
+    if final_df is not None:
+        meta["outcome"] = {
+            "ok": True,
+            "rows": len(final_df),
+            "date_coverage": {
+                "first": str(final_df["date"].iloc[0]),
+                "last": str(final_df["date"].iloc[-1]),
+                "unique_dates": int(final_df["date"].nunique()),
+            },
+            "columns": [str(c) for c in final_df.columns],
+            "output": str(Path(args.output).resolve()),
+        }
+    else:
+        meta["outcome"] = {"ok": False, "error": error or "unknown error"}
+    return meta
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="Fetch/update deterministic real-format BAB price data"
@@ -567,6 +651,14 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--print-metadata", action="store_true", help="Print source/coverage metadata"
     )
+    parser.add_argument(
+        "--metadata-out",
+        default=None,
+        help=(
+            "Write a machine-readable JSON audit sidecar with source, pacing, "
+            "coverage, and outcome/error context. Never persists raw ToS text or secrets."
+        ),
+    )
     args = parser.parse_args(argv)
 
     try:
@@ -643,6 +735,8 @@ def main(argv: list[str] | None = None) -> int:
         load_prices(final_df, benchmark=args.benchmark, min_rows=2)
         final_df.to_csv(out_path, index=False)
 
+        _write_metadata(args, _build_metadata(args=args, mode=mode, final_df=final_df))
+
         if args.print_metadata:
             print(f"mode={mode}")
             print(f"output={out_path}")
@@ -656,9 +750,11 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     except BABDataError as exc:
         print(f"Data fetch/update failed: {exc}", file=sys.stderr)
+        _safe_write_failure_metadata(args, str(exc))
         return 1
     except Exception as exc:
         print(f"Data fetch/update failed: {exc}", file=sys.stderr)
+        _safe_write_failure_metadata(args, str(exc))
         return 1
 
 
