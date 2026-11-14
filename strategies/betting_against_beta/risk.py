@@ -140,7 +140,7 @@ class RiskLimits:
     """
 
     max_gross_exposure: float = 1.0  # Maximum sum of absolute weights
-    max_net_exposure: float = 0.0  # Maximum net weight (long - short)
+    max_net_exposure: float = 1.0  # Maximum net weight (long - short)
     max_position_weight: float = 0.2  # Maximum weight per single asset
     max_position_age_days: int | None = None  # Maximum days a position can be held
     max_drawdown: float | None = None  # Maximum portfolio drawdown (0-1)

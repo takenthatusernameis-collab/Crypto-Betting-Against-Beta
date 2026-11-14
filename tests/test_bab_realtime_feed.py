@@ -196,21 +196,33 @@ class TestValidateFreshness:
             {"BTC": [0.01, -0.005, 0.002], "ETH": [0.02, 0.001, -0.01]},
             index=pd.date_range("2024-01-01", periods=3, freq="D", tz="UTC"),
         )
-        # Should not raise
-        validate_freshness(returns_df, max_staleness_days=5.0, max_gap_days=2.0)
+        # Should not raise (reference date is the last observation).
+        validate_freshness(
+            returns_df,
+            max_staleness_days=5.0,
+            max_gap_days=2.0,
+            reference_date=returns_df.index[-1],
+        )
 
     def test_validate_freshness_staleness_violation(self):
-        # Data from 10 days ago
-        old_date = pd.Timestamp.now(tz="UTC") - pd.Timedelta(days=10)
+        # Data from 10 days ago relative to a fixed reference.
+        old_date = pd.Timestamp("2024-01-01", tz="UTC")
         returns_df = pd.DataFrame(
             {"BTC": [0.01, -0.005]},
-            index=pd.DatetimeIndex([old_date, old_date + pd.Timedelta(days=1)], tz="UTC"),
+            index=pd.DatetimeIndex(
+                [old_date, old_date + pd.Timedelta(days=1)], tz="UTC"
+            ),
         )
         with pytest.raises(BABDataError, match="staleness.*exceeds max"):
-            validate_freshness(returns_df, max_staleness_days=5.0, max_gap_days=2.0)
+            validate_freshness(
+                returns_df,
+                max_staleness_days=5.0,
+                max_gap_days=2.0,
+                reference_date=pd.Timestamp("2024-01-11", tz="UTC"),
+            )
 
     def test_validate_freshness_gap_violation(self):
-        # Gap of 10 days between observations
+        # Gap of 10 days between observations.
         dates = pd.DatetimeIndex(
             ["2024-01-01", "2024-01-11"], tz="UTC"
         )
@@ -219,7 +231,12 @@ class TestValidateFreshness:
             index=dates,
         )
         with pytest.raises(BABDataError, match="gap.*exceeds max"):
-            validate_freshness(returns_df, max_staleness_days=30.0, max_gap_days=5.0)
+            validate_freshness(
+                returns_df,
+                max_staleness_days=30.0,
+                max_gap_days=5.0,
+                reference_date=returns_df.index[-1],
+            )
 
     def test_validate_freshness_empty_dataframe(self):
         returns_df = pd.DataFrame()
@@ -235,13 +252,18 @@ class TestValidateFreshness:
             validate_freshness(returns_df)
 
     def test_validate_freshness_naive_datetime_index(self):
-        # Naive datetime index should be treated as UTC
+        # Naive datetime index should be treated as UTC.
         returns_df = pd.DataFrame(
             {"BTC": [0.01, -0.005]},
             index=pd.DatetimeIndex(["2024-01-01", "2024-01-02"]),
         )
-        # Should not raise (treated as UTC)
-        validate_freshness(returns_df, max_staleness_days=1000.0, max_gap_days=10.0)
+        # Should not raise (reference date is the last observation).
+        validate_freshness(
+            returns_df,
+            max_staleness_days=1000.0,
+            max_gap_days=10.0,
+            reference_date=pd.Timestamp("2024-01-02", tz="UTC"),
+        )
 
 
 class TestCCXTFeedReconnect:
@@ -267,19 +289,21 @@ class TestSLAEnforcement:
     def test_staleness_exactly_at_limit(self):
         feed = RealtimeFeed(symbols=["BTC"], max_staleness_seconds=10.0)
         import time
+        now = time.time()
         # Exactly at limit (10 seconds ago) - should pass
-        limit_time = time.time() - 10.0
+        limit_time = now - 10.0
         data = {"BTC": {"price": 50000.0, "timestamp": limit_time, "volume": 100.0}}
-        assert feed.validate_freshness(data) is True
+        assert feed.validate_freshness(data, now=now) is True
 
     def test_staleness_just_over_limit(self):
         feed = RealtimeFeed(symbols=["BTC"], max_staleness_seconds=10.0)
         import time
+        now = time.time()
         # Just over limit (10.1 seconds ago) - should fail
-        over_time = time.time() - 10.1
+        over_time = now - 10.1
         data = {"BTC": {"price": 50000.0, "timestamp": over_time, "volume": 100.0}}
         with pytest.raises(BABDataError):
-            feed.validate_freshness(data)
+            feed.validate_freshness(data, now=now)
 
     def test_gap_exactly_at_limit(self):
         feed = RealtimeFeed(symbols=["BTC"], max_gap_seconds=10.0)
@@ -287,20 +311,20 @@ class TestSLAEnforcement:
         now = time.time()
         # First tick at now - 10
         data1 = {"BTC": {"price": 50000.0, "timestamp": now - 10.0, "volume": 100.0}}
-        feed.validate_freshness(data1)
+        feed.validate_freshness(data1, now=now)
         # Second tick at now - exactly 10 second gap
         data2 = {"BTC": {"price": 50100.0, "timestamp": now, "volume": 100.0}}
-        assert feed.validate_freshness(data2) is True
+        assert feed.validate_freshness(data2, now=now) is True
 
     def test_gap_just_over_limit(self):
         feed = RealtimeFeed(symbols=["BTC"], max_gap_seconds=10.0)
         import time
         now = time.time()
         data1 = {"BTC": {"price": 50000.0, "timestamp": now - 10.1, "volume": 100.0}}
-        feed.validate_freshness(data1)
+        feed.validate_freshness(data1, now=now)
         data2 = {"BTC": {"price": 50100.0, "timestamp": now, "volume": 100.0}}
         with pytest.raises(BABDataError, match="Gap SLA violation"):
-            feed.validate_freshness(data2)
+            feed.validate_freshness(data2, now=now)
 
     def test_multiple_symbols_independent_sla(self):
         feed = RealtimeFeed(symbols=["BTC", "ETH"], max_staleness_seconds=10.0)
@@ -312,7 +336,7 @@ class TestSLAEnforcement:
             "ETH": {"price": 3000.0, "timestamp": now - 20.0, "volume": 500.0},
         }
         with pytest.raises(BABDataError, match="ETH"):
-            feed.validate_freshness(data)
+            feed.validate_freshness(data, now=now)
 
 
 if __name__ == "__main__":

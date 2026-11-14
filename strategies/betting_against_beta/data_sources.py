@@ -135,10 +135,14 @@ class FeedHealth:
 
 
 class RealtimeFeed(ABC):
-    """Abstract base class for real-time data feeds.
+    """Concrete base for real-time data feeds (testable without a live exchange).
 
-    Enforces tick/bar freshness SLA (max_staleness_seconds, max_gap_seconds).
-    Normalizes output to load_prices/load_returns schema.
+    Enforces tick/bar freshness SLA (``max_staleness_seconds``,
+    ``max_gap_seconds``).  Subclasses (e.g. :class:`CCXTFeed`,
+    :class:`WebSocketFeed`) override :meth:`connect`/:meth:`disconnect`/
+    :meth:`fetch_latest`.  The base provides safe no-op defaults so the class
+    can be instantiated directly in tests; ``fetch_latest`` returns any
+    cached ticks.
     """
 
     def __init__(
@@ -155,35 +159,34 @@ class RealtimeFeed(ABC):
         self._last_tick_data: dict[str, dict] = {}
         self._error: str | None = None
 
-    @abstractmethod
     def connect(self) -> None:
-        """Establish connection to the feed."""
-        ...
+        """Establish connection to the feed (default no-op)."""
+        self._connected = True
+        self._error = None
 
-    @abstractmethod
     def disconnect(self) -> None:
-        """Close connection to the feed."""
-        ...
+        """Close connection to the feed (default no-op)."""
+        self._connected = False
 
-    @abstractmethod
     def fetch_latest(self) -> dict[str, dict]:
-        """Fetch latest tick/bar data for all symbols.
-
-        Returns dict: {symbol: {"price": float, "timestamp": float, "volume": float, ...}}
-        """
-        ...
+        """Fetch latest tick/bar data for all symbols (default: cached ticks)."""
+        return dict(self._last_tick_data)
 
     def is_connected(self) -> bool:
         """Check if feed is connected."""
         return self._connected
 
-    def validate_freshness(self, data: dict[str, dict]) -> bool:
+    def validate_freshness(self, data: dict[str, dict], now: float | None = None) -> bool:
         """Validate data freshness against SLA.
 
-        Raises BABDataError on violation (no silent fallback).
+        ``now`` overrides the wall-clock reference (float seconds since epoch)
+        for deterministic testing.  Raises :class:`BABDataError` on violation
+        (no silent fallback).
         """
         import time
-        now = time.time()
+
+        if now is None:
+            now = time.time()
 
         for symbol in self.symbols:
             if symbol not in data:
@@ -448,36 +451,78 @@ def validate_freshness(
     returns_df: pd.DataFrame,
     max_staleness_days: float = 2.0,
     max_gap_days: float = 7.0,
-) -> None:
+    reference_date: object | None = None,
+) -> bool:
     """Validate freshness of loaded returns data.
 
-    Raises BABDataError if data is stale or has gaps beyond thresholds.
+    Raises :class:`BABDataError` if data is stale or has gaps beyond
+    thresholds.  Returns ``True`` when the data passes both checks.
+
+    ``reference_date`` defaults to the current UTC date.  Pass a fixed value
+    in tests / historical backtests so the check is deterministic; without it,
+    historical fixtures are always stale relative to "now".
     """
     if returns_df is None or returns_df.empty:
         raise BABDataError("Empty returns data")
 
     idx = returns_df.index
     if not isinstance(idx, pd.DatetimeIndex):
+        # Reject numeric indices outright: pandas happily parses raw integers
+        # as nanosecond epochs (e.g. [0, 1] -> 1970-01-01), which is not a
+        # meaningful date index. Only object/string-like indices are converted.
+        if pd.api.types.is_numeric_dtype(idx):
+            raise BABDataError("Index cannot be parsed as datetime")
         try:
             idx = pd.to_datetime(idx)
         except Exception:
             raise BABDataError("Index cannot be parsed as datetime")
+        if not isinstance(idx, pd.DatetimeIndex):
+            raise BABDataError("Index cannot be parsed as datetime")
 
-    now = pd.Timestamp.now(tz="UTC")
-    idx = idx.tz_localize("UTC") if idx.tz is None else idx.tz_convert("UTC")
+    if reference_date is None:
+        reference = pd.Timestamp.now(tz="UTC")
+    else:
+        try:
+            reference = pd.Timestamp(reference_date)
+        except (TypeError, ValueError):
+            raise BABDataError(
+                f"reference_date cannot be parsed as datetime: {reference_date!r}"
+            )
 
-    # Check staleness (time since last observation)
-    last_date = idx[-1]
-    staleness = (now - last_date).total_seconds() / 86400  # days
-    if staleness > max_staleness_days:
+    # Normalize to UTC for a consistent comparison.
+    try:
+        if getattr(reference, "tz", None) is not None:
+            reference = reference.tz_convert("UTC")
+        else:
+            reference = reference.tz_localize("UTC")
+    except Exception:
+        pass
+
+    try:
+        if getattr(idx, "tz", None) is not None:
+            idx_utc = idx.tz_convert("UTC")
+        else:
+            idx_utc = idx.tz_localize("UTC")
+    except Exception:
+        idx_utc = idx
+
+    # Check staleness (time since last observation relative to reference).
+    last_date = idx_utc[-1]
+    staleness = (reference - last_date).total_seconds() / 86400.0  # days
+    if staleness > float(max_staleness_days):
         raise BABDataError(
-            f"Data staleness {staleness:.1f} days exceeds max {max_staleness_days:.1f} days"
+            f"Data staleness {staleness:.1f} days exceeds max "
+            f"{max_staleness_days:.1f} days"
         )
 
-    # Check gaps
-    diffs = idx.to_series().diff().dropna()
-    max_gap = diffs.max().total_seconds() / 86400  # days
-    if max_gap > max_gap_days:
-        raise BABDataError(
-            f"Data gap {max_gap:.1f} days exceeds max {max_gap_days:.1f} days"
-        )
+    # Check gaps between consecutive observations.
+    diffs = idx_utc.to_series().diff().dropna()
+    if not diffs.empty:
+        max_gap = diffs.max().total_seconds() / 86400.0  # days
+        if max_gap > float(max_gap_days):
+            raise BABDataError(
+                f"Data gap {max_gap:.1f} days exceeds max "
+                f"{max_gap_days:.1f} days"
+            )
+
+    return True

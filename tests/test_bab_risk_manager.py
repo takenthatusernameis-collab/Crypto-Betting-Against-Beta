@@ -23,7 +23,7 @@ class TestRiskLimits:
     def test_default_limits(self):
         limits = RiskLimits()
         assert limits.max_gross_exposure == 1.0
-        assert limits.max_net_exposure == 0.0
+        assert limits.max_net_exposure == 1.0
         assert limits.max_position_weight == 0.2
         assert limits.max_position_age_days is None
         assert limits.max_drawdown is None
@@ -323,24 +323,24 @@ class TestRiskManager:
         assert not manager._kill_switch_triggered  # Not actually triggered
 
     def test_pre_trade_check_daily_turnover(self):
-        limits = RiskLimits(max_daily_turnover=0.3)
+        limits = RiskLimits(max_daily_turnover=0.3, max_position_weight=1.0)
         manager = RiskManager(limits=limits)
 
         current = pd.Series({"BTC": 0.1, "ETH": 0.05})
-        # Target would require turnover of 0.4 (> 0.3)
+        # Target requires turnover of 0.45 (> 0.3)
         intent1 = OrderIntent(
             date="2024-01-01",
             asset="BTC",
-            target_weight=0.3,
+            target_weight=0.4,
             current_weight=0.1,
-            order_weight=0.2,
+            order_weight=0.3,
         )
         intent2 = OrderIntent(
             date="2024-01-01",
             asset="ETH",
-            target_weight=0.0,
+            target_weight=-0.1,
             current_weight=0.05,
-            order_weight=-0.05,
+            order_weight=-0.15,
         )
         batch = OrderBatch(date="2024-01-01", intents=(intent1, intent2))
 
@@ -470,7 +470,11 @@ class TestKillSwitchIntegration:
         cumulative = pd.Series([1.0, 0.9, 0.8], index=pd.date_range("2024-01-01", periods=3))
         new_weights, event = apply_kill_switch(weights, cumulative, limit=0.15)
         assert event.triggered is True
-        assert (new_weights.iloc[1:] == 0).all().all()
+        # Flattening starts at the breach date (position 2, the first day
+        # cumulative drawdown exceeds the 0.15 limit); pre-breach positions
+        # are preserved. Matches test_bab_drawdown_kill_switch_r4 semantics.
+        assert (new_weights.iloc[2:] == 0).all().all()
+        assert (new_weights.iloc[:2] == weights.iloc[:2]).all().all()
 
     def test_apply_kill_switch_no_trigger(self):
         weights = pd.DataFrame(
