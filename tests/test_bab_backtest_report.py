@@ -115,13 +115,19 @@ class TestReportOnMessyData:
     duplicate timestamps, delisted asset columns)."""
 
     def test_json_report_is_finite_on_messy_fixture(self):
-        result = _run([
-            "--data-source", str(MESSY_FIXTURE),
-            "--benchmark", "BTC",
-            "--beta-window", "3",
-            "--min-observations", "2",
-            "--json",
-        ])
+        result = _run(
+            [
+                "--data-source",
+                str(MESSY_FIXTURE),
+                "--benchmark",
+                "BTC",
+                "--beta-window",
+                "3",
+                "--min-observations",
+                "2",
+                "--json",
+            ]
+        )
         assert result.returncode == 0, result.stderr
         payload = json.loads(result.stdout)
         for key, value in payload["metrics"].items():
@@ -130,12 +136,18 @@ class TestReportOnMessyData:
             assert value not in (float("inf"), float("-inf")), f"{key} is infinite"
 
     def test_human_readable_report_runs_on_messy_fixture(self):
-        result = _run([
-            "--data-source", str(MESSY_FIXTURE),
-            "--benchmark", "BTC",
-            "--beta-window", "3",
-            "--min-observations", "2",
-        ])
+        result = _run(
+            [
+                "--data-source",
+                str(MESSY_FIXTURE),
+                "--benchmark",
+                "BTC",
+                "--beta-window",
+                "3",
+                "--min-observations",
+                "2",
+            ]
+        )
         assert result.returncode == 0, result.stderr
         assert "BAB STRATEGY BACKTEST REPORT" in result.stdout
 
@@ -148,13 +160,19 @@ class TestReportOnDegenerateData:
     DEGENERATE = REPO_ROOT / "tests" / "fixtures" / "degenerate_metrics.csv"
 
     def test_json_report_is_finite_on_degenerate_fixture(self):
-        result = _run([
-            "--data-source", str(self.DEGENERATE),
-            "--benchmark", "BTC",
-            "--beta-window", "3",
-            "--min-observations", "2",
-            "--json",
-        ])
+        result = _run(
+            [
+                "--data-source",
+                str(self.DEGENERATE),
+                "--benchmark",
+                "BTC",
+                "--beta-window",
+                "3",
+                "--min-observations",
+                "2",
+                "--json",
+            ]
+        )
         assert result.returncode == 0, result.stderr
         payload = json.loads(result.stdout)
         for key, value in payload["metrics"].items():
@@ -163,12 +181,18 @@ class TestReportOnDegenerateData:
             assert value not in (float("inf"), float("-inf")), f"{key} is infinite"
 
     def test_human_readable_report_runs_on_degenerate_fixture(self):
-        result = _run([
-            "--data-source", str(self.DEGENERATE),
-            "--benchmark", "BTC",
-            "--beta-window", "3",
-            "--min-observations", "2",
-        ])
+        result = _run(
+            [
+                "--data-source",
+                str(self.DEGENERATE),
+                "--benchmark",
+                "BTC",
+                "--beta-window",
+                "3",
+                "--min-observations",
+                "2",
+            ]
+        )
         assert result.returncode == 0, result.stderr
         assert "BAB STRATEGY BACKTEST REPORT" in result.stdout
 
@@ -182,21 +206,31 @@ class TestReportRealDataSmoke:
     """
 
     def test_json_is_valid_finite_with_expected_config_keys(self):
-        result = _run([
-            "--data-source", str(MESSY_FIXTURE),
-            "--benchmark", "BTC",
-            "--beta-window", "3",
-            "--min-observations", "2",
-            "--json",
-        ])
+        result = _run(
+            [
+                "--data-source",
+                str(MESSY_FIXTURE),
+                "--benchmark",
+                "BTC",
+                "--beta-window",
+                "3",
+                "--min-observations",
+                "2",
+                "--json",
+            ]
+        )
         assert result.returncode == 0, result.stderr
         payload = json.loads(result.stdout)
 
         # Expected config keys present.
         for key in (
-            "universe", "benchmark", "beta_window",
-            "long_quantile", "short_quantile",
-            "transaction_costs", "data_source",
+            "universe",
+            "benchmark",
+            "beta_window",
+            "long_quantile",
+            "short_quantile",
+            "transaction_costs",
+            "data_source",
         ):
             assert key in payload["config"], f"missing config key: {key}"
 
@@ -222,14 +256,21 @@ class TestTransactionCostsPath:
     FIXTURE = MESSY_FIXTURE
 
     def _metrics(self, costs: float) -> dict:
-        result = _run([
-            "--data-source", str(self.FIXTURE),
-            "--benchmark", "BTC",
-            "--beta-window", "3",
-            "--min-observations", "2",
-            "--transaction-costs", str(costs),
-            "--json",
-        ])
+        result = _run(
+            [
+                "--data-source",
+                str(self.FIXTURE),
+                "--benchmark",
+                "BTC",
+                "--beta-window",
+                "3",
+                "--min-observations",
+                "2",
+                "--transaction-costs",
+                str(costs),
+                "--json",
+            ]
+        )
         assert result.returncode == 0, result.stderr
         return json.loads(result.stdout)["metrics"]
 
@@ -245,14 +286,21 @@ class TestTransactionCostsPath:
         )
 
     def test_costs_reflected_in_config(self):
-        result = _run([
-            "--data-source", str(self.FIXTURE),
-            "--benchmark", "BTC",
-            "--beta-window", "3",
-            "--min-observations", "2",
-            "--transaction-costs", "0.001",
-            "--json",
-        ])
+        result = _run(
+            [
+                "--data-source",
+                str(self.FIXTURE),
+                "--benchmark",
+                "BTC",
+                "--beta-window",
+                "3",
+                "--min-observations",
+                "2",
+                "--transaction-costs",
+                "0.001",
+                "--json",
+            ]
+        )
         assert result.returncode == 0, result.stderr
         payload = json.loads(result.stdout)
         assert payload["config"]["transaction_costs"] == 0.001
@@ -263,13 +311,19 @@ class TestNonBtcBenchmark:
     produce finite weights."""
 
     def test_eth_benchmark_runs_with_finite_weights(self):
-        result = _run([
-            "--data-source", str(MESSY_FIXTURE),
-            "--benchmark", "ETH",
-            "--beta-window", "3",
-            "--min-observations", "2",
-            "--json",
-        ])
+        result = _run(
+            [
+                "--data-source",
+                str(MESSY_FIXTURE),
+                "--benchmark",
+                "ETH",
+                "--beta-window",
+                "3",
+                "--min-observations",
+                "2",
+                "--json",
+            ]
+        )
         assert result.returncode == 0, result.stderr
         payload = json.loads(result.stdout)
         assert payload["config"]["benchmark"] == "ETH"
@@ -291,13 +345,19 @@ class TestReportDeterminism:
     FIXTURE = MESSY_FIXTURE
 
     def _payload(self) -> dict:
-        result = _run([
-            "--data-source", str(self.FIXTURE),
-            "--benchmark", "BTC",
-            "--beta-window", "3",
-            "--min-observations", "2",
-            "--json",
-        ])
+        result = _run(
+            [
+                "--data-source",
+                str(self.FIXTURE),
+                "--benchmark",
+                "BTC",
+                "--beta-window",
+                "3",
+                "--min-observations",
+                "2",
+                "--json",
+            ]
+        )
         assert result.returncode == 0, result.stderr
         return json.loads(result.stdout)
 

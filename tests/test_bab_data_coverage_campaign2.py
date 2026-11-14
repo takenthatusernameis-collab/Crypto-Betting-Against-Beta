@@ -24,9 +24,7 @@ def test_seed_changes_output():
 
 def test_custom_asset_names():
     names = ["BTC", "ETH", "SOL"]
-    df = generate_synthetic_returns(
-        n_days=30, n_assets=3, asset_names=names, seed=3
-    )
+    df = generate_synthetic_returns(n_days=30, n_assets=3, asset_names=names, seed=3)
     assert list(df.columns) == names
     assert len(df) == 30
 
@@ -45,9 +43,7 @@ def test_column_alignment_benchmark_plus_assets():
 
 
 def test_benchmark_name_override():
-    df = generate_synthetic_returns(
-        n_days=20, n_assets=3, benchmark_name="ETH", seed=6
-    )
+    df = generate_synthetic_returns(n_days=20, n_assets=3, benchmark_name="ETH", seed=6)
     assert "ETH" in df.columns
     assert "BTC" not in df.columns
     assert len(df.columns) == 4

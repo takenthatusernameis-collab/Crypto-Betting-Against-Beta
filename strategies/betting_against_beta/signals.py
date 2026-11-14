@@ -86,7 +86,7 @@ def _reference_generate_bab_signals(betas_df, long_quantile=0.3, short_quantile=
             n_short = max(0, n - n_long)
 
         long_assets = list(sorted_betas.index[:n_long])
-        short_assets = list(sorted_betas.index[n - n_short:]) if n_short else []
+        short_assets = list(sorted_betas.index[n - n_short :]) if n_short else []
         for asset in long_assets:
             signals.at[idx, asset] = 1
         for asset in short_assets:
@@ -189,7 +189,5 @@ def generate_bab_signals(betas_df, long_quantile=0.3, short_quantile=0.3):
     short_mask = short_mask & ~long_mask
     # Cells are exactly {1, -1} or 0; int8 halves the final 2-D allocation and
     # stays bit-identical once widened to the int64 frame below.
-    signals_arr = (
-        long_mask.astype(np.int8) - short_mask.astype(np.int8)
-    ).astype(np.int64)
+    signals_arr = (long_mask.astype(np.int8) - short_mask.astype(np.int8)).astype(np.int64)
     return pd.DataFrame(signals_arr, index=betas_df.index, columns=betas_df.columns)

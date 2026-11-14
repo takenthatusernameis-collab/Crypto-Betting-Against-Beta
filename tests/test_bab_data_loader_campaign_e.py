@@ -7,8 +7,10 @@ Covers public API paths requested:
 - validate_returns_dataframe edge/error paths
 - public loaders: load_returns/prices/csv/json/jsonl/parquet/pickle/hdf
 """
+
 from __future__ import annotations
 
+import contextlib
 import json
 import math
 import pickle
@@ -51,6 +53,7 @@ def _ret_df(n=6, cols=("BTC", "ETH", "MKT")):
 
 # --- _coerce_to_datetime_scalar ---
 
+
 def test_coerce_scalar_none_nat_nan_inf():
     with pytest.raises((ValueError, Exception)):
         _coerce_to_datetime_scalar(None)
@@ -71,7 +74,15 @@ def test_coerce_scalar_epoch_units_numeric():
 
 
 def test_coerce_scalar_epoch_string_forms():
-    for s in ["1704067200", "1704067200000", "1704067200.0", "+1704067200", "2024-01-01", "2024-01-01T00:00:00Z", "2024/01/01"]:
+    for s in [
+        "1704067200",
+        "1704067200000",
+        "1704067200.0",
+        "+1704067200",
+        "2024-01-01",
+        "2024-01-01T00:00:00Z",
+        "2024/01/01",
+    ]:
         ts = _coerce_to_datetime_scalar(s)
         assert pd.notna(pd.Timestamp(ts))
 
@@ -90,6 +101,7 @@ def test_coerce_scalar_dayfirst_and_offsets():
 
 
 # --- _normalize_index ---
+
 
 def test_normalize_index_datetime_already():
     df = _ret_df()
@@ -129,6 +141,7 @@ def test_normalize_index_tz_aware():
 
 
 # --- validate_returns_dataframe ---
+
 
 def test_validate_none_not_df_empty():
     with pytest.raises(BABDataError):
@@ -176,17 +189,20 @@ def test_validate_min_rows_and_non_numeric_junk():
 
 
 def test_validate_promotes_datetime_column():
-    df = pd.DataFrame({
-        "date": pd.date_range("2024-01-01", periods=5, freq="D"),
-        "BTC": np.linspace(0.01, 0.05, 5),
-        "MKT": np.linspace(0.005, 0.02, 5),
-    })
+    df = pd.DataFrame(
+        {
+            "date": pd.date_range("2024-01-01", periods=5, freq="D"),
+            "BTC": np.linspace(0.01, 0.05, 5),
+            "MKT": np.linspace(0.005, 0.02, 5),
+        }
+    )
     out = validate_returns_dataframe(df, quality=False)
     assert isinstance(out.index, pd.DatetimeIndex)
     assert "BTC" in out.columns
 
 
 # --- load_returns_from_* loaders and dispatch ---
+
 
 def test_load_returns_from_csv_ok_and_missing(tmp_path):
     df = _ret_df()
@@ -205,7 +221,11 @@ def test_load_returns_from_json_columns_split_records(tmp_path):
     out1 = load_returns_from_json(p1, quality=False)
     assert len(out1) >= 1
 
-    split = {"columns": list(df.columns), "index": [d.isoformat() for d in df.index], "data": df.values.tolist()}
+    split = {
+        "columns": list(df.columns),
+        "index": [d.isoformat() for d in df.index],
+        "data": df.values.tolist(),
+    }
     p2 = tmp_path / "s.json"
     p2.write_text(json.dumps(split), encoding="utf-8")
     out2 = load_returns_from_json(p2, orient="split", quality=False)
@@ -252,10 +272,8 @@ def test_load_returns_from_pickle_df_dict(tmp_path):
     with open(p2, "wb") as f:
         pickle.dump({c: df[c].tolist() for c in df.columns}, f)
     # dict without index may fail validation; accept BABDataError or success
-    try:
+    with contextlib.suppress(BABDataError, Exception):
         load_returns_from_pickle(p2, quality=False)
-    except (BABDataError, Exception):
-        pass
 
 
 def test_load_returns_from_pickle_flat_list_and_missing(tmp_path):
@@ -352,9 +370,12 @@ def test_load_returns_dispatch_errors(tmp_path):
 
 # --- load_prices and detect ---
 
+
 def test_load_prices_from_dataframe_and_csv(tmp_path):
     idx = pd.date_range("2024-01-01", periods=8, freq="D")
-    prices = pd.DataFrame({"BTC": np.linspace(100, 120, 8), "MKT": np.linspace(50, 55, 8)}, index=idx)
+    prices = pd.DataFrame(
+        {"BTC": np.linspace(100, 120, 8), "MKT": np.linspace(50, 55, 8)}, index=idx
+    )
     ret = load_prices(prices)
     assert len(ret) == 7
     p = tmp_path / "p.csv"
@@ -365,7 +386,9 @@ def test_load_prices_from_dataframe_and_csv(tmp_path):
 
 def test_load_prices_json_pickle_paths(tmp_path):
     idx = pd.date_range("2024-01-01", periods=8, freq="D")
-    prices = pd.DataFrame({"BTC": np.linspace(100, 120, 8), "MKT": np.linspace(50, 55, 8)}, index=idx)
+    prices = pd.DataFrame(
+        {"BTC": np.linspace(100, 120, 8), "MKT": np.linspace(50, 55, 8)}, index=idx
+    )
     pj = tmp_path / "p.json"
     recs = prices.reset_index().rename(columns={"index": "date"}).copy()
     recs["date"] = recs["date"].astype(str)
@@ -414,26 +437,31 @@ def test_detect_unknown_and_aliases(tmp_path):
 
 # --- exchange / long-wide / index-vs-column promotion ---
 
+
 def test_exchange_long_format_symbol_date_price():
-    df = pd.DataFrame({
-        "symbol": ["BTC", "BTC", "ETH", "ETH"],
-        "date": ["2024-01-01", "2024-01-02", "2024-01-01", "2024-01-02"],
-        "close": [100.0, 101.0, 10.0, 10.5],
-    })
+    df = pd.DataFrame(
+        {
+            "symbol": ["BTC", "BTC", "ETH", "ETH"],
+            "date": ["2024-01-01", "2024-01-02", "2024-01-01", "2024-01-02"],
+            "close": [100.0, 101.0, 10.0, 10.5],
+        }
+    )
     out = validate_returns_dataframe(df, quality=False)
     # may pivot to returns-like; at minimum should parse
     assert isinstance(out, pd.DataFrame)
 
 
 def test_exchange_ohlcv_single_asset_date_column():
-    df = pd.DataFrame({
-        "date": ["2024-01-01", "2024-01-02", "2024-01-03"],
-        "open": [1, 2, 3],
-        "high": [2, 3, 4],
-        "low": [0.5, 1.5, 2.5],
-        "close": [100.0, 102.0, 101.0],
-        "volume": [10, 11, 12],
-    })
+    df = pd.DataFrame(
+        {
+            "date": ["2024-01-01", "2024-01-02", "2024-01-03"],
+            "open": [1, 2, 3],
+            "high": [2, 3, 4],
+            "low": [0.5, 1.5, 2.5],
+            "close": [100.0, 102.0, 101.0],
+            "volume": [10, 11, 12],
+        }
+    )
     out = validate_returns_dataframe(df, quality=False)
     assert isinstance(out.index, pd.DatetimeIndex)
 
@@ -442,10 +470,8 @@ def test_duplicate_index_handling():
     idx = pd.to_datetime(["2024-01-01", "2024-01-01", "2024-01-02", "2024-01-03", "2024-01-04"])
     df = pd.DataFrame({"BTC": [0.1, 0.2, 0.3, 0.4, 0.5], "MKT": [0.01] * 5}, index=idx)
     # behavior depends on quality settings; accept success or BABDataError
-    try:
+    with contextlib.suppress(BABDataError, Exception):
         validate_returns_dataframe(df, quality=True)
-    except (BABDataError, Exception):
-        pass
 
 
 def test_metadata_unnamed_column_dropped(tmp_path):

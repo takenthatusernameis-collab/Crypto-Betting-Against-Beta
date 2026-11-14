@@ -82,9 +82,7 @@ def _check_run(res, label):
     for col in ("returns", "gross_return", "cost_drag", "slippage_drag", "cumulative"):
         arr = bt[col].to_numpy(dtype=float)
         assert np.isfinite(arr).all(), f"{label}: {col} non-finite"
-    assert math.isfinite(float(bt["cumulative"].iloc[-1])), (
-        f"{label}: non-finite final cumulative"
-    )
+    assert math.isfinite(float(bt["cumulative"].iloc[-1])), f"{label}: non-finite final cumulative"
     net = res.weights.sum(axis=1).to_numpy(dtype=float)
     assert float(np.abs(net).max()) <= DN_TOL, (
         f"{label}: dollar-neutrality breach max|sum(w)|={float(np.abs(net).max()):.3e}"
@@ -100,9 +98,7 @@ _horizon_records: list[dict] = []
 @pytest.mark.parametrize("costs", COSTS)
 @pytest.mark.parametrize("slippage", SLIPPAGES)
 def test_horizon_sweep(frame_label, n_days, n_assets, beta_window, quantile, costs, slippage):
-    label = (
-        f"{frame_window_label(frame_label, n_days, n_assets, beta_window, quantile, costs, slippage)}"
-    )
+    label = f"{frame_window_label(frame_label, n_days, n_assets, beta_window, quantile, costs, slippage)}"
     frame = _get_frame(frame_label, n_days, n_assets)
     res1 = _run_once(frame, beta_window, quantile, quantile, costs, slippage)
     _check_run(res1, label)
@@ -148,4 +144,6 @@ def test_horizon_evidence_summary():
         worst_dd = min(r["max_drawdown"] for r in rows)
         worst_sharpe = min(r["sharpe"] for r in rows)
         max_turnover = max(r["turnover"] for r in rows)
-        print(f"{frame_label:<9} {worst_dd:>12.4f} {worst_sharpe:>9.3f} {max_turnover:>10.4f} {len(rows):>9}")
+        print(
+            f"{frame_label:<9} {worst_dd:>12.4f} {worst_sharpe:>9.3f} {max_turnover:>10.4f} {len(rows):>9}"
+        )

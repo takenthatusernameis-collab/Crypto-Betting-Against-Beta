@@ -10,10 +10,9 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from strategies.betting_against_beta.strategy import BABStrategy
 from strategies.betting_against_beta.config import BABConfig, BABConfigError
 from strategies.betting_against_beta.errors import BABDataError
-
+from strategies.betting_against_beta.strategy import BABStrategy
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 REAL_PRICES = str(REPO_ROOT / "tests" / "fixtures" / "real_market_prices.csv")
@@ -143,7 +142,9 @@ def test_dry_run_invalid_data_raises():
         strat.dry_run(returns_df=pd.DataFrame())
 
     # DataFrame without benchmark
-    df = pd.DataFrame({"ETH": [0.01, 0.02], "SOL": [0.02, 0.01]}, index=pd.date_range("2023-01-01", periods=2))
+    df = pd.DataFrame(
+        {"ETH": [0.01, 0.02], "SOL": [0.02, 0.01]}, index=pd.date_range("2023-01-01", periods=2)
+    )
     with pytest.raises((BABDataError, ValueError)):
         strat.dry_run(returns_df=df)
 
@@ -171,9 +172,10 @@ def test_cli_dry_run_returns_nonzero_on_invalid():
 
 def test_cli_dry_run_output_not_created():
     """CLI --dry-run with --output does not create the output file."""
-    from strategies.betting_against_beta.cli import main
-    import tempfile
     import os
+    import tempfile
+
+    from strategies.betting_against_beta.cli import main
 
     with tempfile.TemporaryDirectory() as tmpdir:
         out_path = os.path.join(tmpdir, "out.json")

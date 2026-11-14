@@ -1,4 +1,6 @@
 """Batch 40: targeted data_loader missing-line coverage."""
+
+import contextlib
 import pickle
 
 import numpy as np
@@ -10,7 +12,6 @@ from strategies.betting_against_beta.data_loader import BABDataError
 
 
 class TestBatch40MissingLineTargets:
-
     def test_load_parquet_validate_baberror_passthrough_1621(self, monkeypatch, tmp_path):
         p = tmp_path / "x.parquet"
         p.write_bytes(b"x")
@@ -98,7 +99,13 @@ class TestBatch40MissingLineTargets:
             dlmod.normalize_schema(df)
 
     def test_clean_data_junk_col_to_numeric_exception_2187_2189(self, monkeypatch):
-        df = pd.DataFrame({"date": pd.to_datetime(["2024-01-01", "2024-01-02"]), "META": ["x", "y"], "BTC": [1.0, 2.0]})
+        df = pd.DataFrame(
+            {
+                "date": pd.to_datetime(["2024-01-01", "2024-01-02"]),
+                "META": ["x", "y"],
+                "BTC": [1.0, 2.0],
+            }
+        )
         df = df.set_index("date")
         orig_to_numeric = pd.to_numeric
 
@@ -160,10 +167,8 @@ class TestBatch40MissingLineTargets:
 
         def norm_then_mark(x):
             r = orig_clean_cols(x)
-            try:
+            with contextlib.suppress(Exception):
                 r._boom_cols = True
-            except Exception:
-                pass
             return r
 
         monkeypatch.setattr(dlmod, "_normalize_columns", norm_then_mark)
@@ -193,10 +198,8 @@ class TestBatch40MissingLineTargets:
                 def __iter__(self):
                     raise RuntimeError("cols iter boom")
 
-            try:
+            with contextlib.suppress(Exception):
                 object.__setattr__(b, "_boom", True)
-            except Exception:
-                pass
             # monkeypatch instance columns access is hard; fallback: patch pd.api.types.is_numeric_dtype to raise once
             return r
 
@@ -216,7 +219,9 @@ class TestBatch40MissingLineTargets:
         assert isinstance(out, pd.DataFrame)
 
     def test_drop_metadata_to_numpy_or_compare_exception_1928_1929(self, monkeypatch):
-        df = pd.DataFrame({"date": pd.date_range("2024-01-01", periods=3, freq="D"), "X": [0.0, 0.0, 1.0]})
+        df = pd.DataFrame(
+            {"date": pd.date_range("2024-01-01", periods=3, freq="D"), "X": [0.0, 0.0, 1.0]}
+        )
         df = df.set_index("date")
 
         class BadArr(np.ndarray):

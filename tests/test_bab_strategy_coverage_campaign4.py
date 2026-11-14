@@ -4,6 +4,7 @@ Targets the second (extra) finiteness guard after the first in-place clean.
 Production-realistic intent: upstream components may yield non-finite values;
 strategy.py must never surface NaN/inf weights.
 """
+
 from __future__ import annotations
 
 import numpy as _np

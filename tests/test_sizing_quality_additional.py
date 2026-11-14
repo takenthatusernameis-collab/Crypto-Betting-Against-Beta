@@ -4,8 +4,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from strategies.betting_against_beta import sizing
-from strategies.betting_against_beta import quality
+from strategies.betting_against_beta import quality, sizing
 from strategies.betting_against_beta.errors import BABDataError
 
 
@@ -35,32 +34,45 @@ class TestSizingMore:
 
     def test_missing_columns_filled(self):
         dates = pd.date_range("2023-01-01", periods=10)
-        signals = pd.DataFrame({"BTC": [1]*5 + [-1]*5, "ETH": [0]*10}, index=dates)
-        returns = pd.DataFrame({"BTC": np.random.default_rng(123).normal(0,0.01,10)}, index=dates)
+        signals = pd.DataFrame({"BTC": [1] * 5 + [-1] * 5, "ETH": [0] * 10}, index=dates)
+        returns = pd.DataFrame({"BTC": np.random.default_rng(123).normal(0, 0.01, 10)}, index=dates)
         out = sizing.apply_position_sizing(signals, returns=returns, sizer="kelly")
         assert "ETH" in out.columns
 
     def test_risk_parity_without_target_vol(self):
         dates = pd.date_range("2023-01-01", periods=80)
         rng = np.random.default_rng(42)
-        signals = pd.DataFrame({"BTC": rng.choice([1,-1,0],80), "ETH": rng.choice([1,-1,0],80)}, index=dates)
-        returns = pd.DataFrame({"BTC": rng.normal(0,0.01,80), "ETH": rng.normal(0,0.012,80)}, index=dates)
+        signals = pd.DataFrame(
+            {"BTC": rng.choice([1, -1, 0], 80), "ETH": rng.choice([1, -1, 0], 80)}, index=dates
+        )
+        returns = pd.DataFrame(
+            {"BTC": rng.normal(0, 0.01, 80), "ETH": rng.normal(0, 0.012, 80)}, index=dates
+        )
         out = sizing.apply_position_sizing(signals, returns=returns, sizer="risk_parity")
         assert np.all(np.isfinite(out.values))
 
     def test_all_sizer_shorthands(self):
         dates = pd.date_range("2023-01-01", periods=80)
         rng = np.random.default_rng(7)
-        signals = pd.DataFrame({"BTC": rng.choice([1,-1,0],80)}, index=dates)
-        returns = pd.DataFrame({"BTC": rng.normal(0,0.01,80)}, index=dates)
-        for name in ["kelly", "kelly_fraction", "vol_target", "volatility_target", "voltarget", "risk_parity", "riskparity", "rp"]:
+        signals = pd.DataFrame({"BTC": rng.choice([1, -1, 0], 80)}, index=dates)
+        returns = pd.DataFrame({"BTC": rng.normal(0, 0.01, 80)}, index=dates)
+        for name in [
+            "kelly",
+            "kelly_fraction",
+            "vol_target",
+            "volatility_target",
+            "voltarget",
+            "risk_parity",
+            "riskparity",
+            "rp",
+        ]:
             out = sizing.apply_position_sizing(signals, returns=returns, sizer=name)
             assert np.all(np.isfinite(out.values))
 
     def test_unknown_sizer_raises(self):
         dates = pd.date_range("2023-01-01", periods=5)
-        signals = pd.DataFrame({"BTC": [1,-1,0,1,-1]}, index=dates)
-        returns = pd.DataFrame({"BTC": [0.01,-0.01,0,0.01,-0.01]}, index=dates)
+        signals = pd.DataFrame({"BTC": [1, -1, 0, 1, -1]}, index=dates)
+        returns = pd.DataFrame({"BTC": [0.01, -0.01, 0, 0.01, -0.01]}, index=dates)
         with pytest.raises(sizing.BABSizingError):
             sizing.apply_position_sizing(signals, returns=returns, sizer="bad")
 
@@ -100,18 +112,18 @@ class TestQualityMore:
         assert quality.data_quality_report("x")["error"] == "invalid_input"
 
     def test_non_datetime_index_gaps_dict(self):
-        df = pd.DataFrame({"A": [1,2,3,4]}, index=[0,1,2,3])
+        df = pd.DataFrame({"A": [1, 2, 3, 4]}, index=[0, 1, 2, 3])
         rep = quality.data_quality_report(df)
         assert rep["index"]["gaps"] == {"count": 0}
 
     def test_non_datetime_gaps_function(self):
-        df = pd.DataFrame({"A": [1,2,3,4]})
+        df = pd.DataFrame({"A": [1, 2, 3, 4]})
         out = quality.detect_gaps(df)
         assert out == {"gaps": [], "count": 0}
 
     def test_gaps_with_zero_median(self):
         idx = pd.date_range("2023-01-01", periods=3)
-        df = pd.DataFrame({"A": [1,2,3]}, index=idx)
+        df = pd.DataFrame({"A": [1, 2, 3]}, index=idx)
         # create zero gaps? not possible, but test function
         out = quality.detect_gaps(df)
         assert "gaps" in out
@@ -135,7 +147,7 @@ class TestQualityMore:
         df = pd.DataFrame({"volume": [0, 0, 0, 0]})
         out = quality.detect_volume_anomalies(df)
         assert out.get("volume", {}).get("count", 0) == 0
-        df2 = pd.DataFrame({"vol": [1,2,3,4]})
+        df2 = pd.DataFrame({"vol": [1, 2, 3, 4]})
         out2 = quality.detect_volume_anomalies(df2)
         assert isinstance(out2.get("vol", {}).get("count", 0), int)
 

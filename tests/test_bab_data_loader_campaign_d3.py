@@ -43,7 +43,9 @@ def test_normalize_index_numeric_zero_or_negative_magnitude():
 
 
 def test_normalize_index_object_index_with_mixed_tz_strings():
-    df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=["2023-01-01T00:00:00+02:00", "2023-01-02T00:00:00-07:00"])
+    df = pd.DataFrame(
+        {"BTC": [0.01, 0.02]}, index=["2023-01-01T00:00:00+02:00", "2023-01-02T00:00:00-07:00"]
+    )
     out = _normalize_index(df)
     assert isinstance(out.index, pd.DatetimeIndex)
     assert out.index.tz is None

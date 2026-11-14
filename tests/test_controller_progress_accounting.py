@@ -14,7 +14,7 @@ import pytest
 SCRIPTS_DIR = Path(__file__).resolve().parent.parent / "scripts"
 sys.path.insert(0, str(SCRIPTS_DIR))
 
-import controller_progress  # noqa: E402
+import controller_progress
 
 
 class TestIsExcluded:
@@ -104,7 +104,9 @@ class TestGitDiffNames:
             assert controller_progress._git_diff_names("bad", "worse") == []
 
     def test_returns_empty_on_timeout(self) -> None:
-        with mock.patch("subprocess.run", side_effect=subprocess.TimeoutExpired(cmd="git", timeout=30)):
+        with mock.patch(
+            "subprocess.run", side_effect=subprocess.TimeoutExpired(cmd="git", timeout=30)
+        ):
             assert controller_progress._git_diff_names("a", "b") == []
 
 
@@ -166,9 +168,12 @@ class TestMain:
     def test_meaningful_changes_with_matching_remote_sha_exits_0(self) -> None:
         sys.argv = [
             "controller_progress.py",
-            "--base-sha", "a",
-            "--head-sha", "b",
-            "--verified-remote-sha", "b",
+            "--base-sha",
+            "a",
+            "--head-sha",
+            "b",
+            "--verified-remote-sha",
+            "b",
         ]
         with mock.patch.object(controller_progress, "has_meaningful_changes", return_value=True):
             assert controller_progress.main() == 0
@@ -176,9 +181,12 @@ class TestMain:
     def test_meaningful_changes_with_mismatching_remote_sha_exits_1(self) -> None:
         sys.argv = [
             "controller_progress.py",
-            "--base-sha", "a",
-            "--head-sha", "b",
-            "--verified-remote-sha", "c",
+            "--base-sha",
+            "a",
+            "--head-sha",
+            "b",
+            "--verified-remote-sha",
+            "c",
         ]
         with mock.patch.object(controller_progress, "has_meaningful_changes", return_value=True):
             assert controller_progress.main() == 1
@@ -213,7 +221,9 @@ class TestStageSafeChangesPatternSync:
 
     def test_python_patterns_are_subset_of_workflow(self) -> None:
         workflow = self._workflow_patterns()
-        missing = set(controller_progress.EXCLUDE_PATTERNS) - self.WORKFLOW_MANAGED_DIRECTLY - workflow
+        missing = (
+            set(controller_progress.EXCLUDE_PATTERNS) - self.WORKFLOW_MANAGED_DIRECTLY - workflow
+        )
         assert not missing, (
             "Python EXCLUDE_PATTERNS has patterns missing from the workflow's "
             f"stage_safe_changes list: {sorted(missing)}"
@@ -234,7 +244,7 @@ class TestStageSafeChangesPatternSync:
         # actually present, so the exclusion cannot silently regress into a
         # pattern-only claim.
         text = self.WORKFLOW_PATH.read_text(encoding="utf-8")
-        assert "git restore --source=\"$base_sha\" --staged --worktree -- .github/workflows" in text
+        assert 'git restore --source="$base_sha" --staged --worktree -- .github/workflows' in text
         assert "git clean -fd -- .github/workflows" in text
         assert "*/.github/workflows/*" in controller_progress.EXCLUDE_PATTERNS
         assert "*/.github/workflows/*" not in self._workflow_patterns()

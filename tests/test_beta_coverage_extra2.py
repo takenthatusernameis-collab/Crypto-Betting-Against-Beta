@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import contextlib
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -20,23 +22,17 @@ from strategies.betting_against_beta.data_loader import BABDataError
 class TestBetaMore:
     def test_calculate_beta_y_none_path_via_weird(self):
         # Try to hit y None case - maybe pass objects that cause issues
-        try:
+        with contextlib.suppress(Exception):
             res = calculate_beta(object(), object())
-        except Exception:
-            pass
 
     def test_calculate_beta_linalgerror_path(self):
         # Hard to force, but call with data
-        try:
-            res = calculate_beta([1,2,3], [1,2,3])
-        except Exception:
-            pass
+        with contextlib.suppress(Exception):
+            res = calculate_beta([1, 2, 3], [1, 2, 3])
 
     def test_calculate_beta_fast_linalgerror(self):
-        try:
-            res = calculate_beta_fast([1.0,2.0,3.0], [1.0,2.0,3.0])
-        except Exception:
-            pass
+        with contextlib.suppress(Exception):
+            res = calculate_beta_fast([1.0, 2.0, 3.0], [1.0, 2.0, 3.0])
 
     def test_calculate_rolling_beta_bench_conversion_fail_then_ok(self):
         df = pd.DataFrame({"BTC": [0.01, 0.02, 0.03, 0.04], "ETH": [0.02, 0.01, 0.03, 0.02]})

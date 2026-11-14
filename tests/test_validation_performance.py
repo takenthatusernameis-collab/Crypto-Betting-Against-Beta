@@ -47,9 +47,7 @@ def _oracle_drop_all_nan(df: pd.DataFrame) -> pd.DataFrame:
             keep.append(col)
             continue
     if not keep:
-        raise BABDataError(
-            "All columns are entirely NaN; no usable return data remains."
-        )
+        raise BABDataError("All columns are entirely NaN; no usable return data remains.")
     return df[keep]
 
 
@@ -76,14 +74,18 @@ def _oracle_quality(
     for col in cleaned.columns:
         arr = pd.to_numeric(cleaned[col], errors="coerce").to_numpy(dtype=float)
         finite_count = int(np.isfinite(arr).sum())
-        total = int(len(arr))
+        total = len(arr)
         if total > 0 and float(min_finite_fraction) > 0:
             frac = finite_count / total if total > 0 else 0.0
             if frac < float(min_finite_fraction):
                 raise BABDataError(
                     f"Column '{col}' has insufficient finite data: {frac:.2%} < {float(min_finite_fraction):.2%}"
                 )
-        if stale_run_threshold is not None and int(stale_run_threshold) > 0 and finite_count >= int(stale_run_threshold):
+        if (
+            stale_run_threshold is not None
+            and int(stale_run_threshold) > 0
+            and finite_count >= int(stale_run_threshold)
+        ):
             max_allowed_stale = max(int(stale_run_threshold), 50)
             max_run = dl._max_consecutive_equal_finite(arr)
             if max_run >= max_allowed_stale:
@@ -206,9 +208,7 @@ class TestQualityCampaignEquivalence:
     def test_mixed_object_frame_falls_back_safely(self):
         # Object dtype exercises the slow per-column fallback branch; it must
         # still complete without raising on coercible object columns.
-        df = pd.DataFrame(
-            {"a": ["1", "2", "3"], "b": ["1.5", "2.5", "3.5"]}, dtype=object
-        )
+        df = pd.DataFrame({"a": ["1", "2", "3"], "b": ["1.5", "2.5", "3.5"]}, dtype=object)
         out = dl._run_data_quality_campaign(df)
         assert list(out.columns) == ["a", "b"]
 
@@ -297,7 +297,10 @@ class TestMaxConsecutiveEqualFiniteFrameOracle:
         arr = np.asarray(arr, dtype=float)
         if arr.ndim != 2:
             return np.array([dl._max_consecutive_equal_finite(arr)], dtype=np.int64)
-        return np.array([dl._max_consecutive_equal_finite(arr[:, j]) for j in range(arr.shape[1])], dtype=np.int64)
+        return np.array(
+            [dl._max_consecutive_equal_finite(arr[:, j]) for j in range(arr.shape[1])],
+            dtype=np.int64,
+        )
 
     def test_random_frames_match_per_column_oracle(self):
         rng = np.random.default_rng(2026)

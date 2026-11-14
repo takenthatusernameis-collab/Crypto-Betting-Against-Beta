@@ -1,7 +1,9 @@
+import contextlib
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 import pytest
-from pathlib import Path
 
 from strategies.betting_against_beta import data_loader
 from strategies.betting_against_beta.errors import BABDataError
@@ -9,7 +11,7 @@ from strategies.betting_against_beta.errors import BABDataError
 
 class TestLoaderMore:
     def test_normalize_index_duplicates(self):
-        idx = pd.DatetimeIndex([pd.Timestamp('2023-01-01'), pd.Timestamp('2023-01-01')])
+        idx = pd.DatetimeIndex([pd.Timestamp("2023-01-01"), pd.Timestamp("2023-01-01")])
         df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=idx)
         out = data_loader._normalize_index(df)
         assert isinstance(out, pd.DataFrame)
@@ -21,10 +23,8 @@ class TestLoaderMore:
 
     def test_coerce_numeric_percent_european(self):
         df = pd.DataFrame({"BTC": ["1,5%"]})  # comma decimal style? rare
-        try:
+        with contextlib.suppress(Exception):
             out = data_loader._coerce_numeric(df)
-        except Exception:
-            pass
 
     def test_coerce_numeric_object_mixed(self):
         df = pd.DataFrame({"BTC": [0.01, "0.02", " 0.03% "]})
@@ -37,9 +37,11 @@ class TestLoaderMore:
         assert "ETH" not in out.columns
 
     def test_load_prices_csv_to_returns(self):
-        import tempfile, os
-        f = tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False)
-        f.write('date,BTC,ETH\n2023-01-01,100,50\n2023-01-02,101,51\n2023-01-03,102,50\n')
+        import os
+        import tempfile
+
+        f = tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False)
+        f.write("date,BTC,ETH\n2023-01-01,100,50\n2023-01-02,101,51\n2023-01-03,102,50\n")
         f.close()
         try:
             out = data_loader.load_prices(f.name)
@@ -48,9 +50,12 @@ class TestLoaderMore:
             os.unlink(f.name)
 
     def test_load_returns_from_json(self):
-        import tempfile, os, json
+        import json
+        import os
+        import tempfile
+
         data = [{"date": "2023-01-01", "BTC": 0.01}, {"date": "2023-01-02", "BTC": 0.02}]
-        f = tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False)
+        f = tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False)
         json.dump(data, f)
         f.close()
         try:
@@ -60,10 +65,8 @@ class TestLoaderMore:
             os.unlink(f.name)
 
     def test_load_returns_from_parquet_fake(self):
-        try:
-            data_loader.load_returns_from_parquet('/no/such/file.parquet')
-        except Exception:
-            pass
+        with contextlib.suppress(Exception):
+            data_loader.load_returns_from_parquet("/no/such/file.parquet")
 
     def test_prices_to_returns_short(self):
         df = pd.DataFrame({"BTC": [100]})

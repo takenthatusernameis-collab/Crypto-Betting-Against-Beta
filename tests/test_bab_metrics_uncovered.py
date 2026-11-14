@@ -6,7 +6,7 @@ from strategies.betting_against_beta import metrics
 
 def test_sharpe_std_none_case():
     res = metrics.sharpe_ratio(pd.Series([0.0, 0.0, 0.0001]))
-    assert res == float('inf') or np.isinf(res) or np.isnan(res) or isinstance(res, float)
+    assert res == float("inf") or np.isinf(res) or np.isnan(res) or isinstance(res, float)
 
 
 def test_max_drawdown_all_nan_path_returns_nan():

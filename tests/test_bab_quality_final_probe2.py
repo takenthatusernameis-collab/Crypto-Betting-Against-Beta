@@ -1,4 +1,5 @@
 """Final probe 2: hit the two remaining quality.py branches (132, 259)."""
+
 from __future__ import annotations
 
 import pandas as pd
@@ -20,9 +21,11 @@ def test_detect_duplicate_timestamps_index_without_has_duplicates_attr():
     # Patch pd.Index.has_duplicates to raise AttributeError so hasattr() returns
     # False, exercising the outer fallback return. Restored afterwards.
     saved = pd.Index.has_duplicates
+
     class _MissingAttr:
         def __get__(self, obj, objtype=None):
             raise AttributeError("has_duplicates removed for test")
+
     pd.Index.has_duplicates = _MissingAttr()  # type: ignore[assignment]
     try:
         df = pd.DataFrame({"BTC": [0.01, 0.02, 0.03]})

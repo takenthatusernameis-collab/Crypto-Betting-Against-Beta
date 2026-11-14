@@ -1,5 +1,5 @@
-import os
 import json
+import os
 import pickle
 
 import numpy as np
@@ -50,21 +50,28 @@ def test_coerce_to_datetime_scalar_bad_strings():
 
 def test_promote_datetime_column_variants():
     # date column with epoch strings
-    df = pd.DataFrame({"Date": ["1600000000", "1600000060"], "BTC": [1,2]})
+    df = pd.DataFrame({"Date": ["1600000000", "1600000060"], "BTC": [1, 2]})
     out = dl._promote_datetime_column(df)
     assert isinstance(out.index, pd.DatetimeIndex)
     # timestamp epoch
-    df = pd.DataFrame({"timestamp": [1600000000, 1600000060], "BTC": [1,2]})
+    df = pd.DataFrame({"timestamp": [1600000000, 1600000060], "BTC": [1, 2]})
     out = dl._promote_datetime_column(df)
     assert isinstance(out.index, pd.DatetimeIndex)
 
 
 def test_long_format_pivot_variants():
-    df = pd.DataFrame({
-        "ticker": ["BTC/USDT", "BTC/USDT", "ETH/USDT", "ETH/USDT"],
-        "time": ["2020-01-01T00:00:00Z", "2020-01-02T00:00:00Z", "2020-01-01T00:00:00Z", "2020-01-02T00:00:00Z"],
-        "close": [100, 101, 10, 11]
-    })
+    df = pd.DataFrame(
+        {
+            "ticker": ["BTC/USDT", "BTC/USDT", "ETH/USDT", "ETH/USDT"],
+            "time": [
+                "2020-01-01T00:00:00Z",
+                "2020-01-02T00:00:00Z",
+                "2020-01-01T00:00:00Z",
+                "2020-01-02T00:00:00Z",
+            ],
+            "close": [100, 101, 10, 11],
+        }
+    )
     out = dl._detect_and_normalize_exchange_format(df)
     assert isinstance(out, pd.DataFrame)
 

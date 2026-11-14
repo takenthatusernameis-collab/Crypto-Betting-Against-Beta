@@ -10,7 +10,9 @@ class TestBetaMoreGaps:
     def test_estimate_betas_with_min_obs_greater_than_window(self):
         idx = pd.date_range("2023-01-01", periods=60)
         rng = np.random.default_rng(10)
-        df = pd.DataFrame({"BTC": rng.normal(0, 0.01, 60), "ETH": rng.normal(0, 0.01, 60)}, index=idx)
+        df = pd.DataFrame(
+            {"BTC": rng.normal(0, 0.01, 60), "ETH": rng.normal(0, 0.01, 60)}, index=idx
+        )
         b = beta.estimate_betas(df, benchmark="BTC", window=30, min_obs=50)
         assert isinstance(b, pd.DataFrame)
 
@@ -33,6 +35,7 @@ class TestBetaMoreGaps:
         class Bad:
             def __len__(self):
                 raise TypeError
+
         rb = beta.rolling_beta(Bad(), Bad())
         assert rb is not None
 

@@ -1,7 +1,8 @@
+import pickle
+
 import numpy as np
 import pandas as pd
 import pytest
-import pickle
 
 from strategies.betting_against_beta import data_loader as dl
 from strategies.betting_against_beta.errors import BABDataError
@@ -45,7 +46,9 @@ def test_run_data_quality_campaign_finite_frac():
 
 def test_validate_returns_dataframe_with_all_options():
     dates = pd.date_range("2020-01-01", periods=10)
-    df = pd.DataFrame({"BTC": np.random.randn(10)*0.01, "ETH": np.random.randn(10)*0.01}, index=dates)
+    df = pd.DataFrame(
+        {"BTC": np.random.randn(10) * 0.01, "ETH": np.random.randn(10) * 0.01}, index=dates
+    )
     out = dl.validate_returns_dataframe(df, quality=False)
     assert isinstance(out, pd.DataFrame)
     out = dl.validate_returns_dataframe(df, benchmark="BTC", quality=False)
@@ -65,7 +68,7 @@ def test_load_returns_hdf5_pickle_variants(tmp_path):
     df = pd.DataFrame({"date": pd.date_range("2020-01-01", periods=3), "BTC": [0.01, -0.01, 0.02]})
     # pickle
     pp = tmp_path / "x.pkl"
-    with open(pp, 'wb') as f:
+    with open(pp, "wb") as f:
         pickle.dump(df, f)
     out = dl.load_returns(pp)
     assert isinstance(out, pd.DataFrame)

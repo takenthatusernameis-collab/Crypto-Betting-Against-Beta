@@ -9,6 +9,7 @@ unchanged — a silent wrong-data path.  After the change only the genuine
 non-subtractable-returns case (TypeError on object-dtype arithmetic) falls
 through; any other failure in the block now surfaces to the caller.
 """
+
 from __future__ import annotations
 
 from unittest import mock
@@ -31,11 +32,11 @@ def test_apply_costs_surfaces_non_typeerror_in_adjustment_block():
     """
     returns = pd.DataFrame({"x": [0.01, 0.02, 0.03]}, index=_idx())
     tc = pd.Series([0.001, 0.001, 0.001], index=_idx())
-    with mock.patch.object(
-        pd.Series, "reindex", side_effect=ValueError("corrupt index")
+    with (
+        mock.patch.object(pd.Series, "reindex", side_effect=ValueError("corrupt index")),
+        pytest.raises(ValueError, match="corrupt index"),
     ):
-        with pytest.raises(ValueError, match="corrupt index"):
-            apply_costs(returns, transaction_costs=tc)
+        apply_costs(returns, transaction_costs=tc)
 
 
 def test_apply_costs_object_dtype_returns_still_falls_through():

@@ -18,7 +18,6 @@ __version__ = "0.1.0"
 _UNIVERSE_UNSET = object()
 
 
-
 def _build_adapter(args):
     """Build a deterministic in-process execution adapter from CLI args (R5-D).
 
@@ -175,11 +174,10 @@ def _validate_output_path(path_str: str) -> Path:
 def _validate_rebalance_freq(freq: str) -> None:
     """Validate rebalance frequency against allowed values."""
     from .errors import BABDataError
+
     allowed = {"daily", "weekly", "monthly", "quarterly", "yearly", "annual"}
     if freq not in allowed:
-        raise BABDataError(
-            f"rebalance_freq must be one of {sorted(allowed)}, got {freq!r}"
-        )
+        raise BABDataError(f"rebalance_freq must be one of {sorted(allowed)}, got {freq!r}")
 
 
 def _coerce_finite_scalar(value, default=1.0):
@@ -294,18 +292,37 @@ def _json_default(obj):
 def main(argv=None) -> int:
     import math
 
-
     try:
         parser = argparse.ArgumentParser(description="Betting Against Beta (BAB) crypto strategy")
         parser.add_argument("--version", action="version", version=f"bab {__version__}")
-        parser.add_argument("--data", type=str, help="Path to returns data (CSV/JSON/Parquet/HDF5/Pickle). Use --from-prices to treat this as a price series instead.")
-        parser.add_argument("--benchmark", type=str, default="BTC", help="Benchmark symbol (default: BTC)")
-        parser.add_argument("--universe", type=str, nargs="*", action="store", default=argparse.SUPPRESS, help="Universe of assets")
+        parser.add_argument(
+            "--data",
+            type=str,
+            help=(
+                "Path to returns data (CSV/JSON/Parquet/HDF5/Pickle). "
+                "Use --from-prices to treat this as a price series instead."
+            ),
+        )
+        parser.add_argument(
+            "--benchmark", type=str, default="BTC", help="Benchmark symbol (default: BTC)"
+        )
+        parser.add_argument(
+            "--universe",
+            type=str,
+            nargs="*",
+            action="store",
+            default=argparse.SUPPRESS,
+            help="Universe of assets",
+        )
         parser.add_argument("--beta-window", type=str, default="90", help="Beta estimation window")
         parser.add_argument("--long-quantile", type=str, default="0.3", help="Long quantile")
         parser.add_argument("--short-quantile", type=str, default="0.3", help="Short quantile")
-        parser.add_argument("--rebalance-freq", type=str, default="daily", help="Rebalance frequency")
-        parser.add_argument("--transaction-costs", type=str, default="0.0", help="Transaction costs")
+        parser.add_argument(
+            "--rebalance-freq", type=str, default="daily", help="Rebalance frequency"
+        )
+        parser.add_argument(
+            "--transaction-costs", type=str, default="0.0", help="Transaction costs"
+        )
         parser.add_argument("--slippage", type=str, default="0.0", help="Slippage")
         parser.add_argument("--output", type=str, help="Output JSON file for results summary")
         parser.add_argument("--synthetic", action="store_true", help="Use synthetic data")
@@ -324,18 +341,27 @@ def main(argv=None) -> int:
             type=str,
             default=None,
             choices=["paper", "mock"],
-            help="R5-D: run with an in-process execution adapter (paper or mock). No network, no credentials. Default: none (backtest only).",
+            help=(
+                "R5-D: run with an in-process execution adapter (paper or mock). "
+                "No network, no credentials. Default: none (backtest only)."
+            ),
         )
         parser.add_argument(
             "--reconcile",
             action="store_true",
-            help="R5-D: after running, emit modeled-vs-executed and fills-vs-backtest reconciliation artifacts alongside execution output.",
+            help=(
+                "R5-D: after running, emit modeled-vs-executed and fills-vs-backtest "
+                "reconciliation artifacts alongside execution output."
+            ),
         )
         parser.add_argument(
             "--fills",
             type=str,
             default=None,
-            help="R5-D: path to a JSON file of canned fills for the mock adapter (deterministic fixture). Ignored unless --adapter mock.",
+            help=(
+                "R5-D: path to a JSON file of canned fills for the mock adapter "
+                "(deterministic fixture). Ignored unless --adapter mock."
+            ),
         )
 
         args = parser.parse_args(argv)
@@ -364,9 +390,7 @@ def main(argv=None) -> int:
             else:
                 cleaned = [str(u).strip() for u in universe_arg if str(u).strip()]
                 if not cleaned:
-                    raise BABDataError(
-                        "--universe must contain at least one non-empty asset token"
-                    )
+                    raise BABDataError("--universe must contain at least one non-empty asset token")
                 universe_arg = cleaned
 
         # Validate and convert numeric string arguments
@@ -459,17 +483,23 @@ def main(argv=None) -> int:
                 from pathlib import Path
 
                 from .data_loader import load_prices, load_returns
+
                 data_p = Path(args.data)
                 if data_p.exists() and data_p.is_dir():
-                    print(f"data:             {args.data} (INVALID: Path is a directory, not a file: {data_p})")
+                    print(
+                        f"data:             {args.data} "
+                        f"(INVALID: Path is a directory, not a file: {data_p})"
+                    )
                     return 1
 
                 try:
-                    if getattr(args, 'from_prices', False):
+                    if getattr(args, "from_prices", False):
                         load_prices(args.data, benchmark=args.benchmark, min_rows=config.min_rows)
                     else:
                         load_returns(args.data, benchmark=args.benchmark, min_rows=config.min_rows)
-                    print(f"data:             {args.data} (valid, --from-prices={args.from_prices})")
+                    print(
+                        f"data:             {args.data} (valid, --from-prices={args.from_prices})"
+                    )
                 except BABDataError as exc:
                     print(f"data:             {args.data} (INVALID: {exc})")
                     return 1
@@ -519,9 +549,13 @@ def main(argv=None) -> int:
 
             try:
                 if args.from_prices:
-                    returns_df = load_prices(args.data, benchmark=args.benchmark, min_rows=config.min_rows)
+                    returns_df = load_prices(
+                        args.data, benchmark=args.benchmark, min_rows=config.min_rows
+                    )
                 else:
-                    returns_df = load_returns(args.data, benchmark=args.benchmark, min_rows=config.min_rows)
+                    returns_df = load_returns(
+                        args.data, benchmark=args.benchmark, min_rows=config.min_rows
+                    )
             except BABDataError:
                 raise
             except Exception as exc:
@@ -541,9 +575,7 @@ def main(argv=None) -> int:
 
     # Extract cumulative return; surface extraction failures instead of fabricating 1.0.
     try:
-        cum_out = _coerce_finite_scalar(
-            _extract_cumulative(result), default=1.0
-        )
+        cum_out = _coerce_finite_scalar(_extract_cumulative(result), default=1.0)
     except Exception as exc:
         print(f"Error extracting cumulative return: {exc}")
         return 1
@@ -573,7 +605,9 @@ def main(argv=None) -> int:
         # Ensure the summary is fully JSON-safe before writing.
         payload = _json_safe(summary)
         try:
-            out_path.write_text(json.dumps(payload, indent=2, default=_json_default, allow_nan=False))
+            out_path.write_text(
+                json.dumps(payload, indent=2, default=_json_default, allow_nan=False)
+            )
         except Exception as exc:
             print(f"Error writing output: {exc}")
             return 1
@@ -587,7 +621,10 @@ def main(argv=None) -> int:
             try:
                 exec_json = execution_payload_to_json(exec_payload)
                 print(f"Execution adapter: {exec_payload.get('adapter')}")
-                print(f"  batches: {exec_payload.get('n_batches')}, intents: {exec_payload.get('n_intents')}, fills: {exec_payload.get('n_fills')}")
+                print(
+                    f"  batches: {exec_payload.get('n_batches')}, "
+                    f"intents: {exec_payload.get('n_intents')}, fills: {exec_payload.get('n_fills')}"
+                )
                 if args.output:
                     exec_path = out_path.with_suffix(out_path.suffix + ".execution.json")
                     exec_path.write_text(exec_json)
@@ -600,7 +637,9 @@ def main(argv=None) -> int:
             rec = _run_reconciliation(result, config, fills_list)
             if rec is not None:
                 try:
-                    rec_json = json.dumps(_json_safe(rec), indent=2, default=_json_default, allow_nan=False)
+                    rec_json = json.dumps(
+                        _json_safe(rec), indent=2, default=_json_default, allow_nan=False
+                    )
                     if args.output:
                         rec_path = out_path.with_suffix(out_path.suffix + ".reconciliation.json")
                         rec_path.write_text(rec_json)

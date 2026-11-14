@@ -8,9 +8,9 @@ import pytest
 
 from strategies.betting_against_beta import data_loader
 from strategies.betting_against_beta.data_loader import (
+    BABDataError,
     _coerce_to_datetime_scalar,
     _normalize_index,
-    BABDataError,
 )
 
 
@@ -27,13 +27,17 @@ def test_normalize_index_float_numeric_ms():
 
 
 def test_normalize_index_float_numeric_us():
-    df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=pd.Index([1700000000000000.0, 1700000001000000.0]))
+    df = pd.DataFrame(
+        {"BTC": [0.01, 0.02]}, index=pd.Index([1700000000000000.0, 1700000001000000.0])
+    )
     out = _normalize_index(df)
     assert isinstance(out.index, pd.DatetimeIndex)
 
 
 def test_normalize_index_float_numeric_ns():
-    df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=pd.Index([1700000000000000000.0, 1700000001000000000.0]))
+    df = pd.DataFrame(
+        {"BTC": [0.01, 0.02]}, index=pd.Index([1700000000000000000.0, 1700000001000000000.0])
+    )
     out = _normalize_index(df)
     assert isinstance(out.index, pd.DatetimeIndex)
 
@@ -45,7 +49,10 @@ def test_normalize_index_float_large_ns():
 
 
 def test_normalize_index_mixed_string_z_and_naive():
-    df = pd.DataFrame({"BTC": [0.01, 0.02, 0.03]}, index=["2023-01-01T00:00:00Z", "2023-01-02T00:00:00", "2023-01-03T00:00:00+00:00"])
+    df = pd.DataFrame(
+        {"BTC": [0.01, 0.02, 0.03]},
+        index=["2023-01-01T00:00:00Z", "2023-01-02T00:00:00", "2023-01-03T00:00:00+00:00"],
+    )
     out = _normalize_index(df)
     assert isinstance(out.index, pd.DatetimeIndex)
     assert out.index.tz is None
@@ -76,6 +83,7 @@ def test_coerce_scalar_tz_aware_timestamp_converted():
 
 def test_coerce_scalar_datetime_naive():
     import datetime
+
     dt = datetime.datetime(2023, 1, 1)
     out = _coerce_to_datetime_scalar(dt)
     assert isinstance(out, pd.Timestamp)

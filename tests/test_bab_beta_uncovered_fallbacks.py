@@ -24,7 +24,9 @@ def test_calculate_beta_lstsq_non_finite():
 
 def test_calculate_beta_lin_alg_error():
     # Force LinAlgError by passing object arrays that break lstsq
-    res = beta_mod.calculate_beta(np.array([1, 2, 3], dtype=object), np.array([1, 2, 3], dtype=object))
+    res = beta_mod.calculate_beta(
+        np.array([1, 2, 3], dtype=object), np.array([1, 2, 3], dtype=object)
+    )
     assert np.isnan(res) or np.isfinite(res)
 
 
@@ -44,7 +46,9 @@ def test_calculate_beta_fast_non_finite_beta():
 
 def test_calculate_beta_fast_lin_alg_error():
     # Force LinAlgError -> line 181
-    res = beta_mod.calculate_beta_fast(np.array([1, 2, 3], dtype=object), np.array([1, 2, 3], dtype=object))
+    res = beta_mod.calculate_beta_fast(
+        np.array([1, 2, 3], dtype=object), np.array([1, 2, 3], dtype=object)
+    )
     assert res == 0.0 or np.isfinite(res)
 
 
@@ -79,7 +83,10 @@ def test_estimate_betas_min_obs_clamping():
     # Test min_obs > window clamping path (line 15-16)
     dates = pd.date_range("2023-01-01", periods=100)
     returns = pd.DataFrame(
-        {"BTC": np.random.RandomState(1).normal(0, 0.01, 100), "ETH": np.random.RandomState(2).normal(0, 0.015, 100)},
+        {
+            "BTC": np.random.RandomState(1).normal(0, 0.01, 100),
+            "ETH": np.random.RandomState(2).normal(0, 0.015, 100),
+        },
         index=dates,
     )
     res = beta_mod.estimate_betas(returns, benchmark="BTC", window=20, min_obs=100)
@@ -97,12 +104,16 @@ def test_rolling_beta_empty_fallback():
     res = beta_mod.rolling_beta([], [], window=2, min_obs=1)
     assert res is not None
 
+
 def test_estimate_betas_all_nan_columns():
     dates = pd.date_range("2023-01-01", periods=60)
-    returns = pd.DataFrame({
-        "BTC": np.random.RandomState(1).normal(0, 0.01, 60),
-        "ETH": [np.nan] * 60,
-    }, index=dates)
+    returns = pd.DataFrame(
+        {
+            "BTC": np.random.RandomState(1).normal(0, 0.01, 60),
+            "ETH": [np.nan] * 60,
+        },
+        index=dates,
+    )
     try:
         res = beta_mod.estimate_betas(returns, benchmark="BTC", window=30, min_obs=20)
         assert isinstance(res, pd.DataFrame)
@@ -121,10 +132,13 @@ def test_estimate_betas_empty_returns():
 
 def test_calculate_rolling_beta_tiny_window():
     dates = pd.date_range("2023-01-01", periods=50)
-    returns = pd.DataFrame({
-        "BTC": np.random.RandomState(5).normal(0, 0.01, 50),
-        "ETH": np.random.RandomState(6).normal(0, 0.01, 50),
-    }, index=dates)
+    returns = pd.DataFrame(
+        {
+            "BTC": np.random.RandomState(5).normal(0, 0.01, 50),
+            "ETH": np.random.RandomState(6).normal(0, 0.01, 50),
+        },
+        index=dates,
+    )
     try:
         res = beta_mod.calculate_rolling_beta(returns, benchmark="BTC", window=2, min_obs=1)
         assert isinstance(res, pd.DataFrame)
@@ -134,10 +148,13 @@ def test_calculate_rolling_beta_tiny_window():
 
 def test_calculate_rolling_beta_constant_series():
     dates = pd.date_range("2023-01-01", periods=40)
-    returns = pd.DataFrame({
-        "BTC": [0.01] * 40,
-        "ETH": [0.02] * 40,
-    }, index=dates)
+    returns = pd.DataFrame(
+        {
+            "BTC": [0.01] * 40,
+            "ETH": [0.02] * 40,
+        },
+        index=dates,
+    )
     try:
         res = beta_mod.calculate_rolling_beta(returns, benchmark="BTC", window=10, min_obs=5)
         assert isinstance(res, pd.DataFrame)

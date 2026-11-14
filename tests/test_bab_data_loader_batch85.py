@@ -147,7 +147,9 @@ def test_859_861_862_unnamed_tz_mixed():
     dl._coerce_to_datetime_scalar = fake_coerce
     pd.Timestamp = fake_ts
     try:
-        df = pd.DataFrame({"Unnamed: 0": ["mark", "boom"], "BTC": [0.01, 0.02], "ETH": [0.03, 0.04]})
+        df = pd.DataFrame(
+            {"Unnamed: 0": ["mark", "boom"], "BTC": [0.01, 0.02], "ETH": [0.03, 0.04]}
+        )
         try:
             out = dl.validate_returns_dataframe(df, benchmark="BTC", quality=False)
             assert isinstance(out, pd.DataFrame)

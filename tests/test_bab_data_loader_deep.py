@@ -1,4 +1,5 @@
 import os
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -6,14 +7,15 @@ import pytest
 from strategies.betting_against_beta import data_loader
 from strategies.betting_against_beta.errors import BABDataError
 
-
 FIX = os.path.join(os.path.dirname(__file__), "fixtures")
 
 
 class TestDataLoaderDeep:
     def test_load_returns_from_dataframe(self):
         idx = pd.date_range("2023-01-01", periods=20)
-        df = pd.DataFrame({"BTC": np.random.randn(20)*0.01, "ETH": np.random.randn(20)*0.01}, index=idx)
+        df = pd.DataFrame(
+            {"BTC": np.random.randn(20) * 0.01, "ETH": np.random.randn(20) * 0.01}, index=idx
+        )
         out = data_loader.load_returns(df, benchmark="BTC")
         assert isinstance(out, pd.DataFrame)
         assert "BTC" in out.columns

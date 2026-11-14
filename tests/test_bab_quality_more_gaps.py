@@ -1,3 +1,5 @@
+import contextlib
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -15,23 +17,17 @@ class TestQualityMoreGaps:
             pass
 
     def test_check_data_quality_non_df(self):
-        try:
-            quality.check_data_quality([1,2,3])
-        except Exception:
-            pass
+        with contextlib.suppress(Exception):
+            quality.check_data_quality([1, 2, 3])
 
     def test_check_data_quality_all_nan_column(self):
         df = pd.DataFrame({"BTC": [np.nan, np.nan, np.nan]})
-        try:
+        with contextlib.suppress(Exception):
             res = quality.check_data_quality(df)
-        except Exception:
-            pass
 
     def test_data_quality_report_empty(self):
-        try:
+        with contextlib.suppress(Exception):
             rep = quality.data_quality_report(pd.DataFrame())
-        except Exception:
-            pass
 
     def test_data_quality_report_inf_only(self):
         df = pd.DataFrame({"BTC": [np.inf, -np.inf]})
@@ -39,19 +35,15 @@ class TestQualityMoreGaps:
         assert isinstance(rep, dict)
 
     def test_data_quality_report_duplicates(self):
-        idx = pd.DatetimeIndex([pd.Timestamp('2023-01-01'), pd.Timestamp('2023-01-01')])
+        idx = pd.DatetimeIndex([pd.Timestamp("2023-01-01"), pd.Timestamp("2023-01-01")])
         df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=idx)
-        try:
+        with contextlib.suppress(Exception):
             rep = quality.data_quality_report(df)
-        except Exception:
-            pass
 
     def test_check_data_quality_warnings_only(self):
         df = pd.DataFrame({"BTC": [0.01, np.nan, 0.02]})
-        try:
+        with contextlib.suppress(Exception):
             quality.check_data_quality(df, strict=False)
-        except Exception:
-            pass
 
     def test_check_data_quality_strict_missing_raises(self):
         df = pd.DataFrame({"BTC": [0.01, np.nan]})

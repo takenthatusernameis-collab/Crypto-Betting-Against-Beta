@@ -41,8 +41,8 @@ from strategies.betting_against_beta.data_loader import (
     _normalize_asset_name,
     _normalize_columns,
     _normalize_index,
-    _promote_datetime_column,
     _prices_to_returns,
+    _promote_datetime_column,
     _run_data_quality_campaign,
     _series_is_parseable,
     _strip_units_and_parse,
@@ -76,25 +76,35 @@ class TestNormalizeIndexCampaignD:
         assert len(out) == 0
 
     def test_numeric_index_nanoseconds(self):
-        df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=pd.Index([1700000000000000000, 1700000001000000000], dtype="int64"))
+        df = pd.DataFrame(
+            {"BTC": [0.01, 0.02]},
+            index=pd.Index([1700000000000000000, 1700000001000000000], dtype="int64"),
+        )
         out = _normalize_index(df)
         assert isinstance(out.index, pd.DatetimeIndex)
         assert len(out) == 2
 
     def test_numeric_index_microseconds(self):
-        df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=pd.Index([1700000000000000, 1700000001000000], dtype="int64"))
+        df = pd.DataFrame(
+            {"BTC": [0.01, 0.02]},
+            index=pd.Index([1700000000000000, 1700000001000000], dtype="int64"),
+        )
         out = _normalize_index(df)
         assert isinstance(out.index, pd.DatetimeIndex)
         assert len(out) == 2
 
     def test_numeric_index_milliseconds(self):
-        df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=pd.Index([1700000000000, 1700000001000], dtype="int64"))
+        df = pd.DataFrame(
+            {"BTC": [0.01, 0.02]}, index=pd.Index([1700000000000, 1700000001000], dtype="int64")
+        )
         out = _normalize_index(df)
         assert isinstance(out.index, pd.DatetimeIndex)
         assert len(out) == 2
 
     def test_numeric_index_seconds(self):
-        df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=pd.Index([1700000000, 1700000001], dtype="int64"))
+        df = pd.DataFrame(
+            {"BTC": [0.01, 0.02]}, index=pd.Index([1700000000, 1700000001], dtype="int64")
+        )
         out = _normalize_index(df)
         assert isinstance(out.index, pd.DatetimeIndex)
         assert len(out) == 2
@@ -127,7 +137,9 @@ class TestNormalizeIndexCampaignD:
         assert len(out) == 5
 
     def test_duplicate_index_dedupes(self):
-        idx = pd.date_range("2023-01-01", periods=5, freq="D").append(pd.date_range("2023-01-01", periods=3, freq="D"))
+        idx = pd.date_range("2023-01-01", periods=5, freq="D").append(
+            pd.date_range("2023-01-01", periods=3, freq="D")
+        )
         df = pd.DataFrame({"BTC": np.arange(8, dtype=float) * 0.01}, index=idx)
         out = _normalize_index(df)
         assert not out.index.has_duplicates
@@ -246,6 +258,7 @@ class TestCoerceScalarCampaignD:
 
     def test_python_datetime(self):
         import datetime
+
         res = _coerce_to_datetime_scalar(datetime.datetime(2021, 1, 1))
         assert hasattr(res, "year")
 
@@ -263,53 +276,63 @@ class TestCoerceScalarCampaignD:
 # ---------------------------------------------------------------------------
 class TestDetectExchangeFormatCampaignD:
     def test_long_format_symbol_date_close(self):
-        df = pd.DataFrame({
-            "symbol": ["BTC", "BTC", "ETH"],
-            "date": ["2021-01-01", "2021-01-02", "2021-01-01"],
-            "close": [100, 101, 50],
-        })
+        df = pd.DataFrame(
+            {
+                "symbol": ["BTC", "BTC", "ETH"],
+                "date": ["2021-01-01", "2021-01-02", "2021-01-01"],
+                "close": [100, 101, 50],
+            }
+        )
         res = _detect_and_normalize_exchange_format(df)
         assert isinstance(res, pd.DataFrame)
 
     def test_long_format_ticker_datetime_price(self):
-        df = pd.DataFrame({
-            "ticker": ["BTC", "ETH"],
-            "datetime": ["2021-01-01", "2021-01-01"],
-            "price": [100, 50],
-        })
+        df = pd.DataFrame(
+            {
+                "ticker": ["BTC", "ETH"],
+                "datetime": ["2021-01-01", "2021-01-01"],
+                "price": [100, 50],
+            }
+        )
         res = _detect_and_normalize_exchange_format(df)
         assert isinstance(res, pd.DataFrame)
 
     def test_binance_ohlcv_wide(self):
-        df = pd.DataFrame({
-            "Open time": pd.date_range("2021-01-01", periods=2),
-            "Open": [10, 11],
-            "High": [12, 13],
-            "Low": [9, 10],
-            "Close": [11, 12],
-            "Volume": [100, 200],
-            "symbol": ["BTCUSDT", "BTCUSDT"],
-        })
+        df = pd.DataFrame(
+            {
+                "Open time": pd.date_range("2021-01-01", periods=2),
+                "Open": [10, 11],
+                "High": [12, 13],
+                "Low": [9, 10],
+                "Close": [11, 12],
+                "Volume": [100, 200],
+                "symbol": ["BTCUSDT", "BTCUSDT"],
+            }
+        )
         res = _detect_and_normalize_exchange_format(df)
         assert isinstance(res, pd.DataFrame)
 
     def test_ohlcv_wide_single_asset_no_symbol(self):
-        df = pd.DataFrame({
-            "date": ["2021-01-01", "2021-01-02"],
-            "Open": [10, 11],
-            "High": [12, 13],
-            "Low": [9, 10],
-            "Close": [11, 12],
-            "Volume": [100, 200],
-        })
+        df = pd.DataFrame(
+            {
+                "date": ["2021-01-01", "2021-01-02"],
+                "Open": [10, 11],
+                "High": [12, 13],
+                "Low": [9, 10],
+                "Close": [11, 12],
+                "Volume": [100, 200],
+            }
+        )
         res = _detect_and_normalize_exchange_format(df)
         assert isinstance(res, pd.DataFrame)
 
     def test_date_promotion_numeric_epoch_ms(self):
-        df = pd.DataFrame({
-            "date": [1609459200000, 1609545600000],
-            "BTC": [0.1, 0.2],
-        })
+        df = pd.DataFrame(
+            {
+                "date": [1609459200000, 1609545600000],
+                "BTC": [0.1, 0.2],
+            }
+        )
         res = _detect_and_normalize_exchange_format(df)
         assert isinstance(res, pd.DataFrame)
 
@@ -353,7 +376,9 @@ class TestPromoteDatetimeColumnCampaignD:
         assert isinstance(res.index, pd.DatetimeIndex)
 
     def test_tz_aware_index_normalized(self):
-        df = pd.DataFrame({"BTC": [0.1, 0.2]}, index=pd.date_range("2021-01-01", periods=2, tz="UTC"))
+        df = pd.DataFrame(
+            {"BTC": [0.1, 0.2]}, index=pd.date_range("2021-01-01", periods=2, tz="UTC")
+        )
         res = _promote_datetime_column(df)
         assert isinstance(res.index, pd.DatetimeIndex)
 
@@ -600,7 +625,9 @@ class TestRunDataQualityCampaignCampaignD:
         assert isinstance(res.index, pd.DatetimeIndex)
 
     def test_min_finite_fraction_rejects(self):
-        df = pd.DataFrame({"BTC": [np.nan, np.nan, 0.01]}, index=pd.date_range("2021-01-01", periods=3))
+        df = pd.DataFrame(
+            {"BTC": [np.nan, np.nan, 0.01]}, index=pd.date_range("2021-01-01", periods=3)
+        )
         with pytest.raises(BABDataError):
             _run_data_quality_campaign(df, min_finite_fraction=0.5)
 
@@ -622,7 +649,9 @@ class TestValidateReturnsDataFrameCampaignD:
             validate_returns_dataframe(pd.DataFrame())
 
     def test_basic_valid(self):
-        df = pd.DataFrame({"BTC": [0.01, -0.02, 0.03]}, index=pd.date_range("2021-01-01", periods=3))
+        df = pd.DataFrame(
+            {"BTC": [0.01, -0.02, 0.03]}, index=pd.date_range("2021-01-01", periods=3)
+        )
         res = validate_returns_dataframe(df)
         assert isinstance(res, pd.DataFrame)
 
@@ -642,32 +671,49 @@ class TestValidateReturnsDataFrameCampaignD:
             validate_returns_dataframe(df, benchmark="SPY")
 
     def test_benchmark_case_insensitive_rename(self):
-        df = pd.DataFrame({"spy": [0.01, 0.02], "BTC": [0.001, 0.002]}, index=pd.date_range("2021-01-01", periods=2))
+        df = pd.DataFrame(
+            {"spy": [0.01, 0.02], "BTC": [0.001, 0.002]},
+            index=pd.date_range("2021-01-01", periods=2),
+        )
         res = validate_returns_dataframe(df, benchmark="SPY")
         assert "SPY" in res.columns or "spy" in res.columns
 
     def test_benchmark_no_finite_raises(self):
-        df = pd.DataFrame({"SPY": [np.nan, np.nan], "BTC": [0.01, 0.02]}, index=pd.date_range("2021-01-01", periods=2))
+        df = pd.DataFrame(
+            {"SPY": [np.nan, np.nan], "BTC": [0.01, 0.02]},
+            index=pd.date_range("2021-01-01", periods=2),
+        )
         with pytest.raises(BABDataError):
             validate_returns_dataframe(df, benchmark="SPY")
 
     def test_short_history_raises(self):
-        df = pd.DataFrame({"SPY": [0.01, 0.02], "BTC": [np.nan, np.nan]}, index=pd.date_range("2021-01-01", periods=2))
+        df = pd.DataFrame(
+            {"SPY": [0.01, 0.02], "BTC": [np.nan, np.nan]},
+            index=pd.date_range("2021-01-01", periods=2),
+        )
         with pytest.raises(BABDataError):
             validate_returns_dataframe(df, benchmark="SPY", min_rows=3)
 
     def test_quality_false_skips_campaign(self):
-        df = pd.DataFrame({"SPY": [0.01, 0.02], "BTC": [0.001, 0.002]}, index=pd.date_range("2021-01-01", periods=2))
+        df = pd.DataFrame(
+            {"SPY": [0.01, 0.02], "BTC": [0.001, 0.002]},
+            index=pd.date_range("2021-01-01", periods=2),
+        )
         res = validate_returns_dataframe(df, benchmark="SPY", quality=False)
         assert isinstance(res, pd.DataFrame)
 
     def test_infinite_values_raise(self):
-        df = pd.DataFrame({"SPY": [0.01, np.inf], "BTC": [0.001, 0.002]}, index=pd.date_range("2021-01-01", periods=2))
+        df = pd.DataFrame(
+            {"SPY": [0.01, np.inf], "BTC": [0.001, 0.002]},
+            index=pd.date_range("2021-01-01", periods=2),
+        )
         with pytest.raises(BABDataError):
             validate_returns_dataframe(df, benchmark="SPY", quality=False)
 
     def test_string_index_promoted(self):
-        df = pd.DataFrame({"SPY": [0.01, 0.02], "BTC": [0.001, 0.002]}, index=["2021-01-01", "2021-01-02"])
+        df = pd.DataFrame(
+            {"SPY": [0.01, 0.02], "BTC": [0.001, 0.002]}, index=["2021-01-01", "2021-01-02"]
+        )
         res = validate_returns_dataframe(df, benchmark="SPY")
         assert isinstance(res.index, pd.DatetimeIndex)
 
@@ -694,7 +740,9 @@ class TestLoadersCampaignD:
             os.unlink(fname)
 
     def test_csv_load_valid(self):
-        df = pd.DataFrame({"date": pd.date_range("2021-01-01", periods=3), "BTC": [0.01, -0.02, 0.03]})
+        df = pd.DataFrame(
+            {"date": pd.date_range("2021-01-01", periods=3), "BTC": [0.01, -0.02, 0.03]}
+        )
         fname = self._write_csv(df)
         try:
             res = load_returns_from_csv(fname)
@@ -719,7 +767,8 @@ class TestLoadersCampaignD:
         try:
             with open(fname, "wb") as fh:
                 import pickle
-                pickle.load  # noqa
+
+                pickle.load
                 pickle.dump([1, 2, 3], fh)
             with pytest.raises(BABDataError):
                 load_returns_from_pickle(fname)
@@ -788,11 +837,13 @@ class TestLoadPricesCampaignD:
             os.unlink(fname)
 
     def test_prices_with_delisted_column(self):
-        df = pd.DataFrame({
-            "date": pd.date_range("2021-01-01", periods=4),
-            "BTC": [100, 101, 102, 103],
-            "DELISTED": [np.nan, np.nan, np.nan, np.nan],
-        })
+        df = pd.DataFrame(
+            {
+                "date": pd.date_range("2021-01-01", periods=4),
+                "BTC": [100, 101, 102, 103],
+                "DELISTED": [np.nan, np.nan, np.nan, np.nan],
+            }
+        )
         fname = tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False).name
         try:
             df.to_csv(fname, index=False)
@@ -943,10 +994,12 @@ class TestNormalizeIndexHardBranches:
 class TestPromoteDatetimeHardBranches:
     def test_exchange_format_returns_datetime_index(self):
         # Two columns incl 'date' -> exchange normalization promotes to DatetimeIndex
-        df = pd.DataFrame({
-            "date": ["2021-01-01", "2021-01-02"],
-            "BTC": [0.1, 0.2],
-        })
+        df = pd.DataFrame(
+            {
+                "date": ["2021-01-01", "2021-01-02"],
+                "BTC": [0.1, 0.2],
+            }
+        )
         res = _promote_datetime_column(df)
         assert isinstance(res.index, pd.DatetimeIndex)
 
@@ -990,7 +1043,10 @@ class TestNormalizeSchemaHardBranches:
 
 class TestValidateReturnsHardBranches:
     def test_benchmark_rename_case_insensitive(self):
-        df = pd.DataFrame({"spy": [0.01, 0.02], "BTC": [0.001, 0.002]}, index=pd.date_range("2021-01-01", periods=2))
+        df = pd.DataFrame(
+            {"spy": [0.01, 0.02], "BTC": [0.001, 0.002]},
+            index=pd.date_range("2021-01-01", periods=2),
+        )
         res = validate_returns_dataframe(df, benchmark="SPY")
         assert isinstance(res, pd.DataFrame)
 
@@ -1002,14 +1058,22 @@ class TestValidateReturnsHardBranches:
 
 class TestDetectExchangeHardBranches:
     def test_price_col_fallback_scan(self):
-        df = pd.DataFrame({"Open time": pd.date_range("2021-01-01", periods=2), "mark price": [10, 11]})
+        df = pd.DataFrame(
+            {"Open time": pd.date_range("2021-01-01", periods=2), "mark price": [10, 11]}
+        )
         res = _detect_and_normalize_exchange_format(df)
         assert isinstance(res, pd.DataFrame)
 
     def test_no_symbol_wide_ohlcv(self):
-        df = pd.DataFrame({
-            "Open time": pd.date_range("2021-01-01", periods=2),
-            "Open": [10, 11], "High": [12, 13], "Low": [9, 10], "Close": [11, 12], "Volume": [100, 200],
-        })
+        df = pd.DataFrame(
+            {
+                "Open time": pd.date_range("2021-01-01", periods=2),
+                "Open": [10, 11],
+                "High": [12, 13],
+                "Low": [9, 10],
+                "Close": [11, 12],
+                "Volume": [100, 200],
+            }
+        )
         res = _detect_and_normalize_exchange_format(df)
         assert isinstance(res, pd.DataFrame)

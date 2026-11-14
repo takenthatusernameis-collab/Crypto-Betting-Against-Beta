@@ -12,6 +12,7 @@ Covered no-gap areas (explicit "no proven gaps", evidence-backed):
 - unknown flag -> rc=2; --help -> rc=0; nonexistent --data -> rc=1.
 """
 
+import contextlib
 import json
 import subprocess
 import sys
@@ -26,8 +27,12 @@ REAL = str(REPO / "tests" / "fixtures" / "real_market_prices.csv")
 def _run(argv):
     env = {**__import__("os").environ, "PYTHONPATH": str(REPO)}
     return subprocess.run(
-        [sys.executable, "-m", "strategies.betting_against_beta.cli"] + argv,
-        capture_output=True, text=True, timeout=120, cwd=str(REPO), env=env,
+        [sys.executable, "-m", "strategies.betting_against_beta.cli", *argv],
+        capture_output=True,
+        text=True,
+        timeout=120,
+        cwd=str(REPO),
+        env=env,
     )
 
 
@@ -102,10 +107,8 @@ class TestCliOutputEdges:
             parent = out.parent
             # best-effort cleanup of empty created dirs
             for p in [parent, parent.parent]:
-                try:
+                with contextlib.suppress(OSError):
                     p.rmdir()
-                except OSError:
-                    pass
 
 
 class TestCliUniverseEdges:

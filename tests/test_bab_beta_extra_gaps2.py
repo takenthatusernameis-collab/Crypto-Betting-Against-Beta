@@ -46,6 +46,7 @@ class TestBetaExtraGaps2:
         class Bad:
             def __array__(self, dtype=None):
                 raise ValueError("bad")
+
         out = beta.calculate_beta(Bad(), Bad())
         assert np.isnan(out)
 
@@ -60,8 +61,10 @@ class TestBetaExtraGaps2:
         class Bad:
             def __len__(self):
                 raise TypeError
+
             def __iter__(self):
                 raise TypeError
+
         try:
             rb = beta.rolling_beta(Bad(), Bad())
             assert rb is not None
@@ -71,7 +74,9 @@ class TestBetaExtraGaps2:
     def test_estimate_betas_default_bench_guess(self):
         idx = pd.date_range("2023-01-01", periods=30)
         rng = np.random.default_rng(9)
-        df = pd.DataFrame({"BTC": rng.normal(0, 0.01, 30), "ETH": rng.normal(0, 0.01, 30)}, index=idx)
+        df = pd.DataFrame(
+            {"BTC": rng.normal(0, 0.01, 30), "ETH": rng.normal(0, 0.01, 30)}, index=idx
+        )
         # no benchmark specified - try
         try:
             b = beta.estimate_betas(df)
@@ -81,6 +86,8 @@ class TestBetaExtraGaps2:
 
     def test_calculate_rolling_beta_bad_bench_has_bad_values(self):
         idx = pd.date_range("2023-01-01", periods=20)
-        df = pd.DataFrame({"BTC": [np.nan]*20, "ETH": np.random.default_rng(1).normal(0,0.01,20)}, index=idx)
+        df = pd.DataFrame(
+            {"BTC": [np.nan] * 20, "ETH": np.random.default_rng(1).normal(0, 0.01, 20)}, index=idx
+        )
         with pytest.raises((BABDataError, Exception)):
             beta.calculate_rolling_beta(df, "BTC", window=5, min_obs=3)

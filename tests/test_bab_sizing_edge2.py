@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
-from strategies.betting_against_beta import sizing, signals
+
+from strategies.betting_against_beta import signals, sizing
 
 
 def test_kelly_sig_tiny():

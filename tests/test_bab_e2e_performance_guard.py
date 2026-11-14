@@ -79,16 +79,22 @@ def test_e2e_run_performance_guard():
     median_tear = float(np.median(tear_times))
 
     # Record evidence alongside the assertion (printed by pytest -rA).
-    print(f"\n[R1-D] run median={median_run*1000:.1f}ms min={run_times.min()*1000:.1f} "
-          f"max={run_times.max()*1000:.1f}ms (ceiling {RUN_CEILING_S*1000:.0f}ms)")
-    print(f"[1-D] report median={median_report*1000:.1f}ms "
-          f"(ceiling {REPORT_CEILING_S*1000:.0f}ms)")
-    print(f"[1-D] tear_sheet median={median_tear*1000:.1f}ms "
-          f"(ceiling {TEAR_SHEET_CEILING_S*1000:.0f}ms)")
+    print(
+        f"\n[R1-D] run median={median_run * 1000:.1f}ms min={run_times.min() * 1000:.1f} "
+        f"max={run_times.max() * 1000:.1f}ms (ceiling {RUN_CEILING_S * 1000:.0f}ms)"
+    )
+    print(
+        f"[1-D] report median={median_report * 1000:.1f}ms "
+        f"(ceiling {REPORT_CEILING_S * 1000:.0f}ms)"
+    )
+    print(
+        f"[1-D] tear_sheet median={median_tear * 1000:.1f}ms "
+        f"(ceiling {TEAR_SHEET_CEILING_S * 1000:.0f}ms)"
+    )
 
     assert median_run < RUN_CEILING_S, (
-        f"E2E run regressed: median {median_run*1000:.1f}ms exceeds ceiling "
-        f"{RUN_CEILING_S*1000:.0f}ms"
+        f"E2E run regressed: median {median_run * 1000:.1f}ms exceeds ceiling "
+        f"{RUN_CEILING_S * 1000:.0f}ms"
     )
     assert median_report < REPORT_CEILING_S
     assert median_tear < TEAR_SHEET_CEILING_S

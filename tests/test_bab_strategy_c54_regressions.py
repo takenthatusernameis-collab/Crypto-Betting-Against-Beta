@@ -10,6 +10,7 @@ chained.
 Valid-path behaviour is unchanged: ordinary runs produce finite weights and a
 non-empty backtest.
 """
+
 from __future__ import annotations
 
 import numpy as _np

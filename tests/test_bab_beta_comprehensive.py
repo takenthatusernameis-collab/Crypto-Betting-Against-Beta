@@ -65,14 +65,14 @@ class TestCalculateBetaFast:
 class TestRollingBeta:
     def test_rolling_beta_series(self):
         df = generate_synthetic_returns(n_days=150, n_assets=4, seed=123)
-        asset_col = [c for c in df.columns if c != "BTC"][0]
+        asset_col = next(c for c in df.columns if c != "BTC")
         res = beta.rolling_beta(df["BTC"], df[asset_col], window=60, min_obs=30)
         assert hasattr(res, "__len__")
         assert len(res) == len(df)
 
     def test_rolling_beta_with_min_periods(self):
         df = generate_synthetic_returns(n_days=150, n_assets=4, seed=123)
-        asset_col = [c for c in df.columns if c != "BTC"][0]
+        asset_col = next(c for c in df.columns if c != "BTC")
         res = beta.rolling_beta(df["BTC"], df[asset_col], window=60, min_periods=30)
         assert len(res) == len(df)
 

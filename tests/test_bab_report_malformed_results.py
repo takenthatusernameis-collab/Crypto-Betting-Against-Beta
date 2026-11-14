@@ -16,7 +16,7 @@ import pandas as pd
 import pytest
 
 from strategies.betting_against_beta import BABStrategy
-from strategies.betting_against_beta.strategy import BABResult, BABConfig
+from strategies.betting_against_beta.strategy import BABConfig, BABResult
 
 
 def _make_result(**overrides):
@@ -70,7 +70,11 @@ class TestReportMalformedResults:
 
     def test_report_missing_benchmark_column(self):
         # Benchmark absent from returns frame -> beta falls back to nan -> 0.0
-        res = _make_result(returns=pd.DataFrame({"ETH": [0.01, 0.02]}, index=pd.date_range("2023-01-01", periods=2)))
+        res = _make_result(
+            returns=pd.DataFrame(
+                {"ETH": [0.01, 0.02]}, index=pd.date_range("2023-01-01", periods=2)
+            )
+        )
         rep = BABStrategy().report(res)
         assert math.isfinite(rep["metrics"]["strategy_beta"])
 

@@ -44,7 +44,9 @@ class ShortingConstraints:
         if self.max_short_weight is not None and self.max_short_notional_per_asset is None:
             object.__setattr__(self, "max_short_notional_per_asset", self.max_short_weight)
         # Normalize borrow_bps_per_year dict if passed
-        if isinstance(self.borrow_bps_per_year, (int, float)) and not isinstance(self.borrow_bps_per_year, bool):
+        if isinstance(self.borrow_bps_per_year, (int, float)) and not isinstance(
+            self.borrow_bps_per_year, bool
+        ):
             object.__setattr__(self, "borrow_bps_per_year", {"*": float(self.borrow_bps_per_year)})
         self._validate()
         object.__setattr__(self, "_frozen", True)
@@ -56,20 +58,26 @@ class ShortingConstraints:
 
     def _validate(self) -> None:
         errors = []
-        if not isinstance(self.default_borrow_bps_per_year, (int, float)) or isinstance(self.default_borrow_bps_per_year, bool) or self.default_borrow_bps_per_year < 0:
+        if (
+            not isinstance(self.default_borrow_bps_per_year, (int, float))
+            or isinstance(self.default_borrow_bps_per_year, bool)
+            or self.default_borrow_bps_per_year < 0
+        ):
             errors.append("default_borrow_bps_per_year must be non-negative")
-        for name in ("max_short_exposure", "max_short_leverage", "max_short_notional_per_asset", "max_short_weight"):
+        for name in (
+            "max_short_exposure",
+            "max_short_leverage",
+            "max_short_notional_per_asset",
+            "max_short_weight",
+        ):
             val = getattr(self, name)
             if val is None:
                 continue
             if not isinstance(val, (int, float)) or isinstance(val, bool) or val < 0:
                 errors.append(f"{name} must be non-negative")
-        if (
-            isinstance(self.borrow_bps_per_year, dict)
-            and any(
-                not isinstance(v, (int, float)) or isinstance(v, bool) or v < 0
-                for v in self.borrow_bps_per_year.values()
-            )
+        if isinstance(self.borrow_bps_per_year, dict) and any(
+            not isinstance(v, (int, float)) or isinstance(v, bool) or v < 0
+            for v in self.borrow_bps_per_year.values()
         ):
             errors.append("borrow_bps_per_year values must be non-negative")
         if self.borrowable is not None and not isinstance(self.borrowable, dict):
@@ -112,8 +120,9 @@ def _clean_df(df):
     return df.replace([np.inf, -np.inf], np.nan)
 
 
-def apply_shorting_constraints(signals_or_weights, constraints: ShortingConstraints | None = None,
-                                **kwargs):
+def apply_shorting_constraints(
+    signals_or_weights, constraints: ShortingConstraints | None = None, **kwargs
+):
     """Apply shorting constraints to signals/weights.
 
     Accepts signals (e.g. -1/0/1) or weights; returns weights DataFrame.
@@ -153,7 +162,14 @@ def apply_shorting_constraints(signals_or_weights, constraints: ShortingConstrai
 
     df = _clean_df(signals_or_weights)
     if df is None or len(df.columns) == 0:
-        return pd.DataFrame() if signals_or_weights is None else pd.DataFrame(index=getattr(signals_or_weights, "index", []), columns=getattr(signals_or_weights, "columns", []))
+        return (
+            pd.DataFrame()
+            if signals_or_weights is None
+            else pd.DataFrame(
+                index=getattr(signals_or_weights, "index", []),
+                columns=getattr(signals_or_weights, "columns", []),
+            )
+        )
 
     # Work on copy
     weights = df.copy().astype(float).fillna(0.0)
@@ -222,7 +238,11 @@ def apply_shorting_constraints(signals_or_weights, constraints: ShortingConstrai
                     row[c] = -cap  # scale down to cap
 
         # Total short exposure cap
-        total_cap = constraints.max_short_exposure if constraints.max_short_exposure is not None else constraints.max_short_leverage
+        total_cap = (
+            constraints.max_short_exposure
+            if constraints.max_short_exposure is not None
+            else constraints.max_short_leverage
+        )
         if total_cap is not None:
             cap = float(total_cap)
             if cap < 0:

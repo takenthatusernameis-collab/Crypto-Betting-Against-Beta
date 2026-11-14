@@ -22,10 +22,10 @@ from strategies.betting_against_beta.data_loader import (
     _run_data_quality_campaign,
 )
 
-
 # ---------------------------------------------------------------------------
 # _coerce_numeric
 # ---------------------------------------------------------------------------
+
 
 def test_coerce_numeric_non_dataframe_raises_babdataerror():
     with pytest.raises(BABDataError):
@@ -33,7 +33,9 @@ def test_coerce_numeric_non_dataframe_raises_babdataerror():
 
 
 def test_coerce_numeric_uncoercible_garbage_raises():
-    df = pd.DataFrame({"BTC": ["garbage", "also-bad"]}, index=pd.date_range("2023-01-01", periods=2))
+    df = pd.DataFrame(
+        {"BTC": ["garbage", "also-bad"]}, index=pd.date_range("2023-01-01", periods=2)
+    )
     with pytest.raises(BABDataError, match="Non-numeric"):
         _coerce_numeric(df)
 
@@ -45,15 +47,18 @@ def test_coerce_numeric_mixed_numeric_and_garbage_raises():
 
 
 def test_coerce_numeric_commas_and_units_stripped():
-    df = pd.DataFrame({"BTC": ["1,234.5", "2,500.25"]}, index=pd.date_range("2023-01-01", periods=2))
+    df = pd.DataFrame(
+        {"BTC": ["1,234.5", "2,500.25"]}, index=pd.date_range("2023-01-01", periods=2)
+    )
     out = _coerce_numeric(df)
     assert out["BTC"].iloc[0] == pytest.approx(1234.5)
     assert out["BTC"].iloc[1] == pytest.approx(2500.25)
 
 
 def test_coerce_numeric_inf_and_nan_preserved():
-    df = pd.DataFrame({"BTC": [0.01, float("inf"), float("nan")]},
-                      index=pd.date_range("2023-01-01", periods=3))
+    df = pd.DataFrame(
+        {"BTC": [0.01, float("inf"), float("nan")]}, index=pd.date_range("2023-01-01", periods=3)
+    )
     out = _coerce_numeric(df)
     assert np.isinf(out["BTC"].iloc[1])
     assert np.isnan(out["BTC"].iloc[2])
@@ -68,6 +73,7 @@ def test_coerce_numeric_already_float_passthrough():
 # ---------------------------------------------------------------------------
 # _run_data_quality_campaign
 # ---------------------------------------------------------------------------
+
 
 def test_quality_none_raises():
     with pytest.raises(BABDataError, match="None"):
@@ -142,6 +148,7 @@ def test_quality_all_nan_column_passes_lenient():
 # _promote_datetime_column
 # ---------------------------------------------------------------------------
 
+
 def test_promote_datetime_column_already_datetimeindex_passthrough():
     idx = pd.date_range("2023-01-01", periods=3)
     df = pd.DataFrame({"BTC": [0.01, 0.02, 0.03]}, index=idx)
@@ -173,6 +180,7 @@ def test_promote_datetime_column_tz_aware_index_normalized():
 # _detect_and_normalize_exchange_format
 # ---------------------------------------------------------------------------
 
+
 def test_exchange_format_empty_returns_unchanged():
     df = pd.DataFrame()
     out = _detect_and_normalize_exchange_format(df)
@@ -187,6 +195,7 @@ def test_exchange_format_non_dataframe_returns_unchanged():
 # ---------------------------------------------------------------------------
 # _normalize_index error paths
 # ---------------------------------------------------------------------------
+
 
 def test_normalize_index_unparseable_raises_babdataerror():
     df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=["not-a-date", "also-not-a-date"])
@@ -203,6 +212,7 @@ def test_normalize_index_mixed_unparseable_raises():
 # ---------------------------------------------------------------------------
 # _coerce_to_datetime_scalar additional edge cases
 # ---------------------------------------------------------------------------
+
 
 def test_coerce_scalar_bool_treated_as_int():
     # bool is a subclass of int; True == 1 second epoch.

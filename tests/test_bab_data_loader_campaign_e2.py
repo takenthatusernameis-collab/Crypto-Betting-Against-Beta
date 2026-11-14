@@ -1,6 +1,8 @@
 """Campaign E2: additional coverage pushes for data_loader public/error paths."""
+
 from __future__ import annotations
 
+import contextlib
 import json
 import math
 import pickle
@@ -47,6 +49,7 @@ def _base(n=8):
 
 # -- coercion fallbacks / _normalize_index branches --
 
+
 def test_coerce_scalar_floats_ints_timestamps():
     assert pd.notna(pd.Timestamp(_coerce_to_datetime_scalar(1704067200.0)))
     assert pd.notna(pd.Timestamp(_coerce_to_datetime_scalar(np.int64(1704067200000))))
@@ -60,15 +63,11 @@ def test_coerce_scalar_floats_ints_timestamps():
 def test_coerce_scalar_boundary_magnitudes():
     # exercise us/ms/ns branches
     for v in [10**19, 10**17 + 1, 10**15 + 1, 10**12 + 1, 10**9 + 1, 100.0, 0.5]:
-        try:
+        with contextlib.suppress(Exception):
             _coerce_to_datetime_scalar(v)
-        except Exception:
-            pass
     for s in ["1704067200000000000", "1704067200000000", "1704067200000.5"]:
-        try:
+        with contextlib.suppress(Exception):
             _coerce_to_datetime_scalar(s)
-        except Exception:
-            pass
 
 
 def test_normalize_index_various_epoch_magnitudes_and_strings():
@@ -93,86 +92,88 @@ def test_normalize_index_unparseable_raises():
 
 # -- exchange long/wide/OHLCV detection via validate/load --
 
+
 def test_exchange_long_binance_style_pivot():
-    df = pd.DataFrame({
-        "symbol": ["BTCUSDT", "BTCUSDT", "ETHUSDT", "ETHUSDT", "BTCUSDT"],
-        "open time": [1704067200000, 1704153600000, 1704067200000, 1704153600000, 1704240000000],
-        "close": [42000, 43000, 2200, 2300, 44000],
-        "volume": [1, 2, 3, 4, 5],
-    })
+    df = pd.DataFrame(
+        {
+            "symbol": ["BTCUSDT", "BTCUSDT", "ETHUSDT", "ETHUSDT", "BTCUSDT"],
+            "open time": [
+                1704067200000,
+                1704153600000,
+                1704067200000,
+                1704153600000,
+                1704240000000,
+            ],
+            "close": [42000, 43000, 2200, 2300, 44000],
+            "volume": [1, 2, 3, 4, 5],
+        }
+    )
     out = validate_returns_dataframe(df, quality=False)
     assert isinstance(out, pd.DataFrame)
 
 
 def test_exchange_wide_ohlcv_close_promotion():
-    df = pd.DataFrame({
-        "Date": ["2024-01-01", "2024-01-02", "2024-01-03", "2024-01-04", "2024-01-05"],
-        "Open": [10, 11, 12, 13, 14],
-        "High": [11, 12, 13, 14, 15],
-        "Low": [9, 10, 11, 12, 13],
-        "Close": [100, 101, 99, 102, 103],
-        "Volume": [1000] * 5,
-    })
+    df = pd.DataFrame(
+        {
+            "Date": ["2024-01-01", "2024-01-02", "2024-01-03", "2024-01-04", "2024-01-05"],
+            "Open": [10, 11, 12, 13, 14],
+            "High": [11, 12, 13, 14, 15],
+            "Low": [9, 10, 11, 12, 13],
+            "Close": [100, 101, 99, 102, 103],
+            "Volume": [1000] * 5,
+        }
+    )
     out = validate_returns_dataframe(df, quality=False)
     assert isinstance(out.index, pd.DatetimeIndex)
 
 
 def test_exchange_adj_close_and_timestamp_col():
-    df = pd.DataFrame({
-        "timestamp": [1704067200, 1704153600, 1704240000, 1704326400],
-        "adj close": [50.0, 51.0, 49.5, 52.0],
-    })
+    df = pd.DataFrame(
+        {
+            "timestamp": [1704067200, 1704153600, 1704240000, 1704326400],
+            "adj close": [50.0, 51.0, 49.5, 52.0],
+        }
+    )
     out = validate_returns_dataframe(df, quality=False)
     assert isinstance(out, pd.DataFrame)
 
 
 # -- validate_returns_dataframe quality/edge branches --
 
+
 def test_validate_quality_flags_and_duplicate_policy():
     df = _base(12)
     # introduce a duplicate timestamp
     df2 = df.copy()
-    df2.index = list(df2.index[:-1]) + [df2.index[-2]]
-    try:
+    df2.index = [*list(df2.index[:-1]), df2.index[-2]]
+    with contextlib.suppress(BABDataError):
         validate_returns_dataframe(df2, quality=True, allow_duplicate_timestamps=True)
-    except BABDataError:
-        pass
-    try:
+    with contextlib.suppress(BABDataError):
         validate_returns_dataframe(df2, quality=True, allow_duplicate_timestamps=False)
-    except BABDataError:
-        pass
 
 
 def test_validate_extreme_returns_and_gaps():
     df = _base(10)
     df.iloc[1, 0] = 50.0  # implausible
-    try:
+    with contextlib.suppress(BABDataError):
         validate_returns_dataframe(df, quality=True, max_return_abs=1.0)
-    except BABDataError:
-        pass
     # gap
     idx = list(pd.date_range("2024-01-01", periods=5, freq="D"))
     idx[3] = idx[2] + pd.Timedelta(days=30)
-    df3 = pd.DataFrame({"BTC": [0.1]*5, "MKT": [0.01]*5}, index=idx)
-    try:
+    df3 = pd.DataFrame({"BTC": [0.1] * 5, "MKT": [0.01] * 5}, index=idx)
+    with contextlib.suppress(BABDataError):
         validate_returns_dataframe(df3, quality=True, max_gap_days=7)
-    except BABDataError:
-        pass
 
 
 def test_validate_stale_run_and_min_finite_fraction():
     df = _base(10)
     df["STALE"] = 0.01
-    try:
+    with contextlib.suppress(BABDataError):
         validate_returns_dataframe(df, quality=True, stale_run_threshold=3)
-    except BABDataError:
-        pass
     df2 = _base(10)
     df2.iloc[:9, 0] = np.nan
-    try:
+    with contextlib.suppress(BABDataError):
         validate_returns_dataframe(df2, quality=True, min_finite_fraction=0.5)
-    except BABDataError:
-        pass
 
 
 def test_validate_benchmark_no_finite_values():
@@ -185,21 +186,18 @@ def test_validate_benchmark_no_finite_values():
 def test_validate_trivial_range_index_rejected():
     # 0..n-1 index with no date info can be interpreted as missing date
     df = pd.DataFrame({"BTC": [0.1, 0.2, 0.3], "MKT": [0.01, 0.02, 0.03]})
-    try:
+    with contextlib.suppress(BABDataError):
         validate_returns_dataframe(df, quality=False)
-    except BABDataError:
-        pass
 
 
 # -- loader error wrapping and paths --
 
+
 def test_csv_bad_content(tmp_path):
     p = tmp_path / "bad.csv"
     p.write_text("a,b\n1,2,3\n", encoding="utf-8")
-    try:
+    with contextlib.suppress(BABDataError):
         load_returns_from_csv(p)
-    except BABDataError:
-        pass
 
 
 def test_jsonl_comments_blank_and_bad(tmp_path):
@@ -228,7 +226,10 @@ def test_json_split_requires_keys(tmp_path):
 
 
 def test_json_index_orient(tmp_path):
-    data = {"BTC": {"2024-01-01": 0.1, "2024-01-02": 0.2, "2024-01-03": 0.3}, "MKT": {"2024-01-01": 0.01, "2024-01-02": 0.02, "2024-01-03": 0.03}}
+    data = {
+        "BTC": {"2024-01-01": 0.1, "2024-01-02": 0.2, "2024-01-03": 0.3},
+        "MKT": {"2024-01-01": 0.01, "2024-01-02": 0.02, "2024-01-03": 0.03},
+    }
     p = tmp_path / "i.json"
     p.write_text(json.dumps(data), encoding="utf-8")
     out = load_returns_from_json(p, orient="index", quality=False)
@@ -254,6 +255,7 @@ def test_load_returns_from_dataframe_rangeindex_recovery():
 
 # -- detect/load_prices file paths --
 
+
 def test_detect_from_pickle_and_parquet_variants(tmp_path):
     df = _base(6)
     pp = tmp_path / "d.pkl"
@@ -268,38 +270,33 @@ def test_detect_from_pickle_and_parquet_variants(tmp_path):
 
 def test_load_prices_from_jsonl_and_hdf_variants(tmp_path, monkeypatch):
     idx = pd.date_range("2024-01-01", periods=6, freq="D")
-    prices = pd.DataFrame({"BTC": np.linspace(100, 110, 6), "MKT": np.linspace(50, 55, 6)}, index=idx)
+    prices = pd.DataFrame(
+        {"BTC": np.linspace(100, 110, 6), "MKT": np.linspace(50, 55, 6)}, index=idx
+    )
     jl = tmp_path / "p.jsonl"
     recs = prices.reset_index().rename(columns={"index": "date"})
     recs["date"] = recs["date"].astype(str)
-    jl.write_text("\n".join(recs.to_json(orient="records", lines=True).splitlines()), encoding="utf-8")
-    try:
+    jl.write_text(
+        "\n".join(recs.to_json(orient="records", lines=True).splitlines()), encoding="utf-8"
+    )
+    with contextlib.suppress(Exception):
         load_prices(jl)
-    except Exception:
-        pass
     with pytest.raises(BABDataError):
         load_prices(tmp_path / "nope.csv")
 
 
 # -- schema/utility helpers --
 
+
 def test_list_columns_iter_assets_normalize_standardize_clean():
     df = _base()
     assert isinstance(list_columns(df), list)
     assert isinstance(list(iter_assets(df, benchmark="MKT")), list)
-    try:
+    with contextlib.suppress(Exception):
         normalize_schema(df)
-    except Exception:
-        pass
-    try:
+    with contextlib.suppress(Exception):
         standardize_columns(df)
-    except Exception:
-        pass
-    try:
+    with contextlib.suppress(Exception):
         clean_data(df)
-    except Exception:
-        pass
-    try:
+    with contextlib.suppress(Exception):
         validate_prices(_base())
-    except Exception:
-        pass

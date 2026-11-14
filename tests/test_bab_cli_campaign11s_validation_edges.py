@@ -5,13 +5,22 @@ Covers dry-run vs run parity on universe comma-splitting gaps proven in heavy ca
 
 import subprocess
 import sys
+
 import pytest
 
 REAL = "tests/fixtures/real_market_prices.csv"
 
 
 def run_cli(args, dry_run=False):
-    cmd = [sys.executable, "-m", "strategies.betting_against_beta.cli", "--data", REAL, "--benchmark", "BTC"]
+    cmd = [
+        sys.executable,
+        "-m",
+        "strategies.betting_against_beta.cli",
+        "--data",
+        REAL,
+        "--benchmark",
+        "BTC",
+    ]
     if dry_run:
         cmd.append("--dry-run")
     cmd.extend(args)
@@ -27,12 +36,15 @@ class TestUniverseCommaSplitting:
     performs overlap checking and fails cleanly when no overlap exists.
     """
 
-    @pytest.mark.parametrize("universe_arg", [
-        "BTC, ETH",       # comma with space
-        "BTC,,ETH",       # double comma
-        ",",              # single comma only
-        ", ,",            # comma-space-comma
-    ])
+    @pytest.mark.parametrize(
+        "universe_arg",
+        [
+            "BTC, ETH",  # comma with space
+            "BTC,,ETH",  # double comma
+            ",",  # single comma only
+            ", ,",  # comma-space-comma
+        ],
+    )
     def test_universe_comma_token_dry_run_allows(self, universe_arg):
         """Dry-run accepts comma-containing universe tokens (config creation succeeds)."""
         rc, out, err = run_cli(["--universe", universe_arg], dry_run=True)
@@ -41,15 +53,18 @@ class TestUniverseCommaSplitting:
         # Universe shows as single token (comma not split in dry-run)
         assert universe_arg in out or universe_arg.strip() in out
 
-    @pytest.mark.parametrize("universe_arg", [
-        "BTC, ETH",
-        "BTC,,ETH",
-        ",",
-        ", ,",
-    ])
+    @pytest.mark.parametrize(
+        "universe_arg",
+        [
+            "BTC, ETH",
+            "BTC,,ETH",
+            ",",
+            ", ,",
+        ],
+    )
     def test_universe_comma_token_run_rejects_no_overlap(self, universe_arg):
         """Run rejects comma-containing universe tokens (no overlap with data columns)."""
-        rc, out, err = run_cli(["--universe", universe_arg], dry_run=False)
+        rc, out, _err = run_cli(["--universe", universe_arg], dry_run=False)
         assert rc == 1, f"run should reject '{universe_arg}': {out}"
         assert "has no overlap with data columns" in out
         assert "Traceback" not in out
@@ -76,8 +91,8 @@ class TestValidationParityBaseline:
 
     def test_valid_universe_parity(self):
         """Valid universe shows parity between dry-run and run."""
-        dry_rc, dry_out, dry_err = run_cli(["--universe", "BTC", "ETH"], dry_run=True)
-        run_rc, run_out, run_err = run_cli(["--universe", "BTC", "ETH"], dry_run=False)
+        dry_rc, dry_out, _dry_err = run_cli(["--universe", "BTC", "ETH"], dry_run=True)
+        run_rc, run_out, _run_err = run_cli(["--universe", "BTC", "ETH"], dry_run=False)
 
         assert dry_rc == 0
         assert run_rc == 0
@@ -86,8 +101,8 @@ class TestValidationParityBaseline:
 
     def test_invalid_rebalance_freq_empty_parity(self):
         """Empty rebalance-freq rejected in both dry-run and run."""
-        dry_rc, dry_out, dry_err = run_cli(["--rebalance-freq", ""], dry_run=True)
-        run_rc, run_out, run_err = run_cli(["--rebalance-freq", ""], dry_run=False)
+        dry_rc, dry_out, _dry_err = run_cli(["--rebalance-freq", ""], dry_run=True)
+        run_rc, run_out, _run_err = run_cli(["--rebalance-freq", ""], dry_run=False)
 
         assert dry_rc == 1
         assert run_rc == 1
@@ -96,8 +111,8 @@ class TestValidationParityBaseline:
 
     def test_negative_beta_window_parity(self):
         """Negative beta-window rejected in both dry-run and run."""
-        dry_rc, dry_out, dry_err = run_cli(["--beta-window", "-1"], dry_run=True)
-        run_rc, run_out, run_err = run_cli(["--beta-window", "-1"], dry_run=False)
+        dry_rc, dry_out, _dry_err = run_cli(["--beta-window", "-1"], dry_run=True)
+        run_rc, run_out, _run_err = run_cli(["--beta-window", "-1"], dry_run=False)
 
         assert dry_rc == 1
         assert run_rc == 1
@@ -106,8 +121,8 @@ class TestValidationParityBaseline:
 
     def test_negative_quantile_parity(self):
         """Negative quantile rejected in both dry-run and run."""
-        dry_rc, dry_out, dry_err = run_cli(["--long-quantile", "-0.1"], dry_run=True)
-        run_rc, run_out, run_err = run_cli(["--long-quantile", "-0.1"], dry_run=False)
+        dry_rc, dry_out, _dry_err = run_cli(["--long-quantile", "-0.1"], dry_run=True)
+        run_rc, run_out, _run_err = run_cli(["--long-quantile", "-0.1"], dry_run=False)
 
         assert dry_rc == 1
         assert run_rc == 1
@@ -116,8 +131,8 @@ class TestValidationParityBaseline:
 
     def test_negative_costs_parity(self):
         """Negative transaction costs rejected in both dry-run and run."""
-        dry_rc, dry_out, dry_err = run_cli(["--transaction-costs", "-0.001"], dry_run=True)
-        run_rc, run_out, run_err = run_cli(["--transaction-costs", "-0.001"], dry_run=False)
+        dry_rc, dry_out, _dry_err = run_cli(["--transaction-costs", "-0.001"], dry_run=True)
+        run_rc, run_out, _run_err = run_cli(["--transaction-costs", "-0.001"], dry_run=False)
 
         assert dry_rc == 1
         assert run_rc == 1

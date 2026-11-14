@@ -17,10 +17,10 @@ def test_sharpe_ratio_edges():
     # zero std with nonzero mean -> inf/-inf
     s = pd.Series([0.01, 0.01, 0.01])
     res = metrics.sharpe_ratio(s)
-    assert res == float('inf') or np.isinf(res)
+    assert res == float("inf") or np.isinf(res)
     s2 = pd.Series([-0.01, -0.01, -0.01])
     res2 = metrics.sharpe_ratio(s2)
-    assert res2 == float('-inf') or np.isinf(res2)
+    assert res2 == float("-inf") or np.isinf(res2)
 
 
 def test_max_drawdown_cumulative_direct():
@@ -68,7 +68,7 @@ def test_sortino_ratio_edges():
     # all positive
     r = pd.Series([0.01, 0.02, 0.01])
     sr = metrics.sortino_ratio(r)
-    assert sr == float('inf') or np.isinf(sr)
+    assert sr == float("inf") or np.isinf(sr)
     # downside dev zero case
     r2 = pd.Series([0.01, -0.0])  # has zero? excess might be zero
     pass
@@ -90,8 +90,8 @@ def test_turnover_series_edges():
 
 def test_summary_with_benchmark():
     idx = pd.date_range("2023-01-01", periods=50)
-    rets = pd.Series(np.random.randn(50)*0.01, index=idx)
-    bench = pd.Series(np.random.randn(50)*0.01, index=idx)
-    w = pd.DataFrame(np.random.randn(50, 2)*0.1, index=idx, columns=["A", "B"])
+    rets = pd.Series(np.random.randn(50) * 0.01, index=idx)
+    bench = pd.Series(np.random.randn(50) * 0.01, index=idx)
+    w = pd.DataFrame(np.random.randn(50, 2) * 0.1, index=idx, columns=["A", "B"])
     s = metrics.summary(rets, weights_df=w, benchmark_returns=bench)
     assert isinstance(s, dict)

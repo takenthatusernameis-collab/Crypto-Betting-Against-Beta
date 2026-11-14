@@ -1,6 +1,6 @@
 import json
-import pickle
 import os
+import pickle
 
 import numpy as np
 import pandas as pd
@@ -42,8 +42,15 @@ def test_strip_units_and_parse_edges():
     assert dl._strip_units_and_parse("1,000.50") == 1000.5
     assert dl._strip_units_and_parse("$100") == 100.0
     assert dl._strip_units_and_parse("10%") == 0.1
-    assert dl._strip_units_and_parse("N/A") is np.nan or pd.isna(dl._strip_units_and_parse("N/A")) or dl._strip_units_and_parse("N/A") == float('nan')
-    assert dl._strip_units_and_parse("1.5e-2") == 0.015 or abs(dl._strip_units_and_parse("1.5e-2") - 0.015) < 1e-10
+    assert (
+        dl._strip_units_and_parse("N/A") is np.nan
+        or pd.isna(dl._strip_units_and_parse("N/A"))
+        or dl._strip_units_and_parse("N/A") == float("nan")
+    )
+    assert (
+        dl._strip_units_and_parse("1.5e-2") == 0.015
+        or abs(dl._strip_units_and_parse("1.5e-2") - 0.015) < 1e-10
+    )
 
 
 def test_coerce_numeric_df():
@@ -54,6 +61,12 @@ def test_coerce_numeric_df():
 
 
 def test_validate_with_benchmark(tmp_path):
-    df = pd.DataFrame({"date": pd.date_range("2020-01-01", periods=10), "BTC": np.random.randn(10)*0.01, "ETH": np.random.randn(10)*0.01})
+    df = pd.DataFrame(
+        {
+            "date": pd.date_range("2020-01-01", periods=10),
+            "BTC": np.random.randn(10) * 0.01,
+            "ETH": np.random.randn(10) * 0.01,
+        }
+    )
     out = dl.validate_returns_dataframe(df, benchmark="BTC")
     assert isinstance(out, pd.DataFrame)

@@ -1,13 +1,13 @@
 import json
 import math
 import os
+
 import numpy as np
 import pandas as pd
 import pytest
 
-from strategies.betting_against_beta import BABStrategy, BABConfig
+from strategies.betting_against_beta import BABConfig, BABStrategy
 from strategies.betting_against_beta.errors import BABDataError
-
 
 FIX = os.path.join(os.path.dirname(__file__), "fixtures")
 
@@ -69,14 +69,26 @@ class TestStrategyInitKwargs:
 
 class TestStrategyDataSources:
     def test_data_source_csv(self):
-        cfg = BABConfig(data_source=os.path.join(FIX, "returns.csv") if os.path.exists(os.path.join(FIX, "returns.csv")) else os.path.join(FIX, "messy_returns.csv"), benchmark="BTC", beta_window=20, min_observations=10)
+        cfg = BABConfig(
+            data_source=os.path.join(FIX, "returns.csv")
+            if os.path.exists(os.path.join(FIX, "returns.csv"))
+            else os.path.join(FIX, "messy_returns.csv"),
+            benchmark="BTC",
+            beta_window=20,
+            min_observations=10,
+        )
         # messy has dates/columns; should load
         s = BABStrategy(cfg)
         res = s.run()
         assert np.isfinite(res.weights.values).all()
 
     def test_data_source_json_via_config(self):
-        cfg = BABConfig(data_source=os.path.join(FIX, "returns.json"), benchmark="BTC", beta_window=3, min_observations=2)
+        cfg = BABConfig(
+            data_source=os.path.join(FIX, "returns.json"),
+            benchmark="BTC",
+            beta_window=3,
+            min_observations=2,
+        )
         s = BABStrategy(cfg)
         res = s.run()
         assert np.isfinite(res.weights.values).all()
@@ -88,7 +100,12 @@ class TestStrategyDataSources:
         df["BTC"] = rng.normal(0.001, 0.02, 50)
         df["ETH"] = 0.8 * df["BTC"] + rng.normal(0, 0.01, 50)
         df["SOL"] = 1.2 * df["BTC"] + rng.normal(0, 0.015, 50)
-        cfg = BABConfig(data_source=os.path.join(FIX, "returns.json"), benchmark="BTC", beta_window=10, min_observations=5)
+        cfg = BABConfig(
+            data_source=os.path.join(FIX, "returns.json"),
+            benchmark="BTC",
+            beta_window=10,
+            min_observations=5,
+        )
         s = BABStrategy(cfg)
         res = s.run(returns_df=df)
         assert np.isfinite(res.weights.values).all()
@@ -131,7 +148,9 @@ class TestStrategyBranches:
         df["BTC"] = rng.normal(0.001, 0.02, 60)
         df["ETH"] = 0.5 * df["BTC"] + rng.normal(0, 0.01, 60)
         df["SOL"] = 1.5 * df["BTC"] + rng.normal(0, 0.015, 60)
-        cfg = BABConfig(shorting_constraints={"max_short_leverage": 0.3}, beta_window=20, min_observations=10)
+        cfg = BABConfig(
+            shorting_constraints={"max_short_leverage": 0.3}, beta_window=20, min_observations=10
+        )
         s = BABStrategy(cfg)
         res = s.run(df)
         assert np.isfinite(res.weights.values).all()
@@ -167,10 +186,17 @@ class TestStrategyBranches:
         df["BTC"] = rng.normal(0.001, 0.02, 80)
         df["ETH"] = 0.8 * df["BTC"] + rng.normal(0, 0.01, 80)
         df["SOL"] = 1.2 * df["BTC"] + rng.normal(0, 0.013, 80)
-        cfg = BABConfig(beta_neutral=True, beta_neutral_enforcement=True, beta_target=0.0,
-                        beta_tolerance=1e-3, enable_tracking_error_monitoring=True,
-                        tracking_error_tolerance=0.05, beta_neutral_correction=True,
-                        beta_window=20, min_observations=10)
+        cfg = BABConfig(
+            beta_neutral=True,
+            beta_neutral_enforcement=True,
+            beta_target=0.0,
+            beta_tolerance=1e-3,
+            enable_tracking_error_monitoring=True,
+            tracking_error_tolerance=0.05,
+            beta_neutral_correction=True,
+            beta_window=20,
+            min_observations=10,
+        )
         s = BABStrategy(cfg)
         res = s.run(df)
         assert np.isfinite(res.weights.values).all()

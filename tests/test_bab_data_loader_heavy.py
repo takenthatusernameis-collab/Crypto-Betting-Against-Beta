@@ -1,3 +1,5 @@
+import contextlib
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -8,7 +10,13 @@ from strategies.betting_against_beta.errors import BABDataError
 
 class TestDataLoaderHeavy:
     def test_load_returns_with_str_date(self):
-        df = pd.DataFrame({"date": ["2023-01-01", "2023-01-02", "2023-01-03"], "BTC": [0.01, -0.01, 0.02], "ETH": [0.02, 0.0, -0.01]})
+        df = pd.DataFrame(
+            {
+                "date": ["2023-01-01", "2023-01-02", "2023-01-03"],
+                "BTC": [0.01, -0.01, 0.02],
+                "ETH": [0.02, 0.0, -0.01],
+            }
+        )
         out = data_loader.load_returns(df)
         assert isinstance(out, pd.DataFrame)
 
@@ -30,7 +38,13 @@ class TestDataLoaderHeavy:
             pass
 
     def test_load_returns_bad_values_inf(self):
-        df = pd.DataFrame({"date": pd.date_range("2023-01-01", periods=3), "BTC": [np.inf, 0.01, -0.01], "ETH": [0.01, np.nan, 0.02]})
+        df = pd.DataFrame(
+            {
+                "date": pd.date_range("2023-01-01", periods=3),
+                "BTC": [np.inf, 0.01, -0.01],
+                "ETH": [0.01, np.nan, 0.02],
+            }
+        )
         try:
             out = data_loader.load_returns(df)
             assert isinstance(out, pd.DataFrame)
@@ -67,7 +81,5 @@ class TestDataLoaderHeavy:
             pass
 
     def test_load_prices_path_like(self):
-        try:
+        with contextlib.suppress(Exception):
             out = data_loader.load_prices("/tmp/does_not_exist_xyz.csv")
-        except Exception:
-            pass

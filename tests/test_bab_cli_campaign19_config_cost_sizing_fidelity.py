@@ -15,7 +15,7 @@ REAL = "tests/fixtures/real_market_prices.csv"
 
 
 def _run_cli(args, cwd=None):
-    cmd = [sys.executable, "-m", "strategies.betting_against_beta.cli"] + list(args)
+    cmd = [sys.executable, "-m", "strategies.betting_against_beta.cli", *list(args)]
     p = subprocess.run(cmd, capture_output=True, text=True, cwd=cwd)
     return cmd, p
 
@@ -67,8 +67,12 @@ def test_c19_cost_monotonic_drag_finite(real_returns):
 
 # 7: slippage drag positive and finite
 def test_c19_slippage_drag_positive_finite(real_returns):
-    res0 = BABStrategy(benchmark="BTC", slippage=0.0, transaction_costs=0.0).run(returns_df=real_returns.copy())
-    res1 = BABStrategy(benchmark="BTC", slippage=0.001, transaction_costs=0.0).run(returns_df=real_returns.copy())
+    res0 = BABStrategy(benchmark="BTC", slippage=0.0, transaction_costs=0.0).run(
+        returns_df=real_returns.copy()
+    )
+    res1 = BABStrategy(benchmark="BTC", slippage=0.001, transaction_costs=0.0).run(
+        returns_df=real_returns.copy()
+    )
     for res in (res0, res1):
         bt = res.backtest
         for col in bt.columns:
@@ -76,7 +80,10 @@ def test_c19_slippage_drag_positive_finite(real_returns):
     assert float(res0.backtest["slippage_drag"].sum()) == 0.0
     assert float(res1.backtest["slippage_drag"].sum()) > 0.0
     # net cumulative under slippage should not exceed gross/no-slippage path
-    assert float(res1.backtest["cumulative"].iloc[-1]) <= float(res0.backtest["cumulative"].iloc[-1]) + 1e-12
+    assert (
+        float(res1.backtest["cumulative"].iloc[-1])
+        <= float(res0.backtest["cumulative"].iloc[-1]) + 1e-12
+    )
 
 
 # 8: explicit universe with no data overlap -> clean BABConfigError
@@ -130,7 +137,9 @@ def test_c19_max_position_size_feasible_bounded_finite(real_returns):
 # 12-15: CLI output, nested dir creation, dry-run dir error, determinism
 def test_c19_cli_output_strict_json_and_keys(tmp_path):
     outp = tmp_path / "out.json"
-    cmd, p = _run_cli(["--data", REAL, "--from-prices", "--benchmark", "BTC", "--output", str(outp)])
+    cmd, p = _run_cli(
+        ["--data", REAL, "--from-prices", "--benchmark", "BTC", "--output", str(outp)]
+    )
     assert p.returncode == 0, (cmd, p.stdout, p.stderr)
     assert p.stderr == ""
     assert "Traceback" not in p.stdout and "Traceback" not in p.stderr
@@ -145,7 +154,9 @@ def test_c19_cli_output_strict_json_and_keys(tmp_path):
 
 def test_c19_cli_output_nested_dir_created(tmp_path):
     outp = tmp_path / "nested" / "deep" / "out.json"
-    cmd, p = _run_cli(["--data", REAL, "--from-prices", "--benchmark", "BTC", "--output", str(outp)])
+    cmd, p = _run_cli(
+        ["--data", REAL, "--from-prices", "--benchmark", "BTC", "--output", str(outp)]
+    )
     assert p.returncode == 0, (cmd, p.stdout, p.stderr)
     assert outp.exists()
     obj = json.loads(outp.read_text())
@@ -154,7 +165,18 @@ def test_c19_cli_output_nested_dir_created(tmp_path):
 
 
 def test_c19_cli_dry_run_output_dir_clean_error(tmp_path):
-    cmd, p = _run_cli(["--dry-run", "--data", REAL, "--from-prices", "--benchmark", "BTC", "--output", str(tmp_path)])
+    cmd, p = _run_cli(
+        [
+            "--dry-run",
+            "--data",
+            REAL,
+            "--from-prices",
+            "--benchmark",
+            "BTC",
+            "--output",
+            str(tmp_path),
+        ]
+    )
     assert p.returncode == 1, (cmd, p.stdout, p.stderr)
     assert "Traceback" not in p.stdout and "Traceback" not in p.stderr
     assert "is a directory" in (p.stdout + p.stderr)
@@ -165,7 +187,9 @@ def test_c19_cli_determinism_stdout_and_json(tmp_path):
     files = []
     for i in range(2):
         outp = tmp_path / f"out{i}.json"
-        cmd, p = _run_cli(["--data", REAL, "--from-prices", "--benchmark", "BTC", "--output", str(outp)])
+        cmd, p = _run_cli(
+            ["--data", REAL, "--from-prices", "--benchmark", "BTC", "--output", str(outp)]
+        )
         assert p.returncode == 0, (cmd, p.stdout, p.stderr)
         outs.append(p.stdout)
         files.append(outp.read_bytes())

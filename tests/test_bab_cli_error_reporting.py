@@ -7,6 +7,7 @@ Evidence-first against current CLI behavior:
 - Nonexistent --data in a real run -> rc=1 with actionable error.
 No external data; uses synthetic/fixtures and tmp_path only.
 """
+
 from __future__ import annotations
 
 import json
@@ -27,10 +28,16 @@ def test_dry_run_missing_data_returns_nonzero_and_no_crash(capsys):
 
 
 def test_dry_run_missing_data_from_prices_returns_nonzero(capsys):
-    rc = main([
-        "--dry-run", "--from-prices", "--data", "/tmp/bab_campaign11_missing_prices_xyz.csv",
-        "--benchmark", "BTC",
-    ])
+    rc = main(
+        [
+            "--dry-run",
+            "--from-prices",
+            "--data",
+            "/tmp/bab_campaign11_missing_prices_xyz.csv",
+            "--benchmark",
+            "BTC",
+        ]
+    )
     assert rc == 1
     out = capsys.readouterr().out
     assert "INVALID" in out or "not found" in out.lower()
@@ -82,12 +89,27 @@ def test_nonexistent_data_real_run_returns_nonzero(capsys):
 
 def test_successful_synthetic_output_schema_stable_with_explicit_flags(tmp_path):
     out = tmp_path / "out.json"
-    rc = main([
-        "--synthetic", "--output", str(out),
-        "--benchmark", "BTC", "--beta-window", "30",
-        "--long-quantile", "0.3", "--short-quantile", "0.3",
-        "--rebalance-freq", "daily", "--transaction-costs", "0.0", "--slippage", "0.0",
-    ])
+    rc = main(
+        [
+            "--synthetic",
+            "--output",
+            str(out),
+            "--benchmark",
+            "BTC",
+            "--beta-window",
+            "30",
+            "--long-quantile",
+            "0.3",
+            "--short-quantile",
+            "0.3",
+            "--rebalance-freq",
+            "daily",
+            "--transaction-costs",
+            "0.0",
+            "--slippage",
+            "0.0",
+        ]
+    )
     assert rc == 0
     payload = json.loads(out.read_text())
     for key in ("final_cumulative", "periods", "benchmark", "universe"):
@@ -98,10 +120,16 @@ def test_successful_synthetic_output_schema_stable_with_explicit_flags(tmp_path)
 
 def test_dry_run_valid_prices_fixture_rc0(tmp_path, capsys):
     # Evidence-first: CLI accepts --dry-run --data <existing fixture> --from-prices
-    rc = main([
-        "--dry-run", "--data", "tests/fixtures/real_market_prices.csv",
-        "--from-prices", "--benchmark", "BTC",
-    ])
+    rc = main(
+        [
+            "--dry-run",
+            "--data",
+            "tests/fixtures/real_market_prices.csv",
+            "--from-prices",
+            "--benchmark",
+            "BTC",
+        ]
+    )
     assert rc == 0
     out = capsys.readouterr().out
     assert "valid" in out.lower() or "Resolved" in out

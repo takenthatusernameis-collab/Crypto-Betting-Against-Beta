@@ -16,7 +16,6 @@ from unittest import mock
 
 import pytest
 
-
 # Inline copies of the scanner functions from .github/workflows/main.yml
 # so tests can run without depending on the full workflow file.
 
@@ -51,11 +50,13 @@ def scan_log_lines(log_text: str) -> list[dict]:
         line = ANSI_RE.sub("", raw_line)
         if not ERROR_RE.search(line):
             continue
-        candidates.append({
-            "type": "log_signal",
-            "line_number": line_number,
-            "excerpt": redact(line),
-        })
+        candidates.append(
+            {
+                "type": "log_signal",
+                "line_number": line_number,
+                "excerpt": redact(line),
+            }
+        )
     return candidates
 
 
@@ -147,26 +148,32 @@ class TestRedact:
 class TestErrorPatternClassification:
     """Tests for the ERROR_RE pattern."""
 
-    @pytest.mark.parametrize("line", [
-        "ModuleNotFoundError: No module named 'foo'",
-        "AssertionError: expected True, got False",
-        "Permission denied: cannot write to /root",
-        "Request timed out after 30s",
-        "HTTP/1.1 404 Not Found",
-        "HTTP/2 503 Service Unavailable",
-        "429 Too Many Requests",
-        "500 Internal Server Error",
-        "resource exhausted: api quota",
-        "rate limiting applied",
-    ])
+    @pytest.mark.parametrize(
+        "line",
+        [
+            "ModuleNotFoundError: No module named 'foo'",
+            "AssertionError: expected True, got False",
+            "Permission denied: cannot write to /root",
+            "Request timed out after 30s",
+            "HTTP/1.1 404 Not Found",
+            "HTTP/2 503 Service Unavailable",
+            "429 Too Many Requests",
+            "500 Internal Server Error",
+            "resource exhausted: api quota",
+            "rate limiting applied",
+        ],
+    )
     def test_matches_error(self, line: str) -> None:
         assert ERROR_RE.search(line) is not None, f"Expected match for: {line}"
 
-    @pytest.mark.parametrize("line", [
-        "All tests passed.",
-        "INFO: processing complete",
-        "Warning: deprecated function",
-        "Debug: cache hit",
-    ])
+    @pytest.mark.parametrize(
+        "line",
+        [
+            "All tests passed.",
+            "INFO: processing complete",
+            "Warning: deprecated function",
+            "Debug: cache hit",
+        ],
+    )
     def test_does_not_match_success(self, line: str) -> None:
         assert ERROR_RE.search(line) is None, f"Unexpected match for: {line}"

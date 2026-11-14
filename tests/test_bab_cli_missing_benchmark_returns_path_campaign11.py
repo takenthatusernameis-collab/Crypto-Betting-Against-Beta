@@ -10,6 +10,7 @@ check), while the prices path reported "Benchmark 'X' not found in columns: ..."
 This module locks the parity contract end-to-end via the CLI so no future
 reordering can silently reintroduce the confusing message.
 """
+
 from __future__ import annotations
 
 import subprocess
@@ -40,9 +41,16 @@ class TestMissingBenchmarkReportingParity:
     def test_returns_path_reports_benchmark_not_found(self, tmp_path: Path):
         # Benchmark absent from a returns fixture must NOT surface the generic
         # implausible-return message; it must name the benchmark and the columns.
-        res = _run_cli([
-            "--data", REAL_PRICES, "--benchmark", "ZZZ", "--output", str(tmp_path / "o.json"),
-        ])
+        res = _run_cli(
+            [
+                "--data",
+                REAL_PRICES,
+                "--benchmark",
+                "ZZZ",
+                "--output",
+                str(tmp_path / "o.json"),
+            ]
+        )
         assert res.returncode == 1, f"rc={res.returncode}\n{_combined(res)}"
         msg = _combined(res).lower()
         assert "benchmark" in msg
@@ -51,10 +59,17 @@ class TestMissingBenchmarkReportingParity:
         assert "traceback" not in msg
 
     def test_prices_path_reports_benchmark_not_found(self, tmp_path: Path):
-        res = _run_cli([
-            "--data", REAL_PRICES, "--from-prices", "--benchmark", "ZZZ",
-            "--output", str(tmp_path / "o.json"),
-        ])
+        res = _run_cli(
+            [
+                "--data",
+                REAL_PRICES,
+                "--from-prices",
+                "--benchmark",
+                "ZZZ",
+                "--output",
+                str(tmp_path / "o.json"),
+            ]
+        )
         assert res.returncode == 1, f"rc={res.returncode}\n{_combined(res)}"
         msg = _combined(res).lower()
         assert "benchmark" in msg
@@ -65,9 +80,16 @@ class TestMissingBenchmarkReportingParity:
     def test_missing_benchmark_dry_run_both_paths(self):
         # --dry-run must also report the same actionable message on both paths.
         for extra in ([], ["--from-prices"]):
-            res = _run_cli([
-                "--dry-run", "--data", REAL_PRICES, "--benchmark", "ZZZ", *extra,
-            ])
+            res = _run_cli(
+                [
+                    "--dry-run",
+                    "--data",
+                    REAL_PRICES,
+                    "--benchmark",
+                    "ZZZ",
+                    *extra,
+                ]
+            )
             assert res.returncode == 1, f"rc={res.returncode}\n{_combined(res)}"
             msg = _combined(res).lower()
             assert "benchmark" in msg

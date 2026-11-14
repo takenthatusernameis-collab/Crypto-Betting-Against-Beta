@@ -10,10 +10,9 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from strategies.betting_against_beta.strategy import BABStrategy
 from strategies.betting_against_beta.config import BABConfig
 from strategies.betting_against_beta.replay import ReplayHarness
-
+from strategies.betting_against_beta.strategy import BABStrategy
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 REAL_PRICES = str(REPO_ROOT / "tests" / "fixtures" / "real_market_prices.csv")
@@ -95,9 +94,7 @@ def test_replay_harness_finite_values():
             assert math.isfinite(obj), f"Non-finite float at {path}: {obj}"
         elif isinstance(obj, int):
             pass  # ints are always finite
-        elif isinstance(obj, str):
-            pass
-        elif obj is None:
+        elif isinstance(obj, str) or obj is None:
             pass
         else:
             # Other types should not appear in JSON-safe output
@@ -119,6 +116,7 @@ def test_replay_harness_checksum_stable():
 
     # Verify checksum matches canonical JSON
     import hashlib
+
     payload_no_sum = {k: v for k, v in artifact1.items() if k != "checksum"}
     canonical = json.dumps(payload_no_sum, sort_keys=True, default=str, allow_nan=False)
     expected_checksum = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
@@ -141,7 +139,7 @@ def test_replay_harness_records_orders_fills_costs():
         assert "orders" in order_entry
         assert isinstance(order_entry["orders"], dict)
         # Orders should be finite floats
-        for asset, weight in order_entry["orders"].items():
+        for weight in order_entry["orders"].values():
             assert math.isfinite(weight)
 
     # Fills: same structure as orders (paper trading = full fill)
@@ -152,7 +150,9 @@ def test_replay_harness_records_orders_fills_costs():
         assert "fills" in fill_entry
         assert isinstance(fill_entry["fills"], dict)
         # Fills should match orders (paper trading)
-        assert fill_entry["fills"] == artifact["orders"][artifact["fills"].index(fill_entry)]["orders"]
+        assert (
+            fill_entry["fills"] == artifact["orders"][artifact["fills"].index(fill_entry)]["orders"]
+        )
 
     # Costs: list of dicts with date, turnover, cost
     assert isinstance(artifact["costs"], list)
@@ -198,6 +198,7 @@ def test_replay_harness_with_prices_df():
 
     # Load prices from the same fixture
     from strategies.betting_against_beta.data_loader import load_prices
+
     prices_df = load_prices(REAL_PRICES, benchmark="BTC")
 
     harness = ReplayHarness(
@@ -240,8 +241,8 @@ def test_replay_harness_invalid_result_raises():
 
 def test_replay_harness_empty_weights():
     """ReplayHarness handles empty weights gracefully."""
-    from strategies.betting_against_beta.strategy import BABResult
     from strategies.betting_against_beta.config import BABConfig
+    from strategies.betting_against_beta.strategy import BABResult
 
     # Create a minimal BABResult with empty weights
     empty_weights = pd.DataFrame()
@@ -296,4 +297,7 @@ def test_replay_harness_different_inputs_different_checksums():
 
     # Different costs should produce different artifacts
     assert artifact1["checksum"] != artifact2["checksum"]
-    assert artifact1["config_snapshot"]["transaction_costs"] != artifact2["config_snapshot"]["transaction_costs"]
+    assert (
+        artifact1["config_snapshot"]["transaction_costs"]
+        != artifact2["config_snapshot"]["transaction_costs"]
+    )

@@ -3,7 +3,8 @@
 Example: Load real returns data and run BABStrategy.
 
 This script shows the concrete contract for swapping in real data:
-- CSV/JSON/JSONL/Parquet/HDF5/Pickle with datetime index/column and numeric return columns per asset
+- CSV/JSON/JSONL/Parquet/HDF5/Pickle with datetime index/column and numeric
+return columns per asset
 - Use load_returns() for validation/coercion/normalization (tz-aware -> UTC naive, dedup, drop all-NaN, numeric coercion)
 - Pass returns_df to BABStrategy.run(returns_df=...)
 - Also demonstrates price->returns via load_prices() if needed
@@ -33,14 +34,28 @@ from strategies.betting_against_beta.data_loader import BABDataError, load_price
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Load real returns/price data and run BAB")
-    parser.add_argument("data_path", nargs="?", default=None, type=str, help="Path to data file (CSV/JSON/JSONL/Parquet/HDF5/Pickle). For prices use --from-prices")
+    parser.add_argument(
+        "data_path",
+        nargs="?",
+        default=None,
+        type=str,
+        help="Path to data file (CSV/JSON/JSONL/Parquet/HDF5/Pickle). For prices use --from-prices",
+    )
     parser.add_argument("--benchmark", type=str, default="BTC", help="Benchmark symbol column name")
     parser.add_argument("--min-rows", type=int, default=30, help="Minimum rows/finite history")
     parser.add_argument("--lookback", type=int, default=252, help="Rolling beta lookback")
     parser.add_argument("--quantile", type=float, default=0.3, help="Quantile for long/short")
-    parser.add_argument("--transaction-cost", type=float, default=0.001, help="Transaction cost per unit turnover")
-    parser.add_argument("--from-prices", action="store_true", help="Treat input as prices and convert to returns via load_prices()")
-    parser.add_argument("--universe", type=str, nargs="*", help="Optional universe override (must intersect data)")
+    parser.add_argument(
+        "--transaction-cost", type=float, default=0.001, help="Transaction cost per unit turnover"
+    )
+    parser.add_argument(
+        "--from-prices",
+        action="store_true",
+        help="Treat input as prices and convert to returns via load_prices()",
+    )
+    parser.add_argument(
+        "--universe", type=str, nargs="*", help="Optional universe override (must intersect data)"
+    )
     parser.add_argument("--version", action="store_true", help="Print version and exit")
     parser.add_argument("--output", type=str, help="Output JSON file for results summary")
     args = parser.parse_args()
@@ -108,7 +123,10 @@ def main() -> int:
             try:
                 parent.mkdir(parents=True, exist_ok=True)
             except OSError as exc:
-                print(f"Error creating parent directory for --output {out_path}: {exc}", file=sys.stderr)
+                print(
+                    f"Error creating parent directory for --output {out_path}: {exc}",
+                    file=sys.stderr,
+                )
                 return 1
         universe = args.universe if args.universe else []
         summary = {

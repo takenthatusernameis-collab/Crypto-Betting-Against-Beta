@@ -1,4 +1,5 @@
 """Batch 89: reachable exception handler in _coerce_numeric (1226-1227)."""
+
 import pandas as pd
 import pytest
 

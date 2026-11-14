@@ -12,13 +12,12 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from strategies.betting_against_beta import BABConfig, BABStrategy
-from strategies.betting_against_beta import sizing
+from strategies.betting_against_beta import BABConfig, BABStrategy, sizing
 from strategies.betting_against_beta.sizing import (
     BABSizingError,
     KellySizer,
-    VolatilityTargetSizer,
     RiskParitySizer,
+    VolatilityTargetSizer,
     apply_position_sizing,
 )
 
@@ -41,13 +40,17 @@ class TestSizerValidation:
 class TestKellySizer:
     def test_produces_finite_weights(self):
         idx = pd.date_range("2023-01-01", periods=100, freq="D")
-        returns = pd.DataFrame({
-            "BTC": np.random.default_rng(1).normal(0.0005, 0.02, 100),
-            "ETH": np.random.default_rng(2).normal(0.0008, 0.03, 100),
-        }, index=idx)
+        returns = pd.DataFrame(
+            {
+                "BTC": np.random.default_rng(1).normal(0.0005, 0.02, 100),
+                "ETH": np.random.default_rng(2).normal(0.0008, 0.03, 100),
+            },
+            index=idx,
+        )
         # synthetic betas/signals
-        betas = pd.DataFrame({"BTC": [1.0]*100, "ETH": [1.2]*100}, index=idx)
+        betas = pd.DataFrame({"BTC": [1.0] * 100, "ETH": [1.2] * 100}, index=idx)
         from strategies.betting_against_beta.signals import generate_bab_signals
+
         signals = generate_bab_signals(betas, long_quantile=0.5, short_quantile=0.5)
         sizer = KellySizer(lookback=60)
         w = apply_position_sizing(signals, returns, betas, sizer)
@@ -56,12 +59,16 @@ class TestKellySizer:
 
     def test_scales_magnitude_consistently(self):
         idx = pd.date_range("2023-01-01", periods=80, freq="D")
-        returns = pd.DataFrame({
-            "A": np.random.default_rng(5).normal(0.001, 0.01, 80),
-            "B": np.random.default_rng(6).normal(-0.0002, 0.02, 80),
-        }, index=idx)
-        betas = pd.DataFrame({"A": [0.5]*80, "B": [1.5]*80}, index=idx)
+        returns = pd.DataFrame(
+            {
+                "A": np.random.default_rng(5).normal(0.001, 0.01, 80),
+                "B": np.random.default_rng(6).normal(-0.0002, 0.02, 80),
+            },
+            index=idx,
+        )
+        betas = pd.DataFrame({"A": [0.5] * 80, "B": [1.5] * 80}, index=idx)
         from strategies.betting_against_beta.signals import generate_bab_signals
+
         signals = generate_bab_signals(betas, long_quantile=0.5, short_quantile=0.5)
         sizer = KellySizer(lookback=40, max_leverage=1.0)
         w = apply_position_sizing(signals, returns, betas, sizer)
@@ -73,12 +80,16 @@ class TestVolatilityTargetSizer:
     def test_targets_annualized_vol(self):
         idx = pd.date_range("2023-01-01", periods=150, freq="D")
         rng = np.random.default_rng(123)
-        returns = pd.DataFrame({
-            "BTC": rng.normal(0, 0.02, 150),
-            "ETH": rng.normal(0, 0.03, 150),
-        }, index=idx)
-        betas = pd.DataFrame({"BTC": [1.0]*150, "ETH": [1.3]*150}, index=idx)
+        returns = pd.DataFrame(
+            {
+                "BTC": rng.normal(0, 0.02, 150),
+                "ETH": rng.normal(0, 0.03, 150),
+            },
+            index=idx,
+        )
+        betas = pd.DataFrame({"BTC": [1.0] * 150, "ETH": [1.3] * 150}, index=idx)
         from strategies.betting_against_beta.signals import generate_bab_signals
+
         signals = generate_bab_signals(betas, long_quantile=0.5, short_quantile=0.5)
         sizer = VolatilityTargetSizer(target_vol=0.10, lookback=60, annualize=252)
         w = apply_position_sizing(signals, returns, betas, sizer)
@@ -90,14 +101,18 @@ class TestRiskParitySizer:
     def test_risk_parity_produces_finite(self):
         idx = pd.date_range("2023-01-01", periods=120, freq="D")
         rng = np.random.default_rng(42)
-        returns = pd.DataFrame({
-            "A": rng.normal(0, 0.01, 120),
-            "B": rng.normal(0, 0.02, 120),
-            "C": rng.normal(0, 0.015, 120),
-        }, index=idx)
-        betas = pd.DataFrame({"A": [0.8]*120, "B": [1.1]*120, "C": [1.0]*120}, index=idx)
+        returns = pd.DataFrame(
+            {
+                "A": rng.normal(0, 0.01, 120),
+                "B": rng.normal(0, 0.02, 120),
+                "C": rng.normal(0, 0.015, 120),
+            },
+            index=idx,
+        )
+        betas = pd.DataFrame({"A": [0.8] * 120, "B": [1.1] * 120, "C": [1.0] * 120}, index=idx)
         from strategies.betting_against_beta.signals import generate_bab_signals
-        signals = generate_bab_signals(betas, long_quantile=1/3, short_quantile=1/3)
+
+        signals = generate_bab_signals(betas, long_quantile=1 / 3, short_quantile=1 / 3)
         sizer = RiskParitySizer(lookback=60)
         w = apply_position_sizing(signals, returns, betas, sizer)
         assert w.shape == signals.shape
@@ -158,20 +173,36 @@ class TestSizerValidationMore:
 def _make_sizing_inputs(periods=70):
     idx = pd.date_range("2023-01-01", periods=periods, freq="D")
     rng = np.random.default_rng(3)
-    returns = pd.DataFrame({
-        "A": rng.normal(0.0005, 0.01, periods),
-        "B": rng.normal(0.0008, 0.015, periods),
-    }, index=idx)
-    signals = pd.DataFrame({"A": [1] * (periods // 2) + [-1] * (periods // 2),
-                            "B": [-1] * (periods // 2) + [1] * (periods // 2)}, index=idx)
+    returns = pd.DataFrame(
+        {
+            "A": rng.normal(0.0005, 0.01, periods),
+            "B": rng.normal(0.0008, 0.015, periods),
+        },
+        index=idx,
+    )
+    signals = pd.DataFrame(
+        {
+            "A": [1] * (periods // 2) + [-1] * (periods // 2),
+            "B": [-1] * (periods // 2) + [1] * (periods // 2),
+        },
+        index=idx,
+    )
     return signals, returns
 
 
 class TestApplyPositionSizingCoverage:
     def test_string_shorthands(self):
         signals, returns = _make_sizing_inputs()
-        for shorthand in ("kelly", "kelly_fraction", "vol_target", "volatility_target",
-                          "voltarget", "risk_parity", "riskparity", "rp"):
+        for shorthand in (
+            "kelly",
+            "kelly_fraction",
+            "vol_target",
+            "volatility_target",
+            "voltarget",
+            "risk_parity",
+            "riskparity",
+            "rp",
+        ):
             w = apply_position_sizing(signals, returns, sizer=shorthand)
             assert w.shape == signals.shape
             assert np.isfinite(w.values).all()
@@ -213,5 +244,7 @@ class TestApplyPositionSizingCoverage:
 
     def test_risk_parity_with_target_vol_scale_computed(self):
         signals, returns = _make_sizing_inputs()
-        w = apply_position_sizing(signals, returns, sizer=RiskParitySizer(lookback=10, target_vol=0.1))
+        w = apply_position_sizing(
+            signals, returns, sizer=RiskParitySizer(lookback=10, target_vol=0.1)
+        )
         assert np.isfinite(w.values).all()

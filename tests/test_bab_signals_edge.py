@@ -25,8 +25,9 @@ class TestReferenceGenerateBabSignals:
 
     def test_vectorized_matches_reference_on_random_input(self):
         rng = np.random.default_rng(7)
-        betas = pd.DataFrame(rng.normal(1.0, 0.5, size=(20, 6)),
-                             columns=[f"A{i}" for i in range(6)])
+        betas = pd.DataFrame(
+            rng.normal(1.0, 0.5, size=(20, 6)), columns=[f"A{i}" for i in range(6)]
+        )
         vec = signals.generate_bab_signals(betas)
         ref = signals._reference_generate_bab_signals(betas)
         pd.testing.assert_frame_equal(vec, ref)

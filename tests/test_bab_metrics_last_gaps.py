@@ -16,11 +16,13 @@ def test_to_series_multi_column_df():
 def test_sharpe_zero_std_positive_mean():
     # std_excess is zero or tiny but mean_excess positive -> returns inf
     res = metrics.sharpe_ratio([0.01, 0.01, 0.01])
-    assert np.isinf(res) or res == float('inf')
+    assert np.isinf(res) or res == float("inf")
 
 
 def test_turnover_nan_mean():
-    df = pd.DataFrame({"A": [0.1, 0.1], "B": [0.2, 0.2]})  # no change gives diff all zero -> mean not nan, wait diff gives 0
+    df = pd.DataFrame(
+        {"A": [0.1, 0.1], "B": [0.2, 0.2]}
+    )  # no change gives diff all zero -> mean not nan, wait diff gives 0
     # force case where weight_changes.dropna().mean() gives nan
     df = pd.DataFrame({"A": [np.nan, np.nan]})
     res = metrics.turnover(df)

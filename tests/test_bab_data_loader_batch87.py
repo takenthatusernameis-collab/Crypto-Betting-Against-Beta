@@ -4,6 +4,7 @@ Each test is a minimal, deterministic attempt on a documented-remaining line.
 Zero-delta probes are acceptable when they produce mechanism evidence for proofs;
 covered lines must be retained in canonical behavior.
 """
+
 import datetime
 import os
 import sys
@@ -61,7 +62,12 @@ def test_867_868_unnamed_tz_convert_raises_keeps_element():
 
     def fake_apply(self, func, *a, **k):
         res = orig_apply(self, func, *a, **k)
-        if isinstance(res, pd.Series) and len(res) == 2 and self.name and "unnamed" in str(self.name).lower():
+        if (
+            isinstance(res, pd.Series)
+            and len(res) == 2
+            and self.name
+            and "unnamed" in str(self.name).lower()
+        ):
             return BadIter(res)
         return res
 
@@ -75,7 +81,9 @@ def test_867_868_unnamed_tz_convert_raises_keeps_element():
 
 def test_641_642_coerce_exchange_ohlcv_outer_except():
     """641-642: outer except around single-asset OHLCV promotion block."""
-    df = pd.DataFrame({"date": ["2020-01-01", "2020-01-02"], "close": [100.0, 101.0], "extra": [1, 2]})
+    df = pd.DataFrame(
+        {"date": ["2020-01-01", "2020-01-02"], "close": [100.0, 101.0], "extra": [1, 2]}
+    )
     orig_coerce = dl._coerce_to_datetime_scalar
 
     def boom(v):

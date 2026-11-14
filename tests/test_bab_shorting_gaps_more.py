@@ -1,5 +1,5 @@
-import pandas as pd
 import numpy as np
+import pandas as pd
 import pytest
 
 from strategies.betting_against_beta import shorting
@@ -94,7 +94,9 @@ def test_apply_kwargs_paths():
     df = pd.DataFrame({"A": [-1.0], "B": [1.0]})
     out = shorting.apply_shorting_constraints(df, shorting_constraints={"max_short_exposure": 0.5})
     assert isinstance(out, pd.DataFrame)
-    out = shorting.apply_shorting_constraints(df, shorting_constraints=shorting.ShortingConstraints(max_short_exposure=0.5))
+    out = shorting.apply_shorting_constraints(
+        df, shorting_constraints=shorting.ShortingConstraints(max_short_exposure=0.5)
+    )
     assert isinstance(out, pd.DataFrame)
     # Hardened API: a non-dict/non-ShortingConstraints type is a misconfiguration.
     with pytest.raises(shorting.BABShortingError):
@@ -105,7 +107,9 @@ def test_apply_constraints_arg_paths():
     df = pd.DataFrame({"A": [-1.0], "B": [1.0]})
     out = shorting.apply_shorting_constraints(df, constraints={"max_short_exposure": 0.5})
     assert isinstance(out, pd.DataFrame)
-    out = shorting.apply_shorting_constraints(df, constraints=shorting.ShortingConstraints(max_short_exposure=0.5))
+    out = shorting.apply_shorting_constraints(
+        df, constraints=shorting.ShortingConstraints(max_short_exposure=0.5)
+    )
     assert isinstance(out, pd.DataFrame)
     # A non-dict/non-ShortingConstraints type is a misconfiguration: the
     # hardened API raises BABShortingError instead of silently coercing to defaults.
@@ -222,7 +226,9 @@ def test_apply_constraints_passed_as_second_arg_bad():
 
 def test_apply_constraints_passed_as_second_arg_obj():
     df = pd.DataFrame({"A": [-1.0], "B": [1.0]})
-    out = shorting.apply_shorting_constraints(df, shorting.ShortingConstraints(max_short_exposure=0.5))
+    out = shorting.apply_shorting_constraints(
+        df, shorting.ShortingConstraints(max_short_exposure=0.5)
+    )
     assert isinstance(out, pd.DataFrame)
 
 

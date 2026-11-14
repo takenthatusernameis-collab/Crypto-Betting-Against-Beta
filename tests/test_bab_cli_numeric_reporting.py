@@ -5,6 +5,7 @@ and cheap) matches strategy/CLI-extracted semantics: periods, final_cumulative
 tail parity for deterministic synthetic configs, and --universe subset contract.
 No production changes; uses committed fixtures + synthetic only.
 """
+
 from __future__ import annotations
 
 import json
@@ -79,15 +80,30 @@ class TestDeterministicSyntheticParity:
         [
             (
                 [
-                    "--synthetic", "--beta-window", "30", "--benchmark", "BTC",
-                    "--long-quantile", "0.3", "--short-quantile", "0.3",
-                    "--rebalance-freq", "daily", "--transaction-costs", "0.0",
-                    "--slippage", "0.0",
+                    "--synthetic",
+                    "--beta-window",
+                    "30",
+                    "--benchmark",
+                    "BTC",
+                    "--long-quantile",
+                    "0.3",
+                    "--short-quantile",
+                    "0.3",
+                    "--rebalance-freq",
+                    "daily",
+                    "--transaction-costs",
+                    "0.0",
+                    "--slippage",
+                    "0.0",
                 ],
                 dict(
-                    benchmark="BTC", beta_window=30, long_quantile=0.3,
-                    short_quantile=0.3, rebalance_freq="daily",
-                    transaction_costs=0.0, slippage=0.0,
+                    benchmark="BTC",
+                    beta_window=30,
+                    long_quantile=0.3,
+                    short_quantile=0.3,
+                    rebalance_freq="daily",
+                    transaction_costs=0.0,
+                    slippage=0.0,
                 ),
             ),
             (
@@ -110,8 +126,15 @@ class TestDeterministicSyntheticParity:
 
     def test_universe_subset_reflected_and_stable(self):
         argv = [
-            "--synthetic", "--beta-window", "30", "--benchmark", "BTC",
-            "--universe", "BTC", "ETH", "SOL",
+            "--synthetic",
+            "--beta-window",
+            "30",
+            "--benchmark",
+            "BTC",
+            "--universe",
+            "BTC",
+            "ETH",
+            "SOL",
         ]
         rc1, p1 = _cli_run(argv)
         rc2, p2 = _cli_run(argv)
@@ -121,11 +144,15 @@ class TestDeterministicSyntheticParity:
         assert p1["periods"] == p2["periods"]
         assert p1["final_cumulative"] == p2["final_cumulative"]
         result = BABStrategy(
-            benchmark="BTC", beta_window=30, universe=["BTC", "ETH", "SOL"],
+            benchmark="BTC",
+            beta_window=30,
+            universe=["BTC", "ETH", "SOL"],
         ).run()
         assert p1["periods"] == len(result.backtest)
         assert p1["final_cumulative"] == pytest.approx(
-            float(result.backtest["cumulative"].iloc[-1]), rel=0, abs=1e-12,
+            float(result.backtest["cumulative"].iloc[-1]),
+            rel=0,
+            abs=1e-12,
         )
 
 
@@ -135,8 +162,13 @@ class TestFixtureNumericInvariants:
     @pytest.mark.parametrize("fixture", PRICE_FIXTURES)
     def test_price_fixture_cli_summary_finite_and_periods_parity(self, fixture):
         argv = [
-            "--data", fixture, "--from-prices", "--benchmark", "BTC",
-            "--beta-window", "90",
+            "--data",
+            fixture,
+            "--from-prices",
+            "--benchmark",
+            "BTC",
+            "--beta-window",
+            "90",
         ]
         rc, payload = _cli_run(argv)
         assert rc == 0
@@ -167,7 +199,8 @@ class TestFixtureNumericInvariants:
         "argv",
         [
             pytest.param(
-                ["--data", RETURNS_FIXTURE, "--benchmark", "BTC"], id="returns",
+                ["--data", RETURNS_FIXTURE, "--benchmark", "BTC"],
+                id="returns",
             ),
             pytest.param(
                 ["--data", PRICE_FIXTURES[0], "--from-prices", "--benchmark", "BTC"],

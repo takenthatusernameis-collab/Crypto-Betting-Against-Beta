@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from strategies.betting_against_beta import BABStrategy, BABConfig
+from strategies.betting_against_beta import BABConfig, BABStrategy
 from strategies.betting_against_beta.errors import BABDataError
 
 
@@ -48,8 +48,13 @@ class TestAdversarialE2E:
 
     def test_quantile_extremes_top_bottom_one(self):
         df = _make_returns(250, 10, 7)  # small universe
-        cfg = BABConfig(benchmark="BTC", beta_window=60, min_observations=30,
-                        long_quantile=0.1, short_quantile=0.9)
+        cfg = BABConfig(
+            benchmark="BTC",
+            beta_window=60,
+            min_observations=30,
+            long_quantile=0.1,
+            short_quantile=0.9,
+        )
         res = BABStrategy(cfg).run(returns_df=df)
         assert np.isfinite(res.weights.values).all()
         assert np.isfinite(res.backtest["returns"].values).all()
@@ -101,8 +106,13 @@ class TestAdversarialE2E:
             # all similar to benchmark
             data[f"C{i}"] = bench * 0.9 + rng.normal(0, 0.001, n_days)
         df = pd.DataFrame(data, index=idx)
-        cfg = BABConfig(benchmark="BTC", beta_window=50, min_observations=30,
-                        long_quantile=0.3, short_quantile=0.3)
+        cfg = BABConfig(
+            benchmark="BTC",
+            beta_window=50,
+            min_observations=30,
+            long_quantile=0.3,
+            short_quantile=0.3,
+        )
         res = BABStrategy(cfg).run(returns_df=df)
         assert np.isfinite(res.weights.values).all()
         assert np.isfinite(res.backtest["returns"].values).all()
@@ -129,8 +139,13 @@ class TestAdversarialE2E:
             a[220:230] = a[220:230] * 0.1
             data[f"L{i:02d}"] = a
         df = pd.DataFrame(data, index=idx)
-        cfg = BABConfig(benchmark="BTC", beta_window=60, min_observations=40,
-                        transaction_costs=0.002, slippage=0.001)
+        cfg = BABConfig(
+            benchmark="BTC",
+            beta_window=60,
+            min_observations=40,
+            transaction_costs=0.002,
+            slippage=0.001,
+        )
         res = BABStrategy(cfg).run(returns_df=df)
         assert np.isfinite(res.weights.values).all()
         assert np.isfinite(res.backtest["returns"].values).all()
@@ -148,8 +163,14 @@ class TestAdversarialE2E:
     def test_dollar_neutrality_various_quantiles(self):
         df = _make_returns(400, 50, 23)
         for lq, sq in [(0.2, 0.2), (0.3, 0.3), (0.25, 0.35)]:
-            cfg = BABConfig(benchmark="BTC", beta_window=90, min_observations=60,
-                            long_quantile=lq, short_quantile=sq, dollar_neutral=True)
+            cfg = BABConfig(
+                benchmark="BTC",
+                beta_window=90,
+                min_observations=60,
+                long_quantile=lq,
+                short_quantile=sq,
+                dollar_neutral=True,
+            )
             res = BABStrategy(cfg).run(returns_df=df)
             w = res.weights
             row_sums = w.sum(axis=1).replace([np.inf, -np.inf], np.nan).dropna()

@@ -9,6 +9,7 @@ Locks exercised, non-duplicative invariants from follow-up probe matrix:
 - --synthetic parity across alternate benchmarks and universe subsets on CLI
   vs in-process (strict finite, exact cumulative/periods/universe).
 """
+
 from __future__ import annotations
 
 import json
@@ -30,7 +31,10 @@ EXP_PRICES = str(REPO / "tests" / "fixtures" / "real_market_prices_expanded.csv"
 def _run(argv):
     return subprocess.run(
         [sys.executable, "-m", "strategies.betting_against_beta.cli", *argv],
-        cwd=str(REPO), capture_output=True, text=True, timeout=180,
+        cwd=str(REPO),
+        capture_output=True,
+        text=True,
+        timeout=180,
     )
 
 
@@ -54,11 +58,20 @@ class TestRealReturnsPathCostSlippageParity:
         ret_path = tmp_path / "returns.csv"
         returns_df.to_csv(ret_path)
         out = tmp_path / "o.json"
-        r = _run([
-            "--data", str(ret_path), "--benchmark", "BTC",
-            "--transaction-costs", str(tc), "--slippage", str(sl),
-            "--output", str(out),
-        ])
+        r = _run(
+            [
+                "--data",
+                str(ret_path),
+                "--benchmark",
+                "BTC",
+                "--transaction-costs",
+                str(tc),
+                "--slippage",
+                str(sl),
+                "--output",
+                str(out),
+            ]
+        )
         assert r.returncode == 0, (r.returncode, r.stdout + r.stderr)
         payload = _assert_finite_json(out)
         rdf = load_returns(str(ret_path), benchmark="BTC")
@@ -68,7 +81,7 @@ class TestRealReturnsPathCostSlippageParity:
             float(res.backtest["cumulative"].iloc[-1]),
             abs_tol=1e-12,
         )
-        assert payload["periods"] == int(len(res.backtest))
+        assert payload["periods"] == len(res.backtest)
         assert payload["benchmark"] == "BTC"
         assert payload["universe"] == list(res.config.universe)
 
@@ -76,7 +89,9 @@ class TestRealReturnsPathCostSlippageParity:
 class TestDryRunInvalidDataCleanliness:
     @pytest.mark.parametrize("fixture", [REAL_PRICES, EXP_PRICES])
     def test_missing_file(self, fixture):
-        r = _run(["--dry-run", "--data", "/tmp/no_such_bab_file_campaign11p.csv", "--benchmark", "BTC"])
+        r = _run(
+            ["--dry-run", "--data", "/tmp/no_such_bab_file_campaign11p.csv", "--benchmark", "BTC"]
+        )
         combined = r.stdout + r.stderr
         assert r.returncode == 1, (r.returncode, combined)
         assert "Traceback" not in combined
@@ -108,7 +123,18 @@ class TestDryRunInvalidDataCleanliness:
 
     @pytest.mark.parametrize("token", ["", "   "])
     def test_whitespace_only_universe_rejected(self, token):
-        r = _run(["--dry-run", "--data", EXP_PRICES, "--from-prices", "--benchmark", "BTC", "--universe", token])
+        r = _run(
+            [
+                "--dry-run",
+                "--data",
+                EXP_PRICES,
+                "--from-prices",
+                "--benchmark",
+                "BTC",
+                "--universe",
+                token,
+            ]
+        )
         combined = r.stdout + r.stderr
         assert r.returncode == 1, (r.returncode, combined)
         assert "Traceback" not in combined
@@ -139,6 +165,6 @@ class TestSyntheticParityAlternateConfigs:
             float(res.backtest["cumulative"].iloc[-1]),
             abs_tol=1e-12,
         )
-        assert payload["periods"] == int(len(res.backtest))
+        assert payload["periods"] == len(res.backtest)
         assert payload["benchmark"] == benchmark
         assert payload["universe"] == list(res.config.universe)

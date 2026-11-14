@@ -51,16 +51,24 @@ REQUIRED_TOTAL_KEYS = {
 def _run_module_cli(argv):
     env = {**__import__("os").environ, "PYTHONPATH": str(REPO)}
     return subprocess.run(
-        [sys.executable, "-m", "strategies.betting_against_beta.cli"] + argv,
-        capture_output=True, text=True, timeout=180, cwd=str(REPO), env=env,
+        [sys.executable, "-m", "strategies.betting_against_beta.cli", *argv],
+        capture_output=True,
+        text=True,
+        timeout=180,
+        cwd=str(REPO),
+        env=env,
     )
 
 
 def _run_bab_example(argv):
     env = {**__import__("os").environ, "PYTHONPATH": str(REPO)}
     return subprocess.run(
-        [sys.executable, "-m", "scripts.load_real_bab_example"] + argv,
-        capture_output=True, text=True, timeout=180, cwd=str(REPO), env=env,
+        [sys.executable, "-m", "scripts.load_real_bab_example", *argv],
+        capture_output=True,
+        text=True,
+        timeout=180,
+        cwd=str(REPO),
+        env=env,
     )
 
 
@@ -101,9 +109,13 @@ class TestReportMetricsFiniteness:
         res = strat.run(returns_df=rets)
         rep = strat.report(res)
         m = rep["metrics"]
-        assert REQUIRED_METRIC_KEYS <= set(m.keys()), f"missing keys: {REQUIRED_METRIC_KEYS - set(m.keys())}"
+        assert set(m.keys()) >= REQUIRED_METRIC_KEYS, (
+            f"missing keys: {REQUIRED_METRIC_KEYS - set(m.keys())}"
+        )
         _assert_finite_mapping(m, "report metrics")
-        assert math.isclose(m["final_cumulative"], expect_cum, rel_tol=1e-6, abs_tol=1e-9), m["final_cumulative"]
+        assert math.isclose(m["final_cumulative"], expect_cum, rel_tol=1e-6, abs_tol=1e-9), m[
+            "final_cumulative"
+        ]
         json_str = BABStrategy.report_to_json(rep)
         payload = json.loads(json_str)  # report_to_json uses allow_nan=False internally
         assert isinstance(payload, dict)
@@ -120,7 +132,10 @@ class TestTearSheet:
 
         rets = load_prices(REAL, benchmark="BTC", min_rows=30)
         strat = BABStrategy(
-            benchmark="BTC", beta_window=252, long_quantile=0.3, short_quantile=0.3,
+            benchmark="BTC",
+            beta_window=252,
+            long_quantile=0.3,
+            short_quantile=0.3,
             transaction_costs=0.001,
         )
         res = strat.run(returns_df=rets)
@@ -134,20 +149,28 @@ class TestAttributionTotals:
     """C18 probe 5: trade_attribution / attribution_totals all finite."""
 
     def test_attribution_totals_finite(self):
-        from strategies.betting_against_beta.attribution import attribution_totals, trade_attribution
         from strategies.betting_against_beta import BABStrategy
+        from strategies.betting_against_beta.attribution import (
+            attribution_totals,
+            trade_attribution,
+        )
         from strategies.betting_against_beta.data_loader import load_prices
 
         rets = load_prices(REAL, benchmark="BTC", min_rows=30)
         strat = BABStrategy(
-            benchmark="BTC", beta_window=252, long_quantile=0.3, short_quantile=0.3,
+            benchmark="BTC",
+            beta_window=252,
+            long_quantile=0.3,
+            short_quantile=0.3,
             transaction_costs=0.001,
         )
         res = strat.run(returns_df=rets)
         bt = res.backtest
         attr = trade_attribution(bt if isinstance(bt, pd.DataFrame) else pd.DataFrame())
         totals = attribution_totals(attr)
-        assert REQUIRED_TOTAL_KEYS <= set(totals.keys()), f"missing keys: {REQUIRED_TOTAL_KEYS - set(totals.keys())}"
+        assert set(totals.keys()) >= REQUIRED_TOTAL_KEYS, (
+            f"missing keys: {REQUIRED_TOTAL_KEYS - set(totals.keys())}"
+        )
         _assert_finite_mapping(totals, "attribution_totals")
 
 
@@ -161,7 +184,10 @@ class TestMetricsFinitenessSweep:
 
         rets = load_prices(REAL, benchmark="BTC", min_rows=30)
         strat = BABStrategy(
-            benchmark="BTC", beta_window=252, long_quantile=0.3, short_quantile=0.3,
+            benchmark="BTC",
+            beta_window=252,
+            long_quantile=0.3,
+            short_quantile=0.3,
             transaction_costs=tc,
         )
         res = strat.run(returns_df=rets)
@@ -174,7 +200,10 @@ class TestMetricsFinitenessSweep:
 
         drets = load_returns(DEGEN, benchmark="BTC", min_rows=2)
         strat = BABStrategy(
-            benchmark="BTC", beta_window=60, long_quantile=0.3, short_quantile=0.3,
+            benchmark="BTC",
+            beta_window=60,
+            long_quantile=0.3,
+            short_quantile=0.3,
             transaction_costs=0.001,
         )
         res = strat.run(returns_df=drets)
@@ -188,12 +217,16 @@ class TestWeightsNeutralityShorting:
     @pytest.mark.parametrize("q", [0.1, 0.3, 0.5])
     def test_weights_dollar_neutral_and_shorting(self, q):
         import numpy as np
+
         from strategies.betting_against_beta import BABStrategy
         from strategies.betting_against_beta.data_loader import load_prices
 
         rets = load_prices(REAL, benchmark="BTC", min_rows=30)
         strat = BABStrategy(
-            benchmark="BTC", beta_window=252, long_quantile=q, short_quantile=q,
+            benchmark="BTC",
+            beta_window=252,
+            long_quantile=q,
+            short_quantile=q,
             transaction_costs=0.001,
         )
         res = strat.run(returns_df=rets)
@@ -226,13 +259,18 @@ class TestPositionSizerShorthands:
     )
     def test_recognized_sizer_runs_finite_weights(self, ps):
         import numpy as np
+
         from strategies.betting_against_beta import BABStrategy
         from strategies.betting_against_beta.data_loader import load_prices
 
         rets = load_prices(REAL, benchmark="BTC", min_rows=30)
         strat = BABStrategy(
-            benchmark="BTC", beta_window=252, long_quantile=0.3, short_quantile=0.3,
-            transaction_costs=0.001, position_sizer=ps,
+            benchmark="BTC",
+            beta_window=252,
+            long_quantile=0.3,
+            short_quantile=0.3,
+            transaction_costs=0.001,
+            position_sizer=ps,
         )
         res = strat.run(returns_df=rets)
         wa = res.weights.to_numpy(dtype=float)
@@ -245,8 +283,12 @@ class TestPositionSizerShorthands:
 
         rets = load_prices(REAL, benchmark="BTC", min_rows=30)
         strat = BABStrategy(
-            benchmark="BTC", beta_window=252, long_quantile=0.3, short_quantile=0.3,
-            transaction_costs=0.001, position_sizer={"type": "bogus"},
+            benchmark="BTC",
+            beta_window=252,
+            long_quantile=0.3,
+            short_quantile=0.3,
+            transaction_costs=0.001,
+            position_sizer={"type": "bogus"},
         )
         with pytest.raises(BABDataError):
             strat.run(returns_df=rets)
@@ -263,8 +305,12 @@ class TestRegimeFilter:
         cum_by_flag = {}
         for flag in (False, True):
             strat = BABStrategy(
-                benchmark="BTC", beta_window=252, long_quantile=0.3, short_quantile=0.3,
-                transaction_costs=0.001, regime_filter=flag,
+                benchmark="BTC",
+                beta_window=252,
+                long_quantile=0.3,
+                short_quantile=0.3,
+                transaction_costs=0.001,
+                regime_filter=flag,
             )
             res = strat.run(returns_df=rets)
             m = strat.report(res)["metrics"]
@@ -274,8 +320,12 @@ class TestRegimeFilter:
         sheets = []
         for _ in range(2):
             strat = BABStrategy(
-                benchmark="BTC", beta_window=252, long_quantile=0.3, short_quantile=0.3,
-                transaction_costs=0.001, regime_filter=True,
+                benchmark="BTC",
+                beta_window=252,
+                long_quantile=0.3,
+                short_quantile=0.3,
+                transaction_costs=0.001,
+                regime_filter=True,
             )
             res = strat.run(returns_df=rets)
             sheets.append(strat.tear_sheet(res))
@@ -287,13 +337,20 @@ class TestBetaNeutral:
 
     def test_beta_neutral_runs_weights_finite_neutral(self):
         import numpy as np
+
         from strategies.betting_against_beta import BABStrategy
         from strategies.betting_against_beta.data_loader import load_prices
 
         rets = load_prices(REAL, benchmark="BTC", min_rows=30)
         strat = BABStrategy(
-            benchmark="BTC", beta_window=252, long_quantile=0.3, short_quantile=0.3,
-            transaction_costs=0.001, beta_neutral=True, beta_target=0.0, beta_tolerance=1e-4,
+            benchmark="BTC",
+            beta_window=252,
+            long_quantile=0.3,
+            short_quantile=0.3,
+            transaction_costs=0.001,
+            beta_neutral=True,
+            beta_target=0.0,
+            beta_tolerance=1e-4,
         )
         res = strat.run(returns_df=rets)
         wa = res.weights.to_numpy(dtype=float)
@@ -310,7 +367,9 @@ class TestCLIDryRunVersion:
     """C18 probe 11: module CLI --dry-run (rc=0, config printed) + --version (rc=0)."""
 
     def test_dry_run_and_version(self):
-        r_dry = _run_module_cli(["--dry-run", "--data", REAL, "--from-prices", "--benchmark", "BTC"])
+        r_dry = _run_module_cli(
+            ["--dry-run", "--data", REAL, "--from-prices", "--benchmark", "BTC"]
+        )
         r_ver = _run_module_cli(["--version"])
         assert r_dry.returncode == 0, (r_dry.returncode, r_dry.stdout, r_dry.stderr)
         assert r_ver.returncode == 0, (r_ver.returncode, r_ver.stdout, r_ver.stderr)
@@ -330,7 +389,9 @@ class TestCLIErrorPaths:
         assert "--from-prices requires --data" in (r.stdout + r.stderr)
 
     def test_nonexistent_data_clean_error(self):
-        r = _run_module_cli(["--data", "/nonexistent/does_not_exist.csv", "--from-prices", "--benchmark", "BTC"])
+        r = _run_module_cli(
+            ["--data", "/nonexistent/does_not_exist.csv", "--from-prices", "--benchmark", "BTC"]
+        )
         assert r.returncode == 1, (r.returncode, r.stdout, r.stderr)
         _assert_no_traceback(r)
         blob = (r.stdout + r.stderr).lower()
@@ -357,7 +418,10 @@ class TestReportToJsonStrictJSON:
 
         rets = load_prices(REAL, benchmark="BTC", min_rows=30)
         strat = BABStrategy(
-            benchmark="BTC", beta_window=252, long_quantile=0.3, short_quantile=0.3,
+            benchmark="BTC",
+            beta_window=252,
+            long_quantile=0.3,
+            short_quantile=0.3,
             transaction_costs=0.001,
         )
         res = strat.run(returns_df=rets)
@@ -382,7 +446,10 @@ class TestReportDeterminism:
         payloads = []
         for _ in range(2):
             strat = BABStrategy(
-                benchmark="BTC", beta_window=252, long_quantile=0.3, short_quantile=0.3,
+                benchmark="BTC",
+                beta_window=252,
+                long_quantile=0.3,
+                short_quantile=0.3,
                 transaction_costs=0.001,
             )
             res = strat.run(returns_df=rets)

@@ -21,6 +21,7 @@ Exit code:
 
 It never writes product code, never weakens anything, and never commits.
 """
+
 from __future__ import annotations
 
 import os
@@ -134,7 +135,9 @@ def main() -> int:
     # All capabilities present -> run R4 tests, then R2/R3 baseline.
     r4_tests = [c[2] for c in CAPABILITIES]
     print("\n[r4] Running R4 test suites ...")
-    r = _run([sys.executable, "-m", "pytest", *r4_tests, "-q", "-p", "no:cacheprovider"], timeout=3600)
+    r = _run(
+        [sys.executable, "-m", "pytest", *r4_tests, "-q", "-p", "no:cacheprovider"], timeout=3600
+    )
     print((r.stdout or "")[-2500:])
     if r.returncode != 0:
         print(f"[r4] R4 TESTS FAIL (rc={r.returncode}) -> fix before anything else.")
@@ -142,7 +145,10 @@ def main() -> int:
 
     existing_baseline = [f for f in BASELINE_FILES if os.path.exists(os.path.join(ROOT, f))]
     print(f"\n[r4] Running R2/R3 baseline: {existing_baseline}")
-    r = _run([sys.executable, "-m", "pytest", *existing_baseline, "-q", "-p", "no:cacheprovider"], timeout=3600)
+    r = _run(
+        [sys.executable, "-m", "pytest", *existing_baseline, "-q", "-p", "no:cacheprovider"],
+        timeout=3600,
+    )
     print((r.stdout or "")[-2500:])
     if r.returncode != 0:
         print(f"[r4] R2/R3 BASELINE REGRESSED (rc={r.returncode}) -> fix before anything else.")
@@ -150,7 +156,7 @@ def main() -> int:
 
     print("\n" + "=" * 72)
     print("R4 PREFLIGHT RESULT: R4-A/B/C present + green; R2/R3 baseline green.")
-    print("Next: run full gate (PATH=\"$VENV/bin:$PATH\" bash scripts/bab_gate.sh),")
+    print('Next: run full gate (PATH="$VENV/bin:$PATH" bash scripts/bab_gate.sh),')
     print("then refresh HANDOFF.md with evidence. Commit nothing unless requested.")
     print("=" * 72)
     return 0

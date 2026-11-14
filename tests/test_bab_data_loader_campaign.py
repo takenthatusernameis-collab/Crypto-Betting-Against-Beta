@@ -14,12 +14,12 @@ from strategies.betting_against_beta.data_loader import (
     BABDataError,
     _coerce_numeric,
     _drop_all_nan_columns,
-    _normalize_index,
     _normalize_columns,
+    _normalize_index,
     _prices_to_returns,
     _promote_datetime_column,
-    load_returns,
     load_prices,
+    load_returns,
     validate_returns_dataframe,
 )
 
@@ -74,25 +74,19 @@ def test_promote_datetime_column_date_named_promoted():
 
 
 def test_promote_datetime_column_unnamed_nondate():
-    df = pd.DataFrame(
-        {0: ["apple", "banana"], "BTC": [0.01, 0.02], "ETH": [0.03, 0.04]}
-    )
+    df = pd.DataFrame({0: ["apple", "banana"], "BTC": [0.01, 0.02], "ETH": [0.03, 0.04]})
     out = _promote_datetime_column(df)
     assert not isinstance(out.index, pd.DatetimeIndex)
 
 
 def test_promote_datetime_column_unnamed_with_nat_skips():
-    df = pd.DataFrame(
-        {0: ["2023-01-01", None], "BTC": [0.01, 0.02], "ETH": [0.03, 0.04]}
-    )
+    df = pd.DataFrame({0: ["2023-01-01", None], "BTC": [0.01, 0.02], "ETH": [0.03, 0.04]})
     out = _promote_datetime_column(df)
     assert not isinstance(out.index, pd.DatetimeIndex)
 
 
-def test_promote_datetime_column_unnamed_nondate():
-    df = pd.DataFrame(
-        {0: ["apple", "banana"], "BTC": [0.01, 0.02], "ETH": [0.03, 0.04]}
-    )
+def test_promote_datetime_column_unnamed_nondate_no_date_col():
+    df = pd.DataFrame({0: ["apple", "banana"], "BTC": [0.01, 0.02], "ETH": [0.03, 0.04]})
     out = _promote_datetime_column(df)
     assert "date" not in out.columns
 

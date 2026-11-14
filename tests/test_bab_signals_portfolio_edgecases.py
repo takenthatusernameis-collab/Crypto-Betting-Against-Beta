@@ -6,7 +6,11 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from strategies.betting_against_beta.portfolio import construct_portfolio, _clean_signal_value, enforce_beta_neutrality
+from strategies.betting_against_beta.portfolio import (
+    _clean_signal_value,
+    construct_portfolio,
+    enforce_beta_neutrality,
+)
 from strategies.betting_against_beta.signals import generate_bab_signals
 
 
@@ -17,7 +21,7 @@ def test_signals_empty_input():
 
 def test_signals_nan_betas_all_zero():
     dates = pd.date_range("2023-01-01", periods=5)
-    betas = pd.DataFrame({"BTC": [np.nan]*5, "ETH": [np.nan]*5}, index=dates)
+    betas = pd.DataFrame({"BTC": [np.nan] * 5, "ETH": [np.nan] * 5}, index=dates)
     sig = generate_bab_signals(betas)
     assert sig.shape == betas.shape
     assert (sig.values == 0).all()
@@ -26,7 +30,7 @@ def test_signals_nan_betas_all_zero():
 
 def test_signals_all_equal_betas_ties():
     dates = pd.date_range("2023-01-01", periods=3)
-    betas = pd.DataFrame({"A": [1.0]*3, "B": [1.0]*3, "C": [1.0]*3}, index=dates)
+    betas = pd.DataFrame({"A": [1.0] * 3, "B": [1.0] * 3, "C": [1.0] * 3}, index=dates)
     sig = generate_bab_signals(betas)
     assert sig.shape == betas.shape
     # With ties, ranking is stable; must not crash and produce finite integer values
@@ -43,13 +47,16 @@ def test_signals_single_asset_universe_flat():
 
 def test_signals_extreme_quantiles_zero_one_boundaries():
     dates = pd.date_range("2023-01-01", periods=10)
-    betas = pd.DataFrame({
-        "A": np.linspace(0.2, 1.5, 10),
-        "B": np.linspace(0.3, 1.4, 10),
-        "C": np.linspace(0.4, 1.3, 10),
-        "D": np.linspace(0.5, 1.2, 10),
-        "E": np.linspace(0.6, 1.1, 10),
-    }, index=dates)
+    betas = pd.DataFrame(
+        {
+            "A": np.linspace(0.2, 1.5, 10),
+            "B": np.linspace(0.3, 1.4, 10),
+            "C": np.linspace(0.4, 1.3, 10),
+            "D": np.linspace(0.5, 1.2, 10),
+            "E": np.linspace(0.6, 1.1, 10),
+        },
+        index=dates,
+    )
     # q=0 should behave safely (no division by zero / crashes)
     sig = generate_bab_signals(betas, long_quantile=0.0, short_quantile=0.3)
     assert np.isfinite(sig.values).all()
@@ -88,7 +95,7 @@ def test_portfolio_single_asset_row_dollar_neutral_long_only_case():
 
 def test_portfolio_extreme_weights_finiteness():
     dates = pd.date_range("2023-01-01", periods=4)
-    sig = pd.DataFrame({"A": [1]*4, "B": [-1]*4, "C": [0]*4}, index=dates)
+    sig = pd.DataFrame({"A": [1] * 4, "B": [-1] * 4, "C": [0] * 4}, index=dates)
     w = construct_portfolio(sig)
     assert np.isfinite(w.values).all()
     assert np.allclose(w.sum(axis=1).values, 0.0, atol=1e-10)
@@ -96,10 +103,13 @@ def test_portfolio_extreme_weights_finiteness():
 
 def test_signals_mixed_type_beta_columns_no_crash():
     dates = pd.date_range("2023-01-01", periods=4)
-    betas = pd.DataFrame({
-        "A": [0.5, "0.6", None, 0.8],
-        "B": ["garbage", 0.4, 0.9, "1.2"],
-    }, index=dates)
+    betas = pd.DataFrame(
+        {
+            "A": [0.5, "0.6", None, 0.8],
+            "B": ["garbage", 0.4, 0.9, "1.2"],
+        },
+        index=dates,
+    )
     sig = generate_bab_signals(betas)
     assert sig.shape == betas.shape
     assert np.isfinite(sig.values).all()
@@ -108,11 +118,14 @@ def test_signals_mixed_type_beta_columns_no_crash():
 
 def test_signals_quantile_clamp_extremes():
     dates = pd.date_range("2023-01-01", periods=6)
-    betas = pd.DataFrame({
-        "A": [0.1, 0.2, 0.3, 0.4, 0.5, 0.6],
-        "B": [0.6, 0.5, 0.4, 0.3, 0.2, 0.1],
-        "C": [0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
-    }, index=dates)
+    betas = pd.DataFrame(
+        {
+            "A": [0.1, 0.2, 0.3, 0.4, 0.5, 0.6],
+            "B": [0.6, 0.5, 0.4, 0.3, 0.2, 0.1],
+            "C": [0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
+        },
+        index=dates,
+    )
     for lq, sq in ((0.0, 0.0), (0.0, 1.0), (1.0, 0.0), (1.0, 1.0), (-0.5, 2.5)):
         sig = generate_bab_signals(betas, long_quantile=lq, short_quantile=sq)
         assert sig.shape == betas.shape
@@ -123,7 +136,9 @@ def test_signals_quantile_clamp_extremes():
 def test_portfolio_dollar_neutral_exact_when_both_sides():
     dates = pd.date_range("2023-01-01", periods=3)
     # Odd counts so equal weights do not sum to exactly 1.0 in floating point.
-    sig = pd.DataFrame({"A": [1]*3, "B": [1]*3, "C": [1]*3, "D": [-1]*3, "E": [-1]*3}, index=dates)
+    sig = pd.DataFrame(
+        {"A": [1] * 3, "B": [1] * 3, "C": [1] * 3, "D": [-1] * 3, "E": [-1] * 3}, index=dates
+    )
     w = construct_portfolio(sig, dollar_neutral=True)
     assert np.isfinite(w.values).all()
     net = w.sum(axis=1).values
@@ -168,6 +183,7 @@ class TestConstructPortfolioBranches:
         dates = pd.date_range("2023-01-01", periods=2)
         sig = pd.DataFrame({"A": [1, -1], "B": [-1, 1]}, index=dates)
         from strategies.betting_against_beta.errors import BABDataError
+
         with pytest.raises(BABDataError):
             construct_portfolio(sig, max_pos_size=0.4)
 
@@ -199,17 +215,17 @@ class TestEnforceBetaNeutralityBranches:
         return w, b
 
     def test_weights_empty_returned(self):
-        w, b = self._w_b()
+        _w, b = self._w_b()
         out = enforce_beta_neutrality(pd.DataFrame(), b)
         assert out.equals(pd.DataFrame())
 
     def test_betas_empty_returned(self):
-        w, b = self._w_b()
+        w, _b = self._w_b()
         out = enforce_beta_neutrality(w, pd.DataFrame())
         assert out.equals(w)
 
     def test_no_common_columns_returned(self):
-        w, b = self._w_b()
+        w, _b = self._w_b()
         b2 = pd.DataFrame({"C": [1.0, 1.0]}, index=w.index)
         out = enforce_beta_neutrality(w, b2)
         assert out.equals(w)
@@ -243,7 +259,7 @@ class TestEnforceBetaNeutralityBranches:
         assert out.equals(w)
 
     def test_equal_betas_skipped(self):
-        w, b = self._w_b()
+        w, _b = self._w_b()
         b2 = pd.DataFrame({"A": [1.0, 1.0], "B": [1.0, 1.0]}, index=w.index)
         out = enforce_beta_neutrality(w, b2, target_beta=99.0)
         assert np.isfinite(out.values).all()

@@ -174,9 +174,7 @@ def test_reference_oracle_handles_degenerate_frames():
 
     # All betas equal -> no adjustment (s2_centered == 0).
     betas = pd.DataFrame(0.5, index=dates, columns=cols)
-    weights = pd.DataFrame(
-        [[0.5, -0.5, 0.0]] * len(dates), index=dates, columns=cols
-    )
+    weights = pd.DataFrame([[0.5, -0.5, 0.0]] * len(dates), index=dates, columns=cols)
     pd.testing.assert_frame_equal(
         enforce_beta_neutrality(weights, betas, tolerance=1e-4),
         _reference_enforce(weights, betas, tolerance=1e-4),

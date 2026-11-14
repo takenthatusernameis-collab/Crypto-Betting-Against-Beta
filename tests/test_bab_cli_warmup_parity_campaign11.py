@@ -15,6 +15,7 @@ This module LOCKS that invariant so a future refactor that regressed
 `_extract_cumulative` ordering or the coercion default cannot silently break
 the CLI JSON boundary.
 """
+
 from __future__ import annotations
 
 import datetime

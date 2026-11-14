@@ -7,6 +7,7 @@ np.void/bytes stringify; non-finite `np.floating`/float are coerced to 0.0 by
 `_json_safe` while `_json_default` alone would stringify some cases — the
 `_json_safe`-first ordering is the safety invariant. No production changes.
 """
+
 from __future__ import annotations
 
 import json
@@ -94,7 +95,16 @@ class TestMalformedCommittedFixturesCli:
 
     def test_degenerate_metrics_run_finite_output(self, tmp_path, capsys):
         outp = tmp_path / "deg.json"
-        rc = main(["--data", "tests/fixtures/degenerate_metrics.csv", "--benchmark", "BTC", "--output", str(outp)])
+        rc = main(
+            [
+                "--data",
+                "tests/fixtures/degenerate_metrics.csv",
+                "--benchmark",
+                "BTC",
+                "--output",
+                str(outp),
+            ]
+        )
         out = capsys.readouterr().out
         assert rc == 0, out
         assert "Traceback" not in out
@@ -105,10 +115,16 @@ class TestMalformedCommittedFixturesCli:
 
     def test_real_data_defects_run_finite_output(self, tmp_path, capsys):
         outp = tmp_path / "defects.json"
-        rc = main([
-            "--data", "tests/fixtures/real_data_defects.csv",
-            "--benchmark", "BTC", "--output", str(outp),
-        ])
+        rc = main(
+            [
+                "--data",
+                "tests/fixtures/real_data_defects.csv",
+                "--benchmark",
+                "BTC",
+                "--output",
+                str(outp),
+            ]
+        )
         out = capsys.readouterr().out
         assert rc == 0, out
         assert "Traceback" not in out

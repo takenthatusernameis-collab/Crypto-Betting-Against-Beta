@@ -50,7 +50,9 @@ class TestCalculateBetaFastResiduals:
 
     def test_all_nan_after_mask_returns_nan(self):
         # mask all-false -> len(a_m) == 0 -> 188
-        assert np.isnan(beta.calculate_beta_fast(np.array([np.nan, np.nan]), np.array([np.nan, np.nan])))
+        assert np.isnan(
+            beta.calculate_beta_fast(np.array([np.nan, np.nan]), np.array([np.nan, np.nan]))
+        )
 
     def test_bad_min_obs_returns_nan(self):
         # int("abc") raises -> except Exception: return np.nan -> 195

@@ -109,5 +109,6 @@ class TestBetaDeep:
         # pass objects that might trigger except
         class Dummy:
             pass
+
         rb = beta.rolling_beta(Dummy(), Dummy())
         assert rb is not None

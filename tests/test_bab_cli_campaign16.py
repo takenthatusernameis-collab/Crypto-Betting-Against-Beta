@@ -31,16 +31,24 @@ TMP_DIR = str(REPO / ".pytest_cache" / "c16")
 def _run_bab_example(argv):
     env = {**__import__("os").environ, "PYTHONPATH": str(REPO)}
     return subprocess.run(
-        [sys.executable, "-m", "scripts.load_real_bab_example"] + argv,
-        capture_output=True, text=True, timeout=180, cwd=str(REPO), env=env,
+        [sys.executable, "-m", "scripts.load_real_bab_example", *argv],
+        capture_output=True,
+        text=True,
+        timeout=180,
+        cwd=str(REPO),
+        env=env,
     )
 
 
 def _run_cli(argv):
     env = {**__import__("os").environ, "PYTHONPATH": str(REPO)}
     return subprocess.run(
-        [sys.executable, "-m", "strategies.betting_against_beta.cli"] + argv,
-        capture_output=True, text=True, timeout=180, cwd=str(REPO), env=env,
+        [sys.executable, "-m", "strategies.betting_against_beta.cli", *argv],
+        capture_output=True,
+        text=True,
+        timeout=180,
+        cwd=str(REPO),
+        env=env,
     )
 
 
@@ -68,7 +76,7 @@ class TestConsoleScriptReportingSchema:
     )
     def test_output_json_valid_finite_keys(self, tmp_path, argv, expect_benchmark):
         out = tmp_path / "out.json"
-        r = _run_bab_example(argv + ["--output", str(out)])
+        r = _run_bab_example([*argv, "--output", str(out)])
         assert r.returncode == 0, (r.returncode, r.stdout, r.stderr)
         assert r.stderr == "", r.stderr
         assert "cumulative_return=" in r.stdout
@@ -81,6 +89,7 @@ class TestConsoleScriptReportingSchema:
         assert isinstance(payload["periods"], int) and payload["periods"] == 398
         assert isinstance(payload["final_cumulative"], (int, float))
         import math
+
         assert math.isfinite(payload["final_cumulative"])
 
 
@@ -91,7 +100,9 @@ class TestConsoleScriptDeterminism:
         outs, cumulatives, periods = [], [], []
         for _ in range(2):
             out = tmp_path / f"out{len(outs)}.json"
-            r = _run_bab_example([REAL, "--from-prices", "--benchmark", "BTC", "--output", str(out)])
+            r = _run_bab_example(
+                [REAL, "--from-prices", "--benchmark", "BTC", "--output", str(out)]
+            )
             assert r.returncode == 0, (r.returncode, r.stdout, r.stderr)
             assert r.stderr == "", r.stderr
             outs.append(r.stdout)
@@ -115,10 +126,10 @@ class TestModuleCliReporting:
         payload = json.loads(out.read_text())
         assert {"final_cumulative", "periods", "benchmark", "universe"} <= set(payload.keys())
         import math
-        assert all(
-            not (isinstance(v, float) and not math.isfinite(v))
-            for v in payload.values()
-        ), f"non-finite JSON value: {payload}"
+
+        assert all(not (isinstance(v, float) and not math.isfinite(v)) for v in payload.values()), (
+            f"non-finite JSON value: {payload}"
+        )
 
     def test_output_nested_parent_dir(self, tmp_path):
         out = tmp_path / "nested" / "deep" / "out.json"
@@ -135,7 +146,9 @@ class TestConsoleScriptErrorPaths:
         r = _run_cli(["--synthetic", "--output", str(tmp_path)])
         assert r.returncode != 0, (r.returncode, r.stdout, r.stderr)
         _assert_no_traceback(r)
-        assert "Error validating output path" in r.stdout or "is a directory" in (r.stdout + r.stderr)
+        assert "Error validating output path" in r.stdout or "is a directory" in (
+            r.stdout + r.stderr
+        )
 
     def test_real_data_defects_clean_error(self, tmp_path):
         out = tmp_path / "out.json"
@@ -145,16 +158,20 @@ class TestConsoleScriptErrorPaths:
         if out.exists():
             payload = json.loads(out.read_text())
             import math
+
             assert all(math.isfinite(v) for v in payload.values() if isinstance(v, float))
 
     def test_benchmark_nan_window_clean_error(self, tmp_path):
         out = tmp_path / "out.json"
-        r = _run_bab_example([BENCH_NAN, "--from-prices", "--benchmark", "BTC", "--output", str(out)])
+        r = _run_bab_example(
+            [BENCH_NAN, "--from-prices", "--benchmark", "BTC", "--output", str(out)]
+        )
         assert r.returncode in (0, 1), (r.returncode, r.stdout, r.stderr)
         _assert_no_traceback(r)
         if out.exists():
             payload = json.loads(out.read_text())
             import math
+
             assert all(math.isfinite(v) for v in payload.values() if isinstance(v, float))
 
 
@@ -186,7 +203,7 @@ class TestConsoleScriptInProcessParity:
     )
     def test_console_vs_in_process_parity(self, tmp_path, argv):
         out = tmp_path / "out.json"
-        r = _run_bab_example(argv + ["--output", str(out)])
+        r = _run_bab_example([*argv, "--output", str(out)])
         assert r.returncode == 0, (r.returncode, r.stdout, r.stderr)
         console = json.loads(out.read_text())
 
@@ -206,7 +223,7 @@ class TestConsoleScriptInProcessParity:
         )
         res = strat.run(returns_df=rets)
         bt = getattr(res, "backtest", None)
-        ip_periods = int(len(bt)) if bt is not None and hasattr(bt, "__len__") else 0
+        ip_periods = len(bt) if bt is not None and hasattr(bt, "__len__") else 0
         ip_cum = None
         if bt is not None and hasattr(bt, "columns") and "cumulative" in bt.columns:
             try:
@@ -217,6 +234,8 @@ class TestConsoleScriptInProcessParity:
         assert console["periods"] == ip_periods, (console, ip_periods)
         if ip_cum is not None:
             import math
+
             assert math.isclose(console["final_cumulative"], ip_cum, rel_tol=1e-6, abs_tol=1e-9), (
-                console["final_cumulative"], ip_cum
+                console["final_cumulative"],
+                ip_cum,
             )

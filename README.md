@@ -57,7 +57,9 @@ returns_df = load_returns("returns.csv", benchmark="BTC")  # datetime index/col 
 # Or load prices and convert to returns
 # returns_df = load_prices("prices.csv", benchmark="BTC")
 
-strategy = BABStrategy(benchmark="BTC", beta_window=90, long_quantile=0.3, short_quantile=0.3, transaction_costs=0.001)
+strategy = BABStrategy(
+    benchmark="BTC", beta_window=90, long_quantile=0.3, short_quantile=0.3, transaction_costs=0.001
+)
 result = strategy.run(returns_df=returns_df)
 print(float(result.backtest["cumulative"].iloc[-1]))
 ```

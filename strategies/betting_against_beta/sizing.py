@@ -20,7 +20,9 @@ class _BaseSizer:
 
     def __setattr__(self, name, value):
         if getattr(self, "_frozen", False) and not name.startswith("_"):
-            raise AttributeError(f"Cannot mutate frozen {self.__class__.__name__} attribute '{name}'")
+            raise AttributeError(
+                f"Cannot mutate frozen {self.__class__.__name__} attribute '{name}'"
+            )
         object.__setattr__(self, name, value)
 
 
@@ -71,7 +73,9 @@ class RiskParitySizer(_BaseSizer):
             raise BABSizingError("lookback must be >= 1")
         if not isinstance(self.max_leverage, (int, float)) or self.max_leverage <= 0:
             raise BABSizingError("max_leverage must be > 0")
-        if self.target_vol is not None and (not isinstance(self.target_vol, (int, float)) or self.target_vol <= 0):
+        if self.target_vol is not None and (
+            not isinstance(self.target_vol, (int, float)) or self.target_vol <= 0
+        ):
             raise BABSizingError("target_vol must be > 0 when set")
         if not isinstance(self.annualize, int) or self.annualize < 1:
             raise BABSizingError("annualize must be >= 1")
@@ -101,11 +105,13 @@ def _get_base_weights(signals: pd.DataFrame) -> pd.DataFrame:
     return construct_portfolio(signals, dollar_neutral=True)
 
 
-def apply_position_sizing(signals: pd.DataFrame,
-                           returns: pd.DataFrame = None,
-                           betas: pd.DataFrame = None,
-                           sizer: KellySizer | VolatilityTargetSizer | RiskParitySizer | EqualWeightSizer | str = None,
-                           **kwargs) -> pd.DataFrame:
+def apply_position_sizing(
+    signals: pd.DataFrame,
+    returns: pd.DataFrame = None,
+    betas: pd.DataFrame = None,
+    sizer: KellySizer | VolatilityTargetSizer | RiskParitySizer | EqualWeightSizer | str = None,
+    **kwargs,
+) -> pd.DataFrame:
     """Apply position sizing to signals/returns and produce scaled weights.
 
     ``sizer`` must be a known sizer type, a string shorthand, or ``None``.
@@ -171,8 +177,8 @@ def apply_position_sizing(signals: pd.DataFrame,
                 out_arr[i] = 0.0
                 continue
             start = max(0, i - lookback + 1)
-            hist_ret = returns.iloc[start:i + 1].values  # (T, A)
-            base_hist = base_arr[start:i + 1]  # (T, A)
+            hist_ret = returns.iloc[start : i + 1].values  # (T, A)
+            base_hist = base_arr[start : i + 1]  # (T, A)
             port_hist = (hist_ret * base_hist).sum(axis=1)
             mu = port_hist.mean()
             sig = port_hist.std(ddof=0)
@@ -195,8 +201,8 @@ def apply_position_sizing(signals: pd.DataFrame,
                 out_arr[i] = 0.0
                 continue
             start = max(0, i - lookback + 1)
-            hist_ret = returns.iloc[start:i + 1].values
-            base_hist = base_arr[start:i + 1]
+            hist_ret = returns.iloc[start : i + 1].values
+            base_hist = base_arr[start : i + 1]
             port_hist = (hist_ret * base_hist).sum(axis=1)
             sig_d = port_hist.std(ddof=0)
             if sig_d < 1e-18 or not np.isfinite(sig_d):
@@ -219,7 +225,7 @@ def apply_position_sizing(signals: pd.DataFrame,
                 out_arr[i] = 0.0
                 continue
             start = max(0, i - lookback + 1)
-            hist_ret = returns.iloc[start:i + 1]
+            hist_ret = returns.iloc[start : i + 1]
             vols = hist_ret.std(ddof=0)
             vols = vols.replace([np.inf, -np.inf], np.nan).fillna(1e-18)
             inv_vol = 1.0 / vols.values  # array
@@ -227,7 +233,7 @@ def apply_position_sizing(signals: pd.DataFrame,
             scale = 1.0
             if target_vol is not None:
                 # approximate portfolio vol of risk-parity-like scaled base
-                w_try = base_arr[start:i + 1] * inv_vol  # broadcast
+                w_try = base_arr[start : i + 1] * inv_vol  # broadcast
                 # normalize not strictly required; compute rough scale
                 port_hist = (hist_ret.values * w_try).sum(axis=1)
                 sig_d = port_hist.std(ddof=0)

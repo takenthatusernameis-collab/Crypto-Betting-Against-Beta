@@ -48,12 +48,16 @@ class TestBetaAlignmentPaths:
 
     def test_calculate_beta_list_ndarray(self):
         # line 82: asset list, bench ndarray
-        out = beta.calculate_beta([0.01, 0.02, 0.03, 0.04], np.array([0.01, 0.02, 0.03, 0.04, 0.05]))
+        out = beta.calculate_beta(
+            [0.01, 0.02, 0.03, 0.04], np.array([0.01, 0.02, 0.03, 0.04, 0.05])
+        )
         assert np.isfinite(out)
 
     def test_calculate_beta_ndarray_list(self):
         # line 85: asset ndarray, bench list
-        out = beta.calculate_beta(np.array([0.01, 0.02, 0.03, 0.04]), [0.01, 0.02, 0.03, 0.04, 0.05])
+        out = beta.calculate_beta(
+            np.array([0.01, 0.02, 0.03, 0.04]), [0.01, 0.02, 0.03, 0.04, 0.05]
+        )
         assert np.isfinite(out)
 
     def test_calculate_beta_alignment_typeerror(self):
@@ -144,10 +148,12 @@ class TestBetaAlignmentPaths:
 
     def test_calculate_rolling_beta_string_fallback(self):
         # line 314: string column triggers fallback path
-        df = pd.DataFrame({
-            "BTC": [0.01, 0.02, 0.03, 0.04, 0.05] * 10,
-            "ETH": ["a", "b", "c", "d", "e"] * 10,
-        })
+        df = pd.DataFrame(
+            {
+                "BTC": [0.01, 0.02, 0.03, 0.04, 0.05] * 10,
+                "ETH": ["a", "b", "c", "d", "e"] * 10,
+            }
+        )
         with pytest.raises(BABDataError):
             beta.calculate_rolling_beta(df, "BTC", window=10, min_obs=5)
 

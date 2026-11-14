@@ -50,13 +50,19 @@ def _reject_nonfinite(token: str):
 
 class TestStrictJsonOutput:
     def test_json_payload_is_strictly_parseable_on_messy_data(self):
-        result = _run([
-            "--data-source", str(MESSY_FIXTURE),
-            "--benchmark", "BTC",
-            "--beta-window", "3",
-            "--min-observations", "2",
-            "--json",
-        ])
+        result = _run(
+            [
+                "--data-source",
+                str(MESSY_FIXTURE),
+                "--benchmark",
+                "BTC",
+                "--beta-window",
+                "3",
+                "--min-observations",
+                "2",
+                "--json",
+            ]
+        )
         assert result.returncode == 0, result.stderr
         # Strict parse rejects NaN/Infinity/-Infinity tokens.
         payload = _strict_parse(result.stdout)
@@ -65,13 +71,19 @@ class TestStrictJsonOutput:
 
     def test_json_payload_is_strictly_parseable_on_degenerate_data(self):
         DEGENERATE = REPO_ROOT / "tests" / "fixtures" / "degenerate_metrics.csv"
-        result = _run([
-            "--data-source", str(DEGENERATE),
-            "--benchmark", "BTC",
-            "--beta-window", "3",
-            "--min-observations", "2",
-            "--json",
-        ])
+        result = _run(
+            [
+                "--data-source",
+                str(DEGENERATE),
+                "--benchmark",
+                "BTC",
+                "--beta-window",
+                "3",
+                "--min-observations",
+                "2",
+                "--json",
+            ]
+        )
         assert result.returncode == 0, result.stderr
         payload = _strict_parse(result.stdout)
         assert "metrics" in payload
@@ -84,13 +96,19 @@ class TestStrictJsonOutput:
 
     def test_allow_nan_false_on_raw_output(self):
         """The raw stdout must not contain bare NaN/Infinity tokens."""
-        result = _run([
-            "--data-source", str(MESSY_FIXTURE),
-            "--benchmark", "BTC",
-            "--beta-window", "3",
-            "--min-observations", "2",
-            "--json",
-        ])
+        result = _run(
+            [
+                "--data-source",
+                str(MESSY_FIXTURE),
+                "--benchmark",
+                "BTC",
+                "--beta-window",
+                "3",
+                "--min-observations",
+                "2",
+                "--json",
+            ]
+        )
         assert result.returncode == 0, result.stderr
         # A strict dump with allow_nan=False would raise; verify the literal
         # tokens are absent from the output text.
@@ -102,13 +120,15 @@ class TestSanitizeMetricsContract:
     def test_sanitize_metrics_replaces_nonfinite(self):
         from scripts import bab_backtest_report
 
-        sanitized = bab_backtest_report._sanitize_metrics({
-            "sharpe_ratio": float("nan"),
-            "final_cumulative": float("inf"),
-            "max_drawdown": float("-inf"),
-            "n_observations": 100,
-            "total_return": 0.05,
-        })
+        sanitized = bab_backtest_report._sanitize_metrics(
+            {
+                "sharpe_ratio": float("nan"),
+                "final_cumulative": float("inf"),
+                "max_drawdown": float("-inf"),
+                "n_observations": 100,
+                "total_return": 0.05,
+            }
+        )
         assert sanitized["sharpe_ratio"] == 0.0
         assert sanitized["final_cumulative"] == 0.0
         assert sanitized["max_drawdown"] == 0.0

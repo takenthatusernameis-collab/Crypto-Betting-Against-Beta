@@ -75,9 +75,7 @@ def apply_kill_switch(
     ``weights`` is zeroed from the first breach date onward and the event
     records ``triggered=True`` plus the breach date / observed drawdown / limit.
     """
-    not_triggered = KillSwitchEvent(
-        triggered=False, date=None, observed_drawdown=0.0, limit=limit
-    )
+    not_triggered = KillSwitchEvent(triggered=False, date=None, observed_drawdown=0.0, limit=limit)
 
     if limit is None:
         return weights, not_triggered

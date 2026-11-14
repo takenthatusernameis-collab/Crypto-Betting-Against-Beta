@@ -71,15 +71,19 @@ def test_build_output_summary_malformed_inputs():
     class BadLen:
         def __len__(self):
             raise TypeError("bad")
-    s = cli._build_output_summary(SimpleNamespace(backtest=BadLen()), SimpleNamespace(universe=None, benchmark="X"), 1.0)
+
+    s = cli._build_output_summary(
+        SimpleNamespace(backtest=BadLen()), SimpleNamespace(universe=None, benchmark="X"), 1.0
+    )
     assert s["periods"] == 0
 
     # universe not iterable / contains None / weird str
     class NoStr:
         def __str__(self):
             raise RuntimeError("x")
+
     cfg = SimpleNamespace(universe=[None, "BTC", NoStr()], benchmark="BTC")
-    s = cli._build_output_summary(SimpleNamespace(backtest=pd.DataFrame({"x":[1]})), cfg, 2.0)
+    s = cli._build_output_summary(SimpleNamespace(backtest=pd.DataFrame({"x": [1]})), cfg, 2.0)
     assert s["universe"][0] == "BTC"
     assert "NoStr" in s["universe"][1]
 
@@ -96,14 +100,19 @@ def test_extract_cumulative_variants():
     assert cli._extract_cumulative(SimpleNamespace(backtest=df)) == 1.2
     df2 = pd.DataFrame({"cum_ret": [1.0, 1.3]})
     assert cli._extract_cumulative(SimpleNamespace(backtest=df2)) == 1.3
+
     # cumulative column access raises -> surfaces instead of falling through
     class BadCol(pd.DataFrame):
         @property
-        def _constructor(self): return BadCol
+        def _constructor(self):
+            return BadCol
+
         def __getitem__(self, key):
-            if key == "cumulative": raise RuntimeError("x")
+            if key == "cumulative":
+                raise RuntimeError("x")
             return super().__getitem__(key)
-    bad = BadCol({"cumulative": [1,2], "cum_x": [1, 1.5]})
+
+    bad = BadCol({"cumulative": [1, 2], "cum_x": [1, 1.5]})
     with pytest.raises(RuntimeError, match="x"):
         cli._extract_cumulative(SimpleNamespace(backtest=bad))
     ser = pd.Series([1.0, 1.4], name="cumulative_return")
@@ -128,20 +137,23 @@ def test_json_default_and_safe_cover_types():
     assert [int(float(x)) for x in cli._json_default(idx)] == [1, 2]
     ts = pd.Timestamp("2023-01-01")
     assert "2023" in cli._json_default(ts)
-    assert cli._json_default({"x"}) in ([ "x"],)
+    assert cli._json_default({"x"}) in (["x"],)
     assert cli._json_default(b"hi") == "hi"
-    class X: pass
+
+    class X:
+        pass
+
     assert "X" in cli._json_default(X())
 
     payload = {
         "a": np.float64(np.nan),
         "b": [np.int64(3), float("inf"), np.bool_(True)],
         "c": pd.Series([np.nan, 1.0]),
-        "d": pd.DataFrame({"x":[1]}),
+        "d": pd.DataFrame({"x": [1]}),
         "e": pd.Index(["z"]),
         "f": pd.Timestamp("2024-01-02"),
-        "g": (1,2),
-        "h": {1,2},
+        "g": (1, 2),
+        "h": {1, 2},
     }
     safe = cli._json_safe(payload)
     s = json.dumps(safe, allow_nan=False)
@@ -152,6 +164,7 @@ def test_json_default_and_safe_cover_types():
 def test_main_dry_run_print_config_error(monkeypatch, capsys):
     def boom(_):
         raise RuntimeError("print fail")
+
     monkeypatch.setattr(cli, "_print_resolved_config", boom)
     rc = cli.main(["--dry-run", "--synthetic"])
     assert rc == 1
@@ -182,18 +195,25 @@ def test_main_universe_empty_flag_defensive(capsys):
 
 def test_main_output_write_error(monkeypatch, tmp_path, capsys):
     out = tmp_path / "out.json"
-    monkeypatch.setattr(Path, "write_text", lambda self, *a, **k: (_ for _ in ()).throw(OSError("disk")))
+    monkeypatch.setattr(
+        Path, "write_text", lambda self, *a, **k: (_ for _ in ()).throw(OSError("disk"))
+    )
     rc = cli.main(["--synthetic", "--output", str(out)])
     assert rc == 1
     assert "Error writing output" in capsys.readouterr().out
 
 
 def test_main_strategy_run_babdataerror_wrapped(monkeypatch, capsys):
-    from strategies.betting_against_beta.errors import BABDataError
     import strategies.betting_against_beta.strategy as strat
+    from strategies.betting_against_beta.errors import BABDataError
+
     class Fake:
-        def __init__(self, config): pass
-        def run(self, returns_df=None): raise BABDataError("boom")
+        def __init__(self, config):
+            pass
+
+        def run(self, returns_df=None):
+            raise BABDataError("boom")
+
     monkeypatch.setattr(cli, "BABStrategy", Fake)
     rc = cli.main(["--synthetic"])
     assert rc == 1
@@ -202,7 +222,11 @@ def test_main_strategy_run_babdataerror_wrapped(monkeypatch, capsys):
 
 def test_main_generic_exception_paths(monkeypatch, capsys):
     # parse exception (non-SystemExit)
-    monkeypatch.setattr(cli.argparse.ArgumentParser, "parse_args", lambda self, a: (_ for _ in ()).throw(RuntimeError("parse")))
+    monkeypatch.setattr(
+        cli.argparse.ArgumentParser,
+        "parse_args",
+        lambda self, a: (_ for _ in ()).throw(RuntimeError("parse")),
+    )
     assert cli.main(["--synthetic"]) == 1
     assert "Error parsing arguments" in capsys.readouterr().out
 

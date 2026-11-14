@@ -14,7 +14,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from strategies.betting_against_beta import BABStrategy, BABConfig
+from strategies.betting_against_beta import BABConfig, BABStrategy
 from strategies.betting_against_beta.errors import BABDataError
 
 
@@ -94,7 +94,6 @@ class TestHardenedErrorPaths:
 
     def test_valid_optional_features_still_work(self):
         df = _make_returns(300, 8, 5)
-        cfg = BABConfig(benchmark="BTC", beta_window=60, min_observations=40,
-                        regime_filter=True)
+        cfg = BABConfig(benchmark="BTC", beta_window=60, min_observations=40, regime_filter=True)
         res = BABStrategy(cfg).run(returns_df=df)
         assert np.isfinite(res.weights.values).all()

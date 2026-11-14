@@ -26,6 +26,7 @@ from strategies.betting_against_beta.cli import main as cli_main
 
 def _env():
     import os as _os
+
     env = dict(_os.environ)
     # Preserve the full inherited PYTHONPATH (repo root + any dependency
     # install dirs such as pylib) so subprocesses can import pandas/numpy/scipy.
@@ -50,7 +51,11 @@ def _make_returns(tmp_path, n_days=200, seed=7):
 def _run_console(args, cwd=REPO_ROOT):
     return subprocess.run(
         [sys.executable, str(CONSOLE_SCRIPT), *args],
-        capture_output=True, text=True, env=_env(), cwd=cwd, timeout=120,
+        capture_output=True,
+        text=True,
+        env=_env(),
+        cwd=cwd,
+        timeout=120,
     )
 
 

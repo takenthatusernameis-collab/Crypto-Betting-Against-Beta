@@ -20,7 +20,7 @@ import pytest
 SCRIPTS_DIR = Path(__file__).resolve().parent.parent / "scripts"
 sys.path.insert(0, str(SCRIPTS_DIR))
 
-import controller_progress  # noqa: E402
+import controller_progress
 
 
 class FakeGit:

@@ -71,62 +71,74 @@ def test_run_empty_universe_from_resolver_raises_value_error():
 
 def test_run_beta_calculation_failure_wrapped():
     strat = _strategy()
-    with mock.patch(
-        "strategies.betting_against_beta.strategy.calculate_rolling_beta",
-        side_effect=RuntimeError("beta boom"),
+    with (
+        mock.patch(
+            "strategies.betting_against_beta.strategy.calculate_rolling_beta",
+            side_effect=RuntimeError("beta boom"),
+        ),
+        pytest.raises(BABDataError, match="beta calculation failed"),
     ):
-        with pytest.raises(BABDataError, match="beta calculation failed"):
-            strat.run(returns_df=_returns())
+        strat.run(returns_df=_returns())
 
 
 def test_run_signal_generation_failure_wrapped():
     strat = _strategy()
-    with mock.patch(
-        "strategies.betting_against_beta.strategy.generate_bab_signals",
-        side_effect=RuntimeError("signal boom"),
+    with (
+        mock.patch(
+            "strategies.betting_against_beta.strategy.generate_bab_signals",
+            side_effect=RuntimeError("signal boom"),
+        ),
+        pytest.raises(BABDataError, match="signal generation failed"),
     ):
-        with pytest.raises(BABDataError, match="signal generation failed"):
-            strat.run(returns_df=_returns())
+        strat.run(returns_df=_returns())
 
 
 def test_run_rebalance_babdataerror_passthrough():
     strat = _strategy(rebalance_freq="weekly")
-    with mock.patch(
-        "strategies.betting_against_beta.strategy._apply_rebalance",
-        side_effect=BABDataError("rebalance bad"),
+    with (
+        mock.patch(
+            "strategies.betting_against_beta.strategy._apply_rebalance",
+            side_effect=BABDataError("rebalance bad"),
+        ),
+        pytest.raises(BABDataError, match="rebalance bad"),
     ):
-        with pytest.raises(BABDataError, match="rebalance bad"):
-            strat.run(returns_df=_returns())
+        strat.run(returns_df=_returns())
 
 
 def test_run_rebalance_generic_failure_wrapped():
     strat = _strategy(rebalance_freq="weekly")
-    with mock.patch(
-        "strategies.betting_against_beta.strategy._apply_rebalance",
-        side_effect=RuntimeError("boom"),
+    with (
+        mock.patch(
+            "strategies.betting_against_beta.strategy._apply_rebalance",
+            side_effect=RuntimeError("boom"),
+        ),
+        pytest.raises(BABDataError, match="rebalance application failed"),
     ):
-        with pytest.raises(BABDataError, match="rebalance application failed"):
-            strat.run(returns_df=_returns())
+        strat.run(returns_df=_returns())
 
 
 def test_run_portfolio_babdataerror_passthrough():
     strat = _strategy()
-    with mock.patch(
-        "strategies.betting_against_beta.strategy.construct_portfolio",
-        side_effect=BABDataError("portfolio bad"),
+    with (
+        mock.patch(
+            "strategies.betting_against_beta.strategy.construct_portfolio",
+            side_effect=BABDataError("portfolio bad"),
+        ),
+        pytest.raises(BABDataError, match="portfolio bad"),
     ):
-        with pytest.raises(BABDataError, match="portfolio bad"):
-            strat.run(returns_df=_returns())
+        strat.run(returns_df=_returns())
 
 
 def test_run_portfolio_generic_failure_wrapped():
     strat = _strategy()
-    with mock.patch(
-        "strategies.betting_against_beta.strategy.construct_portfolio",
-        side_effect=RuntimeError("boom"),
+    with (
+        mock.patch(
+            "strategies.betting_against_beta.strategy.construct_portfolio",
+            side_effect=RuntimeError("boom"),
+        ),
+        pytest.raises(BABDataError, match="portfolio construction failed"),
     ):
-        with pytest.raises(BABDataError, match="portfolio construction failed"):
-            strat.run(returns_df=_returns())
+        strat.run(returns_df=_returns())
 
 
 def test_run_shorting_constraints_invalid_type():
@@ -139,12 +151,14 @@ def test_run_shorting_constraints_invalid_type():
 
 def test_run_shorting_constraints_generic_failure_wrapped():
     strat = _strategy(shorting_constraints={"max_short_leverage": 1.0})
-    with mock.patch(
-        "strategies.betting_against_beta.strategy.shorting.apply_shorting_constraints",
-        side_effect=TypeError("short boom"),
+    with (
+        mock.patch(
+            "strategies.betting_against_beta.strategy.shorting.apply_shorting_constraints",
+            side_effect=TypeError("short boom"),
+        ),
+        pytest.raises(BABDataError, match="shorting_constraints failed"),
     ):
-        with pytest.raises(BABDataError, match="shorting_constraints failed"):
-            strat.run(returns_df=_returns())
+        strat.run(returns_df=_returns())
 
 
 def test_run_position_sizer_invalid_type():
@@ -157,12 +171,14 @@ def test_run_position_sizer_invalid_type():
 
 def test_run_position_sizer_generic_failure_wrapped():
     strat = _strategy(position_sizer={"type": "equal"})
-    with mock.patch(
-        "strategies.betting_against_beta.strategy.sizing.apply_position_sizing",
-        side_effect=ValueError("sizer boom"),
+    with (
+        mock.patch(
+            "strategies.betting_against_beta.strategy.sizing.apply_position_sizing",
+            side_effect=ValueError("sizer boom"),
+        ),
+        pytest.raises(BABDataError, match="position_sizer failed"),
     ):
-        with pytest.raises(BABDataError, match="position_sizer failed"):
-            strat.run(returns_df=_returns())
+        strat.run(returns_df=_returns())
 
 
 def test_run_regime_filter_invalid_type_defensive():
@@ -175,12 +191,14 @@ def test_run_regime_filter_invalid_type_defensive():
 
 def test_run_regime_filter_babdataerror_passthrough():
     strat = _strategy(regime_filter=True)
-    with mock.patch(
-        "strategies.betting_against_beta.regime.regime_scale_scalar",
-        side_effect=BABDataError("regime bad"),
+    with (
+        mock.patch(
+            "strategies.betting_against_beta.regime.regime_scale_scalar",
+            side_effect=BABDataError("regime bad"),
+        ),
+        pytest.raises(BABDataError, match="regime bad"),
     ):
-        with pytest.raises(BABDataError, match="regime bad"):
-            strat.run(returns_df=_returns())
+        strat.run(returns_df=_returns())
 
 
 # --- report() defensive paths ---
@@ -298,7 +316,9 @@ def test_report_safe_metric_edge_cases_via_malformed_summary():
     res = strat.run(returns_df=_returns())
     # force metrics.summary to include None/bad values via monkeypatch
     bad_summary = {"a": None, "b": "x", "c": float("inf"), "d": 1.5}
-    with mock.patch("strategies.betting_against_beta.strategy.metrics.summary", return_value=bad_summary):
+    with mock.patch(
+        "strategies.betting_against_beta.strategy.metrics.summary", return_value=bad_summary
+    ):
         rep = strat.report(res)
     assert rep["metrics"]["a"] == 0.0
     assert rep["metrics"]["b"] == 0.0

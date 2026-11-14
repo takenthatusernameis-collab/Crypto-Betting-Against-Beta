@@ -1,3 +1,4 @@
+import contextlib
 import json
 import pickle
 from pathlib import Path
@@ -192,7 +193,7 @@ def test_load_prices_json(tmp_path):
     idx = pd.date_range("2023-01-01", periods=3)
     df = pd.DataFrame({"BTC": [100, 101, 102], "ETH": [10, 10.1, 10.2]}, index=idx)
     p = tmp_path / "prices.json"
-    df.to_json(p, date_format='iso')
+    df.to_json(p, date_format="iso")
     out = load_prices(p)
     assert "BTC" in out.columns
 
@@ -260,9 +261,8 @@ def test_duplicate_index_removed():
 
 class TestDropAllNanColumnsTypeError:
     def test_drop_all_nan_columns_to_numeric_raises_typeerror(self):
-        from strategies.betting_against_beta import data_loader
-        import pandas as pd
         import numpy as np
+        import pandas as pd
 
         df = pd.DataFrame({"A": [1.0, 2.0]})
 
@@ -282,7 +282,6 @@ class TestDropAllNanColumnsTypeError:
 
 class TestDataLoaderMoreGaps:
     def test_normalize_index_not_datetime_after(self):
-        from strategies.betting_against_beta import data_loader
         import pandas as pd
 
         # Create df with bad index
@@ -291,17 +290,20 @@ class TestDataLoaderMoreGaps:
             data_loader._normalize_index(df)
         except Exception as e:
             from strategies.betting_against_beta.data_loader import BABDataError
+
             assert isinstance(e, BABDataError)
 
     def test_coerce_numeric_inner_baberror_reraised(self):
-        from strategies.betting_against_beta import data_loader
         import pandas as pd
 
         df = pd.DataFrame({"BTC": [1.0, 2.0]})
         orig = data_loader.pd.DataFrame.astype
+
         def fake_ast(self, *args, **kwargs):
             from strategies.betting_against_beta.data_loader import BABDataError
+
             raise BABDataError("bad")
+
         try:
             data_loader.pd.DataFrame.astype = fake_ast
             try:
@@ -309,40 +311,43 @@ class TestDataLoaderMoreGaps:
                 assert False
             except Exception as e:
                 from strategies.betting_against_beta.data_loader import BABDataError
+
                 assert isinstance(e, BABDataError)
         finally:
             data_loader.pd.DataFrame.astype = orig
 
     def test_coerce_numeric_outer_catch(self):
-        from strategies.betting_against_beta import data_loader
         import pandas as pd
 
         df = pd.DataFrame({"BTC": [1.0, 2.0]})
         orig = data_loader.pd.to_numeric
         call_count = [0]
+
         def fake_to_numeric(*args, **kwargs):
             call_count[0] += 1
             if call_count[0] > 0:  # make it fail after first attempts
                 raise AttributeError("bad")
             return orig(*args, **kwargs)
+
         try:
             data_loader.pd.to_numeric = fake_to_numeric
-            try:
+            with contextlib.suppress(Exception):
                 data_loader._coerce_numeric(df)
-            except Exception:
-                pass
         finally:
             data_loader.pd.to_numeric = orig
 
     def test_benchmark_all_nan_finite_check(self):
-        from strategies.betting_against_beta import data_loader
-        import pandas as pd
         import numpy as np
+        import pandas as pd
 
-        df = pd.DataFrame({"BTC": [np.nan, np.nan], "ETH": [0.1, 0.2]}, index=pd.date_range("2023-01-01", periods=2))
+        df = pd.DataFrame(
+            {"BTC": [np.nan, np.nan], "ETH": [0.1, 0.2]},
+            index=pd.date_range("2023-01-01", periods=2),
+        )
         try:
             data_loader.validate_returns_dataframe(df, benchmark="BTC")
             assert False
         except Exception as e:
             from strategies.betting_against_beta.data_loader import BABDataError
+
             assert isinstance(e, BABDataError)

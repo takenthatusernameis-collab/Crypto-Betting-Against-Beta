@@ -12,6 +12,7 @@ but 351-352 is now *executed* and coverage records it.
 
 No ``sys.settrace`` is used in the test body; coverage traces normally.
 """
+
 import numpy as np
 import pandas as pd
 

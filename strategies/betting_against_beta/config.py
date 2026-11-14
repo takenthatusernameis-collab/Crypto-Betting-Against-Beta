@@ -43,6 +43,7 @@ def _dedupe_preserve_order(items: list) -> list:
 @dataclass(frozen=False)
 class BABConfig:
     """Configuration for BAB strategy."""
+
     universe: list[str] | None = field(default_factory=lambda: list(_DEFAULT_UNIVERSE))
 
     benchmark: str = "BTC"
@@ -62,7 +63,9 @@ class BABConfig:
     # Slippage as a fraction of turnover (applied in backtest).
     slippage: float = 0.0
     # Liquidity/participation constraints (lightweight guards; no-op if data absent)
-    max_turnover: float | None = None  # max daily turnover (sum of |Δw|/2 or total turnover) if enforced
+    max_turnover: float | None = (
+        None  # max daily turnover (sum of |Δw|/2 or total turnover) if enforced
+    )
     max_position_size: float | None = None  # max |weight| per asset
     max_total_turnover: float | None = None  # alias for max_turnover
     # Rolling beta parameters.
@@ -84,12 +87,14 @@ class BABConfig:
     vol_window: int = 20
     vol_use_ewma: bool = False
     vol_thresholds: tuple[float, ...] | None = None  # fixed vol band edges (low, high)
-    vol_percentiles: tuple[float, float] | None = None  # percentile band edges (None => (0.33, 0.66) effective)
+    vol_percentiles: tuple[float, float] | None = (
+        None  # percentile band edges (None => (0.33, 0.66) effective)
+    )
     vol_hysteresis: float = 0.0  # regime-change hysteresis margin in [0, 1]
     trend_ma_window: int = 50
     trend_z_window: int | None = None  # z-score window for trend regime (None => moving average)
     regime_scale_high: float = 0.5  # scale applied in high-risk regime
-    regime_scale_low: float = 1.0   # scale applied in low-risk regime
+    regime_scale_low: float = 1.0  # scale applied in low-risk regime
     # Beta-neutral enforcement parameters
     beta_neutral: bool = False
     beta_neutral_enforcement: bool = False
@@ -126,6 +131,7 @@ class BABConfig:
         # Normalize shorting_constraints if passed as dict
         if isinstance(self.shorting_constraints, dict):
             from . import shorting as _shorting
+
             try:
                 object.__setattr__(
                     self,
@@ -133,13 +139,12 @@ class BABConfig:
                     _shorting.ShortingConstraints(**self.shorting_constraints),
                 )
             except (TypeError, ValueError) as e:
-                raise BABConfigError(
-                    f"shorting_constraints dict is invalid: {e}"
-                ) from e
+                raise BABConfigError(f"shorting_constraints dict is invalid: {e}") from e
         # R3-A: normalize cost_model dict -> TransactionCostModel (mirror the
         # shorting_constraints dict-coercion pattern; wrong types raise loudly).
         if isinstance(self.cost_model, dict):
             from .costs import TransactionCostModel as _TCM
+
             try:
                 object.__setattr__(
                     self,
@@ -148,10 +153,9 @@ class BABConfig:
                 )
             except (TypeError, ValueError) as e:
                 raise BABConfigError(f"cost_model dict is invalid: {e}") from e
-        if self.cost_model is not None and not isinstance(
-            self.cost_model, (dict, type(None))
-        ):
+        if self.cost_model is not None and not isinstance(self.cost_model, (dict, type(None))):
             from .costs import TransactionCostModel as _TCM
+
             if not isinstance(self.cost_model, _TCM):
                 raise BABConfigError(
                     f"cost_model must be a TransactionCostModel, dict, or None, "
@@ -222,13 +226,18 @@ class BABConfig:
             errors.append(f"vol_window must be >= 10, got {self.vol_window}")
 
         if not isinstance(self.trend_ma_window, int) or isinstance(self.trend_ma_window, bool):
-            errors.append(f"trend_ma_window must be an int, got {type(self.trend_ma_window).__name__}")
+            errors.append(
+                f"trend_ma_window must be an int, got {type(self.trend_ma_window).__name__}"
+            )
         elif self.trend_ma_window < 1:
             errors.append(f"trend_ma_window must be >= 1, got {self.trend_ma_window}")
 
         if self.trend_z_window is not None:
             if not isinstance(self.trend_z_window, int) or isinstance(self.trend_z_window, bool):
-                errors.append(f"trend_z_window must be an int or None, got {type(self.trend_z_window).__name__}")
+            errors.append(
+                f"trend_z_window must be an int or None, got "
+                f"{type(self.trend_z_window).__name__}"
+            )
             elif self.trend_z_window < 1:
                 errors.append(f"trend_z_window must be >= 1 when set, got {self.trend_z_window}")
 
@@ -236,7 +245,10 @@ class BABConfig:
             errors.append(f"regime_filter must be a bool, got {type(self.regime_filter).__name__}")
 
         if self.regime_method not in ("vol", "trend", "combined"):
-            errors.append(f"regime_method must be one of 'vol', 'trend', 'combined', got {self.regime_method!r}")
+            errors.append(
+                f"regime_method must be one of 'vol', 'trend', 'combined', got "
+                f"{self.regime_method!r}"
+            )
 
         if not isinstance(self.vol_use_ewma, bool):
             errors.append(f"vol_use_ewma must be a bool, got {type(self.vol_use_ewma).__name__}")
@@ -247,8 +259,14 @@ class BABConfig:
                 errors.append("vol_thresholds must be a non-empty tuple/list of positive floats")
             else:
                 for i, v in enumerate(self.vol_thresholds):
-                    if not isinstance(v, (int, float)) or isinstance(v, bool) or not _is_finite_number(v):
-                        errors.append(f"vol_thresholds[{i}] must be a positive finite float, got {v!r}")
+                    if (
+                        not isinstance(v, (int, float))
+                        or isinstance(v, bool)
+                        or not _is_finite_number(v)
+                    ):
+                        errors.append(
+                            f"vol_thresholds[{i}] must be a positive finite float, got {v!r}"
+                        )
                     elif float(v) <= 0:
                         errors.append(f"vol_thresholds[{i}] must be > 0, got {v}")
                 if len(self.vol_thresholds) >= 2 and not all(
@@ -259,17 +277,28 @@ class BABConfig:
 
         # Volatility percentiles: two values in (0, 1), ascending.
         if self.vol_percentiles is not None:
-            if not isinstance(self.vol_percentiles, (tuple, list)) or len(self.vol_percentiles) != 2:
+            if (
+                not isinstance(self.vol_percentiles, (tuple, list))
+                or len(self.vol_percentiles) != 2
+            ):
                 errors.append("vol_percentiles must be a tuple/list of two floats in (0, 1)")
             else:
                 for i, v in enumerate(self.vol_percentiles):
-                    if not isinstance(v, (int, float)) or isinstance(v, bool) or not (0.0 < float(v) < 1.0):
+                    if (
+                        not isinstance(v, (int, float))
+                        or isinstance(v, bool)
+                        or not (0.0 < float(v) < 1.0)
+                    ):
                         errors.append(f"vol_percentiles[{i}] must be in (0, 1), got {v!r}")
                 if float(self.vol_percentiles[0]) >= float(self.vol_percentiles[1]):
                     errors.append("vol_percentiles must be ascending (p_low < p_high)")
 
-        if not isinstance(self.vol_hysteresis, (int, float)) or isinstance(self.vol_hysteresis, bool):
-            errors.append(f"vol_hysteresis must be numeric, got {type(self.vol_hysteresis).__name__}")
+        if not isinstance(self.vol_hysteresis, (int, float)) or isinstance(
+            self.vol_hysteresis, bool
+        ):
+            errors.append(
+                f"vol_hysteresis must be numeric, got {type(self.vol_hysteresis).__name__}"
+            )
         elif not (0.0 <= float(self.vol_hysteresis) <= 1.0):
             errors.append(f"vol_hysteresis must be in [0, 1], got {self.vol_hysteresis}")
 
@@ -281,7 +310,13 @@ class BABConfig:
                 errors.append(f"{name} must be a positive finite number, got {value}")
 
         # Beta-neutral params
-        for name in ("beta_neutral", "beta_neutral_enforcement", "beta_neutral_correction", "beta_neutral_adjustment", "enable_tracking_error_monitoring"):
+        for name in (
+            "beta_neutral",
+            "beta_neutral_enforcement",
+            "beta_neutral_correction",
+            "beta_neutral_adjustment",
+            "enable_tracking_error_monitoring",
+        ):
             value = getattr(self, name)
             if not isinstance(value, bool):
                 errors.append(f"{name} must be a bool, got {type(value).__name__}")
@@ -323,7 +358,12 @@ class BABConfig:
             elif value < 0:
                 errors.append(f"{name} must be >= 0, got {value}")
 
-        for name in ("max_turnover", "max_position_size", "max_total_turnover", "rolling_min_window"):
+        for name in (
+            "max_turnover",
+            "max_position_size",
+            "max_total_turnover",
+            "rolling_min_window",
+        ):
             value = getattr(self, name)
             if value is None:
                 continue
@@ -335,7 +375,11 @@ class BABConfig:
         if not isinstance(self.rebalance_freq, str) or not self.rebalance_freq.strip():
             errors.append("rebalance_freq must be a non-empty string")
 
-        if self.benchmark is None or not isinstance(self.benchmark, str) or not self.benchmark.strip():
+        if (
+            self.benchmark is None
+            or not isinstance(self.benchmark, str)
+            or not self.benchmark.strip()
+        ):
             errors.append("benchmark must be a non-empty string")
 
         # R4-B: max_drawdown_limit must be None or in (0, 1].
@@ -343,13 +387,10 @@ class BABConfig:
         if _mdd is not None:
             if not isinstance(_mdd, (int, float)) or isinstance(_mdd, bool):
                 errors.append(
-                    f"max_drawdown_limit must be numeric or None, "
-                    f"got {type(_mdd).__name__}"
+                    f"max_drawdown_limit must be numeric or None, got {type(_mdd).__name__}"
                 )
             elif not _is_finite_number(_mdd) or not (0.0 < float(_mdd) <= 1.0):
-                errors.append(
-                    f"max_drawdown_limit must be in (0, 1] or None, got {_mdd}"
-                )
+                errors.append(f"max_drawdown_limit must be in (0, 1] or None, got {_mdd}")
 
         if errors:
             raise BABConfigError("; ".join(errors))

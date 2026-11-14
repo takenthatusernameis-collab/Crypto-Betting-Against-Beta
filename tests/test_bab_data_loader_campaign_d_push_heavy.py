@@ -1,3 +1,4 @@
+import contextlib
 import os
 import pickle
 import tempfile
@@ -44,133 +45,141 @@ class TestDataLoaderCampaignDPushHeavy:
         assert len(out.index) == 0
 
     def test_coerce_to_datetime_scalar_branches(self):
-        for bad in [pd.NaT, float("nan"), float("inf"), None, "", "na", "N/A", "nan", "null", "None"]:
+        for bad in [
+            pd.NaT,
+            float("nan"),
+            float("inf"),
+            None,
+            "",
+            "na",
+            "N/A",
+            "nan",
+            "null",
+            "None",
+        ]:
             try:
                 data_loader._coerce_to_datetime_scalar(bad)
                 assert False
             except Exception:
                 pass
         # strings
-        for s in ["1700000000000000000", "1700000000000000", "1700000000000", "1700000000", "1700000000.5"]:
-            try:
+        for s in [
+            "1700000000000000000",
+            "1700000000000000",
+            "1700000000000",
+            "1700000000",
+            "1700000000.5",
+        ]:
+            with contextlib.suppress(Exception):
                 data_loader._coerce_to_datetime_scalar(s)
-            except Exception:
-                pass
         for s in ["2023-01-01T00:00:00Z", "2023-01-01", "01/02/2023"]:
-            try:
+            with contextlib.suppress(Exception):
                 data_loader._coerce_to_datetime_scalar(s)
-            except Exception:
-                pass
         # ints/floats
-        for v in [1700000000000000000, 1700000000000000, 1700000000000, 1700000000, 1700000000.123, 1.5e12]:
-            try:
+        for v in [
+            1700000000000000000,
+            1700000000000000,
+            1700000000000,
+            1700000000,
+            1700000000.123,
+            1.5e12,
+        ]:
+            with contextlib.suppress(Exception):
                 data_loader._coerce_to_datetime_scalar(v)
-            except Exception:
-                pass
-        try:
+        with contextlib.suppress(Exception):
             data_loader._coerce_to_datetime_scalar(-1700000000)
-        except Exception:
-            pass
 
     def test_promote_and_detect_exchange(self):
         df = pd.DataFrame({0: ["2023-01-01", "2023-01-02"], "BTC": [0.01, 0.02]})
-        try:
+        with contextlib.suppress(Exception):
             data_loader._promote_datetime_column(df)
-        except Exception:
-            pass
         df = pd.DataFrame({"date": ["2023-01-01", "2023-01-02"], "BTC": [0.01, 0.02]})
-        try:
+        with contextlib.suppress(Exception):
             data_loader._promote_datetime_column(df)
-        except Exception:
-            pass
-        df = pd.DataFrame({"timestamp": ["2023-01-01", "2023-01-02"], "symbol": ["BTC", "BTC"], "close": [100, 101]})
-        try:
+        df = pd.DataFrame(
+            {
+                "timestamp": ["2023-01-01", "2023-01-02"],
+                "symbol": ["BTC", "BTC"],
+                "close": [100, 101],
+            }
+        )
+        with contextlib.suppress(Exception):
             data_loader._detect_and_normalize_exchange_format(df)
-        except Exception:
-            pass
-        df = pd.DataFrame({"Date": ["2023-01-01", "2023-01-02"], "BTC_Open": [100, 101], "BTC_Close": [101, 102], "BTC_Volume": [1000, 1100]})
-        try:
+        df = pd.DataFrame(
+            {
+                "Date": ["2023-01-01", "2023-01-02"],
+                "BTC_Open": [100, 101],
+                "BTC_Close": [101, 102],
+                "BTC_Volume": [1000, 1100],
+            }
+        )
+        with contextlib.suppress(Exception):
             data_loader._detect_and_normalize_exchange_format(df)
-        except Exception:
-            pass
-        df = pd.DataFrame({"Date": ["2023-01-01", "2023-01-02"], "open": [100, 101], "high": [102, 103], "low": [99, 100], "close": [101, 102], "volume": [1000, 1100]})
-        try:
+        df = pd.DataFrame(
+            {
+                "Date": ["2023-01-01", "2023-01-02"],
+                "open": [100, 101],
+                "high": [102, 103],
+                "low": [99, 100],
+                "close": [101, 102],
+                "volume": [1000, 1100],
+            }
+        )
+        with contextlib.suppress(Exception):
             data_loader._detect_and_normalize_exchange_format(df)
-        except Exception:
-            pass
 
     def test_normalize_columns_coerce_strip_drop(self):
-        df = pd.DataFrame({"Date": ["2023-01-01", "2023-01-02"], "BTC-USD": ["$1,000.50", "1010"], "ETH/USDT": ["10%", "€20"]})
-        try:
+        df = pd.DataFrame(
+            {
+                "Date": ["2023-01-01", "2023-01-02"],
+                "BTC-USD": ["$1,000.50", "1010"],
+                "ETH/USDT": ["10%", "€20"],
+            }
+        )
+        with contextlib.suppress(Exception):
             df2 = data_loader._normalize_columns(df)
-        except Exception:
-            pass
         df = pd.DataFrame({"BTC": ["$1,000.50", "€2000", "1,234%", "NA", ""]})
-        try:
+        with contextlib.suppress(Exception):
             df2 = data_loader._coerce_numeric(df)
-        except Exception:
-            pass
         df = pd.DataFrame({"BTC": [1.0, 2.0], "RAW": ["abc", "def"]})
-        try:
+        with contextlib.suppress(Exception):
             df2 = data_loader._drop_all_nan_columns(df)
-        except Exception:
-            pass
         df = pd.DataFrame({"BTC": ["100 USD", "$200", "50%"]})
-        try:
+        with contextlib.suppress(Exception):
             df2 = data_loader._strip_units_and_parse(df)
-        except Exception:
-            pass
 
     def test_quality_and_validation(self):
-        try:
+        with contextlib.suppress(Exception):
             data_loader._run_data_quality_campaign(None)
-        except Exception:
-            pass
-        try:
+        with contextlib.suppress(Exception):
             data_loader._run_data_quality_campaign([])
-        except Exception:
-            pass
-        df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=[pd.Timestamp("2023-01-01"), pd.Timestamp("2023-01-01")])
-        try:
+        df = pd.DataFrame(
+            {"BTC": [0.01, 0.02]}, index=[pd.Timestamp("2023-01-01"), pd.Timestamp("2023-01-01")]
+        )
+        with contextlib.suppress(Exception):
             data_loader._run_data_quality_campaign(df)
-        except Exception:
-            pass
         df = pd.DataFrame({"BTC": [10.0]}, index=pd.date_range("2023-01-01", periods=1))
-        try:
+        with contextlib.suppress(Exception):
             data_loader._run_data_quality_campaign(df)
-        except Exception:
-            pass
         # validate
         for v in [None, pd.DataFrame()]:
-            try:
+            with contextlib.suppress(Exception):
                 data_loader.validate_returns_dataframe(v)
-            except Exception:
-                pass
         df = pd.DataFrame({"BTC": [0.01]}, index=pd.date_range("2023-01-01", periods=1))
-        try:
+        with contextlib.suppress(Exception):
             data_loader.validate_returns_dataframe(df, min_rows=10)
-        except Exception:
-            pass
         df = pd.DataFrame({"ETH": [0.01, 0.02]}, index=pd.date_range("2023-01-01", periods=2))
-        try:
+        with contextlib.suppress(Exception):
             data_loader.validate_returns_dataframe(df, benchmark="BTC")
-        except Exception:
-            pass
         df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=pd.date_range("2023-01-01", periods=2))
-        try:
+        with contextlib.suppress(Exception):
             data_loader.validate_returns_dataframe(df)
-        except Exception:
-            pass
         df = pd.DataFrame({"BTC": [0.01, np.inf]}, index=pd.date_range("2023-01-01", periods=2))
-        try:
+        with contextlib.suppress(Exception):
             data_loader.validate_returns_dataframe(df)
-        except Exception:
-            pass
         df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=pd.date_range("2023-01-01", periods=2))
-        try:
+        with contextlib.suppress(Exception):
             data_loader.validate_returns_dataframe(df, min_rows=5)
-        except Exception:
-            pass
 
     def test_loaders_all_formats(self):
         # csv
@@ -225,10 +234,8 @@ class TestDataLoaderCampaignDPushHeavy:
             pass
         finally:
             os.unlink(fname)
-        try:
+        with contextlib.suppress(Exception):
             data_loader.load_returns("/no/such/file.csv")
-        except Exception:
-            pass
         with tempfile.NamedTemporaryFile(mode="w", suffix=".xyz", delete=False) as f:
             f.write("data")
             fname = f.name
@@ -240,31 +247,19 @@ class TestDataLoaderCampaignDPushHeavy:
             os.unlink(fname)
 
     def test_helpers(self):
-        try:
+        with contextlib.suppress(Exception):
             data_loader.detect_price_or_returns(pd.DataFrame({"BTC": [100, 101, 102]}))
-        except Exception:
-            pass
-        try:
+        with contextlib.suppress(Exception):
             data_loader.detect_price_or_returns(pd.DataFrame({"BTC": [0.01, 0.02, -0.01]}))
-        except Exception:
-            pass
-        try:
+        with contextlib.suppress(Exception):
             data_loader.normalize_schema(pd.DataFrame({"btc/usd": [100, 101], "eth-usd": [10, 11]}))
-        except Exception:
-            pass
-        try:
+        with contextlib.suppress(Exception):
             data_loader.standardize_columns(pd.DataFrame({"BTC/USD": [100, 101]}))
-        except Exception:
-            pass
-        try:
+        with contextlib.suppress(Exception):
             data_loader.clean_data(pd.DataFrame({"BTC": [100, 101]}))
-        except Exception:
-            pass
-        try:
-            data_loader.validate_prices(pd.DataFrame({"BTC": [100, 101]}, index=pd.date_range("2023-01-01", periods=2)))
-        except Exception:
-            pass
-        try:
+        with contextlib.suppress(Exception):
+            data_loader.validate_prices(
+                pd.DataFrame({"BTC": [100, 101]}, index=pd.date_range("2023-01-01", periods=2))
+            )
+        with contextlib.suppress(Exception):
             data_loader.validate_prices(None)
-        except Exception:
-            pass

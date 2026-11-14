@@ -3,6 +3,7 @@
 for all-finite data, so we can route the fast path through the vectorized one
 without changing numerics.
 """
+
 from __future__ import annotations
 
 import numpy as np
@@ -57,16 +58,24 @@ def main():
     a = np.zeros(n)
     p = pandas_path(bench, a, 90, 60)
     v = _calc_rolling_beta_series(bench, a, 90, 60)
-    print("constant asset: nan-mask match =", np.array_equal(np.isnan(p), np.isnan(v)),
-          "max abs diff =", float(np.max(np.abs(np.nan_to_num(p) - np.nan_to_num(v)))))
+    print(
+        "constant asset: nan-mask match =",
+        np.array_equal(np.isnan(p), np.isnan(v)),
+        "max abs diff =",
+        float(np.max(np.abs(np.nan_to_num(p) - np.nan_to_num(v)))),
+    )
 
     # Constant benchmark edge case
     a = rng.normal(0, 0.01, n)
     bench_c = np.full(n, 0.001)
     p = pandas_path(bench_c, a, 90, 60)
     v = _calc_rolling_beta_series(bench_c, a, 90, 60)
-    print("constant bench: nan-mask match =", np.array_equal(np.isnan(p), np.isnan(v)),
-          "max abs diff =", float(np.max(np.nan_to_num(p) - np.nan_to_num(v))))
+    print(
+        "constant bench: nan-mask match =",
+        np.array_equal(np.isnan(p), np.isnan(v)),
+        "max abs diff =",
+        float(np.max(np.nan_to_num(p) - np.nan_to_num(v))),
+    )
 
 
 if __name__ == "__main__":

@@ -36,12 +36,11 @@ from strategies.betting_against_beta.reconciliation import (
     reconcile_costs,
     reconcile_fills_to_backtest,
 )
-
-from tests.test_bab_stress_regimes import (  # noqa: E402  (reuse, don't duplicate)
+from tests.test_bab_stress_regimes import (
     BACKTEST_COLUMNS,
     DN_TOL,
-    REGIMES,
     REGIME_BUILDERS,
+    REGIMES,
     _base_frame,
 )
 
@@ -70,7 +69,7 @@ def _prices_from_returns(returns: pd.DataFrame) -> pd.DataFrame:
 
 def _adv(cols, value: float = 1_000_000.0) -> dict:
     """ADV for every traded asset, including the benchmark (BTC can be shorted)."""
-    return {c: value for c in cols}
+    return dict.fromkeys(cols, value)
 
 
 def _realism_adapter(
@@ -79,7 +78,7 @@ def _realism_adapter(
     adv_value: float = 5_000.0,
 ) -> PaperAdapter:
     """PaperAdapter configured with tight ADV so participation binds."""
-    cols = [c for c in returns.columns]
+    cols = list(returns.columns)
     adapter = PaperAdapter()
     adapter.prices = _prices_from_returns(returns)
     adapter.adv_usd = _adv(cols, adv_value)
@@ -164,8 +163,8 @@ def test_participation_cap_limits_fill_ratio_monotonically():
 
     # ADV 1000 / price 100 => 10 units of ADV budget; weight is notional/ADV.
     small = fill_for(0.01)  # notional 1.0 -> participation 0.001
-    large = fill_for(1.0)   # notional 100.0 -> participation 0.10 (== cap, fills)
-    huge = fill_for(5.0)    # notional 500.0 -> participation 0.5 (cap binds)
+    large = fill_for(1.0)  # notional 100.0 -> participation 0.10 (== cap, fills)
+    huge = fill_for(5.0)  # notional 500.0 -> participation 0.5 (cap binds)
     assert small["status"] == "filled"
     assert huge["status"] == "partial"
     assert huge["fill_ratio"] < 1.0
@@ -196,12 +195,8 @@ def test_default_adapter_path_is_full_fill_zero_slippage():
 def test_adapter_determinism_and_strict_json():
     """Same inputs => identical fills; output is strict-JSON-safe."""
     dates = pd.date_range("2024-01-01", periods=3)
-    w = pd.DataFrame(
-        {"Z": [0.4, 0.0, -0.1], "A": [-0.4, 0.0, 0.1]}, index=dates
-    )
-    prices = pd.DataFrame(
-        {"Z": [10.0, 11.0, 12.0], "A": [5.0, 5.5, 6.0]}, index=dates
-    )
+    w = pd.DataFrame({"Z": [0.4, 0.0, -0.1], "A": [-0.4, 0.0, 0.1]}, index=dates)
+    prices = pd.DataFrame({"Z": [10.0, 11.0, 12.0], "A": [5.0, 5.5, 6.0]}, index=dates)
     adv = {"Z": 100.0, "A": 100.0}
 
     def run() -> list[dict]:
@@ -297,9 +292,7 @@ def test_order_intent_carries_participation_inputs_to_adapter():
     dates = pd.date_range("2024-01-01", periods=2)
     w = pd.DataFrame({"BTC": [0.5, 0.5], "ETH": [-0.5, -0.5]}, index=dates)
     prices = pd.DataFrame({"BTC": [100.0, 100.0], "ETH": [10.0, 10.0]}, index=dates)
-    adv = pd.DataFrame(
-        {"BTC": [1_000.0, 1_000.0], "ETH": [1_000.0, 1_000.0]}, index=dates
-    )
+    adv = pd.DataFrame({"BTC": [1_000.0, 1_000.0], "ETH": [1_000.0, 1_000.0]}, index=dates)
     batches = order_batches_from_weights(w, prices, adv, 0.10)
     assert batches
     for batch in batches:
@@ -348,9 +341,7 @@ def test_fill_cost_canonical_order_weight_schema_still_charged():
     """Canonical R5-B/C fills (order_weight only) keep shipped cost semantics."""
     fill = {"order_weight": 0.10, "slippage": 0.0, "status": "filled"}
     assert _fill_executed_weight(fill) == pytest.approx(0.10)
-    assert _fill_cost(fill, transaction_costs=0.001, slippage=0.0) == pytest.approx(
-        0.10 * 0.001
-    )
+    assert _fill_cost(fill, transaction_costs=0.001, slippage=0.0) == pytest.approx(0.10 * 0.001)
     # Per-fill slippage is added to the traded weight, matching R5-B.
     with_slip = {"order_weight": 0.10, "slippage": 0.001, "status": "filled"}
     assert _fill_cost(with_slip, transaction_costs=0.001, slippage=0.0) == pytest.approx(
@@ -392,9 +383,7 @@ def test_reconcile_costs_partial_fills_produce_deltas():
             "reason": "participation_cap",
         }
     ]
-    rc = reconcile_costs(
-        w, executed_fills=fills, transaction_costs=0.001, slippage=0.0
-    )
+    rc = reconcile_costs(w, executed_fills=fills, transaction_costs=0.001, slippage=0.0)
     by_date = {d["date"]: d for d in rc.per_period}
     assert by_date[date_key]["delta"] != 0.0
     assert rc.aggregate["n_mismatches"] > 0
@@ -408,9 +397,7 @@ def test_reconcile_fills_partial_shortfall_changes_realized_equity():
     res = strat.run(returns_df=frame)
     w = res.weights
 
-    base = reconcile_fills_to_backtest(
-        w, res.returns, res.backtest, fills=None
-    )
+    base = reconcile_fills_to_backtest(w, res.returns, res.backtest, fills=None)
 
     date_key = str(w.index[30].isoformat())
     asset = str(w.columns[0])
@@ -428,9 +415,7 @@ def test_reconcile_fills_partial_shortfall_changes_realized_equity():
             "reason": "rejected",
         }
     ]
-    rf = reconcile_fills_to_backtest(
-        w, res.returns, res.backtest, fills=partial
-    )
+    rf = reconcile_fills_to_backtest(w, res.returns, res.backtest, fills=partial)
     assert rf.aggregate["realized_final_equity"] != pytest.approx(
         base.aggregate["realized_final_equity"]
     )
@@ -447,8 +432,12 @@ def test_reconcile_fills_zero_cost_full_fill_tracks_model():
     batches = order_batches_from_weights(res.weights, adapter.prices)
     fills = [f for b in batches for f in adapter.submit_intents(b)]
     rf = reconcile_fills_to_backtest(
-        res.weights, res.returns, res.backtest, fills=fills,
-        transaction_costs=0.0, slippage=0.0,
+        res.weights,
+        res.returns,
+        res.backtest,
+        fills=fills,
+        transaction_costs=0.0,
+        slippage=0.0,
     )
     assert rf.aggregate["n_mismatches"] == 0
     assert abs(rf.aggregate["delta_final"]) < 1e-9
@@ -533,9 +522,7 @@ def test_adapter_does_not_mutate_backtest_or_weights():
     adapter.adv_usd = _adv(frame.columns)
     adapter.partial_fill = True
     adapter.max_participation = 0.01
-    with_adapter = BABStrategy(
-        benchmark="BTC", execution_adapter=adapter
-    ).run(returns_df=frame)
+    with_adapter = BABStrategy(benchmark="BTC", execution_adapter=adapter).run(returns_df=frame)
 
     pd.testing.assert_frame_equal(plain.backtest, with_adapter.backtest)
     pd.testing.assert_frame_equal(plain.weights, with_adapter.weights)

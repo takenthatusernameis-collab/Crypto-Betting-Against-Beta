@@ -89,8 +89,11 @@ def test_enforce_beta_neutrality_preserves_dollar_neutrality():
 
 def test_enforce_beta_neutrality_finite_output():
     betas = _make_betas()
-    weights = pd.DataFrame(np.random.RandomState(1).normal(0, 0.1, size=(len(betas), betas.shape[1])),
-                           index=betas.index, columns=betas.columns)
+    weights = pd.DataFrame(
+        np.random.RandomState(1).normal(0, 0.1, size=(len(betas), betas.shape[1])),
+        index=betas.index,
+        columns=betas.columns,
+    )
     out = enforce_beta_neutrality(weights, betas, target_beta=0.0)
     assert np.isfinite(out.values).all()
 

@@ -1,4 +1,5 @@
 """Strategy integration chaos tests."""
+
 import numpy as np
 import pandas as pd
 
@@ -16,7 +17,7 @@ class TestStrategyIntegrationChaos:
         s = strategy.BABStrategy()
         res = s.run(returns_df=df2)
         assert res is not None
-        assert hasattr(res, 'backtest')
+        assert hasattr(res, "backtest")
 
     def test_run_deterministic_with_seed(self):
         df = generate_synthetic_returns(n_days=150, seed=42)
@@ -25,5 +26,6 @@ class TestStrategyIntegrationChaos:
         s2 = strategy.BABStrategy()
         r2 = s2.run(returns_df=df)
         # Should be deterministic
-        assert np.allclose(r1.backtest['returns'].fillna(0).values,
-                          r2.backtest['returns'].fillna(0).values)
+        assert np.allclose(
+            r1.backtest["returns"].fillna(0).values, r2.backtest["returns"].fillna(0).values
+        )

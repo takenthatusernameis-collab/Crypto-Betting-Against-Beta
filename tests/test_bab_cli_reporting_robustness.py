@@ -3,6 +3,7 @@
 Covers --output path handling, schema stability across all committed fixtures
 + synthetic, dry-run behavior, and byte-determinism — no external data.
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -13,7 +14,7 @@ import numpy as np
 import pytest
 
 from strategies.betting_against_beta import BABStrategy
-from strategies.betting_against_beta.cli import main, __version__
+from strategies.betting_against_beta.cli import __version__, main
 from strategies.betting_against_beta.config import BABConfig
 
 PRICE_FIXTURES = [
@@ -62,28 +63,46 @@ class TestSchemaStabilityAllSources:
         [
             pytest.param(
                 lambda out: [
-                    "--data", RETURNS_FIXTURE, "--benchmark", "BTC",
-                    "--output", str(out),
+                    "--data",
+                    RETURNS_FIXTURE,
+                    "--benchmark",
+                    "BTC",
+                    "--output",
+                    str(out),
                 ],
                 id="returns.json",
             ),
             pytest.param(
                 lambda out: [
-                    "--data", PRICE_FIXTURES[0], "--from-prices",
-                    "--benchmark", "BTC", "--output", str(out),
+                    "--data",
+                    PRICE_FIXTURES[0],
+                    "--from-prices",
+                    "--benchmark",
+                    "BTC",
+                    "--output",
+                    str(out),
                 ],
                 id="real_market_prices.csv",
             ),
             pytest.param(
                 lambda out: [
-                    "--data", PRICE_FIXTURES[1], "--from-prices",
-                    "--benchmark", "BTC", "--output", str(out),
+                    "--data",
+                    PRICE_FIXTURES[1],
+                    "--from-prices",
+                    "--benchmark",
+                    "BTC",
+                    "--output",
+                    str(out),
                 ],
                 id="real_market_prices_expanded.csv",
             ),
             pytest.param(
                 lambda out: [
-                    "--synthetic", "--beta-window", "30", "--output", str(out),
+                    "--synthetic",
+                    "--beta-window",
+                    "30",
+                    "--output",
+                    str(out),
                 ],
                 id="synthetic",
             ),
@@ -110,11 +129,27 @@ class TestSchemaStabilityAllSources:
                 id="returns.json",
             ),
             pytest.param(
-                lambda out: ["--data", PRICE_FIXTURES[0], "--from-prices", "--benchmark", "BTC", "--output", str(out)],
+                lambda out: [
+                    "--data",
+                    PRICE_FIXTURES[0],
+                    "--from-prices",
+                    "--benchmark",
+                    "BTC",
+                    "--output",
+                    str(out),
+                ],
                 id="real_market_prices.csv",
             ),
             pytest.param(
-                lambda out: ["--data", PRICE_FIXTURES[1], "--from-prices", "--benchmark", "BTC", "--output", str(out)],
+                lambda out: [
+                    "--data",
+                    PRICE_FIXTURES[1],
+                    "--from-prices",
+                    "--benchmark",
+                    "BTC",
+                    "--output",
+                    str(out),
+                ],
                 id="real_market_prices_expanded.csv",
             ),
             pytest.param(
@@ -157,21 +192,45 @@ class TestReadmeCliContract:
     """README↔CLI contract (campaign11 slice c, parse/smoke only)."""
 
     README_FLAGS = [
-        "--data", "--from-prices", "--benchmark", "--dry-run", "--output",
-        "--synthetic", "--version", "--universe", "--beta-window",
-        "--long-quantile", "--short-quantile", "--rebalance-freq",
-        "--transaction-costs", "--slippage",
+        "--data",
+        "--from-prices",
+        "--benchmark",
+        "--dry-run",
+        "--output",
+        "--synthetic",
+        "--version",
+        "--universe",
+        "--beta-window",
+        "--long-quantile",
+        "--short-quantile",
+        "--rebalance-freq",
+        "--transaction-costs",
+        "--slippage",
     ]
 
     def test_readme_flags_accepted_by_argparse(self):
         # Parse-only: build parser same shape as CLI exposes; use --dry-run/--version smokes.
         # --dry-run --synthetic exercises most flags path without data.
-        rc = main([
-            "--dry-run", "--synthetic", "--benchmark", "BTC",
-            "--beta-window", "30", "--long-quantile", "0.3",
-            "--short-quantile", "0.3", "--rebalance-freq", "daily",
-            "--transaction-costs", "0.0", "--slippage", "0.0",
-        ])
+        rc = main(
+            [
+                "--dry-run",
+                "--synthetic",
+                "--benchmark",
+                "BTC",
+                "--beta-window",
+                "30",
+                "--long-quantile",
+                "0.3",
+                "--short-quantile",
+                "0.3",
+                "--rebalance-freq",
+                "daily",
+                "--transaction-costs",
+                "0.0",
+                "--slippage",
+                "0.0",
+            ]
+        )
         assert rc == 0
 
     def test_version_flag_exits_zero(self, capsys):
@@ -183,6 +242,7 @@ class TestReadmeCliContract:
 
     def test_version_matches_module(self):
         from strategies.betting_against_beta import cli
+
         assert cli.__version__ == __version__
         assert __version__ == "0.1.0"
 

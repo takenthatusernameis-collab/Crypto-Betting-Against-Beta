@@ -1,4 +1,5 @@
 """Batch 88: targeted data_loader coverage probes/hits (remaining clusters)."""
+
 from __future__ import annotations
 
 from unittest.mock import patch
@@ -51,9 +52,10 @@ def test_196_numeric_index_coercer_baberror_reraised():
 
     IdxSetOnceBoom._n = 0
     w = IdxSetOnceBoom(df.copy())
-    with patch.object(dl.pd, "to_datetime", side_effect=bad_td), patch.object(
-        dl, "_coerce_to_datetime_scalar", side_effect=bad_coerce
+    with (
+        patch.object(dl.pd, "to_datetime", side_effect=bad_td),
+        patch.object(dl, "_coerce_to_datetime_scalar", side_effect=bad_coerce),
+        pytest.raises(BABDataError, match="boom-coercer"),
     ):
-        with pytest.raises(BABDataError, match="boom-coercer"):
-            _normalize_index(w)
+        _normalize_index(w)
     assert state["coerce"] == 3

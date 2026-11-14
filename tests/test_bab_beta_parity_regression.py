@@ -8,7 +8,9 @@ import pandas as pd
 from strategies.betting_against_beta.beta import calculate_rolling_beta
 
 
-def _slow_rolling_beta_match_impl(returns_df: pd.DataFrame, benchmark_name: str, window: int = 90, min_obs: int = 60) -> pd.DataFrame:
+def _slow_rolling_beta_match_impl(
+    returns_df: pd.DataFrame, benchmark_name: str, window: int = 90, min_obs: int = 60
+) -> pd.DataFrame:
     """Reference matching implementation semantics."""
     bench_arr = returns_df[benchmark_name].to_numpy(dtype=float)
     n = len(returns_df)
@@ -51,6 +53,7 @@ def _slow_rolling_beta_match_impl(returns_df: pd.DataFrame, benchmark_name: str,
         else:
             # fall back to series path behavior
             from strategies.betting_against_beta.beta import _calc_rolling_beta_series
+
             out[c] = _calc_rolling_beta_series(bench_arr, a_arr, window, min_obs)
     return pd.DataFrame(out, index=returns_df.index)
 
@@ -60,7 +63,10 @@ def test_rolling_beta_parity_synthetic_seeds():
     dates = pd.date_range("2023-01-01", periods=400)
     assets = ["BTC", "ETH", "SOL", "BNB"]
     bench = rng.normal(0, 0.02, len(dates))
-    rets = {a: rng.normal(0, 0.03, len(dates)) + 0.8 * bench + rng.normal(0, 0.01, len(dates)) for a in assets}
+    rets = {
+        a: rng.normal(0, 0.03, len(dates)) + 0.8 * bench + rng.normal(0, 0.01, len(dates))
+        for a in assets
+    }
     rets["BTC"] = bench
     df = pd.DataFrame(rets, index=dates)
     window = 90
@@ -75,11 +81,14 @@ def test_rolling_beta_parity_synthetic_seeds():
 def test_rolling_beta_parity_with_nans():
     rng = np.random.RandomState(54321)
     dates = pd.date_range("2023-01-01", periods=200)
-    df = pd.DataFrame({
-        "BTC": rng.normal(0, 0.02, len(dates)),
-        "ETH": rng.normal(0, 0.03, len(dates)),
-        "SOL": rng.normal(0, 0.04, len(dates)),
-    }, index=dates)
+    df = pd.DataFrame(
+        {
+            "BTC": rng.normal(0, 0.02, len(dates)),
+            "ETH": rng.normal(0, 0.03, len(dates)),
+            "SOL": rng.normal(0, 0.04, len(dates)),
+        },
+        index=dates,
+    )
     df.iloc[10:15, 1] = np.nan
     df.iloc[50, 2] = np.nan
     df.iloc[120:125, 0] = np.nan
@@ -95,10 +104,13 @@ def test_rolling_beta_parity_with_nans():
 def test_rolling_beta_parity_with_infs():
     rng = np.random.RandomState(999)
     dates = pd.date_range("2023-01-01", periods=150)
-    df = pd.DataFrame({
-        "BTC": rng.normal(0, 0.02, len(dates)),
-        "ETH": rng.normal(0, 0.03, len(dates)),
-    }, index=dates)
+    df = pd.DataFrame(
+        {
+            "BTC": rng.normal(0, 0.02, len(dates)),
+            "ETH": rng.normal(0, 0.03, len(dates)),
+        },
+        index=dates,
+    )
     df.iloc[5, 1] = np.inf
     df.iloc[80, 0] = -np.inf
     window = 45

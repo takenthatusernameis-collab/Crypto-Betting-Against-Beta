@@ -33,6 +33,8 @@ def test_load_prices_from_json(tmp_path):
 
 
 def test_validate_empty_after_clean():
-    df = pd.DataFrame({"date": pd.date_range("2020-01-01", periods=3), "X": [np.nan, np.nan, np.nan]})
+    df = pd.DataFrame(
+        {"date": pd.date_range("2020-01-01", periods=3), "X": [np.nan, np.nan, np.nan]}
+    )
     with pytest.raises(BABDataError):
         dl.validate_returns_dataframe(df)

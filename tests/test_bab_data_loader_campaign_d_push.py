@@ -73,25 +73,35 @@ class TestNormalizeIndexNumeric:
         assert len(out) == 0
 
     def test_nanoseconds_branch(self):
-        df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=pd.Index([1700000000000000000, 1700000001000000000], dtype="int64"))
+        df = pd.DataFrame(
+            {"BTC": [0.01, 0.02]},
+            index=pd.Index([1700000000000000000, 1700000001000000000], dtype="int64"),
+        )
         out = dl._normalize_index(df)
         assert isinstance(out.index, pd.DatetimeIndex)
         assert len(out) == 2
 
     def test_microseconds_branch(self):
-        df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=pd.Index([1700000000000000, 1700000001000000], dtype="int64"))
+        df = pd.DataFrame(
+            {"BTC": [0.01, 0.02]},
+            index=pd.Index([1700000000000000, 1700000001000000], dtype="int64"),
+        )
         out = dl._normalize_index(df)
         assert isinstance(out.index, pd.DatetimeIndex)
         assert len(out) == 2
 
     def test_milliseconds_branch(self):
-        df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=pd.Index([1700000000000, 1700000001000], dtype="int64"))
+        df = pd.DataFrame(
+            {"BTC": [0.01, 0.02]}, index=pd.Index([1700000000000, 1700000001000], dtype="int64")
+        )
         out = dl._normalize_index(df)
         assert isinstance(out.index, pd.DatetimeIndex)
         assert len(out) == 2
 
     def test_seconds_branch(self):
-        df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=pd.Index([1700000000, 1700000001], dtype="int64"))
+        df = pd.DataFrame(
+            {"BTC": [0.01, 0.02]}, index=pd.Index([1700000000, 1700000001], dtype="int64")
+        )
         out = dl._normalize_index(df)
         assert isinstance(out.index, pd.DatetimeIndex)
         assert len(out) == 2
@@ -103,7 +113,9 @@ class TestNormalizeIndexNumeric:
         assert len(out) == 2
 
     def test_numeric_index_fallback_to_coercer(self):
-        df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=pd.Index(["not-a-number", "also-bad"], dtype=object))
+        df = pd.DataFrame(
+            {"BTC": [0.01, 0.02]}, index=pd.Index(["not-a-number", "also-bad"], dtype=object)
+        )
         with pytest.raises(BABDataError):
             dl._normalize_index(df)
 
@@ -114,23 +126,33 @@ class TestNormalizeIndexNumeric:
         assert len(out) == 2
 
     def test_tz_normalization_on_existing_datetimeindex(self):
-        df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=pd.DatetimeIndex(["2020-01-01", "2020-01-02"], tz="US/Eastern"))
+        df = pd.DataFrame(
+            {"BTC": [0.01, 0.02]},
+            index=pd.DatetimeIndex(["2020-01-01", "2020-01-02"], tz="US/Eastern"),
+        )
         out = dl._normalize_index(df)
         assert isinstance(out.index, pd.DatetimeIndex)
         assert out.index.tz is None
 
     def test_sort_index(self):
-        df = pd.DataFrame({"BTC": [0.02, 0.01]}, index=pd.DatetimeIndex(["2020-01-02", "2020-01-01"]))
+        df = pd.DataFrame(
+            {"BTC": [0.02, 0.01]}, index=pd.DatetimeIndex(["2020-01-02", "2020-01-01"])
+        )
         out = dl._normalize_index(df)
         assert out.index.is_monotonic_increasing
 
     def test_drop_nat_rows(self):
-        df = pd.DataFrame({"BTC": [0.01, 0.02, 0.03]}, index=pd.DatetimeIndex(["2020-01-01", "NaT", "2020-01-03"]))
+        df = pd.DataFrame(
+            {"BTC": [0.01, 0.02, 0.03]}, index=pd.DatetimeIndex(["2020-01-01", "NaT", "2020-01-03"])
+        )
         out = dl._normalize_index(df)
         assert len(out) == 2
 
     def test_drop_duplicate_index(self):
-        df = pd.DataFrame({"BTC": [0.01, 0.02, 0.03]}, index=pd.DatetimeIndex(["2020-01-01", "2020-01-01", "2020-01-02"]))
+        df = pd.DataFrame(
+            {"BTC": [0.01, 0.02, 0.03]},
+            index=pd.DatetimeIndex(["2020-01-01", "2020-01-01", "2020-01-02"]),
+        )
         out = dl._normalize_index(df)
         assert len(out) == 2
 
@@ -255,6 +277,7 @@ class TestCoerceToDatetimeScalar:
 
     def test_datetime_object(self):
         import datetime
+
         ts = dl._coerce_to_datetime_scalar(datetime.datetime(2020, 1, 1))
         assert not pd.isna(ts)
 

@@ -1,14 +1,24 @@
 import numpy as np
 import pandas as pd
 
-from strategies.betting_against_beta import beta, signals, portfolio, sizing, shorting, costs, attribution, config, strategy
+from strategies.betting_against_beta import (
+    attribution,
+    beta,
+    config,
+    costs,
+    portfolio,
+    shorting,
+    signals,
+    sizing,
+    strategy,
+)
 
 
 def test_beta_functions():
     idx = pd.date_range("2023-01-01", periods=80)
     np.random.seed(123)
-    mkt = pd.Series(np.random.randn(80)*0.01, index=idx)
-    a = pd.Series(0.5*mkt + np.random.randn(80)*0.005, index=idx)
+    mkt = pd.Series(np.random.randn(80) * 0.01, index=idx)
+    a = pd.Series(0.5 * mkt + np.random.randn(80) * 0.005, index=idx)
     rets = pd.DataFrame({"BTC": mkt, "ALT": a})
     b = beta.estimate_betas(rets, benchmark="BTC", window=30, min_observations=20)
     assert isinstance(b, pd.DataFrame)
@@ -43,7 +53,7 @@ def test_shorting_costs():
 
 def test_attribution_config():
     idx = pd.date_range("2023-01-01", periods=5)
-    rets = pd.DataFrame({"BTC": [0.01]*5, "ETH": [0.02]*5}, index=idx)
+    rets = pd.DataFrame({"BTC": [0.01] * 5, "ETH": [0.02] * 5}, index=idx)
     backtest = rets.copy()
     backtest["ETH_weight"] = 0.5
     backtest["portfolio_return"] = backtest["ETH_weight"].shift(1).fillna(0) * backtest["ETH"]
@@ -56,9 +66,11 @@ def test_attribution_config():
 def test_strategy_run_small():
     idx = pd.date_range("2023-01-01", periods=80)
     np.random.seed(42)
-    mkt = np.random.randn(80)*0.01
-    alt = 0.8*mkt + np.random.randn(80)*0.005
+    mkt = np.random.randn(80) * 0.01
+    alt = 0.8 * mkt + np.random.randn(80) * 0.005
     rets = pd.DataFrame({"BTC": mkt, "ETH": alt}, index=idx)
-    strat = strategy.BABStrategy(config=config.BABConfig(benchmark="BTC", beta_window=30, min_observations=20))
+    strat = strategy.BABStrategy(
+        config=config.BABConfig(benchmark="BTC", beta_window=30, min_observations=20)
+    )
     res = strat.run(rets)
     assert hasattr(res, "returns")

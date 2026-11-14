@@ -10,6 +10,7 @@ returns-like fixture is clean (rc 0/1, no traceback). No production edit is just
 (the bug-fix rule requires a proven bug). These tests LOCK IN the invariants so no
 future change can silently regress the CLI JSON/finite boundary without failing.
 """
+
 from __future__ import annotations
 
 import datetime

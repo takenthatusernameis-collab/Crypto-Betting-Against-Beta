@@ -72,7 +72,9 @@ def profile_beta_neutrality(weights, beta, reps: int) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="Production-scale BAB hot-path benchmark (warm medians).",
-        epilog="Example: python3 scripts/bench_beta_neutrality.py --sizes 2500x120 --reps 35 --profile",
+        epilog=(
+            "Example: python3 scripts/bench_beta_neutrality.py --sizes 2500x120 --reps 35 --profile"
+        ),
     )
     parser.add_argument("--sizes", default="2500x40,2500x50,2500x120")
     parser.add_argument("--reps", type=int, default=35)

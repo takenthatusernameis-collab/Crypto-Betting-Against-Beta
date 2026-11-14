@@ -6,13 +6,15 @@ data and configs. These are regression guardrails: any future change that breaks
 an invariant fails here. hypothesis is a declared dependency that was previously
 unused by the test suite.
 """
+
 from __future__ import annotations
 
 import numpy as np
 import pandas as pd
-from hypothesis import HealthCheck, given, settings, strategies as st
+from hypothesis import HealthCheck, given, settings
+from hypothesis import strategies as st
 
-from strategies.betting_against_beta import BABStrategy, BABConfig
+from strategies.betting_against_beta import BABConfig, BABStrategy
 
 
 @st.composite
@@ -54,7 +56,11 @@ def _config(draw):
 _prop_settings = settings(
     max_examples=60,
     deadline=None,
-    suppress_health_check=(HealthCheck.too_slow, HealthCheck.data_too_large, HealthCheck.large_base_example),
+    suppress_health_check=(
+        HealthCheck.too_slow,
+        HealthCheck.data_too_large,
+        HealthCheck.large_base_example,
+    ),
 )
 
 
@@ -91,7 +97,9 @@ def test_pipeline_finiteness_and_invariants(df, cfg):
     # Determinism: identical input must produce identical output.
     res2 = BABStrategy(cfg).run(returns_df=df)
     assert w.values.tolist() == res2.weights.values.tolist(), "weights must be deterministic"
-    assert bt["returns"].values.tolist() == res2.backtest["returns"].values.tolist(), "returns must be deterministic"
+    assert bt["returns"].values.tolist() == res2.backtest["returns"].values.tolist(), (
+        "returns must be deterministic"
+    )
 
 
 @_prop_settings

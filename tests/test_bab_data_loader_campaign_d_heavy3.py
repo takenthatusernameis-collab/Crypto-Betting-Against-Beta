@@ -43,7 +43,9 @@ class TestNormalizeIndexMoreCases:
         assert isinstance(out.index, pd.DatetimeIndex)
 
     def test_normalize_index_object_mixed_all_datetime(self):
-        df = pd.DataFrame({"c": [1, 2]}, index=[pd.Timestamp("2023-01-01"), pd.Timestamp("2023-01-02")])
+        df = pd.DataFrame(
+            {"c": [1, 2]}, index=[pd.Timestamp("2023-01-01"), pd.Timestamp("2023-01-02")]
+        )
         out = data_loader._normalize_index(df)
         assert isinstance(out.index, pd.DatetimeIndex)
 
@@ -62,10 +64,16 @@ class TestPromoteDatetimeEdge:
 
 class TestDetectFormatMore:
     def test_detect_binance_with_timestamp(self):
-        df = pd.DataFrame({
-            "timestamp": [1700000000000, 1700000060000],
-            "open": [1, 2], "high": [2, 3], "low": [0.5, 1.5], "close": [1.5, 2.5], "volume": [10, 20],
-        })
+        df = pd.DataFrame(
+            {
+                "timestamp": [1700000000000, 1700000060000],
+                "open": [1, 2],
+                "high": [2, 3],
+                "low": [0.5, 1.5],
+                "close": [1.5, 2.5],
+                "volume": [10, 20],
+            }
+        )
         try:
             out = data_loader._detect_and_normalize_exchange_format(df)
             assert isinstance(out, pd.DataFrame)

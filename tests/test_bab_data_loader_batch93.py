@@ -6,6 +6,7 @@ strings with `np.datetime64('NaT')`, the elementwise coercion at 218-224 succeed
 (returning NaT for the NaT entry), so `df.index.isna().any()` becomes True and the
 dayfirst last-ditch block at 227-247 is entered for the first time in the aggregate.
 """
+
 import numpy as np
 import pandas as pd
 
@@ -17,9 +18,7 @@ def test_227_245_dayfirst_block_via_np_datetime64_nat():
     # Object index mixing valid ISO dates with np.datetime64('NaT').
     # The real coercer returns NaT (not raise) for np.datetime64('NaT'), so the
     # NaT guard at 225 is True and the dayfirst block (227-247) is entered.
-    idx = pd.Index(
-        ["2021-01-01", np.datetime64("NaT"), "2021-01-03"], dtype=object
-    )
+    idx = pd.Index(["2021-01-01", np.datetime64("NaT"), "2021-01-03"], dtype=object)
     df = pd.DataFrame({"BTC": [0.01, 0.02, 0.03]}, index=idx)
     out = _normalize_index(df.copy())
     assert isinstance(out.index, pd.DatetimeIndex)

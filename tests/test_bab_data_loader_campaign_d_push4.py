@@ -10,6 +10,7 @@ and convenience wrappers.
 
 from __future__ import annotations
 
+import contextlib
 import json
 import os
 import pickle
@@ -31,7 +32,9 @@ class TestNormalizeColumnsVariants:
         assert set(out.columns) == {"Adj Close", "Open", "Volume"}
 
     def test_open_high_low_volume_variants(self):
-        df = pd.DataFrame({"open price": [1.0], "day high": [2.0], "day low": [3.0], "quote volume": [4.0]})
+        df = pd.DataFrame(
+            {"open price": [1.0], "day high": [2.0], "day low": [3.0], "quote volume": [4.0]}
+        )
         out = dl._normalize_columns(df)
         assert set(out.columns) == {"Open", "High", "Low", "Volume"}
 
@@ -130,49 +133,72 @@ class TestRunDataQualityCampaignAllPaths:
             dl._run_data_quality_campaign("not-a-df")
 
     def test_allow_duplicates_drops(self):
-        df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=pd.DatetimeIndex(["2020-01-01", "2020-01-01"]))
+        df = pd.DataFrame(
+            {"BTC": [0.01, 0.02]}, index=pd.DatetimeIndex(["2020-01-01", "2020-01-01"])
+        )
         out = dl._run_data_quality_campaign(df, allow_duplicate_timestamps=True)
         assert len(out) == 1
 
     def test_implausible_return(self):
-        df = pd.DataFrame({"BTC": [0.01, 999999.0]}, index=pd.DatetimeIndex(["2020-01-01", "2020-01-02"]))
+        df = pd.DataFrame(
+            {"BTC": [0.01, 999999.0]}, index=pd.DatetimeIndex(["2020-01-01", "2020-01-02"])
+        )
         with pytest.raises(BABDataError):
             dl._run_data_quality_campaign(df, max_return_abs=10.0)
 
     def test_gap_too_large(self):
-        df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=pd.DatetimeIndex(["2020-01-01", "2020-01-10"]))
+        df = pd.DataFrame(
+            {"BTC": [0.01, 0.02]}, index=pd.DatetimeIndex(["2020-01-01", "2020-01-10"])
+        )
         with pytest.raises(BABDataError):
             dl._run_data_quality_campaign(df, max_gap_days=1.0)
 
     def test_stale_run(self):
-        df = pd.DataFrame({"BTC": [0.01] * 60}, index=pd.date_range("2020-01-01", periods=60, freq="D"))
+        df = pd.DataFrame(
+            {"BTC": [0.01] * 60}, index=pd.date_range("2020-01-01", periods=60, freq="D")
+        )
         with pytest.raises(BABDataError):
             dl._run_data_quality_campaign(df, stale_run_threshold=50)
 
     def test_min_finite_fraction(self):
-        df = pd.DataFrame({"BTC": [np.nan, np.nan, 0.01]}, index=pd.DatetimeIndex(["2020-01-01", "2020-01-02", "2020-01-03"]))
+        df = pd.DataFrame(
+            {"BTC": [np.nan, np.nan, 0.01]},
+            index=pd.DatetimeIndex(["2020-01-01", "2020-01-02", "2020-01-03"]),
+        )
         with pytest.raises(BABDataError):
             dl._run_data_quality_campaign(df, min_finite_fraction=0.5)
 
     def test_all_checks_pass(self):
-        df = pd.DataFrame({"BTC": [0.01, -0.01, 0.02]}, index=pd.DatetimeIndex(["2020-01-01", "2020-01-02", "2020-01-03"]))
+        df = pd.DataFrame(
+            {"BTC": [0.01, -0.01, 0.02]},
+            index=pd.DatetimeIndex(["2020-01-01", "2020-01-02", "2020-01-03"]),
+        )
         out = dl._run_data_quality_campaign(df)
         assert len(out) == 3
 
 
 class TestValidateReturnsDataframeAllPaths:
     def test_valid_with_benchmark_and_asset(self):
-        df = pd.DataFrame({"BTC": [0.01, -0.01], "ETH": [0.02, -0.02]}, index=pd.DatetimeIndex(["2020-01-01", "2020-01-02"]))
+        df = pd.DataFrame(
+            {"BTC": [0.01, -0.01], "ETH": [0.02, -0.02]},
+            index=pd.DatetimeIndex(["2020-01-01", "2020-01-02"]),
+        )
         out = dl.validate_returns_dataframe(df, benchmark="BTC")
         assert "ETH" in out.columns
 
     def test_benchmark_case_insensitive_rename(self):
-        df = pd.DataFrame({"btc": [0.01, -0.01], "ETH": [0.02, -0.02]}, index=pd.DatetimeIndex(["2020-01-01", "2020-01-02"]))
+        df = pd.DataFrame(
+            {"btc": [0.01, -0.01], "ETH": [0.02, -0.02]},
+            index=pd.DatetimeIndex(["2020-01-01", "2020-01-02"]),
+        )
         out = dl.validate_returns_dataframe(df, benchmark="BTC")
         assert "BTC" in out.columns
 
     def test_quality_false_skips_campaign(self):
-        df = pd.DataFrame({"BTC": [0.01, -0.01], "ETH": [0.02, -0.02]}, index=pd.DatetimeIndex(["2020-01-01", "2020-01-02"]))
+        df = pd.DataFrame(
+            {"BTC": [0.01, -0.01], "ETH": [0.02, -0.02]},
+            index=pd.DatetimeIndex(["2020-01-01", "2020-01-02"]),
+        )
         out = dl.validate_returns_dataframe(df, benchmark="BTC", quality=False)
         assert "ETH" in out.columns
 
@@ -189,7 +215,10 @@ class TestValidateReturnsDataframeAllPaths:
 
 class TestLoadersWithData:
     def test_csv_roundtrip(self):
-        df = pd.DataFrame({"BTC": [0.01, -0.01], "ETH": [0.02, -0.02]}, index=pd.DatetimeIndex(["2020-01-01", "2020-01-02"]))
+        df = pd.DataFrame(
+            {"BTC": [0.01, -0.01], "ETH": [0.02, -0.02]},
+            index=pd.DatetimeIndex(["2020-01-01", "2020-01-02"]),
+        )
         with tempfile.NamedTemporaryFile(suffix=".csv", mode="w", delete=False) as f:
             df.to_csv(f)
             path = f.name
@@ -200,7 +229,10 @@ class TestLoadersWithData:
             os.unlink(path)
 
     def test_json_records_roundtrip(self):
-        df = pd.DataFrame({"BTC": [0.01, -0.01], "ETH": [0.02, -0.02]}, index=pd.DatetimeIndex(["2020-01-01", "2020-01-02"]))
+        df = pd.DataFrame(
+            {"BTC": [0.01, -0.01], "ETH": [0.02, -0.02]},
+            index=pd.DatetimeIndex(["2020-01-01", "2020-01-02"]),
+        )
         df = df.reset_index().rename(columns={"index": "date"})
         df["date"] = df["date"].astype(str)
         with tempfile.NamedTemporaryFile(suffix=".json", mode="w", delete=False) as f:
@@ -213,9 +245,18 @@ class TestLoadersWithData:
             os.unlink(path)
 
     def test_json_split_roundtrip(self):
-        df = pd.DataFrame({"BTC": [0.01, -0.01]}, index=pd.DatetimeIndex(["2020-01-01", "2020-01-02"]))
+        df = pd.DataFrame(
+            {"BTC": [0.01, -0.01]}, index=pd.DatetimeIndex(["2020-01-01", "2020-01-02"])
+        )
         with tempfile.NamedTemporaryFile(suffix=".json", mode="w", delete=False) as f:
-            json.dump({"columns": ["BTC"], "index": ["2020-01-01", "2020-01-02"], "data": [[0.01], [-0.01]]}, f)
+            json.dump(
+                {
+                    "columns": ["BTC"],
+                    "index": ["2020-01-01", "2020-01-02"],
+                    "data": [[0.01], [-0.01]],
+                },
+                f,
+            )
             path = f.name
         try:
             out = dl.load_returns_from_json(path, orient="split")
@@ -224,7 +265,10 @@ class TestLoadersWithData:
             os.unlink(path)
 
     def test_pickle_dataframe_roundtrip(self):
-        df = pd.DataFrame({"BTC": [0.01, -0.01], "ETH": [0.02, -0.02]}, index=pd.DatetimeIndex(["2020-01-01", "2020-01-02"]))
+        df = pd.DataFrame(
+            {"BTC": [0.01, -0.01], "ETH": [0.02, -0.02]},
+            index=pd.DatetimeIndex(["2020-01-01", "2020-01-02"]),
+        )
         with tempfile.NamedTemporaryFile(suffix=".pkl", delete=False) as f:
             pickle.dump(df, f)
             path = f.name
@@ -236,7 +280,10 @@ class TestLoadersWithData:
 
     def test_pickle_dict_roundtrip(self):
         with tempfile.NamedTemporaryFile(suffix=".pkl", delete=False) as f:
-            pickle.dump({"date": ["2020-01-01", "2020-01-02"], "BTC": [0.01, -0.01], "ETH": [0.02, -0.02]}, f)
+            pickle.dump(
+                {"date": ["2020-01-01", "2020-01-02"], "BTC": [0.01, -0.01], "ETH": [0.02, -0.02]},
+                f,
+            )
             path = f.name
         try:
             out = dl.load_returns_from_pickle(path, benchmark="BTC")
@@ -246,7 +293,13 @@ class TestLoadersWithData:
 
     def test_pickle_list_of_dicts(self):
         with tempfile.NamedTemporaryFile(suffix=".pkl", delete=False) as f:
-            pickle.dump([{"date": "2020-01-01", "BTC": 0.01, "ETH": 0.02}, {"date": "2020-01-02", "BTC": -0.01, "ETH": -0.02}], f)
+            pickle.dump(
+                [
+                    {"date": "2020-01-01", "BTC": 0.01, "ETH": 0.02},
+                    {"date": "2020-01-02", "BTC": -0.01, "ETH": -0.02},
+                ],
+                f,
+            )
             path = f.name
         try:
             out = dl.load_returns_from_pickle(path, benchmark="BTC")
@@ -255,7 +308,10 @@ class TestLoadersWithData:
             os.unlink(path)
 
     def test_load_returns_dispatch_csv(self):
-        df = pd.DataFrame({"BTC": [0.01, -0.01], "ETH": [0.02, -0.02]}, index=pd.DatetimeIndex(["2020-01-01", "2020-01-02"]))
+        df = pd.DataFrame(
+            {"BTC": [0.01, -0.01], "ETH": [0.02, -0.02]},
+            index=pd.DatetimeIndex(["2020-01-01", "2020-01-02"]),
+        )
         with tempfile.NamedTemporaryFile(suffix=".csv", mode="w", delete=False) as f:
             df.to_csv(f)
             path = f.name
@@ -266,12 +322,17 @@ class TestLoadersWithData:
             os.unlink(path)
 
     def test_load_returns_dispatch_dataframe(self):
-        df = pd.DataFrame({"BTC": [0.01, -0.01], "ETH": [0.02, -0.02]}, index=pd.DatetimeIndex(["2020-01-01", "2020-01-02"]))
+        df = pd.DataFrame(
+            {"BTC": [0.01, -0.01], "ETH": [0.02, -0.02]},
+            index=pd.DatetimeIndex(["2020-01-01", "2020-01-02"]),
+        )
         out = dl.load_returns(df, benchmark="BTC")
         assert "ETH" in out.columns
 
     def test_detect_price_or_returns_prices(self):
-        df = pd.DataFrame({"BTC": [100.0, 101.0]}, index=pd.DatetimeIndex(["2020-01-01", "2020-01-02"]))
+        df = pd.DataFrame(
+            {"BTC": [100.0, 101.0]}, index=pd.DatetimeIndex(["2020-01-01", "2020-01-02"])
+        )
         assert dl.detect_price_or_returns(df) == "prices"
 
     def test_detect_price_or_returns_unknown_extension(self):
@@ -302,7 +363,9 @@ class TestNormalizeSchemaPaths:
         assert isinstance(out, pd.DataFrame)
 
     def test_duplicate_header_row_removed(self):
-        df = pd.DataFrame([["date", "BTC"], ["date", "BTC"], ["2020-01-01", 0.01]], columns=["date", "BTC"])
+        df = pd.DataFrame(
+            [["date", "BTC"], ["date", "BTC"], ["2020-01-01", 0.01]], columns=["date", "BTC"]
+        )
         try:
             dl.normalize_schema(df)
         except BABDataError:
@@ -312,10 +375,8 @@ class TestNormalizeSchemaPaths:
 
     def test_junk_column_dropped_before_coercion(self):
         df = pd.DataFrame({"date": ["2020-01-01", "2020-01-02"], "garbage": ["abc", "def"]})
-        try:
+        with contextlib.suppress(BABDataError, ValueError):
             dl.normalize_schema(df)
-        except (BABDataError, ValueError):
-            pass
 
 
 class TestConvenienceWrappers:
@@ -330,6 +391,8 @@ class TestConvenienceWrappers:
         assert out["BTC"].dtype == np.float64
 
     def test_validate_prices_with_positive(self):
-        df = pd.DataFrame({"BTC": [100.0, 101.0]}, index=pd.DatetimeIndex(["2020-01-01", "2020-01-02"]))
+        df = pd.DataFrame(
+            {"BTC": [100.0, 101.0]}, index=pd.DatetimeIndex(["2020-01-01", "2020-01-02"])
+        )
         out = dl.validate_prices(df)
         assert out is not None

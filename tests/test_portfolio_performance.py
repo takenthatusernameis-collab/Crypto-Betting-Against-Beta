@@ -13,10 +13,10 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from strategies.betting_against_beta.portfolio import construct_portfolio
 from strategies.betting_against_beta.beta import calculate_rolling_beta
-from strategies.betting_against_beta.signals import generate_bab_signals
 from strategies.betting_against_beta.data import generate_synthetic_returns
+from strategies.betting_against_beta.portfolio import construct_portfolio
+from strategies.betting_against_beta.signals import generate_bab_signals
 
 
 def _time_it(func, *args, **kwargs):
@@ -39,10 +39,7 @@ def _reference_construct(signals_df, dollar_neutral=True):
         for c in cols:
             v = row[c]
             try:
-                if v is None or (isinstance(v, float) and np.isnan(v)):
-                    iv = 0
-                else:
-                    iv = int(float(v))
+                iv = 0 if v is None or (isinstance(v, float) and np.isnan(v)) else int(float(v))
             except Exception:
                 iv = 0
             if iv == 1:
@@ -82,9 +79,7 @@ class TestConstructPortfolioPerformance:
 
     @pytest.fixture(scope="class")
     def signals(self):
-        returns = generate_synthetic_returns(
-            n_days=self.N_DAYS, n_assets=self.N_ASSETS, seed=1234
-        )
+        returns = generate_synthetic_returns(n_days=self.N_DAYS, n_assets=self.N_ASSETS, seed=1234)
         beta = calculate_rolling_beta(returns, "BTC", window=90, min_obs=60)
         return generate_bab_signals(beta, long_quantile=0.3, short_quantile=0.3)
 
@@ -101,8 +96,7 @@ class TestConstructPortfolioPerformance:
     def test_large_universe_completes_in_reasonable_time(self, signals):
         _, elapsed = _time_it(construct_portfolio, signals, dollar_neutral=True)
         assert elapsed < 30.0, (
-            f"construct_portfolio took {elapsed:.2f}s for "
-            f"{signals.shape}; performance regression"
+            f"construct_portfolio took {elapsed:.2f}s for {signals.shape}; performance regression"
         )
 
     def test_portfolio_stage_perf_ceiling(self):

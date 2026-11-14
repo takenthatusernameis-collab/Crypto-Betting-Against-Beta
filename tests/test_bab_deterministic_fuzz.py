@@ -7,13 +7,11 @@ data_loader, and backtest with randomized degenerate inputs.
 from __future__ import annotations
 
 import io
+
 import numpy as np
 import pandas as pd
 
-from strategies.betting_against_beta import BABConfig, BABStrategy
-from strategies.betting_against_beta import data_loader
-from strategies.betting_against_beta import portfolio
-from strategies.betting_against_beta import signals
+from strategies.betting_against_beta import BABConfig, BABStrategy, data_loader, portfolio, signals
 
 
 class TestDeterministicFuzzCore:
@@ -90,7 +88,9 @@ class TestDeterministicFuzzCore:
             dates = []
             base = pd.Timestamp("2021-01-01")
             for i in range(n):
-                d = base + pd.Timedelta(days=int(i + rng.integers(0, 3)))  # gaps/non-monotonic possible
+                d = base + pd.Timedelta(
+                    days=int(i + rng.integers(0, 3))
+                )  # gaps/non-monotonic possible
                 dates.append(d)
             cols = ["BTC", "ETH", "SOL"]
             rows = []
@@ -107,9 +107,13 @@ class TestDeterministicFuzzCore:
                     elif r < 0.2:
                         row[c] = None
                     elif r < 0.25:
-                        row[c] = f"{rng.normal()*100:.3f}%"
+                        row[c] = f"{rng.normal() * 100:.3f}%"
                     elif r < 0.3:
-                        row[c] = f"{rng.normal()*1000:.2f},000" if rng.random() < 0.3 else f"{rng.normal()*100:.2f}"
+                        row[c] = (
+                            f"{rng.normal() * 1000:.2f},000"
+                            if rng.random() < 0.3
+                            else f"{rng.normal() * 100:.2f}"
+                        )
                     elif r < 0.32:
                         row[c] = np.nan
                     else:
@@ -132,7 +136,9 @@ class TestDeterministicFuzzCore:
                 continue
             assert isinstance(res, pd.DataFrame)
             if not res.empty:
-                assert np.isfinite(res.values).all() or True  # after coercion; core should be finite where valid
+                assert (
+                    np.isfinite(res.values).all() or True
+                )  # after coercion; core should be finite where valid
 
     def test_fuzz_backtest_extremes(self):
         rng = np.random.default_rng(246813579)

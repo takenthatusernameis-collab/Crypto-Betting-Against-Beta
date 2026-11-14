@@ -27,8 +27,8 @@ from strategies.betting_against_beta.execution import (
     OrderBatch,
     OrderIntent,
     PaperAdapter,
-    order_batches_from_weights,
     execution_payload_to_json,
+    order_batches_from_weights,
 )
 from strategies.betting_against_beta.reconciliation import (
     ReconciliationResult,
@@ -83,9 +83,7 @@ def test_paper_adapter_full_fill_deterministic():
     """PaperAdapter fills every intent in full; two runs identical."""
     adapter = PaperAdapter()
     idx = pd.date_range("2023-01-01", periods=3)
-    w = pd.DataFrame(
-        {"A": [0.5, -0.3, 0.1], "B": [-0.5, 0.3, -0.1]}, index=idx
-    )
+    w = pd.DataFrame({"A": [0.5, -0.3, 0.1], "B": [-0.5, 0.3, -0.1]}, index=idx)
     batches = order_batches_from_weights(w)
     fills1 = []
     for b in batches:
@@ -155,9 +153,7 @@ def test_mock_adapter_fallback_full_fill():
 def test_order_batches_from_weights_deterministic_sorted():
     """order_batches_from_weights is deterministic and column-sorted."""
     idx = pd.date_range("2023-01-01", periods=4)
-    w = pd.DataFrame(
-        {"Z": [0.5, 0.0, -0.3, 0.0], "A": [-0.5, 0.0, 0.3, 0.0]}, index=idx
-    )
+    w = pd.DataFrame({"Z": [0.5, 0.0, -0.3, 0.0], "A": [-0.5, 0.0, 0.3, 0.0]}, index=idx)
     b1 = order_batches_from_weights(w)
     b2 = order_batches_from_weights(w)
     assert b1 == b2
@@ -340,9 +336,7 @@ def test_reconcile_fills_to_backtest_with_fills_surfaces_mismatch():
             "slippage": 0.005,
         },
     ]
-    rf = reconcile_fills_to_backtest(
-        res.weights, res.returns, res.backtest, fills=fills
-    )
+    rf = reconcile_fills_to_backtest(res.weights, res.returns, res.backtest, fills=fills)
     assert rf.aggregate["n_mismatches"] > 0
     assert rf.aggregate["max_delta_abs"] > 0.0
 
@@ -365,9 +359,7 @@ def test_reconcile_fills_deterministic_checksum():
             "slippage": 0.005,
         },
     ]
-    rf3 = reconcile_fills_to_backtest(
-        res.weights, res.returns, res.backtest, fills=fills
-    )
+    rf3 = reconcile_fills_to_backtest(res.weights, res.returns, res.backtest, fills=fills)
     assert rf3.checksum != rf1.checksum
 
 
@@ -385,9 +377,7 @@ def test_reconcile_fills_json_safe():
 
 def test_reconcile_fills_empty_weights():
     """Empty weights => zero periods."""
-    rf = reconcile_fills_to_backtest(
-        pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), fills=None
-    )
+    rf = reconcile_fills_to_backtest(pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), fills=None)
     assert rf.n_periods == 0
     assert rf.per_period == []
 
@@ -405,16 +395,23 @@ def test_e2e_paper_adapter_then_reconcile():
 
     # R5-B: modeled vs executed
     rc = reconcile_costs(
-        res.weights, model=None, executed_fills=fills,
-        transaction_costs=0.0, slippage=0.0,
+        res.weights,
+        model=None,
+        executed_fills=fills,
+        transaction_costs=0.0,
+        slippage=0.0,
     )
     assert rc.aggregate["n_periods"] > 0
     json.dumps(rc.to_dict(), allow_nan=False)
 
     # R5-C: fill backtest vs model
     rf = reconcile_fills_to_backtest(
-        res.weights, res.returns, res.backtest, fills=fills,
-        transaction_costs=0.0, slippage=0.0,
+        res.weights,
+        res.returns,
+        res.backtest,
+        fills=fills,
+        transaction_costs=0.0,
+        slippage=0.0,
     )
     assert rf.n_periods > 0
     json.dumps(rf.to_dict(), allow_nan=False)
@@ -433,6 +430,7 @@ def test_reconciliation_result_is_dataclass_with_checksum():
 
 def test_mock_adapter_fill_fn_callable():
     """MockAdapter supports a fill_fn callable for dynamic fills."""
+
     def fill_fn(intent):
         return {
             "date": intent.date,

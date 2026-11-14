@@ -110,7 +110,14 @@ class TestVolHysteresis:
 
 
 class TestRegimeScales:
-    @pytest.mark.parametrize("kw", [dict(regime_scale_high="x"), dict(regime_scale_low=0.0), dict(regime_scale_high=float("nan"))])
+    @pytest.mark.parametrize(
+        "kw",
+        [
+            dict(regime_scale_high="x"),
+            dict(regime_scale_low=0.0),
+            dict(regime_scale_high=float("nan")),
+        ],
+    )
     def test_invalid_regime_scales_raise(self, kw):
         with pytest.raises(BABConfigError):
             BABConfig(**kw)

@@ -148,7 +148,8 @@ def reconcile_costs(
 ) -> ReconciliationResult:
     """Compare modeled costs vs executed fills.
 
-    Modeled cost per period = compute_transaction_costs(weights, weights_prev, prices, model, adv_usd)
+    Modeled cost per period = compute_transaction_costs(weights, weights_prev, prices, model,
+    adv_usd)
     Executed cost per period = sum over fills on that date of fill cost.
 
     Deltas = executed - modeled per period. Aggregate = totals, mean, max abs,
@@ -156,8 +157,11 @@ def reconcile_costs(
     """
     if model is None:
         model = TransactionCostModel(
-            linear_fee=0.0, bid_ask_bps=0.0, impact_coefficient=0.0,
-            borrow_bps_per_year=0.0, fixed_fee_per_trade=0.0,
+            linear_fee=0.0,
+            bid_ask_bps=0.0,
+            impact_coefficient=0.0,
+            borrow_bps_per_year=0.0,
+            fixed_fee_per_trade=0.0,
         )
 
     empty_agg = {
@@ -318,13 +322,9 @@ def reconcile_fills_to_backtest(
             )
             if asset:
                 filled_by_date.setdefault(date, {})
-                filled_by_date[date][asset] = (
-                    filled_by_date[date].get(asset, 0.0) + filled_w
-                )
+                filled_by_date[date][asset] = filled_by_date[date].get(asset, 0.0) + filled_w
                 ordered_by_date.setdefault(date, {})
-                ordered_by_date[date][asset] = (
-                    ordered_by_date[date].get(asset, 0.0) + ordered_w
-                )
+                ordered_by_date[date][asset] = ordered_by_date[date].get(asset, 0.0) + ordered_w
 
     # Model backtest equity.
     model_cumulative = None
@@ -393,7 +393,9 @@ def reconcile_fills_to_backtest(
     deltas_arr = np.array(deltas, dtype=float)
     aggregate = {
         "n_periods": n,
-        "model_final_equity": float(model_cumulative.iloc[-1]) if model_cumulative is not None else 1.0,
+        "model_final_equity": float(model_cumulative.iloc[-1])
+        if model_cumulative is not None
+        else 1.0,
         "realized_final_equity": float(equity_value),
         "delta_final": float(deltas_arr[-1]) if len(deltas_arr) else 0.0,
         "max_delta_abs": float(np.max(np.abs(deltas_arr))) if len(deltas_arr) else 0.0,

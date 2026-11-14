@@ -10,6 +10,7 @@ Probed 2026-11-10T02:04Z @ HEAD 27574e0:
 
 Locks these invariants with non-duplicative, evidence-backed regressions.
 """
+
 from __future__ import annotations
 
 import json

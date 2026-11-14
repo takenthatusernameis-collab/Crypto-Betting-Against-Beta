@@ -51,26 +51,16 @@ class TestRollingBetaNumpyCache:
 
     @pytest.fixture(scope="class")
     def big_df(self):
-        return generate_synthetic_returns(
-            n_days=self.N_DAYS, n_assets=self.N_ASSETS, seed=1234
-        )
+        return generate_synthetic_returns(n_days=self.N_DAYS, n_assets=self.N_ASSETS, seed=1234)
 
     def test_values_identical_to_oracle(self, big_df):
-        got = calculate_rolling_beta(
-            big_df, "BTC", window=self.WINDOW, min_obs=self.MIN_OBS
-        )
-        expected = _reference_rolling_beta(
-            big_df, "BTC", window=self.WINDOW, min_obs=self.MIN_OBS
-        )
-        pd.testing.assert_frame_equal(
-            got, expected, check_exact=False, rtol=1e-9, atol=1e-12
-        )
+        got = calculate_rolling_beta(big_df, "BTC", window=self.WINDOW, min_obs=self.MIN_OBS)
+        expected = _reference_rolling_beta(big_df, "BTC", window=self.WINDOW, min_obs=self.MIN_OBS)
+        pd.testing.assert_frame_equal(got, expected, check_exact=False, rtol=1e-9, atol=1e-12)
 
     def test_fast_enough_with_numpy_cache(self, big_df):
         start = time.perf_counter()
-        calculate_rolling_beta(
-            big_df, "BTC", window=self.WINDOW, min_obs=self.MIN_OBS
-        )
+        calculate_rolling_beta(big_df, "BTC", window=self.WINDOW, min_obs=self.MIN_OBS)
         elapsed = time.perf_counter() - start
         assert elapsed < 15.0, (
             f"calculate_rolling_beta took {elapsed:.2f}s for "

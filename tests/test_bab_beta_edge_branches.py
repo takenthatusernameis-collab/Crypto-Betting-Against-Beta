@@ -29,8 +29,9 @@ class TestRollingBetaEmptyInput:
         # metrics.strategy_beta which all return NaN for a zero-variance
         # benchmark.  A synthetic 0.0 would be treated as a real (low) beta by
         # the ranking and silently corrupt the long/short selection.
-        res = beta.rolling_beta([0.01, 0.02, 0.03, 0.04], [0.01, 0.01, 0.01, 0.01],
-                                window=4, min_obs=1)
+        res = beta.rolling_beta(
+            [0.01, 0.02, 0.03, 0.04], [0.01, 0.01, 0.01, 0.01], window=4, min_obs=1
+        )
         assert np.all(np.isnan(res))
 
 

@@ -17,7 +17,9 @@ def test_promote_datetime_column_with_epoch_strings():
 
 
 def test_promote_datetime_column_with_z_strings():
-    df = pd.DataFrame({"date": ["2023-01-01T00:00:00Z", "2023-01-02T00:00:00Z"], "BTC": [0.01, 0.02]})
+    df = pd.DataFrame(
+        {"date": ["2023-01-01T00:00:00Z", "2023-01-02T00:00:00Z"], "BTC": [0.01, 0.02]}
+    )
     try:
         res = data_loader._promote_datetime_column(df)
         assert isinstance(res, pd.DataFrame)

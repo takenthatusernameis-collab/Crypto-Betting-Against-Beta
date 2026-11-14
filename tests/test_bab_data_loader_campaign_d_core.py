@@ -1,5 +1,6 @@
-import os
+import contextlib
 import json
+import os
 import pickle
 
 import numpy as np
@@ -21,10 +22,8 @@ def test_normalize_index_numeric_variants():
     out3 = dl._normalize_index(df3)
     assert isinstance(out3.index, pd.DatetimeIndex)
     df4 = pd.DataFrame({"ret": []})
-    try:
+    with contextlib.suppress(Exception):
         dl._normalize_index(df4)
-    except Exception:
-        pass
     df5 = pd.DataFrame({"ret": [0.01, -0.01]}, index=[pd.Timestamp("2020-01-01"), 1600000000])
     out5 = dl._normalize_index(df5)
     assert isinstance(out5.index, pd.DatetimeIndex)
@@ -36,9 +35,9 @@ def test_coerce_to_datetime_scalar_branches():
     with pytest.raises(Exception):
         dl._coerce_to_datetime_scalar(np.nan)
     with pytest.raises(Exception):
-        dl._coerce_to_datetime_scalar(float('inf'))
+        dl._coerce_to_datetime_scalar(float("inf"))
     with pytest.raises(Exception):
-        dl._coerce_to_datetime_scalar(float('-inf'))
+        dl._coerce_to_datetime_scalar(float("-inf"))
     with pytest.raises(Exception):
         dl._coerce_to_datetime_scalar(pd.NaT)
     assert not pd.isna(dl._coerce_to_datetime_scalar(1600000000))
@@ -55,10 +54,12 @@ def test_coerce_to_datetime_scalar_branches():
 
 
 def test_promote_datetime_and_detect_exchange_format():
-    df = pd.DataFrame({"open_time": [1600000000000, 1600000060000], "close": [1,2], "open": [1,2]})
+    df = pd.DataFrame(
+        {"open_time": [1600000000000, 1600000060000], "close": [1, 2], "open": [1, 2]}
+    )
     out = dl._promote_datetime_column(df)
     assert isinstance(out.index, pd.DatetimeIndex)
-    df2 = pd.DataFrame({"date": ["2020-01-01", "2020-01-02"], "price": [1,2]})
+    df2 = pd.DataFrame({"date": ["2020-01-01", "2020-01-02"], "price": [1, 2]})
     out2 = dl._promote_datetime_column(df2.copy())
     assert isinstance(out2.index, pd.DatetimeIndex)
     df3 = pd.DataFrame({"0": [1600000000], "value": [5]})
@@ -67,7 +68,9 @@ def test_promote_datetime_and_detect_exchange_format():
 
 
 def test_normalize_columns_and_coercion():
-    df = pd.DataFrame({"Price": ["$1,000.50", "€2.000,00"], "Ret%": ["10%", "-5%"], "val": ["N/A", "123"]})
+    df = pd.DataFrame(
+        {"Price": ["$1,000.50", "€2.000,00"], "Ret%": ["10%", "-5%"], "val": ["N/A", "123"]}
+    )
     out = dl._normalize_columns(df)
     assert isinstance(out, pd.DataFrame)
     s = dl._coerce_numeric(pd.DataFrame({"a": ["1,234.56", "$100", "50%"]}))
@@ -80,7 +83,9 @@ def test_series_is_parseable():
 
 
 def test_loaders_various_formats(tmp_path):
-    df = pd.DataFrame({"date": pd.date_range("2020-01-01", periods=5), "ret": [0.01,-0.01,0.0,0.02,-0.005]})
+    df = pd.DataFrame(
+        {"date": pd.date_range("2020-01-01", periods=5), "ret": [0.01, -0.01, 0.0, 0.02, -0.005]}
+    )
     p = tmp_path / "r.csv"
     df.to_csv(p)
     out = dl.load_returns(p)
@@ -100,7 +105,7 @@ def test_loaders_various_formats(tmp_path):
         pickle.dump(df, f)
     outp = dl.load_returns(pp)
     assert isinstance(outp, pd.DataFrame)
-    dp = pd.DataFrame({"date": pd.date_range("2020-01-01", periods=3), "price": [10,11,12]})
+    dp = pd.DataFrame({"date": pd.date_range("2020-01-01", periods=3), "price": [10, 11, 12]})
     pp2 = tmp_path / "p.csv"
     dp.to_csv(pp2)
     outpr = dl.load_prices(pp2)
@@ -112,6 +117,6 @@ def test_detect_and_validate_errors():
         dl.load_returns("/no/such/file.csv")
     with pytest.raises(BABDataError):
         dl.load_returns("bad.txt")
-    bad = pd.DataFrame({"x": [1,2,3]})
+    bad = pd.DataFrame({"x": [1, 2, 3]})
     with pytest.raises(BABDataError):
         dl.validate_returns_dataframe(bad)

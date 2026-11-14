@@ -51,7 +51,9 @@ class TestNormalizeIndexNonNumeric:
         assert isinstance(out.index, pd.DatetimeIndex)
 
     def test_index_already_datetime_no_tz(self):
-        df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=pd.DatetimeIndex(["2020-01-01", "2020-01-02"]))
+        df = pd.DataFrame(
+            {"BTC": [0.01, 0.02]}, index=pd.DatetimeIndex(["2020-01-01", "2020-01-02"])
+        )
         out = dl._normalize_index(df)
         assert isinstance(out.index, pd.DatetimeIndex)
         assert len(out) == 2
@@ -85,9 +87,9 @@ class TestCoerceToDatetimeScalarAllBranches:
 
     def test_epoch_strings_all_magnitudes(self):
         assert not pd.isna(dl._coerce_to_datetime_scalar("1700000000000000000"))  # ns
-        assert not pd.isna(dl._coerce_to_datetime_scalar("1700000000000000"))    # us
-        assert not pd.isna(dl._coerce_to_datetime_scalar("1700000000000"))        # ms
-        assert not pd.isna(dl._coerce_to_datetime_scalar("1700000000"))           # s
+        assert not pd.isna(dl._coerce_to_datetime_scalar("1700000000000000"))  # us
+        assert not pd.isna(dl._coerce_to_datetime_scalar("1700000000000"))  # ms
+        assert not pd.isna(dl._coerce_to_datetime_scalar("1700000000"))  # s
 
     def test_normal_string_formats(self):
         assert not pd.isna(dl._coerce_to_datetime_scalar("2020-01-01T00:00:00Z"))
@@ -123,25 +125,29 @@ class TestCoerceToDatetimeScalarAllBranches:
 
 class TestDetectAndNormalizeExchangeFormat:
     def test_long_format_symbol_date_price_pivot(self):
-        df = pd.DataFrame({
-            "symbol": ["BTC", "BTC", "ETH", "ETH"],
-            "timestamp": [1600000000000, 1600000060000, 1600000000000, 1600000060000],
-            "close": [100.0, 101.0, 200.0, 201.0],
-        })
+        df = pd.DataFrame(
+            {
+                "symbol": ["BTC", "BTC", "ETH", "ETH"],
+                "timestamp": [1600000000000, 1600000060000, 1600000000000, 1600000060000],
+                "close": [100.0, 101.0, 200.0, 201.0],
+            }
+        )
         out = dl._detect_and_normalize_exchange_format(df)
         assert isinstance(out.index, pd.DatetimeIndex)
         assert "BTC" in out.columns
         assert "ETH" in out.columns
 
     def test_ohlcv_wide_single_asset(self):
-        df = pd.DataFrame({
-            "open time": [1600000000000, 1600000060000],
-            "open": [100.0, 101.0],
-            "high": [102.0, 103.0],
-            "low": [99.0, 100.0],
-            "close": [101.0, 102.0],
-            "volume": [10.0, 11.0],
-        })
+        df = pd.DataFrame(
+            {
+                "open time": [1600000000000, 1600000060000],
+                "open": [100.0, 101.0],
+                "high": [102.0, 103.0],
+                "low": [99.0, 100.0],
+                "close": [101.0, 102.0],
+                "volume": [10.0, 11.0],
+            }
+        )
         out = dl._detect_and_normalize_exchange_format(df)
         assert isinstance(out.index, pd.DatetimeIndex)
         assert "Close" in out.columns
@@ -180,13 +186,17 @@ class TestPromoteDatetimeColumn:
         assert isinstance(out.index, pd.DatetimeIndex)
 
     def test_already_datetimeindex_passthrough(self):
-        df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=pd.DatetimeIndex(["2020-01-01", "2020-01-02"]))
+        df = pd.DataFrame(
+            {"BTC": [0.01, 0.02]}, index=pd.DatetimeIndex(["2020-01-01", "2020-01-02"])
+        )
         out = dl._promote_datetime_column(df)
         assert isinstance(out.index, pd.DatetimeIndex)
         assert len(out) == 2
 
     def test_last_resort_object_column_parses(self):
-        df = pd.DataFrame({"dt": ["2020-01-01", "2020-01-02"], "BTC": [0.01, 0.02], "ETH": [0.03, 0.04]})
+        df = pd.DataFrame(
+            {"dt": ["2020-01-01", "2020-01-02"], "BTC": [0.01, 0.02], "ETH": [0.03, 0.04]}
+        )
         out = dl._promote_datetime_column(df)
         assert isinstance(out.index, pd.DatetimeIndex)
 
@@ -357,32 +367,45 @@ class TestRunDataQualityCampaign:
             dl._run_data_quality_campaign(pd.DataFrame())
 
     def test_duplicate_timestamps_raises(self):
-        df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=pd.DatetimeIndex(["2020-01-01", "2020-01-01"]))
+        df = pd.DataFrame(
+            {"BTC": [0.01, 0.02]}, index=pd.DatetimeIndex(["2020-01-01", "2020-01-01"])
+        )
         with pytest.raises(BABDataError):
             dl._run_data_quality_campaign(df)
 
     def test_duplicate_timestamps_allowed(self):
-        df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=pd.DatetimeIndex(["2020-01-01", "2020-01-01"]))
+        df = pd.DataFrame(
+            {"BTC": [0.01, 0.02]}, index=pd.DatetimeIndex(["2020-01-01", "2020-01-01"])
+        )
         out = dl._run_data_quality_campaign(df, allow_duplicate_timestamps=True)
         assert len(out) == 1
 
     def test_implausible_return_raises(self):
-        df = pd.DataFrame({"BTC": [0.01, 999999.0]}, index=pd.DatetimeIndex(["2020-01-01", "2020-01-02"]))
+        df = pd.DataFrame(
+            {"BTC": [0.01, 999999.0]}, index=pd.DatetimeIndex(["2020-01-01", "2020-01-02"])
+        )
         with pytest.raises(BABDataError):
             dl._run_data_quality_campaign(df, max_return_abs=10.0)
 
     def test_data_gap_too_large_raises(self):
-        df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=pd.DatetimeIndex(["2020-01-01", "2020-01-10"]))
+        df = pd.DataFrame(
+            {"BTC": [0.01, 0.02]}, index=pd.DatetimeIndex(["2020-01-01", "2020-01-10"])
+        )
         with pytest.raises(BABDataError):
             dl._run_data_quality_campaign(df, max_gap_days=1.0)
 
     def test_stale_run_raises(self):
-        df = pd.DataFrame({"BTC": [0.01] * 60}, index=pd.date_range("2020-01-01", periods=60, freq="D"))
+        df = pd.DataFrame(
+            {"BTC": [0.01] * 60}, index=pd.date_range("2020-01-01", periods=60, freq="D")
+        )
         with pytest.raises(BABDataError):
             dl._run_data_quality_campaign(df, stale_run_threshold=50)
 
     def test_min_finite_fraction_raises(self):
-        df = pd.DataFrame({"BTC": [np.nan, np.nan, 0.01]}, index=pd.DatetimeIndex(["2020-01-01", "2020-01-02", "2020-01-03"]))
+        df = pd.DataFrame(
+            {"BTC": [np.nan, np.nan, 0.01]},
+            index=pd.DatetimeIndex(["2020-01-01", "2020-01-02", "2020-01-03"]),
+        )
         with pytest.raises(BABDataError):
             dl._run_data_quality_campaign(df, min_finite_fraction=0.5)
 
@@ -431,7 +454,10 @@ class TestValidateReturnsDataframeErrors:
             dl.validate_returns_dataframe(df, benchmark="BTC")
 
     def test_valid_returns_pass(self):
-        df = pd.DataFrame({"BTC": [0.01, -0.01], "ETH": [0.02, -0.02]}, index=pd.DatetimeIndex(["2020-01-01", "2020-01-02"]))
+        df = pd.DataFrame(
+            {"BTC": [0.01, -0.01], "ETH": [0.02, -0.02]},
+            index=pd.DatetimeIndex(["2020-01-01", "2020-01-02"]),
+        )
         out = dl.validate_returns_dataframe(df, benchmark="BTC")
         assert "ETH" in out.columns
 
@@ -501,9 +527,8 @@ class TestLoaders:
             dl.load_returns(None)
 
     def test_directory_path_raises(self):
-        with tempfile.TemporaryDirectory() as d:
-            with pytest.raises(BABDataError):
-                dl.load_returns(d)
+        with tempfile.TemporaryDirectory() as d, pytest.raises(BABDataError):
+            dl.load_returns(d)
 
     def test_load_prices_none_source_raises(self):
         with pytest.raises(BABDataError):
@@ -547,7 +572,10 @@ class TestPricesToReturnsAndLoadPrices:
             os.unlink(path)
 
     def test_load_prices_valid(self):
-        df = pd.DataFrame({"BTC": [100.0, 101.0, 102.0], "ETH": [200.0, 201.0, 202.0]}, index=pd.DatetimeIndex(["2020-01-01", "2020-01-02", "2020-01-03"]))
+        df = pd.DataFrame(
+            {"BTC": [100.0, 101.0, 102.0], "ETH": [200.0, 201.0, 202.0]},
+            index=pd.DatetimeIndex(["2020-01-01", "2020-01-02", "2020-01-03"]),
+        )
         out = dl.load_prices(df, benchmark="BTC")
         assert isinstance(out.index, pd.DatetimeIndex)
         assert "BTC" in out.columns
@@ -555,11 +583,15 @@ class TestPricesToReturnsAndLoadPrices:
 
 class TestDetectPriceOrReturns:
     def test_returns_detected(self):
-        df = pd.DataFrame({"BTC": [0.01, -0.01]}, index=pd.DatetimeIndex(["2020-01-01", "2020-01-02"]))
+        df = pd.DataFrame(
+            {"BTC": [0.01, -0.01]}, index=pd.DatetimeIndex(["2020-01-01", "2020-01-02"])
+        )
         assert dl.detect_price_or_returns(df) == "returns"
 
     def test_prices_detected(self):
-        df = pd.DataFrame({"BTC": [100.0, 101.0]}, index=pd.DatetimeIndex(["2020-01-01", "2020-01-02"]))
+        df = pd.DataFrame(
+            {"BTC": [100.0, 101.0]}, index=pd.DatetimeIndex(["2020-01-01", "2020-01-02"])
+        )
         assert dl.detect_price_or_returns(df) == "prices"
 
     def test_empty_unknown(self):
@@ -622,10 +654,14 @@ class TestConvenienceWrappers:
         assert dl.validate_prices(pd.DataFrame()) is None
 
     def test_validate_prices_no_positive_returns_none(self):
-        df = pd.DataFrame({"BTC": [-1.0, -2.0]}, index=pd.DatetimeIndex(["2020-01-01", "2020-01-02"]))
+        df = pd.DataFrame(
+            {"BTC": [-1.0, -2.0]}, index=pd.DatetimeIndex(["2020-01-01", "2020-01-02"])
+        )
         assert dl.validate_prices(df) is None
 
     def test_validate_prices_valid(self):
-        df = pd.DataFrame({"BTC": [100.0, 101.0]}, index=pd.DatetimeIndex(["2020-01-01", "2020-01-02"]))
+        df = pd.DataFrame(
+            {"BTC": [100.0, 101.0]}, index=pd.DatetimeIndex(["2020-01-01", "2020-01-02"])
+        )
         out = dl.validate_prices(df)
         assert out is not None

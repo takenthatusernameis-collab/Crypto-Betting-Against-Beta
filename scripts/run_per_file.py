@@ -5,6 +5,7 @@ Removes the full-suite-timeout sandbox excuse: instead of one giant run, every
 test_*.py under tests/ is executed in its own process and its pass/skip/fail
 count is recorded. A file is GREEN only when rc==0 and failures==0.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -17,8 +18,12 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", default=".")
     ap.add_argument("--ignore", action="append", default=[])
-    ap.add_argument("--filter", dest="filter", default=None,
-                    help="only run files whose basename contains this substring")
+    ap.add_argument(
+        "--filter",
+        dest="filter",
+        default=None,
+        help="only run files whose basename contains this substring",
+    )
     ap.add_argument("--timeout", type=int, default=600)
     args = ap.parse_args()
 

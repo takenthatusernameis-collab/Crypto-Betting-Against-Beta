@@ -43,7 +43,9 @@ class TestMaxDrawdown:
 class TestTurnover:
     def test_constant_weights_zero_turnover(self):
         idx = pd.date_range("2023-01-01", periods=5, freq="D")
-        weights = pd.DataFrame({"A": [0.5, 0.5, 0.5, 0.5, 0.5], "B": [-0.5, -0.5, -0.5, -0.5, -0.5]}, index=idx)
+        weights = pd.DataFrame(
+            {"A": [0.5, 0.5, 0.5, 0.5, 0.5], "B": [-0.5, -0.5, -0.5, -0.5, -0.5]}, index=idx
+        )
         t = metrics.turnover(weights)
         assert abs(t) < 1e-9
 
@@ -63,7 +65,13 @@ class TestSummary:
         returns = pd.Series(rng.normal(0.0005, 0.01, 200))
         bench = pd.Series(rng.normal(0.0003, 0.01, 200))
         idx = returns.index
-        weights = pd.DataFrame({"A": [0.3]*200, "B": [-0.3]*200}, index=idx)
+        weights = pd.DataFrame({"A": [0.3] * 200, "B": [-0.3] * 200}, index=idx)
         s = metrics.summary(returns, weights_df=weights, benchmark_returns=bench)
-        for k in ['sharpe_ratio', 'annualized_volatility', 'max_drawdown', 'turnover', 'strategy_beta']:
+        for k in [
+            "sharpe_ratio",
+            "annualized_volatility",
+            "max_drawdown",
+            "turnover",
+            "strategy_beta",
+        ]:
             assert k in s

@@ -23,9 +23,7 @@ from strategies.betting_against_beta.errors import BABDataError
 def _df(n=30):
     rng = np.random.default_rng(1)
     idx = pd.date_range("2023-01-01", periods=n)
-    return pd.DataFrame(
-        {"BTC": rng.normal(0, 0.01, n), "ETH": rng.normal(0, 0.015, n)}, index=idx
-    )
+    return pd.DataFrame({"BTC": rng.normal(0, 0.01, n), "ETH": rng.normal(0, 0.015, n)}, index=idx)
 
 
 def test_datasource_abstract_cannot_instantiate():

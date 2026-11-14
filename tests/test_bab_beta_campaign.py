@@ -14,17 +14,13 @@ def _df(n=60, seed=9):
     idx = pd.date_range("2023-01-01", periods=n, freq="D")
     rng = np.random.default_rng(seed)
     mkt = rng.normal(0, 0.01, n)
-    return pd.DataFrame(
-        {"BTC": mkt, "ETH": 0.7 * mkt + rng.normal(0, 0.005, n)}, index=idx
-    )
+    return pd.DataFrame({"BTC": mkt, "ETH": 0.7 * mkt + rng.normal(0, 0.005, n)}, index=idx)
 
 
 def test_estimate_betas_none_benchmark_guess_path():
     idx = pd.date_range("2023-01-01", periods=40, freq="D")
     rng = np.random.default_rng(1)
-    df = pd.DataFrame(
-        {"A": rng.normal(0, 0.01, 40), "B": rng.normal(0, 0.01, 40)}, index=idx
-    )
+    df = pd.DataFrame({"A": rng.normal(0, 0.01, 40), "B": rng.normal(0, 0.01, 40)}, index=idx)
     with pytest.raises(BABDataError):
         beta.estimate_betas(df, benchmark=None, window=20, min_obs=5)
 

@@ -17,7 +17,9 @@ from strategies.betting_against_beta.data_loader import (
 
 
 def _df_with_numeric_index(values):
-    return pd.DataFrame({"BTC": np.arange(len(values), dtype=float) * 0.01}, index=pd.Index(values, dtype="int64"))
+    return pd.DataFrame(
+        {"BTC": np.arange(len(values), dtype=float) * 0.01}, index=pd.Index(values, dtype="int64")
+    )
 
 
 def test_normalize_index_empty_numeric():
@@ -79,7 +81,9 @@ def test_normalize_index_tz_aware_converted_to_naive_utc():
 
 
 def test_normalize_index_duplicate_index_dedupes():
-    idx = pd.date_range("2023-01-01", periods=5, freq="D").append(pd.date_range("2023-01-01", periods=3, freq="D"))
+    idx = pd.date_range("2023-01-01", periods=5, freq="D").append(
+        pd.date_range("2023-01-01", periods=3, freq="D")
+    )
     df = pd.DataFrame({"BTC": np.arange(8, dtype=float) * 0.01}, index=idx)
     out = _normalize_index(df)
     assert not out.index.has_duplicates

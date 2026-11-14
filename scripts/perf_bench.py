@@ -4,6 +4,7 @@
 Measures wall time and allocation pressure for the pipeline stages so that
 optimizations can be justified with numbers rather than intuition.
 """
+
 from __future__ import annotations
 
 import gc
@@ -22,8 +23,20 @@ from strategies.betting_against_beta.signals import generate_bab_signals
 def _make_returns(n_days=720, n_assets=12, seed=7):
     rng = np.random.default_rng(seed)
     data = rng.normal(0.0005, 0.02, size=(n_days, n_assets))
-    cols = ["BTC", "ETH", "SOL", "BNB", "XRP", "ADA", "AVAX", "DOT",
-            "DOGE", "LINK", "MATIC", "ARB"][:n_assets]
+    cols = [
+        "BTC",
+        "ETH",
+        "SOL",
+        "BNB",
+        "XRP",
+        "ADA",
+        "AVAX",
+        "DOT",
+        "DOGE",
+        "LINK",
+        "MATIC",
+        "ARB",
+    ][:n_assets]
     idx = pd.bdate_range("2022-01-03", periods=n_days)
     return pd.DataFrame(data, index=idx, columns=cols)
 
@@ -46,10 +59,15 @@ def main():
     # Warm up once so lazy imports/compilation are excluded.
     calculate_rolling_beta(returns, "BTC", window=90, min_obs=60)
     generate_bab_signals(calculate_rolling_beta(returns, "BTC", window=90, min_obs=60))
-    construct_portfolio(generate_bab_signals(
-        calculate_rolling_beta(returns, "BTC", window=90, min_obs=60)))
-    run_backtest(returns, construct_portfolio(generate_bab_signals(
-        calculate_rolling_beta(returns, "BTC", window=90, min_obs=60))))
+    construct_portfolio(
+        generate_bab_signals(calculate_rolling_beta(returns, "BTC", window=90, min_obs=60))
+    )
+    run_backtest(
+        returns,
+        construct_portfolio(
+            generate_bab_signals(calculate_rolling_beta(returns, "BTC", window=90, min_obs=60))
+        ),
+    )
 
     def stage_beta():
         return calculate_rolling_beta(returns, "BTC", window=90, min_obs=60)
@@ -64,6 +82,7 @@ def main():
 
     # Allocation proxy: count live Python objects before/after a run.
     import tracemalloc
+
     tracemalloc.start()
     stage_full()
     _current, peak = tracemalloc.get_traced_memory()

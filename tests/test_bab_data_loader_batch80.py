@@ -1,5 +1,6 @@
-from strategies.betting_against_beta.data_loader import _normalize_asset_name, load_returns
 import pandas as pd
+
+from strategies.betting_against_beta.data_loader import _normalize_asset_name, load_returns
 
 
 def test_normalize_asset_name_all_unit_tokens_restores_original_953():

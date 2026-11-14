@@ -46,7 +46,13 @@ def test_tc_and_slippage_cost_aliases_apply_when_primary_zero():
     aliased = backtest_mod.run_backtest(
         returns, weights, transaction_costs=0.0, slippage=0.0, tc=0.001, slippage_cost=0.0005
     )
-    assert list(aliased.columns) == ["returns", "gross_return", "cost_drag", "slippage_drag", "cumulative"]
+    assert list(aliased.columns) == [
+        "returns",
+        "gross_return",
+        "cost_drag",
+        "slippage_drag",
+        "cumulative",
+    ]
     assert np.all(np.isfinite(aliased["cumulative"].to_numpy(dtype=float)))
     assert np.all(aliased["cost_drag"].to_numpy(dtype=float) >= 0)
     assert np.all(aliased["slippage_drag"].to_numpy(dtype=float) >= 0)
@@ -65,9 +71,12 @@ def test_primary_cost_args_take_precedence_over_zero_alias_semantics():
     # Production computes weight change as weights - shifted(fillna(0)), which counts
     # the initial position establishment (0 -> initial weights) as period-0 turnover.
     w_shifted_filled = weights.shift(1).fillna(0.0)
-    expected_cost = (weights.to_numpy(dtype=float) - w_shifted_filled.to_numpy(dtype=float))
+    expected_cost = weights.to_numpy(dtype=float) - w_shifted_filled.to_numpy(dtype=float)
     expected_cost = np.abs(expected_cost).sum(axis=1) * 0.002
-    expected_slip = np.abs(weights.to_numpy(dtype=float) - w_shifted_filled.to_numpy(dtype=float)).sum(axis=1) * 0.001
+    expected_slip = (
+        np.abs(weights.to_numpy(dtype=float) - w_shifted_filled.to_numpy(dtype=float)).sum(axis=1)
+        * 0.001
+    )
     assert np.allclose(res["cost_drag"].to_numpy(dtype=float), expected_cost, atol=1e-12)
     assert np.allclose(res["slippage_drag"].to_numpy(dtype=float), expected_slip, atol=1e-12)
     # Primary args must win: 0.5 alias values are ignored.
@@ -131,7 +140,13 @@ def test_finiteness_hardening_repairs_nonfinite_log_and_cumulative_paths(monkeyp
     assert state["log"] >= 1 and state["exp"] >= 1
     assert np.all(np.isfinite(res["cumulative"].to_numpy(dtype=float)))
     assert np.all(np.isfinite(res["returns"].to_numpy(dtype=float)))
-    assert list(res.columns) == ["returns", "gross_return", "cost_drag", "slippage_drag", "cumulative"]
+    assert list(res.columns) == [
+        "returns",
+        "gross_return",
+        "cost_drag",
+        "slippage_drag",
+        "cumulative",
+    ]
 
 
 def test_cumulative_fallback_sanitizes_nonfinite_cumprod(monkeypatch):
@@ -158,7 +173,11 @@ def test_cumulative_fallback_sanitizes_nonfinite_cumprod(monkeypatch):
     def series_factory(data=None, index=None, *args, **kwargs):
         obj = real_series(data=data, index=index, *args, **kwargs)
         # Only wrap the specific portfolio_returns_filled path (length matches index, float-ish data).
-        if index is not None and len(obj) == len(returns.index) and not isinstance(data, BadCumprodSeries):
+        if (
+            index is not None
+            and len(obj) == len(returns.index)
+            and not isinstance(data, BadCumprodSeries)
+        ):
             try:
                 vals = np.asarray(obj.to_numpy(dtype=float), dtype=float)
                 if vals.ndim == 1 and np.all(np.isfinite(vals) | True):
@@ -184,7 +203,7 @@ def test_final_sanitization_defensive_replace_fallback_wired(monkeypatch):
     def raising_replace(self, *args, **kwargs):
         # Only the final results frame (5-column portfolio result) should trip the
         # defensive except branch; all other replace calls pass through untouched.
-        if set(["returns", "gross_return", "cost_drag", "slippage_drag", "cumulative"]).issubset(
+        if {"returns", "gross_return", "cost_drag", "slippage_drag", "cumulative"}.issubset(
             getattr(self, "columns", [])
         ):
             triggered["n"] += 1
@@ -204,7 +223,13 @@ def test_final_sanitization_defensive_replace_fallback_wired(monkeypatch):
     # The defensive replace fallback must have been exercised.
     assert triggered["n"] >= 1
     assert isinstance(res, pd.DataFrame)
-    assert list(res.columns) == ["returns", "gross_return", "cost_drag", "slippage_drag", "cumulative"]
+    assert list(res.columns) == [
+        "returns",
+        "gross_return",
+        "cost_drag",
+        "slippage_drag",
+        "cumulative",
+    ]
     assert len(res) == len(returns.index)
 
 
@@ -306,4 +331,10 @@ def test_cumulative_fallback_ones_branch_when_inner_fallback_raises(monkeypatch)
     cum = res["cumulative"].to_numpy(dtype=float)
     assert np.all(cum == 1.0)
     assert np.all(np.isfinite(cum))
-    assert list(res.columns) == ["returns", "gross_return", "cost_drag", "slippage_drag", "cumulative"]
+    assert list(res.columns) == [
+        "returns",
+        "gross_return",
+        "cost_drag",
+        "slippage_drag",
+        "cumulative",
+    ]

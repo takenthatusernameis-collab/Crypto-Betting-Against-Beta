@@ -103,7 +103,9 @@ class TestBetaCoverageExtra:
             calculate_rolling_beta(df, "BTC")
 
     def test_calculate_rolling_beta_bad_asset_to_series_path(self):
-        df2 = pd.DataFrame({"BTC": [0.01, 0.02, 0.03, 0.04, 0.05], "ETH": [0.02, np.nan, 0.01, 0.03, np.nan]})
+        df2 = pd.DataFrame(
+            {"BTC": [0.01, 0.02, 0.03, 0.04, 0.05], "ETH": [0.02, np.nan, 0.01, 0.03, np.nan]}
+        )
         res = calculate_rolling_beta(df2, "BTC", window=3, min_obs=2)
         assert "ETH" in res.columns
 

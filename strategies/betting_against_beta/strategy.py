@@ -25,43 +25,43 @@ from .sizing import EqualWeightSizer, KellySizer, RiskParitySizer, VolatilityTar
 
 
 def _normalize_position_sizer(ps):
-        """Coerce a dict shorthand into a sizer instance, or return as-is.
+    """Coerce a dict shorthand into a sizer instance, or return as-is.
 
-        Recognized shorthands:
-          * ``{"type": "equal"}`` -> :class:`EqualWeightSizer`
-          * ``{"type": "kelly", ...}`` -> :class:`KellySizer`
-          * ``{"type": "vol_target", ...}`` -> :class:`VolatilityTargetSizer`
-          * ``{"type": "risk_parity", ...}`` -> :class:`RiskParitySizer`
+    Recognized shorthands:
+      * ``{"type": "equal"}`` -> :class:`EqualWeightSizer`
+      * ``{"type": "kelly", ...}`` -> :class:`KellySizer`
+      * ``{"type": "vol_target", ...}`` -> :class:`VolatilityTargetSizer`
+      * ``{"type": "risk_parity", ...}`` -> :class:`RiskParitySizer`
 
-        Any other dict raises ``BABDataError`` so misconfiguration surfaces loudly
-        instead of being silently ignored.
-        """
-        if not isinstance(ps, dict):
-            return ps
-        s = str(ps.get("type", "")).lower()
-        if s == "equal":
-            return EqualWeightSizer(max_leverage=float(ps.get("max_leverage", 1.0)))
-        if s in ("kelly", "kelly_fraction"):
-            return KellySizer(
-                lookback=int(ps.get("lookback", 60)),
-                max_leverage=float(ps.get("max_leverage", 1.0)),
-                fraction=float(ps.get("fraction", 1.0)),
-            )
-        if s in ("vol_target", "volatility_target", "voltarget"):
-            return VolatilityTargetSizer(
-                target_vol=float(ps.get("target_vol", 0.10)),
-                lookback=int(ps.get("lookback", 60)),
-                annualize=int(ps.get("annualize", 252)),
-                max_leverage=float(ps.get("max_leverage", 2.0)),
-            )
-        if s in ("risk_parity", "riskparity", "rp"):
-            return RiskParitySizer(
-                lookback=int(ps.get("lookback", 60)),
-                max_leverage=float(ps.get("max_leverage", 1.0)),
-                target_vol=ps.get("target_vol"),
-                annualize=int(ps.get("annualize", 252)),
-            )
-        raise BABDataError(f"position_sizer dict has unknown type: {s!r}")
+    Any other dict raises ``BABDataError`` so misconfiguration surfaces loudly
+    instead of being silently ignored.
+    """
+    if not isinstance(ps, dict):
+        return ps
+    s = str(ps.get("type", "")).lower()
+    if s == "equal":
+        return EqualWeightSizer(max_leverage=float(ps.get("max_leverage", 1.0)))
+    if s in ("kelly", "kelly_fraction"):
+        return KellySizer(
+            lookback=int(ps.get("lookback", 60)),
+            max_leverage=float(ps.get("max_leverage", 1.0)),
+            fraction=float(ps.get("fraction", 1.0)),
+        )
+    if s in ("vol_target", "volatility_target", "voltarget"):
+        return VolatilityTargetSizer(
+            target_vol=float(ps.get("target_vol", 0.10)),
+            lookback=int(ps.get("lookback", 60)),
+            annualize=int(ps.get("annualize", 252)),
+            max_leverage=float(ps.get("max_leverage", 2.0)),
+        )
+    if s in ("risk_parity", "riskparity", "rp"):
+        return RiskParitySizer(
+            lookback=int(ps.get("lookback", 60)),
+            max_leverage=float(ps.get("max_leverage", 1.0)),
+            target_vol=ps.get("target_vol"),
+            annualize=int(ps.get("annualize", 252)),
+        )
+    raise BABDataError(f"position_sizer dict has unknown type: {s!r}")
 
 
 def _rebalance_mask(index, freq: str) -> pd.Series:
@@ -158,25 +158,63 @@ class BABStrategy:
             # R5-A: execution_adapter is NOT a config field — it is popped
             # after BABConfig construction so unknown-field rejection never
             # triggers and it is stored on the strategy instance instead.
-            for k in ['universe', 'benchmark', 'beta_window', 'rebalance_freq', 'long_quantile',
-                      'short_quantile', 'dollar_neutral', 'min_observations', 'data_source',
-                      'min_rows', 'transaction_costs', 'slippage', 'max_turnover', 'max_position_size',
-                      'max_total_turnover', 'rolling_min_window', 'synthetic_seed', 'synthetic_n_days',
-                      'universe_override', 'position_sizer', 'shorting_constraints', 'regime_filter',
-                      'regime_method', 'vol_window', 'vol_use_ewma', 'vol_thresholds', 'vol_percentiles',
-                      'vol_hysteresis', 'trend_ma_window', 'trend_z_window', 'regime_scale_high',
-                      'regime_scale_low', 'beta_neutral', 'beta_neutral_enforcement', 'beta_target',
-                      'beta_tolerance', 'max_beta_drift', 'tracking_error_tolerance', 'tracking_error_limit',
-                      'enable_tracking_error_monitoring', 'beta_neutral_correction', 'beta_neutral_adjustment',
-                      # R3-A: realistic execution cost model plumbing
-                      'cost_model', 'prices', 'adv_usd', 'partial_fill', 'max_participation']:
+            for k in [
+                "universe",
+                "benchmark",
+                "beta_window",
+                "rebalance_freq",
+                "long_quantile",
+                "short_quantile",
+                "dollar_neutral",
+                "min_observations",
+                "data_source",
+                "min_rows",
+                "transaction_costs",
+                "slippage",
+                "max_turnover",
+                "max_position_size",
+                "max_total_turnover",
+                "rolling_min_window",
+                "synthetic_seed",
+                "synthetic_n_days",
+                "universe_override",
+                "position_sizer",
+                "shorting_constraints",
+                "regime_filter",
+                "regime_method",
+                "vol_window",
+                "vol_use_ewma",
+                "vol_thresholds",
+                "vol_percentiles",
+                "vol_hysteresis",
+                "trend_ma_window",
+                "trend_z_window",
+                "regime_scale_high",
+                "regime_scale_low",
+                "beta_neutral",
+                "beta_neutral_enforcement",
+                "beta_target",
+                "beta_tolerance",
+                "max_beta_drift",
+                "tracking_error_tolerance",
+                "tracking_error_limit",
+                "enable_tracking_error_monitoring",
+                "beta_neutral_correction",
+                "beta_neutral_adjustment",
+                # R3-A: realistic execution cost model plumbing
+                "cost_model",
+                "prices",
+                "adv_usd",
+                "partial_fill",
+                "max_participation",
+            ]:
                 if k in kwargs:
                     cfg_kwargs[k] = kwargs[k]
             # aliases
-            if 'window' in kwargs and 'beta_window' not in cfg_kwargs:
-                cfg_kwargs['beta_window'] = kwargs['window']
-            if 'min_obs' in kwargs and 'min_observations' not in cfg_kwargs:
-                cfg_kwargs['min_observations'] = kwargs['min_obs']
+            if "window" in kwargs and "beta_window" not in cfg_kwargs:
+                cfg_kwargs["beta_window"] = kwargs["window"]
+            if "min_obs" in kwargs and "min_observations" not in cfg_kwargs:
+                cfg_kwargs["min_observations"] = kwargs["min_obs"]
             config = BABConfig(**cfg_kwargs)
         self.config = config or BABConfig()
         # R5-A: execution adapter (None => default path, byte-identical).
@@ -188,7 +226,6 @@ class BABStrategy:
         # Cached result of the last ``run()``; powers the report()/tear_sheet()
         # accessors without requiring callers to re-run the pipeline.
         self._last_result: object | None = None
-
 
     def _load_returns(self, returns_df: object | None) -> pd.DataFrame:
         """Resolve the returns DataFrame, validating it for the pipeline."""
@@ -246,8 +283,7 @@ class BABStrategy:
                 raise BABDataError(f"cost_model dict is invalid: {e}") from e
         if not isinstance(cm, _TCM):
             raise BABDataError(
-                f"cost_model must be a TransactionCostModel, dict, or None, "
-                f"got {type(cm).__name__}"
+                f"cost_model must be a TransactionCostModel, dict, or None, got {type(cm).__name__}"
             )
 
         prices = getattr(cfg, "prices", None)
@@ -313,11 +349,10 @@ class BABStrategy:
                 returns,
                 cfg.benchmark,
                 window=cfg.beta_window,
-                min_obs=min(getattr(cfg, 'min_observations', cfg.beta_window), cfg.beta_window),
+                min_obs=min(getattr(cfg, "min_observations", cfg.beta_window), cfg.beta_window),
             )
         except Exception as e:
             raise BABDataError(f"beta calculation failed: {e}") from e
-
 
         try:
             signals = generate_bab_signals(
@@ -339,8 +374,12 @@ class BABStrategy:
             raise BABDataError(f"rebalance application failed: {e}") from e
 
         try:
-            _max_turnover = getattr(cfg, "max_turnover", None) or getattr(cfg, "max_total_turnover", None)
-            _enforce_risk = bool(getattr(cfg, "enforce_risk_checks", False) or getattr(cfg, "risk_checks", False))
+            _max_turnover = getattr(cfg, "max_turnover", None) or getattr(
+                cfg, "max_total_turnover", None
+            )
+            _enforce_risk = bool(
+                getattr(cfg, "enforce_risk_checks", False) or getattr(cfg, "risk_checks", False)
+            )
             weights = construct_portfolio(
                 signals,
                 dollar_neutral=cfg.dollar_neutral,
@@ -375,12 +414,16 @@ class BABStrategy:
             if ps is not None:
                 if isinstance(ps, dict):
                     ps = _normalize_position_sizer(ps)
-                if not isinstance(ps, (KellySizer, VolatilityTargetSizer, RiskParitySizer, EqualWeightSizer, str)):
+                if not isinstance(
+                    ps, (KellySizer, VolatilityTargetSizer, RiskParitySizer, EqualWeightSizer, str)
+                ):
                     raise BABDataError(
                         f"position_sizer must be a sizer or string shorthand, "
                         f"got {type(ps).__name__}"
                     )
-                weights = sizing.apply_position_sizing(signals, returns=returns, betas=betas, sizer=ps)
+                weights = sizing.apply_position_sizing(
+                    signals, returns=returns, betas=betas, sizer=ps
+                )
         except BABDataError:
             raise
         except (TypeError, ValueError, AttributeError) as e:
@@ -400,6 +443,7 @@ class BABStrategy:
                 )
             if regime_flag:
                 from . import regime as _regime
+
                 scale = _regime.regime_scale_scalar(returns, cfg)
                 if scale is not None and not scale.empty:
                     aligned = scale.reindex(index=weights.index).fillna(1.0)
@@ -415,11 +459,16 @@ class BABStrategy:
         )
         if beta_neutral_enabled:
             from . import portfolio as _portfolio
+
             target_beta = getattr(cfg, "beta_target", 0.0)
             tol = getattr(cfg, "beta_tolerance", getattr(cfg, "max_beta_drift", 1e-4))
             max_drift = getattr(cfg, "max_beta_drift", tol)
-            te_tol = getattr(cfg, "tracking_error_tolerance", None) or getattr(cfg, "tracking_error_limit", None)
-            enable_te = bool(getattr(cfg, "enable_tracking_error_monitoring", False)) or te_tol is not None
+            te_tol = getattr(cfg, "tracking_error_tolerance", None) or getattr(
+                cfg, "tracking_error_limit", None
+            )
+            enable_te = (
+                bool(getattr(cfg, "enable_tracking_error_monitoring", False)) or te_tol is not None
+            )
             correction = bool(getattr(cfg, "beta_neutral_correction", True))
             # Use betas up to t only (causal) - betas are already computed causally
             benchmark_ret = returns[cfg.benchmark] if cfg.benchmark in returns.columns else None
@@ -485,10 +534,16 @@ class BABStrategy:
         from .risk import apply_kill_switch
 
         cumulative = None
-        if isinstance(backtest, pd.DataFrame) and not backtest.empty and "cumulative" in backtest.columns:
+        if (
+            isinstance(backtest, pd.DataFrame)
+            and not backtest.empty
+            and "cumulative" in backtest.columns
+        ):
             cumulative = backtest["cumulative"]
 
-        kill_switch_event = KillSwitchEvent(triggered=False, date=None, observed_drawdown=0.0, limit=None)
+        kill_switch_event = KillSwitchEvent(
+            triggered=False, date=None, observed_drawdown=0.0, limit=None
+        )
         final_weights = weights
         final_backtest = backtest
 
@@ -519,8 +574,8 @@ class BABStrategy:
         execution_payload = None
         if self.execution_adapter is not None:
             from .execution import (
-                    configure_paper_adapter,
-                    order_batches_from_weights,
+                configure_paper_adapter,
+                order_batches_from_weights,
             )
 
             # R5-E: consume the shipped R3 cost-model knobs (prices/adv_usd,
@@ -618,7 +673,7 @@ class BABStrategy:
             returns,
             cfg.benchmark,
             window=cfg.beta_window,
-            min_obs=min(getattr(cfg, 'min_observations', cfg.beta_window), cfg.beta_window),
+            min_obs=min(getattr(cfg, "min_observations", cfg.beta_window), cfg.beta_window),
         )
 
         # Generate signals
@@ -633,8 +688,12 @@ class BABStrategy:
             signals = _apply_rebalance(signals, rebalance_freq)
 
         # Construct portfolio (weights)
-        _max_turnover = getattr(cfg, "max_turnover", None) or getattr(cfg, "max_total_turnover", None)
-        _enforce_risk = bool(getattr(cfg, "enforce_risk_checks", False) or getattr(cfg, "risk_checks", False))
+        _max_turnover = getattr(cfg, "max_turnover", None) or getattr(
+            cfg, "max_total_turnover", None
+        )
+        _enforce_risk = bool(
+            getattr(cfg, "enforce_risk_checks", False) or getattr(cfg, "risk_checks", False)
+        )
         weights = construct_portfolio(
             signals,
             dollar_neutral=cfg.dollar_neutral,
@@ -667,12 +726,16 @@ class BABStrategy:
             if ps is not None:
                 if isinstance(ps, dict):
                     ps = _normalize_position_sizer(ps)
-                if not isinstance(ps, (KellySizer, VolatilityTargetSizer, RiskParitySizer, EqualWeightSizer, str)):
+                if not isinstance(
+                    ps, (KellySizer, VolatilityTargetSizer, RiskParitySizer, EqualWeightSizer, str)
+                ):
                     raise BABDataError(
                         f"position_sizer must be a sizer or string shorthand, "
                         f"got {type(ps).__name__}"
                     )
-                weights = sizing.apply_position_sizing(signals, returns=returns, betas=betas, sizer=ps)
+                weights = sizing.apply_position_sizing(
+                    signals, returns=returns, betas=betas, sizer=ps
+                )
         except BABDataError:
             raise
         except (TypeError, ValueError, AttributeError) as e:
@@ -682,6 +745,7 @@ class BABStrategy:
         regime_flag = getattr(cfg, "regime_filter", False)
         if regime_flag:
             from . import regime as _regime
+
             scale = _regime.regime_scale_scalar(returns, cfg)
             if scale is not None and not scale.empty:
                 aligned = scale.reindex(index=weights.index).fillna(1.0)
@@ -693,11 +757,16 @@ class BABStrategy:
         )
         if beta_neutral_enabled:
             from . import portfolio as _portfolio
+
             target_beta = getattr(cfg, "beta_target", 0.0)
             tol = getattr(cfg, "beta_tolerance", getattr(cfg, "max_beta_drift", 1e-4))
             max_drift = getattr(cfg, "max_beta_drift", tol)
-            te_tol = getattr(cfg, "tracking_error_tolerance", None) or getattr(cfg, "tracking_error_limit", None)
-            enable_te = bool(getattr(cfg, "enable_tracking_error_monitoring", False)) or te_tol is not None
+            te_tol = getattr(cfg, "tracking_error_tolerance", None) or getattr(
+                cfg, "tracking_error_limit", None
+            )
+            enable_te = (
+                bool(getattr(cfg, "enable_tracking_error_monitoring", False)) or te_tol is not None
+            )
             correction = bool(getattr(cfg, "beta_neutral_correction", True))
             benchmark_ret = returns[cfg.benchmark] if cfg.benchmark in returns.columns else None
             weights = _portfolio.enforce_beta_neutrality(
@@ -747,7 +816,9 @@ class BABStrategy:
         avg_turnover = _safe_float(weight_changes.mean())
         max_turnover_est = _safe_float(weight_changes.max())
         # Estimated cost drag: avg_turnover * (transaction_costs + slippage)
-        cost_drag_estimate = avg_turnover * (_safe_float(cfg.transaction_costs) + _safe_float(getattr(cfg, "slippage", 0.0)))
+        cost_drag_estimate = avg_turnover * (
+            _safe_float(cfg.transaction_costs) + _safe_float(getattr(cfg, "slippage", 0.0))
+        )
 
         # Data-health
         n_rows = len(returns)
@@ -866,20 +937,29 @@ class BABStrategy:
         # Benchmark return series (optional; missing benchmark yields NaN beta).
         benchmark_returns = None
         bench = getattr(getattr(res, "config", None), "benchmark", None)
-        if bench is not None and isinstance(returns, pd.DataFrame) and not returns.empty and bench in returns.columns:
+        if (
+            bench is not None
+            and isinstance(returns, pd.DataFrame)
+            and not returns.empty
+            and bench in returns.columns
+        ):
             benchmark_returns = returns[bench]
 
         summary = metrics.summary(
             strat_returns if strat_returns is not None else pd.Series(dtype="float64"),
             weights_df=weights if isinstance(weights, pd.DataFrame) else None,
             benchmark_returns=benchmark_returns,
-            betas_df=getattr(res, "betas", None) if isinstance(getattr(res, "betas", None), pd.DataFrame) else None,
+            betas_df=getattr(res, "betas", None)
+            if isinstance(getattr(res, "betas", None), pd.DataFrame)
+            else None,
         )
         # Ensure every summary value is a finite scalar so downstream formatting
         # and JSON serialization never encounter NaN/inf tokens.
         sanitized_summary = {k: _safe_metric(v) for k, v in summary.items()}
 
-        attribution = trade_attribution(backtest if isinstance(backtest, pd.DataFrame) else pd.DataFrame())
+        attribution = trade_attribution(
+            backtest if isinstance(backtest, pd.DataFrame) else pd.DataFrame()
+        )
         totals = attribution_totals(attribution)
         sanitized_totals = {k: _safe_metric(v) for k, v in totals.items()}
 
@@ -953,13 +1033,18 @@ class BABStrategy:
         lines.append(f"Long/Short quantiles: {cfg['long_quantile']}/{cfg['short_quantile']}")
         lines.append(f"Rebalances: {rep['rebalances']}")
         lines.append("-" * 60)
-        lines.append(f"Final Cumulative: {_fmt(m['final_cumulative'], '.4f')}x ({_fmt(m['total_return'], '.2%')})")
+        lines.append(
+            f"Final Cumulative: {_fmt(m['final_cumulative'], '.4f')}x "
+            f"({_fmt(m['total_return'], '.2%')})"
+        )
         lines.append(f"Sharpe Ratio (ann.): {_fmt(m['sharpe_ratio'], '.4f')}")
         lines.append(f"Annualized Volatility: {_fmt(m['annualized_volatility'], '.2%')}")
         lines.append(f"Max Drawdown: {_fmt(m['max_drawdown'], '.2%')}")
         lines.append(f"Turnover (avg): {_fmt(m['turnover'], '.4f')}")
         lines.append(f"Strategy Beta vs {cfg['benchmark']}: {_fmt(m['strategy_beta'], '.4f')}")
-        lines.append(f"Portfolio Beta (gross-exp wt): {_fmt(m.get('portfolio_beta', float('nan')), '.4f')}")
+        lines.append(
+            f"Portfolio Beta (gross-exp wt): {_fmt(m.get('portfolio_beta', float('nan')), '.4f')}"
+        )
         lines.append(f"Observations: {int(m.get('n_observations', 0))}")
         lines.append("-" * 60)
         lines.append("Trade Attribution (cumulative):")
@@ -979,6 +1064,7 @@ class BABStrategy:
         NaN/inf tokens are coerced to 0.0 so the output is always valid JSON
         per RFC 8259 (strict parsers such as Go/Rust reject bare NaN/Infinity).
         """
+
         def _clean(obj):
             if isinstance(obj, dict):
                 return {str(k): _clean(v) for k, v in obj.items()}

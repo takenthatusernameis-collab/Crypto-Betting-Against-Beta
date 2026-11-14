@@ -21,7 +21,9 @@ def test_coerce_numeric_with_strings():
 
 
 def test_run_data_quality_campaign():
-    df = pd.DataFrame({"BTC": [0.01, 0.02, np.nan, 0.03]}, index=pd.date_range("2023-01-01", periods=4))
+    df = pd.DataFrame(
+        {"BTC": [0.01, 0.02, np.nan, 0.03]}, index=pd.date_range("2023-01-01", periods=4)
+    )
     try:
         res = data_loader._run_data_quality_campaign(df)
         assert isinstance(res, dict)

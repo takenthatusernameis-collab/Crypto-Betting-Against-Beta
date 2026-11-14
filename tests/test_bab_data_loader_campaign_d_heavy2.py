@@ -1,3 +1,4 @@
+import contextlib
 import json
 import os
 import pickle
@@ -67,10 +68,8 @@ class TestCoerceToDatetimeScalarMore:
 
     def test_coerce_scalar_na_strings(self):
         for s in ["", "NA", "N/A", "nan", "null", "None"]:
-            try:
+            with contextlib.suppress(Exception):
                 res = data_loader._coerce_to_datetime_scalar(s)
-            except Exception:
-                pass
 
     def test_coerce_scalar_timestamp_tz(self):
         try:
@@ -82,6 +81,7 @@ class TestCoerceToDatetimeScalarMore:
 
     def test_coerce_scalar_datetime(self):
         from datetime import datetime
+
         try:
             res = data_loader._coerce_to_datetime_scalar(datetime(2023, 1, 1))
             assert isinstance(res, pd.Timestamp)
@@ -91,40 +91,48 @@ class TestCoerceToDatetimeScalarMore:
 
 class TestDetectNormalizeExchangeFormats:
     def test_binance_klines_mixed(self):
-        df = pd.DataFrame({
-            "Open time": [1700000000000, 1700000060000],
-            "Open": [1, 2],
-            "High": [2, 3],
-            "Low": [0.5, 1.5],
-            "Close": [1.5, 2.5],
-            "Volume": [10, 20],
-            "Close time": [1700000059999, 1700000119999],
-        })
+        df = pd.DataFrame(
+            {
+                "Open time": [1700000000000, 1700000060000],
+                "Open": [1, 2],
+                "High": [2, 3],
+                "Low": [0.5, 1.5],
+                "Close": [1.5, 2.5],
+                "Volume": [10, 20],
+                "Close time": [1700000059999, 1700000119999],
+            }
+        )
         out = data_loader._detect_and_normalize_exchange_format(df)
         assert isinstance(out, pd.DataFrame)
 
     def test_coingecko_extended(self):
-        df = pd.DataFrame({
-            "date": ["2023-01-01", "2023-01-02"],
-            "price": [100.0, 101.0],
-            "market_caps": [1e9, 1.01e9],
-            "total_volumes": [1e7, 1.01e7],
-        })
+        df = pd.DataFrame(
+            {
+                "date": ["2023-01-01", "2023-01-02"],
+                "price": [100.0, 101.0],
+                "market_caps": [1e9, 1.01e9],
+                "total_volumes": [1e7, 1.01e7],
+            }
+        )
         out = data_loader._detect_and_normalize_exchange_format(df)
         assert isinstance(out, pd.DataFrame)
 
     def test_generic_time_col(self):
-        df = pd.DataFrame({
-            "datetime": ["2023-01-01", "2023-01-02"],
-            "close": [10, 11],
-        })
+        df = pd.DataFrame(
+            {
+                "datetime": ["2023-01-01", "2023-01-02"],
+                "close": [10, 11],
+            }
+        )
         out = data_loader._detect_and_normalize_exchange_format(df)
         assert isinstance(out, pd.DataFrame)
 
 
 class TestPromoteDatetimeMore:
     def test_promote_with_tz(self):
-        df = pd.DataFrame({"timestamp": pd.date_range("2023-01-01", periods=2, tz="UTC"), "close": [1, 2]})
+        df = pd.DataFrame(
+            {"timestamp": pd.date_range("2023-01-01", periods=2, tz="UTC"), "close": [1, 2]}
+        )
         out = data_loader._promote_datetime_column(df)
         assert isinstance(out, pd.DataFrame)
 
@@ -149,12 +157,14 @@ class TestCoerceNumericMore:
 
 class TestNormalizeColumnsMore:
     def test_normalize_various_names(self):
-        df = pd.DataFrame({
-            "Date": ["2023-01-01"],
-            "Symbol": ["BTC"],
-            "Adj Close": [100],
-            "Vol.": [1000],
-        })
+        df = pd.DataFrame(
+            {
+                "Date": ["2023-01-01"],
+                "Symbol": ["BTC"],
+                "Adj Close": [100],
+                "Vol.": [1000],
+            }
+        )
         out = data_loader._normalize_columns(df)
         assert isinstance(out, pd.DataFrame)
 
@@ -175,7 +185,7 @@ class TestLoadersMore:
 
     def test_load_returns_from_hdf5_key_variants(self, tmp_path):
         try:
-            import tables  # noqa
+            import tables
         except Exception:
             pytest.skip("tables not available")
         df = pd.DataFrame({"BTC": [0.01, -0.02]}, index=pd.date_range("2023-01-01", periods=2))
@@ -191,11 +201,13 @@ class TestLoadersMore:
             pass
 
     def test_load_returns_long_format(self, tmp_path):
-        df = pd.DataFrame({
-            "date": ["2023-01-01", "2023-01-01", "2023-01-02", "2023-01-02"],
-            "symbol": ["BTC", "ETH", "BTC", "ETH"],
-            "return": [0.01, 0.02, -0.01, 0.01],
-        })
+        df = pd.DataFrame(
+            {
+                "date": ["2023-01-01", "2023-01-01", "2023-01-02", "2023-01-02"],
+                "symbol": ["BTC", "ETH", "BTC", "ETH"],
+                "return": [0.01, 0.02, -0.01, 0.01],
+            }
+        )
         p = tmp_path / "long.csv"
         df.to_csv(p, index=False)
         try:
@@ -237,7 +249,14 @@ class TestSchemaMore:
 
 class TestDataQualityMore:
     def test_data_quality_with_duplicates_allowed(self):
-        df = pd.DataFrame({"BTC": [0.01, 0.02, 0.03]}, index=[pd.Timestamp("2023-01-01"), pd.Timestamp("2023-01-01"), pd.Timestamp("2023-01-02")])
+        df = pd.DataFrame(
+            {"BTC": [0.01, 0.02, 0.03]},
+            index=[
+                pd.Timestamp("2023-01-01"),
+                pd.Timestamp("2023-01-01"),
+                pd.Timestamp("2023-01-02"),
+            ],
+        )
         try:
             out = data_loader._run_data_quality_campaign(df, allow_duplicate_timestamps=True)
             assert isinstance(out, pd.DataFrame)
@@ -245,20 +264,18 @@ class TestDataQualityMore:
             pass
 
     def test_data_quality_with_gaps(self):
-        df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=[pd.Timestamp("2023-01-01"), pd.Timestamp("2025-01-01")])
-        try:
+        df = pd.DataFrame(
+            {"BTC": [0.01, 0.02]}, index=[pd.Timestamp("2023-01-01"), pd.Timestamp("2025-01-01")]
+        )
+        with contextlib.suppress(Exception):
             out = data_loader._run_data_quality_campaign(df, max_gap_days=1)
-        except Exception:
-            pass
 
 
 class TestStripUnitsParseMore:
     def test_strip_various(self):
         for v in ["1.23e2", "(10.5)", "+5.0", "10 bps"]:
-            try:
+            with contextlib.suppress(Exception):
                 res = data_loader._strip_units_and_parse(v)
-            except Exception:
-                pass
 
 
 class TestSeriesParseableMore:

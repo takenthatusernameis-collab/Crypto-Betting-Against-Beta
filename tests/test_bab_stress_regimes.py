@@ -34,6 +34,7 @@ MIN_OBS = 60
 DN_TOL = 1e-9
 BACKTEST_COLUMNS = ["returns", "gross_return", "cost_drag", "slippage_drag", "cumulative"]
 
+
 # --------------------------------------------------------------------------- #
 # Deterministic regime injector
 # --------------------------------------------------------------------------- #
@@ -63,8 +64,8 @@ def regime_crash(base: pd.DataFrame) -> pd.DataFrame:
     out = base.copy()
     sigma = float(out["BTC"].std())
     start = len(out) // 2
-    out.loc[out.index[start:start + 6], "BTC"] = -5.0 * sigma
-    out.loc[out.index[start + 6:start + 9], "BTC"] = 2.5 * sigma
+    out.loc[out.index[start : start + 6], "BTC"] = -5.0 * sigma
+    out.loc[out.index[start + 6 : start + 9], "BTC"] = 2.5 * sigma
     return out
 
 
@@ -112,12 +113,7 @@ REGIMES = [
 REGIME_BUILDERS = dict(REGIMES)
 
 # beta_neutral x dollar_neutral x costs
-CONFIGS = [
-    (bn, dn, c)
-    for bn in (False, True)
-    for dn in (False, True)
-    for c in (0.0, 0.001)
-]
+CONFIGS = [(bn, dn, c) for bn in (False, True) for dn in (False, True) for c in (0.0, 0.001)]
 
 
 # --------------------------------------------------------------------------- #
@@ -146,7 +142,9 @@ def _assert_sane(strat, res, frame, beta_neutral, dollar_neutral, label):
         arr = bt[col].to_numpy(dtype=float)
         assert np.isfinite(arr).all(), f"{label}: {col} non-finite"
     assert (bt["cost_drag"].to_numpy(dtype=float) >= 0).all(), f"{label}: negative cost_drag"
-    assert (bt["slippage_drag"].to_numpy(dtype=float) >= 0).all(), f"{label}: negative slippage_drag"
+    assert (bt["slippage_drag"].to_numpy(dtype=float) >= 0).all(), (
+        f"{label}: negative slippage_drag"
+    )
 
     w = res.weights
     wa = w.to_numpy(dtype=float)
@@ -222,8 +220,12 @@ def test_regime_stress_matrix(regime_name, beta_neutral, dollar_neutral, costs):
 
 def test_regime_evidence_summary():
     """Recorded worst-case numbers per regime (aggregated over all configs)."""
-    print("\n[R2-A] regime stress evidence (worst case across beta_neutral x dollar_neutral x costs):")
-    print(f"{'regime':<16} {'max_drawdown':>12} {'worst_period':>12} {'turnover':>10} {'max|net|':>10}")
+    print(
+        "\n[R2-A] regime stress evidence (worst case across beta_neutral x dollar_neutral x costs):"
+    )
+    print(
+        f"{'regime':<16} {'max_drawdown':>12} {'worst_period':>12} {'turnover':>10} {'max|net|':>10}"
+    )
     for regime_name, _ in REGIMES:
         rows = [r for r in _regime_records if r["regime"] == regime_name]
         assert rows, f"no records for regime {regime_name}"
@@ -277,4 +279,6 @@ def test_spread_inversion_bounded_under_correlation_one():
         f"worst |portfolio beta| = {worst_portfolio_beta:.3f}"
     )
     assert worst_net <= 2.0, f"net exposure exploded under corr->1: {worst_net:.3f}"
-    assert worst_portfolio_beta <= 2.0, f"portfolio beta exploded under corr->1: {worst_portfolio_beta:.3f}"
+    assert worst_portfolio_beta <= 2.0, (
+        f"portfolio beta exploded under corr->1: {worst_portfolio_beta:.3f}"
+    )

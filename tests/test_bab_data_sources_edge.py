@@ -56,7 +56,6 @@ class TestDataCache:
         # data_sources.py:94-95 ``except ValueError: pass`` when key is cached
         # but absent from the order list.
         cache = DataCache(max_entries=4)
-        import pandas as pd
 
         df = pd.DataFrame({"a": [1.0]})
         # Corrupt state: present in _cache but absent from _order.

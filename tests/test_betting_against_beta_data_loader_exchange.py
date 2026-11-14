@@ -74,8 +74,12 @@ class TestExchangeFormatLoaders:
         idx = pd.date_range("2023-01-01", periods=60, freq="D")
         rows = []
         for i in range(60):
-            rows.append({"Date": idx[i].strftime("%Y-%m-%d"), "Coin": "BTC", "Price": 100 * (1 + 0.001 * i)})
-            rows.append({"Date": idx[i].strftime("%Y-%m-%d"), "Coin": "ETH", "Price": 10 * (1 + 0.002 * i)})
+            rows.append(
+                {"Date": idx[i].strftime("%Y-%m-%d"), "Coin": "BTC", "Price": 100 * (1 + 0.001 * i)}
+            )
+            rows.append(
+                {"Date": idx[i].strftime("%Y-%m-%d"), "Coin": "ETH", "Price": 10 * (1 + 0.002 * i)}
+            )
         df = pd.DataFrame(rows)
         out = load_prices(df)
         assert isinstance(out.index, pd.DatetimeIndex)
@@ -124,7 +128,9 @@ class TestExchangeFormatLoaders:
         rows = []
         for i in range(90):
             rows.append({"symbol": "BTC", "date": idx[i].strftime("%Y-%m-%d"), "close": 10000 + i})
-            rows.append({"symbol": "ETH", "date": idx[i].strftime("%Y-%m-%d"), "close": 1000 + i * 0.5})
+            rows.append(
+                {"symbol": "ETH", "date": idx[i].strftime("%Y-%m-%d"), "close": 1000 + i * 0.5}
+            )
         df = pd.DataFrame(rows)
         path = tmp_path / "long.csv"
         df.to_csv(path)
@@ -150,8 +156,16 @@ class TestExchangeFormatLoaders:
         idx = pd.date_range("2023-01-01", periods=60, freq="D")
         rows = []
         for i in range(60):
-            rows.append({"pair": "BTCUSDT", "timestamp": idx[i].strftime("%Y-%m-%d"), "close": 20000 + i * 10})
-            rows.append({"pair": "ETHUSDT", "timestamp": idx[i].strftime("%Y-%m-%d"), "close": 1500 + i * 2})
+            rows.append(
+                {
+                    "pair": "BTCUSDT",
+                    "timestamp": idx[i].strftime("%Y-%m-%d"),
+                    "close": 20000 + i * 10,
+                }
+            )
+            rows.append(
+                {"pair": "ETHUSDT", "timestamp": idx[i].strftime("%Y-%m-%d"), "close": 1500 + i * 2}
+            )
         df = pd.DataFrame(rows)
         out = load_prices(df)
         assert isinstance(out.index, pd.DatetimeIndex)

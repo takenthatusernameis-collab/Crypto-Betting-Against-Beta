@@ -6,6 +6,8 @@ results are reproducible across runs.
 
 from __future__ import annotations
 
+import contextlib
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -58,8 +60,18 @@ class TestDataQualityReportStructure:
         report = data_quality_report(_make_df())
         for col in report["columns"]:
             for key in (
-                "name", "dtype", "missing", "missing_pct", "zeros", "inf",
-                "min", "max", "mean", "std", "outliers", "stale_consecutive",
+                "name",
+                "dtype",
+                "missing",
+                "missing_pct",
+                "zeros",
+                "inf",
+                "min",
+                "max",
+                "mean",
+                "std",
+                "outliers",
+                "stale_consecutive",
             ):
                 assert key in col, f"missing column key: {key}"
 
@@ -300,10 +312,10 @@ class TestDetectDuplicateTimestamps:
         assert result["count"] == 0
 
 
-
 class TestDataQualityReportExtraGaps:
     def test_median_gap_nan_branch(self):
         from strategies.betting_against_beta import quality
+
         df = _make_df(n=5)
         # Create a case where diff gives NaN median? Unlikely, but let's force
         df2 = df.copy()
@@ -314,9 +326,11 @@ class TestDataQualityReportExtraGaps:
         assert "index" in report
 
     def test_gap_median_is_zero_or_nan_handling(self):
-        from strategies.betting_against_beta import quality
-        import pandas as pd
         import numpy as np
+        import pandas as pd
+
+        from strategies.betting_against_beta import quality
+
         dates = pd.date_range("2020-01-01", periods=3)
         df = pd.DataFrame({"BTC": [1.0, 1.0, 1.0]}, index=dates)
         # diff will have zeros
@@ -327,20 +341,24 @@ class TestDataQualityReportExtraGaps:
 class TestQualityMoreBranches:
     def test_non_datetime_index_gaps_empty(self):
         from strategies.betting_against_beta import quality
+
         df = pd.DataFrame({"BTC": [0.1, 0.2, 0.3]}, index=[0, 1, 2])
         report = quality.data_quality_report(df)
         assert report["index"]["gaps"] == {"count": 0}
 
     def test_invalid_input_none(self):
         from strategies.betting_against_beta import quality
+
         assert quality.data_quality_report(None)["error"] == "invalid_input"
 
     def test_invalid_input_wrong_type(self):
         from strategies.betting_against_beta import quality
+
         assert quality.data_quality_report([])["error"] == "invalid_input"
 
     def test_column_conversion_exception_fallback(self):
         from strategies.betting_against_beta import quality
+
         df = _make_df(n=5)
         # Create an object that causes issues
         df["bad"] = object()
@@ -349,6 +367,7 @@ class TestQualityMoreBranches:
 
     def test_outliers_iqr_fallback_when_iqr_zero_but_std_positive(self):
         from strategies.betting_against_beta import quality
+
         df = _make_df(n=10)
         # Make values where IQR might be zero but not constant? No, constant gives iqr 0 and std 0.
         # Or many same values around median
@@ -358,23 +377,26 @@ class TestQualityMoreBranches:
 
     def test_inf_count_in_column(self):
         from strategies.betting_against_beta import quality
+
         df = _make_df(n=10)
         df.iloc[0, 0] = np.inf
         report = quality.data_quality_report(df)
         # Should count inf
-        col = [c for c in report["columns"] if c["name"] == "BTC"][0]
+        col = next(c for c in report["columns"] if c["name"] == "BTC")
         assert col["inf"] >= 1
 
 
 class TestDetectGapsExtra:
     def test_detect_gaps_non_datetime(self):
         from strategies.betting_against_beta import quality
-        df = pd.DataFrame({"x": [1,2,3]}, index=[1,2,3])
+
+        df = pd.DataFrame({"x": [1, 2, 3]}, index=[1, 2, 3])
         res = quality.detect_gaps(df)
         assert res["count"] == 0
 
     def test_detect_gaps_too_short(self):
         from strategies.betting_against_beta import quality
+
         dates = pd.date_range("2020-01-01", periods=1)
         df = pd.DataFrame({"x": [1]}, index=dates)
         res = quality.detect_gaps(df)
@@ -382,8 +404,9 @@ class TestDetectGapsExtra:
 
     def test_detect_gaps_median_zero(self):
         from strategies.betting_against_beta import quality
+
         dates = pd.date_range("2020-01-01", periods=3)
-        df = pd.DataFrame({"x": [1,2,3]}, index=dates)
+        df = pd.DataFrame({"x": [1, 2, 3]}, index=dates)
         # all same diff -> median is same as diff, not zero; force zero by weird construction hard
         res = quality.detect_gaps(df)
         assert "gaps" in res
@@ -392,6 +415,7 @@ class TestDetectGapsExtra:
 class TestDetectOutliersExtra:
     def test_detect_outliers_iqr_zero_branch(self):
         from strategies.betting_against_beta import quality
+
         df = _make_df(n=10)
         df["C"] = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
         res = quality.detect_outliers(df, method="iqr")
@@ -399,12 +423,14 @@ class TestDetectOutliersExtra:
 
     def test_detect_outliers_few_points(self):
         from strategies.betting_against_beta import quality
+
         df = _make_df(n=2)
         res = quality.detect_outliers(df)
         assert res["BTC"]["count"] == 0
 
     def test_detect_outliers_exception(self):
         from strategies.betting_against_beta import quality
+
         df = _make_df(n=10)
         df["bad"] = object()
         res = quality.detect_outliers(df)
@@ -414,6 +440,7 @@ class TestDetectOutliersExtra:
 class TestDetectStaleExtra:
     def test_stale_threshold_boundary(self):
         from strategies.betting_against_beta import quality
+
         df = _make_df(n=10)
         df.iloc[0:3, 0] = 0.5  # run of 3
         res = quality.detect_stale_data(df, threshold=3)
@@ -421,6 +448,7 @@ class TestDetectStaleExtra:
 
     def test_stale_exception_path(self):
         from strategies.betting_against_beta import quality
+
         df = _make_df(n=10)
         df["bad"] = object()
         res = quality.detect_stale_data(df)
@@ -429,6 +457,7 @@ class TestDetectStaleExtra:
     def test_stale_single_row_skips_loop(self):
         # branch 199->210: len(arr) <= 1 must skip the stale-run loop entirely
         from strategies.betting_against_beta import quality
+
         df = _make_df(n=1)
         res = quality.detect_stale_data(df, threshold=3)
         assert res["BTC"] == {"stale_runs": [], "count": 0}
@@ -437,6 +466,7 @@ class TestDetectStaleExtra:
 class TestDetectVolumeExtra:
     def test_volume_median_zero(self):
         from strategies.betting_against_beta import quality
+
         df = _make_df(n=10)
         df["volume"] = [0, 0, 0, 5, 0, 0, 0, 0, 0, 0]
         res = quality.detect_volume_anomalies(df)
@@ -445,6 +475,7 @@ class TestDetectVolumeExtra:
 
     def test_volume_few_points(self):
         from strategies.betting_against_beta import quality
+
         df = _make_df(n=2)
         df["volume"] = [1, 2]
         res = quality.detect_volume_anomalies(df)
@@ -452,6 +483,7 @@ class TestDetectVolumeExtra:
 
     def test_volume_exception(self):
         from strategies.betting_against_beta import quality
+
         df = _make_df(n=10)
         df["volume"] = object()
         res = quality.detect_volume_anomalies(df)
@@ -460,53 +492,60 @@ class TestDetectVolumeExtra:
 
 class TestDetectDuplicatesExtra:
     def test_duplicates_no_hasattr_path(self):
-        from strategies.betting_against_beta import quality
         import pandas as pd
-        df = pd.DataFrame({"a": [1,2,3]}, index=[1,1,2])
+
+        from strategies.betting_against_beta import quality
+
+        df = pd.DataFrame({"a": [1, 2, 3]}, index=[1, 1, 2])
         # override
         res = quality.detect_duplicate_timestamps(df)
         assert res["has_duplicates"] is True
 
 
-
 class TestQualityCoverageGaps:
     def test_data_quality_report_datetime_gaps_median_nan(self):
-        from strategies.betting_against_beta import quality
-        import pandas as pd
         import numpy as np
+        import pandas as pd
+
+        from strategies.betting_against_beta import quality
+
         # Create dates where diff might be problematic? Or manually construct
-        dates = pd.to_datetime(['2020-01-01', '2020-01-02', '2020-01-03'])
-        df = pd.DataFrame({'BTC': [1.0, 2.0, 3.0]}, index=dates)
+        dates = pd.to_datetime(["2020-01-01", "2020-01-02", "2020-01-03"])
+        df = pd.DataFrame({"BTC": [1.0, 2.0, 3.0]}, index=dates)
         report = quality.data_quality_report(df)
-        assert 'gaps' in report['index']
+        assert "gaps" in report["index"]
 
     def test_data_quality_report_stale_count_increments(self):
         from strategies.betting_against_beta import quality
+
         df = _make_df(n=5)
         df.iloc[1:4, 0] = 5.0  # three consecutive equal finite
         report = quality.data_quality_report(df)
-        col = [c for c in report['columns'] if c['name'] == 'BTC'][0]
-        assert col['stale_consecutive'] >= 2
+        col = next(c for c in report["columns"] if c["name"] == "BTC")
+        assert col["stale_consecutive"] >= 2
 
     def test_data_quality_report_column_conversion_bare_except(self):
         from strategies.betting_against_beta import quality
+
         # The code has bare except at line ~47-48; force it
         df = _make_df(n=3)
-        df['bad'] = [object(), object(), object()]
+        df["bad"] = [object(), object(), object()]
         report = quality.data_quality_report(df)
-        col = [c for c in report['columns'] if c['name'] == 'bad'][0]
-        assert col['missing'] == 3
+        col = next(c for c in report["columns"] if c["name"] == "bad")
+        assert col["missing"] == 3
 
     def test_data_quality_report_outlier_iqr_fallback(self):
         from strategies.betting_against_beta import quality
+
         df = _make_df(n=20)
         # Create case where iqr is 0 but std > 0? If most values same, median/IQR might behave oddly
-        df['X'] = [1.0] * 19 + [5.0]
+        df["X"] = [1.0] * 19 + [5.0]
         report = quality.data_quality_report(df)
-        assert 'outliers' in report['columns'][0]
+        assert "outliers" in report["columns"][0]
 
     def test_check_data_quality_strict_issues(self):
         from strategies.betting_against_beta import quality
+
         df = _make_df(n=10)
         df.iloc[0, 0] = np.inf
         try:
@@ -517,89 +556,95 @@ class TestQualityCoverageGaps:
 
     def test_detect_gaps_after_index_lookup(self):
         from strategies.betting_against_beta import quality
-        dates = pd.date_range('2020-01-01', periods=5, freq='D')
-        df = pd.DataFrame({'x': range(5)}, index=dates)
+
+        dates = pd.date_range("2020-01-01", periods=5, freq="D")
+        df = pd.DataFrame({"x": range(5)}, index=dates)
         # insert large gap
         df2 = df.copy()
         # create gap by reindexing with skip
         idx = list(dates)
         idx[2] = idx[2] + pd.Timedelta(days=10)  # create gap
-        df3 = pd.DataFrame({'x': [0,1,99,3,4]}, index=idx)
+        df3 = pd.DataFrame({"x": [0, 1, 99, 3, 4]}, index=idx)
         res = quality.detect_gaps(df3, max_gap_multiplier=1.5)
-        assert res['count'] >= 1
+        assert res["count"] >= 1
 
     def test_detect_outliers_iqr_with_values(self):
         from strategies.betting_against_beta import quality
+
         df = _make_df(n=50)
         df.iloc[10, 0] = 10.0
         df.iloc[20, 0] = -10.0
-        res = quality.detect_outliers(df, method='iqr')
-        assert res['BTC']['count'] >= 1
-        assert len(res['BTC']['values']) >= 1
+        res = quality.detect_outliers(df, method="iqr")
+        assert res["BTC"]["count"] >= 1
+        assert len(res["BTC"]["values"]) >= 1
 
     def test_detect_volume_anomalies_below_threshold(self):
         from strategies.betting_against_beta import quality
+
         df = _make_df(n=30)
-        df['volume'] = 1000.0
-        df.iloc[15, df.columns.get_loc('volume')] = 100.0  # crash below 1/threshold
-        res = quality.detect_volume_anomalies(df, volume_cols=['volume'], threshold=5.0)
-        assert res['volume']['count'] >= 1
+        df["volume"] = 1000.0
+        df.iloc[15, df.columns.get_loc("volume")] = 100.0  # crash below 1/threshold
+        res = quality.detect_volume_anomalies(df, volume_cols=["volume"], threshold=5.0)
+        assert res["volume"]["count"] >= 1
 
     def test_detect_duplicate_timestamps_no_has_duplicates_attr(self):
-        from strategies.betting_against_beta import quality
         import pandas as pd
+
+        from strategies.betting_against_beta import quality
+
         class DummyIdx:
             def __init__(self):
                 pass
-        df = pd.DataFrame({'a':[1,2,3]})
-        df.index = [1,2,3]  # regular index, no has_duplicates
+
+        df = pd.DataFrame({"a": [1, 2, 3]})
+        df.index = [1, 2, 3]  # regular index, no has_duplicates
         res = quality.detect_duplicate_timestamps(df)
-        assert res['has_duplicates'] is False
+        assert res["has_duplicates"] is False
 
 
 def test_data_quality_report_combinations():
-    from strategies.betting_against_beta import quality
-    import pandas as pd
     import numpy as np
-    df = pd.DataFrame({'BTC': [np.nan, 0.01], 'ETH': [0.01, 0.02]})
+    import pandas as pd
+
+    from strategies.betting_against_beta import quality
+
+    df = pd.DataFrame({"BTC": [np.nan, 0.01], "ETH": [0.01, 0.02]})
     rep = quality.data_quality_report(df)
     assert isinstance(rep, dict)
-    df2 = pd.DataFrame({'BTC': [np.inf, 0.01], 'ETH': [0.01, 0.02]})
-    try:
+    df2 = pd.DataFrame({"BTC": [np.inf, 0.01], "ETH": [0.01, 0.02]})
+    with contextlib.suppress(Exception):
         rep2 = quality.data_quality_report(df2)
-    except Exception:
-        pass
     # duplicates
-    df3 = pd.DataFrame({'BTC': [0.01, 0.01]}, index=[pd.Timestamp('2023-01-01'), pd.Timestamp('2023-01-01')])
+    df3 = pd.DataFrame(
+        {"BTC": [0.01, 0.01]}, index=[pd.Timestamp("2023-01-01"), pd.Timestamp("2023-01-01")]
+    )
     rep3 = quality.data_quality_report(df3)
     assert isinstance(rep3, dict)
     # constant
-    df4 = pd.DataFrame({'BTC': [0.01, 0.01, 0.01], 'ETH': [0.02, 0.01, 0.0]})
+    df4 = pd.DataFrame({"BTC": [0.01, 0.01, 0.01], "ETH": [0.02, 0.01, 0.0]})
     rep4 = quality.data_quality_report(df4)
     assert isinstance(rep4, dict)
     # empty
-    try:
+    with contextlib.suppress(Exception):
         rep5 = quality.data_quality_report(pd.DataFrame())
-    except Exception:
-        pass
 
 
 def test_assert_data_quality_strict():
-    from strategies.betting_against_beta import quality
-    import pandas as pd
     import numpy as np
-    df = pd.DataFrame({'BTC': [0.01, 0.02]})
-    try:
+    import pandas as pd
+
+    from strategies.betting_against_beta import quality
+
+    df = pd.DataFrame({"BTC": [0.01, 0.02]})
+    with contextlib.suppress(Exception):
         quality.assert_data_quality(df, strict=True)
-    except Exception:
-        pass
-    df2 = pd.DataFrame({'BTC': [np.nan, 0.02]})
+    df2 = pd.DataFrame({"BTC": [np.nan, 0.02]})
     try:
         quality.assert_data_quality(df2, strict=True)
         assert False
     except Exception:
         pass
-    df3 = pd.DataFrame({'BTC': [np.inf, 0.02]})
+    df3 = pd.DataFrame({"BTC": [np.inf, 0.02]})
     try:
         quality.assert_data_quality(df3, strict=True)
         assert False

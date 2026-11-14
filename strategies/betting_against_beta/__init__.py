@@ -19,4 +19,22 @@ from . import (
 from .config import BABConfig
 from .strategy import BABResult, BABStrategy
 
-__all__ = ["BABConfig", "BABResult", "BABStrategy", "attribution", "backtest", "beta", "costs", "data_loader", "data_sources", "execution", "metrics", "portfolio", "quality", "reconciliation", "shorting", "signals", "sizing"]
+__all__ = [
+    "BABConfig",
+    "BABResult",
+    "BABStrategy",
+    "attribution",
+    "backtest",
+    "beta",
+    "costs",
+    "data_loader",
+    "data_sources",
+    "execution",
+    "metrics",
+    "portfolio",
+    "quality",
+    "reconciliation",
+    "shorting",
+    "signals",
+    "sizing",
+]

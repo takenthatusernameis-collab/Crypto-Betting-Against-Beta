@@ -7,6 +7,7 @@ Contracts asserted only where present in current API:
 - BABStrategy.report()/tear_sheet() exist and return finite/serializable outputs for a
   deterministic synthetic run (cheap). No production changes.
 """
+
 from __future__ import annotations
 
 import json
@@ -110,16 +111,33 @@ class TestBacktestContractSynthetic:
 
     def test_synthetic_cli_periods_and_tail_match_config_parity(self):
         cfg = BABConfig(
-            universe=None, benchmark="BTC", beta_window=30,
-            long_quantile=0.3, short_quantile=0.3,
-            rebalance_freq="daily", transaction_costs=0.0, slippage=0.0,
+            universe=None,
+            benchmark="BTC",
+            beta_window=30,
+            long_quantile=0.3,
+            short_quantile=0.3,
+            rebalance_freq="daily",
+            transaction_costs=0.0,
+            slippage=0.0,
         )
         result = BABStrategy(cfg).run()
         rc, payload = _cli_run(
             [
-                "--synthetic", "--beta-window", "30", "--benchmark", "BTC",
-                "--long-quantile", "0.3", "--short-quantile", "0.3",
-                "--rebalance-freq", "daily", "--transaction-costs", "0.0", "--slippage", "0.0",
+                "--synthetic",
+                "--beta-window",
+                "30",
+                "--benchmark",
+                "BTC",
+                "--long-quantile",
+                "0.3",
+                "--short-quantile",
+                "0.3",
+                "--rebalance-freq",
+                "daily",
+                "--transaction-costs",
+                "0.0",
+                "--slippage",
+                "0.0",
             ]
         )
         assert rc == 0

@@ -1,4 +1,5 @@
 """More attribution edge cases."""
+
 from __future__ import annotations
 
 import numpy as np
@@ -9,9 +10,9 @@ from strategies.betting_against_beta import attribution
 
 def test_trade_attribution_returns_from_series():
     idx = pd.date_range("2023-01-01", periods=4)
-    backtest = pd.DataFrame({
-        "returns": pd.Series([0.01, 0.02, np.nan, 0.04], index=idx)
-    }, index=idx)
+    backtest = pd.DataFrame(
+        {"returns": pd.Series([0.01, 0.02, np.nan, 0.04], index=idx)}, index=idx
+    )
     out = attribution.trade_attribution(backtest)
     assert len(out) == 4
     assert np.isfinite(out["net_return"]).all()
@@ -28,7 +29,7 @@ def test_trade_attribution_with_list_like_columns():
 
 
 def test_attribution_totals_series_input():
-    res = attribution.attribution_totals(pd.Series([1,2,3]))
+    res = attribution.attribution_totals(pd.Series([1, 2, 3]))
     assert res["gross_return"] == 0.0
 
 

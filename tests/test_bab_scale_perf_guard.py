@@ -48,7 +48,9 @@ def _time_run(df):
 _scale_records: list[dict] = []
 
 
-@pytest.mark.parametrize("label,n_days,n_assets", [("5000x200", 5000, 200), ("5000x500", 5000, 500)])
+@pytest.mark.parametrize(
+    "label,n_days,n_assets", [("5000x200", 5000, 200), ("5000x500", 5000, 500)]
+)
 def test_scale_perf_guard(label, n_days, n_assets):
     """``BABStrategy.run`` at scale stays under its hard ceiling."""
     df = _frame(n_days, n_assets)
@@ -70,13 +72,13 @@ def test_scale_perf_guard(label, n_days, n_assets):
     )
 
     print(
-        f"[R2-C] {label}: median={median_s*1000:.1f}ms "
-        f"min={times.min()*1000:.1f}ms max={times.max()*1000:.1f}ms "
-        f"(ceiling {ceiling*1000:.0f}ms)"
+        f"[R2-C] {label}: median={median_s * 1000:.1f}ms "
+        f"min={times.min() * 1000:.1f}ms max={times.max() * 1000:.1f}ms "
+        f"(ceiling {ceiling * 1000:.0f}ms)"
     )
     assert median_s <= ceiling, (
-        f"scale regression: {label} median {median_s*1000:.1f}ms exceeds ceiling "
-        f"{ceiling*1000:.0f}ms"
+        f"scale regression: {label} median {median_s * 1000:.1f}ms exceeds ceiling "
+        f"{ceiling * 1000:.0f}ms"
     )
 
 

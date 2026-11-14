@@ -15,6 +15,7 @@ Covers exercised gaps/invariants probed during campaign11b Step 0+probe matrix:
 All assertions are non-duplicative with campaign11/l/k/j coverage and tied to
 probed, exercised behavior.
 """
+
 from __future__ import annotations
 
 import json
@@ -57,28 +58,78 @@ class TestCliParityAdditionalCombosRealFixture:
         "argv,cfgkw",
         [
             (
-                ["--data", REAL_PRICES, "--from-prices", "--benchmark", "BTC", "--beta-window", "30"],
+                [
+                    "--data",
+                    REAL_PRICES,
+                    "--from-prices",
+                    "--benchmark",
+                    "BTC",
+                    "--beta-window",
+                    "30",
+                ],
                 {"benchmark": "BTC", "beta_window": 30},
             ),
             (
-                ["--data", REAL_PRICES, "--from-prices", "--benchmark", "BTC", "--rebalance-freq", "weekly"],
+                [
+                    "--data",
+                    REAL_PRICES,
+                    "--from-prices",
+                    "--benchmark",
+                    "BTC",
+                    "--rebalance-freq",
+                    "weekly",
+                ],
                 {"benchmark": "BTC", "rebalance_freq": "weekly"},
             ),
             (
-                ["--data", REAL_PRICES, "--from-prices", "--benchmark", "BTC", "--rebalance-freq", "monthly"],
+                [
+                    "--data",
+                    REAL_PRICES,
+                    "--from-prices",
+                    "--benchmark",
+                    "BTC",
+                    "--rebalance-freq",
+                    "monthly",
+                ],
                 {"benchmark": "BTC", "rebalance_freq": "monthly"},
             ),
             (
-                ["--data", REAL_PRICES, "--from-prices", "--benchmark", "BTC", "--long-quantile", "0.2", "--short-quantile", "0.2"],
+                [
+                    "--data",
+                    REAL_PRICES,
+                    "--from-prices",
+                    "--benchmark",
+                    "BTC",
+                    "--long-quantile",
+                    "0.2",
+                    "--short-quantile",
+                    "0.2",
+                ],
                 {"benchmark": "BTC", "long_quantile": 0.2, "short_quantile": 0.2},
             ),
             (
                 [
-                    "--data", REAL_PRICES, "--from-prices", "--benchmark", "BTC",
-                    "--beta-window", "45", "--transaction-costs", "0.002",
-                    "--slippage", "0.001", "--rebalance-freq", "weekly",
+                    "--data",
+                    REAL_PRICES,
+                    "--from-prices",
+                    "--benchmark",
+                    "BTC",
+                    "--beta-window",
+                    "45",
+                    "--transaction-costs",
+                    "0.002",
+                    "--slippage",
+                    "0.001",
+                    "--rebalance-freq",
+                    "weekly",
                 ],
-                {"benchmark": "BTC", "beta_window": 45, "transaction_costs": 0.002, "slippage": 0.001, "rebalance_freq": "weekly"},
+                {
+                    "benchmark": "BTC",
+                    "beta_window": 45,
+                    "transaction_costs": 0.002,
+                    "slippage": 0.001,
+                    "rebalance_freq": "weekly",
+                },
             ),
         ],
     )
@@ -98,7 +149,10 @@ class TestCliParityAdditionalCombosRealFixture:
         "extra_argv,extra_cfg",
         [
             ([], {}),
-            (["--rebalance-freq", "weekly", "--transaction-costs", "0.001"], {"rebalance_freq": "weekly", "transaction_costs": 0.001}),
+            (
+                ["--rebalance-freq", "weekly", "--transaction-costs", "0.001"],
+                {"rebalance_freq": "weekly", "transaction_costs": 0.001},
+            ),
         ],
     )
     def test_returns_path_output_matches_inprocess(self, tmp_path, extra_argv, extra_cfg):
@@ -108,7 +162,9 @@ class TestCliParityAdditionalCombosRealFixture:
         returns_df.to_csv(ret_path)
         cfgkw = {"benchmark": "BTC", **extra_cfg}
         out = tmp_path / "out.json"
-        rc, payload, raw = _run_cli(["--data", str(ret_path), "--benchmark", "BTC", *extra_argv], out)
+        rc, payload, raw = _run_cli(
+            ["--data", str(ret_path), "--benchmark", "BTC", *extra_argv], out
+        )
         assert rc == 0, (rc, raw)
         _assert_strict_finite_payload(payload, raw)
         rdf = load_returns(str(ret_path), benchmark="BTC")
@@ -122,13 +178,35 @@ class TestCliParityAdditionalCombosRealFixture:
 class TestDryRunOutputValidationNoWrite:
     def test_dry_run_validates_output_but_does_not_write(self, tmp_path):
         out = tmp_path / "would_write.json"
-        rc = main(["--dry-run", "--data", REAL_PRICES, "--from-prices", "--benchmark", "BTC", "--output", str(out)])
+        rc = main(
+            [
+                "--dry-run",
+                "--data",
+                REAL_PRICES,
+                "--from-prices",
+                "--benchmark",
+                "BTC",
+                "--output",
+                str(out),
+            ]
+        )
         assert rc == 0
         assert not out.exists(), "dry-run must validate but never write --output"
 
     def test_dry_run_rejects_directory_output_target(self, tmp_path, capsys):
         # Directory target must be rejected cleanly during dry-run validation.
-        rc = main(["--dry-run", "--data", REAL_PRICES, "--from-prices", "--benchmark", "BTC", "--output", str(tmp_path)])
+        rc = main(
+            [
+                "--dry-run",
+                "--data",
+                REAL_PRICES,
+                "--from-prices",
+                "--benchmark",
+                "BTC",
+                "--output",
+                str(tmp_path),
+            ]
+        )
         assert rc == 1
         captured = capsys.readouterr()
         combined = captured.out + captured.err
@@ -149,7 +227,10 @@ class TestNonFinitePropagationBoundaries:
         "label,mutate",
         [
             ("single_nan_eth", lambda df: df.__setitem__("ETH", df["ETH"].where(df.index != 5))),
-            ("sparse_nans_sol", lambda df: df.__setitem__("SOL", df["SOL"].mask(df.index.isin([2, 10, 50])))),
+            (
+                "sparse_nans_sol",
+                lambda df: df.__setitem__("SOL", df["SOL"].mask(df.index.isin([2, 10, 50]))),
+            ),
             ("nan_benchmark_btc", lambda df: df.__setitem__("BTC", df["BTC"].where(df.index != 3))),
         ],
     )
@@ -173,7 +254,7 @@ class TestNonFinitePropagationBoundaries:
         out = tmp_path / "out.json"
         rc, payload, raw = _run_cli(["--data", path, "--from-prices", "--benchmark", "BTC"], out)
         captured = capsys.readouterr()
-        combined = (captured.out + captured.err + raw)
+        combined = captured.out + captured.err + raw
         assert rc == 1, (label, rc, combined)
         assert payload is None
         assert "Traceback" not in combined
@@ -184,30 +265,91 @@ class TestNonFinitePropagationBoundaries:
             vals = df["ADA"].astype(float).to_numpy().copy()
             vals[1:] = np.nan
             df["ADA"] = vals
+
         path = _write_mutated_prices(tmp_path, mutate, "all_but_one_nan_ada.csv")
         out = tmp_path / "out.json"
         rc, payload, raw = _run_cli(["--data", path, "--from-prices", "--benchmark", "BTC"], out)
         captured = capsys.readouterr()
-        combined = (captured.out + captured.err + raw)
+        combined = captured.out + captured.err + raw
         assert rc == 1
         assert payload is None
         assert "Traceback" not in combined
-        assert "ADA" in combined or "insufficient" in combined.lower() or "finite" in combined.lower()
+        assert (
+            "ADA" in combined or "insufficient" in combined.lower() or "finite" in combined.lower()
+        )
 
 
 class TestErrorPathCleanlinessExercised:
     @pytest.mark.parametrize(
         "argv,needle",
         [
-            (["--data", "/no/such/file_prices.csv", "--from-prices", "--benchmark", "BTC"], "not found"),
+            (
+                ["--data", "/no/such/file_prices.csv", "--from-prices", "--benchmark", "BTC"],
+                "not found",
+            ),
             (["--data", "tests/fixtures", "--from-prices", "--benchmark", "BTC"], "directory"),
             (["--universe", "   ", "  ", "--synthetic"], "universe"),
             (["--data", REAL_PRICES, "--from-prices", "--benchmark", "NOTCOIN"], "NOTCOIN"),
-            (["--data", REAL_PRICES, "--from-prices", "--benchmark", "BTC", "--universe", "NOPE"], "overlap"),
-            (["--data", REAL_PRICES, "--from-prices", "--benchmark", "BTC", "--long-quantile", "0"], "long_quantile"),
-            (["--data", REAL_PRICES, "--from-prices", "--benchmark", "BTC", "--long-quantile", "-0.1"], "long_quantile"),
-            (["--data", REAL_PRICES, "--from-prices", "--benchmark", "BTC", "--transaction-costs", "-1"], "transaction_costs"),
-            (["--data", REAL_PRICES, "--from-prices", "--benchmark", "BTC", "--slippage", "-0.1"], "slippage"),
+            (
+                [
+                    "--data",
+                    REAL_PRICES,
+                    "--from-prices",
+                    "--benchmark",
+                    "BTC",
+                    "--universe",
+                    "NOPE",
+                ],
+                "overlap",
+            ),
+            (
+                [
+                    "--data",
+                    REAL_PRICES,
+                    "--from-prices",
+                    "--benchmark",
+                    "BTC",
+                    "--long-quantile",
+                    "0",
+                ],
+                "long_quantile",
+            ),
+            (
+                [
+                    "--data",
+                    REAL_PRICES,
+                    "--from-prices",
+                    "--benchmark",
+                    "BTC",
+                    "--long-quantile",
+                    "-0.1",
+                ],
+                "long_quantile",
+            ),
+            (
+                [
+                    "--data",
+                    REAL_PRICES,
+                    "--from-prices",
+                    "--benchmark",
+                    "BTC",
+                    "--transaction-costs",
+                    "-1",
+                ],
+                "transaction_costs",
+            ),
+            (
+                [
+                    "--data",
+                    REAL_PRICES,
+                    "--from-prices",
+                    "--benchmark",
+                    "BTC",
+                    "--slippage",
+                    "-0.1",
+                ],
+                "slippage",
+            ),
         ],
     )
     def test_clean_error_no_traceback(self, argv, needle, capsys):
@@ -233,7 +375,18 @@ class TestErrorPathCleanlinessExercised:
         # Extreme-but-accepted windows must run through exercised path without Traceback
         # and produce finite strict JSON when a backtest completes.
         out = tmp_path / "out.json"
-        rc = main(["--data", REAL_PRICES, "--from-prices", "--benchmark", "BTC", *extra, "--output", str(out)])
+        rc = main(
+            [
+                "--data",
+                REAL_PRICES,
+                "--from-prices",
+                "--benchmark",
+                "BTC",
+                *extra,
+                "--output",
+                str(out),
+            ]
+        )
         captured = capsys.readouterr()
         combined = captured.out + captured.err
         assert "Traceback" not in combined

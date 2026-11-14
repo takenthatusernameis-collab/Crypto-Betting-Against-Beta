@@ -50,8 +50,9 @@ MIN_OBS = 60
 # --------------------------------------------------------------------------- #
 # 1. Naive rolling-beta oracle: per-asset, per-window OLS slope via lstsq.
 # --------------------------------------------------------------------------- #
-def _naive_rolling_beta(returns: pd.DataFrame, benchmark: str,
-                        window: int = BETA_WINDOW, min_obs: int = MIN_OBS) -> pd.DataFrame:
+def _naive_rolling_beta(
+    returns: pd.DataFrame, benchmark: str, window: int = BETA_WINDOW, min_obs: int = MIN_OBS
+) -> pd.DataFrame:
     """Naive rolling beta: one ``np.linalg.lstsq`` per asset per window.
 
     For each window ``[i-window+1, i]`` (clipped to the series start) the slope
@@ -71,8 +72,8 @@ def _naive_rolling_beta(returns: pd.DataFrame, benchmark: str,
         y = returns[col].to_numpy(dtype=float)
         for i in range(n):
             lo = max(0, i - window + 1)
-            xb = bench[lo:i + 1]
-            yb = y[lo:i + 1]
+            xb = bench[lo : i + 1]
+            yb = y[lo : i + 1]
             mask = np.isfinite(xb) & np.isfinite(yb)
             if int(mask.sum()) < min_obs:
                 continue
@@ -90,8 +91,9 @@ def _naive_rolling_beta(returns: pd.DataFrame, benchmark: str,
 # --------------------------------------------------------------------------- #
 # 2. Naive signal oracle: per-row sort by beta, take disjoint top/bottom.
 # --------------------------------------------------------------------------- #
-def _naive_signals(betas: pd.DataFrame, long_quantile: float = 0.3,
-                   short_quantile: float = 0.3) -> pd.DataFrame:
+def _naive_signals(
+    betas: pd.DataFrame, long_quantile: float = 0.3, short_quantile: float = 0.3
+) -> pd.DataFrame:
     """Naive per-row long/short selection by beta rank (loops + sort_values)."""
     if betas is None or not isinstance(betas, pd.DataFrame) or betas.empty:
         return pd.DataFrame()
@@ -108,7 +110,7 @@ def _naive_signals(betas: pd.DataFrame, long_quantile: float = 0.3,
         if n_long + n_short > n:
             n_short = max(0, n - n_long)
         longs = list(clean.index[:n_long])
-        shorts = list(clean.index[n - n_short:]) if n_short else []
+        shorts = list(clean.index[n - n_short :]) if n_short else []
         for a in longs:
             out.at[idx, a] = 1
         for a in shorts:
@@ -149,8 +151,12 @@ def _naive_portfolio(signals: pd.DataFrame, dollar_neutral: bool = True) -> pd.D
 # --------------------------------------------------------------------------- #
 # 4. Naive one-step backtest oracle: lagged weights, costs, log cumulative.
 # --------------------------------------------------------------------------- #
-def _naive_backtest(returns: pd.DataFrame, weights: pd.DataFrame,
-                    transaction_costs: float = 0.0, slippage: float = 0.0) -> pd.DataFrame:
+def _naive_backtest(
+    returns: pd.DataFrame,
+    weights: pd.DataFrame,
+    transaction_costs: float = 0.0,
+    slippage: float = 0.0,
+) -> pd.DataFrame:
     """Naive lagged-weight backtest (loops, explicit turnover and logcum)."""
     common = returns.index.intersection(weights.index)
     r = returns.loc[common]
@@ -169,10 +175,7 @@ def _naive_backtest(returns: pd.DataFrame, weights: pd.DataFrame,
     rv = np.where(np.isfinite(rv), rv, 0.0)
     wv = np.where(np.isfinite(wv), wv, 0.0)
     for t in range(n):
-        if t == 0:
-            w_lag = np.zeros(wv.shape[1])
-        else:
-            w_lag = wv[t - 1]
+        w_lag = np.zeros(wv.shape[1]) if t == 0 else wv[t - 1]
         gross[t] = float(np.sum(w_lag * rv[t]))
         turnover = float(np.sum(np.abs(wv[t] - w_lag)))
         cost_drag[t] = turnover * transaction_costs

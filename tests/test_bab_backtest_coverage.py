@@ -13,14 +13,20 @@ from strategies.betting_against_beta.costs import TransactionCostModel
 def _make_inputs(periods=40):
     idx = pd.date_range("2023-01-01", periods=periods, freq="D")
     rng = np.random.default_rng(7)
-    returns = pd.DataFrame({
-        "A": rng.normal(0.0005, 0.01, periods),
-        "B": rng.normal(0.0008, 0.015, periods),
-    }, index=idx)
-    weights = pd.DataFrame({
-        "A": [0.5] * periods,
-        "B": [-0.5] * periods,
-    }, index=idx)
+    returns = pd.DataFrame(
+        {
+            "A": rng.normal(0.0005, 0.01, periods),
+            "B": rng.normal(0.0008, 0.015, periods),
+        },
+        index=idx,
+    )
+    weights = pd.DataFrame(
+        {
+            "A": [0.5] * periods,
+            "B": [-0.5] * periods,
+        },
+        index=idx,
+    )
     return returns, weights
 
 
@@ -42,7 +48,13 @@ def test_align_by_position_when_columns_disjoint():
     returns = pd.DataFrame({"A": [0.001] * 10, "B": [0.002] * 10}, index=idx)
     weights = pd.DataFrame({"X": [0.5] * 10, "Y": [-0.5] * 10}, index=idx)
     res = run_backtest(returns, weights)
-    assert list(res.columns) == ["returns", "gross_return", "cost_drag", "slippage_drag", "cumulative"]
+    assert list(res.columns) == [
+        "returns",
+        "gross_return",
+        "cost_drag",
+        "slippage_drag",
+        "cumulative",
+    ]
     assert np.isfinite(res["cumulative"].values).all()
 
 

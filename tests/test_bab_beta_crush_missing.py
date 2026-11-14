@@ -42,7 +42,7 @@ def test_crush_66_67():
     # the final fallthrough array allocation raises -> line 66-67.
     class Huge:
         def __len__(self):
-            return 2 ** 40
+            return 2**40
 
     res = beta.rolling_beta(Huge(), Huge())
     assert isinstance(res, np.ndarray)
@@ -57,8 +57,7 @@ def test_crush_114(monkeypatch):
     orig_concat = pd.concat
     pd.concat = lambda *a, **kw: FakeAligned()
     try:
-        res = beta.calculate_beta(pd.Series([1.0, 2.0, 3.0, 4.0, 5.0]),
-                                  pd.Series([1.0, 2.0, 3.0]))
+        res = beta.calculate_beta(pd.Series([1.0, 2.0, 3.0, 4.0, 5.0]), pd.Series([1.0, 2.0, 3.0]))
         assert np.isnan(res)
     finally:
         pd.concat = orig_concat

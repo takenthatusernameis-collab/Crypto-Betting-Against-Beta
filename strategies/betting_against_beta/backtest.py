@@ -30,10 +30,19 @@ def _clean_frame_local(df):
     return df.replace([np.inf, -np.inf], np.nan)
 
 
-def run_backtest(returns_df, weights_df, transaction_costs=0.0, slippage=0.0,
-                 tc=None, slippage_cost=None, cost_model=None,
-                 prices_df=None, adv_usd=None, partial_fill=False,
-                 max_participation=0.10):
+def run_backtest(
+    returns_df,
+    weights_df,
+    transaction_costs=0.0,
+    slippage=0.0,
+    tc=None,
+    slippage_cost=None,
+    cost_model=None,
+    prices_df=None,
+    adv_usd=None,
+    partial_fill=False,
+    max_participation=0.10,
+):
     """Run simple backtest.
 
     Parameters
@@ -142,8 +151,10 @@ def run_backtest(returns_df, weights_df, transaction_costs=0.0, slippage=0.0,
     if partial_fill and slip_val > 0:
         try:
             _prices = _clean_frame_local(prices_df)
-            _adv_input = adv_usd if adv_usd is not None else (
-                cost_model.adv_usd if cost_model is not None else None
+            _adv_input = (
+                adv_usd
+                if adv_usd is not None
+                else (cost_model.adv_usd if cost_model is not None else None)
             )
             _adv_series = _adv_series_local(_adv_input)
             if _prices is not None and _adv_series is not None:
@@ -161,9 +172,11 @@ def run_backtest(returns_df, weights_df, transaction_costs=0.0, slippage=0.0,
                     )
                 _trade = (weights - w_shifted_filled).abs()
                 _participation = (_trade * _prices / _adv_aligned).fillna(0.0)
-                _ratio = (_participation / float(max_participation)).clip(
-                    lower=0.0, upper=1.0
-                ).to_numpy(dtype=float)
+                _ratio = (
+                    (_participation / float(max_participation))
+                    .clip(lower=0.0, upper=1.0)
+                    .to_numpy(dtype=float)
+                )
                 # Effective slippage per unit of turnover: base rate scaled by
                 # (1 + participation_ratio), so a trade that exhausts the entire
                 # ADV budget pays twice the base slippage.
@@ -233,13 +246,16 @@ def run_backtest(returns_df, weights_df, transaction_costs=0.0, slippage=0.0,
                 cumulative_returns = cumulative_returns_arr
         except Exception:
             cumulative_returns = np.ones(len(portfolio_returns_filled))
-    results = pd.DataFrame({
-        'returns': portfolio_returns,
-        'gross_return': gross_returns.fillna(0.0),
-        'cost_drag': cost_drag.fillna(0.0),
-        'slippage_drag': slippage_drag.fillna(0.0),
-        'cumulative': cumulative_returns
-    }, index=common_idx)
+    results = pd.DataFrame(
+        {
+            "returns": portfolio_returns,
+            "gross_return": gross_returns.fillna(0.0),
+            "cost_drag": cost_drag.fillna(0.0),
+            "slippage_drag": slippage_drag.fillna(0.0),
+            "cumulative": cumulative_returns,
+        },
+        index=common_idx,
+    )
     # Final sanitization: single finite-repair pass over the result buffer.
     # Every non-finite entry (NaN, inf, -inf) becomes 0.0, preserving
     # index/columns/dtypes/values exactly — provably identical to

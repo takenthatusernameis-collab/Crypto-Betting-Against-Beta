@@ -62,9 +62,7 @@ def trade_attribution(backtest: pd.DataFrame) -> pd.DataFrame:
     if "returns" in backtest.columns:
         frame["net_return"] = _finite_series(backtest["returns"], idx)
     else:
-        frame["net_return"] = (
-            frame["gross_return"] - frame["cost_drag"] - frame["slippage_drag"]
-        )
+        frame["net_return"] = frame["gross_return"] - frame["cost_drag"] - frame["slippage_drag"]
         frame["net_return"] = _finite_series(frame["net_return"], idx)
 
     return frame[ATTRIBUTION_COLUMNS]
@@ -96,7 +94,11 @@ def _finite_sum(values) -> float:
 
 def attribution_totals(attribution_df: pd.DataFrame) -> dict:
     """Aggregate an attribution frame into scalar totals."""
-    if attribution_df is None or not isinstance(attribution_df, pd.DataFrame) or attribution_df.empty:
+    if (
+        attribution_df is None
+        or not isinstance(attribution_df, pd.DataFrame)
+        or attribution_df.empty
+    ):
         return {
             "gross_return": 0.0,
             "cost_drag": 0.0,

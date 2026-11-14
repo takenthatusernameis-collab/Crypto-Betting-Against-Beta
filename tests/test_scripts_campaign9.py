@@ -27,7 +27,9 @@ SCRIPTS = REPO_ROOT / "scripts"
 FIXTURES = REPO_ROOT / "tests" / "fixtures"
 
 
-def _run(script: Path, args: list[str], *, cwd: Path | None = None, timeout: int = 180) -> subprocess.CompletedProcess:
+def _run(
+    script: Path, args: list[str], *, cwd: Path | None = None, timeout: int = 180
+) -> subprocess.CompletedProcess:
     env = dict(os.environ)
     env["PYTHONPATH"] = os.pathsep.join(
         p for p in (str(REPO_ROOT), os.environ.get("PYTHONPATH", "")) if p
@@ -56,6 +58,7 @@ def _make_returns(rows: int = 300) -> pd.DataFrame:
 # scripts/bab_backtest_report.py
 # ---------------------------------------------------------------------------
 
+
 class TestBabBacktestReportCampaign9:
     SCRIPT = SCRIPTS / "bab_backtest_report.py"
 
@@ -65,7 +68,15 @@ class TestBabBacktestReportCampaign9:
         Fix: use _REPO_ROOT. Run from /tmp with relative fixture path resolved via repo root."""
         result = _run(
             self.SCRIPT,
-            ["--data-source", "tests/fixtures/real_data_defects.csv", "--beta-window", "3", "--min-observations", "2", "--json"],
+            [
+                "--data-source",
+                "tests/fixtures/real_data_defects.csv",
+                "--beta-window",
+                "3",
+                "--min-observations",
+                "2",
+                "--json",
+            ],
             cwd=Path("/tmp"),
         )
         assert result.returncode == 0, f"stdout={result.stdout}\nstderr={result.stderr}"
@@ -113,7 +124,14 @@ class TestBabBacktestReportCampaign9:
         env["PYTHONPATH"] = str(REPO_ROOT)
         # Run in-process via -c to test module contract
         code = "import sys; sys.path.insert(0,'.'); from scripts.bab_backtest_report import main; rc=main(['--json']); print('RC',rc)"
-        r = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, cwd=str(REPO_ROOT), env=env, timeout=120)
+        r = subprocess.run(
+            [sys.executable, "-c", code],
+            capture_output=True,
+            text=True,
+            cwd=str(REPO_ROOT),
+            env=env,
+            timeout=120,
+        )
         assert r.returncode == 0, r.stderr
         assert "RC 0" in r.stdout
 
@@ -124,7 +142,13 @@ class TestBabBacktestReportCampaign9:
             "m=_sanitize_metrics({'a': float('nan'), 'b': float('inf'), 'c': -float('inf'), 'd': 1.5, 'e': 'x', 'f': True}); "
             "print(m['a'], m['b'], m['c'], m['d'], m['e'], m['f'])"
         )
-        r = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, cwd=str(REPO_ROOT), timeout=30)
+        r = subprocess.run(
+            [sys.executable, "-c", code],
+            capture_output=True,
+            text=True,
+            cwd=str(REPO_ROOT),
+            timeout=30,
+        )
         assert r.returncode == 0, r.stderr
         parts = r.stdout.strip().split()
         assert parts[0] == "0.0" and parts[1] == "0.0" and parts[2] == "0.0" and parts[3] == "1.5"
@@ -136,7 +160,13 @@ class TestBabBacktestReportCampaign9:
             "s=_dumps_json({'x': float('nan'), 'y': [float('inf')]}); "
             "print('NaN' in s, 'Infinity' in s); json.loads(s)"
         )
-        r = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, cwd=str(REPO_ROOT), timeout=30)
+        r = subprocess.run(
+            [sys.executable, "-c", code],
+            capture_output=True,
+            text=True,
+            cwd=str(REPO_ROOT),
+            timeout=30,
+        )
         assert r.returncode == 0, r.stderr
         assert "False False" in r.stdout
 
@@ -150,13 +180,27 @@ class TestBabBacktestReportCampaign9:
 # scripts/load_real_bab_example.py
 # ---------------------------------------------------------------------------
 
+
 class TestLoadRealBabExampleCampaign9:
     SCRIPT = SCRIPTS / "load_real_bab_example.py"
 
     def test_runs_on_returns_fixture(self, tmp_path: Path):
         csv = tmp_path / "r.csv"
         _make_returns(300).to_csv(csv)
-        result = _run(self.SCRIPT, [str(csv), "--benchmark", "BTC", "--min-rows", "30", "--lookback", "60", "--quantile", "0.3"])
+        result = _run(
+            self.SCRIPT,
+            [
+                str(csv),
+                "--benchmark",
+                "BTC",
+                "--min-rows",
+                "30",
+                "--lookback",
+                "60",
+                "--quantile",
+                "0.3",
+            ],
+        )
         assert result.returncode == 0, f"stdout={result.stdout}\nstderr={result.stderr}"
         assert "cumulative_return=" in result.stdout
         assert "periods=" in result.stdout
@@ -167,7 +211,19 @@ class TestLoadRealBabExampleCampaign9:
                 assert math.isfinite(val)
 
     def test_runs_from_prices_flag(self):
-        result = _run(self.SCRIPT, [str(FIXTURES / "real_market_prices.csv"), "--from-prices", "--benchmark", "BTC", "--min-rows", "30", "--lookback", "60"])
+        result = _run(
+            self.SCRIPT,
+            [
+                str(FIXTURES / "real_market_prices.csv"),
+                "--from-prices",
+                "--benchmark",
+                "BTC",
+                "--min-rows",
+                "30",
+                "--lookback",
+                "60",
+            ],
+        )
         assert result.returncode == 0, f"stdout={result.stdout}\nstderr={result.stderr}"
         assert "cumulative_return=" in result.stdout
 
@@ -186,23 +242,51 @@ class TestLoadRealBabExampleCampaign9:
         bad.write_text("x,y\n1,2\n")
         result = _run(self.SCRIPT, [str(bad), "--benchmark", "BTC"])
         assert result.returncode != 0
-        assert "failed" in (result.stdout + result.stderr).lower() or "Error" in (result.stdout + result.stderr)
+        assert "failed" in (result.stdout + result.stderr).lower() or "Error" in (
+            result.stdout + result.stderr
+        )
 
     def test_deterministic_output_on_same_input(self):
-        args = [str(FIXTURES / "real_market_prices.csv"), "--from-prices", "--benchmark", "BTC", "--min-rows", "30", "--lookback", "60"]
+        args = [
+            str(FIXTURES / "real_market_prices.csv"),
+            "--from-prices",
+            "--benchmark",
+            "BTC",
+            "--min-rows",
+            "30",
+            "--lookback",
+            "60",
+        ]
         r1 = _run(self.SCRIPT, args)
         r2 = _run(self.SCRIPT, args)
         assert r1.returncode == 0 and r2.returncode == 0, r1.stderr
         assert r1.stdout == r2.stdout
 
     def test_universe_override(self):
-        result = _run(self.SCRIPT, [str(FIXTURES / "real_market_prices.csv"), "--from-prices", "--benchmark", "BTC", "--min-rows", "30", "--lookback", "60", "--universe", "ETH", "SOL", "BNB"])
+        result = _run(
+            self.SCRIPT,
+            [
+                str(FIXTURES / "real_market_prices.csv"),
+                "--from-prices",
+                "--benchmark",
+                "BTC",
+                "--min-rows",
+                "30",
+                "--lookback",
+                "60",
+                "--universe",
+                "ETH",
+                "SOL",
+                "BNB",
+            ],
+        )
         assert result.returncode == 0, f"stdout={result.stdout}\nstderr={result.stderr}"
 
 
 # ---------------------------------------------------------------------------
 # scripts/generate_real_market_fixture.py
 # ---------------------------------------------------------------------------
+
 
 class TestGenerateRealMarketFixtureCampaign9:
     SCRIPT = SCRIPTS / "generate_real_market_fixture.py"
@@ -213,7 +297,13 @@ class TestGenerateRealMarketFixtureCampaign9:
             "from scripts import generate_real_market_fixture as g; "
             "print(g.ASSETS[0], g.DELISTED, g.SEED, g.GAP_DATE, g.N_DAYS)"
         )
-        r = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, cwd=str(REPO_ROOT), timeout=30)
+        r = subprocess.run(
+            [sys.executable, "-c", code],
+            capture_output=True,
+            text=True,
+            cwd=str(REPO_ROOT),
+            timeout=30,
+        )
         assert r.returncode == 0, r.stderr
         assert "BTC DEL 20261028 2021-09-17 400" in r.stdout
 
@@ -228,10 +318,24 @@ import scripts.generate_real_market_fixture as g
 g.OUT = r'{out}'
 g.main()
 """
-        r1 = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, cwd=str(REPO_ROOT), env=env, timeout=60)
+        r1 = subprocess.run(
+            [sys.executable, "-c", code],
+            capture_output=True,
+            text=True,
+            cwd=str(REPO_ROOT),
+            env=env,
+            timeout=60,
+        )
         assert r1.returncode == 0, r1.stderr
         b1 = out.read_bytes()
-        r2 = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, cwd=str(REPO_ROOT), env=env, timeout=60)
+        r2 = subprocess.run(
+            [sys.executable, "-c", code],
+            capture_output=True,
+            text=True,
+            cwd=str(REPO_ROOT),
+            env=env,
+            timeout=60,
+        )
         assert r2.returncode == 0, r2.stderr
         assert out.read_bytes() == b1
         df = pd.read_csv(out)
@@ -255,6 +359,7 @@ g.main()
 # scripts/perf_bench.py
 # ---------------------------------------------------------------------------
 
+
 class TestPerfBenchCampaign9:
     SCRIPT = SCRIPTS / "perf_bench.py"
 
@@ -264,7 +369,13 @@ class TestPerfBenchCampaign9:
             "from scripts.perf_bench import _make_returns; "
             "df=_make_returns(10, 5); print(df.shape, list(df.columns)[0])"
         )
-        r = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, cwd=str(REPO_ROOT), timeout=60)
+        r = subprocess.run(
+            [sys.executable, "-c", code],
+            capture_output=True,
+            text=True,
+            cwd=str(REPO_ROOT),
+            timeout=60,
+        )
         assert r.returncode == 0, r.stderr
         assert "(10, 5)" in r.stdout and "BTC" in r.stdout
 
@@ -274,7 +385,13 @@ class TestPerfBenchCampaign9:
             "from scripts.perf_bench import _time; "
             "t=_time(lambda: sum(range(100)), repeats=3); print(t >= 0)"
         )
-        r = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, cwd=str(REPO_ROOT), timeout=30)
+        r = subprocess.run(
+            [sys.executable, "-c", code],
+            capture_output=True,
+            text=True,
+            cwd=str(REPO_ROOT),
+            timeout=30,
+        )
         assert r.returncode == 0, r.stderr
         assert "True" in r.stdout
 

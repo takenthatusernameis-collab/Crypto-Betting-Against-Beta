@@ -19,8 +19,13 @@ class TestRunBacktestAlignment:
         returns = pd.DataFrame({"A": [0.01, 0.02], "B": [0.02, 0.01]})
         weights = pd.DataFrame({"C": [0.5, -0.5]}, index=returns.index)
         res = backtest.run_backtest(returns, weights)
-        assert set(res.columns) == {"returns", "cumulative", "gross_return", "cost_drag",
-                                    "slippage_drag"}
+        assert set(res.columns) == {
+            "returns",
+            "cumulative",
+            "gross_return",
+            "cost_drag",
+            "slippage_drag",
+        }
         assert np.all(np.isfinite(res["cumulative"].to_numpy()))
 
     def test_portfolio_returns_fallback(self):

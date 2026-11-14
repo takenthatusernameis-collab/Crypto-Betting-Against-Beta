@@ -19,11 +19,13 @@ def test_coerce_to_datetime_scalar_large_ns_us():
 
 
 def test_promote_long_format_pivot():
-    df = pd.DataFrame({
-        "symbol": ["BTC", "BTC", "ETH", "ETH"],
-        "date": ["2020-01-01", "2020-01-02", "2020-01-01", "2020-01-02"],
-        "close": [100, 101, 10, 11]
-    })
+    df = pd.DataFrame(
+        {
+            "symbol": ["BTC", "BTC", "ETH", "ETH"],
+            "date": ["2020-01-01", "2020-01-02", "2020-01-01", "2020-01-02"],
+            "close": [100, 101, 10, 11],
+        }
+    )
     out = dl._detect_and_normalize_exchange_format(df)
     assert isinstance(out, pd.DataFrame)
 
@@ -35,6 +37,6 @@ def test_strip_units_euro_decimal():
 
 def test_validate_quality_campaign(tmp_path):
     dates = pd.date_range("2020-01-01", periods=5)
-    df = pd.DataFrame({"BTC": [0.01,0.02,-0.01,0.0,0.01]}, index=dates)
+    df = pd.DataFrame({"BTC": [0.01, 0.02, -0.01, 0.0, 0.01]}, index=dates)
     out = dl.validate_returns_dataframe(df)
     assert isinstance(out, pd.DataFrame)

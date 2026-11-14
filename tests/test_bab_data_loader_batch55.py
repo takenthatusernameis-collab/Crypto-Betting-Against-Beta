@@ -1,3 +1,4 @@
+import contextlib
 from pathlib import Path
 
 import numpy as np
@@ -21,7 +22,9 @@ class _SetIndexRaisesOnce:
 
 
 def test_promote_name_match_set_index_raises_falls_through(monkeypatch):
-    monkeypatch.setattr(pd.DataFrame, "set_index", _SetIndexRaisesOnce(pd.DataFrame.set_index, raise_on_call=1))
+    monkeypatch.setattr(
+        pd.DataFrame, "set_index", _SetIndexRaisesOnce(pd.DataFrame.set_index, raise_on_call=1)
+    )
     df = pd.DataFrame({"date": ["2024-01-01", "2024-01-02"], "BTC": [0.1, 0.2], "ETH": [0.2, 0.3]})
     out = mod._promote_datetime_column(df)
     assert isinstance(out, pd.DataFrame)
@@ -61,11 +64,13 @@ def test_promote_unnamed_tz_aware_coerced_normalized(monkeypatch):
 
 
 def test_promote_last_resort_tz_aware_returns_df():
-    df = pd.DataFrame({
-        "BTC": [0.1, 0.2],
-        "ETH": [0.2, 0.3],
-        "note": ["2024-01-01T00:00:00+00:00", "2024-01-02T00:00:00+00:00"],
-    })
+    df = pd.DataFrame(
+        {
+            "BTC": [0.1, 0.2],
+            "ETH": [0.2, 0.3],
+            "note": ["2024-01-01T00:00:00+00:00", "2024-01-02T00:00:00+00:00"],
+        }
+    )
     out = mod._promote_datetime_column(df)
     assert isinstance(out, pd.DataFrame)
     assert "BTC" in out.columns and "ETH" in out.columns
@@ -119,25 +124,23 @@ def test_load_csv_stateful_empty_defensive(tmp_path, monkeypatch):
                         return super().__getattribute__("empty")
                     return super().__getattribute__(name)
 
-            try:
+            with contextlib.suppress(Exception):
                 df.__class__ = type("_D", (FlipEmpty, type(df)), {})
-            except Exception:
-                pass
         return df
 
     monkeypatch.setattr(mod.pd, "read_csv", fake_read_csv)
-    try:
+    with contextlib.suppress(mod.BABDataError):
         mod.load_returns_from_csv(p, benchmark="BTC")
-    except mod.BABDataError:
-        pass
 
 
 def test_exchange_epoch_format_normalization():
-    df = pd.DataFrame({
-        "timestamp": [1704067200000, 1704153600000],
-        "BTC": [100.0, 101.0],
-        "ETH": [50.0, 51.0],
-    })
+    df = pd.DataFrame(
+        {
+            "timestamp": [1704067200000, 1704153600000],
+            "BTC": [100.0, 101.0],
+            "ETH": [50.0, 51.0],
+        }
+    )
     out = mod.load_prices(df, benchmark="BTC")
     assert isinstance(out.index, pd.DatetimeIndex)
     assert out.index.tz is None
@@ -161,10 +164,12 @@ def test_promote_last_resort_set_index_exception(monkeypatch):
         return real_set_index(self, *args, **kwargs)
 
     monkeypatch.setattr(pd.DataFrame, "set_index", bad_set_index)
-    df = pd.DataFrame({
-        "BTC": [0.1, 0.2],
-        "ETH": [0.2, 0.3],
-        "note": ["2024-01-01", "2024-01-02"],
-    })
+    df = pd.DataFrame(
+        {
+            "BTC": [0.1, 0.2],
+            "ETH": [0.2, 0.3],
+            "note": ["2024-01-01", "2024-01-02"],
+        }
+    )
     out = mod._promote_datetime_column(df)
     assert isinstance(out, pd.DataFrame)

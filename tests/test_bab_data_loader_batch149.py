@@ -9,6 +9,7 @@ rejected downstream (non-datetime object) preserving semantics.
 
 No sys.settrace; coverage records execution in canonical aggregate.
 """
+
 from __future__ import annotations
 
 import pandas as pd
@@ -45,8 +46,6 @@ def test_normalize_index_object_dtype_evil_scalar_hits_334_335():
 
 
 def test_load_returns_public_path_evil_scalar_hits_334_335():
-    df = pd.DataFrame(
-        {"date": [pd.Timestamp("2020-01-01"), _EvilScalar()], "BTC": [1.0, 2.0]}
-    )
+    df = pd.DataFrame({"date": [pd.Timestamp("2020-01-01"), _EvilScalar()], "BTC": [1.0, 2.0]})
     with pytest.raises((dl.BABDataError, ValueError, TypeError, Exception)):
         dl.load_returns(df, benchmark="BTC")

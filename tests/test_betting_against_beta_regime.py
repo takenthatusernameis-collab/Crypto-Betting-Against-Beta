@@ -3,8 +3,7 @@
 import numpy as np
 import pandas as pd
 
-from strategies.betting_against_beta import BABConfig, BABStrategy
-from strategies.betting_against_beta import regime
+from strategies.betting_against_beta import BABConfig, BABStrategy, regime
 
 
 class TestVolatilityRegimes:
@@ -63,9 +62,7 @@ class TestTrendMeanRevert:
     def test_zscore_mean_revert(self):
         dates = pd.date_range("2023-01-01", periods=150)
         np.random.seed(5)
-        returns = pd.DataFrame(
-            {"BTC": np.random.normal(0, 0.01, 150)}, index=dates
-        )
+        returns = pd.DataFrame({"BTC": np.random.normal(0, 0.01, 150)}, index=dates)
         signals = regime.mean_reversion_zscore(returns, window=30, z_threshold=1.5)
         assert isinstance(signals, pd.DataFrame)
 
@@ -248,7 +245,7 @@ class TestRegimeEdgeCases:
         assert "BTC" not in factors.columns
 
 
-class TestRegimeStrategyIntegration:
+class TestRegimeConditionalScaling:
     def test_strategy_with_regime_filter(self):
         cfg = BABConfig(regime_filter=True, synthetic_n_days=150)
         strat = BABStrategy(cfg)
@@ -263,9 +260,7 @@ class TestRegimeStrategyIntegration:
             {"BTC": np.random.normal(0, 0.01, 100), "ETH": np.random.normal(0, 0.012, 100)},
             index=dates,
         )
-        signals = pd.DataFrame(
-            {"BTC": np.ones(100) * 0.1, "ETH": np.ones(100) * -0.1}, index=dates
-        )
+        signals = pd.DataFrame({"BTC": np.ones(100) * 0.1, "ETH": np.ones(100) * -0.1}, index=dates)
         scaled = regime.apply_regime_scaling(signals, returns, scale_high_vol=0.5)
         assert isinstance(scaled, pd.DataFrame)
         assert scaled.shape == signals.shape

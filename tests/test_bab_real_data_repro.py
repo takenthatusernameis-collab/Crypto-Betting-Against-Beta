@@ -7,6 +7,7 @@ Covers the CLI end-to-end pipeline with the committed fixture
 - round-trip ``load_returns`` -> ``BABStrategy.run`` is finite + deterministic
 - repeated ``--output`` writes are byte-for-byte identical
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -25,7 +26,7 @@ REQUIRED_KEYS = ("final_cumulative", "periods", "benchmark", "universe")
 
 def _run_cli_with_output(argv, tmp_path):
     out = tmp_path / "out.json"
-    rc = main(list(argv) + ["--output", str(out)])
+    rc = main([*list(argv), "--output", str(out)])
     return rc, out
 
 
@@ -49,7 +50,10 @@ class TestCliReturnsJsonFixture:
         rc1, out1 = _run_cli_with_output(["--data", FIXTURE, "--benchmark", "BTC"], tmp_path)
         rc2, out2 = _run_cli_with_output(["--data", FIXTURE, "--benchmark", "BTC"], tmp_path)
         assert rc1 == rc2 == 0
-        assert hashlib.sha256(out1.read_bytes()).hexdigest() == hashlib.sha256(out2.read_bytes()).hexdigest()
+        assert (
+            hashlib.sha256(out1.read_bytes()).hexdigest()
+            == hashlib.sha256(out2.read_bytes()).hexdigest()
+        )
 
     def test_from_prices_on_returns_fixture_runs_cleanly(self):
         # returns.json holds returns, not prices: load_prices treats the frame

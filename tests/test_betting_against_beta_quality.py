@@ -16,7 +16,9 @@ class TestDataQualityReport:
         assert rep.get("error") == "invalid_input"
 
     def test_basic_dataframe(self):
-        df = pd.DataFrame({"BTC": [0.01, 0.02, -0.01, 0.03, 0.04]}, index=pd.date_range("2023-01-01", periods=5))
+        df = pd.DataFrame(
+            {"BTC": [0.01, 0.02, -0.01, 0.03, 0.04]}, index=pd.date_range("2023-01-01", periods=5)
+        )
         rep = quality.data_quality_report(df)
         assert rep["shape"]["rows"] == 5
         assert rep["shape"]["cols"] == 1
@@ -24,8 +26,12 @@ class TestDataQualityReport:
         assert len(rep["columns"]) == 1
 
     def test_datetime_index_with_gaps(self):
-        dates = [pd.Timestamp("2023-01-01"), pd.Timestamp("2023-01-02"),
-                pd.Timestamp("2023-01-15"), pd.Timestamp("2023-01-16")]
+        dates = [
+            pd.Timestamp("2023-01-01"),
+            pd.Timestamp("2023-01-02"),
+            pd.Timestamp("2023-01-15"),
+            pd.Timestamp("2023-01-16"),
+        ]
         df = pd.DataFrame({"BTC": [0.01, 0.02, -0.01, 0.03]}, index=pd.DatetimeIndex(dates))
         rep = quality.data_quality_report(df)
         assert rep["index"]["is_datetime"] is True
@@ -105,8 +111,12 @@ class TestDetectGaps:
         assert res["count"] == 0
 
     def test_detects_large_gaps(self):
-        dates = [pd.Timestamp("2023-01-01"), pd.Timestamp("2023-01-02"),
-                pd.Timestamp("2023-01-15"), pd.Timestamp("2023-01-16")]
+        dates = [
+            pd.Timestamp("2023-01-01"),
+            pd.Timestamp("2023-01-02"),
+            pd.Timestamp("2023-01-15"),
+            pd.Timestamp("2023-01-16"),
+        ]
         df = pd.DataFrame({"BTC": [0.01, 0.02, -0.01, 0.03]}, index=pd.DatetimeIndex(dates))
         res = quality.detect_gaps(df)
         assert isinstance(res["count"], int)
@@ -155,17 +165,12 @@ class TestDetectStaleData:
 
 class TestDetectVolumeAnomalies:
     def test_detects_volume_spikes(self):
-        df = pd.DataFrame({
-            "BTC": [0.01] * 10,
-            "volume": [1000] * 9 + [10000]
-        })
+        df = pd.DataFrame({"BTC": [0.01] * 10, "volume": [1000] * 9 + [10000]})
         res = quality.detect_volume_anomalies(df)
         assert isinstance(res, dict)
 
     def test_custom_volume_cols(self):
-        df = pd.DataFrame({
-            "vol": [100, 200, 150, 10000]
-        })
+        df = pd.DataFrame({"vol": [100, 200, 150, 10000]})
         res = quality.detect_volume_anomalies(df, volume_cols=["vol"], threshold=5.0)
         assert "vol" in res
 

@@ -1,4 +1,5 @@
 """More cross-emitter invariant tests."""
+
 import numpy as np
 import pandas as pd
 
@@ -17,7 +18,7 @@ class TestBetaCrossEmitterMore:
         s = beta.rolling_beta(pd.Series(asset), pd.Series(bench), window=25, min_obs=10)
         assert np.all(np.isnan(s))
         # dataframe
-        df = pd.DataFrame({'BTC': bench, 'ETH': asset, 'LTC': 0.5*asset})
-        r = beta.calculate_rolling_beta(df, 'BTC', window=25, min_obs=10)
-        assert np.all(np.isnan(r['ETH'].values))
-        assert np.all(np.isnan(r['LTC'].values))
+        df = pd.DataFrame({"BTC": bench, "ETH": asset, "LTC": 0.5 * asset})
+        r = beta.calculate_rolling_beta(df, "BTC", window=25, min_obs=10)
+        assert np.all(np.isnan(r["ETH"].values))
+        assert np.all(np.isnan(r["LTC"].values))

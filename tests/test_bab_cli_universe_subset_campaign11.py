@@ -5,6 +5,7 @@ weights/final_cumulative to full universe; strategy resolved config.universe but
 never subset returns, so beta/signals/weights ran on all data columns. Fixed by
 subsetting returns to effective tradable universe + benchmark in strategy.run().
 """
+
 from __future__ import annotations
 
 import json
@@ -36,7 +37,9 @@ def test_strategy_run_respects_universe_subset():
 
 def test_strategy_universe_subset_expanded_fixture():
     df = load_prices(str(REPO / EXPANDED), benchmark="BTC")
-    sub = BABStrategy(config=BABConfig(universe=["ETH", "SOL", "BNB"], benchmark="BTC")).run(returns_df=df)
+    sub = BABStrategy(config=BABConfig(universe=["ETH", "SOL", "BNB"], benchmark="BTC")).run(
+        returns_df=df
+    )
     assert set(sub.weights.columns) == {"BTC", "ETH", "SOL", "BNB"}, list(sub.weights.columns)
     assert math.isfinite(float(sub.backtest["cumulative"].iloc[-1]))
 
@@ -44,10 +47,25 @@ def test_strategy_universe_subset_expanded_fixture():
 def test_cli_universe_subset_real_data_json(tmp_path):
     out = tmp_path / "o.json"
     r = subprocess.run(
-        [sys.executable, "-m", "strategies.betting_against_beta.cli",
-         "--data", REAL, "--from-prices", "--benchmark", "BTC",
-         "--universe", "ETH", "SOL", "--output", str(out)],
-        cwd=str(REPO), capture_output=True, text=True, timeout=120,
+        [
+            sys.executable,
+            "-m",
+            "strategies.betting_against_beta.cli",
+            "--data",
+            REAL,
+            "--from-prices",
+            "--benchmark",
+            "BTC",
+            "--universe",
+            "ETH",
+            "SOL",
+            "--output",
+            str(out),
+        ],
+        cwd=str(REPO),
+        capture_output=True,
+        text=True,
+        timeout=120,
     )
     assert r.returncode == 0, f"rc={r.returncode}\n{r.stderr}\n{r.stdout}"
     assert "Traceback" not in (r.stdout + r.stderr)
@@ -60,19 +78,48 @@ def test_cli_universe_subset_real_data_json(tmp_path):
 def test_cli_universe_subset_expanded_dry_run_and_run(tmp_path):
     # dry-run valid
     r = subprocess.run(
-        [sys.executable, "-m", "strategies.betting_against_beta.cli",
-         "--dry-run", "--data", EXPANDED, "--from-prices", "--benchmark", "BTC",
-         "--universe", "ETH", "SOL"],
-        cwd=str(REPO), capture_output=True, text=True, timeout=120,
+        [
+            sys.executable,
+            "-m",
+            "strategies.betting_against_beta.cli",
+            "--dry-run",
+            "--data",
+            EXPANDED,
+            "--from-prices",
+            "--benchmark",
+            "BTC",
+            "--universe",
+            "ETH",
+            "SOL",
+        ],
+        cwd=str(REPO),
+        capture_output=True,
+        text=True,
+        timeout=120,
     )
     assert r.returncode == 0, f"rc={r.returncode}\n{r.stderr}\n{r.stdout}"
     assert "Traceback" not in (r.stdout + r.stderr)
     out = tmp_path / "o.json"
     r = subprocess.run(
-        [sys.executable, "-m", "strategies.betting_against_beta.cli",
-         "--data", EXPANDED, "--from-prices", "--benchmark", "BTC",
-         "--universe", "ETH", "SOL", "--output", str(out)],
-        cwd=str(REPO), capture_output=True, text=True, timeout=120,
+        [
+            sys.executable,
+            "-m",
+            "strategies.betting_against_beta.cli",
+            "--data",
+            EXPANDED,
+            "--from-prices",
+            "--benchmark",
+            "BTC",
+            "--universe",
+            "ETH",
+            "SOL",
+            "--output",
+            str(out),
+        ],
+        cwd=str(REPO),
+        capture_output=True,
+        text=True,
+        timeout=120,
     )
     assert r.returncode == 0, f"rc={r.returncode}\n{r.stderr}\n{r.stdout}"
     d = json.loads(out.read_text())

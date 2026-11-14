@@ -38,16 +38,24 @@ EXPECTED_KEYS = {"final_cumulative", "periods", "benchmark", "universe"}
 def _run_bab_example(argv):
     env = {**__import__("os").environ, "PYTHONPATH": str(REPO)}
     return subprocess.run(
-        [sys.executable, "-m", "scripts.load_real_bab_example"] + argv,
-        capture_output=True, text=True, timeout=180, cwd=str(REPO), env=env,
+        [sys.executable, "-m", "scripts.load_real_bab_example", *argv],
+        capture_output=True,
+        text=True,
+        timeout=180,
+        cwd=str(REPO),
+        env=env,
     )
 
 
 def _run_cli(argv):
     env = {**__import__("os").environ, "PYTHONPATH": str(REPO)}
     return subprocess.run(
-        [sys.executable, "-m", "strategies.betting_against_beta.cli"] + argv,
-        capture_output=True, text=True, timeout=180, cwd=str(REPO), env=env,
+        [sys.executable, "-m", "strategies.betting_against_beta.cli", *argv],
+        capture_output=True,
+        text=True,
+        timeout=180,
+        cwd=str(REPO),
+        env=env,
     )
 
 
@@ -58,7 +66,7 @@ def _assert_no_traceback(r):
 
 def _assert_finite_json(path):
     payload = json.loads(path.read_text())
-    assert EXPECTED_KEYS <= set(payload.keys()), payload.keys()
+    assert set(payload.keys()) >= EXPECTED_KEYS, payload.keys()
     for k, v in payload.items():
         if isinstance(v, float):
             assert math.isfinite(v), f"non-finite JSON value {k}={v}"
@@ -80,7 +88,7 @@ class TestConsoleScriptReportingSchema:
     )
     def test_output_json_valid_finite_keys(self, tmp_path, argv, expect_benchmark, expect_periods):
         out = tmp_path / "out.json"
-        r = _run_bab_example(argv + ["--output", str(out)])
+        r = _run_bab_example([*argv, "--output", str(out)])
         assert r.returncode == 0, (r.returncode, r.stdout, r.stderr)
         assert r.stderr == "", r.stderr
         assert "cumulative_return=" in r.stdout
@@ -113,7 +121,9 @@ class TestConsoleScriptDeterminism:
         outs, cumulatives, periods = [], [], []
         for _ in range(2):
             out = tmp_path / f"out{len(outs)}.json"
-            r = _run_bab_example([REAL, "--from-prices", "--benchmark", "BTC", "--output", str(out)])
+            r = _run_bab_example(
+                [REAL, "--from-prices", "--benchmark", "BTC", "--output", str(out)]
+            )
             assert r.returncode == 0, (r.returncode, r.stdout, r.stderr)
             assert r.stderr == "", r.stderr
             outs.append(r.stdout)
@@ -168,7 +178,7 @@ class TestConsoleScriptInProcessParity:
     )
     def test_console_vs_in_process_parity(self, tmp_path, argv, expect_cum, expect_periods):
         out = tmp_path / "out.json"
-        r = _run_bab_example(argv + ["--output", str(out)])
+        r = _run_bab_example([*argv, "--output", str(out)])
         assert r.returncode == 0, (r.returncode, r.stdout, r.stderr)
         console = _assert_finite_json(out)
         assert console["periods"] == expect_periods
@@ -190,7 +200,7 @@ class TestConsoleScriptInProcessParity:
         )
         res = strat.run(returns_df=rets)
         bt = getattr(res, "backtest", None)
-        ip_periods = int(len(bt)) if bt is not None and hasattr(bt, "__len__") else 0
+        ip_periods = len(bt) if bt is not None and hasattr(bt, "__len__") else 0
         ip_cum = None
         if bt is not None and hasattr(bt, "columns") and "cumulative" in bt.columns:
             try:
@@ -200,7 +210,8 @@ class TestConsoleScriptInProcessParity:
         assert console["periods"] == ip_periods, (console, ip_periods)
         assert ip_cum is not None
         assert math.isclose(console["final_cumulative"], ip_cum, rel_tol=1e-6, abs_tol=1e-9), (
-            console["final_cumulative"], ip_cum
+            console["final_cumulative"],
+            ip_cum,
         )
 
 
@@ -208,9 +219,10 @@ class TestInProcessWeightsNeutralityShorting:
     """C17 probe 12: portfolio weights dollar-neutral (sum ~ 0) with shorting coverage."""
 
     def test_weights_dollar_neutral_and_shorting(self):
+        import numpy as np
+
         from strategies.betting_against_beta import BABStrategy
         from strategies.betting_against_beta.data_loader import load_prices
-        import numpy as np
 
         rets = load_prices(REAL, benchmark="BTC", min_rows=30)
         strat = BABStrategy(
@@ -227,6 +239,8 @@ class TestInProcessWeightsNeutralityShorting:
         row_sums = wa.sum(axis=1)
         finite_sums = row_sums[np.isfinite(row_sums)]
         assert len(finite_sums) > 0
-        assert np.allclose(finite_sums, 0.0, atol=1e-6), f"weights not dollar-neutral: row sums {finite_sums[:5]}"
+        assert np.allclose(finite_sums, 0.0, atol=1e-6), (
+            f"weights not dollar-neutral: row sums {finite_sums[:5]}"
+        )
         assert (wa < 0).any(), "expected negative (short) weights present"
         assert wa.shape[1] == 8, f"expected 8 assets, got {wa.shape[1]}"

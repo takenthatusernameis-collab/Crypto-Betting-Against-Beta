@@ -21,6 +21,7 @@ def estimate_betas(returns_df, benchmark=None, window=90, min_obs=None, min_obse
 
 def rolling_beta(a, b, window=90, min_periods=None, min_obs=None):
     import pandas as pd
+
     if min_periods is not None and min_obs is None:
         min_obs = min_periods
     if min_obs is not None and window is not None and min_obs > window:
@@ -67,8 +68,6 @@ def rolling_beta(a, b, window=90, min_periods=None, min_obs=None):
                 return np.array([np.nan])
 
 
-
-
 def calculate_beta(asset_returns, benchmark_returns, min_obs=None):
     """Calculate beta of asset vs benchmark using OLS regression."""
     if asset_returns is None or benchmark_returns is None:
@@ -81,7 +80,9 @@ def calculate_beta(asset_returns, benchmark_returns, min_obs=None):
         x = None
         if len(a) != len(b):
             # Try to align as Series if different lengths
-            if isinstance(asset_returns, (pd.Series,)) or isinstance(benchmark_returns, (pd.Series,)):
+            if isinstance(asset_returns, (pd.Series,)) or isinstance(
+                benchmark_returns, (pd.Series,)
+            ):
                 try:
                     if isinstance(asset_returns, np.ndarray):
                         asset_returns = pd.Series(asset_returns)

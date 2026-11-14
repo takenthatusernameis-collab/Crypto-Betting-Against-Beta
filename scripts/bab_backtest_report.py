@@ -110,16 +110,18 @@ def build_parser() -> argparse.ArgumentParser:
 
 def _empty_summary() -> dict:
     """Return a sanitized, all-zero summary used when metrics cannot be computed."""
-    return _sanitize_metrics({
-        "final_cumulative": 1.0,
-        "total_return": 0.0,
-        "sharpe_ratio": 0.0,
-        "annualized_volatility": 0.0,
-        "max_drawdown": 0.0,
-        "turnover": 0.0,
-        "strategy_beta": 0.0,
-        "n_observations": 0,
-    })
+    return _sanitize_metrics(
+        {
+            "final_cumulative": 1.0,
+            "total_return": 0.0,
+            "sharpe_ratio": 0.0,
+            "annualized_volatility": 0.0,
+            "max_drawdown": 0.0,
+            "turnover": 0.0,
+            "strategy_beta": 0.0,
+            "n_observations": 0,
+        }
+    )
 
 
 def _safe_get_step(current, key, default=None):
@@ -258,7 +260,9 @@ def main(argv: list[str] | None = None) -> int:
         try:
             print(_dumps_json(payload))
         except Exception as exc:
-            print(_dumps_json({"error": f"serialization_failed: {exc}", "metrics": _empty_summary()}))
+            print(
+                _dumps_json({"error": f"serialization_failed: {exc}", "metrics": _empty_summary()})
+            )
             return 1
         return 0
 
@@ -269,16 +273,27 @@ def main(argv: list[str] | None = None) -> int:
         print("=" * 60)
         print(f"Universe: {', '.join(getattr(strategy.config, 'universe', []) or [])}")
         print(f"Benchmark: {getattr(strategy.config, 'benchmark', 'BTC')}")
-        print(f"Beta window: {getattr(strategy.config, 'beta_window', 90)} days (min {getattr(strategy.config, 'min_observations', 60)} obs)")
-        print(f"Long/Short quantiles: {getattr(strategy.config, 'long_quantile', 0.3)}/{getattr(strategy.config, 'short_quantile', 0.3)}")
+        print(
+            f"Beta window: {getattr(strategy.config, 'beta_window', 90)} days "
+            f"(min {getattr(strategy.config, 'min_observations', 60)} obs)"
+        )
+        print(
+            f"Long/Short quantiles: {getattr(strategy.config, 'long_quantile', 0.3)}/"
+            f"{getattr(strategy.config, 'short_quantile', 0.3)}"
+        )
         print(f"Rebalances: {rebalances}")
         print("-" * 60)
-        print(f"Final Cumulative: {summary['final_cumulative']:.4f}x ({summary['total_return']:.2%})")
+        print(
+            f"Final Cumulative: {summary['final_cumulative']:.4f}x ({summary['total_return']:.2%})"
+        )
         print(f"Sharpe Ratio (ann.): {summary['sharpe_ratio']:.4f}")
         print(f"Annualized Volatility: {summary['annualized_volatility']:.2%}")
         print(f"Max Drawdown: {summary['max_drawdown']:.2%}")
         print(f"Turnover (avg): {summary['turnover']:.4f}")
-        print(f"Strategy Beta vs {getattr(strategy.config, 'benchmark', 'BTC')}: {summary['strategy_beta']:.4f}")
+        print(
+            f"Strategy Beta vs {getattr(strategy.config, 'benchmark', 'BTC')}: "
+            f"{summary['strategy_beta']:.4f}"
+        )
         print(f"Observations: {summary['n_observations']}")
         print("=" * 60)
     except Exception as exc:

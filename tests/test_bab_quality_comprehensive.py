@@ -33,8 +33,12 @@ class TestDataQualityReport:
         assert "gaps" in rep["index"]
 
     def test_datetime_index_with_large_gaps(self):
-        dates = [pd.Timestamp("2023-01-01"), pd.Timestamp("2023-01-02"),
-                pd.Timestamp("2023-01-10"), pd.Timestamp("2023-01-11")]
+        dates = [
+            pd.Timestamp("2023-01-01"),
+            pd.Timestamp("2023-01-02"),
+            pd.Timestamp("2023-01-10"),
+            pd.Timestamp("2023-01-11"),
+        ]
         df = pd.DataFrame({"BTC": [0.01, 0.02, -0.01, 0.03]}, index=pd.DatetimeIndex(dates))
         rep = quality.data_quality_report(df)
         gaps = rep["index"]["gaps"]
@@ -55,10 +59,15 @@ class TestDataQualityReport:
         assert col["outliers"].get("zscore_outliers", 0) >= 1
 
     def test_outliers_iqr(self):
-        df = pd.DataFrame({"BTC": [-1.0, -0.5, 0, 0.01, 0.02, 0.03, 0.04, 0.05, 2.0, 3.0]})  # outliers
+        df = pd.DataFrame(
+            {"BTC": [-1.0, -0.5, 0, 0.01, 0.02, 0.03, 0.04, 0.05, 2.0, 3.0]}
+        )  # outliers
         rep = quality.data_quality_report(df)
         col = rep["columns"][0]
-        assert col["outliers"].get("iqr_outliers", 0) >= 1 or col["outliers"].get("zscore_outliers", 0) >= 0
+        assert (
+            col["outliers"].get("iqr_outliers", 0) >= 1
+            or col["outliers"].get("zscore_outliers", 0) >= 0
+        )
 
     def test_stale_consecutive(self):
         df = pd.DataFrame({"BTC": [0.01, 0.01, 0.01, 0.02]})
@@ -114,8 +123,12 @@ class TestDetectGaps:
         assert res["count"] == 0
 
     def test_detects_large_gaps(self):
-        dates = [pd.Timestamp("2023-01-01"), pd.Timestamp("2023-01-02"),
-                pd.Timestamp("2023-01-15"), pd.Timestamp("2023-01-16")]
+        dates = [
+            pd.Timestamp("2023-01-01"),
+            pd.Timestamp("2023-01-02"),
+            pd.Timestamp("2023-01-15"),
+            pd.Timestamp("2023-01-16"),
+        ]
         df = pd.DataFrame({"BTC": [0.01, 0.02, -0.01, 0.03]}, index=pd.DatetimeIndex(dates))
         res = quality.detect_gaps(df)
         assert isinstance(res["count"], int)
@@ -164,17 +177,12 @@ class TestDetectStaleData:
 
 class TestDetectVolumeAnomalies:
     def test_detects_volume_spikes(self):
-        df = pd.DataFrame({
-            "BTC": [0.01] * 10,
-            "volume": [1000] * 9 + [10000]
-        })
+        df = pd.DataFrame({"BTC": [0.01] * 10, "volume": [1000] * 9 + [10000]})
         res = quality.detect_volume_anomalies(df)
         assert isinstance(res, dict)
 
     def test_custom_volume_cols(self):
-        df = pd.DataFrame({
-            "vol": [100, 200, 150, 10000]
-        })
+        df = pd.DataFrame({"vol": [100, 200, 150, 10000]})
         res = quality.detect_volume_anomalies(df, volume_cols=["vol"], threshold=5.0)
         assert "vol" in res
 

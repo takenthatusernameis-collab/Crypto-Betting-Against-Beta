@@ -16,8 +16,8 @@ import pandas as pd
 import pytest
 
 from strategies.betting_against_beta.beta import calculate_rolling_beta
-from strategies.betting_against_beta.signals import generate_bab_signals
 from strategies.betting_against_beta.data import generate_synthetic_returns
+from strategies.betting_against_beta.signals import generate_bab_signals
 
 
 def _reference_generate_bab_signals(betas_df, long_quantile=0.3, short_quantile=0.3):
@@ -168,8 +168,7 @@ class TestGenerateBabSignalsPerformance:
     def test_large_universe_completes_in_reasonable_time(self, betas):
         _, elapsed = _time_it(generate_bab_signals, betas, 0.3, 0.3)
         assert elapsed < 30.0, (
-            f"generate_bab_signals took {elapsed:.2f}s for {betas.shape}; "
-            "performance regression"
+            f"generate_bab_signals took {elapsed:.2f}s for {betas.shape}; performance regression"
         )
 
     def test_signals_stage_perf_ceiling(self, betas):

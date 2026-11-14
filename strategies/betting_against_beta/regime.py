@@ -8,7 +8,9 @@ import pandas as pd
 from .errors import BABDataError
 
 
-def calculate_realized_volatility(returns: pd.DataFrame, window: int = 20, use_ewma: bool = False) -> pd.DataFrame:
+def calculate_realized_volatility(
+    returns: pd.DataFrame, window: int = 20, use_ewma: bool = False
+) -> pd.DataFrame:
     """Calculate realized volatility (raw or EWMA) over rolling window."""
     if not isinstance(returns, pd.DataFrame):
         raise TypeError("returns must be a DataFrame")
@@ -57,17 +59,23 @@ def classify_volatility_regimes_percentile(
         v = vol[col]
         regimes[col] = 1  # medium by default
         # Compute expanding/rolling percentiles
-        qlow = v.rolling(window=max(vol_window * 2, 50), min_periods=vol_window).quantile(quantiles[0])
-        qhigh = v.rolling(window=max(vol_window * 2, 50), min_periods=vol_window).quantile(quantiles[1])
+        qlow = v.rolling(window=max(vol_window * 2, 50), min_periods=vol_window).quantile(
+            quantiles[0]
+        )
+        qhigh = v.rolling(window=max(vol_window * 2, 50), min_periods=vol_window).quantile(
+            quantiles[1]
+        )
         # Apply high first so that degenerate bands (qlow == qhigh, e.g. constant
         # zero vol) resolve to the low regime rather than the high regime.
         regimes.loc[v >= qhigh, col] = 2  # high
-        regimes.loc[v <= qlow, col] = 0   # low wins ties
+        regimes.loc[v <= qlow, col] = 0  # low wins ties
     regimes = regimes.fillna(1)
     return regimes
 
 
-def classify_trend_regime(returns: pd.DataFrame, ma_window: int = 20, z_window: int | None = None) -> pd.DataFrame:
+def classify_trend_regime(
+    returns: pd.DataFrame, ma_window: int = 20, z_window: int | None = None
+) -> pd.DataFrame:
     """Classify trend regime using a moving average or a z-score.
 
     When ``z_window`` is set, the regime is uptrend (1) where the z-score of
@@ -86,12 +94,14 @@ def classify_trend_regime(returns: pd.DataFrame, ma_window: int = 20, z_window: 
     else:
         cumret = (1 + returns.fillna(0)).cumprod()
         ma = cumret.rolling(window=ma_window, min_periods=max(1, ma_window // 2)).mean()
-        trend = ((cumret > ma).astype(float) * 1.0)
+        trend = (cumret > ma).astype(float) * 1.0
     trend = trend.fillna(0)
     return trend
 
 
-def mean_reversion_zscore(returns: pd.DataFrame, window: int = 30, z_threshold: float = 1.5) -> pd.DataFrame:
+def mean_reversion_zscore(
+    returns: pd.DataFrame, window: int = 30, z_threshold: float = 1.5
+) -> pd.DataFrame:
     """Generate mean reversion signals based on z-score."""
     if not isinstance(returns, pd.DataFrame):
         raise TypeError("returns must be a DataFrame")
@@ -105,7 +115,9 @@ def mean_reversion_zscore(returns: pd.DataFrame, window: int = 30, z_threshold: 
     return signals
 
 
-def get_regime_state(returns: pd.DataFrame, vol_window: int = 20, ma_window: int = 50) -> pd.DataFrame:
+def get_regime_state(
+    returns: pd.DataFrame, vol_window: int = 20, ma_window: int = 50
+) -> pd.DataFrame:
     """Get combined regime state aligned to returns index."""
     if not isinstance(returns, pd.DataFrame):
         raise TypeError("returns must be a DataFrame")
@@ -244,8 +256,12 @@ def regime_scale_factors(returns: pd.DataFrame, cfg) -> pd.DataFrame:
             vol_regime = classify_volatility_regimes(sub, vol_window=vol_window, thresholds=thr)
         else:
             qlow, qhigh = float(vol_percentiles[0]), float(vol_percentiles[1])
-            low_thr = vol.rolling(window=max(vol_window * 2, 50), min_periods=vol_window).quantile(qlow)
-            high_thr = vol.rolling(window=max(vol_window * 2, 50), min_periods=vol_window).quantile(qhigh)
+            low_thr = vol.rolling(window=max(vol_window * 2, 50), min_periods=vol_window).quantile(
+                qlow
+            )
+            high_thr = vol.rolling(window=max(vol_window * 2, 50), min_periods=vol_window).quantile(
+                qhigh
+            )
             vol_regime = classify_volatility_regimes_percentile(
                 sub, vol_window=vol_window, quantiles=[qlow, qhigh]
             )
@@ -254,7 +270,9 @@ def regime_scale_factors(returns: pd.DataFrame, cfg) -> pd.DataFrame:
 
     trend_regime = None
     if method in ("trend", "combined"):
-        trend_regime = classify_trend_regime(sub, ma_window=trend_ma_window, z_window=trend_z_window)
+        trend_regime = classify_trend_regime(
+            sub, ma_window=trend_ma_window, z_window=trend_z_window
+        )
 
     vol_scale = pd.DataFrame(1.0, index=returns.index, columns=universe, dtype=float)
     trend_scale = pd.DataFrame(1.0, index=returns.index, columns=universe, dtype=float)
@@ -262,7 +280,9 @@ def regime_scale_factors(returns: pd.DataFrame, cfg) -> pd.DataFrame:
     if vol_regime is not None:
         for col in universe:
             if col in vol_regime.columns:
-                vol_scale[col] = vol_regime[col].map({0: scale_low, 1: 1.0, 2: scale_high}).fillna(1.0)
+                vol_scale[col] = (
+                    vol_regime[col].map({0: scale_low, 1: 1.0, 2: scale_high}).fillna(1.0)
+                )
     if trend_regime is not None:
         for col in universe:
             if col in trend_regime.columns:

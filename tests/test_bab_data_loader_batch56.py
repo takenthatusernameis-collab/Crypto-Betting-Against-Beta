@@ -1,3 +1,5 @@
+import contextlib
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -44,17 +46,13 @@ def test_load_csv_defensive_empty_second_check(tmp_path, monkeypatch):
                     return False
                 return super().empty
 
-        try:
+        with contextlib.suppress(Exception):
             df.__class__ = type("_F", (F, pd.DataFrame), {"_n": 0})
-        except Exception:
-            pass
         return df
 
     monkeypatch.setattr(mod.pd, "read_csv", fake_read_csv)
-    try:
+    with contextlib.suppress(mod.BABDataError):
         mod.load_returns_from_csv(p, benchmark="BTC")
-    except mod.BABDataError:
-        pass
 
 
 def test_clean_data_duplicate_header_row_removed():
@@ -68,11 +66,13 @@ def test_clean_data_duplicate_header_row_removed():
 
 
 def test_exchange_epoch_ms_normalization():
-    df = pd.DataFrame({
-        "open_time": [1704067200000, 1704153600000],
-        "BTC": [100.0, 101.0],
-        "ETH": [50.0, 51.0],
-    })
+    df = pd.DataFrame(
+        {
+            "open_time": [1704067200000, 1704153600000],
+            "BTC": [100.0, 101.0],
+            "ETH": [50.0, 51.0],
+        }
+    )
     out = mod._detect_and_normalize_exchange_format(df)
     assert isinstance(out, pd.DataFrame)
 
@@ -80,7 +80,9 @@ def test_exchange_epoch_ms_normalization():
 def test_detect_price_or_returns_exception_path(monkeypatch, tmp_path):
     p = tmp_path / "x.csv"
     p.write_text("a,b\n1,2\n")
-    monkeypatch.setattr(mod.pd, "read_csv", lambda *a, **k: (_ for _ in ()).throw(ValueError("boom")))
+    monkeypatch.setattr(
+        mod.pd, "read_csv", lambda *a, **k: (_ for _ in ()).throw(ValueError("boom"))
+    )
     assert mod.detect_price_or_returns(p) == "unknown"
 
 

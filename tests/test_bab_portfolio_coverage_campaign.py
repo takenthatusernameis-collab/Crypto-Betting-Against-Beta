@@ -85,9 +85,7 @@ class TestDollarNeutralityAdjustmentLoop:
         assert abs(out.sum(axis=1).iloc[0]) < 1e-12
 
     def test_dollar_neutral_multi_asset_row(self):
-        sig = pd.DataFrame(
-            {"A": [1], "B": [1], "C": [-1], "D": [-1]}, index=[0]
-        )
+        sig = pd.DataFrame({"A": [1], "B": [1], "C": [-1], "D": [-1]}, index=[0])
         out = construct_portfolio(sig, dollar_neutral=True)
         longs = out.loc[0, ["A", "B"]]
         shorts = out.loc[0, ["C", "D"]]
@@ -149,9 +147,7 @@ class TestPositionTurnoverRiskValidation:
         # inside the turnover try; the inner except swallows it (200-201).
         sig = pd.DataFrame({"a": [1, -1], "b": [-1, 1]}, index=[0, 1])
         prev = pd.DataFrame({"a": ["x", "y"], "b": ["p", "q"]}, index=[0, 1])
-        w = construct_portfolio(
-            sig, dollar_neutral=True, max_turnover=0.5, weights_df_prev=prev
-        )
+        w = construct_portfolio(sig, dollar_neutral=True, max_turnover=0.5, weights_df_prev=prev)
         assert isinstance(w, pd.DataFrame)
         assert np.isfinite(w.to_numpy()).all()
         assert w.loc[0, "a"] == 1.0

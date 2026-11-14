@@ -122,7 +122,13 @@ class TestFinalSanitizationParity:
         assert np.all(np.isfinite(arr)), "final sanitize must leave no NaN/inf/-inf"
         common_idx = returns.index.intersection(weights.index)
         assert res.index.equals(common_idx)
-        assert list(res.columns) == ["returns", "gross_return", "cost_drag", "slippage_drag", "cumulative"]
+        assert list(res.columns) == [
+            "returns",
+            "gross_return",
+            "cost_drag",
+            "slippage_drag",
+            "cumulative",
+        ]
         for c in res.columns:
             assert res[c].dtype == np.float64
 
@@ -147,4 +153,6 @@ class TestFinalSanitizationParity:
         # Cumulative equals exp(cumsum(log1p(returns))) at 1e-12.
         filled = res["returns"].clip(lower=-1.0 + 1e-12)
         expected_cum = np.exp(np.cumsum(np.log1p(filled.to_numpy(dtype=float))))
-        np.testing.assert_allclose(res["cumulative"].to_numpy(dtype=float), expected_cum, rtol=1e-12, atol=1e-12)
+        np.testing.assert_allclose(
+            res["cumulative"].to_numpy(dtype=float), expected_cum, rtol=1e-12, atol=1e-12
+        )

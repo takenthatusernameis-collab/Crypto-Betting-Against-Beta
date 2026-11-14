@@ -48,8 +48,8 @@ def _run(returns_df, **kw):
 def _perturb(returns_df: pd.DataFrame, t: int) -> pd.DataFrame:
     """Return a copy with returns strictly after ``t`` perturbed (scale + shock)."""
     out = returns_df.copy()
-    tail = out.iloc[t + 1:]
-    out.iloc[t + 1:] = tail * 1.5
+    tail = out.iloc[t + 1 :]
+    out.iloc[t + 1 :] = tail * 1.5
     # idiosyncratic shock to one non-benchmark asset at t+1
     shock_col = out.columns[1] if out.columns[1] != out.columns[0] else out.columns[2]
     out.iloc[t + 1, out.columns.get_loc(shock_col)] += 0.5
@@ -69,8 +69,8 @@ def _check_no_lookahead(baseline, perturbed, t: int) -> None:
         assert np.array_equal(pre_b, pre_p, equal_nan=True), (
             f"{name} up to and including cut t={t} must be identical (lookahead leak)"
         )
-        post_b = base.iloc[t + 1:].to_numpy(dtype=float)
-        post_p = pert.iloc[t + 1:].to_numpy(dtype=float)
+        post_b = base.iloc[t + 1 :].to_numpy(dtype=float)
+        post_p = pert.iloc[t + 1 :].to_numpy(dtype=float)
         assert not np.array_equal(post_b, post_p, equal_nan=True), (
             f"{name} after cut t={t} must change (vacuous pass guard)"
         )

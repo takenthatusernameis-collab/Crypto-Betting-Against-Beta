@@ -6,12 +6,12 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from strategies.betting_against_beta import attribution as attribution_mod
 from strategies.betting_against_beta.attribution import (
     ATTRIBUTION_COLUMNS,
     attribution_totals,
     trade_attribution,
 )
-from strategies.betting_against_beta import attribution as attribution_mod
 
 
 def _old_finite_series(values, index):
@@ -40,19 +40,14 @@ def _old_trade_attribution(backtest):
     if "returns" in backtest.columns:
         frame["net_return"] = _old_finite_series(backtest["returns"], idx)
     else:
-        frame["net_return"] = (
-            frame["gross_return"] - frame["cost_drag"] - frame["slippage_drag"]
-        )
+        frame["net_return"] = frame["gross_return"] - frame["cost_drag"] - frame["slippage_drag"]
     frame["net_return"] = _old_finite_series(frame["net_return"], idx)
     return frame[ATTRIBUTION_COLUMNS]
 
 
 def _old_finite_sum(values):
     return float(
-        pd.Series(values)
-        .replace([float("inf"), float("-inf")], float("nan"))
-        .fillna(0.0)
-        .sum()
+        pd.Series(values).replace([float("inf"), float("-inf")], float("nan")).fillna(0.0).sum()
     )
 
 
@@ -75,12 +70,9 @@ def _old_attribution_totals(attribution_df):
     gross = _old_finite_sum(df["gross_return"]) if "gross_return" in df.columns else 0.0
     cost = _old_finite_sum(df["cost_drag"]) if "cost_drag" in df.columns else 0.0
     slip = _old_finite_sum(df["slippage_drag"]) if "slippage_drag" in df.columns else 0.0
-    if "net_return" in df.columns:
-        net = _old_finite_sum(df["net_return"])
-    else:
-        net = gross - cost - slip
+    net = _old_finite_sum(df["net_return"]) if "net_return" in df.columns else gross - cost - slip
     denom = abs(gross)
-    if denom == 0 or not (denom == denom):
+    if denom == 0 or denom != denom:
         cost_share = 0.0
         slip_share = 0.0
     else:
@@ -113,9 +105,7 @@ def test_trade_attribution_basic():
     out = trade_attribution(df)
     assert list(out.columns) == ATTRIBUTION_COLUMNS
     assert len(out) == n if (n := len(df)) else True
-    expected_net = (
-        df["gross_return"] - df["cost_drag"] - df["slippage_drag"]
-    )
+    expected_net = df["gross_return"] - df["cost_drag"] - df["slippage_drag"]
     pd.testing.assert_series_equal(out["net_return"], expected_net, check_names=False)
 
 
@@ -227,9 +217,7 @@ class TestAttributionSanitizationParity:
         )
         expected = _old_trade_attribution(raw)
         got = attribution_mod.trade_attribution(raw)
-        pd.testing.assert_frame_equal(
-            got, expected, check_exact=False, rtol=1e-12, atol=1e-12
-        )
+        pd.testing.assert_frame_equal(got, expected, check_exact=False, rtol=1e-12, atol=1e-12)
         assert got.index.equals(expected.index)
         assert list(got.columns) == list(expected.columns)
         assert all(got[c].dtype == expected[c].dtype for c in got.columns)
@@ -248,18 +236,14 @@ class TestAttributionSanitizationParity:
         )
         expected = _old_trade_attribution(raw)
         got = attribution_mod.trade_attribution(raw)
-        pd.testing.assert_frame_equal(
-            got, expected, check_exact=False, rtol=1e-12, atol=1e-12
-        )
+        pd.testing.assert_frame_equal(got, expected, check_exact=False, rtol=1e-12, atol=1e-12)
 
     def test_trade_attribution_missing_cost_slip_returns_columns(self):
         idx = pd.date_range("2024-02-01", periods=6, freq="D")
         raw = pd.DataFrame({"gross_return": [0.01, np.inf, 0.02, np.nan, 0.03, 0.04]}, index=idx)
         expected = _old_trade_attribution(raw)
         got = attribution_mod.trade_attribution(raw)
-        pd.testing.assert_frame_equal(
-            got, expected, check_exact=False, rtol=1e-12, atol=1e-12
-        )
+        pd.testing.assert_frame_equal(got, expected, check_exact=False, rtol=1e-12, atol=1e-12)
         # net_return falls back to gross - cost - slip, all finite.
         assert np.all(np.isfinite(got["net_return"].to_numpy()))
 
@@ -275,9 +259,7 @@ class TestAttributionSanitizationParity:
         )
         expected = _old_trade_attribution(raw)
         got = attribution_mod.trade_attribution(raw)
-        pd.testing.assert_frame_equal(
-            got, expected, check_exact=False, rtol=1e-12, atol=1e-12
-        )
+        pd.testing.assert_frame_equal(got, expected, check_exact=False, rtol=1e-12, atol=1e-12)
         assert len(got) == 6
 
     def test_attribution_totals_matches_old_on_nonfinite(self):
@@ -298,7 +280,10 @@ class TestAttributionSanitizationParity:
             assert got[k] == pytest.approx(expected[k], rel=1e-12, abs=1e-12)
 
     def test_attribution_totals_missing_columns_matches_old(self):
-        att = pd.DataFrame({"gross_return": [0.1, np.inf, 0.2, np.nan]}, index=pd.date_range("2024-05-01", periods=4))
+        att = pd.DataFrame(
+            {"gross_return": [0.1, np.inf, 0.2, np.nan]},
+            index=pd.date_range("2024-05-01", periods=4),
+        )
         expected = _old_attribution_totals(att)
         got = attribution_mod.attribution_totals(att)
         for k in expected:

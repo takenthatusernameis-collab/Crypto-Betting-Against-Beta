@@ -17,6 +17,7 @@ np.round(vals[finite]))` (1924 True) -> `float(vals[finite][0]) == 0.0` (1925
 True) -> `np.allclose(np.diff(vals[finite]), 1.0)` (1925 True) -> drop at 1926,
 `continue` at 1927.
 """
+
 import numpy as np
 import pandas as pd
 

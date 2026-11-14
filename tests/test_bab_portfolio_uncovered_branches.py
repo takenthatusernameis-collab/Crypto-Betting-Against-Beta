@@ -16,8 +16,8 @@ import pandas as pd
 import pytest
 
 from strategies.betting_against_beta.portfolio import (
-    construct_portfolio,
     _clean_signal_value,
+    construct_portfolio,
     enforce_beta_neutrality,
 )
 
@@ -71,9 +71,7 @@ def test_construct_portfolio_turnover_inner_except_on_non_numeric_prev():
     it and construction must still succeed with the computed weights."""
     sig = pd.DataFrame({"a": [1, -1], "b": [-1, 1]}, index=[0, 1])
     prev = pd.DataFrame({"a": ["x", "y"], "b": ["p", "q"]}, index=[0, 1])
-    w = construct_portfolio(
-        sig, dollar_neutral=True, max_turnover=0.5, weights_df_prev=prev
-    )
+    w = construct_portfolio(sig, dollar_neutral=True, max_turnover=0.5, weights_df_prev=prev)
     assert isinstance(w, pd.DataFrame)
     assert w.shape == sig.shape
     assert np.isfinite(w.to_numpy()).all()
@@ -87,9 +85,7 @@ def test_construct_portfolio_turnover_inner_except_on_mismatched_index_prev():
     (len(common) > 0 is False -> no turnover computation); ensure no crash."""
     sig = pd.DataFrame({"a": [1, -1], "b": [-1, 1]}, index=[0, 1])
     prev = pd.DataFrame({"a": [1.0], "b": [-1.0]}, index=[5])
-    w = construct_portfolio(
-        sig, dollar_neutral=True, max_turnover=0.5, weights_df_prev=prev
-    )
+    w = construct_portfolio(sig, dollar_neutral=True, max_turnover=0.5, weights_df_prev=prev)
     assert w.shape == sig.shape
     assert np.isfinite(w.to_numpy()).all()
 
@@ -123,9 +119,32 @@ def test_clean_signal_value_outer_except_documented_unreachable():
     The outer except at 39-40 is defensive dead code; assert the function is
     total (never raises) over a broad type sweep."""
     samples = [
-        None, float("nan"), "1", "-1", "abc", "1.5", 1, -1, 0, 1.0,
-        np.int64(1), np.float64(-1.0), True, False, [1, 2], {1: 2}, object(),
-        b"x", 1 + 2j, pd.NA, pd.NaT, len, str, int, float, complex,
+        None,
+        float("nan"),
+        "1",
+        "-1",
+        "abc",
+        "1.5",
+        1,
+        -1,
+        0,
+        1.0,
+        np.int64(1),
+        np.float64(-1.0),
+        True,
+        False,
+        [1, 2],
+        {1: 2},
+        object(),
+        b"x",
+        1 + 2j,
+        pd.NA,
+        pd.NaT,
+        len,
+        str,
+        int,
+        float,
+        complex,
     ]
     for v in samples:
         assert _clean_signal_value(v) in (-1, 0, 1)

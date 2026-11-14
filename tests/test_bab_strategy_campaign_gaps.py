@@ -37,8 +37,11 @@ def _returns(n=80, seed=31):
     rng = np.random.default_rng(seed)
     mkt = rng.normal(0, 0.01, n)
     return pd.DataFrame(
-        {"BTC": mkt, "ETH": 0.6 * mkt + rng.normal(0, 0.005, n),
-         "SOL": 1.2 * mkt + rng.normal(0, 0.007, n)},
+        {
+            "BTC": mkt,
+            "ETH": 0.6 * mkt + rng.normal(0, 0.005, n),
+            "SOL": 1.2 * mkt + rng.normal(0, 0.007, n),
+        },
         index=idx,
     )
 
@@ -115,7 +118,9 @@ class TestFreezeFallback:
         cfg.dollar_neutral = True
         cfg.transaction_costs = 0.0
         cfg.slippage = 0.0
-        cfg.cost_model = None  # freeze-fallback test targets object.__setattr__, not cost-model validation
+        cfg.cost_model = (
+            None  # freeze-fallback test targets object.__setattr__, not cost-model validation
+        )
         cfg.max_turnover = None
         cfg.max_position_size = None
         cfg.gross_exposure_limit = None
@@ -145,28 +150,32 @@ class TestFreezeFallback:
 class TestExceptionRewrap:
     def test_shorting_constraints_typeerror_rewrap(self):
         df = _returns(40)
-        cfg = BABConfig(shorting_constraints={"max_short_leverage": 1.0},
-                        beta_window=10, min_observations=5)
+        cfg = BABConfig(
+            shorting_constraints={"max_short_leverage": 1.0}, beta_window=10, min_observations=5
+        )
         strat = BABStrategy(cfg)
-        with mock.patch("strategies.betting_against_beta.strategy.shorting.apply_shorting_constraints",
-                        side_effect=TypeError("boom")):
-            with pytest.raises(BABDataError, match="shorting_constraints failed"):
-                strat.run(returns_df=df)
+        with mock.patch(
+            "strategies.betting_against_beta.strategy.shorting.apply_shorting_constraints",
+            side_effect=TypeError("boom"),
+        ), pytest.raises(BABDataError, match="shorting_constraints failed"):
+            strat.run(returns_df=df)
 
     def test_position_sizer_typeerror_rewrap(self):
         df = _returns(40)
         cfg = BABConfig(position_sizer={"type": "equal"}, beta_window=10, min_observations=5)
         strat = BABStrategy(cfg)
-        with mock.patch("strategies.betting_against_beta.strategy.sizing.apply_position_sizing",
-                        side_effect=TypeError("boom")):
-            with pytest.raises(BABDataError, match="position_sizer failed"):
-                strat.run(returns_df=df)
+        with mock.patch(
+            "strategies.betting_against_beta.strategy.sizing.apply_position_sizing",
+            side_effect=TypeError("boom"),
+        ), pytest.raises(BABDataError, match="position_sizer failed"):
+            strat.run(returns_df=df)
 
     def test_regime_filter_typeerror_rewrap(self):
         df = _returns(40)
         cfg = BABConfig(regime_filter=True, beta_window=10, min_observations=5)
         strat = BABStrategy(cfg)
-        with mock.patch("strategies.betting_against_beta.regime.regime_scale_scalar",
-                        side_effect=TypeError("boom")):
-            with pytest.raises(BABDataError, match="regime_filter failed"):
-                strat.run(returns_df=df)
+        with mock.patch(
+            "strategies.betting_against_beta.regime.regime_scale_scalar",
+            side_effect=TypeError("boom"),
+        ), pytest.raises(BABDataError, match="regime_filter failed"):
+            strat.run(returns_df=df)

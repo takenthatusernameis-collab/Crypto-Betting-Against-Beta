@@ -1,5 +1,5 @@
-import os
 import json
+import os
 import pickle
 
 import numpy as np
@@ -22,9 +22,9 @@ def test_normalize_index_empty_numeric_returns_empty_datetimeindex():
 def test_coerce_to_datetime_scalar_float_int_variants():
     assert not pd.isna(dl._coerce_to_datetime_scalar(1_600_000_000.0))
     assert not pd.isna(dl._coerce_to_datetime_scalar(1_600_000_000000.0))
-    assert not pd.isna(dl._coerce_to_datetime_scalar(int(1_600_000_000)))
-    assert not pd.isna(dl._coerce_to_datetime_scalar(int(1_600_000_000000)))
-    assert not pd.isna(dl._coerce_to_datetime_scalar(int(1_600_000_0000000000)))
+    assert not pd.isna(dl._coerce_to_datetime_scalar(1_600_000_000))
+    assert not pd.isna(dl._coerce_to_datetime_scalar(1_600_000_000000))
+    assert not pd.isna(dl._coerce_to_datetime_scalar(1_600_000_0000000000))
 
 
 def test_promote_datetime_various():
@@ -33,11 +33,11 @@ def test_promote_datetime_various():
     out = dl._promote_datetime_column(df)
     assert isinstance(out.index, pd.DatetimeIndex)
     # timestamp
-    df2 = pd.DataFrame({"timestamp": [1600000000, 1600000060], "price": [1,2]})
+    df2 = pd.DataFrame({"timestamp": [1600000000, 1600000060], "price": [1, 2]})
     out2 = dl._promote_datetime_column(df2)
     assert isinstance(out2.index, pd.DatetimeIndex)
     # unnamed single column
-    df3 = pd.DataFrame({"": [1600000000, 1600000060], "BTC": [1,2]})
+    df3 = pd.DataFrame({"": [1600000000, 1600000060], "BTC": [1, 2]})
     out3 = dl._promote_datetime_column(df3)
     # may promote
     assert isinstance(out3, pd.DataFrame)

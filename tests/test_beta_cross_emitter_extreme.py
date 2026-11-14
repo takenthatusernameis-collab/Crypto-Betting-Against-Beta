@@ -1,4 +1,5 @@
 """Extreme cross-emitter beta agreement tests."""
+
 import numpy as np
 import pandas as pd
 
@@ -20,11 +21,11 @@ class TestBetaCrossEmitterExtreme:
             r2 = beta.rolling_beta(list(asset), list(bench), window=50, min_obs=10)
             assert isinstance(r2, (np.ndarray, pd.Series))
             # dataframe
-            df = pd.DataFrame({'BTC': bench, 'ETH': asset, 'SOL': asset*1.1})
-            res = beta.calculate_rolling_beta(df, 'BTC', window=50, min_obs=10)
-            assert np.all(np.isnan(res['ETH']))
-            assert np.all(np.isnan(res['SOL']))
-            assert np.allclose(res['BTC'], 1.0)
+            df = pd.DataFrame({"BTC": bench, "ETH": asset, "SOL": asset * 1.1})
+            res = beta.calculate_rolling_beta(df, "BTC", window=50, min_obs=10)
+            assert np.all(np.isnan(res["ETH"]))
+            assert np.all(np.isnan(res["SOL"]))
+            assert np.allclose(res["BTC"], 1.0)
 
     def test_near_constant_benchmark_treated_as_degenerate(self):
         rng = np.random.RandomState(42)
@@ -33,7 +34,7 @@ class TestBetaCrossEmitterExtreme:
         asset = rng.randn(80) * 0.01
         assert np.isnan(beta.calculate_beta(asset, bench))
         assert np.isnan(beta.calculate_beta_fast(asset, bench))
-        df = pd.DataFrame({'BTC': bench, 'ETH': asset})
-        res = beta.calculate_rolling_beta(df, 'BTC', window=30, min_obs=10)
+        df = pd.DataFrame({"BTC": bench, "ETH": asset})
+        res = beta.calculate_rolling_beta(df, "BTC", window=30, min_obs=10)
         # Should be NaN due to degeneracy
-        assert np.all(np.isnan(res['ETH'].values))
+        assert np.all(np.isnan(res["ETH"].values))

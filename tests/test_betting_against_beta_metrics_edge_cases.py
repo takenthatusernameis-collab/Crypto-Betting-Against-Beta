@@ -103,8 +103,16 @@ class TestStrategyBetaEdgeCases:
 class TestSummaryEdgeCases:
     def test_summary_handles_none_inputs(self):
         s = metrics.summary(None)
-        for k in ("sharpe_ratio", "annualized_volatility", "max_drawdown", "turnover",
-                  "strategy_beta", "total_return", "final_cumulative", "n_observations"):
+        for k in (
+            "sharpe_ratio",
+            "annualized_volatility",
+            "max_drawdown",
+            "turnover",
+            "strategy_beta",
+            "total_return",
+            "final_cumulative",
+            "n_observations",
+        ):
             assert k in s
         assert s["n_observations"] == 0
 
@@ -141,7 +149,9 @@ class TestMaxDrawdownCoverage:
 
 class TestStrategyBetaCoverage:
     def test_inf_inside_strategy_yields_nan_beta(self):
-        assert np.isnan(metrics.strategy_beta(pd.Series([1.0, np.inf, 2.0]), pd.Series([1.0, 2.0, 3.0])))
+        assert np.isnan(
+            metrics.strategy_beta(pd.Series([1.0, np.inf, 2.0]), pd.Series([1.0, 2.0, 3.0]))
+        )
 
 
 class TestSortinoCoverage:

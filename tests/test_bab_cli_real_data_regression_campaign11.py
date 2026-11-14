@@ -5,6 +5,7 @@ Locks in the repo's core real-data path (BAB real backtests):
   -> rc 0, finite allow_nan=False JSON, final_cumulative finite scalar, periods int,
      no traceback. Also locks dry-run validity for the same path.
 """
+
 from __future__ import annotations
 
 import json

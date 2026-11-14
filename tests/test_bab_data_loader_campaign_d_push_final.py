@@ -48,8 +48,8 @@ from strategies.betting_against_beta.data_loader import (
 
 # Cover _normalize_index empty numeric index
 def test_normalize_index_empty_numeric_index():
-    df = pd.DataFrame({'BTC': []})
-    df.index = pd.Index([], dtype='float64')
+    df = pd.DataFrame({"BTC": []})
+    df.index = pd.Index([], dtype="float64")
     out = _normalize_index(df)
     assert isinstance(out.index, pd.DatetimeIndex)
     assert len(out) == 0
@@ -58,46 +58,46 @@ def test_normalize_index_empty_numeric_index():
 # Cover _normalize_index numeric epoch branches
 def test_normalize_index_numeric_ns():
     idx = [1600000000000000000, 1600000000000000001]  # ns
-    df = pd.DataFrame({'BTC': [0.01, 0.02]}, index=idx)
+    df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=idx)
     out = _normalize_index(df)
     assert isinstance(out.index, pd.DatetimeIndex)
 
 
 def test_normalize_index_numeric_us():
     idx = [1600000000000000, 1600000000000001]  # us
-    df = pd.DataFrame({'BTC': [0.01, 0.02]}, index=idx)
+    df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=idx)
     out = _normalize_index(df)
     assert isinstance(out.index, pd.DatetimeIndex)
 
 
 def test_normalize_index_numeric_ms():
     idx = [1600000000000, 1600000000001]  # ms
-    df = pd.DataFrame({'BTC': [0.01, 0.02]}, index=idx)
+    df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=idx)
     out = _normalize_index(df)
     assert isinstance(out.index, pd.DatetimeIndex)
 
 
 def test_normalize_index_numeric_s():
     idx = [1600000000, 1600000001]  # s
-    df = pd.DataFrame({'BTC': [0.01, 0.02]}, index=idx)
+    df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=idx)
     out = _normalize_index(df)
     assert isinstance(out.index, pd.DatetimeIndex)
 
 
 def test_normalize_index_numeric_small():
     idx = [1, 2, 3]
-    df = pd.DataFrame({'BTC': [0.01, 0.02, 0.03]}, index=idx)
+    df = pd.DataFrame({"BTC": [0.01, 0.02, 0.03]}, index=idx)
     out = _normalize_index(df)
     assert isinstance(out.index, pd.DatetimeIndex)
 
 
 # _coerce_to_datetime_scalar branches
 def test_coerce_scalar_string_iso():
-    assert isinstance(_coerce_to_datetime_scalar('2023-01-01'), pd.Timestamp)
+    assert isinstance(_coerce_to_datetime_scalar("2023-01-01"), pd.Timestamp)
 
 
 def test_coerce_scalar_string_us_format():
-    assert isinstance(_coerce_to_datetime_scalar('2023/01/01 12:00:00'), pd.Timestamp)
+    assert isinstance(_coerce_to_datetime_scalar("2023/01/01 12:00:00"), pd.Timestamp)
 
 
 def test_coerce_scalar_int_seconds():
@@ -120,4 +120,4 @@ def test_coerce_scalar_none_raises():
 
 def test_coerce_scalar_garbage_raises():
     with pytest.raises(Exception):
-        _coerce_to_datetime_scalar('not-a-date!!!')
+        _coerce_to_datetime_scalar("not-a-date!!!")

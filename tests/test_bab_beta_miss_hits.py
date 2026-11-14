@@ -10,10 +10,13 @@ def test_rolling_beta_fallback_arr_fails_both():
     class Bad:
         def __init__(self):
             pass
+
         def __len__(self):
             raise TypeError()
+
         def __iter__(self):
             raise TypeError()
+
     out = beta.rolling_beta(Bad(), Bad(), window=3)
     assert isinstance(out, np.ndarray)
 
@@ -40,23 +43,25 @@ def test_calculate_beta_fast_all_nonfinite_after_mask():
 
 
 def test_calculate_beta_fast_linalg():
-    res = beta.calculate_beta_fast([1,2,3], [5,5,5])
+    res = beta.calculate_beta_fast([1, 2, 3], [5, 5, 5])
     # Zero-variance benchmark -> undefined beta -> NaN (consistent with
     # calculate_beta and metrics.strategy_beta).
     assert np.isnan(res)
 
 
 def test_calculate_rolling_beta_bench_arr_fallback():
-    df = pd.DataFrame({'MKT': [0.01]*100, 'A': [0.01]*100})
-    res = beta.calculate_rolling_beta(df, 'MKT', window=60, min_obs=30)
+    df = pd.DataFrame({"MKT": [0.01] * 100, "A": [0.01] * 100})
+    res = beta.calculate_rolling_beta(df, "MKT", window=60, min_obs=30)
     assert isinstance(res, pd.DataFrame)
 
 
 def test_calculate_rolling_beta_fallback_in_outer():
-    df = pd.DataFrame({
-        'MKT': [0.01]*50,
-        'A': [np.nan]*50,
-        'B': [0.02]*50,
-    })
-    res = beta.calculate_rolling_beta(df, 'MKT', window=30, min_obs=15)
+    df = pd.DataFrame(
+        {
+            "MKT": [0.01] * 50,
+            "A": [np.nan] * 50,
+            "B": [0.02] * 50,
+        }
+    )
+    res = beta.calculate_rolling_beta(df, "MKT", window=30, min_obs=15)
     assert isinstance(res, pd.DataFrame)

@@ -68,6 +68,7 @@ class TestCleanSignalValueResiduals:
         class Bad:
             def __float__(self):
                 raise TypeError("no")
+
         # Not a str/int/float/numpy numeric instance check path -> returns 0
         assert _clean_signal_value(Bad()) == 0
 
@@ -136,7 +137,9 @@ class TestRiskAndConstraintValidation:
         sig = pd.DataFrame({"A": [1, 1], "B": [1, 1], "C": [0, 0]})
         # long-only with dollar_neutral False -> net > 0
         with pytest.raises(BABDataError, match="Net exposure"):
-            construct_portfolio(sig, dollar_neutral=False, enforce_risk_checks=True, net_exposure_limit=0.0)
+            construct_portfolio(
+                sig, dollar_neutral=False, enforce_risk_checks=True, net_exposure_limit=0.0
+            )
 
     def test_single_asset_weight_exceeds_limit(self):
         sig = pd.DataFrame({"A": [1], "B": [0]})
@@ -168,7 +171,9 @@ class TestNonNumericAndDefensiveBranches:
         # handler now re-raises as BABPortfolioError rather than silently
         # returning a zero frame (which would report "no positions").
         import pytest
+
         from strategies.betting_against_beta.portfolio import BABPortfolioError
+
         real_where = np.where
 
         def boom(*a, **k):

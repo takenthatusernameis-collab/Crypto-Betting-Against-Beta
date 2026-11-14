@@ -9,6 +9,7 @@ Targets uncovered lines (baseline 2026-11-09):
   sizing.py 93-95,129,136,240-242
 Production-realistic inputs; scoped monkeypatches only for defensive branches.
 """
+
 from __future__ import annotations
 
 import numpy as np
@@ -21,10 +22,10 @@ from strategies.betting_against_beta.metrics import turnover
 from strategies.betting_against_beta.portfolio import _clean_signal_value, construct_portfolio
 from strategies.betting_against_beta.signals import _finite_beta_series, generate_bab_signals
 from strategies.betting_against_beta.sizing import (
+    BABSizingError,
     EqualWeightSizer,
     VolatilityTargetSizer,
     apply_position_sizing,
-    BABSizingError,
 )
 
 
@@ -93,9 +94,12 @@ class TestPortfolioMicrogaps:
 
         def flaky(obj):
             raise RuntimeError("fail")
+
         monkeypatch.setattr(pd.api.types, "is_numeric_dtype", flaky)
         # also break to_numeric fallback chain
-        monkeypatch.setattr(pd, "to_numeric", lambda *a, **k: (_ for _ in ()).throw(RuntimeError("x")))
+        monkeypatch.setattr(
+            pd, "to_numeric", lambda *a, **k: (_ for _ in ()).throw(RuntimeError("x"))
+        )
         # and break copy-based fallback
         real_copy = pd.DataFrame.copy
 
@@ -103,6 +107,7 @@ class TestPortfolioMicrogaps:
             if set(self.columns) == {"A", "B"} and self.shape[0] == 2:
                 raise RuntimeError("copy fail")
             return real_copy(self, *a, **k)
+
         monkeypatch.setattr(pd.DataFrame, "copy", bad_copy)
         w = construct_portfolio(sig)
         assert w.shape == sig.shape
@@ -114,9 +119,12 @@ class TestPortfolioMicrogaps:
         # Make ``np.isfinite`` raise on the long-weight guard (first call);
         # the outer handler (portfolio.py) re-raises.
         import pytest
+
         from strategies.betting_against_beta.portfolio import BABPortfolioError
+
         sig = pd.DataFrame({"A": [1, 1], "B": [-1, -1]})
         import strategies.betting_against_beta.portfolio as pmod
+
         real_isfinite = pmod.np.isfinite
         calls = {"n": 0}
 
@@ -125,6 +133,7 @@ class TestPortfolioMicrogaps:
             if calls["n"] == 1:
                 raise RuntimeError("long-side isfinite fail")
             return real_isfinite(a, *args, **kwargs)
+
         monkeypatch.setattr(pmod.np, "isfinite", flaky_isfinite)
         with pytest.raises(BABPortfolioError):
             construct_portfolio(sig)
@@ -134,9 +143,12 @@ class TestPortfolioMicrogaps:
         # post-build cleanup) so a partial short book is never silently
         # returned; the outer handler must surface BABPortfolioError.
         import pytest
+
         from strategies.betting_against_beta.portfolio import BABPortfolioError
+
         sig = pd.DataFrame({"A": [1, 1], "B": [-1, -1]})
         import strategies.betting_against_beta.portfolio as pmod
+
         real_isfinite = pmod.np.isfinite
         calls = {"n": 0}
 
@@ -146,6 +158,7 @@ class TestPortfolioMicrogaps:
             if calls["n"] == 2:
                 raise RuntimeError("short-side isfinite fail")
             return real_isfinite(a, *args, **kwargs)
+
         monkeypatch.setattr(pmod.np, "isfinite", flaky_isfinite)
         with pytest.raises(BABPortfolioError):
             construct_portfolio(sig)
@@ -154,6 +167,7 @@ class TestPortfolioMicrogaps:
         # portfolio.py:152-157 executes when net remains != 0 after first renorm.
         # Force via monkeypatch: make first pass leave residual net.
         import strategies.betting_against_beta.portfolio as pmod
+
         sig = pd.DataFrame({"A": [1, 1], "B": [-1, 1], "C": [0, -1], "D": [-1, -1]})
         real_nonzero = pmod.np.nonzero
         stage = {"n": 0}
@@ -169,6 +183,7 @@ class TestPortfolioMicrogaps:
     def test_dollar_neutral_correction_forced(self, monkeypatch):
         # Directly force net correction branch 152-157.
         import strategies.betting_against_beta.portfolio as pmod
+
         sig = pd.DataFrame({"A": [1, 1], "B": [-1, 1], "C": [1, -1], "D": [-1, -1]})
         real_clip = pmod.np.clip
         injected = {"done": False}
@@ -237,7 +252,11 @@ class TestSizingMicrogaps:
     def test_equal_weight_shorthand_string(self):
         # sizing.py:129
         sig = pd.DataFrame({"A": [1, 1, -1], "B": [-1, -1, 1], "C": [1, -1, 1], "D": [-1, 1, -1]})
-        rets = pd.DataFrame(np.random.default_rng(0).normal(0, 0.01, sig.shape), index=sig.index, columns=sig.columns)
+        rets = pd.DataFrame(
+            np.random.default_rng(0).normal(0, 0.01, sig.shape),
+            index=sig.index,
+            columns=sig.columns,
+        )
         out = apply_position_sizing(sig, rets, sizer="equal_weight")
         assert out.shape == sig.shape
         assert np.isfinite(out.to_numpy()).all()
@@ -245,14 +264,22 @@ class TestSizingMicrogaps:
     def test_unknown_sizer_type_raises(self):
         # sizing.py:136
         sig = pd.DataFrame({"A": [1, -1], "B": [-1, 1]})
-        rets = pd.DataFrame(np.random.default_rng(1).normal(0, 0.01, sig.shape), index=sig.index, columns=sig.columns)
+        rets = pd.DataFrame(
+            np.random.default_rng(1).normal(0, 0.01, sig.shape),
+            index=sig.index,
+            columns=sig.columns,
+        )
         with pytest.raises(BABSizingError, match="sizer must be"):
             apply_position_sizing(sig, rets, sizer=12345)
 
     def test_equal_weight_sizer_instance_returns_base(self):
         # sizing.py:240-242
         sig = pd.DataFrame({"A": [1, 1, -1], "B": [-1, -1, 1], "C": [1, -1, 1], "D": [-1, 1, -1]})
-        rets = pd.DataFrame(np.random.default_rng(2).normal(0, 0.01, sig.shape), index=sig.index, columns=sig.columns)
+        rets = pd.DataFrame(
+            np.random.default_rng(2).normal(0, 0.01, sig.shape),
+            index=sig.index,
+            columns=sig.columns,
+        )
         out = apply_position_sizing(sig, rets, sizer=EqualWeightSizer())
         base = apply_position_sizing(sig, rets, sizer=None)
         pd.testing.assert_frame_equal(out, base)

@@ -38,9 +38,10 @@ class TestBetaCampaignHeavy:
             @property
             def _constructor(self):
                 return Weird
+
         # Make concat/dropna behave badly? hard, just pass
         try:
-            out = beta.calculate_beta(Weird([1,2,3]), Weird([1,2,3,4,5]))
+            out = beta.calculate_beta(Weird([1, 2, 3]), Weird([1, 2, 3, 4, 5]))
             assert out is not None
         except Exception:
             pass
@@ -61,6 +62,7 @@ class TestBetaCampaignHeavy:
         class X:
             def __array__(self, dtype=None):
                 raise TypeError("bad")
+
         try:
             out = beta.calculate_beta_fast(X(), X())
             assert out == 0.0 or np.isnan(out)
@@ -68,6 +70,6 @@ class TestBetaCampaignHeavy:
             pass
 
     def test_calculate_rolling_beta_bad_bench_conversion(self):
-        df = pd.DataFrame({"BTC": ["bad"]*10, "ETH": [0.01]*10})
+        df = pd.DataFrame({"BTC": ["bad"] * 10, "ETH": [0.01] * 10})
         with pytest.raises((BABDataError, Exception)):
             beta.calculate_rolling_beta(df, "BTC", window=5, min_obs=3)

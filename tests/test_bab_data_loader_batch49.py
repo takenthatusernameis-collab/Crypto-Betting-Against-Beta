@@ -1,4 +1,7 @@
 """Batch 49: data_loader missing-line coverage via canonical validate/loader flows."""
+
+import contextlib
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -11,18 +14,22 @@ class TestBatch49:
     def test_1530_1531_benchmark_rename_then_second_rename(self, monkeypatch):
         # btc present (lowercase), benchmark BTC absent -> case-insensitive bench_found="btc"
         # rename bt
-        df = pd.DataFrame({
-            "date": pd.date_range("2024-01-01", periods=4),
-            "btc": [0.01, 0.02, -0.01, 0.03],
-            "ETH": [0.02, -0.01, 0.01, 0.02],
-        })
+        df = pd.DataFrame(
+            {
+                "date": pd.date_range("2024-01-01", periods=4),
+                "btc": [0.01, 0.02, -0.01, 0.03],
+                "ETH": [0.02, -0.01, 0.01, 0.02],
+            }
+        )
         orig = pd.DataFrame.rename
         state = {"n": 0}
 
         def flaky(self, *a, **k):
             state["n"] += 1
             cols = k.get("columns") or (a[0] if a and isinstance(a[0], dict) else None)
-            if isinstance(cols, dict) and any(str(v).lower() == "btc" or str(k2).lower() == "btc" for k2, v in cols.items()):
+            if isinstance(cols, dict) and any(
+                str(v).lower() == "btc" or str(k2).lower() == "btc" for k2, v in cols.items()
+            ):
                 if state["n"] == 1:
                     raise RuntimeError("rename fail")
             return orig(self, *a, **k)
@@ -52,10 +59,12 @@ class TestBatch49:
     def test_1451_1452_validate_trivial_1970_except(self, monkeypatch):
         # RangeIndex 0..N-1 promoted to 1970 DatetimeIndex; make cleaned.index[:3] raise
         # non-BABDataError so outer except (1451-1452) catches it.
-        df = pd.DataFrame({
-            "date": pd.date_range("2024-01-01", periods=4),
-            "BTC": [0.01, 0.02, -0.01, 0.03],
-        })
+        df = pd.DataFrame(
+            {
+                "date": pd.date_range("2024-01-01", periods=4),
+                "BTC": [0.01, 0.02, -0.01, 0.03],
+            }
+        )
 
         orig_promote = dlmod._promote_datetime_column
 
@@ -65,7 +74,5 @@ class TestBatch49:
             return out
 
         monkeypatch.setattr(dlmod, "_promote_datetime_column", bad_promote)
-        try:
+        with contextlib.suppress(Exception):
             dlmod.validate_returns_dataframe(df.copy(), benchmark="BTC")
-        except Exception:
-            pass

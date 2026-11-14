@@ -13,7 +13,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from strategies.betting_against_beta import BABStrategy, BABConfig
+from strategies.betting_against_beta import BABConfig, BABStrategy
 
 
 def _make_returns(n_days: int, n_assets: int, seed: int) -> pd.DataFrame:
@@ -68,8 +68,13 @@ class TestPipelineStress:
 
     def test_stress_with_transaction_costs_still_finite(self):
         df = _make_returns(300, 60, 22)
-        cfg = BABConfig(benchmark="BTC", beta_window=60, min_observations=30,
-                        transaction_costs=0.001, slippage=0.0005)
+        cfg = BABConfig(
+            benchmark="BTC",
+            beta_window=60,
+            min_observations=30,
+            transaction_costs=0.001,
+            slippage=0.0005,
+        )
         res = BABStrategy(cfg).run(returns_df=df)
         assert np.isfinite(res.weights.values).all()
         assert np.isfinite(res.backtest["cumulative"].values).all()

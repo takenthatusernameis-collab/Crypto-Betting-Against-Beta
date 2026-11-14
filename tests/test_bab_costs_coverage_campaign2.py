@@ -48,21 +48,15 @@ def test_empty_weights():
 
 def test_zero_turnover():
     idx = pd.date_range("2023-01-01", periods=3, freq="D")
-    weights = pd.DataFrame(
-        {"BTC": [0.5, 0.5, 0.5], "ETH": [-0.5, -0.5, -0.5]}, index=idx
-    )
+    weights = pd.DataFrame({"BTC": [0.5, 0.5, 0.5], "ETH": [-0.5, -0.5, -0.5]}, index=idx)
     costs = compute_transaction_costs(weights)
     assert (costs == 0.0).all()
 
 
 def test_impact_adv_dict():
     idx = pd.date_range("2023-01-01", periods=2, freq="D")
-    weights = pd.DataFrame(
-        {"BTC": [0.5, 0.0], "ETH": [-0.5, 0.0]}, index=idx
-    )
-    prices = pd.DataFrame(
-        {"BTC": [40000.0, 40000.0], "ETH": [2500.0, 2500.0]}, index=idx
-    )
+    weights = pd.DataFrame({"BTC": [0.5, 0.0], "ETH": [-0.5, 0.0]}, index=idx)
+    prices = pd.DataFrame({"BTC": [40000.0, 40000.0], "ETH": [2500.0, 2500.0]}, index=idx)
     model = TransactionCostModel(impact_coefficient=0.0005, adv_usd={"BTC": 1e9, "ETH": 1e8})
     costs = compute_transaction_costs(weights, prices=prices, model=model)
     assert (costs > 0).any()
@@ -70,12 +64,8 @@ def test_impact_adv_dict():
 
 def test_impact_adv_series():
     idx = pd.date_range("2023-01-01", periods=2, freq="D")
-    weights = pd.DataFrame(
-        {"BTC": [0.5, 0.0], "ETH": [-0.5, 0.0]}, index=idx
-    )
-    prices = pd.DataFrame(
-        {"BTC": [40000.0, 40000.0], "ETH": [2500.0, 2500.0]}, index=idx
-    )
+    weights = pd.DataFrame({"BTC": [0.5, 0.0], "ETH": [-0.5, 0.0]}, index=idx)
+    prices = pd.DataFrame({"BTC": [40000.0, 40000.0], "ETH": [2500.0, 2500.0]}, index=idx)
     adv = pd.Series({"BTC": 1e9, "ETH": 1e8})
     model = TransactionCostModel(impact_coefficient=0.0005)
     costs = compute_transaction_costs(
@@ -86,15 +76,9 @@ def test_impact_adv_series():
 
 def test_impact_adv_dataframe():
     idx = pd.date_range("2023-01-01", periods=2, freq="D")
-    weights = pd.DataFrame(
-        {"BTC": [0.5, 0.0], "ETH": [-0.5, 0.0]}, index=idx
-    )
-    prices = pd.DataFrame(
-        {"BTC": [40000.0, 40000.0], "ETH": [2500.0, 2500.0]}, index=idx
-    )
-    adv = pd.DataFrame(
-        {"BTC": [1e9, 1e9], "ETH": [1e8, 1e8]}, index=idx
-    )
+    weights = pd.DataFrame({"BTC": [0.5, 0.0], "ETH": [-0.5, 0.0]}, index=idx)
+    prices = pd.DataFrame({"BTC": [40000.0, 40000.0], "ETH": [2500.0, 2500.0]}, index=idx)
+    adv = pd.DataFrame({"BTC": [1e9, 1e9], "ETH": [1e8, 1e8]}, index=idx)
     model = TransactionCostModel(impact_coefficient=0.0005)
     costs = compute_transaction_costs(
         weights, weights_prev=None, prices=prices, model=model, adv_usd=adv
@@ -104,12 +88,8 @@ def test_impact_adv_dataframe():
 
 def test_impact_coefficient_zero_skips_impact():
     idx = pd.date_range("2023-01-01", periods=2, freq="D")
-    weights = pd.DataFrame(
-        {"BTC": [0.5, 0.0], "ETH": [-0.5, 0.0]}, index=idx
-    )
-    prices = pd.DataFrame(
-        {"BTC": [40000.0, 40000.0], "ETH": [2500.0, 2500.0]}, index=idx
-    )
+    weights = pd.DataFrame({"BTC": [0.5, 0.0], "ETH": [-0.5, 0.0]}, index=idx)
+    prices = pd.DataFrame({"BTC": [40000.0, 40000.0], "ETH": [2500.0, 2500.0]}, index=idx)
     model = TransactionCostModel(impact_coefficient=0.0, adv_usd={"BTC": 1e6})
     costs = compute_transaction_costs(weights, prices=prices, model=model)
     assert (costs >= 0).all()
@@ -120,13 +100,15 @@ def test_participation_cap_clip():
     weights = pd.DataFrame({"BTC": [0.9]}, index=idx)
     prices = pd.DataFrame({"BTC": [40000.0]}, index=idx)
     uncapped = compute_transaction_costs(
-        weights, prices=prices,
+        weights,
+        prices=prices,
         model=TransactionCostModel(
             impact_coefficient=0.5, participation_cap=1.0, adv_usd={"BTC": 1.0}
         ),
     )
     capped = compute_transaction_costs(
-        weights, prices=prices,
+        weights,
+        prices=prices,
         model=TransactionCostModel(
             impact_coefficient=0.5, participation_cap=0.01, adv_usd={"BTC": 1.0}
         ),
@@ -136,9 +118,7 @@ def test_participation_cap_clip():
 
 def test_borrow_daily_borrow_gt_zero():
     idx = pd.date_range("2023-01-01", periods=2, freq="D")
-    weights = pd.DataFrame(
-        {"BTC": [-0.5, -0.5], "ETH": [0.5, 0.5]}, index=idx
-    )
+    weights = pd.DataFrame({"BTC": [-0.5, -0.5], "ETH": [0.5, 0.5]}, index=idx)
     model = TransactionCostModel(borrow_bps_per_year=0.10)
     costs = compute_transaction_costs(weights, model=model)
     assert (costs > 0).all()
@@ -146,9 +126,7 @@ def test_borrow_daily_borrow_gt_zero():
 
 def test_fixed_fee_per_trade_gt_zero():
     idx = pd.date_range("2023-01-01", periods=2, freq="D")
-    weights = pd.DataFrame(
-        {"BTC": [0.5, 0.0], "ETH": [-0.5, 0.0]}, index=idx
-    )
+    weights = pd.DataFrame({"BTC": [0.5, 0.0], "ETH": [-0.5, 0.0]}, index=idx)
     model = TransactionCostModel(fixed_fee_per_trade=0.001)
     costs = compute_transaction_costs(weights, model=model)
     assert float(costs.iloc[0]) > 0.0
@@ -157,12 +135,9 @@ def test_fixed_fee_per_trade_gt_zero():
 
 def test_none_prices():
     idx = pd.date_range("2023-01-01", periods=2, freq="D")
-    weights = pd.DataFrame(
-        {"BTC": [0.5, 0.0], "ETH": [-0.5, 0.0]}, index=idx
-    )
+    weights = pd.DataFrame({"BTC": [0.5, 0.0], "ETH": [-0.5, 0.0]}, index=idx)
     model = TransactionCostModel(
-        linear_fee=0.001, borrow_bps_per_year=0.0,
-        impact_coefficient=0.0005, adv_usd={"BTC": 1e6}
+        linear_fee=0.001, borrow_bps_per_year=0.0, impact_coefficient=0.0005, adv_usd={"BTC": 1e6}
     )
     costs = compute_transaction_costs(weights, prices=None, model=model)
     assert (costs >= 0).all()

@@ -128,7 +128,7 @@ class TestIndexAndShapeValidation:
             validate_returns_dataframe([1, 2, 3])
 
     def test_duplicate_index_deduplicated(self):
-        dates = pd.date_range("2023-01-01", periods=5).tolist() + [pd.Timestamp("2023-01-01")]
+        dates = [*pd.date_range("2023-01-01", periods=5).tolist(), pd.Timestamp("2023-01-01")]
         df = pd.DataFrame(
             {"BTC": np.arange(6, dtype=float), "ETH": np.arange(6, dtype=float)},
             index=dates,

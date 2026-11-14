@@ -25,6 +25,7 @@ Both fixes are end-to-end at the CLI boundary; the two old fallback tests that
 asserted the buggy behavior were updated to assert the corrected contract.
 No gate-closed module (`beta.py`, `data_loader.py`) was touched.
 """
+
 from __future__ import annotations
 
 import json
@@ -58,10 +59,19 @@ class TestUniverseEmptyTokenCleanError:
     @pytest.mark.parametrize("token", ["", "   ", "\t"])
     def test_empty_token_rejects(self, tmp_path: Path, token: str):
         out = tmp_path / "out.json"
-        res = _run_cli([
-            "--data", REAL, "--from-prices", "--benchmark", "BTC",
-            "--universe", token, "--output", str(out),
-        ])
+        res = _run_cli(
+            [
+                "--data",
+                REAL,
+                "--from-prices",
+                "--benchmark",
+                "BTC",
+                "--universe",
+                token,
+                "--output",
+                str(out),
+            ]
+        )
         assert res.returncode == 1, f"rc={res.returncode}\n{res.stderr}\n{res.stdout}"
         assert "Traceback" not in (res.stdout + res.stderr)
         assert "at least one non-empty asset token" in res.stdout
@@ -69,10 +79,22 @@ class TestUniverseEmptyTokenCleanError:
     def test_mixed_empty_and_real_keeps_real(self, tmp_path: Path):
         # Empty tokens are stripped; surviving real tokens are honored.
         out = tmp_path / "out.json"
-        res = _run_cli([
-            "--data", REAL, "--from-prices", "--benchmark", "BTC",
-            "--universe", "", "ETH", "   ", "SOL", "--output", str(out),
-        ])
+        res = _run_cli(
+            [
+                "--data",
+                REAL,
+                "--from-prices",
+                "--benchmark",
+                "BTC",
+                "--universe",
+                "",
+                "ETH",
+                "   ",
+                "SOL",
+                "--output",
+                str(out),
+            ]
+        )
         assert res.returncode == 0, f"rc={res.returncode}\n{res.stderr}\n{res.stdout}"
         assert "Traceback" not in (res.stdout + res.stderr)
         d = _out_json(out)
@@ -94,10 +116,20 @@ class TestUniverseZeroOverlapCleanError:
 
     def test_all_absent_tokens_reject(self, tmp_path: Path):
         out = tmp_path / "out.json"
-        res = _run_cli([
-            "--data", REAL, "--from-prices", "--benchmark", "BTC",
-            "--universe", "DOGE", "ZZZ", "--output", str(out),
-        ])
+        res = _run_cli(
+            [
+                "--data",
+                REAL,
+                "--from-prices",
+                "--benchmark",
+                "BTC",
+                "--universe",
+                "DOGE",
+                "ZZZ",
+                "--output",
+                str(out),
+            ]
+        )
         assert res.returncode == 1, f"rc={res.returncode}\n{res.stderr}\n{res.stdout}"
         assert "Traceback" not in (res.stdout + res.stderr)
         assert "no overlap" in res.stdout
@@ -106,10 +138,19 @@ class TestUniverseZeroOverlapCleanError:
         # Regression anchor: --universe LINK (present in data) must report
         # LINK only, not the default universe.
         out = tmp_path / "out.json"
-        res = _run_cli([
-            "--data", REAL, "--from-prices", "--benchmark", "BTC",
-            "--universe", "LINK", "--output", str(out),
-        ])
+        res = _run_cli(
+            [
+                "--data",
+                REAL,
+                "--from-prices",
+                "--benchmark",
+                "BTC",
+                "--universe",
+                "LINK",
+                "--output",
+                str(out),
+            ]
+        )
         assert res.returncode == 0, f"rc={res.returncode}\n{res.stderr}\n{res.stdout}"
         d = _out_json(out)
         assert d["universe"] == ["LINK"]
@@ -117,9 +158,17 @@ class TestUniverseZeroOverlapCleanError:
     def test_omitted_universe_unchanged(self, tmp_path: Path):
         # Omitting --universe still derives the default universe (no regression).
         out = tmp_path / "out.json"
-        res = _run_cli([
-            "--data", REAL, "--from-prices", "--benchmark", "BTC", "--output", str(out),
-        ])
+        res = _run_cli(
+            [
+                "--data",
+                REAL,
+                "--from-prices",
+                "--benchmark",
+                "BTC",
+                "--output",
+                str(out),
+            ]
+        )
         assert res.returncode == 0, f"rc={res.returncode}\n{res.stderr}\n{res.stdout}"
         d = _out_json(out)
         assert d["universe"] == ["BTC", "ETH", "SOL", "BNB", "XRP", "ADA", "AVAX", "DOT"]

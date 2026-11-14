@@ -80,7 +80,9 @@ class TestComputeTransactionCosts:
     def test_costs_scale_linearly_with_turnover(self):
         idx = pd.date_range("2023-01-01", periods=4, freq="D")
         prices = pd.DataFrame({"A": [100.0] * 4}, index=idx)
-        model = TransactionCostModel(linear_fee=0.001, bid_ask_bps=0.0, impact_coefficient=0.0, borrow_bps_per_year=0.0)
+        model = TransactionCostModel(
+            linear_fee=0.001, bid_ask_bps=0.0, impact_coefficient=0.0, borrow_bps_per_year=0.0
+        )
         w_small = pd.DataFrame({"A": [0.1, 0.0, 0.0, 0.0]}, index=idx)
         w_big = pd.DataFrame({"A": [0.2, 0.0, 0.0, 0.0]}, index=idx)
         prev = pd.DataFrame(0.0, index=idx, columns=["A"])
@@ -94,8 +96,11 @@ class TestComputeTransactionCosts:
         prices = pd.DataFrame({"A": [100.0] * 2}, index=idx)
         adv = {"A": 1_000_000.0}
         model = TransactionCostModel(
-            linear_fee=0.0, bid_ask_bps=0.0, impact_coefficient=0.01,
-            borrow_bps_per_year=0.0, participation_cap=1.0,
+            linear_fee=0.0,
+            bid_ask_bps=0.0,
+            impact_coefficient=0.01,
+            borrow_bps_per_year=0.0,
+            participation_cap=1.0,
         )
         prev = pd.DataFrame(0.0, index=idx, columns=["A"])
         w_small = pd.DataFrame({"A": [0.1, 0.0]}, index=idx)  # $10k on $1M ADV -> 1% participation
@@ -114,8 +119,11 @@ class TestComputeTransactionCosts:
         prices = pd.DataFrame({"A": [100.0] * 2}, index=idx)
         adv = {"A": 1_000.0}  # tiny ADV -> huge participation, must be capped
         model = TransactionCostModel(
-            linear_fee=0.0, bid_ask_bps=0.0, impact_coefficient=0.01,
-            borrow_bps_per_year=0.0, participation_cap=0.10,
+            linear_fee=0.0,
+            bid_ask_bps=0.0,
+            impact_coefficient=0.01,
+            borrow_bps_per_year=0.0,
+            participation_cap=0.10,
         )
         prev = pd.DataFrame(0.0, index=idx, columns=["A"])
         w_big = pd.DataFrame({"A": [0.9, 0.0]}, index=idx)  # $90k vs $1k ADV -> capped
@@ -137,7 +145,9 @@ class TestComputeTransactionCosts:
         idx = pd.date_range("2023-01-01", periods=3, freq="D")
         prices = pd.DataFrame({"A": [100.0] * 3, "B": [100.0] * 3}, index=idx)
         model = TransactionCostModel(
-            linear_fee=0.0, bid_ask_bps=0.0, impact_coefficient=0.0,
+            linear_fee=0.0,
+            bid_ask_bps=0.0,
+            impact_coefficient=0.0,
             borrow_bps_per_year=0.0252,  # ~0.01% per day at 252 days
         )
         prev = pd.DataFrame(0.0, index=idx, columns=["A", "B"])
@@ -192,9 +202,7 @@ class TestCostsWiredIntoBacktest:
     def test_cost_model_reduces_cumulative_vs_zero_cost(self):
         idx = pd.date_range("2023-01-01", periods=10, freq="D")
         returns = pd.DataFrame({"A": [0.01] * 10, "B": [-0.01] * 10}, index=idx)
-        weights = pd.DataFrame(
-            {"A": [0.5, 0.4] * 5, "B": [-0.5, -0.4] * 5}, index=idx
-        )
+        weights = pd.DataFrame({"A": [0.5, 0.4] * 5, "B": [-0.5, -0.4] * 5}, index=idx)
         prices = pd.DataFrame({"A": [100.0] * 10, "B": [100.0] * 10}, index=idx)
         model = TransactionCostModel(linear_fee=0.001, bid_ask_bps=0.0005)
         free = run_backtest(returns, weights)
@@ -212,7 +220,9 @@ class TestCostsWiredIntoBacktest:
         free = run_backtest(returns, w_low)
         low = run_backtest(returns, w_low, cost_model=model, prices_df=prices)
         high = run_backtest(returns, w_high, cost_model=model, prices_df=prices)
-        assert high["cumulative"].iloc[-1] < low["cumulative"].iloc[-1] <= free["cumulative"].iloc[-1]
+        assert (
+            high["cumulative"].iloc[-1] < low["cumulative"].iloc[-1] <= free["cumulative"].iloc[-1]
+        )
 
     def test_costs_reduce_every_period_with_turnover(self):
         idx = pd.date_range("2023-01-01", periods=4, freq="D")
@@ -243,8 +253,10 @@ class TestCostsDeterminismAndEdgeCases:
         idx = pd.date_range("2023-01-01", periods=2, freq="D")
         model = TransactionCostModel()
         costs = compute_transaction_costs(
-            pd.DataFrame(index=idx), pd.DataFrame(index=idx),
-            pd.DataFrame(index=idx), model,
+            pd.DataFrame(index=idx),
+            pd.DataFrame(index=idx),
+            pd.DataFrame(index=idx),
+            model,
         )
         assert costs.empty or len(costs) == 2
         assert np.isfinite(costs).all()
@@ -266,8 +278,11 @@ class TestCostsValidationBoolAndAdvForms:
         prices = pd.DataFrame({"A": [100.0] * 2}, index=idx)
         adv = pd.DataFrame({"A": [1_000_000.0, 1_000_000.0]}, index=idx)
         model = TransactionCostModel(
-            linear_fee=0.0, bid_ask_bps=0.0, impact_coefficient=0.01,
-            borrow_bps_per_year=0.0, participation_cap=1.0,
+            linear_fee=0.0,
+            bid_ask_bps=0.0,
+            impact_coefficient=0.01,
+            borrow_bps_per_year=0.0,
+            participation_cap=1.0,
         )
         prev = pd.DataFrame(0.0, index=idx, columns=["A"])
         w = pd.DataFrame({"A": [0.5, 0.0]}, index=idx)
@@ -317,8 +332,11 @@ class TestCostsValidationBoolAndAdvForms:
         idx = pd.date_range("2023-01-01", periods=2, freq="D")
         prices = pd.DataFrame({"A": [100.0] * 2}, index=idx)
         model = TransactionCostModel(
-            linear_fee=0.0, bid_ask_bps=0.0, impact_coefficient=0.0,
-            borrow_bps_per_year=0.0, fixed_fee_per_trade=0.005,
+            linear_fee=0.0,
+            bid_ask_bps=0.0,
+            impact_coefficient=0.0,
+            borrow_bps_per_year=0.0,
+            fixed_fee_per_trade=0.005,
         )
         w = pd.DataFrame({"A": [0.5, 0.5]}, index=idx)
         prev = w.shift(1).fillna(0.0)
@@ -331,7 +349,9 @@ class TestCostsValidationBoolAndAdvForms:
         prices = pd.DataFrame({"A": [100.0] * 2}, index=idx)
         adv = pd.Series({"A": 1_000_000.0})
         model = TransactionCostModel(
-            linear_fee=0.0, impact_coefficient=0.01, borrow_bps_per_year=0.0,
+            linear_fee=0.0,
+            impact_coefficient=0.01,
+            borrow_bps_per_year=0.0,
             participation_cap=1.0,
         )
         prev = pd.DataFrame(0.0, index=idx, columns=["A"])
@@ -485,8 +505,11 @@ class TestComputeTransactionCostsContract:
         prices = pd.DataFrame({"A": [100.0] * 2}, index=idx)
         adv = pd.DataFrame({"A": [1_000_000.0, 1_000_000.0]}, index=idx)
         model = TransactionCostModel(
-            linear_fee=0.0, bid_ask_bps=0.0, impact_coefficient=0.01,
-            borrow_bps_per_year=0.0, participation_cap=1.0,
+            linear_fee=0.0,
+            bid_ask_bps=0.0,
+            impact_coefficient=0.01,
+            borrow_bps_per_year=0.0,
+            participation_cap=1.0,
         )
         prev = pd.DataFrame(0.0, index=idx, columns=["A"])
         w = pd.DataFrame({"A": [0.5, 0.0]}, index=idx)

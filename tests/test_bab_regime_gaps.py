@@ -2,8 +2,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from strategies.betting_against_beta import regime
-from strategies.betting_against_beta import config
+from strategies.betting_against_beta import config, regime
 
 
 def test_get_regime_state_raises_type_error():
@@ -91,10 +90,13 @@ def test_regime_scale_factors_non_dataframe():
 def test_regime_scale_factors_trend_method():
     idx = pd.date_range("2023-01-01", periods=100)
     np.random.seed(42)
-    returns = pd.DataFrame({
-        "A": np.random.normal(0, 0.01, len(idx)),
-        "B": np.random.normal(0, 0.01, len(idx)),
-    }, index=idx)
+    returns = pd.DataFrame(
+        {
+            "A": np.random.normal(0, 0.01, len(idx)),
+            "B": np.random.normal(0, 0.01, len(idx)),
+        },
+        index=idx,
+    )
     cfg = config.BABConfig(regime_method="trend")
     out = regime.regime_scale_factors(returns, cfg)
     assert isinstance(out, pd.DataFrame)
@@ -104,10 +106,13 @@ def test_regime_scale_factors_trend_method():
 def test_regime_scale_factors_combined_method():
     idx = pd.date_range("2023-01-01", periods=100)
     np.random.seed(123)
-    returns = pd.DataFrame({
-        "A": np.random.normal(0, 0.01, len(idx)),
-        "B": np.random.normal(0, 0.01, len(idx)),
-    }, index=idx)
+    returns = pd.DataFrame(
+        {
+            "A": np.random.normal(0, 0.01, len(idx)),
+            "B": np.random.normal(0, 0.01, len(idx)),
+        },
+        index=idx,
+    )
     cfg = config.BABConfig(regime_method="combined")
     out = regime.regime_scale_factors(returns, cfg)
     assert isinstance(out, pd.DataFrame)
@@ -117,9 +122,12 @@ def test_regime_scale_factors_combined_method():
 def test_regime_scale_factors_vol_thresholds():
     idx = pd.date_range("2023-01-01", periods=100)
     np.random.seed(5)
-    returns = pd.DataFrame({
-        "A": np.random.normal(0, 0.01, len(idx)),
-    }, index=idx)
+    returns = pd.DataFrame(
+        {
+            "A": np.random.normal(0, 0.01, len(idx)),
+        },
+        index=idx,
+    )
     cfg = config.BABConfig(regime_method="vol", vol_thresholds=[0.005, 0.015])
     out = regime.regime_scale_factors(returns, cfg)
     assert isinstance(out, pd.DataFrame)
@@ -128,9 +136,12 @@ def test_regime_scale_factors_vol_thresholds():
 def test_regime_scale_factors_vol_thresholds_single():
     idx = pd.date_range("2023-01-01", periods=100)
     np.random.seed(7)
-    returns = pd.DataFrame({
-        "A": np.random.normal(0, 0.01, len(idx)),
-    }, index=idx)
+    returns = pd.DataFrame(
+        {
+            "A": np.random.normal(0, 0.01, len(idx)),
+        },
+        index=idx,
+    )
     cfg = config.BABConfig(regime_method="vol", vol_thresholds=[0.01])
     out = regime.regime_scale_factors(returns, cfg)
     assert isinstance(out, pd.DataFrame)
@@ -139,9 +150,12 @@ def test_regime_scale_factors_vol_thresholds_single():
 def test_regime_scale_factors_with_hysteresis():
     idx = pd.date_range("2023-01-01", periods=150)
     np.random.seed(9)
-    returns = pd.DataFrame({
-        "A": np.random.normal(0, 0.02, len(idx)),
-    }, index=idx)
+    returns = pd.DataFrame(
+        {
+            "A": np.random.normal(0, 0.02, len(idx)),
+        },
+        index=idx,
+    )
     cfg = config.BABConfig(regime_method="vol", vol_hysteresis=0.5)
     out = regime.regime_scale_factors(returns, cfg)
     assert isinstance(out, pd.DataFrame)
@@ -150,9 +164,12 @@ def test_regime_scale_factors_with_hysteresis():
 def test_regime_scale_factors_ewma():
     idx = pd.date_range("2023-01-01", periods=100)
     np.random.seed(11)
-    returns = pd.DataFrame({
-        "A": np.random.normal(0, 0.01, len(idx)),
-    }, index=idx)
+    returns = pd.DataFrame(
+        {
+            "A": np.random.normal(0, 0.01, len(idx)),
+        },
+        index=idx,
+    )
     cfg = config.BABConfig(regime_method="vol", vol_use_ewma=True)
     out = regime.regime_scale_factors(returns, cfg)
     assert isinstance(out, pd.DataFrame)
@@ -161,9 +178,12 @@ def test_regime_scale_factors_ewma():
 def test_regime_scale_factors_trend_zwindow():
     idx = pd.date_range("2023-01-01", periods=100)
     np.random.seed(13)
-    returns = pd.DataFrame({
-        "A": np.random.normal(0, 0.01, len(idx)),
-    }, index=idx)
+    returns = pd.DataFrame(
+        {
+            "A": np.random.normal(0, 0.01, len(idx)),
+        },
+        index=idx,
+    )
     cfg = config.BABConfig(regime_method="trend", trend_z_window=10)
     out = regime.regime_scale_factors(returns, cfg)
     assert isinstance(out, pd.DataFrame)
@@ -172,6 +192,7 @@ def test_regime_scale_factors_trend_zwindow():
 def test_regime_scale_factors_invalid_method():
     idx = pd.date_range("2023-01-01", periods=50)
     returns = pd.DataFrame({"A": np.random.normal(0, 0.01, len(idx))}, index=idx)
+
     class DummyCfg:
         regime_method = "invalid"
         benchmark = None
@@ -184,24 +205,32 @@ def test_regime_scale_factors_invalid_method():
         trend_z_window = None
         regime_scale_high = 0.5
         regime_scale_low = 1.0
+
     out = regime.regime_scale_factors(returns, DummyCfg())
     assert isinstance(out, pd.DataFrame)
 
 
 def test_apply_regime_scaling_exception_in_classification():
     sig = pd.DataFrame({"A": [1.0, -1.0, 0.5]}, index=pd.date_range("2023-01-01", periods=3))
+
     # Force exception by passing returns that cause issues in classification
     class BadDF(pd.DataFrame):
         @property
         def columns(self):
             raise RuntimeError("boom")
+
     try:
         bad = BadDF({"A": [0.01, 0.02, 0.03]}, index=sig.index)
     except Exception:
         bad = pd.DataFrame({"A": [0.01, 0.02, 0.03]}, index=sig.index)
         # monkey patch
-        bad.__class__ = type('BadDF2', (pd.DataFrame,), {'columns': property(lambda self: (_ for _ in ()).throw(RuntimeError("boom")))})
+        bad.__class__ = type(
+            "BadDF2",
+            (pd.DataFrame,),
+            {"columns": property(lambda self: (_ for _ in ()).throw(RuntimeError("boom")))},
+        )
     from strategies.betting_against_beta.errors import BABDataError
+
     with pytest.raises(BABDataError, match="regime scaling failed"):
         regime.apply_regime_scaling(sig, returns=bad)
 

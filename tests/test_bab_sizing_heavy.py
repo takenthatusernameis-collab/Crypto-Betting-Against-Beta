@@ -1,14 +1,15 @@
 """Heavy coverage tests for sizing."""
+
 import numpy as np
 import pandas as pd
 import pytest
 
-from strategies.betting_against_beta import sizing, signals
+from strategies.betting_against_beta import signals, sizing
 from strategies.betting_against_beta.sizing import (
     BABSizingError,
     KellySizer,
-    VolatilityTargetSizer,
     RiskParitySizer,
+    VolatilityTargetSizer,
 )
 
 
@@ -65,9 +66,24 @@ class TestSizerValidationFull:
 class TestApplySizingBranches:
     def test_string_shorthands(self):
         idx = pd.date_range("2020-01-01", periods=80)
-        sig = signals.generate_bab_signals(pd.DataFrame({"BTC": np.ones(80), "ETH": np.arange(80)}, index=idx))
-        rets = pd.DataFrame(np.random.RandomState(123).normal(0, 0.01, (80, sig.shape[1])), index=idx, columns=sig.columns)
-        for s in ["kelly", "KELLY_FRACTION", "vol_target", "volatility_target", "voltarget", "risk_parity", "riskparity", "rp"]:
+        sig = signals.generate_bab_signals(
+            pd.DataFrame({"BTC": np.ones(80), "ETH": np.arange(80)}, index=idx)
+        )
+        rets = pd.DataFrame(
+            np.random.RandomState(123).normal(0, 0.01, (80, sig.shape[1])),
+            index=idx,
+            columns=sig.columns,
+        )
+        for s in [
+            "kelly",
+            "KELLY_FRACTION",
+            "vol_target",
+            "volatility_target",
+            "voltarget",
+            "risk_parity",
+            "riskparity",
+            "rp",
+        ]:
             out = sizing.apply_position_sizing(sig, returns=rets, sizer=s)
             assert isinstance(out, pd.DataFrame)
             assert out.shape == sig.shape
@@ -101,8 +117,12 @@ class TestApplySizingBranches:
         idx = pd.date_range("2020-01-01", periods=100)
         sig = pd.DataFrame({"A": np.ones(100), "B": -np.ones(100)}, index=idx)
         rng = np.random.RandomState(42)
-        rets = pd.DataFrame({"A": rng.normal(0.001, 0.02, 100), "B": rng.normal(-0.0005, 0.015, 100)}, index=idx)
-        out = sizing.apply_position_sizing(sig, returns=rets, sizer=KellySizer(lookback=30, fraction=0.5, max_leverage=1.0))
+        rets = pd.DataFrame(
+            {"A": rng.normal(0.001, 0.02, 100), "B": rng.normal(-0.0005, 0.015, 100)}, index=idx
+        )
+        out = sizing.apply_position_sizing(
+            sig, returns=rets, sizer=KellySizer(lookback=30, fraction=0.5, max_leverage=1.0)
+        )
         assert isinstance(out, pd.DataFrame)
         assert (np.isfinite(out.values)).all()
 
@@ -119,14 +139,20 @@ class TestApplySizingBranches:
         sig = pd.DataFrame({"A": np.ones(90)}, index=idx)
         rng = np.random.RandomState(7)
         rets = pd.DataFrame({"A": rng.normal(0, 0.02, 90)}, index=idx)
-        out = sizing.apply_position_sizing(sig, returns=rets, sizer=VolatilityTargetSizer(target_vol=0.1, lookback=30, annualize=252))
+        out = sizing.apply_position_sizing(
+            sig,
+            returns=rets,
+            sizer=VolatilityTargetSizer(target_vol=0.1, lookback=30, annualize=252),
+        )
         assert isinstance(out, pd.DataFrame)
 
     def test_vol_target_zero_var(self):
         idx = pd.date_range("2020-01-01", periods=80)
         sig = pd.DataFrame({"A": np.ones(80), "B": -np.ones(80)}, index=idx)
         rets = pd.DataFrame({"A": np.zeros(80), "B": np.zeros(80)}, index=idx)
-        out = sizing.apply_position_sizing(sig, returns=rets, sizer=VolatilityTargetSizer(lookback=60))
+        out = sizing.apply_position_sizing(
+            sig, returns=rets, sizer=VolatilityTargetSizer(lookback=60)
+        )
         assert isinstance(out, pd.DataFrame)
 
     def test_risk_parity_basic(self):
@@ -141,8 +167,14 @@ class TestApplySizingBranches:
         idx = pd.date_range("2020-01-01", periods=90)
         sig = pd.DataFrame({"A": np.ones(90), "B": -np.ones(90)}, index=idx)
         rng = np.random.RandomState(11)
-        rets = pd.DataFrame({"A": rng.normal(0, 0.01, 90), "B": rng.normal(0, 0.015, 90)}, index=idx)
-        out = sizing.apply_position_sizing(sig, returns=rets, sizer=RiskParitySizer(lookback=30, target_vol=0.1, annualize=252))
+        rets = pd.DataFrame(
+            {"A": rng.normal(0, 0.01, 90), "B": rng.normal(0, 0.015, 90)}, index=idx
+        )
+        out = sizing.apply_position_sizing(
+            sig, returns=rets, sizer=RiskParitySizer(lookback=30, target_vol=0.1, annualize=252)
+        )
         assert isinstance(out, pd.DataFrame)
-        out2 = sizing.apply_position_sizing(sig, returns=rets, sizer=RiskParitySizer(lookback=30, target_vol=0.1))
+        out2 = sizing.apply_position_sizing(
+            sig, returns=rets, sizer=RiskParitySizer(lookback=30, target_vol=0.1)
+        )
         assert isinstance(out2, pd.DataFrame)

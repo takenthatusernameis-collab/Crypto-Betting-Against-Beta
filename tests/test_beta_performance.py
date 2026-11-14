@@ -58,18 +58,12 @@ class TestRollingBetaPerformance:
 
     @pytest.fixture(scope="class")
     def big_df(self):
-        return generate_synthetic_returns(
-            n_days=self.N_DAYS, n_assets=self.N_ASSETS, seed=1234
-        )
+        return generate_synthetic_returns(n_days=self.N_DAYS, n_assets=self.N_ASSETS, seed=1234)
 
     def test_values_match_reference_oracle(self, big_df):
         """The optimized path must produce bit-identical results to the naive loop."""
-        got = calculate_rolling_beta(
-            big_df, "BTC", window=self.WINDOW, min_obs=self.MIN_OBS
-        )
-        expected = _reference_rolling_beta(
-            big_df, "BTC", window=self.WINDOW, min_obs=self.MIN_OBS
-        )
+        got = calculate_rolling_beta(big_df, "BTC", window=self.WINDOW, min_obs=self.MIN_OBS)
+        expected = _reference_rolling_beta(big_df, "BTC", window=self.WINDOW, min_obs=self.MIN_OBS)
         pd.testing.assert_frame_equal(got, expected, check_exact=False, rtol=1e-9, atol=1e-12)
 
     def test_large_universe_completes_in_reasonable_time(self, big_df):
@@ -110,12 +104,8 @@ class TestRollingBetaPerformance:
         small = generate_synthetic_returns(n_days=500, n_assets=10, seed=1)
         large = generate_synthetic_returns(n_days=1000, n_assets=10, seed=1)
 
-        _, t_small = _time_it(
-            calculate_rolling_beta, small, "BTC", window=90, min_obs=60
-        )
-        _, t_large = _time_it(
-            calculate_rolling_beta, large, "BTC", window=90, min_obs=60
-        )
+        _, t_small = _time_it(calculate_rolling_beta, small, "BTC", window=90, min_obs=60)
+        _, t_large = _time_it(calculate_rolling_beta, large, "BTC", window=90, min_obs=60)
         # Doubling rows should not more than double+margin time (linear-ish).
         # Allow generous 4x to absorb noise on shared CI runners.
         assert t_large < max(4.0 * t_small, 8.0), (

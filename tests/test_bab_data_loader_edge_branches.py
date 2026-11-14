@@ -62,7 +62,9 @@ class TestValidateReturnsDataFrame:
             validate_returns_dataframe(df, benchmark="BTC")
 
     def test_inf_values_raises(self):
-        df = pd.DataFrame({"BTC": [0.01, np.inf], "ETH": [0.02, 0.03]},
-                          index=pd.date_range("2024-01-01", periods=2))
+        df = pd.DataFrame(
+            {"BTC": [0.01, np.inf], "ETH": [0.02, 0.03]},
+            index=pd.date_range("2024-01-01", periods=2),
+        )
         with pytest.raises(BABDataError):
             validate_returns_dataframe(df, benchmark="BTC")

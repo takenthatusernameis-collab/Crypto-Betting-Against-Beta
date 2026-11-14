@@ -1,5 +1,8 @@
 """Final probe: exercise every remaining quality.py branch under coverage."""
+
 from __future__ import annotations
+
+import contextlib
 
 import numpy as np
 import pandas as pd
@@ -20,10 +23,8 @@ def test_data_quality_report_conversion_error():
 
 
 def test_check_data_quality_strict_error_branch():
-    try:
+    with contextlib.suppress(ValueError):
         quality.check_data_quality(None, strict=True)
-    except ValueError:
-        pass
 
 
 def test_detect_gaps_zero_median_case():
@@ -108,15 +109,19 @@ def test_compute_quality_zscore_outlier_penalty():
     assert isinstance(res, pd.DataFrame)
     assert res.iloc[0]["quality_score"] < 1.0
 
+
 class TestQualityExtraFinal:
     def test_data_quality_report_to_numeric_exception(self):
-        from strategies.betting_against_beta import quality
         import pandas as pd
+
+        from strategies.betting_against_beta import quality
 
         df = pd.DataFrame({"A": [1.0, 2.0]}, index=pd.date_range("2023-01-01", periods=2))
         orig = quality.pd.to_numeric
+
         def fake_to_numeric(*args, **kwargs):
             raise ValueError("boom")
+
         try:
             quality.pd.to_numeric = fake_to_numeric
             rep = quality.data_quality_report(df)
@@ -126,8 +131,9 @@ class TestQualityExtraFinal:
             quality.pd.to_numeric = orig
 
     def test_detect_gaps_median_zero(self):
-        from strategies.betting_against_beta import quality
         import pandas as pd
+
+        from strategies.betting_against_beta import quality
 
         # All same timestamps? Or gaps zero
         idx = pd.DatetimeIndex([pd.Timestamp("2023-01-01"), pd.Timestamp("2023-01-01")])
@@ -137,13 +143,16 @@ class TestQualityExtraFinal:
         assert res["count"] == 0
 
     def test_detect_outliers_exception_paths(self):
-        from strategies.betting_against_beta import quality
         import pandas as pd
+
+        from strategies.betting_against_beta import quality
 
         df = pd.DataFrame({"A": [1.0, 2.0]}, index=pd.date_range("2023-01-01", periods=2))
         orig = quality.pd.to_numeric
+
         def fake_to_numeric(*args, **kwargs):
             raise RuntimeError("bad")
+
         try:
             quality.pd.to_numeric = fake_to_numeric
             res = quality.detect_outliers(df)
@@ -152,13 +161,16 @@ class TestQualityExtraFinal:
             quality.pd.to_numeric = orig
 
     def test_detect_stale_data_exception(self):
-        from strategies.betting_against_beta import quality
         import pandas as pd
+
+        from strategies.betting_against_beta import quality
 
         df = pd.DataFrame({"A": [1.0, 2.0]}, index=pd.date_range("2023-01-01", periods=2))
         orig = quality.pd.to_numeric
+
         def fake_to_numeric(*args, **kwargs):
             raise RuntimeError("bad")
+
         try:
             quality.pd.to_numeric = fake_to_numeric
             res = quality.detect_stale_data(df)
@@ -167,13 +179,16 @@ class TestQualityExtraFinal:
             quality.pd.to_numeric = orig
 
     def test_detect_volume_anomalies_exception(self):
-        from strategies.betting_against_beta import quality
         import pandas as pd
+
+        from strategies.betting_against_beta import quality
 
         df = pd.DataFrame({"volume": [1.0, 2.0]}, index=pd.date_range("2023-01-01", periods=2))
         orig = quality.pd.to_numeric
+
         def fake_to_numeric(*args, **kwargs):
             raise RuntimeError("bad")
+
         try:
             quality.pd.to_numeric = fake_to_numeric
             res = quality.detect_volume_anomalies(df)
@@ -182,18 +197,20 @@ class TestQualityExtraFinal:
             quality.pd.to_numeric = orig
 
     def test_detect_gaps_get_loc_fallback(self):
-        from strategies.betting_against_beta import quality
         import pandas as pd
 
+        from strategies.betting_against_beta import quality
+
         idx = pd.date_range("2023-01-01", periods=5)
-        df = pd.DataFrame({"A": [1,2,3,4,5]}, index=idx)
+        df = pd.DataFrame({"A": [1, 2, 3, 4, 5]}, index=idx)
         # Create a case where get_loc might behave differently
         res = quality.detect_gaps(df)
         assert isinstance(res, dict)
 
     def test_detect_duplicate_timestamps_no_duplicates_attr(self):
-        from strategies.betting_against_beta import quality
         import pandas as pd
+
+        from strategies.betting_against_beta import quality
 
         df = pd.DataFrame({"A": [1, 2, 3]})  # no DatetimeIndex
         res = quality.detect_duplicate_timestamps(df)

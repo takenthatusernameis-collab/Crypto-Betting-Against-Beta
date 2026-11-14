@@ -40,11 +40,19 @@ def _clean_signal_value(val):
         return 0
 
 
-def construct_portfolio(signals_df, dollar_neutral=True, gross_exposure_limit=None,
-                        max_single_weight=None, net_exposure_limit=None,
-                        enforce_risk_checks=False,
-                        max_position_size=None, max_turnover=None,
-                        weights_df_prev=None, rebalance_mask=None, **kwargs):
+def construct_portfolio(
+    signals_df,
+    dollar_neutral=True,
+    gross_exposure_limit=None,
+    max_single_weight=None,
+    net_exposure_limit=None,
+    enforce_risk_checks=False,
+    max_position_size=None,
+    max_turnover=None,
+    weights_df_prev=None,
+    rebalance_mask=None,
+    **kwargs,
+):
     """Construct portfolio weights from signals.
 
     Vectorized: signal cleaning is applied elementwise across the whole frame
@@ -61,12 +69,23 @@ def construct_portfolio(signals_df, dollar_neutral=True, gross_exposure_limit=No
     try:
         # Accept aliases for turnover/position limits
         if max_turnover is None:
-            for key in ("max_total_turnover", "max_total_turnover_limit", "turnover_limit", "max_turnover_limit"):
+            for key in (
+                "max_total_turnover",
+                "max_total_turnover_limit",
+                "turnover_limit",
+                "max_turnover_limit",
+            ):
                 if key in kwargs:
                     max_turnover = kwargs.pop(key)
                     break
         if max_position_size is None:
-            for key in ("max_pos_size", "position_limit", "max_single_position", "max_weight", "max_individual_position"):
+            for key in (
+                "max_pos_size",
+                "position_limit",
+                "max_single_position",
+                "max_weight",
+                "max_individual_position",
+            ):
                 if key in kwargs:
                     max_position_size = kwargs.pop(key)
                     break
@@ -119,7 +138,7 @@ def construct_portfolio(signals_df, dollar_neutral=True, gross_exposure_limit=No
         # double-``sum`` fan-out sanity check, all of which dominated the
         # production-scale profile.  The denominators are guarded with
         # ``np.where`` so rows with no longs/shorts divide by 1 and yield 0.
-        with np.errstate(divide='ignore', invalid='ignore'):
+        with np.errstate(divide="ignore", invalid="ignore"):
             long_w = np.where(n_long > 0, 1.0 / np.where(n_long > 0, n_long, 1), 0.0)
             short_w = np.where(n_short > 0, -1.0 / np.where(n_short > 0, n_short, 1), 0.0)
 
@@ -141,7 +160,7 @@ def construct_portfolio(signals_df, dollar_neutral=True, gross_exposure_limit=No
                 neg = np.where(w_b < 0.0, w_b, 0.0)
                 long_sum = pos.sum(axis=1)
                 short_sum = neg.sum(axis=1)
-                with np.errstate(divide='ignore', invalid='ignore'):
+                with np.errstate(divide="ignore", invalid="ignore"):
                     pos_scale = np.where(long_sum > 1e-18, 1.0 / long_sum, 1.0)
                     neg_scale = np.where(short_sum < -1e-18, -1.0 / short_sum, 1.0)
                 w_arr[both_idx] = pos * pos_scale[:, None] + neg * neg_scale[:, None]
@@ -153,7 +172,7 @@ def construct_portfolio(signals_df, dollar_neutral=True, gross_exposure_limit=No
                 pos = np.where(w_f > 0.0, w_f, 0.0)
                 neg = np.where(w_f < 0.0, w_f, 0.0)
                 long_sum = pos.sum(axis=1)
-                with np.errstate(divide='ignore', invalid='ignore'):
+                with np.errstate(divide="ignore", invalid="ignore"):
                     scale = np.where(long_sum > 1e-18, (1.0 - net[fix_idx]) / long_sum, 1.0)
                 w_arr[fix_idx] = pos * scale[:, None] + neg
             w_arr[~np.isfinite(w_arr)] = 0.0
@@ -207,7 +226,12 @@ def construct_portfolio(signals_df, dollar_neutral=True, gross_exposure_limit=No
     except (TypeError, ValueError):
         pass
 
-    if enforce_risk_checks or gross_exposure_limit is not None or max_single_weight is not None or net_exposure_limit is not None:
+    if (
+        enforce_risk_checks
+        or gross_exposure_limit is not None
+        or max_single_weight is not None
+        or net_exposure_limit is not None
+    ):
         try:
             gross_limit = float(gross_exposure_limit) if gross_exposure_limit is not None else 2.0
             net_limit = float(net_exposure_limit) if net_exposure_limit is not None else 1e-6
@@ -295,7 +319,6 @@ def enforce_beta_neutrality(
     target = float(target_beta) if target_beta is not None else 0.0
     if not np.isfinite(target):
         target = 0.0
-
 
     cols = list(out.columns)
     w_arr = out.to_numpy(dtype=float, copy=True)

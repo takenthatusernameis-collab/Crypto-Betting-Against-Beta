@@ -10,6 +10,8 @@ long/wide frames and narrow monkeypatch of pandas ops invoked by unmocked BAB co
 survive earlier checks; (5) _normalize_asset_name (953) construction check.
 All tests use production-realistic DataFrames/index values; no semantic changes.
 """
+
+import contextlib
 import os
 import tempfile
 
@@ -20,23 +22,27 @@ import pytest
 from strategies.betting_against_beta import data_loader as dl
 from strategies.betting_against_beta.data_loader import BABDataError
 
-
 # --- 268-269: outer (ValueError, TypeError) handler in _normalize_index ---
 # New angle: DatetimeIndex subclass where tz is truthy but tz_convert raises
 # TypeError that escapes the inner 272-307 block's exception handling?
 # 272-307 handles tz normalization with try/except; 266 catches BABDataError only.
 # A raw TypeError from inside 272-307 that isn't caught would bubble to 268.
 
+
 def test_normalize_index_dti_tz_convert_raises_typeerror_hits_outer_or_safe():
     """M172.1: DTI subclass tz_convert TypeError - probe 268-269 escape."""
+
     class BadTZ(pd.DatetimeIndex):
         @property
         def tz(self):
             return "UTC"
+
         def tz_convert(self, *a, **k):
             raise TypeError("tz_convert boom")
+
         def tz_localize(self, *a, **k):
             raise TypeError("tz_localize boom")
+
     idx = BadTZ(pd.to_datetime(["2021-01-01", "2021-01-02"]))
     df = pd.DataFrame({"BTC": [1.0, 2.0]}, index=idx)
     # Should not crash interpreter; may normalize or raise BABDataError/TypeError
@@ -62,31 +68,38 @@ def test_normalize_index_dti_tz_localize_raises_valueerror():
 # in a way that reaches outer except 641-642; and 667-691 promotion path raises
 # reaching 694-695.
 
+
 def test_exchange_format_epoch_numeric_date_hits_coercion_path(monkeypatch):
     """M172.2: epoch-ms numeric date column triggers 613-642 block."""
-    df = pd.DataFrame({
-        "symbol": ["BTC", "BTC"],
-        "timestamp": [1609459200000, 1609545600000],  # ms epoch
-        "close": [29000.0, 29400.0],
-    })
+    df = pd.DataFrame(
+        {
+            "symbol": ["BTC", "BTC"],
+            "timestamp": [1609459200000, 1609545600000],  # ms epoch
+            "close": [29000.0, 29400.0],
+        }
+    )
     out = dl._detect_and_normalize_exchange_format(df)
     assert isinstance(out, pd.DataFrame)
 
 
 def test_exchange_format_epoch_coercion_pd_to_datetime_raises(monkeypatch):
     """M172.2b: force pd.to_datetime in epoch coercion to raise -> probe 641-642."""
-    df = pd.DataFrame({
-        "symbol": ["BTC"],
-        "timestamp": [1609459200000],
-        "close": [29000.0],
-    })
+    df = pd.DataFrame(
+        {
+            "symbol": ["BTC"],
+            "timestamp": [1609459200000],
+            "close": [29000.0],
+        }
+    )
     orig = pd.to_datetime
     calls = {"n": 0}
+
     def boom(*a, **k):
         calls["n"] += 1
         if calls["n"] <= 2:
             raise RuntimeError("forced")
         return orig(*a, **k)
+
     monkeypatch.setattr(pd, "to_datetime", boom)
     out = dl._detect_and_normalize_exchange_format(df.copy())
     assert isinstance(out, pd.DataFrame)
@@ -94,16 +107,20 @@ def test_exchange_format_epoch_coercion_pd_to_datetime_raises(monkeypatch):
 
 def test_exchange_format_date_promotion_scalar_coerce_raises(monkeypatch):
     """M172.2c: date_col promotion where _coerce_to_datetime_scalar raises -> 694-695?"""
-    df = pd.DataFrame({
-        "date": ["1700000000", "1700086400"],  # epoch-like strings
-        "BTC": [1.0, 2.0],
-    })
+    df = pd.DataFrame(
+        {
+            "date": ["1700000000", "1700086400"],  # epoch-like strings
+            "BTC": [1.0, 2.0],
+        }
+    )
     orig = dl._coerce_to_datetime_scalar
+
     def boom(v):
         s = str(v)
         if s.isdigit() and len(s) >= 10:
             raise RuntimeError("forced epoch coerce")
         return orig(v)
+
     monkeypatch.setattr(dl, "_coerce_to_datetime_scalar", boom)
     out = dl._detect_and_normalize_exchange_format(df.copy())
     assert isinstance(out, pd.DataFrame)
@@ -113,28 +130,35 @@ def test_exchange_format_date_promotion_scalar_coerce_raises(monkeypatch):
 # New angle: parsed is tz-aware DatetimeIndex-like where tz_convert raises
 # inside 769-780 but in a way that escapes inner try (789 catches, 791 catches outer)?
 
+
 def test_promote_datetime_column_tz_convert_raises_in_apply(monkeypatch):
     """M172.3: tz-aware parsed values; force Timestamp.tz_convert to raise."""
-    df = pd.DataFrame({
-        "date": pd.date_range("2021-01-01", periods=3, tz="UTC"),
-        "BTC": [1.0, 2.0, 3.0],
-    })
+    df = pd.DataFrame(
+        {
+            "date": pd.date_range("2021-01-01", periods=3, tz="UTC"),
+            "BTC": [1.0, 2.0, 3.0],
+        }
+    )
     # ensure it's not already the index
     df = df.reset_index(drop=True)
     real_ts = pd.Timestamp
+
     def maybe_boom(self, *a, **k):
         if k.get("tz") or (a and str(a[0]).upper() == "UTC"):
             # allow some calls, raise in apply context
             return real_ts.tz_convert(self, *a, **k)
         return real_ts.tz_convert(self, *a, **k)
+
     # Narrow: patch Timestamp.tz_convert to raise on specific condition
     orig_tz_convert = pd.Timestamp.tz_convert
     n = {"i": 0}
+
     def tz_boom(self, tz=None):
         n["i"] += 1
         if n["i"] > 5:
             raise RuntimeError("tz boom")
         return orig_tz_convert(self, tz)
+
     monkeypatch.setattr(pd.Timestamp, "tz_convert", tz_boom)
     try:
         out = dl._promote_datetime_column(df.copy())
@@ -145,11 +169,15 @@ def test_promote_datetime_column_tz_convert_raises_in_apply(monkeypatch):
 
 def test_promote_datetime_column_tz_aware_series_apply_path(monkeypatch):
     """M172.3b: parsed is a Series with tz-aware Timestamps, apply lambda fails."""
-    df = pd.DataFrame({
-        "ts": [pd.Timestamp("2021-01-01", tz="US/Eastern"),
-               pd.Timestamp("2021-01-02", tz="US/Eastern")],
-        "value": [1, 2],
-    })
+    df = pd.DataFrame(
+        {
+            "ts": [
+                pd.Timestamp("2021-01-01", tz="US/Eastern"),
+                pd.Timestamp("2021-01-02", tz="US/Eastern"),
+            ],
+            "value": [1, 2],
+        }
+    )
     df = df.reset_index(drop=True)
     out = dl._promote_datetime_column(df.copy())
     assert isinstance(out, pd.DataFrame)
@@ -159,13 +187,16 @@ def test_promote_datetime_column_tz_aware_series_apply_path(monkeypatch):
 # New angle: digit string that passes regex and looks epoch-like but pd.to_datetime
 # with unit='s'/'ms' raises unexpectedly (monkeypatched) reaching 403-404.
 
+
 def test_coerce_datetime_scalar_epoch_to_datetime_raises(monkeypatch):
     """M172.4: epoch numeric string where pd.to_datetime raises -> 403-404 then fallback."""
     orig = pd.to_datetime
+
     def selective_boom(arg, *a, **k):
         if k.get("unit") == "s" and str(arg).strip().isdigit():
             raise OverflowError("forced")
         return orig(arg, *a, **k)
+
     monkeypatch.setattr(pd, "to_datetime", selective_boom)
     # Should still parse via 406-416 normal parsing path
     try:
@@ -179,12 +210,18 @@ def test_coerce_datetime_scalar_epoch_to_datetime_raises(monkeypatch):
 # New angle: np.datetime64('NaT') with explicit unit, pandas NA in object contexts
 # reaching public normalize paths (not the same as M171.E/F coercer-only sweeps).
 
+
 def test_normalize_index_np_datetime64_nat_s_unit():
     """M172.5: np.datetime64 NaT (explicit 's' unit) in object index via normalize."""
     df = pd.DataFrame({"BTC": [1.0, 2.0, 3.0]})
-    df.index = pd.Index([np.datetime64("2021-01-01", "s"),
-                         np.datetime64("NaT", "s"),
-                         np.datetime64("2021-01-03", "s")], dtype=object)
+    df.index = pd.Index(
+        [
+            np.datetime64("2021-01-01", "s"),
+            np.datetime64("NaT", "s"),
+            np.datetime64("2021-01-03", "s"),
+        ],
+        dtype=object,
+    )
     try:
         out = dl._normalize_index(df.copy())
         assert isinstance(out, pd.DataFrame)
@@ -199,10 +236,8 @@ def test_not_null_pandas_na_and_nat_variants():
     assert dl._not_null(None) is False
     assert dl._not_null(pd.NA) is False
     assert dl._not_null(np.nan) is False
-    try:
+    with contextlib.suppress(Exception):
         assert dl._not_null(pd.NaT) is False
-    except Exception:
-        pass
 
 
 # --- 953: _normalize_asset_name empty token continue ---
@@ -216,13 +251,14 @@ def test_normalize_asset_name_separators_and_emptyish():
         except Exception:
             pass
     # Direct: after replace of -_. with space, split() strips empties -> 953 unreachable
-    s = "---".replace('-', ' ').replace('_', ' ').replace('.', ' ')
+    s = "---".replace("-", " ").replace("_", " ").replace(".", " ")
     assert s.split() == []  # confirms 953 cannot trigger
 
 
 # --- Public loader path: NaT-like values in real CSV (materially new vs M171.C) ---
 # M171.C used NaT-string columns; M172 uses empty/NA fields with nullable dtypes
 # and checks if normalization/index promotion hits target guards.
+
 
 def test_load_returns_csv_nullable_empty_dates(tmp_path):
     """M172.7: CSV with empty date field -> loader drops NaT rows (public path)."""

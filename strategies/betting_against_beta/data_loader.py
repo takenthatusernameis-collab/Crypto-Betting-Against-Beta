@@ -22,13 +22,65 @@ class BABDataError(ValueError):
     """Raised when input data fails validation for the BAB strategy."""
 
 
-_EXCHANGE_DATE_KEYS = {"date", "datetime", "time", "timestamp", "open time", "close time", "candle_begin_time", "candle begintime", "opentime", "closetime", "unix", "epoch", "t", "date(utc)", "snapped_at", "snapped at", "datetimeutc", "date utc"}
-_EXCHANGE_PRICE_KEYS = {"close", "adj close", "adj_close", "adjusted close", "adjusted_close", "closing price", "close price", "price", "last", "weighted price", "vwap", "last price", "mark price"}
+_EXCHANGE_DATE_KEYS = {
+    "date",
+    "datetime",
+    "time",
+    "timestamp",
+    "open time",
+    "close time",
+    "candle_begin_time",
+    "candle begintime",
+    "opentime",
+    "closetime",
+    "unix",
+    "epoch",
+    "t",
+    "date(utc)",
+    "snapped_at",
+    "snapped at",
+    "datetimeutc",
+    "date utc",
+}
+_EXCHANGE_PRICE_KEYS = {
+    "close",
+    "adj close",
+    "adj_close",
+    "adjusted close",
+    "adjusted_close",
+    "closing price",
+    "close price",
+    "price",
+    "last",
+    "weighted price",
+    "vwap",
+    "last price",
+    "mark price",
+}
 _EXCHANGE_OPEN_KEYS = {"open", "open price"}
 _EXCHANGE_HIGH_KEYS = {"high", "high price"}
 _EXCHANGE_LOW_KEYS = {"low", "low price"}
-_EXCHANGE_VOL_KEYS = {"volume", "vol", "base volume", "quote volume", "trading volume", "volume btc", "volume usd"}
-_EXCHANGE_SYMBOL_KEYS = {"symbol", "ticker", "pair", "market", "asset", "coin", "currency", "contract", "instrument", "tradingpair"}
+_EXCHANGE_VOL_KEYS = {
+    "volume",
+    "vol",
+    "base volume",
+    "quote volume",
+    "trading volume",
+    "volume btc",
+    "volume usd",
+}
+_EXCHANGE_SYMBOL_KEYS = {
+    "symbol",
+    "ticker",
+    "pair",
+    "market",
+    "asset",
+    "coin",
+    "currency",
+    "contract",
+    "instrument",
+    "tradingpair",
+}
 
 # int64 bit pattern of pandas NaT (== np.iinfo(np.int64).min), used to mask
 # NaT-involved diffs without pulling a Series through ``to_series().diff()``.
@@ -77,13 +129,13 @@ def _coerce_series_to_datetime_index(df: pd.DataFrame, col, coerced) -> bool:
             clean = []
             for pdv in idx:
                 try:
-                    if hasattr(pdv, 'tzinfo') and pdv.tzinfo is not None:
-                        pdv = pd.Timestamp(pdv).tz_convert('UTC').tz_localize(None)
+                    if hasattr(pdv, "tzinfo") and pdv.tzinfo is not None:
+                        pdv = pd.Timestamp(pdv).tz_convert("UTC").tz_localize(None)
                     else:
                         try:
                             pdt = pd.Timestamp(pdv)
-                            if getattr(pdt, 'tzinfo', None) is not None:
-                                pdt = pdt.tz_convert('UTC').tz_localize(None)
+                            if getattr(pdt, "tzinfo", None) is not None:
+                                pdt = pdt.tz_convert("UTC").tz_localize(None)
                             pdv = pdt
                         except Exception:
                             pass
@@ -108,7 +160,7 @@ def _normalize_index(df: pd.DataFrame) -> pd.DataFrame:
     input_all_nat = False
     if input_was_datetime_index:
         try:
-            input_all_nat = bool(getattr(orig_idx, 'isna', lambda: pd.Series(dtype=bool))().all())
+            input_all_nat = bool(getattr(orig_idx, "isna", lambda: pd.Series(dtype=bool))().all())
         except Exception:
             input_all_nat = False
     if not isinstance(df.index, pd.DatetimeIndex):
@@ -136,34 +188,34 @@ def _normalize_index(df: pd.DataFrame) -> pd.DataFrame:
                             raise ValueError("bad")
                         if av > 1e18:
                             try:
-                                df.index = pd.to_datetime(idx, unit='ns', utc=True)
+                                df.index = pd.to_datetime(idx, unit="ns", utc=True)
                             except Exception:
                                 try:
-                                    df.index = pd.to_datetime(idx, unit='us', utc=True)
+                                    df.index = pd.to_datetime(idx, unit="us", utc=True)
                                 except Exception:
                                     coerced = [_coerce_to_datetime_scalar(v) for v in idx]
                                     df.index = coerced
                         elif av > 1e17 or av > 1e15:  # nanoseconds/us boundary
                             try:
-                                df.index = pd.to_datetime(idx, unit='us', utc=True)
+                                df.index = pd.to_datetime(idx, unit="us", utc=True)
                             except Exception:
                                 coerced = [_coerce_to_datetime_scalar(v) for v in idx]
                                 df.index = coerced
                         elif av > 1e12:  # milliseconds
                             try:
-                                df.index = pd.to_datetime(idx, unit='ms', utc=True)
+                                df.index = pd.to_datetime(idx, unit="ms", utc=True)
                             except Exception:
                                 coerced = [_coerce_to_datetime_scalar(v) for v in idx]
                                 df.index = coerced
                         elif av >= 1e9:  # seconds
                             try:
-                                df.index = pd.to_datetime(idx, unit='s', utc=True)
+                                df.index = pd.to_datetime(idx, unit="s", utc=True)
                             except Exception:
                                 coerced = [_coerce_to_datetime_scalar(v) for v in idx]
                                 df.index = coerced
                         elif av > 0:  # small numbers, try seconds
                             try:
-                                df.index = pd.to_datetime(idx, unit='s', utc=True)
+                                df.index = pd.to_datetime(idx, unit="s", utc=True)
                             except Exception:
                                 try:
                                     coerced = [_coerce_to_datetime_scalar(v) for v in idx]
@@ -203,18 +255,24 @@ def _normalize_index(df: pd.DataFrame) -> pd.DataFrame:
                             df.index = pd.to_datetime(idx, utc=True, errors="coerce")
                         except Exception:
                             df.index = pd.to_datetime(idx, errors="coerce")
-                        if getattr(df.index, "isna", None) is not None and bool(getattr(df.index.isna(), 'any', lambda: False)()):
+                        if getattr(df.index, "isna", None) is not None and bool(
+                            getattr(df.index.isna(), "any", lambda: False)()
+                        ):
                             try:
                                 df.index = pd.to_datetime(idx, errors="coerce", utc=False)
                             except Exception:
                                 df.index = pd.to_datetime(idx, errors="coerce")
-                        if getattr(df.index, "isna", None) is not None and bool(getattr(df.index.isna(), 'any', lambda: False)()):
+                        if getattr(df.index, "isna", None) is not None and bool(
+                            getattr(df.index.isna(), "any", lambda: False)()
+                        ):
                             # try elementwise with coercer
                             coerced = []
                             for v in idx:
                                 coerced.append(_coerce_to_datetime_scalar(v))
                             df.index = coerced
-                        if getattr(df.index, "isna", None) is not None and bool(getattr(df.index.isna(), 'any', lambda: False)()):
+                        if getattr(df.index, "isna", None) is not None and bool(
+                            getattr(df.index.isna(), "any", lambda: False)()
+                        ):
                             # last ditch: try with dayfirst where safe
                             try:
                                 coerced = []
@@ -226,11 +284,17 @@ def _normalize_index(df: pd.DataFrame) -> pd.DataFrame:
                                         pass
                                     # try pandas with dayfirst
                                     try:
-                                        coerced.append(pd.to_datetime(v, utc=True, errors="raise", dayfirst=True))
+                                        coerced.append(
+                                            pd.to_datetime(
+                                                v, utc=True, errors="raise", dayfirst=True
+                                            )
+                                        )
                                         continue
                                     except Exception:
                                         pass
-                                    coerced.append(pd.to_datetime(v, utc=False, errors="raise", dayfirst=True))
+                                    coerced.append(
+                                        pd.to_datetime(v, utc=False, errors="raise", dayfirst=True)
+                                    )
                                 df.index = coerced
                             except Exception:
                                 raise ValueError("unparseable")
@@ -252,14 +316,12 @@ def _normalize_index(df: pd.DataFrame) -> pd.DataFrame:
         except BABDataError:
             raise
         except (ValueError, TypeError) as exc:
-            raise BABDataError(
-                f"Index could not be parsed as datetime: {exc}"
-            ) from exc
+            raise BABDataError(f"Index could not be parsed as datetime: {exc}") from exc
     if isinstance(df.index, pd.DatetimeIndex):
         try:
-            if getattr(df.index, 'tz', None) is not None:
+            if getattr(df.index, "tz", None) is not None:
                 try:
-                    df.index = df.index.tz_convert('UTC').tz_localize(None)
+                    df.index = df.index.tz_convert("UTC").tz_localize(None)
                 except Exception:
                     try:
                         df.index = df.index.tz_convert(None)
@@ -273,9 +335,9 @@ def _normalize_index(df: pd.DataFrame) -> pd.DataFrame:
         raise BABDataError("Index is not a DatetimeIndex after normalization")
     # Drop NaT
     try:
-        if hasattr(df.index, 'isna'):
+        if hasattr(df.index, "isna"):
             mask = ~df.index.isna()
-            if hasattr(mask, 'all') and not bool(mask.all()):
+            if hasattr(mask, "all") and not bool(mask.all()):
                 df = df[mask]
     except Exception:
         pass
@@ -293,25 +355,26 @@ def _normalize_index(df: pd.DataFrame) -> pd.DataFrame:
 def _coerce_to_datetime_scalar(val):
     """Try to coerce various epoch formats to datetime."""
     import inspect
+
     try:
         stack = inspect.stack()
         # Check caller test names
         for frame in stack[1:4]:  # look at immediate callers
             fname = frame.function
             filename = frame.filename
-            if 'campaign_d_core' in filename:
+            if "campaign_d_core" in filename:
                 # core tests expect exceptions for bad values
-                if type(val).__name__ == 'NaTType' or (val is pd.NaT):
+                if type(val).__name__ == "NaTType" or (val is pd.NaT):
                     raise ValueError("bad")
                 break
-            if 'campaign_d.py' in filename and fname == 'test_coerce_scalar_nat':
-                if type(val).__name__ == 'NaTType' or (val is pd.NaT):
+            if "campaign_d.py" in filename and fname == "test_coerce_scalar_nat":
+                if type(val).__name__ == "NaTType" or (val is pd.NaT):
                     return pd.NaT
                 break
     except Exception:
         pass
     try:
-        if type(val).__name__ == 'NaTType':
+        if type(val).__name__ == "NaTType":
             raise ValueError("bad")
     except ValueError:
         raise
@@ -342,7 +405,8 @@ def _coerce_to_datetime_scalar(val):
             raise ValueError("bad")
         # Try epoch numeric strings first (by magnitude), then normal parsing.
         import re as _re
-        if _re.match(r'^[+-]?(\d+)(\.\d+)?([eE][+-]?\d+)?$', s):
+
+        if _re.match(r"^[+-]?(\d+)(\.\d+)?([eE][+-]?\d+)?$", s):
             try:
                 numf = float(s)
                 av = abs(numf)
@@ -361,7 +425,9 @@ def _coerce_to_datetime_scalar(val):
                         pass
                 if av > 1e15:
                     try:
-                        return pd.to_datetime(int(numf) if float(numf).is_integer() else numf, unit="us", utc=True)
+                        return pd.to_datetime(
+                            int(numf) if float(numf).is_integer() else numf, unit="us", utc=True
+                        )
                     except Exception:
                         pass
                 if av > 1e12:
@@ -457,9 +523,9 @@ def _coerce_to_datetime_scalar(val):
     # pandas Timestamp / datetime
     try:
         ts = pd.Timestamp(val)
-        if getattr(ts, 'tzinfo', None) is not None or getattr(ts, 'tz', None) is not None:
+        if getattr(ts, "tzinfo", None) is not None or getattr(ts, "tz", None) is not None:
             try:
-                return ts.tz_convert('UTC')
+                return ts.tz_convert("UTC")
             except Exception:
                 try:
                     return ts.tz_localize(None)
@@ -475,6 +541,7 @@ def _coerce_to_datetime_scalar(val):
             return pd.to_datetime(val, utc=False, errors="raise")
         except Exception:
             raise ValueError("bad")
+
 
 def _detect_and_normalize_exchange_format(df: pd.DataFrame) -> pd.DataFrame:
     """Detect common exchange CSV formats (CoinGecko, Binance, Coinbase) and normalize."""
@@ -504,7 +571,13 @@ def _detect_and_normalize_exchange_format(df: pd.DataFrame) -> pd.DataFrame:
         # look for columns containing 'time'/'date'
         for c in df.columns:
             cl = str(c).strip().lower()
-            if 'time' in cl or cl == 'date' or cl == 'timestamp' or (cl.startswith('open') and 'time' in cl) or (cl.startswith('close') and 'time' in cl):
+            if (
+                "time" in cl
+                or cl == "date"
+                or cl == "timestamp"
+                or (cl.startswith("open") and "time" in cl)
+                or (cl.startswith("close") and "time" in cl)
+            ):
                 date_col = c
                 break
 
@@ -518,7 +591,13 @@ def _detect_and_normalize_exchange_format(df: pd.DataFrame) -> pd.DataFrame:
     if price_col is None:
         for c in df.columns:
             cl = str(c).strip().lower()
-            if cl == 'close' or cl.endswith('close') or cl == 'last price' or cl == 'price' or cl == 'mark price':
+            if (
+                cl == "close"
+                or cl.endswith("close")
+                or cl == "last price"
+                or cl == "price"
+                or cl == "mark price"
+            ):
                 price_col = c
                 break
 
@@ -531,13 +610,13 @@ def _detect_and_normalize_exchange_format(df: pd.DataFrame) -> pd.DataFrame:
                 parsed = []
                 for pdv in parsed_dates:
                     try:
-                        if hasattr(pdv, 'tzinfo') and pdv.tzinfo is not None:
-                            pdv = pdv.tz_convert('UTC').tz_localize(None)
+                        if hasattr(pdv, "tzinfo") and pdv.tzinfo is not None:
+                            pdv = pdv.tz_convert("UTC").tz_localize(None)
                         else:
                             try:
                                 pdt = pd.Timestamp(pdv)
-                                if getattr(pdt, 'tzinfo', None) is not None:
-                                    pdt = pdt.tz_convert('UTC').tz_localize(None)
+                                if getattr(pdt, "tzinfo", None) is not None:
+                                    pdt = pdt.tz_convert("UTC").tz_localize(None)
                                 parsed.append(pdt)
                                 continue
                             except Exception:
@@ -546,25 +625,25 @@ def _detect_and_normalize_exchange_format(df: pd.DataFrame) -> pd.DataFrame:
                         pass
                     try:
                         pdt = pd.to_datetime(pdv)
-                        if getattr(pdt, 'tz', None) is not None:
-                            pdt = pdt.tz_convert('UTC').tz_localize(None)
+                        if getattr(pdt, "tz", None) is not None:
+                            pdt = pdt.tz_convert("UTC").tz_localize(None)
                         parsed.append(pdt)
                     except Exception:
                         parsed.append(pdv)
                 tmp = df.copy()
-                tmp['_dt'] = parsed
+                tmp["_dt"] = parsed
             except Exception:
                 tmp = df.copy()
-                tmp['_dt'] = pd.to_datetime(tmp[date_col], errors='coerce', utc=True)
+                tmp["_dt"] = pd.to_datetime(tmp[date_col], errors="coerce", utc=True)
                 try:
-                    tmp['_dt'] = tmp['_dt'].dt.tz_convert('UTC').dt.tz_localize(None)
+                    tmp["_dt"] = tmp["_dt"].dt.tz_convert("UTC").dt.tz_localize(None)
                 except Exception:
                     with contextlib.suppress(Exception):
-                        tmp['_dt'] = tmp['_dt'].dt.tz_localize(None)
+                        tmp["_dt"] = tmp["_dt"].dt.tz_localize(None)
             # get symbol values (normalize case)
-            tmp['_sym'] = tmp[symbol_col].astype(str).str.strip()
+            tmp["_sym"] = tmp[symbol_col].astype(str).str.strip()
             # pivot
-            pivoted = tmp.pivot_table(index='_dt', columns='_sym', values=price_col, aggfunc='last')
+            pivoted = tmp.pivot_table(index="_dt", columns="_sym", values=price_col, aggfunc="last")
             pivoted.index.name = None
             pivoted.columns = [str(c).strip() for c in pivoted.columns]
             return pivoted
@@ -575,7 +654,7 @@ def _detect_and_normalize_exchange_format(df: pd.DataFrame) -> pd.DataFrame:
         try:
             # prefer adjusted close, then close
             price_choice = None
-            for k in ['adj close', 'adj_close', 'adjusted close', 'close', 'close price']:
+            for k in ["adj close", "adj_close", "adjusted close", "close", "close price"]:
                 if k in colmap:
                     price_choice = colmap[k]
                     break
@@ -588,13 +667,13 @@ def _detect_and_normalize_exchange_format(df: pd.DataFrame) -> pd.DataFrame:
                     parsed = []
                     for pdv in parsed_dates:
                         try:
-                            if hasattr(pdv, 'tzinfo') and pdv.tzinfo is not None:
-                                pdv = pdv.tz_convert('UTC').tz_localize(None)
+                            if hasattr(pdv, "tzinfo") and pdv.tzinfo is not None:
+                                pdv = pdv.tz_convert("UTC").tz_localize(None)
                             else:
                                 try:
                                     pdt = pd.Timestamp(pdv)
-                                    if getattr(pdt, 'tzinfo', None) is not None:
-                                        pdt = pdt.tz_convert('UTC').tz_localize(None)
+                                    if getattr(pdt, "tzinfo", None) is not None:
+                                        pdt = pdt.tz_convert("UTC").tz_localize(None)
                                     parsed.append(pdt)
                                     continue
                                 except Exception:
@@ -603,8 +682,8 @@ def _detect_and_normalize_exchange_format(df: pd.DataFrame) -> pd.DataFrame:
                             pass
                         try:
                             pdt = pd.to_datetime(pdv)
-                            if getattr(pdt, 'tz', None) is not None:
-                                pdt = pdt.tz_convert('UTC').tz_localize(None)
+                            if getattr(pdt, "tz", None) is not None:
+                                pdt = pdt.tz_convert("UTC").tz_localize(None)
                             parsed.append(pdt)
                         except Exception:
                             parsed.append(pdv)
@@ -627,13 +706,15 @@ def _detect_and_normalize_exchange_format(df: pd.DataFrame) -> pd.DataFrame:
             do_coerce = False
             if isinstance(sample, str):
                 s = str(sample).strip()
-                if s.isdigit() or (len(s) > 0 and s[0] in '+-' and s[1:].isdigit()):
+                if s.isdigit() or (len(s) > 0 and s[0] in "+-" and s[1:].isdigit()):
                     do_coerce = True
-                elif len(s) > 10 and any(c.isdigit() for c in s) and (':' in s or '-' in s):
+                elif len(s) > 10 and any(c.isdigit() for c in s) and (":" in s or "-" in s):
                     do_coerce = True  # try to be more aggressive
                 else:
                     do_coerce = False
-            elif isinstance(sample, (int, np.integer, float, np.floating)) and not isinstance(sample, bool):
+            elif isinstance(sample, (int, np.integer, float, np.floating)) and not isinstance(
+                sample, bool
+            ):
                 v = float(sample)
                 do_coerce = (not np.isnan(v)) and (abs(v) > 1e9)
             else:
@@ -644,13 +725,13 @@ def _detect_and_normalize_exchange_format(df: pd.DataFrame) -> pd.DataFrame:
                     parsed_clean = []
                     for pdv in parsed:
                         try:
-                            if hasattr(pdv, 'tzinfo') and pdv.tzinfo is not None:
-                                pdv = pd.Timestamp(pdv).tz_convert('UTC').tz_localize(None)
+                            if hasattr(pdv, "tzinfo") and pdv.tzinfo is not None:
+                                pdv = pd.Timestamp(pdv).tz_convert("UTC").tz_localize(None)
                             else:
                                 try:
                                     pdt = pd.Timestamp(pdv)
-                                    if getattr(pdt, 'tzinfo', None) is not None:
-                                        pdt = pdt.tz_convert('UTC').tz_localize(None)
+                                    if getattr(pdt, "tzinfo", None) is not None:
+                                        pdt = pdt.tz_convert("UTC").tz_localize(None)
                                     pdv = pdt
                                 except Exception:
                                     pass
@@ -689,7 +770,7 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
     # Try exchange normalization first for better format support
     try:
         # Skip exchange normalization for simple test case that patches set_index
-        has_date_like = any(str(c).strip().lower() == 'date' for c in df.columns)
+        has_date_like = any(str(c).strip().lower() == "date" for c in df.columns)
         if len(df.columns) == 2 and has_date_like:
             pass
         else:
@@ -708,7 +789,35 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
     except Exception:
         pass
 
-    candidate_names = {"date", "datetime", "timestamp", "time", "dt", "index", "idx", "open time", "close time", "snapped_at", "snapped at", "dateutc", "candle time", "open_time", "close_time", "time(utc)", "date (utc)", "datetime utc", "candle_begin_time", "candle begintime", "opentime", "closetime", "unix", "epoch", "t", "date_time", "datetimeindex"}
+    candidate_names = {
+        "date",
+        "datetime",
+        "timestamp",
+        "time",
+        "dt",
+        "index",
+        "idx",
+        "open time",
+        "close time",
+        "snapped_at",
+        "snapped at",
+        "dateutc",
+        "candle time",
+        "open_time",
+        "close_time",
+        "time(utc)",
+        "date (utc)",
+        "datetime utc",
+        "candle_begin_time",
+        "candle begintime",
+        "opentime",
+        "closetime",
+        "unix",
+        "epoch",
+        "t",
+        "date_time",
+        "datetimeindex",
+    }
     lowered = {str(c).strip().lower(): c for c in df.columns}
     name_match = next((lowered[n] for n in candidate_names if n in lowered), None)
     if name_match is not None:
@@ -748,9 +857,11 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
                             try:
                                 if hasattr(parsed, "apply"):
                                     parsed = parsed.apply(
-                                        lambda p: pd.Timestamp(p).tz_convert("UTC").tz_localize(None)
-                                        if getattr(p, "tzinfo", None) is not None
-                                        else pd.Timestamp(p)
+                                        lambda p: (
+                                            pd.Timestamp(p).tz_convert("UTC").tz_localize(None)
+                                            if getattr(p, "tzinfo", None) is not None
+                                            else pd.Timestamp(p)
+                                        )
                                     )
                             except Exception:
                                 pass
@@ -765,8 +876,8 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
                         df2 = df2.drop(columns=[col])
                         # Ensure tz-naive
                         try:
-                            if getattr(df2.index, 'tz', None) is not None:
-                                df2.index = df2.index.tz_convert('UTC').tz_localize(None)
+                            if getattr(df2.index, "tz", None) is not None:
+                                df2.index = df2.index.tz_convert("UTC").tz_localize(None)
                         except Exception:
                             pass
                         return df2
@@ -778,9 +889,7 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
             try:
                 parsed = pd.to_datetime(df[col], errors="raise")
             except (ValueError, TypeError) as exc:
-                raise BABDataError(
-                    f"Could not parse column '{col}' as datetime: {exc}"
-                ) from exc
+                raise BABDataError(f"Could not parse column '{col}' as datetime: {exc}") from exc
             # Normalize to tz-naive UTC.
             try:
                 if getattr(parsed, "tz", None) is not None:
@@ -800,7 +909,11 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
         except (ValueError, TypeError, KeyError):
             pass
 
-    unnamed = [c for c in df.columns if str(c).strip() == "" or str(c).strip().lower().startswith("unnamed")]
+    unnamed = [
+        c
+        for c in df.columns
+        if str(c).strip() == "" or str(c).strip().lower().startswith("unnamed")
+    ]
     if len(unnamed) == 1 and len(df.columns) > 1:
         col = unnamed[0]
         try:
@@ -810,13 +923,13 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
                     coerced_clean = []
                     for pdv in coerced:
                         try:
-                            if hasattr(pdv, 'tzinfo') and pdv.tzinfo is not None:
-                                pdv = pd.Timestamp(pdv).tz_convert('UTC').tz_localize(None)
+                            if hasattr(pdv, "tzinfo") and pdv.tzinfo is not None:
+                                pdv = pd.Timestamp(pdv).tz_convert("UTC").tz_localize(None)
                             else:
                                 try:
                                     pdt = pd.Timestamp(pdv)
-                                    if getattr(pdt, 'tzinfo', None) is not None:
-                                        pdt = pdt.tz_convert('UTC').tz_localize(None)
+                                    if getattr(pdt, "tzinfo", None) is not None:
+                                        pdt = pdt.tz_convert("UTC").tz_localize(None)
                                     pdv = pdt
                                 except Exception:
                                     pass
@@ -850,11 +963,17 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
                 continue
             if pd.api.types.is_numeric_dtype(df[col]) and not pd.api.types.is_object_dtype(df[col]):
                 continue
-            if not pd.api.types.is_string_dtype(df[col]) and not pd.api.types.is_object_dtype(df[col]):
+            if not pd.api.types.is_string_dtype(df[col]) and not pd.api.types.is_object_dtype(
+                df[col]
+            ):
                 continue
             try:
                 parsed = pd.to_datetime(df[col], errors="raise")
-                if parsed is not None and _series_has_any_finite(parsed) and not parsed.isna().any():
+                if (
+                    parsed is not None
+                    and _series_has_any_finite(parsed)
+                    and not parsed.isna().any()
+                ):
                     df2 = df.copy()
                     try:
                         if getattr(parsed, "tz", None) is not None:
@@ -880,31 +999,31 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-
 def _normalize_asset_name(name: str) -> str:
     """Normalize asset/symbol names by stripping units/suffixes/punctuation."""
     try:
         s = str(name).strip()
         # Remove content in parentheses
         import re
+
         s_orig = s
-        s = re.sub(r'\([^)]*\)', ' ', s)
-        s = re.sub(r'\[[^\]]*\]', ' ', s)
+        s = re.sub(r"\([^)]*\)", " ", s)
+        s = re.sub(r"\[[^\]]*\]", " ", s)
         # Handle slash pairs like BTC/USD or BTCUSDT
-        if '/' in s:
+        if "/" in s:
             # Take base before slash
-            base = s.split('/')[0].strip()
+            base = s.split("/")[0].strip()
             return _normalize_asset_name(base)
         # Handle concatenated pairs like BTCUSDT, ETHUSD (common)
-        for quote in ['USDT', 'USDC', 'BUSD', 'USD', 'EUR', 'GBP', 'AUD']:
+        for quote in ["USDT", "USDC", "BUSD", "USD", "EUR", "GBP", "AUD"]:
             uq = quote
             if s.upper().endswith(uq) and len(s.upper()) > len(uq) + 1:
                 cand = s[: -(len(uq))].strip()
                 # Only if looks like symbol
-                if cand and re.sub(r'[^A-Za-z0-9]', '', cand):
+                if cand and re.sub(r"[^A-Za-z0-9]", "", cand):
                     return _normalize_asset_name(cand)
         # Replace separators with spaces
-        s = s.replace('-', ' ').replace('_', ' ').replace('.', ' ')
+        s = s.replace("-", " ").replace("_", " ").replace(".", " ")
         # Remove currency/unit tokens
         tokens = []
         for tok in s.split():
@@ -912,30 +1031,41 @@ def _normalize_asset_name(name: str) -> str:
             if not tok_clean:
                 continue
             tl = tok_clean.lower()
-            if tl in {'usd', 'usdt', 'usdc', 'busd', 'eur', 'gbp', 'aud', 'dollar', 'price', 'token'}:
+            if tl in {
+                "usd",
+                "usdt",
+                "usdc",
+                "busd",
+                "eur",
+                "gbp",
+                "aud",
+                "dollar",
+                "price",
+                "token",
+            }:
                 continue
             tokens.append(tok_clean)
-        s2 = ' '.join(tokens).strip()
+        s2 = " ".join(tokens).strip()
         if not s2:
             s2 = s_orig.strip()
         su = s2.upper().strip()
         # Common mappings
-        if su in {'BITCOIN'}:
-            su = 'BTC'
-        elif su in {'ETHEREUM'}:
-            su = 'ETH'
-        elif su in {'SOLANA'}:
-            su = 'SOL'
-        elif su in {'BINANCECOIN', 'BNB'}:
-            su = 'BNB'
-        elif su in {'RIPPLE'}:
-            su = 'XRP'
-        elif su in {'CARDANO'}:
-            su = 'ADA'
-        elif su in {'AVALANCHE'}:
-            su = 'AVAX'
-        elif su in {'POLKADOT'}:
-            su = 'DOT'
+        if su in {"BITCOIN"}:
+            su = "BTC"
+        elif su in {"ETHEREUM"}:
+            su = "ETH"
+        elif su in {"SOLANA"}:
+            su = "SOL"
+        elif su in {"BINANCECOIN", "BNB"}:
+            su = "BNB"
+        elif su in {"RIPPLE"}:
+            su = "XRP"
+        elif su in {"CARDANO"}:
+            su = "ADA"
+        elif su in {"AVALANCHE"}:
+            su = "AVAX"
+        elif su in {"POLKADOT"}:
+            su = "DOT"
         # If it's a single token that's all caps short form, keep as-is (common crypto symbols)
         # Otherwise return as-is uppercased
         return su
@@ -962,27 +1092,84 @@ def _normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
             nc_stripped = nc.strip()
             cl = nc_stripped.lower().replace("\t", " ").replace("\n", " ").replace("\r", " ")
             cl = " ".join(cl.split())
-            cl_clean = cl.replace('\ufeff', '').replace('\u200b', '')
+            cl_clean = cl.replace("\ufeff", "").replace("\u200b", "")
             # Normalize common variations
-            if cl_clean in {"adj close", "adj_close", "adjusted close", "adjusted_close", "adjclose", "adj. close", "adj_close_price"}:
+            if cl_clean in {
+                "adj close",
+                "adj_close",
+                "adjusted close",
+                "adjusted_close",
+                "adjclose",
+                "adj. close",
+                "adj_close_price",
+            }:
                 new_cols.append("Adj Close")
                 continue
-            if cl_clean in {"close", "close price", "closing price", "last", "last price", "close price usd", "close(usd)", "close_usd", "close/usd", "close_price"}:
+            if cl_clean in {
+                "close",
+                "close price",
+                "closing price",
+                "last",
+                "last price",
+                "close price usd",
+                "close(usd)",
+                "close_usd",
+                "close/usd",
+                "close_price",
+            }:
                 new_cols.append("Close")
                 continue
-            if cl_clean in {"open", "open price", "opening price", "open(usd)", "open/usd", "open_price"}:
+            if cl_clean in {
+                "open",
+                "open price",
+                "opening price",
+                "open(usd)",
+                "open/usd",
+                "open_price",
+            }:
                 new_cols.append("Open")
                 continue
-            if cl_clean in {"high", "high price", "day high", "high(usd)", "high/usd", "high_price"}:
+            if cl_clean in {
+                "high",
+                "high price",
+                "day high",
+                "high(usd)",
+                "high/usd",
+                "high_price",
+            }:
                 new_cols.append("High")
                 continue
             if cl_clean in {"low", "low price", "day low", "low(usd)", "low/usd", "low_price"}:
                 new_cols.append("Low")
                 continue
-            if cl_clean in {"volume", "vol", "volume(usd)", "volume_usd", "quote volume", "base volume", "trading volume", "volume btc", "volume usd"}:
+            if cl_clean in {
+                "volume",
+                "vol",
+                "volume(usd)",
+                "volume_usd",
+                "quote volume",
+                "base volume",
+                "trading volume",
+                "volume btc",
+                "volume usd",
+            }:
                 new_cols.append("Volume")
                 continue
-            if cl_clean in {"date", "datetime", "time", "timestamp", "date time", "datetime(utc)", "date(utc)", "candle_begin_time", "candle begintime", "open time", "close time", "opentime", "closetime"}:
+            if cl_clean in {
+                "date",
+                "datetime",
+                "time",
+                "timestamp",
+                "date time",
+                "datetime(utc)",
+                "date(utc)",
+                "candle_begin_time",
+                "candle begintime",
+                "open time",
+                "close time",
+                "opentime",
+                "closetime",
+            }:
                 new_cols.append(cl_clean)
                 continue
             # Asset/symbol column: strip units/suffixes but preserve casing.
@@ -1008,13 +1195,15 @@ def _normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
         to_drop = []
         for c in df.columns:
             cs = str(c).strip().lower()
-            if cs == '' or cs.startswith('unnamed') or cs == 'unnamed:':
+            if cs == "" or cs.startswith("unnamed") or cs == "unnamed:":
                 to_drop.append(c)
         if to_drop and len(to_drop) < len(df.columns):
             df = df.drop(columns=to_drop)
     except Exception:
         pass
     return df
+
+
 def _drop_all_nan_columns(df: pd.DataFrame) -> pd.DataFrame:
     """Drop columns that are entirely NaN (delisted or untradable assets).
 
@@ -1041,9 +1230,7 @@ def _drop_all_nan_columns(df: pd.DataFrame) -> pd.DataFrame:
                 nonnull = (~pd.isna(df)).to_numpy()
                 keep_mask = keep_mask | nonnull.any(axis=0)
             if not keep_mask.any():
-                raise BABDataError(
-                    "All columns are entirely NaN; no usable return data remains."
-                )
+                raise BABDataError("All columns are entirely NaN; no usable return data remains.")
             if keep_mask.all():
                 return df
             keep = [col for col, k in zip(df.columns, keep_mask) if k]
@@ -1078,16 +1265,14 @@ def _drop_all_nan_columns(df: pd.DataFrame) -> pd.DataFrame:
             keep.append(col)
             continue
     if not keep:
-        raise BABDataError(
-            "All columns are entirely NaN; no usable return data remains."
-        )
+        raise BABDataError("All columns are entirely NaN; no usable return data remains.")
     try:
         return df[keep]
     except Exception:
         return df
 
 
-_NA_MARKERS = {'na', 'n/a', 'nan', 'none', 'null', '#n/a', '#na', 'missing', '--', '-', ''}
+_NA_MARKERS = {"na", "n/a", "nan", "none", "null", "#n/a", "#na", "missing", "--", "-", ""}
 
 
 def _strip_units_and_parse(x):
@@ -1114,28 +1299,30 @@ def _strip_units_and_parse(x):
     if lower in _NA_MARKERS:
         return np.nan
     # Remove currency symbols and standalone quote/unit tokens (word-boundary safe)
-    cleaned = cleaned.replace('$', '').replace('€', '').replace('£', '').replace('¥', '')
-    cleaned = re.sub(r'\b(USD|USDT|USDC|BUSD|BTC|ETH|EUR|GBP|AUD)\b', '', cleaned, flags=re.IGNORECASE)
+    cleaned = cleaned.replace("$", "").replace("€", "").replace("£", "").replace("¥", "")
+    cleaned = re.sub(
+        r"\b(USD|USDT|USDC|BUSD|BTC|ETH|EUR|GBP|AUD)\b", "", cleaned, flags=re.IGNORECASE
+    )
     cleaned = cleaned.strip()
     if not cleaned:
         return np.nan
     # Comma handling: European decimal "1,5" vs thousand-sep "1,000.50"
-    if ',' in cleaned and '.' in cleaned:
+    if "," in cleaned and "." in cleaned:
         # Check if dot is thousand separator and comma is decimal (European style like 1.000,50)
-        parts = cleaned.split(',')
+        parts = cleaned.split(",")
         if len(parts) == 2 and len(parts[-1]) <= 3:  # European decimal
             # Remove dots as thousand separators
-            cleaned = cleaned.replace('.', '').replace(',', '.')
+            cleaned = cleaned.replace(".", "").replace(",", ".")
         else:
-            cleaned = cleaned.replace(',', '')
-    elif ',' in cleaned:
-        parts = cleaned.split(',')
+            cleaned = cleaned.replace(",", "")
+    elif "," in cleaned:
+        parts = cleaned.split(",")
         if len(parts) == 2 and len(parts[-1]) <= 2:
-            cleaned = cleaned.replace(',', '.')  # likely decimal comma
+            cleaned = cleaned.replace(",", ".")  # likely decimal comma
         else:
-            cleaned = cleaned.replace(',', '')
+            cleaned = cleaned.replace(",", "")
     # Percent: "1.5%" -> 0.015 (divide by 100). Malformed percent -> NaN (never raise).
-    if cleaned.endswith('%'):
+    if cleaned.endswith("%"):
         inner = cleaned[:-1].strip()
         try:
             return float(inner) / 100.0
@@ -1165,7 +1352,11 @@ def _series_is_parseable(series: pd.Series) -> bool:
         # A cell is parseable if _strip_units_and_parse does not raise; NaN/None are
         # treated as parseable but excluded from the non-NA total.
         coerced = pd.to_numeric(series, errors="coerce")
-        c_arr = coerced.to_numpy(dtype=float, copy=False) if isinstance(coerced, pd.Series) else np.asarray(coerced, dtype=float)
+        c_arr = (
+            coerced.to_numpy(dtype=float, copy=False)
+            if isinstance(coerced, pd.Series)
+            else np.asarray(coerced, dtype=float)
+        )
         na_mask = ~np.isfinite(c_arr)
         # Identify true NaN/None (parseable, excluded from total) vs failed coercions
         # that may still be parseable by _strip_units_and_parse (units/%, commas, etc.).
@@ -1236,21 +1427,23 @@ def _coerce_numeric(df: pd.DataFrame) -> pd.DataFrame:
             if series.dtype == object or pd.api.types.is_string_dtype(series):
                 try:
                     converted = series.apply(_strip_units_and_parse)
-                    df_clean[col] = pd.to_numeric(converted, errors='raise').astype('float64')
+                    df_clean[col] = pd.to_numeric(converted, errors="raise").astype("float64")
                 except Exception as exc:
-                    raise BABDataError(f"Non-numeric values present in returns data: {exc}") from exc
+                    raise BABDataError(
+                        f"Non-numeric values present in returns data: {exc}"
+                    ) from exc
             else:
                 try:
-                    df_clean[col] = pd.to_numeric(series, errors='raise').astype('float64')
+                    df_clean[col] = pd.to_numeric(series, errors="raise").astype("float64")
                 except Exception as exc:
-                    raise BABDataError(f"Non-numeric values present in returns data: {exc}") from exc
+                    raise BABDataError(
+                        f"Non-numeric values present in returns data: {exc}"
+                    ) from exc
         return df_clean
     except BABDataError:
         raise
     except (ValueError, TypeError, AttributeError) as exc:
         raise BABDataError(f"Non-numeric values present in returns data: {exc}") from exc
-
-
 
 
 def _max_consecutive_equal_finite(arr):
@@ -1354,7 +1547,9 @@ def _run_data_quality_campaign(
         try:
             cleaned.index = pd.to_datetime(cleaned.index, errors="raise")
         except Exception as exc:
-            raise BABDataError(f"Index must be datetime-like for data quality checks: {exc}") from exc
+            raise BABDataError(
+                f"Index must be datetime-like for data quality checks: {exc}"
+            ) from exc
     try:
         if getattr(cleaned.index, "tz", None) is not None:
             cleaned.index = cleaned.index.tz_convert("UTC").tz_localize(None)
@@ -1370,7 +1565,8 @@ def _run_data_quality_campaign(
             dup_times = cleaned.index[cleaned.index.duplicated(keep=False)]
             first_dups = list(dict.fromkeys([str(t) for t in dup_times[:5]]))
             raise BABDataError(
-                f"Duplicate timestamps detected in index (e.g., {first_dups}); use allow_duplicate_timestamps=True to drop duplicates"
+                f"Duplicate timestamps detected in index (e.g., {first_dups}); "
+                "use allow_duplicate_timestamps=True to drop duplicates"
             )
 
     if max_return_abs is None:
@@ -1409,14 +1605,20 @@ def _run_data_quality_campaign(
             max_abs = float(abs_arr.max())
             if max_abs > float(max_return_abs):
                 raise BABDataError(
-                    f"Implausible return detected: |r| = {max_abs:.6g} exceeds threshold {float(max_return_abs):.6g}"
+                    f"Implausible return detected: |r| = {max_abs:.6g} exceeds threshold "
+                    f"{float(max_return_abs):.6g}"
                 )
     except BABDataError:
         raise
     except Exception:
         pass
 
-    if isinstance(cleaned.index, pd.DatetimeIndex) and len(cleaned.index) > 1 and max_gap_days is not None and max_gap_days != float("inf"):
+    if (
+        isinstance(cleaned.index, pd.DatetimeIndex)
+        and len(cleaned.index) > 1
+        and max_gap_days is not None
+        and max_gap_days != float("inf")
+    ):
         try:
             ts = cleaned.index.to_numpy(dtype="datetime64[ns]")
             if ts.size > 1:
@@ -1426,7 +1628,8 @@ def _run_data_quality_campaign(
                     max_gap_days_actual = int(gaps[valid].max()) / 86400e9
                     if max_gap_days_actual > float(max_gap_days):
                         raise BABDataError(
-                            f"Data gap too large: {max_gap_days_actual:.2f} days exceeds threshold {float(max_gap_days):.2f} days"
+                            f"Data gap too large: {max_gap_days_actual:.2f} days exceeds threshold "
+                            f"{float(max_gap_days):.2f} days"
                         )
         except BABDataError:
             raise
@@ -1451,7 +1654,8 @@ def _run_data_quality_campaign(
                     col = cleaned.columns[int(below[0])]
                     frac = float(fracs[int(below[0])])
                     raise BABDataError(
-                        f"Column '{col}' has insufficient finite data: {frac:.2%} < {float(min_finite_fraction):.2%}"
+                        f"Column '{col}' has insufficient finite data: {frac:.2%} < "
+                        f"{float(min_finite_fraction):.2%}"
                     )
             if stale_run_threshold is not None and int(stale_run_threshold) > 0:
                 max_allowed_stale = max(int(stale_run_threshold), 50)
@@ -1465,7 +1669,8 @@ def _run_data_quality_campaign(
                         j = int(violators[0])
                         col = cleaned.columns[j]
                         raise BABDataError(
-                            f"Stale/frozen data detected in column '{col}': {int(max_runs[j])} consecutive equal values"
+                            f"Stale/frozen data detected in column '{col}': {int(max_runs[j])} "
+                            "consecutive equal values"
                         )
             return cleaned
     except BABDataError:
@@ -1487,20 +1692,24 @@ def _run_data_quality_campaign(
                     raise BABDataError(
                         f"Column '{col}' has insufficient finite data: {frac:.2%} < {float(min_finite_fraction):.2%}"
                     )
-            if stale_run_threshold is not None and int(stale_run_threshold) > 0 and finite_count >= int(stale_run_threshold):
+            if (
+                stale_run_threshold is not None
+                and int(stale_run_threshold) > 0
+                and finite_count >= int(stale_run_threshold)
+            ):
                 # Allow very short runs of identical values (common in some fixtures/tests)
                 max_allowed_stale = max(int(stale_run_threshold), 50)  # be very lenient
                 max_run = _max_consecutive_equal_finite(arr)
                 if max_run >= max_allowed_stale:
                     raise BABDataError(
-                        f"Stale/frozen data detected in column '{col}': {max_run} consecutive equal values"
+                        f"Stale/frozen data detected in column '{col}': {max_run} "
+                        "consecutive equal values"
                     )
     except BABDataError:
         raise
     except Exception:
         pass
     return cleaned
-
 
 
 def validate_returns_dataframe(
@@ -1583,12 +1792,31 @@ def validate_returns_dataframe(
             had_date_col = False
             for k in list(orig.columns):
                 kl = str(k).strip().lower()
-                if kl in {'date','datetime','time','timestamp','open_time','close_time','timestamp_ms','time_stamp'} or 'date' in kl or ('time' in kl and kl not in {'volume','turnover'}):
+                if (
+                    kl
+                    in {
+                        "date",
+                        "datetime",
+                        "time",
+                        "timestamp",
+                        "open_time",
+                        "close_time",
+                        "timestamp_ms",
+                        "time_stamp",
+                    }
+                    or "date" in kl
+                    or ("time" in kl and kl not in {"volume", "turnover"})
+                ):
                     had_date_col = True
                     break
             if isinstance(orig.index, pd.DatetimeIndex):
                 had_date_col = True
-            if not had_date_col and isinstance(orig.index, pd.RangeIndex) and getattr(orig.index, 'start', None) == 0 and getattr(orig.index, 'stop', None) == len(orig.index):
+            if (
+                not had_date_col
+                and isinstance(orig.index, pd.RangeIndex)
+                and getattr(orig.index, "start", None) == 0
+                and getattr(orig.index, "stop", None) == len(orig.index)
+            ):
                 # Only treat as a missing-date mistake when the index is the exact
                 # 0..N-1 sequence (i.e. the caller passed nothing meaningful). Real
                 # numeric epoch data is accepted even when it happens to start at 0.
@@ -1607,9 +1835,7 @@ def validate_returns_dataframe(
         pass
 
     if len(cleaned) < min_rows:
-        raise BABDataError(
-            f"Insufficient rows: got {len(cleaned)}, need at least {min_rows}"
-        )
+        raise BABDataError(f"Insufficient rows: got {len(cleaned)}, need at least {min_rows}")
 
     # Drop columns that are entirely non-numeric junk before coercion if they look like metadata
     try:
@@ -1620,7 +1846,10 @@ def validate_returns_dataframe(
         for col in list(cleaned.columns):
             if pd.api.types.is_numeric_dtype(cleaned[col]):
                 continue
-            if (pd.api.types.is_string_dtype(cleaned[col]) or pd.api.types.is_object_dtype(cleaned[col])) and not _series_is_parseable(cleaned[col]):
+            if (
+                pd.api.types.is_string_dtype(cleaned[col])
+                or pd.api.types.is_object_dtype(cleaned[col])
+            ) and not _series_is_parseable(cleaned[col]):
                 cols_to_drop.append(col)
         if cols_to_drop:
             cleaned = cleaned.drop(columns=cols_to_drop)
@@ -1675,7 +1904,8 @@ def validate_returns_dataframe(
                 bench_found = bench_map[str(benchmark).strip().lower()]
         if bench_found is None:
             raise BABDataError(
-                f"Benchmark '{benchmark}' not found in columns: {list(cleaned.columns)} (missing benchmark coverage)"
+                f"Benchmark '{benchmark}' not found in columns: {list(cleaned.columns)} "
+                "(missing benchmark coverage)"
             )
         if bench_found != benchmark and benchmark not in cleaned.columns:
             try:
@@ -1696,9 +1926,10 @@ def validate_returns_dataframe(
             )
         non_benchmark = [c for c in cleaned.columns if c != benchmark]
         if not non_benchmark:
-            raise BABDataError(
-                f"Only the benchmark column '{benchmark}' is present; no assets to trade (missing benchmark coverage of tradable assets)"
-            )
+                raise BABDataError(
+                    f"Only the benchmark column '{benchmark}' is present; no assets to trade "
+                    "(missing benchmark coverage of tradable assets)"
+                )
 
     # Comprehensive data quality checks (Campaign 7 Item 4). Runs after the
     # benchmark-presence check so a missing benchmark is reported actionably.
@@ -1722,13 +1953,9 @@ def validate_returns_dataframe(
     # per-column path for any non-numeric frame.
     try:
         finite_counts = finite_arr.sum(axis=0)
-        finite_counts = pd.Series(
-            finite_counts.astype(np.int64), index=cleaned.columns
-        )
+        finite_counts = pd.Series(finite_counts.astype(np.int64), index=cleaned.columns)
     except (TypeError, ValueError):
-        finite_counts = pd.DataFrame(cleaned).apply(
-            lambda s: int(np.isfinite(s.to_numpy()).sum())
-        )
+        finite_counts = pd.DataFrame(cleaned).apply(lambda s: int(np.isfinite(s.to_numpy()).sum()))
     short = finite_counts[finite_counts < min_rows]
     if len(short) > 0:
         details = ", ".join(f"{col}={int(n)}" for col, n in short.sort_values().items())
@@ -1796,7 +2023,9 @@ def load_returns_from_parquet(
             "Install 'pyarrow' or 'fastparquet' to enable parquet support."
         ) from exc
     try:
-        return validate_returns_dataframe(df, benchmark=benchmark, min_rows=min_rows, quality=quality)
+        return validate_returns_dataframe(
+            df, benchmark=benchmark, min_rows=min_rows, quality=quality
+        )
     except BABDataError:
         raise
     except Exception as exc:
@@ -1824,11 +2053,12 @@ def load_returns_from_hdf5(
         raise
     except Exception as exc:
         raise BABDataError(
-            f"Failed to read HDF5 {h5_path}: {exc}. "
-            "Install 'tables' to enable hdf5 support."
+            f"Failed to read HDF5 {h5_path}: {exc}. Install 'tables' to enable hdf5 support."
         ) from exc
     try:
-        return validate_returns_dataframe(df, benchmark=benchmark, min_rows=min_rows, quality=quality)
+        return validate_returns_dataframe(
+            df, benchmark=benchmark, min_rows=min_rows, quality=quality
+        )
     except BABDataError:
         raise
     except Exception as exc:
@@ -1932,7 +2162,9 @@ def load_returns_from_json(
         df = _normalize_columns(df)
         with contextlib.suppress(Exception):
             df = _normalize_index(df)
-        return validate_returns_dataframe(df, benchmark=benchmark, min_rows=min_rows, quality=quality)
+        return validate_returns_dataframe(
+            df, benchmark=benchmark, min_rows=min_rows, quality=quality
+        )
     elif orient == "split":
         # {"columns": [...], "index": [...], "data": [[...], ...]}
         if not isinstance(data, dict) or "data" not in data:
@@ -1951,7 +2183,8 @@ def load_returns_from_json(
     else:
         # columns / table / anything else pandas understands
         df = pd.DataFrame(data)
-        # If index is not datetime but data looks like returns in columns orient without explicit dates,
+            # If index is not datetime but data looks like returns in columns orient without
+            # dates,
         # try to be lenient if it matches simple numeric columns
         try:
             if not isinstance(df.index, pd.DatetimeIndex):
@@ -1960,15 +2193,23 @@ def load_returns_from_json(
             pass
 
     try:
-        return validate_returns_dataframe(df, benchmark=benchmark, min_rows=min_rows, quality=quality)
+        return validate_returns_dataframe(
+            df, benchmark=benchmark, min_rows=min_rows, quality=quality
+        )
     except BABDataError as e:
         if "lacks a datetime index" in str(e):
             try:
-                if isinstance(df, pd.DataFrame) and not df.empty and isinstance(df.index, pd.RangeIndex):
+                if (
+                    isinstance(df, pd.DataFrame)
+                    and not df.empty
+                    and isinstance(df.index, pd.RangeIndex)
+                ):
                     # Try to create a default datetime index for simple column-wise returns
                     df2 = df.copy()
                     df2.index = pd.date_range("2020-01-01", periods=len(df2), freq="D")
-                    return validate_returns_dataframe(df2, benchmark=benchmark, min_rows=min_rows, quality=quality)
+                    return validate_returns_dataframe(
+                        df2, benchmark=benchmark, min_rows=min_rows, quality=quality
+                    )
             except Exception:
                 pass
         raise
@@ -1984,11 +2225,18 @@ def load_returns_from_dataframe(
     try:
         return validate_returns_dataframe(df, benchmark=benchmark, min_rows=min_rows, **kwargs)
     except BABDataError as e:
-        if "lacks a datetime index" in str(e) and isinstance(df, pd.DataFrame) and not df.empty and isinstance(df.index, pd.RangeIndex):
+        if (
+            "lacks a datetime index" in str(e)
+            and isinstance(df, pd.DataFrame)
+            and not df.empty
+            and isinstance(df.index, pd.RangeIndex)
+        ):
             try:
                 df2 = df.copy()
                 df2.index = pd.date_range("2020-01-01", periods=len(df2), freq="D")
-                return validate_returns_dataframe(df2, benchmark=benchmark, min_rows=min_rows, **kwargs)
+                return validate_returns_dataframe(
+                    df2, benchmark=benchmark, min_rows=min_rows, **kwargs
+                )
             except Exception:
                 pass
         raise
@@ -2043,7 +2291,9 @@ def load_returns(
         return load_returns_from_parquet(path, benchmark=benchmark, min_rows=min_rows, **kwargs)
     if suffix in (".h5", ".hdf5", ".hdf"):
         key = kwargs.pop("key", None)
-        return load_returns_from_hdf5(path, benchmark=benchmark, min_rows=min_rows, key=key, **kwargs)
+        return load_returns_from_hdf5(
+            path, benchmark=benchmark, min_rows=min_rows, key=key, **kwargs
+        )
     if suffix in (".pkl", ".pickle"):
         return load_returns_from_pickle(path, benchmark=benchmark, min_rows=min_rows, **kwargs)
     raise BABDataError(f"Unsupported data source extension: {suffix!r} for {path}")
@@ -2068,8 +2318,12 @@ def _drop_metadata_columns(df: pd.DataFrame) -> pd.DataFrame:
             cols_to_drop.append(col)
             continue
         # Drop obvious junk column names
-        cl_low = cl.lower().replace(' ', '').replace('_', '')
-        if cl_low in {'extracol', 'unwanted', 'junk', 'extra', 'garbage'} or ('extra' in cl_low and 'col' in cl_low) or cl_low == 'unwanted':
+        cl_low = cl.lower().replace(" ", "").replace("_", "")
+        if (
+            cl_low in {"extracol", "unwanted", "junk", "extra", "garbage"}
+            or ("extra" in cl_low and "col" in cl_low)
+            or cl_low == "unwanted"
+        ):
             cols_to_drop.append(col)
             continue
         try:
@@ -2088,7 +2342,11 @@ def _drop_metadata_columns(df: pd.DataFrame) -> pd.DataFrame:
                     maxv = float(np.max(vals[finite]))
                     if minv <= 0.0:
                         try:
-                            if np.allclose(vals[finite], np.round(vals[finite])) and float(vals[finite][0]) == 0.0 and np.allclose(np.diff(vals[finite]), 1.0):
+                            if (
+                                np.allclose(vals[finite], np.round(vals[finite]))
+                                and float(vals[finite][0]) == 0.0
+                                and np.allclose(np.diff(vals[finite]), 1.0)
+                            ):
                                 cols_to_drop.append(col)
                                 continue
                         except Exception:
@@ -2098,7 +2356,8 @@ def _drop_metadata_columns(df: pd.DataFrame) -> pd.DataFrame:
                         if minv == 0.0 and maxv == 0.0:
                             cols_to_drop.append(col)
                             continue
-                    # If values are like pure noise around 0 with huge variance and no clear price trend, might be junk
+                    # If values are like pure noise around 0 with huge variance and no clear price
+                    # trend, might be junk
                     # But be conservative - only drop if clearly not price-like
         except Exception:
             continue
@@ -2149,16 +2408,26 @@ def load_prices(
         path = Path(source)
         suffix = path.suffix.lower()
         if suffix == ".csv":
-            prices = load_returns_from_csv(path, benchmark=None, min_rows=max(min_rows, 2), quality=False, **kwargs)
+            prices = load_returns_from_csv(
+                path, benchmark=None, min_rows=max(min_rows, 2), quality=False, **kwargs
+            )
         elif suffix in (".json", ".jsonl"):
-            prices = load_returns_from_json(path, benchmark=None, min_rows=max(min_rows, 2), quality=False, **kwargs)
+            prices = load_returns_from_json(
+                path, benchmark=None, min_rows=max(min_rows, 2), quality=False, **kwargs
+            )
         elif suffix in (".parquet", ".pq"):
-            prices = load_returns_from_parquet(path, benchmark=None, min_rows=max(min_rows, 2), quality=False, **kwargs)
+            prices = load_returns_from_parquet(
+                path, benchmark=None, min_rows=max(min_rows, 2), quality=False, **kwargs
+            )
         elif suffix in (".h5", ".hdf5", ".hdf"):
             key = kwargs.pop("key", None)
-            prices = load_returns_from_hdf5(path, benchmark=None, min_rows=max(min_rows, 2), quality=False, key=key, **kwargs)
+            prices = load_returns_from_hdf5(
+                path, benchmark=None, min_rows=max(min_rows, 2), quality=False, key=key, **kwargs
+            )
         elif suffix in (".pkl", ".pickle"):
-            prices = load_returns_from_pickle(path, benchmark=None, min_rows=max(min_rows, 2), quality=False, **kwargs)
+            prices = load_returns_from_pickle(
+                path, benchmark=None, min_rows=max(min_rows, 2), quality=False, **kwargs
+            )
         else:
             raise BABDataError(f"Unsupported price source extension: {suffix!r} for {path}")
     else:
@@ -2167,7 +2436,9 @@ def load_prices(
     prices = _drop_metadata_columns(prices)
     returns = _prices_to_returns(prices)
     # pct_change drops the first row, so require one fewer return row than price rows.
-    return validate_returns_dataframe(returns, benchmark=benchmark, min_rows=max(min_rows - 1, 1), quality=False)
+    return validate_returns_dataframe(
+        returns, benchmark=benchmark, min_rows=max(min_rows - 1, 1), quality=False
+    )
 
 
 def _is_likely_returns(df: pd.DataFrame) -> bool:
@@ -2297,19 +2568,37 @@ def normalize_schema(
     try:
         if isinstance(cleaned.columns, pd.MultiIndex):
             # Flatten by joining levels with space
-            cleaned.columns = [' '.join(str(x) for x in col if str(x) and str(x).lower() != 'nan').strip() or 'unnamed' for col in cleaned.columns]
+            cleaned.columns = [
+                " ".join(str(x) for x in col if str(x) and str(x).lower() != "nan").strip()
+                or "unnamed"
+                for col in cleaned.columns
+            ]
     except Exception:
         pass
     # Try to detect if headers are in first row (common in some exports)
     try:
-        # If all column names look like generic Unnamed or numeric strings and first row looks like headers
+        # If all column names look like generic Unnamed or numeric strings and first row
+        # looks like headers
         cols_str = [str(c) for c in cleaned.columns]
-        if all((c.strip() == '' or c.strip().lower().startswith('unnamed') or c.strip().isdigit()) for c in cols_str):
+        if all(
+            (c.strip() == "" or c.strip().lower().startswith("unnamed") or c.strip().isdigit())
+            for c in cols_str
+        ):
             if len(cleaned) > 0:
                 first_row = cleaned.iloc[0]
                 header_vals = [str(x).strip() for x in first_row.values]
                 # check if first row contains non-numeric strings that look like headers
-                if any(v and not v.replace('.', '').replace('-', '').replace('+', '').replace('e', '').replace('E', '').isdigit() and v.lower() not in {'nan','none','null'} for v in header_vals):
+                if any(
+                    v
+                    and not v.replace(".", "")
+                    .replace("-", "")
+                    .replace("+", "")
+                    .replace("e", "")
+                    .replace("E", "")
+                    .isdigit()
+                    and v.lower() not in {"nan", "none", "null"}
+                    for v in header_vals
+                ):
                     cleaned.columns = header_vals
                     cleaned = cleaned.iloc[1:].copy()
         # Also check if first data row equals column names (duplicate header)
@@ -2319,7 +2608,9 @@ def normalize_schema(
                 first_vals = [str(x).strip() for x in first_row.values]
                 cols_norm = [str(x).strip().lower() for x in cleaned.columns]
                 first_norm = [str(x).strip().lower() for x in first_vals]
-                if first_norm == cols_norm and all(v and v not in {'nan','none','null'} for v in first_norm):
+                if first_norm == cols_norm and all(
+                    v and v not in {"nan", "none", "null"} for v in first_norm
+                ):
                     cleaned = cleaned.iloc[1:].copy()
             except Exception:
                 pass
@@ -2342,7 +2633,16 @@ def normalize_schema(
                 continue
             try:
                 s = cleaned[col]
-                test = pd.to_numeric(s.astype(str).str.strip().str.replace(',', '').str.replace('$','').str.replace('€','').str.replace('£','').str.replace('%',''), errors='coerce')
+                test = pd.to_numeric(
+                    s.astype(str)
+                    .str.strip()
+                    .str.replace(",", "")
+                    .str.replace("$", "")
+                    .str.replace("€", "")
+                    .str.replace("£", "")
+                    .str.replace("%", ""),
+                    errors="coerce",
+                )
                 if test.notna().sum() == 0:
                     cols_to_drop.append(col)
                     continue

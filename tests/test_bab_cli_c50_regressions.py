@@ -55,7 +55,8 @@ class TestCliArgParsingC50:
 
     def _run_cli(self, args):
         import io
-        from contextlib import redirect_stdout, redirect_stderr
+        from contextlib import redirect_stderr, redirect_stdout
+
         buf_o, buf_e = io.StringIO(), io.StringIO()
         try:
             with redirect_stdout(buf_o), redirect_stderr(buf_e):
@@ -112,7 +113,8 @@ class TestCliUniverseValidationC50:
 
     def _run_cli(self, args):
         import io
-        from contextlib import redirect_stdout, redirect_stderr
+        from contextlib import redirect_stderr, redirect_stdout
+
         buf_o, buf_e = io.StringIO(), io.StringIO()
         try:
             with redirect_stdout(buf_o), redirect_stderr(buf_e):
@@ -163,7 +165,8 @@ class TestCliOutputValidationC50:
 
     def test_dry_run_validates_output_path(self):
         import io
-        from contextlib import redirect_stdout, redirect_stderr
+        from contextlib import redirect_stderr, redirect_stdout
+
         buf_o, buf_e = io.StringIO(), io.StringIO()
         try:
             with redirect_stdout(buf_o), redirect_stderr(buf_e):

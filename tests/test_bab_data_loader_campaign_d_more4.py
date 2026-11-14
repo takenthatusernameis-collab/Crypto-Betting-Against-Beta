@@ -1,20 +1,24 @@
 """Even more Campaign D tests."""
+
 from __future__ import annotations
 
+import contextlib
 import os
+
 import numpy as np
 import pandas as pd
 import pytest
 
 from strategies.betting_against_beta import data_loader
 from strategies.betting_against_beta.data_loader import (
+    BABDataError,
     _coerce_to_datetime_scalar,
+    _detect_and_normalize_exchange_format,
     _normalize_index,
     _promote_datetime_column,
-    _detect_and_normalize_exchange_format,
-    load_returns,
     load_prices,
-    BABDataError,
+    load_returns,
+    validate_returns_dataframe,
 )
 
 
@@ -48,11 +52,13 @@ def test_promote_datetime_column_unnamed_datetime_series():
 
 
 def test_detect_exchange_long_format_symbol_variations():
-    df = pd.DataFrame({
-        "date": ["2023-01-01", "2023-01-02", "2023-01-01", "2023-01-02"],
-        "symbol": ["btc", "btc", "eth", "eth"],
-        "price": [27000, 27100, 1800, 1810]
-    })
+    df = pd.DataFrame(
+        {
+            "date": ["2023-01-01", "2023-01-02", "2023-01-01", "2023-01-02"],
+            "symbol": ["btc", "btc", "eth", "eth"],
+            "price": [27000, 27100, 1800, 1810],
+        }
+    )
     out = _detect_and_normalize_exchange_format(df)
     assert isinstance(out, pd.DataFrame)
 
@@ -67,10 +73,10 @@ def test_load_returns_csv_with_space_headers(tmp_path):
 
 def test_load_returns_hdf5_if_available(tmp_path):
     try:
-        import tables  # noqa
+        import tables
     except Exception:
         try:
-            import h5py  # noqa
+            import h5py
         except Exception:
             pytest.skip("no hdf5 support")
     df = pd.DataFrame({"date": ["2023-01-01", "2023-01-02"], "BTC": [0.01, -0.005]})
@@ -85,10 +91,10 @@ def test_load_returns_hdf5_if_available(tmp_path):
 
 def test_load_returns_parquet_if_available(tmp_path):
     try:
-        import pyarrow  # noqa
+        import pyarrow
     except Exception:
         try:
-            import fastparquet  # noqa
+            import fastparquet
         except Exception:
             pytest.skip("no parquet support")
     df = pd.DataFrame({"date": ["2023-01-01", "2023-01-02"], "BTC": [0.01, -0.005]})
@@ -103,7 +109,5 @@ def test_load_returns_parquet_if_available(tmp_path):
 
 def test_validate_returns_dataframe_with_bad_benchmark():
     df = pd.DataFrame({"ETH": [0.01, -0.005]}, index=pd.date_range("2023-01-01", periods=2))
-    try:
+    with contextlib.suppress(Exception):
         out = validate_returns_dataframe(df, benchmark="BTC")
-    except Exception:
-        pass

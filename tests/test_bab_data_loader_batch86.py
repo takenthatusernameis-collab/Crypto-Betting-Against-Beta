@@ -5,6 +5,8 @@ import numpy as np
 import pandas as pd
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import contextlib
+
 import strategies.betting_against_beta.data_loader as dl
 
 
@@ -16,6 +18,7 @@ def test_901_903_tz_convert_raises_in_last_resort():
     not a candidate name, passes object-dtype checks, and has no NaT, so the
     last-resort loop reaches the tz-conversion body which then throws.
     """
+
     class TzSeries(pd.Series):
         @property
         def tz(self):
@@ -37,12 +40,8 @@ def test_901_903_tz_convert_raises_in_last_resort():
 
     dl.pd.to_datetime = fake_td
     try:
-        df = pd.DataFrame(
-            {"mystery": ["x", "y"], "BTC": [0.01, 0.02], "ETH": [0.03, 0.04]}
-        )
-        try:
+        df = pd.DataFrame({"mystery": ["x", "y"], "BTC": [0.01, 0.02], "ETH": [0.03, 0.04]})
+        with contextlib.suppress(Exception):
             out = dl.validate_returns_dataframe(df, benchmark="BTC", quality=False)
-        except Exception:
-            pass
     finally:
         dl.pd.to_datetime = orig_td

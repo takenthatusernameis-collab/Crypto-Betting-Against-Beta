@@ -92,8 +92,10 @@ class TestValidateReturnsDataFrame:
             validate_returns_dataframe(df, benchmark="MISSING")
 
     def test_only_benchmark_raises(self):
-        df = pd.DataFrame({"BTC": np.random.default_rng(3).normal(0, 0.01, 30)},
-                          index=pd.date_range("2023-01-01", periods=30, freq="D"))
+        df = pd.DataFrame(
+            {"BTC": np.random.default_rng(3).normal(0, 0.01, 30)},
+            index=pd.date_range("2023-01-01", periods=30, freq="D"),
+        )
         with pytest.raises(BABDataError):
             validate_returns_dataframe(df, benchmark="BTC")
 
@@ -148,7 +150,10 @@ class TestLoaders:
     def test_load_returns_from_parquet_bad_schema_raises(self, tmp_path: Path):
         # Write parquet that loads but fails validation (non-numeric in bad form)
         path = tmp_path / "bad.parquet"
-        bad = pd.DataFrame({"BTC": ["a", "b"], "ETH": [1, 2]}, index=pd.date_range("2023-01-01", periods=2, freq="D"))
+        bad = pd.DataFrame(
+            {"BTC": ["a", "b"], "ETH": [1, 2]},
+            index=pd.date_range("2023-01-01", periods=2, freq="D"),
+        )
         try:
             bad.to_parquet(path)
         except Exception:
@@ -182,7 +187,10 @@ class TestLoaders:
     )
     def test_load_returns_from_hdf5_bad_schema_raises(self, tmp_path: Path):
         path = tmp_path / "bad.h5"
-        bad = pd.DataFrame({"BTC": ["a", "b"], "ETH": [1, 2]}, index=pd.date_range("2023-01-01", periods=2, freq="D"))
+        bad = pd.DataFrame(
+            {"BTC": ["a", "b"], "ETH": [1, 2]},
+            index=pd.date_range("2023-01-01", periods=2, freq="D"),
+        )
         try:
             bad.to_hdf(path, key="returns", mode="w")
         except Exception:
@@ -222,7 +230,10 @@ class TestLoaders:
     def test_load_returns_from_csv_with_messy_headers(self, tmp_path: Path):
         df = _valid_df(rows=50)
         # rename columns messily
-        df.columns = ["  " + c + " (USD) " if c == "BTC" else (" eth/usdt " if c == "ETH" else c + "  ") for c in df.columns]
+        df.columns = [
+            "  " + c + " (USD) " if c == "BTC" else (" eth/usdt " if c == "ETH" else c + "  ")
+            for c in df.columns
+        ]
         # add extra columns
         df["EXTRA_COL"] = np.random.default_rng(5).normal(0, 0.01, len(df))
         df["  JUNK  "] = np.random.default_rng(6).normal(0, 0.01, len(df))
@@ -236,7 +247,10 @@ class TestLoaders:
 
     def test_load_returns_from_pickle_bad_schema_raises(self, tmp_path: Path):
         path = tmp_path / "bad.pkl"
-        bad = pd.DataFrame({"BTC": ["a", "b"], "ETH": [1, 2]}, index=pd.date_range("2023-01-01", periods=2, freq="D"))
+        bad = pd.DataFrame(
+            {"BTC": ["a", "b"], "ETH": [1, 2]},
+            index=pd.date_range("2023-01-01", periods=2, freq="D"),
+        )
         bad.to_pickle(path)
         with pytest.raises(BABDataError):
             load_returns_from_pickle(path, benchmark="BTC")
@@ -287,7 +301,9 @@ class TestLoaders:
         assert "BTC" in out.columns
 
     def test_load_returns_dispatch_parquet(self, tmp_path: Path):
-        if not __import__("importlib").util.find_spec("pyarrow") and not __import__("importlib").util.find_spec("fastparquet"):
+        if not __import__("importlib").util.find_spec("pyarrow") and not __import__(
+            "importlib"
+        ).util.find_spec("fastparquet"):
             pytest.skip("no parquet engine")
         df = _valid_df()
         path = tmp_path / "returns.parquet"
@@ -401,9 +417,7 @@ class TestAllNanColumnDropping:
 
     def test_all_columns_nan_raises(self):
         idx = pd.date_range("2023-01-01", periods=10, freq="D")
-        df = pd.DataFrame(
-            {"BTC": [np.nan] * 10, "ETH": [np.nan] * 10}, index=idx
-        )
+        df = pd.DataFrame({"BTC": [np.nan] * 10, "ETH": [np.nan] * 10}, index=idx)
         with pytest.raises(BABDataError):
             validate_returns_dataframe(df, benchmark="BTC")
 
@@ -419,10 +433,13 @@ class TestAllNanColumnDropping:
         out = validate_returns_dataframe(df, benchmark="BTC")
         assert "ETH" in out.columns  # partially-NaN column is not all-NaN
 
+
 class TestExchangeFormatSupport:
     def test_coingecko_wide_snapped_at(self, tmp_path: Path):
-        from strategies.betting_against_beta.data_loader import load_prices
         import numpy as np
+
+        from strategies.betting_against_beta.data_loader import load_prices
+
         idx = pd.date_range("2023-01-01", periods=90, freq="D")
         df = pd.DataFrame(
             {
@@ -438,8 +455,10 @@ class TestExchangeFormatSupport:
         assert len(out) == 89  # pct_change drops first row
 
     def test_binance_ohlcv_with_open_time_ms(self, tmp_path: Path):
-        from strategies.betting_against_beta.data_loader import load_prices
         import numpy as np
+
+        from strategies.betting_against_beta.data_loader import load_prices
+
         idx = pd.date_range("2023-01-01", periods=90, freq="D")
         rng = np.random.default_rng(123)
         df = pd.DataFrame(
@@ -457,8 +476,10 @@ class TestExchangeFormatSupport:
         assert len(out.columns) == 1 or len(out.columns) >= 1
 
     def test_coinbase_style_time_close(self, tmp_path: Path):
-        from strategies.betting_against_beta.data_loader import load_prices
         import numpy as np
+
+        from strategies.betting_against_beta.data_loader import load_prices
+
         idx = pd.date_range("2023-01-01", periods=90, freq="D")
         rng = np.random.default_rng(456)
         df = pd.DataFrame(
@@ -475,21 +496,37 @@ class TestExchangeFormatSupport:
         assert isinstance(out.index, pd.DatetimeIndex)
 
     def test_long_format_with_symbol_ticker(self, tmp_path: Path):
-        from strategies.betting_against_beta.data_loader import load_prices
         import numpy as np
+
+        from strategies.betting_against_beta.data_loader import load_prices
+
         idx = pd.date_range("2023-01-01", periods=60, freq="D")
         rows = []
         for i in range(60):
-            rows.append({"Ticker": "BTC", "Date": idx[i].strftime("%Y-%m-%d"), "Close": 100 * (1 + 0.001 * i)})
-            rows.append({"Ticker": "ETH", "Date": idx[i].strftime("%Y-%m-%d"), "Close": 10 * (1 + 0.002 * i)})
+            rows.append(
+                {
+                    "Ticker": "BTC",
+                    "Date": idx[i].strftime("%Y-%m-%d"),
+                    "Close": 100 * (1 + 0.001 * i),
+                }
+            )
+            rows.append(
+                {
+                    "Ticker": "ETH",
+                    "Date": idx[i].strftime("%Y-%m-%d"),
+                    "Close": 10 * (1 + 0.002 * i),
+                }
+            )
         df = pd.DataFrame(rows)
         out = load_prices(df)
         assert "BTC" in out.columns or "btc" in [c.lower() for c in out.columns]
         assert "ETH" in out.columns or "eth" in [c.lower() for c in out.columns]
 
     def test_epoch_seconds_index_wide(self):
-        from strategies.betting_against_beta.data_loader import load_prices
         import numpy as np
+
+        from strategies.betting_against_beta.data_loader import load_prices
+
         idx = pd.date_range("2023-01-01", periods=90, freq="D")
         df = pd.DataFrame(
             {
@@ -504,8 +541,10 @@ class TestExchangeFormatSupport:
         assert "ETH" in out.columns
 
     def test_load_returns_from_csv_with_exchange_format(self, tmp_path: Path):
-        from strategies.betting_against_beta.data_loader import load_returns
         import numpy as np
+
+        from strategies.betting_against_beta.data_loader import load_returns
+
         idx = pd.date_range("2023-01-01", periods=90, freq="D")
         df = pd.DataFrame(
             {
@@ -525,6 +564,7 @@ class TestExchangeFormatSupport:
 class TestMultiSourceNormalization:
     def test_messy_csv_extra_columns_spaces_mixed_case(self, tmp_path: Path):
         from strategies.betting_against_beta.data_loader import load_prices, load_returns
+
         # Messy headers with spaces, mixed case, extra columns
         csv_content = """Date , BTC (USD) ,  ETH  ,  RANDOM_JUNK  , volume
 2023-01-01, 10000, 1000, abc, 12345
@@ -541,8 +581,10 @@ class TestMultiSourceNormalization:
         assert isinstance(out.index, pd.DatetimeIndex)
 
     def test_normalize_schema_utility(self):
-        from strategies.betting_against_beta.data_loader import normalize_schema
         import numpy as np
+
+        from strategies.betting_against_beta.data_loader import normalize_schema
+
         idx = pd.date_range("2023-01-01", periods=10, freq="D")
         df = pd.DataFrame(
             {
@@ -556,23 +598,40 @@ class TestMultiSourceNormalization:
         assert "BTC" in norm.columns or "ETH" in norm.columns
 
     def test_normalize_schema_messy_units_and_multilevel(self):
-        from strategies.betting_against_beta.data_loader import normalize_schema
         import numpy as np
+
+        from strategies.betting_against_beta.data_loader import normalize_schema
+
         idx = pd.date_range("2023-01-01", periods=4)
         # units in headers
-        df = pd.DataFrame({"Date": idx, "BTC (Bitcoin) [USD]": [100,101,102,103], "Ethereum - Price (USD)": [10,11,12,13]})
+        df = pd.DataFrame(
+            {
+                "Date": idx,
+                "BTC (Bitcoin) [USD]": [100, 101, 102, 103],
+                "Ethereum - Price (USD)": [10, 11, 12, 13],
+            }
+        )
         norm = normalize_schema(df)
         assert isinstance(norm.index, pd.DatetimeIndex)
         assert "BTC" in norm.columns and "ETH" in norm.columns
 
     def test_normalize_schema_duplicate_header_row(self):
-        from strategies.betting_against_beta.data_loader import normalize_schema
         import numpy as np
+
+        from strategies.betting_against_beta.data_loader import normalize_schema
+
         idx = pd.date_range("2023-01-01", periods=3)
-        df = pd.DataFrame({"Date": list(idx.strftime("%Y-%m-%d")) + ["Date"], "BTC": [100,101,102,"BTC"], "ETH": [10,11,12,"ETH"]})
+        df = pd.DataFrame(
+            {
+                "Date": [*list(idx.strftime("%Y-%m-%d")), "Date"],
+                "BTC": [100, 101, 102, "BTC"],
+                "ETH": [10, 11, 12, "ETH"],
+            }
+        )
         # easier to construct with header repeated
         import io
-        csv = '''Date,BTC,ETH\nDate,BTC,ETH\n2023-01-01,100,10\n2023-01-02,101,11\n'''
+
+        csv = """Date,BTC,ETH\nDate,BTC,ETH\n2023-01-01,100,10\n2023-01-02,101,11\n"""
         df2 = pd.read_csv(io.StringIO(csv))
         norm = normalize_schema(df2)
         assert isinstance(norm.index, pd.DatetimeIndex)
@@ -581,34 +640,49 @@ class TestMultiSourceNormalization:
 
 class TestRobustDatetimeParsing:
     def test_epoch_milliseconds_and_mixed_timezones(self):
-        from strategies.betting_against_beta.data_loader import load_prices
         import numpy as np
+
+        from strategies.betting_against_beta.data_loader import load_prices
+
         # epoch ms
-        idx_ms = [1672531200000, 1672617600000, 1672704000000, 1672790400000]  # 2023-01-01 onward in ms
-        df = pd.DataFrame({"BTC": [100, 101, 102, 103], "ETH": [10, 10.1, 10.2, 10.3]}, index=idx_ms)
+        idx_ms = [
+            1672531200000,
+            1672617600000,
+            1672704000000,
+            1672790400000,
+        ]  # 2023-01-01 onward in ms
+        df = pd.DataFrame(
+            {"BTC": [100, 101, 102, 103], "ETH": [10, 10.1, 10.2, 10.3]}, index=idx_ms
+        )
         out = load_prices(df)
         assert isinstance(out.index, pd.DatetimeIndex)
         assert "BTC" in out.columns
 
     def test_timezone_aware_strings_normalized(self):
-        from strategies.betting_against_beta.data_loader import load_prices
         import numpy as np
+
+        from strategies.betting_against_beta.data_loader import load_prices
+
         dates = ["2023-01-01T00:00:00+00:00", "2023-01-02T00:00:00Z", "2023-01-03T01:00:00+01:00"]
         df = pd.DataFrame({"BTC": [100, 101, 102], "ETH": [10, 10.5, 11]}, index=dates)
         out = load_prices(df)
         assert isinstance(out.index, pd.DatetimeIndex)
 
     def test_epoch_seconds_as_strings(self):
-        from strategies.betting_against_beta.data_loader import load_prices
         import pandas as pd
+
+        from strategies.betting_against_beta.data_loader import load_prices
+
         idx = [str(int(d.timestamp())) for d in pd.date_range("2023-01-01", periods=5)]
         df = pd.DataFrame({"BTC": [1, 2, 3, 4, 5], "ETH": [0.1, 0.2, 0.3, 0.4, 0.5]}, index=idx)
         out = load_prices(df)
         assert isinstance(out.index, pd.DatetimeIndex)
 
     def test_epoch_microseconds(self):
-        from strategies.betting_against_beta.data_loader import load_prices
         import pandas as pd
+
+        from strategies.betting_against_beta.data_loader import load_prices
+
         idx = pd.date_range("2023-01-01", periods=4)
         # microseconds
         idx_us = [int(d.timestamp() * 1e6) for d in idx]
@@ -618,26 +692,37 @@ class TestRobustDatetimeParsing:
 
     def test_promote_date_column_mixed_offsets(self):
         from strategies.betting_against_beta.data_loader import load_prices
-        df = pd.DataFrame({
-            "date": ["2023-01-01T00:00:00+00:00", "2023-01-02T00:00:00Z", "2023-01-03T12:00:00-07:00"],
-            "BTC": [100, 101, 102],
-            "ETH": [10, 11, 12],
-        })
+
+        df = pd.DataFrame(
+            {
+                "date": [
+                    "2023-01-01T00:00:00+00:00",
+                    "2023-01-02T00:00:00Z",
+                    "2023-01-03T12:00:00-07:00",
+                ],
+                "BTC": [100, 101, 102],
+                "ETH": [10, 11, 12],
+            }
+        )
         out = load_prices(df)
         assert isinstance(out.index, pd.DatetimeIndex)
         assert "BTC" in out.columns
 
     def test_promote_datetime_column_epoch_seconds_in_column(self):
-        from strategies.betting_against_beta.data_loader import load_prices
         import pandas as pd
+
+        from strategies.betting_against_beta.data_loader import load_prices
+
         idx = [int(d.timestamp()) for d in pd.date_range("2023-01-01", periods=4)]
         df = pd.DataFrame({"timestamp": idx, "BTC": [1, 2, 3, 4], "ETH": [0.1, 0.2, 0.3, 0.4]})
         out = load_prices(df)
         assert isinstance(out.index, pd.DatetimeIndex)
 
     def test_duplicate_timestamps_dropped(self):
-        from strategies.betting_against_beta.data_loader import load_prices
         import pandas as pd
+
+        from strategies.betting_against_beta.data_loader import load_prices
+
         dates = ["2023-01-01", "2023-01-01", "2023-01-02", "2023-01-03"]
         df = pd.DataFrame({"BTC": [100, 101, 102, 103], "ETH": [10, 11, 12, 13]}, index=dates)
         out = load_prices(df)

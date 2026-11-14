@@ -1,4 +1,5 @@
 """Adversarial beta hardening - cross-emitter consistency."""
+
 import numpy as np
 import pandas as pd
 
@@ -26,15 +27,17 @@ class TestBetaAdversarialHardening:
     def test_dataframe_mixed_bad_finite_assets_constant_bench_nan(self):
         np.random.seed(1234)
         bench = np.array([0.003] * 80)
-        df = pd.DataFrame({
-            'BTC': bench,
-            'ETH': np.random.randn(80) * 0.01,
-            'SOL': [np.nan] * 80,
-            'XRP': list(np.random.randn(80) * 0.01),
-        })
-        res = beta.calculate_rolling_beta(df, 'BTC', window=30, min_obs=15)
+        df = pd.DataFrame(
+            {
+                "BTC": bench,
+                "ETH": np.random.randn(80) * 0.01,
+                "SOL": [np.nan] * 80,
+                "XRP": list(np.random.randn(80) * 0.01),
+            }
+        )
+        res = beta.calculate_rolling_beta(df, "BTC", window=30, min_obs=15)
         # SOL is all NaN - per-series path should still give NaN; ETH/XRP finite but benchmark constant -> NaN
-        assert np.all(np.isnan(res['ETH'].values))
-        assert np.all(np.isnan(res['SOL'].values))
-        assert np.all(np.isnan(res['XRP'].values))
-        assert np.allclose(res['BTC'].values, 1.0)
+        assert np.all(np.isnan(res["ETH"].values))
+        assert np.all(np.isnan(res["SOL"].values))
+        assert np.all(np.isnan(res["XRP"].values))
+        assert np.allclose(res["BTC"].values, 1.0)

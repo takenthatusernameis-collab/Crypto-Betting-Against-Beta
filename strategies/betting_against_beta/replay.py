@@ -55,9 +55,7 @@ class ReplayHarness:
             raise ValueError("ReplayHarness requires a BABResult instance")
         self.result = result
         self.weights = result.weights
-        self.returns = (
-            returns_df if returns_df is not None else getattr(result, "returns", None)
-        )
+        self.returns = returns_df if returns_df is not None else getattr(result, "returns", None)
         self.prices = prices_df
         self.transaction_costs = float(transaction_costs or 0.0)
         self.slippage = float(slippage or 0.0)
@@ -192,9 +190,7 @@ class ReplayHarness:
 
             # Costs: flat fraction of one-way turnover.
             period_cost = turnover * (self.transaction_costs + self.slippage)
-            costs.append(
-                {"date": date_key, "turnover": turnover, "cost": period_cost}
-            )
+            costs.append({"date": date_key, "turnover": turnover, "cost": period_cost})
 
             # Period return: lagged weights dot current-period returns (no lookahead).
             period_ret = 0.0
@@ -226,9 +222,7 @@ class ReplayHarness:
     def _checksum(payload: dict) -> str:
         """SHA-256 over canonical JSON (sorted keys, no checksum field)."""
         payload_no_sum = {k: v for k, v in payload.items() if k != "checksum"}
-        canonical = json.dumps(
-            payload_no_sum, sort_keys=True, default=str, allow_nan=False
-        )
+        canonical = json.dumps(payload_no_sum, sort_keys=True, default=str, allow_nan=False)
         return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
     @staticmethod

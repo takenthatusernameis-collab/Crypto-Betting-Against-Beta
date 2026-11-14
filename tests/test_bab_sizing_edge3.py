@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+
 from strategies.betting_against_beta import sizing
 
 

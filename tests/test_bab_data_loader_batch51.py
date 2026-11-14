@@ -1,4 +1,7 @@
 """Batch 51: data_loader missing-line coverage."""
+
+import contextlib
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -9,10 +12,12 @@ from strategies.betting_against_beta.data_loader import BABDataError
 
 class TestBatch51:
     def test_840_841_set_index_valueerror(self, monkeypatch):
-        df = pd.DataFrame({
-            "date": pd.date_range("2024-01-01", periods=4),
-            "BTC": [0.01, 0.02, -0.01, 0.03],
-        })
+        df = pd.DataFrame(
+            {
+                "date": pd.date_range("2024-01-01", periods=4),
+                "BTC": [0.01, 0.02, -0.01, 0.03],
+            }
+        )
         orig = pd.DataFrame.set_index
 
         def bad(self, *a, **k):
@@ -32,14 +37,18 @@ class TestBatch51:
             def __getitem__(self, k):
                 res = super().__getitem__(k)
                 if isinstance(k, slice):
+
                     class S:
                         def __iter__(self):
                             for _ in range(3):
+
                                 class T:
                                     @property
                                     def year(self):
                                         raise RuntimeError("year")
+
                                 yield T()
+
                     return S()
                 return res
 
@@ -51,17 +60,17 @@ class TestBatch51:
             return o
 
         monkeypatch.setattr(dlmod, "_promote_datetime_column", p)
-        try:
+        with contextlib.suppress(Exception):
             dlmod.validate_returns_dataframe(df, benchmark="BTC")
-        except Exception:
-            pass
 
     def test_1533_1536_benchmark_rename_fallback(self, monkeypatch):
-        df = pd.DataFrame({
-            "date": pd.date_range("2024-01-01", periods=4),
-            "btc": [0.01, 0.02, -0.01, 0.03],
-            "ETH": [0.02, -0.01, 0.01, 0.02],
-        })
+        df = pd.DataFrame(
+            {
+                "date": pd.date_range("2024-01-01", periods=4),
+                "btc": [0.01, 0.02, -0.01, 0.03],
+                "ETH": [0.02, -0.01, 0.01, 0.02],
+            }
+        )
         orig = pd.DataFrame.rename
         state = {"n": 0}
 
@@ -103,11 +112,13 @@ class TestBatch51:
 
     def test_1926_1929_clean_data_price_drop(self):
         # clean_data/price validation path - trigger row-all-zero-like or metadata
-        df = pd.DataFrame({
-            "date": pd.date_range("2024-01-01", periods=5),
-            "BTC": [1.0, 2.0, 3.0, 4.0, 5.0],
-            "junk": [0.0, 1.0, 2.0, 3.0, 4.0],  # integer sequence starting 0
-        })
+        df = pd.DataFrame(
+            {
+                "date": pd.date_range("2024-01-01", periods=5),
+                "BTC": [1.0, 2.0, 3.0, 4.0, 5.0],
+                "junk": [0.0, 1.0, 2.0, 3.0, 4.0],  # integer sequence starting 0
+            }
+        )
         try:
             out = dlmod.clean_data(df)
             assert out is not None
@@ -115,20 +126,28 @@ class TestBatch51:
             pass
 
     def test_2160_2163_2167_2168_clean_data_defensive(self, monkeypatch):
-        df = pd.DataFrame({
-            "date": pd.date_range("2024-01-01", periods=4),
-            "BTC": [0.1, 0.2, 0.3, 0.4],
-        })
-        monkeypatch.setattr(dlmod, "_detect_and_normalize_exchange_format", lambda x: (_ for _ in ()).throw(RuntimeError("x")))
+        df = pd.DataFrame(
+            {
+                "date": pd.date_range("2024-01-01", periods=4),
+                "BTC": [0.1, 0.2, 0.3, 0.4],
+            }
+        )
+        monkeypatch.setattr(
+            dlmod,
+            "_detect_and_normalize_exchange_format",
+            lambda x: (_ for _ in ()).throw(RuntimeError("x")),
+        )
         out = dlmod.clean_data(df.copy())
         assert out is not None
 
     def test_2187_2189_2192_2193_clean_data_junk_drop(self, monkeypatch):
-        df = pd.DataFrame({
-            "date": pd.date_range("2024-01-01", periods=4),
-            "BTC": [0.1, 0.2, 0.3, 0.4],
-            "meta": ["a", "b", "c", "d"],
-        })
+        df = pd.DataFrame(
+            {
+                "date": pd.date_range("2024-01-01", periods=4),
+                "BTC": [0.1, 0.2, 0.3, 0.4],
+                "meta": ["a", "b", "c", "d"],
+            }
+        )
         orig_tonum = pd.to_numeric
         state = {"n": 0}
 

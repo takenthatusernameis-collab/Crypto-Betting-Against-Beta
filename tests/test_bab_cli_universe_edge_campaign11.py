@@ -12,6 +12,7 @@ contract for three universe edge shapes proven safe by probe (2026-11-09, HEAD `
 No production edits; no assertions weakened. Evidence: probe at /tmp/probe_universe_edges.py
 showed rc=0, strict-finite JSON, and contract-respecting universe lists for all three.
 """
+
 from __future__ import annotations
 
 import json
@@ -54,10 +55,19 @@ class TestCliUniverseBenchmarkOnlyEdge:
         # (a) universe == [benchmark] => only the benchmark is tradable; no
         # long/short spread is possible, so cumulative stays flat at 1.0.
         out = tmp_path / "bench_only.json"
-        res = _run_cli([
-            "--data", REAL, "--from-prices", "--benchmark", "BTC",
-            "--universe", "BTC", "--output", str(out),
-        ])
+        res = _run_cli(
+            [
+                "--data",
+                REAL,
+                "--from-prices",
+                "--benchmark",
+                "BTC",
+                "--universe",
+                "BTC",
+                "--output",
+                str(out),
+            ]
+        )
         assert res.returncode == 0, f"rc={res.returncode}\n{res.stderr}\n{res.stdout}"
         assert "Traceback" not in (res.stdout + res.stderr)
         d = json.loads(out.read_text())
@@ -71,10 +81,21 @@ class TestCliUniverseDuplicateTokensEdge:
         # (b) duplicate tokens must not create phantom columns or duplicate
         # effective universe entries; output stays strict-finite.
         out = tmp_path / "dup.json"
-        res = _run_cli([
-            "--data", REAL, "--from-prices", "--benchmark", "BTC",
-            "--universe", "ETH", "ETH", "SOL", "--output", str(out),
-        ])
+        res = _run_cli(
+            [
+                "--data",
+                REAL,
+                "--from-prices",
+                "--benchmark",
+                "BTC",
+                "--universe",
+                "ETH",
+                "ETH",
+                "SOL",
+                "--output",
+                str(out),
+            ]
+        )
         assert res.returncode == 0, f"rc={res.returncode}\n{res.stderr}\n{res.stdout}"
         assert "Traceback" not in (res.stdout + res.stderr)
         d = json.loads(out.read_text())
@@ -84,10 +105,20 @@ class TestCliUniverseDuplicateTokensEdge:
         # And the backtest result matches the explicit de-duplicated subset
         # (duplicates must not change portfolio construction).
         out2 = tmp_path / "dup2.json"
-        res2 = _run_cli([
-            "--data", REAL, "--from-prices", "--benchmark", "BTC",
-            "--universe", "ETH", "SOL", "--output", str(out2),
-        ])
+        res2 = _run_cli(
+            [
+                "--data",
+                REAL,
+                "--from-prices",
+                "--benchmark",
+                "BTC",
+                "--universe",
+                "ETH",
+                "SOL",
+                "--output",
+                str(out2),
+            ]
+        )
         assert res2.returncode == 0, f"rc={res2.returncode}\n{res2.stderr}\n{res2.stdout}"
         d2 = json.loads(out2.read_text())
         assert d["final_cumulative"] == pytest.approx(d2["final_cumulative"])
@@ -98,10 +129,21 @@ class TestCliUniversePartialOverlapEdge:
         # (c) tokens absent from the data are silently dropped; the overlap is
         # kept and the backtest is strict-finite.
         out = tmp_path / "partial.json"
-        res = _run_cli([
-            "--data", REAL, "--from-prices", "--benchmark", "BTC",
-            "--universe", "ETH", "SOL", "NOPE", "--output", str(out),
-        ])
+        res = _run_cli(
+            [
+                "--data",
+                REAL,
+                "--from-prices",
+                "--benchmark",
+                "BTC",
+                "--universe",
+                "ETH",
+                "SOL",
+                "NOPE",
+                "--output",
+                str(out),
+            ]
+        )
         assert res.returncode == 0, f"rc={res.returncode}\n{res.stderr}\n{res.stdout}"
         assert "Traceback" not in (res.stdout + res.stderr)
         d = json.loads(out.read_text())
@@ -114,10 +156,19 @@ class TestCliUniversePartialOverlapEdge:
         out_a = tmp_path / "a.json"
         out_b = tmp_path / "b.json"
         for out, uni in ((out_a, ["ETH", "SOL", "NOPE"]), (out_b, ["ETH", "SOL"])):
-            res = _run_cli([
-                "--data", REAL, "--from-prices", "--benchmark", "BTC",
-                "--universe", *uni, "--output", str(out),
-            ])
+            res = _run_cli(
+                [
+                    "--data",
+                    REAL,
+                    "--from-prices",
+                    "--benchmark",
+                    "BTC",
+                    "--universe",
+                    *uni,
+                    "--output",
+                    str(out),
+                ]
+            )
             assert res.returncode == 0, f"rc={res.returncode}\n{res.stderr}\n{res.stdout}"
         da = json.loads(out_a.read_text())
         db = json.loads(out_b.read_text())

@@ -58,9 +58,7 @@ def max_drawdown(cumulative_or_returns):
         return np.nan
     first = s.iloc[0]
     looks_cumulative = (
-        abs(first - 1.0) < 0.5
-        and 0.5 < first < 5.0
-        and bool((s.iloc[: min(5, len(s))] >= 0).all())
+        abs(first - 1.0) < 0.5 and 0.5 < first < 5.0 and bool((s.iloc[: min(5, len(s))] >= 0).all())
     )
     cumulative = s if looks_cumulative else (1.0 + s).cumprod()
     running_max = cumulative.expanding().max()
@@ -187,7 +185,9 @@ def final_cumulative(returns):
     return float(val)
 
 
-def sortino_ratio(returns, risk_free: float = 0.0, periods_per_year: int = 252, target_return: float = 0.0):
+def sortino_ratio(
+    returns, risk_free: float = 0.0, periods_per_year: int = 252, target_return: float = 0.0
+):
     """Calculate annualized Sortino ratio (downside deviation only).
 
     Uses returns below ``target_return`` as the downside set; periods with no
@@ -236,8 +236,14 @@ def turnover_series(weights_df):
     return w.diff().abs().sum(axis=1).fillna(0.0)
 
 
-def summary(returns, weights_df=None, benchmark_returns=None, betas_df=None,
-           risk_free: float = 0.0, periods_per_year: int = 252):
+def summary(
+    returns,
+    weights_df=None,
+    benchmark_returns=None,
+    betas_df=None,
+    risk_free: float = 0.0,
+    periods_per_year: int = 252,
+):
     """Generate summary of all metrics."""
     result: dict = {}
     r = _to_series(returns)
@@ -260,6 +266,19 @@ def summary(returns, weights_df=None, benchmark_returns=None, betas_df=None,
     result["n_observations"] = len(r)
     return result
 
-def compute_metrics(returns, weights_df=None, benchmark_returns=None, risk_free: float = 0.0, periods_per_year: int = 252):
+
+def compute_metrics(
+    returns,
+    weights_df=None,
+    benchmark_returns=None,
+    risk_free: float = 0.0,
+    periods_per_year: int = 252,
+):
     """Compute performance metrics (alias for summary)."""
-    return summary(returns, weights_df=weights_df, benchmark_returns=benchmark_returns, risk_free=risk_free, periods_per_year=periods_per_year)
+    return summary(
+        returns,
+        weights_df=weights_df,
+        benchmark_returns=benchmark_returns,
+        risk_free=risk_free,
+        periods_per_year=periods_per_year,
+    )

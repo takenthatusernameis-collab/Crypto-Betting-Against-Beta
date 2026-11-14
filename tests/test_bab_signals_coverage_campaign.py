@@ -73,9 +73,7 @@ class TestReferenceGenerateBabSignals:
         assert (out.values == 0).all()
 
     def test_no_finite_betas_row_stays_flat(self):
-        out = _reference_generate_bab_signals(
-            pd.DataFrame([[np.nan, np.nan]], columns=["A", "B"])
-        )
+        out = _reference_generate_bab_signals(pd.DataFrame([[np.nan, np.nan]], columns=["A", "B"]))
         assert (out.iloc[0] == 0).all()
 
     def test_overlap_shrink_disjoint_quantiles(self):
@@ -99,9 +97,7 @@ class TestGenerateBabSignalsRealBehavior:
         assert np.isfinite(out.to_numpy()).all()
 
     def test_nan_rows_stay_flat_no_crash(self):
-        df = pd.DataFrame(
-            {"A": [np.nan, 0.5], "B": [0.4, np.nan]}, index=range(2)
-        )
+        df = pd.DataFrame({"A": [np.nan, 0.5], "B": [0.4, np.nan]}, index=range(2))
         out = generate_bab_signals(df)
         assert out.shape == df.shape
         assert np.isfinite(out.to_numpy()).all()

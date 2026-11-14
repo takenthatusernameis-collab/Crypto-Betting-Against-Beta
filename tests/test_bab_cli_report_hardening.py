@@ -26,6 +26,7 @@ from strategies.betting_against_beta.cli import main as cli_main
 
 def _env():
     import os as _os
+
     env = dict(_os.environ)
     # Preserve the full inherited PYTHONPATH (repo root + any dependency
     # install dirs such as pylib) so subprocesses can import pandas/numpy/scipy.
@@ -38,14 +39,22 @@ def _env():
 def _run_cli(args):
     return subprocess.run(
         [sys.executable, "-m", "strategies.betting_against_beta.cli", *args],
-        capture_output=True, text=True, env=_env(), cwd=REPO_ROOT, timeout=120,
+        capture_output=True,
+        text=True,
+        env=_env(),
+        cwd=REPO_ROOT,
+        timeout=120,
     )
 
 
 def _run_report(args):
     return subprocess.run(
         [sys.executable, str(REPORT), *args],
-        capture_output=True, text=True, env=_env(), cwd=REPO_ROOT, timeout=120,
+        capture_output=True,
+        text=True,
+        env=_env(),
+        cwd=REPO_ROOT,
+        timeout=120,
     )
 
 
@@ -65,16 +74,25 @@ class TestDryRunOutputValidation:
     """--dry-run must validate --output without writing."""
 
     def test_dry_run_rejects_unwritable_output(self, tmp_path):
-        rc = cli_main([
-            "--dry-run", "--synthetic",
-            "--output", "/proc/cannot_write_here/out.json",
-        ])
+        rc = cli_main(
+            [
+                "--dry-run",
+                "--synthetic",
+                "--output",
+                "/proc/cannot_write_here/out.json",
+            ]
+        )
         assert rc == 1
 
     def test_dry_run_rejects_directory_output(self, tmp_path):
-        rc = cli_main([
-            "--dry-run", "--synthetic", "--output", str(tmp_path),
-        ])
+        rc = cli_main(
+            [
+                "--dry-run",
+                "--synthetic",
+                "--output",
+                str(tmp_path),
+            ]
+        )
         assert rc == 1
 
     def test_dry_run_does_not_write_file(self, tmp_path):

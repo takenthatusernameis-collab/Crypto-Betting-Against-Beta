@@ -1,6 +1,8 @@
 """Precision hits for remaining data_loader branches."""
+
 from __future__ import annotations
 
+import contextlib
 import json
 from pathlib import Path
 
@@ -29,10 +31,13 @@ def test_normalize_index_tz_convert_and_localize_both_fail():
     orig_convert = pd.DatetimeIndex.tz_convert
     orig_localize = pd.DatetimeIndex.tz_localize
     try:
+
         def bad_convert(self, *args, **kwargs):
             raise TypeError("fail")
+
         def bad_localize(self, *args, **kwargs):
             raise ValueError("fail")
+
         pd.DatetimeIndex.tz_convert = bad_convert
         pd.DatetimeIndex.tz_localize = bad_localize
         out = _normalize_index(df.copy())
@@ -48,8 +53,10 @@ def test_promote_datetime_column_set_index_fails():
     try:
         df2 = df.copy()
         orig_set_index = pd.DataFrame.set_index
+
         def bad_set_index(self, *args, **kwargs):
             raise ValueError("bad")
+
         pd.DataFrame.set_index = bad_set_index
         out = _promote_datetime_column(df2)
         assert "date" in out.columns
@@ -60,6 +67,7 @@ def test_promote_datetime_column_set_index_fails():
 def test_drop_all_nan_columns_conversion_error_keeps_column():
     class Weird:
         pass
+
     df = pd.DataFrame({"WEIRD": [Weird(), Weird()]})
     try:
         out = _drop_all_nan_columns(df)
@@ -78,23 +86,21 @@ def test_coerce_numeric_not_dataframe_first_pass_raises_typeerror_then_caught():
 
 
 def test_coerce_numeric_second_pass_not_dataframe():
-    try:
+    with contextlib.suppress(BABDataError):
         res = _coerce_numeric([1, 2, 3])
-    except BABDataError:
-        pass
 
 
 def test_validate_returns_dataframe_outer_catch_valueerror():
     df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=[1, 2])
     orig = _normalize_index
     try:
+
         def bad_norm(d):
             raise ValueError("bad norm")
+
         data_loader._normalize_index = bad_norm
-        try:
+        with contextlib.suppress(BABDataError):
             validate_returns_dataframe(df)
-        except BABDataError:
-            pass
     finally:
         data_loader._normalize_index = orig
 
@@ -118,13 +124,13 @@ def test_load_returns_from_parquet_outer_oserror(tmp_path):
     p.write_text("not parquet")
     orig = pd.read_parquet
     try:
+
         def bad_read(*args, **kwargs):
             raise OSError("bad")
+
         pd.read_parquet = bad_read
-        try:
+        with contextlib.suppress(BABDataError):
             load_returns_from_parquet(p)
-        except BABDataError:
-            pass
     finally:
         pd.read_parquet = orig
 
@@ -134,13 +140,13 @@ def test_load_returns_from_hdf5_key_path(tmp_path):
     p.write_text("bad")
     orig = pd.read_hdf
     try:
+
         def bad_read(*args, **kwargs):
             raise Exception("bad")
+
         pd.read_hdf = bad_read
-        try:
+        with contextlib.suppress(BABDataError):
             load_returns_from_hdf5(p, key="returns")
-        except BABDataError:
-            pass
     finally:
         pd.read_hdf = orig
 
@@ -150,13 +156,13 @@ def test_load_returns_from_hdf5_outer_oserror(tmp_path):
     p.write_text("bad")
     orig = pd.read_hdf
     try:
+
         def bad_read(*args, **kwargs):
             raise OSError("bad")
+
         pd.read_hdf = bad_read
-        try:
+        with contextlib.suppress(BABDataError):
             load_returns_from_hdf5(p)
-        except BABDataError:
-            pass
     finally:
         pd.read_hdf = orig
 
@@ -165,7 +171,5 @@ def test_load_returns_from_json_orient_records_promote_fails_gracefully(tmp_path
     p = tmp_path / "bad.json"
     data = [{"date": "not-a-date-really-bad", "BTC": 0.01}]
     p.write_text(json.dumps(data))
-    try:
+    with contextlib.suppress(Exception):
         res = load_returns_from_json(p, orient="records")
-    except Exception:
-        pass

@@ -109,7 +109,9 @@ class TestNonNumericDtypeHandling:
         assert set(np.unique(out.to_numpy())).issubset({-1, 0, 1})
 
     def test_non_numeric_string_column_becomes_nan_handled(self):
-        df = pd.DataFrame({"A": ["x", "y", "z", "w"], "B": [0.1, 0.2, 0.3, 0.4], "C": [0.5, 0.6, 0.7, 0.8]})
+        df = pd.DataFrame(
+            {"A": ["x", "y", "z", "w"], "B": [0.1, 0.2, 0.3, 0.4], "C": [0.5, 0.6, 0.7, 0.8]}
+        )
         out = generate_bab_signals(df)
         assert np.isfinite(out.to_numpy()).all()
         # column A all NaN after coercion -> rows have 2 finite (B,C) still valid

@@ -20,6 +20,7 @@ Exit code is 0 when the campaign is unstarted (expected) or when every existing
 R2 file passes; 1 when an R2 file exists but fails (so a broken R2 stage cannot
 be silently ignored); 2 on a measurement error.
 """
+
 from __future__ import annotations
 
 import os
@@ -39,7 +40,11 @@ SCALE_CEILINGS = {"5000x200": 0.8, "5000x500": 2.0}
 
 
 def _run(cmd: list[str], timeout: int) -> subprocess.CompletedProcess:
-    env = dict(os.environ, PYTHONPATH=ROOT + (os.pathsep + os.environ["PYTHONPATH"] if os.environ.get("PYTHONPATH") else ""))
+    env = dict(
+        os.environ,
+        PYTHONPATH=ROOT
+        + (os.pathsep + os.environ["PYTHONPATH"] if os.environ.get("PYTHONPATH") else ""),
+    )
     return subprocess.run(cmd, cwd=ROOT, env=env, capture_output=True, text=True, timeout=timeout)
 
 
@@ -55,11 +60,16 @@ def run_existing_r2() -> int:
         print("[preflight] R2 files: NONE present -> campaign genuinely unstarted.")
         return 0
     print(f"[preflight] R2 files present: {existing}")
-    r = _run([sys.executable, "-m", "pytest", *existing, "-q", "-p", "no:cacheprovider"], timeout=3600)
+    r = _run(
+        [sys.executable, "-m", "pytest", *existing, "-q", "-p", "no:cacheprovider"], timeout=3600
+    )
     tail = (r.stdout or "")[-2000:]
     print(tail)
     if r.returncode != 0:
-        print(f"[preflight] R2 EXISTS BUT FAILS (rc={r.returncode}) -> fix before doing anything else.")
+        print(
+            f"[preflight] R2 EXISTS BUT FAILS (rc={r.returncode}) "
+            "-> fix before doing anything else."
+        )
         return 1
     print("[preflight] Existing R2 files all pass; extend, do not duplicate.")
     return 0
@@ -93,7 +103,7 @@ print("SCALE_JSON " + repr(out))
     if not line:
         print("[preflight] SCALE MEASUREMENT FAILED. stderr tail:\n" + (r.stderr or "")[-1500:])
         return 2
-    scale = eval(line[len("SCALE_JSON "):])
+    scale = eval(line[len("SCALE_JSON ") :])
     print("[preflight] Live scale baseline (median of 9 warm reps):")
     ok = True
     for label in ("5000x200", "5000x500"):
@@ -102,7 +112,7 @@ print("SCALE_JSON " + repr(out))
         flag = "OK" if val <= ceil else "OVER CEILING"
         if val > ceil:
             ok = False
-        print(f"  {label}: {val*1000:.0f} ms  (ceiling {ceil*1000:.0f} ms) [{flag}]")
+        print(f"  {label}: {val * 1000:.0f} ms  (ceiling {ceil * 1000:.0f} ms) [{flag}]")
     return 0 if ok else 1
 
 

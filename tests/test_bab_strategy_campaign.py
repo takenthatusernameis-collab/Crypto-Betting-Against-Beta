@@ -8,8 +8,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from strategies.betting_against_beta import beta
-from strategies.betting_against_beta import shorting
+from strategies.betting_against_beta import beta, shorting
 from strategies.betting_against_beta.config import BABConfig
 from strategies.betting_against_beta.errors import BABDataError
 from strategies.betting_against_beta.portfolio import construct_portfolio
@@ -22,8 +21,11 @@ def _make_returns(n=100, seed=11):
     rng = np.random.default_rng(seed)
     mkt = rng.normal(0, 0.01, n)
     return pd.DataFrame(
-        {"BTC": mkt, "ETH": 0.6 * mkt + rng.normal(0, 0.005, n),
-         "SOL": 1.2 * mkt + rng.normal(0, 0.007, n)},
+        {
+            "BTC": mkt,
+            "ETH": 0.6 * mkt + rng.normal(0, 0.005, n),
+            "SOL": 1.2 * mkt + rng.normal(0, 0.007, n),
+        },
         index=idx,
     )
 
@@ -64,16 +66,23 @@ def test_apply_rebalance_daily_returns_as_is():
 
 def test_run_empty_universe_after_intersection_raises():
     df = pd.DataFrame({"BTC": [0.01, -0.01, 0.02]}, index=pd.date_range("2023-01-01", periods=3))
-    cfg = BABConfig(universe=["ZZZ"], benchmark="BTC", beta_window=5, min_observations=2,
-                    synthetic_n_days=30, synthetic_seed=1)
+    cfg = BABConfig(
+        universe=["ZZZ"],
+        benchmark="BTC",
+        beta_window=5,
+        min_observations=2,
+        synthetic_n_days=30,
+        synthetic_seed=1,
+    )
     strat = BABStrategy(cfg)
     with pytest.raises(ValueError):
         strat.run(returns_df=df)
 
 
 def test_run_shorting_constraints_error_propagates():
-    with mock.patch.object(shorting, "apply_shorting_constraints",
-                           side_effect=BABDataError("shorting failed")):
+    with mock.patch.object(
+        shorting, "apply_shorting_constraints", side_effect=BABDataError("shorting failed")
+    ):
         strat = BABStrategy(BABConfig(shorting_constraints=ShortingConstraints()))
         with pytest.raises(BABDataError):
             strat.run()
@@ -90,8 +99,10 @@ def test_run_sizing_exception_swallowed():
 def test_run_regime_exception_propagates():
     # Regime programming errors (not data errors) propagate unchanged rather
     # than being swallowed or re-wrapped as BABDataError.
-    with mock.patch("strategies.betting_against_beta.regime.regime_scale_factors",
-                    side_effect=RuntimeError("boom")):
+    with mock.patch(
+        "strategies.betting_against_beta.regime.regime_scale_factors",
+        side_effect=RuntimeError("boom"),
+    ):
         strat = BABStrategy(BABConfig(regime_filter=True))
         with pytest.raises(RuntimeError):
             strat.run()
@@ -100,8 +111,9 @@ def test_run_regime_exception_propagates():
 def test_run_finiteness_guard_clamp_nonfinite_weights():
     idx = pd.date_range("2023-01-01", periods=30, freq="D")
     weights = pd.DataFrame({"BTC": [1.0, np.nan, -1.0], "ETH": [-1.0, np.inf, 1.0]}, index=idx[:3])
-    with mock.patch("strategies.betting_against_beta.strategy.construct_portfolio",
-                    return_value=weights):
+    with mock.patch(
+        "strategies.betting_against_beta.strategy.construct_portfolio", return_value=weights
+    ):
         strat = BABStrategy()
         result = strat.run()
         wa = result.weights.to_numpy(dtype=float)

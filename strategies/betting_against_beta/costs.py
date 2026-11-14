@@ -59,9 +59,7 @@ class TransactionCostModel:
 
     def __setattr__(self, name: str, value) -> None:
         if getattr(self, "_frozen", False) and name != "_frozen":
-            raise AttributeError(
-                f"Cannot mutate frozen TransactionCostModel attribute '{name}'"
-            )
+            raise AttributeError(f"Cannot mutate frozen TransactionCostModel attribute '{name}'")
         object.__setattr__(self, name, value)
 
     def _validate(self) -> None:
@@ -74,11 +72,7 @@ class TransactionCostModel:
             "fixed_fee_per_trade",
         ):
             value = getattr(self, name)
-            if (
-                not isinstance(value, (int, float))
-                or isinstance(value, bool)
-                or value < 0
-            ):
+            if not isinstance(value, (int, float)) or isinstance(value, bool) or value < 0:
                 errors.append(f"{name} must be a non-negative number, got {value!r}")
         cap = self.participation_cap
         if not isinstance(cap, (int, float)) or isinstance(cap, bool) or not (0 < cap <= 1):
@@ -143,8 +137,11 @@ def compute_transaction_costs(
     """
     if model is None:
         model = TransactionCostModel(
-            linear_fee=0.0, bid_ask_bps=0.0, impact_coefficient=0.0,
-            borrow_bps_per_year=0.0, fixed_fee_per_trade=0.0,
+            linear_fee=0.0,
+            bid_ask_bps=0.0,
+            impact_coefficient=0.0,
+            borrow_bps_per_year=0.0,
+            fixed_fee_per_trade=0.0,
         )
 
     if weights is None:
@@ -156,15 +153,11 @@ def compute_transaction_costs(
     weights = weights.fillna(0.0)
 
     if weights_prev is None:
-        weights_prev = pd.DataFrame(
-            0.0, index=weights.index, columns=weights.columns
-        )
+        weights_prev = pd.DataFrame(0.0, index=weights.index, columns=weights.columns)
     else:
         weights_prev = _clean_frame(weights_prev)
         if weights_prev is None:
-            weights_prev = pd.DataFrame(
-                0.0, index=weights.index, columns=weights.columns
-            )
+            weights_prev = pd.DataFrame(0.0, index=weights.index, columns=weights.columns)
         else:
             weights_prev = weights_prev.reindex(
                 index=weights.index, columns=weights.columns, fill_value=0.0
@@ -183,11 +176,7 @@ def compute_transaction_costs(
     prices = _clean_frame(prices)
     adv_input = model.adv_usd if adv_usd is None else adv_usd
     adv_series = _adv_series(adv_input)
-    if (
-        prices is not None
-        and adv_series is not None
-        and float(model.impact_coefficient) > 0
-    ):
+    if prices is not None and adv_series is not None and float(model.impact_coefficient) > 0:
         prices = prices.reindex(index=index, columns=columns)
         if isinstance(adv_series, pd.DataFrame):
             adv_aligned = adv_series.reindex(index=index, columns=columns)
@@ -202,14 +191,8 @@ def compute_transaction_costs(
             )
         trade = (weights - weights_prev).abs()
         participation = trade * prices / adv_aligned
-        participation = participation.clip(
-            upper=float(model.participation_cap)
-        ).fillna(0.0)
-        impact = (
-            trade
-            * float(model.impact_coefficient)
-            * np.sqrt(participation.values)
-        )
+        participation = participation.clip(upper=float(model.participation_cap)).fillna(0.0)
+        impact = trade * float(model.impact_coefficient) * np.sqrt(participation.values)
         costs = costs + impact.sum(axis=1).fillna(0.0)
 
     # Short borrow: annualized fee pro-rata per day on short notional held.
@@ -231,12 +214,6 @@ def compute_transaction_costs(
     return pd.Series(costs.values.reshape(-1), index=index, name="transaction_costs")
 
 
-
-
-
-
-
-
 # Stable contract: compute_transaction_costs returns a Series (see the return
 # above).  The previous wrapper that redefined this name to inspect the call
 # stack and branch on caller filename has been removed - it walked the stack
@@ -247,11 +224,12 @@ def compute_transaction_costs(
 
 def apply_costs(returns, weights=None, transaction_costs=None, **kwargs):
     import pandas as pd
+
     tc = None
     if transaction_costs is not None:
         if isinstance(transaction_costs, pd.DataFrame):
-            if 'transaction_costs' in transaction_costs.columns:
-                tc = transaction_costs['transaction_costs']
+            if "transaction_costs" in transaction_costs.columns:
+                tc = transaction_costs["transaction_costs"]
             else:
                 tc = transaction_costs.iloc[:, 0]
         elif isinstance(transaction_costs, pd.Series):
@@ -262,7 +240,7 @@ def apply_costs(returns, weights=None, transaction_costs=None, **kwargs):
         except Exception:
             tc = pd.Series(0.0, index=weights.index)
     if tc is None:
-        idx = returns.index if hasattr(returns, 'index') else None
+        idx = returns.index if hasattr(returns, "index") else None
         tc = pd.Series(0.0, index=idx)
 
     try:
@@ -271,8 +249,8 @@ def apply_costs(returns, weights=None, transaction_costs=None, **kwargs):
             return out
         if isinstance(returns, pd.DataFrame):
             res = returns.copy()
-            if 'portfolio_return' in res.columns:
-                res['portfolio_return'] = res['portfolio_return'] - tc.reindex(res.index).fillna(0)
+            if "portfolio_return" in res.columns:
+                res["portfolio_return"] = res["portfolio_return"] - tc.reindex(res.index).fillna(0)
             elif len(res.columns) == 1:
                 res.iloc[:, 0] = res.iloc[:, 0] - tc.reindex(res.index).fillna(0)
             return res

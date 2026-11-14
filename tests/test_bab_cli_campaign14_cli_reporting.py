@@ -28,16 +28,24 @@ TMP_OUT = str(REPO / ".pytest_cache" / "c14_out.json")
 def _run_cli(argv):
     env = {**__import__("os").environ, "PYTHONPATH": str(REPO)}
     return subprocess.run(
-        [sys.executable, "-m", "strategies.betting_against_beta.cli"] + argv,
-        capture_output=True, text=True, timeout=180, cwd=str(REPO), env=env,
+        [sys.executable, "-m", "strategies.betting_against_beta.cli", *argv],
+        capture_output=True,
+        text=True,
+        timeout=180,
+        cwd=str(REPO),
+        env=env,
     )
 
 
 def _run_bab_example(argv):
     env = {**__import__("os").environ, "PYTHONPATH": str(REPO)}
     return subprocess.run(
-        [sys.executable, "-m", "scripts.load_real_bab_example"] + argv,
-        capture_output=True, text=True, timeout=180, cwd=str(REPO), env=env,
+        [sys.executable, "-m", "scripts.load_real_bab_example", *argv],
+        capture_output=True,
+        text=True,
+        timeout=180,
+        cwd=str(REPO),
+        env=env,
     )
 
 
@@ -65,7 +73,18 @@ class TestConsoleScriptOutputParity:
         if out.exists():
             out.unlink()
         try:
-            r = _run_bab_example([REAL, "--from-prices", "--benchmark", "BTC", "--output", str(out), "--min-rows", "30"])
+            r = _run_bab_example(
+                [
+                    REAL,
+                    "--from-prices",
+                    "--benchmark",
+                    "BTC",
+                    "--output",
+                    str(out),
+                    "--min-rows",
+                    "30",
+                ]
+            )
             assert r.returncode == 0, (r.returncode, r.stdout, r.stderr)
             assert r.stderr == "", r.stderr
             assert out.exists()
@@ -175,14 +194,18 @@ class TestCliDeterminism:
 class TestCliInProcessParity:
     """In-process main(argv) parity with subprocess for 4 representative combos."""
 
-    @pytest.mark.parametrize("argv", [
-        ["--synthetic"],
-        ["--data", REAL, "--from-prices", "--benchmark", "BTC"],
-        ["--dry-run", "--synthetic"],
-        ["--synthetic", "--long-quantile", "1.5"],
-    ])
+    @pytest.mark.parametrize(
+        "argv",
+        [
+            ["--synthetic"],
+            ["--data", REAL, "--from-prices", "--benchmark", "BTC"],
+            ["--dry-run", "--synthetic"],
+            ["--synthetic", "--long-quantile", "1.5"],
+        ],
+    )
     def test_in_process_parity(self, argv):
         from strategies.betting_against_beta.cli import main
+
         old_stdout, old_stderr = sys.stdout, sys.stderr
         sys.stdout, sys.stderr = __import__("io").StringIO(), __import__("io").StringIO()
         try:
@@ -198,7 +221,11 @@ class TestCliInProcessParity:
         # subprocess reference
         env = {**__import__("os").environ, "PYTHONPATH": str(REPO)}
         ref = subprocess.run(
-            [sys.executable, "-m", "strategies.betting_against_beta.cli"] + argv,
-            capture_output=True, text=True, timeout=180, cwd=str(REPO), env=env,
+            [sys.executable, "-m", "strategies.betting_against_beta.cli", *argv],
+            capture_output=True,
+            text=True,
+            timeout=180,
+            cwd=str(REPO),
+            env=env,
         )
         assert code == ref.returncode, (argv, code, ref.returncode)

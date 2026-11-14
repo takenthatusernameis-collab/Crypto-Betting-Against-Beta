@@ -4,6 +4,7 @@ Covers 1319-1320 (quality-check to_numeric/to_numpy fallback).
 Other probes (268-269, 403-404, 43-44, 953) are structural-dead; see
 docs/unreachable_proofs.md batch96 notes.
 """
+
 from __future__ import annotations
 
 from unittest.mock import patch
@@ -32,7 +33,9 @@ def test_1319_1320_quality_to_numeric_to_numpy_raises_falls_back():
             return BadNum()
         return orig(arg, *a, **k)
 
-    with patch("strategies.betting_against_beta.data_loader.pd.to_numeric", side_effect=fake_to_numeric):
+    with patch(
+        "strategies.betting_against_beta.data_loader.pd.to_numeric", side_effect=fake_to_numeric
+    ):
         out = dl.validate_returns_dataframe(df, benchmark="BTC", min_rows=1, quality=True)
     assert list(out.columns) == ["BTC", "ETH"]
     assert len(out) == 3

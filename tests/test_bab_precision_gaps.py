@@ -1,3 +1,5 @@
+import contextlib
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -12,6 +14,7 @@ class TestPrecisionGaps:
             def __len__(self):
                 # first call might fail, second might work?
                 raise TypeError
+
         rb = beta.rolling_beta(Bad(), Bad())
         assert rb is not None
 
@@ -19,6 +22,7 @@ class TestPrecisionGaps:
         class BadSeries:
             def __init__(self, *args, **kwargs):
                 raise AttributeError
+
         try:
             out = beta.calculate_beta(BadSeries(), BadSeries())
             assert np.isnan(out)
@@ -41,6 +45,7 @@ class TestPrecisionGaps:
         class Bad:
             def __iter__(self):
                 raise AttributeError
+
         out = beta.calculate_beta(Bad(), Bad())
         assert np.isnan(out)
 
@@ -58,13 +63,11 @@ class TestPrecisionGaps:
 
     def test_data_loader_coerce_numeric_percent_bad(self):
         df = pd.DataFrame({"BTC": ["abc%"]})
-        try:
+        with contextlib.suppress(Exception):
             out = data_loader._coerce_numeric(df)
-        except Exception:
-            pass
 
     def test_quality_report_with_dt_index_no_gaps_large(self):
-        idx = pd.date_range("2023-01-01", periods=5, freq='D')
-        df = pd.DataFrame({"BTC": [0.01]*5}, index=idx)
+        idx = pd.date_range("2023-01-01", periods=5, freq="D")
+        df = pd.DataFrame({"BTC": [0.01] * 5}, index=idx)
         rep = quality.data_quality_report(df)
         assert isinstance(rep, dict)

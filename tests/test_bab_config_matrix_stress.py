@@ -5,9 +5,9 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
+from strategies.betting_against_beta import sizing
 from strategies.betting_against_beta.config import BABConfig
 from strategies.betting_against_beta.strategy import BABStrategy
-from strategies.betting_against_beta import sizing
 
 
 def test_matrix_regime_shorting_sizing_costs_deterministic():
@@ -43,7 +43,10 @@ def test_matrix_regime_shorting_sizing_costs_deterministic():
                     if short is not None:
                         try:
                             from strategies.betting_against_beta import shorting
-                            kwargs["shorting_constraints"] = shorting.ShortingConstraints(max_short_leverage=short)
+
+                            kwargs["shorting_constraints"] = shorting.ShortingConstraints(
+                                max_short_leverage=short
+                            )
                         except Exception:
                             pass
                     strat = BABStrategy(config=BABConfig(**kwargs))

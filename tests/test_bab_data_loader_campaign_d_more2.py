@@ -1,4 +1,5 @@
 """More Campaign D hardening tests for data_loader.py gaps."""
+
 from __future__ import annotations
 
 import numpy as np
@@ -6,14 +7,14 @@ import pandas as pd
 import pytest
 
 from strategies.betting_against_beta.data_loader import (
+    BABDataError,
     _coerce_to_datetime_scalar,
+    _detect_and_normalize_exchange_format,
     _normalize_index,
     _promote_datetime_column,
-    _detect_and_normalize_exchange_format,
-    load_returns,
     load_prices,
+    load_returns,
     validate_returns_dataframe,
-    BABDataError,
 )
 
 
@@ -64,6 +65,7 @@ def test_coerce_scalar_tz_aware_timestamp():
 
 def test_coerce_scalar_datetime():
     import datetime
+
     ts = _coerce_to_datetime_scalar(datetime.datetime(2023, 1, 1))
     assert isinstance(ts, pd.Timestamp)
 
@@ -81,22 +83,22 @@ def test_promote_datetime_column_from_timestamp_col():
 
 
 def test_detect_exchange_binance_long_format():
-    df = pd.DataFrame({
-        "Open time": ["1700000000000", "1700000001000"],
-        "symbol": ["BTCUSDT", "BTCUSDT"],
-        "close": [27000, 27100]
-    })
+    df = pd.DataFrame(
+        {
+            "Open time": ["1700000000000", "1700000001000"],
+            "symbol": ["BTCUSDT", "BTCUSDT"],
+            "close": [27000, 27100],
+        }
+    )
     out = _detect_and_normalize_exchange_format(df)
     # might pivot to wide
     assert isinstance(out, pd.DataFrame)
 
 
 def test_detect_exchange_coingecko_wide():
-    df = pd.DataFrame({
-        "date": ["2023-01-01", "2023-01-02"],
-        "BTC": [27000, 27100],
-        "ETH": [1800, 1810]
-    })
+    df = pd.DataFrame(
+        {"date": ["2023-01-01", "2023-01-02"], "BTC": [27000, 27100], "ETH": [1800, 1810]}
+    )
     out = _detect_and_normalize_exchange_format(df)
     assert isinstance(out, pd.DataFrame)
 

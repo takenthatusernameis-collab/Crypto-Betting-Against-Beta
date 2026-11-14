@@ -13,6 +13,7 @@ Evidence-first, non-duplicative (probed 2026-11-10 @ HEAD 6ae6381, clean):
 
 No production edits. No assertions weakened. All cases probed green before test.
 """
+
 from __future__ import annotations
 
 import json
@@ -51,10 +52,20 @@ def _assert_strict_finite(payload: dict) -> None:
 class TestCliUniverseWhitespaceNormalization:
     def test_padded_valid_tokens_stripped_and_finite(self, tmp_path: Path):
         out = tmp_path / "ws.json"
-        res = _run_cli([
-            "--data", REAL, "--from-prices", "--benchmark", "BTC",
-            "--universe", " ETH ", "SOL ", "--output", str(out),
-        ])
+        res = _run_cli(
+            [
+                "--data",
+                REAL,
+                "--from-prices",
+                "--benchmark",
+                "BTC",
+                "--universe",
+                " ETH ",
+                "SOL ",
+                "--output",
+                str(out),
+            ]
+        )
         assert res.returncode == 0, f"rc={res.returncode}\n{res.stderr}\n{res.stdout}"
         assert "Traceback" not in (res.stdout + res.stderr)
         d = json.loads(out.read_text())
@@ -63,10 +74,21 @@ class TestCliUniverseWhitespaceNormalization:
 
     def test_padded_duplicate_tokens_deduped(self, tmp_path: Path):
         out = tmp_path / "wsdup.json"
-        res = _run_cli([
-            "--data", REAL, "--from-prices", "--benchmark", "BTC",
-            "--universe", " ETH", "ETH ", " SOL ", "--output", str(out),
-        ])
+        res = _run_cli(
+            [
+                "--data",
+                REAL,
+                "--from-prices",
+                "--benchmark",
+                "BTC",
+                "--universe",
+                " ETH",
+                "ETH ",
+                " SOL ",
+                "--output",
+                str(out),
+            ]
+        )
         assert res.returncode == 0, f"rc={res.returncode}\n{res.stderr}\n{res.stdout}"
         d = json.loads(out.read_text())
         _assert_strict_finite(d)
@@ -74,10 +96,22 @@ class TestCliUniverseWhitespaceNormalization:
 
     def test_benchmark_duplicated_in_universe_deduped(self, tmp_path: Path):
         out = tmp_path / "bdup.json"
-        res = _run_cli([
-            "--data", REAL, "--from-prices", "--benchmark", "BTC",
-            "--universe", "BTC", "ETH", "BTC", "SOL", "--output", str(out),
-        ])
+        res = _run_cli(
+            [
+                "--data",
+                REAL,
+                "--from-prices",
+                "--benchmark",
+                "BTC",
+                "--universe",
+                "BTC",
+                "ETH",
+                "BTC",
+                "SOL",
+                "--output",
+                str(out),
+            ]
+        )
         assert res.returncode == 0, f"rc={res.returncode}\n{res.stderr}\n{res.stdout}"
         assert "Traceback" not in (res.stdout + res.stderr)
         d = json.loads(out.read_text())
@@ -90,11 +124,21 @@ class TestCliUniverseWhitespaceNormalization:
 class TestCliDryRunDeepOutput:
     def test_dry_run_deep_output_validates_no_write(self, tmp_path: Path):
         out = tmp_path / "deep" / "nested" / "out.json"
-        res = _run_cli([
-            "--data", REAL, "--from-prices", "--benchmark", "BTC",
-            "--universe", "ETH", "SOL",
-            "--output", str(out), "--dry-run",
-        ])
+        res = _run_cli(
+            [
+                "--data",
+                REAL,
+                "--from-prices",
+                "--benchmark",
+                "BTC",
+                "--universe",
+                "ETH",
+                "SOL",
+                "--output",
+                str(out),
+                "--dry-run",
+            ]
+        )
         assert res.returncode == 0, f"rc={res.returncode}\n{res.stderr}\n{res.stdout}"
         assert "Traceback" not in (res.stdout + res.stderr)
         # Dry-run must not write the backtest output file.
@@ -104,10 +148,21 @@ class TestCliDryRunDeepOutput:
 
     def test_dry_run_reports_explicit_universe(self, tmp_path: Path):
         out = tmp_path / "x" / "o.json"
-        res = _run_cli([
-            "--data", REAL, "--from-prices", "--benchmark", "BTC",
-            "--universe", "ETH", "SOL", "--output", str(out), "--dry-run",
-        ])
+        res = _run_cli(
+            [
+                "--data",
+                REAL,
+                "--from-prices",
+                "--benchmark",
+                "BTC",
+                "--universe",
+                "ETH",
+                "SOL",
+                "--output",
+                str(out),
+                "--dry-run",
+            ]
+        )
         assert res.returncode == 0, f"rc={res.returncode}\n{res.stderr}\n{res.stdout}"
         assert "ETH" in res.stdout and "SOL" in res.stdout
         assert not out.exists()

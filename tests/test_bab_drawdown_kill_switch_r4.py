@@ -10,11 +10,14 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from strategies.betting_against_beta.strategy import BABStrategy
 from strategies.betting_against_beta.config import BABConfig, BABConfigError
 from strategies.betting_against_beta.errors import BABDataError
-from strategies.betting_against_beta.risk import KillSwitchEvent, compute_running_drawdown, apply_kill_switch
-
+from strategies.betting_against_beta.risk import (
+    KillSwitchEvent,
+    apply_kill_switch,
+    compute_running_drawdown,
+)
+from strategies.betting_against_beta.strategy import BABStrategy
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 REAL_PRICES = str(REPO_ROOT / "tests" / "fixtures" / "real_market_prices.csv")
@@ -34,11 +37,14 @@ def _make_breaching_returns():
     base_btc[100] = -0.40
     base_eth[100] = -0.35
     base_sol[100] = -0.30
-    returns = pd.DataFrame({
-        "BTC": base_btc,
-        "ETH": base_eth,
-        "SOL": base_sol,
-    }, index=dates)
+    returns = pd.DataFrame(
+        {
+            "BTC": base_btc,
+            "ETH": base_eth,
+            "SOL": base_sol,
+        },
+        index=dates,
+    )
     return returns
 
 
@@ -46,21 +52,26 @@ def _make_non_breaching_returns():
     """Create a returns series that will NOT breach a 20% drawdown limit."""
     rng = np.random.RandomState(42)
     dates = pd.date_range("2023-01-01", periods=100)
-    returns = pd.DataFrame({
-        "BTC": rng.normal(0.001, 0.0005, 100),
-        "ETH": rng.normal(0.0015, 0.0005, 100),
-        "SOL": rng.normal(0.002, 0.0005, 100),
-    }, index=dates)
+    returns = pd.DataFrame(
+        {
+            "BTC": rng.normal(0.001, 0.0005, 100),
+            "ETH": rng.normal(0.0015, 0.0005, 100),
+            "SOL": rng.normal(0.002, 0.0005, 100),
+        },
+        index=dates,
+    )
     return returns
 
 
 def test_kill_switch_breaching_fixture_triggers_once_and_flattens():
     """Breaching fixture triggers exactly once and flattens weights."""
     # Use real market prices which we know can trigger drawdown
-    strat = BABStrategy(config=BABConfig(
-        benchmark="BTC",
-        max_drawdown_limit=0.10,  # 10% limit - should trigger on real data
-    ))
+    strat = BABStrategy(
+        config=BABConfig(
+            benchmark="BTC",
+            max_drawdown_limit=0.10,  # 10% limit - should trigger on real data
+        )
+    )
     result = strat.run(returns_df=REAL_PRICES)
 
     # Check kill_switch event exists and is triggered
@@ -73,7 +84,9 @@ def test_kill_switch_breaching_fixture_triggers_once_and_flattens():
     # Check weights are flattened from breach date onward
     breach_pos = result.weights.index.get_loc(result.kill_switch.date)
     post_breach_weights = result.weights.iloc[breach_pos:]
-    assert (post_breach_weights.abs().sum(axis=1) < 1e-9).all(), "Weights should be zero after breach"
+    assert (post_breach_weights.abs().sum(axis=1) < 1e-9).all(), (
+        "Weights should be zero after breach"
+    )
 
     # Check report includes kill_switch
     report = strat.report(result)
@@ -88,10 +101,12 @@ def test_kill_switch_breaching_fixture_triggers_once_and_flattens():
 
 def test_kill_switch_non_breaching_fixture_does_not_trigger():
     """Non-breaching fixture does not trigger kill switch."""
-    strat = BABStrategy(config=BABConfig(
-        benchmark="BTC",
-        max_drawdown_limit=0.20,
-    ))
+    strat = BABStrategy(
+        config=BABConfig(
+            benchmark="BTC",
+            max_drawdown_limit=0.20,
+        )
+    )
     returns = _make_non_breaching_returns()
     result = strat.run(returns_df=returns)
 
@@ -212,7 +227,9 @@ def test_compute_running_drawdown_empty_handling():
 
 def test_apply_kill_switch_none_limit_returns_unchanged():
     """apply_kill_switch with None limit returns weights unchanged."""
-    weights = pd.DataFrame({"A": [0.5, -0.5], "B": [-0.3, 0.3]}, index=pd.date_range("2023-01-01", periods=2))
+    weights = pd.DataFrame(
+        {"A": [0.5, -0.5], "B": [-0.3, 0.3]}, index=pd.date_range("2023-01-01", periods=2)
+    )
     cumulative = pd.Series([1.0, 0.95], index=weights.index)
 
     out_weights, event = apply_kill_switch(weights, cumulative, None)
@@ -226,17 +243,19 @@ def test_apply_kill_switch_empty_weights_returns_not_triggered():
     weights = pd.DataFrame()
     cumulative = pd.Series([1.0, 0.9, 0.8])
 
-    out_weights, event = apply_kill_switch(weights, cumulative, 0.20)
+    _out_weights, event = apply_kill_switch(weights, cumulative, 0.20)
     assert event.triggered is False
     assert event.limit == 0.20
 
 
 def test_kill_switch_with_real_fixture():
     """Kill switch works with real market prices fixture."""
-    strat = BABStrategy(config=BABConfig(
-        benchmark="BTC",
-        max_drawdown_limit=0.15,  # 15% limit - should trigger on real data
-    ))
+    strat = BABStrategy(
+        config=BABConfig(
+            benchmark="BTC",
+            max_drawdown_limit=0.15,  # 15% limit - should trigger on real data
+        )
+    )
     result = strat.run(returns_df=REAL_PRICES)
 
     # Should have a kill_switch event

@@ -1,3 +1,4 @@
+import contextlib
 import json
 import os
 import pickle
@@ -67,18 +68,12 @@ class TestCoerceToDatetimeScalar:
             pass
 
     def test_coerce_to_datetime_scalar_nan_inf(self):
-        try:
+        with contextlib.suppress(Exception):
             assert pd.isna(data_loader._coerce_to_datetime_scalar(np.nan))
-        except Exception:
-            pass
-        try:
+        with contextlib.suppress(Exception):
             assert pd.isna(data_loader._coerce_to_datetime_scalar(float("inf")))
-        except Exception:
-            pass
-        try:
+        with contextlib.suppress(Exception):
             assert pd.isna(data_loader._coerce_to_datetime_scalar(float("-inf")))
-        except Exception:
-            pass
 
     def test_coerce_to_datetime_scalar_int_ms(self):
         ts = data_loader._coerce_to_datetime_scalar(1700000000000)
@@ -133,24 +128,28 @@ class TestPromoteDatetimeColumn:
 
 class TestDetectAndNormalizeExchangeFormat:
     def test_detect_binance_format(self):
-        df = pd.DataFrame({
-            "open_time": [1700000000000, 1700000060000],
-            "open": [1, 2],
-            "high": [3, 4],
-            "low": [0.5, 1.5],
-            "close": [2, 3],
-            "volume": [100, 200],
-        })
+        df = pd.DataFrame(
+            {
+                "open_time": [1700000000000, 1700000060000],
+                "open": [1, 2],
+                "high": [3, 4],
+                "low": [0.5, 1.5],
+                "close": [2, 3],
+                "volume": [100, 200],
+            }
+        )
         out = data_loader._detect_and_normalize_exchange_format(df)
         assert isinstance(out.index, pd.DatetimeIndex)
 
     def test_detect_coingecko_format(self):
-        df = pd.DataFrame({
-            "snapped_at": ["2023-01-01T00:00:00Z", "2023-01-02T00:00:00Z"],
-            "price": [100, 101],
-            "market_cap": [1e9, 1.01e9],
-            "total_volume": [1e7, 1.01e7],
-        })
+        df = pd.DataFrame(
+            {
+                "snapped_at": ["2023-01-01T00:00:00Z", "2023-01-02T00:00:00Z"],
+                "price": [100, 101],
+                "market_cap": [1e9, 1.01e9],
+                "total_volume": [1e7, 1.01e7],
+            }
+        )
         out = data_loader._detect_and_normalize_exchange_format(df)
         assert isinstance(out, pd.DataFrame)
 
@@ -224,7 +223,9 @@ class TestDataQualityCampaign:
 
 class TestValidateReturnsDataframe:
     def test_validate_returns_dataframe_valid(self):
-        df = pd.DataFrame({"BTC": [0.01, -0.02, 0.03]}, index=pd.date_range("2023-01-01", periods=3))
+        df = pd.DataFrame(
+            {"BTC": [0.01, -0.02, 0.03]}, index=pd.date_range("2023-01-01", periods=3)
+        )
         out = data_loader.validate_returns_dataframe(df)
         assert isinstance(out, pd.DataFrame)
 
@@ -285,7 +286,7 @@ class TestLoaders:
 
     def test_load_returns_from_hdf5(self, tmp_path):
         try:
-            import tables  # noqa
+            import tables
         except Exception:
             pytest.skip("tables not available")
         df = pd.DataFrame({"BTC": [0.01, -0.02]}, index=pd.date_range("2023-01-01", periods=2))

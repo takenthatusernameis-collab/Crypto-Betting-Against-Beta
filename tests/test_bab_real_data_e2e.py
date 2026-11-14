@@ -100,9 +100,11 @@ def fixture_case(request):
 # --------------------------------------------------------------------------- #
 # Backtest contract
 # --------------------------------------------------------------------------- #
-def test_backtest_contract(fixture_case, ):
+def test_backtest_contract(
+    fixture_case,
+):
     name, kind = fixture_case
-    strat, res = _run(name, kind)
+    _strat, res = _run(name, kind)
     bt = res.backtest
     assert list(bt.columns) == BACKTEST_COLUMNS, f"{name}: columns {list(bt.columns)}"
     assert len(bt) > 0, f"{name}: empty backtest"
@@ -116,7 +118,7 @@ def test_backtest_contract(fixture_case, ):
 # --------------------------------------------------------------------------- #
 def test_dollar_neutrality(fixture_case):
     name, kind = fixture_case
-    strat, res = _run(name, kind, dollar_neutral=True)
+    _strat, res = _run(name, kind, dollar_neutral=True)
     row_sums = res.weights.sum(axis=1).to_numpy(dtype=float)
     assert np.all(np.isfinite(row_sums)), f"{name}: non-finite weight sums"
     assert np.all(np.abs(row_sums) <= NET_TOL), (
@@ -158,9 +160,7 @@ def test_beta_target(fixture_case):
 # --------------------------------------------------------------------------- #
 def test_attribution_identities(fixture_case):
     name, kind = fixture_case
-    strat, res = _run(
-        name, kind, transaction_costs=0.001, slippage=0.0005
-    )
+    _strat, res = _run(name, kind, transaction_costs=0.001, slippage=0.0005)
     bt = res.backtest
     # The reported ``returns`` is the *clipped* net (floored at -1+1e-12 so
     # log1p stays finite): returns == max(gross - cost - slip, -1+1e-12). On
@@ -185,9 +185,7 @@ def test_attribution_identities(fixture_case):
     assert np.allclose(
         att["net_return"].to_numpy(dtype=float), got_returns, rtol=RTOL, atol=ATOL
     ), f"{name}: attribution net_return != returns"
-    att_rhs = (
-        att["gross_return"] - att["cost_drag"] - att["slippage_drag"]
-    ).to_numpy(dtype=float)
+    att_rhs = (att["gross_return"] - att["cost_drag"] - att["slippage_drag"]).to_numpy(dtype=float)
     if name in LARGE_FIXTURES:
         assert np.allclose(
             att["net_return"].to_numpy(dtype=float), att_rhs, rtol=RTOL, atol=ATOL
@@ -203,10 +201,13 @@ def test_attribution_identities(fixture_case):
         f"{name}: totals net_return != sum(returns)"
     )
     if name in LARGE_FIXTURES:
-        assert abs(
-            totals["net_return"]
-            - (totals["gross_return"] - totals["cost_drag"] - totals["slippage_drag"])
-        ) <= 1e-9, f"{name}: attribution-totals identity breach: {totals}"
+        assert (
+            abs(
+                totals["net_return"]
+                - (totals["gross_return"] - totals["cost_drag"] - totals["slippage_drag"])
+            )
+            <= 1e-9
+        ), f"{name}: attribution-totals identity breach: {totals}"
 
 
 # --------------------------------------------------------------------------- #
@@ -236,17 +237,20 @@ def test_report_strict_json_and_tear_sheet(fixture_case):
 # --------------------------------------------------------------------------- #
 def test_determinism(fixture_case):
     name, kind = fixture_case
-    strat_a, res_a = _run(name, kind, beta_neutral=True, dollar_neutral=True,
-                          transaction_costs=0.001, slippage=0.0005)
-    strat_b, res_b = _run(name, kind, beta_neutral=True, dollar_neutral=True,
-                          transaction_costs=0.001, slippage=0.0005)
+    strat_a, res_a = _run(
+        name, kind, beta_neutral=True, dollar_neutral=True, transaction_costs=0.001, slippage=0.0005
+    )
+    strat_b, res_b = _run(
+        name, kind, beta_neutral=True, dollar_neutral=True, transaction_costs=0.001, slippage=0.0005
+    )
     for frame in ("betas", "signals", "weights", "backtest"):
         a = getattr(res_a, frame).to_numpy(dtype=float)
         b = getattr(res_b, frame).to_numpy(dtype=float)
         assert np.array_equal(a, b, equal_nan=True), f"{name}: {frame} not deterministic"
     # report JSON also identical.
-    assert BABStrategy.report_to_json(strat_a.report(res_a)) == \
-        BABStrategy.report_to_json(strat_b.report(res_b))
+    assert BABStrategy.report_to_json(strat_a.report(res_a)) == BABStrategy.report_to_json(
+        strat_b.report(res_b)
+    )
 
 
 # --------------------------------------------------------------------------- #
@@ -269,9 +273,7 @@ def test_defect_fixtures_no_exception_finite_output(fixture):
     assert np.all(np.isfinite(res.backtest.to_numpy(dtype=float))), (
         f"{fixture}: non-finite backtest output"
     )
-    assert np.all(np.isfinite(res.weights.to_numpy(dtype=float))), (
-        f"{fixture}: non-finite weights"
-    )
+    assert np.all(np.isfinite(res.weights.to_numpy(dtype=float))), f"{fixture}: non-finite weights"
     # A report + tear sheet must never raise on defective input.
     assert isinstance(strat.report(res), dict)
     assert len(strat.tear_sheet(res)) > 0
@@ -279,7 +281,7 @@ def test_defect_fixtures_no_exception_finite_output(fixture):
 
 def test_all_nan_column_does_not_crash():
     """The all-NaN delisted column is dropped and the pipeline stays finite."""
-    strat, res = _run("all_nan_column.csv", "returns")
+    _strat, res = _run("all_nan_column.csv", "returns")
     assert np.all(np.isfinite(res.backtest.to_numpy(dtype=float)))
     # The delisted column must not appear as an all-NaN beta/weight column.
     assert "ALT" not in res.weights.columns

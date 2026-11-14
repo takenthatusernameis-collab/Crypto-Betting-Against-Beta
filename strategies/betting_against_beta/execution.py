@@ -432,9 +432,7 @@ def order_batches_from_weights(
                 for c in cols:
                     if c in adv_df.columns:
                         sub = adv_df[c].reindex(idx)
-                        adv_map[c] = {
-                            _date_key(k): v for k, v in sub.to_dict().items()
-                        }
+                        adv_map[c] = {_date_key(k): v for k, v in sub.to_dict().items()}
         except Exception:
             adv_map = {}
 

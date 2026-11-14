@@ -6,6 +6,7 @@ miss cluster, computes the handler chain that can reach the `except` line and
 the set of statements that can propagate an exception to it. Machine-checkable
 and reproducible.
 """
+
 import ast
 from pathlib import Path
 
@@ -73,7 +74,7 @@ for name, (fn, line) in clusters.items():
             handlers.append((h.lineno, et_name))
         dist = line - t.lineno
         info.append(
-            f"try@{t.lineno}(body {t.lineno+1}-{t.end_lineno}) "
+            f"try@{t.lineno}(body {t.lineno + 1}-{t.end_lineno}) "
             f"handlers={handlers} dist_to_miss={dist}"
         )
     print(f"\n{name} ({fn}:{line}):")

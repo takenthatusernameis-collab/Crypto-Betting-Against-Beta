@@ -6,6 +6,7 @@ Covers the end-to-end path with ``real_market_prices*.csv`` (no external data):
 - repeated ``--output`` writes byte-for-byte identical
 - ``--dry-run --data --from-prices`` → rc=0
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -28,7 +29,7 @@ REQUIRED_KEYS = ("final_cumulative", "periods", "benchmark", "universe")
 def _cli_price_argv(fixture, *, output=None, dry_run=False):
     argv = ["--data", fixture, "--from-prices", "--benchmark", "BTC"]
     if dry_run:
-        argv = ["--dry-run"] + argv
+        argv = ["--dry-run", *argv]
     if output is not None:
         argv += ["--output", str(output)]
     return argv

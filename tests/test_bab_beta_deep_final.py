@@ -1,3 +1,5 @@
+import contextlib
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -11,8 +13,10 @@ class TestBetaDeepFinal:
         class Bad:
             def __len__(self):
                 raise TypeError
+
             def __iter__(self):
                 raise RuntimeError
+
         rb = beta.rolling_beta(Bad(), Bad())
         assert rb is not None
 
@@ -23,6 +27,7 @@ class TestBetaDeepFinal:
     def test_calculate_beta_align_typeerror_path(self):
         class Weird:
             pass
+
         # Make concat fail
         out = beta.calculate_beta(Weird(), Weird())
         assert np.isnan(out)
@@ -32,7 +37,7 @@ class TestBetaDeepFinal:
         assert np.isnan(out)
 
     def test_calculate_beta_y_none(self):
-        out = beta.calculate_beta([], [1,2,3])  # empty gives issues
+        out = beta.calculate_beta([], [1, 2, 3])  # empty gives issues
         assert np.isnan(out)
 
     def test_calculate_beta_all_mask_finite_but_empty_after_mask(self):
@@ -69,16 +74,21 @@ class TestBetaDeepFinal:
         class BadBench:
             def __init__(self):
                 pass
+
         # Pass as df column? easier to make a df where conversion fails
-        df = pd.DataFrame({"BTC": [[1],[2],[3]] * 10, "ETH": [0.01]*30})  # weird objects
-        try:
+        df = pd.DataFrame({"BTC": [[1], [2], [3]] * 10, "ETH": [0.01] * 30})  # weird objects
+        with contextlib.suppress(Exception):
             beta.calculate_rolling_beta(df, "BTC", window=5, min_obs=3)
-        except Exception:
-            pass
 
     def test_calculate_rolling_beta_outer_except_fallback(self):
         idx = pd.date_range("2023-01-01", periods=15)
-        df = pd.DataFrame({"BTC": np.random.default_rng(42).normal(0,0.01,15), "ETH": np.random.default_rng(43).normal(0,0.01,15)}, index=idx)
+        df = pd.DataFrame(
+            {
+                "BTC": np.random.default_rng(42).normal(0, 0.01, 15),
+                "ETH": np.random.default_rng(43).normal(0, 0.01, 15),
+            },
+            index=idx,
+        )
         # monkey patch
         orig = beta.pd.DataFrame.rolling
         try:

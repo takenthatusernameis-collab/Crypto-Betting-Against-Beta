@@ -16,10 +16,13 @@ from strategies.betting_against_beta.data_loader import BABDataError, validate_r
 def test_coerce_numeric_percent_signs(tmp_path):
     """Percent strings like '1.5%' should be coerced to 0.015."""
     dates = pd.date_range("2023-01-01", periods=3)
-    df = pd.DataFrame({
-        "BTC": ["1.0%", "-0.5%", "2.0%"],
-        "ETH": ["0.0%", "0.5%", "-1.0%"],
-    }, index=dates)
+    df = pd.DataFrame(
+        {
+            "BTC": ["1.0%", "-0.5%", "2.0%"],
+            "ETH": ["0.0%", "0.5%", "-1.0%"],
+        },
+        index=dates,
+    )
     p = tmp_path / "pct.csv"
     df.to_csv(p)
     res = data_loader.load_returns_from_csv(p)
@@ -32,10 +35,13 @@ def test_coerce_numeric_percent_signs(tmp_path):
 def test_coerce_numeric_mixed_string_numbers(tmp_path):
     """Numeric strings like '0.02' should be coerced to floats."""
     dates = pd.date_range("2023-01-01", periods=3)
-    df = pd.DataFrame({
-        "BTC": ["0.01", "0.02", "0.03"],
-        "ETH": [0.0, -0.01, 0.02],
-    }, index=dates)
+    df = pd.DataFrame(
+        {
+            "BTC": ["0.01", "0.02", "0.03"],
+            "ETH": [0.0, -0.01, 0.02],
+        },
+        index=dates,
+    )
     p = tmp_path / "str.csv"
     df.to_csv(p)
     res = data_loader.load_returns_from_csv(p)
@@ -46,10 +52,13 @@ def test_coerce_numeric_mixed_string_numbers(tmp_path):
 def test_coerce_numeric_unparseable_raises(tmp_path):
     """Truly unparseable strings must raise BABDataError."""
     dates = pd.date_range("2023-01-01", periods=3)
-    df = pd.DataFrame({
-        "BTC": ["0.01", "not_a_number", "0.03"],
-        "ETH": [0.0, 0.01, 0.02],
-    }, index=dates)
+    df = pd.DataFrame(
+        {
+            "BTC": ["0.01", "not_a_number", "0.03"],
+            "ETH": [0.0, 0.01, 0.02],
+        },
+        index=dates,
+    )
     p = tmp_path / "bad.csv"
     df.to_csv(p)
     try:

@@ -14,9 +14,11 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from strategies.betting_against_beta.data_loader import _run_data_quality_campaign
-from strategies.betting_against_beta.data_loader import _max_consecutive_equal_finite
-from strategies.betting_against_beta.data_loader import _max_consecutive_equal_finite_frame
+from strategies.betting_against_beta.data_loader import (
+    _max_consecutive_equal_finite,
+    _max_consecutive_equal_finite_frame,
+    _run_data_quality_campaign,
+)
 
 
 def _max_consecutive_equal_finite_reference(arr):
@@ -43,7 +45,7 @@ def _max_consecutive_equal_finite_frame_reference(arr):
         return np.array([_max_consecutive_equal_finite_reference(arr)], dtype=np.int64)
     if arr.ndim != 2:
         return np.zeros(0, dtype=np.int64)
-    n, m = arr.shape
+    _n, m = arr.shape
     return np.array(
         [_max_consecutive_equal_finite_reference(arr[:, j]) for j in range(m)],
         dtype=np.int64,

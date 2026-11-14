@@ -5,6 +5,7 @@ against (Series, ndarray, non-finite cumulative tail, empty DataFrame-like
 length edge) at the CLI/strategy boundary via monkeypatch, plus BABDataError
 propagation from real-data load paths. No production changes.
 """
+
 from __future__ import annotations
 
 import json

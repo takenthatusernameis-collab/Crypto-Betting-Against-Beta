@@ -17,12 +17,13 @@ follow-up probe matrix on ``real_market_prices.csv`` and
 - Extreme --beta-window vs short data (window > length on both fixtures and a
   short 10-row slice) run without Traceback and yield finite JSON.
 """
+
 from __future__ import annotations
 
+import contextlib
 import io
 import json
 import math
-import contextlib
 from pathlib import Path
 
 import numpy as np
@@ -48,7 +49,7 @@ def _run_cli(argv):
             rc = main(argv)
         except SystemExit as exc:
             rc = int(exc.code) if isinstance(exc.code, int) else 1
-        except Exception as exc:  # noqa: BLE001 - surface as clean rc=1
+        except Exception as exc:
             err_buf.write(f"UNCAUGHT: {type(exc).__name__}: {exc}\n")
     return rc, out_buf.getvalue(), err_buf.getvalue()
 
@@ -84,15 +85,49 @@ class TestReturnsPathCostSlippageMatrixExpanded:
                 {"benchmark": "BTC", "slippage": 0.0005},
             ),
             (
-                ["--data", EXP_PRICES, "--benchmark", "BTC", "--transaction-costs", "0.001", "--slippage", "0.0005"],
+                [
+                    "--data",
+                    EXP_PRICES,
+                    "--benchmark",
+                    "BTC",
+                    "--transaction-costs",
+                    "0.001",
+                    "--slippage",
+                    "0.0005",
+                ],
                 {"benchmark": "BTC", "transaction_costs": 0.001, "slippage": 0.0005},
             ),
             (
-                ["--data", EXP_PRICES, "--benchmark", "BTC", "--transaction-costs", "0.002", "--slippage", "0.001", "--rebalance-freq", "weekly"],
-                {"benchmark": "BTC", "transaction_costs": 0.002, "slippage": 0.001, "rebalance_freq": "weekly"},
+                [
+                    "--data",
+                    EXP_PRICES,
+                    "--benchmark",
+                    "BTC",
+                    "--transaction-costs",
+                    "0.002",
+                    "--slippage",
+                    "0.001",
+                    "--rebalance-freq",
+                    "weekly",
+                ],
+                {
+                    "benchmark": "BTC",
+                    "transaction_costs": 0.002,
+                    "slippage": 0.001,
+                    "rebalance_freq": "weekly",
+                },
             ),
             (
-                ["--data", EXP_PRICES, "--benchmark", "BTC", "--transaction-costs", "0.005", "--rebalance-freq", "monthly"],
+                [
+                    "--data",
+                    EXP_PRICES,
+                    "--benchmark",
+                    "BTC",
+                    "--transaction-costs",
+                    "0.005",
+                    "--rebalance-freq",
+                    "monthly",
+                ],
                 {"benchmark": "BTC", "transaction_costs": 0.005, "rebalance_freq": "monthly"},
             ),
         ],
@@ -114,7 +149,7 @@ class TestReturnsPathCostSlippageMatrixExpanded:
             float(res.backtest["cumulative"].iloc[-1]),
             abs_tol=1e-12,
         )
-        assert payload["periods"] == int(len(res.backtest))
+        assert payload["periods"] == len(res.backtest)
         assert payload["benchmark"] == cfgkw.get("benchmark", "BTC")
         assert payload["universe"] == [str(c) for c in rdf.columns]
 
@@ -123,18 +158,36 @@ class TestSyntheticConfigOverridesParity:
     def test_synthetic_overrides_match_inprocess(self, tmp_path):
         out = tmp_path / "o.json"
         argv = [
-            "--synthetic", "--benchmark", "ETH", "--beta-window", "30",
-            "--long-quantile", "0.2", "--short-quantile", "0.2",
-            "--transaction-costs", "0.001", "--slippage", "0.0005",
-            "--rebalance-freq", "weekly", "--output", str(out),
+            "--synthetic",
+            "--benchmark",
+            "ETH",
+            "--beta-window",
+            "30",
+            "--long-quantile",
+            "0.2",
+            "--short-quantile",
+            "0.2",
+            "--transaction-costs",
+            "0.001",
+            "--slippage",
+            "0.0005",
+            "--rebalance-freq",
+            "weekly",
+            "--output",
+            str(out),
         ]
         rc, payload, raw, out_s, err_s = _write_output(argv, out)
         assert rc == 0, (rc, out_s + err_s)
         _assert_strict_finite(payload, raw)
         cfg = BABConfig(
-            universe=None, benchmark="ETH", beta_window=30,
-            long_quantile=0.2, short_quantile=0.2,
-            transaction_costs=0.001, slippage=0.0005, rebalance_freq="weekly",
+            universe=None,
+            benchmark="ETH",
+            beta_window=30,
+            long_quantile=0.2,
+            short_quantile=0.2,
+            transaction_costs=0.001,
+            slippage=0.0005,
+            rebalance_freq="weekly",
         )
         res = BABStrategy(cfg).run()
         assert math.isclose(
@@ -142,7 +195,7 @@ class TestSyntheticConfigOverridesParity:
             float(res.backtest["cumulative"].iloc[-1]),
             abs_tol=1e-12,
         )
-        assert payload["periods"] == int(len(res.backtest))
+        assert payload["periods"] == len(res.backtest)
         assert payload["benchmark"] == "ETH"
         assert payload["universe"] == list(res.config.universe)
 
@@ -205,7 +258,16 @@ class TestQuantileSumBoundaryInteractions:
     def test_quantile_sum_ge_one_runs_finite(self, tmp_path, extra_argv):
         out = tmp_path / "o.json"
         rc, payload, raw, out_s, err_s = _write_output(
-            ["--data", EXP_PRICES, "--from-prices", "--benchmark", "BTC", *extra_argv, "--output", str(out)],
+            [
+                "--data",
+                EXP_PRICES,
+                "--from-prices",
+                "--benchmark",
+                "BTC",
+                *extra_argv,
+                "--output",
+                str(out),
+            ],
             out,
         )
         assert rc == 0, (rc, out_s + err_s)
@@ -221,9 +283,7 @@ class TestQuantileSumBoundaryInteractions:
         ],
     )
     def test_quantile_boundary_excluded_clean_config_error(self, tmp_path, capsys, argv, needle):
-        rc = main(
-            ["--data", EXP_PRICES, "--from-prices", "--benchmark", "BTC", *argv]
-        )
+        rc = main(["--data", EXP_PRICES, "--from-prices", "--benchmark", "BTC", *argv])
         captured = capsys.readouterr()
         combined = captured.out + captured.err
         assert rc == 1, (rc, combined)
@@ -243,7 +303,8 @@ class TestOutputOverwriteSemantics:
         _assert_strict_finite(payload1, raw1)
 
         rc2, payload2, raw2, _, _ = _write_output(
-            ["--data", EXP_PRICES, "--from-prices", "--benchmark", "BTC", "--beta-window", "30"], out
+            ["--data", EXP_PRICES, "--from-prices", "--benchmark", "BTC", "--beta-window", "30"],
+            out,
         )
         assert rc2 == 0, (rc2, raw2)
         assert payload2 is not None
@@ -262,8 +323,17 @@ class TestExtremeBetaWindowVsShortData:
     )
     def test_extreme_window_vs_long_fixture(self, tmp_path, data, extra_argv):
         out = tmp_path / "o.json"
-        rc, payload, raw, out_s, err_s = _write_output(
-            ["--data", data, "--from-prices", "--benchmark", "BTC", *extra_argv, "--output", str(out)],
+        rc, _payload, raw, out_s, err_s = _write_output(
+            [
+                "--data",
+                data,
+                "--from-prices",
+                "--benchmark",
+                "BTC",
+                *extra_argv,
+                "--output",
+                str(out),
+            ],
             out,
         )
         assert "Traceback" not in (out_s + err_s), (rc, out_s + err_s)
@@ -275,8 +345,18 @@ class TestExtremeBetaWindowVsShortData:
         path = tmp_path / "short.csv"
         df.to_csv(path, index=False)
         out = tmp_path / "o.json"
-        rc, payload, raw, out_s, err_s = _write_output(
-            ["--data", str(path), "--from-prices", "--benchmark", "BTC", "--beta-window", "500", "--output", str(out)],
+        rc, _payload, raw, out_s, err_s = _write_output(
+            [
+                "--data",
+                str(path),
+                "--from-prices",
+                "--benchmark",
+                "BTC",
+                "--beta-window",
+                "500",
+                "--output",
+                str(out),
+            ],
             out,
         )
         assert "Traceback" not in (out_s + err_s), (rc, out_s + err_s)

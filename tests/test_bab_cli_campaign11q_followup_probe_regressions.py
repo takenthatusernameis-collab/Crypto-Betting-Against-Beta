@@ -35,7 +35,7 @@ EXP = "tests/fixtures/real_market_prices_expanded.csv"
 def _run(args, cwd=None):
     env = {**os.environ, "PYTHONPATH": os.getcwd()}
     return subprocess.run(
-        [sys.executable, "-m", "strategies.betting_against_beta.cli"] + args,
+        [sys.executable, "-m", "strategies.betting_against_beta.cli", *args],
         capture_output=True,
         text=True,
         cwd=cwd or os.getcwd(),
@@ -61,11 +61,23 @@ class TestFromPricesParity:
     )
     def test_from_prices_output_json_matches_inprocess(self, tmp_path, fixture, tc, sl, rf):
         out = tmp_path / "out.json"
-        r = _run([
-            "--data", fixture, "--from-prices", "--benchmark", "BTC",
-            "--transaction-costs", str(tc), "--slippage", str(sl),
-            "--rebalance-freq", rf, "--output", str(out),
-        ])
+        r = _run(
+            [
+                "--data",
+                fixture,
+                "--from-prices",
+                "--benchmark",
+                "BTC",
+                "--transaction-costs",
+                str(tc),
+                "--slippage",
+                str(sl),
+                "--rebalance-freq",
+                rf,
+                "--output",
+                str(out),
+            ]
+        )
         _assert_no_traceback(r)
         assert r.returncode == 0, r.stdout + r.stderr
         assert out.exists()
@@ -82,7 +94,7 @@ class TestFromPricesParity:
         ).run(returns_df=df)
         exp_final = float(res.backtest["cumulative"].iloc[-1])
         assert payload["final_cumulative"] == exp_final
-        assert payload["periods"] == int(len(res.backtest))
+        assert payload["periods"] == len(res.backtest)
         assert payload["benchmark"] == "BTC"
         # CLI reports resolved/config universe; result.config holds resolved
         # universe used by the run (may be a subset of loaded columns depending
@@ -107,7 +119,7 @@ class TestMalformedDryRunNoTraceback:
     def test_invalid_temp_inputs_clean(self, tmp_path, mode, name, builder, expect_rc):
         p = tmp_path / f"{name}.csv"
         p.write_text(builder())
-        r = _run(["--dry-run", "--data", str(p), "--benchmark", "BTC"] + mode)
+        r = _run(["--dry-run", "--data", str(p), "--benchmark", "BTC", *mode])
         _assert_no_traceback(r)
         assert r.returncode == expect_rc, f"{name} {mode}: {r.stdout}\n{r.stderr}"
         blob = r.stdout + r.stderr
@@ -119,7 +131,7 @@ class TestMalformedDryRunNoTraceback:
         base = pd.concat([base, base.iloc[[0]]], ignore_index=True)
         p = tmp_path / "dup_index.csv"
         base.to_csv(p, index=False)
-        r = _run(["--dry-run", "--data", str(p), "--benchmark", "BTC"] + mode)
+        r = _run(["--dry-run", "--data", str(p), "--benchmark", "BTC", *mode])
         _assert_no_traceback(r)
         assert r.returncode in (0, 1)
         if r.returncode == 1:
@@ -129,7 +141,7 @@ class TestMalformedDryRunNoTraceback:
     def test_duplicate_columns_loader_contract_clean(self, tmp_path, mode):
         p = tmp_path / "dup_cols.csv"
         p.write_text("date,BTC,BTC\n2024-01-01,1,2\n2024-01-02,3,4\n")
-        r = _run(["--dry-run", "--data", str(p), "--benchmark", "BTC"] + mode)
+        r = _run(["--dry-run", "--data", str(p), "--benchmark", "BTC", *mode])
         _assert_no_traceback(r)
         assert r.returncode in (0, 1)
 
@@ -140,7 +152,7 @@ class TestMalformedDryRunNoTraceback:
         base.loc[1, "ETH"] = float("inf")
         p = tmp_path / "mixed.csv"
         base.to_csv(p, index=False)
-        r = _run(["--dry-run", "--data", str(p), "--benchmark", "BTC"] + mode)
+        r = _run(["--dry-run", "--data", str(p), "--benchmark", "BTC", *mode])
         _assert_no_traceback(r)
         assert r.returncode in (0, 1)
         if r.returncode == 1:
@@ -149,7 +161,7 @@ class TestMalformedDryRunNoTraceback:
     @pytest.mark.parametrize("fixture", [REAL, EXP])
     @pytest.mark.parametrize("mode", [[], ["--from-prices"]])
     def test_real_fixtures_dry_run_valid(self, fixture, mode):
-        r = _run(["--dry-run", "--data", fixture, "--benchmark", "BTC"] + mode)
+        r = _run(["--dry-run", "--data", fixture, "--benchmark", "BTC", *mode])
         _assert_no_traceback(r)
         assert r.returncode == 0, r.stdout + r.stderr
         assert "(valid" in r.stdout
@@ -157,7 +169,9 @@ class TestMalformedDryRunNoTraceback:
 
 class TestOutputEdgeCases:
     def test_output_to_directory_fails_cleanly(self):
-        r = _run(["--data", REAL, "--from-prices", "--benchmark", "BTC", "--output", "tests/fixtures"])
+        r = _run(
+            ["--data", REAL, "--from-prices", "--benchmark", "BTC", "--output", "tests/fixtures"]
+        )
         _assert_no_traceback(r)
         assert r.returncode == 1
         assert "directory" in (r.stdout + r.stderr).lower()
@@ -174,10 +188,17 @@ class TestOutputEdgeCases:
 
     def test_dry_run_invalid_data_never_writes_output(self, tmp_path):
         out = tmp_path / "should_not_write.json"
-        r = _run([
-            "--dry-run", "--data", "/tmp/no_such_bab_file_campaign11q.csv",
-            "--benchmark", "BTC", "--output", str(out),
-        ])
+        r = _run(
+            [
+                "--dry-run",
+                "--data",
+                "/tmp/no_such_bab_file_campaign11q.csv",
+                "--benchmark",
+                "BTC",
+                "--output",
+                str(out),
+            ]
+        )
         _assert_no_traceback(r)
         assert r.returncode == 1
         assert not out.exists(), "dry-run with invalid data must never write output"
@@ -185,10 +206,18 @@ class TestOutputEdgeCases:
 
     def test_dry_run_valid_deep_output_never_writes(self, tmp_path):
         out = tmp_path / "x" / "y" / "z" / "out.json"
-        r = _run([
-            "--dry-run", "--data", REAL, "--from-prices", "--benchmark", "BTC",
-            "--output", str(out),
-        ])
+        r = _run(
+            [
+                "--dry-run",
+                "--data",
+                REAL,
+                "--from-prices",
+                "--benchmark",
+                "BTC",
+                "--output",
+                str(out),
+            ]
+        )
         _assert_no_traceback(r)
         assert r.returncode == 0, r.stdout + r.stderr
         assert not out.exists(), "dry-run must validate but never write output"
@@ -201,13 +230,36 @@ class TestDryRunSemanticAuditCharacterization:
     def test_quantile_sum_ge_one_dry_run_valid_but_run_still_succeeds_contract(self):
         # Probed 2026-11-10: dry-run rc=0 (reports config) and real run rc=0 finite
         # for 0.6/0.6 on this fixture; lock exercised behavior (no over-strict reject).
-        r = _run(["--dry-run", "--data", REAL, "--from-prices", "--benchmark", "BTC",
-                  "--long-quantile", "0.6", "--short-quantile", "0.6"])
+        r = _run(
+            [
+                "--dry-run",
+                "--data",
+                REAL,
+                "--from-prices",
+                "--benchmark",
+                "BTC",
+                "--long-quantile",
+                "0.6",
+                "--short-quantile",
+                "0.6",
+            ]
+        )
         _assert_no_traceback(r)
         assert r.returncode == 0
         assert "(valid" in r.stdout
-        r2 = _run(["--data", REAL, "--from-prices", "--benchmark", "BTC",
-                   "--long-quantile", "0.6", "--short-quantile", "0.6"])
+        r2 = _run(
+            [
+                "--data",
+                REAL,
+                "--from-prices",
+                "--benchmark",
+                "BTC",
+                "--long-quantile",
+                "0.6",
+                "--short-quantile",
+                "0.6",
+            ]
+        )
         _assert_no_traceback(r2)
         assert r2.returncode == 0
         assert "Final cumulative return" in r2.stdout
@@ -215,23 +267,41 @@ class TestDryRunSemanticAuditCharacterization:
     def test_universe_no_overlap_dry_run_loads_but_run_rejects(self):
         # Probed: dry-run validates data loading (rc=0, valid) but real run fails
         # with clean overlap error rc=1. Characterizes current semantic gap.
-        r = _run(["--dry-run", "--data", REAL, "--from-prices", "--benchmark", "BTC",
-                  "--universe", "ZZZ,YYY"])
+        r = _run(
+            [
+                "--dry-run",
+                "--data",
+                REAL,
+                "--from-prices",
+                "--benchmark",
+                "BTC",
+                "--universe",
+                "ZZZ,YYY",
+            ]
+        )
         _assert_no_traceback(r)
         assert r.returncode == 0
         assert "(valid" in r.stdout
-        r2 = _run(["--data", REAL, "--from-prices", "--benchmark", "BTC",
-                   "--universe", "ZZZ,YYY"])
+        r2 = _run(["--data", REAL, "--from-prices", "--benchmark", "BTC", "--universe", "ZZZ,YYY"])
         _assert_no_traceback(r2)
         assert r2.returncode == 1
         assert "overlap" in (r2.stdout + r2.stderr).lower()
 
     def test_universe_all_empty_tokens_dry_run_loads_but_run_rejects(self):
-        r = _run(["--dry-run", "--data", REAL, "--from-prices", "--benchmark", "BTC",
-                  "--universe", ",,,"])
+        r = _run(
+            [
+                "--dry-run",
+                "--data",
+                REAL,
+                "--from-prices",
+                "--benchmark",
+                "BTC",
+                "--universe",
+                ",,,",
+            ]
+        )
         _assert_no_traceback(r)
         assert r.returncode == 0
-        r2 = _run(["--data", REAL, "--from-prices", "--benchmark", "BTC",
-                   "--universe", ",,,"])
+        r2 = _run(["--data", REAL, "--from-prices", "--benchmark", "BTC", "--universe", ",,,"])
         _assert_no_traceback(r2)
         assert r2.returncode == 1

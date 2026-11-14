@@ -57,7 +57,6 @@ def test_calculate_beta_empty_after():
 
 
 def test_calculate_beta_fast_linalg_error():
-    from strategies.betting_against_beta import beta
     import numpy as np
 
     # try to trigger
@@ -68,11 +67,11 @@ def test_calculate_beta_fast_linalg_error():
 
 
 def test_calculate_beta_fast_outer_except():
-    from strategies.betting_against_beta import beta
 
     class Bad:
         def __array__(self, *args, **kwargs):
             raise AttributeError
+
     res = beta.calculate_beta_fast(Bad(), Bad())
     assert np.isnan(res)
 
@@ -106,7 +105,9 @@ def test_calculate_rolling_beta_paths():
     with pytest.raises(BABDataError):
         calculate_rolling_beta(df, "BTC")
 
-    df2 = pd.DataFrame({"BTC": [0.01, 0.02, 0.03, 0.04, 0.05], "ETH": [0.02, np.nan, 0.01, 0.03, np.nan]})
+    df2 = pd.DataFrame(
+        {"BTC": [0.01, 0.02, 0.03, 0.04, 0.05], "ETH": [0.02, np.nan, 0.01, 0.03, np.nan]}
+    )
     res = calculate_rolling_beta(df2, "BTC", window=3, min_obs=2)
     assert "ETH" in res.columns
 

@@ -7,7 +7,8 @@ commits. Used by the Kilo agent loop controller to decide whether a
 checkpoint should be credited as verified progress.
 
 Usage:
-    python3 scripts/controller_progress.py --base-sha <sha> --head-sha <sha> [--verified-remote-sha <sha>]
+    python3 scripts/controller_progress.py --base-sha <sha> --head-sha <sha>
+    [--verified-remote-sha <sha>]
 Exit code 0: meaningful progress detected (and remote SHA matches when provided)
 Exit code 1: no meaningful progress, or remote SHA mismatch
 """

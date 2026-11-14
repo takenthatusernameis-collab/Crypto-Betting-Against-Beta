@@ -8,6 +8,7 @@ _promote_datetime_column (candidate column + unnamed + last resort).
 
 from __future__ import annotations
 
+import contextlib
 import datetime
 
 import numpy as np
@@ -22,7 +23,9 @@ class TestNormalizeIndexDeepBranches:
     """Hit every numeric-epoch magnitude branch and non-numeric fallback."""
 
     def _df(self, values, dtype="int64"):
-        return pd.DataFrame({"BTC": np.arange(len(values), dtype=float) * 0.01}, index=pd.Index(values, dtype=dtype))
+        return pd.DataFrame(
+            {"BTC": np.arange(len(values), dtype=float) * 0.01}, index=pd.Index(values, dtype=dtype)
+        )
 
     def test_ns_path_direct_success(self):
         out = dl._normalize_index(self._df([1700000000000000000, 1700000001000000000]))
@@ -30,7 +33,9 @@ class TestNormalizeIndexDeepBranches:
 
     def test_ns_path_fallback_to_us(self):
         # Force ns direct to fail, us to succeed
-        out = dl._normalize_index(self._df([1700000000000000000, 1700000001000000000], dtype="object"))
+        out = dl._normalize_index(
+            self._df([1700000000000000000, 1700000001000000000], dtype="object")
+        )
         assert isinstance(out.index, pd.DatetimeIndex)
 
     def test_us_path_direct_success(self):
@@ -38,7 +43,9 @@ class TestNormalizeIndexDeepBranches:
         assert isinstance(out.index, pd.DatetimeIndex)
 
     def test_us_path_fallback_to_coercer(self):
-        out = dl._normalize_index(self._df(["1700000000000000", "1700000001000000"], dtype="object"))
+        out = dl._normalize_index(
+            self._df(["1700000000000000", "1700000001000000"], dtype="object")
+        )
         assert isinstance(out.index, pd.DatetimeIndex)
 
     def test_ms_path_direct_success(self):
@@ -96,7 +103,9 @@ class TestNormalizeIndexDeepBranches:
         assert out.index.tz is None
 
     def test_sort_index_descending(self):
-        df = pd.DataFrame({"BTC": [0.02, 0.01]}, index=pd.DatetimeIndex(["2020-01-02", "2020-01-01"]))
+        df = pd.DataFrame(
+            {"BTC": [0.02, 0.01]}, index=pd.DatetimeIndex(["2020-01-02", "2020-01-01"])
+        )
         out = dl._normalize_index(df)
         assert out.index.is_monotonic_increasing
 
@@ -204,10 +213,8 @@ class TestCoerceToDatetimeScalarDeep:
 
     def test_string_epoch_above_ns_boundary(self):
         # Very large epoch ns string may overflow; just verify it's handled
-        try:
+        with contextlib.suppress(Exception):
             dl._coerce_to_datetime_scalar("17000000000000000000")
-        except Exception:
-            pass
 
     def test_string_epoch_us_boundary(self):
         assert not pd.isna(dl._coerce_to_datetime_scalar("170000000000000000"))
@@ -217,40 +224,48 @@ class TestDetectAndNormalizeExchangeFormatDeep:
     """Hit long-format pivot, OHLCV wide, date-column promotion paths."""
 
     def test_long_format_pivot_success(self):
-        df = pd.DataFrame({
-            "symbol": ["BTC", "BTC", "ETH", "ETH"],
-            "timestamp": [1600000000000, 1600000060000, 1600000000000, 1600000060000],
-            "close": [100.0, 101.0, 200.0, 201.0],
-        })
+        df = pd.DataFrame(
+            {
+                "symbol": ["BTC", "BTC", "ETH", "ETH"],
+                "timestamp": [1600000000000, 1600000060000, 1600000000000, 1600000060000],
+                "close": [100.0, 101.0, 200.0, 201.0],
+            }
+        )
         out = dl._detect_and_normalize_exchange_format(df)
         assert isinstance(out.index, pd.DatetimeIndex)
         assert "BTC" in out.columns
         assert "ETH" in out.columns
 
     def test_long_format_pivot_exception_path(self):
-        df = pd.DataFrame({
-            "symbol": ["BTC", "BTC"],
-            "timestamp": ["bad", "also-bad"],
-            "close": [100.0, 101.0],
-        })
+        df = pd.DataFrame(
+            {
+                "symbol": ["BTC", "BTC"],
+                "timestamp": ["bad", "also-bad"],
+                "close": [100.0, 101.0],
+            }
+        )
         out = dl._detect_and_normalize_exchange_format(df)
         # Should not crash; falls through to other handling
         assert isinstance(out, pd.DataFrame)
 
     def test_ohlcv_wide_adj_close(self):
-        df = pd.DataFrame({
-            "date": ["2020-01-01", "2020-01-02"],
-            "adj close": [100.0, 101.0],
-            "volume": [10.0, 11.0],
-        })
+        df = pd.DataFrame(
+            {
+                "date": ["2020-01-01", "2020-01-02"],
+                "adj close": [100.0, 101.0],
+                "volume": [10.0, 11.0],
+            }
+        )
         out = dl._detect_and_normalize_exchange_format(df)
         assert isinstance(out.index, pd.DatetimeIndex)
 
     def test_ohlcv_wide_close(self):
-        df = pd.DataFrame({
-            "date": ["2020-01-01", "2020-01-02"],
-            "close": [100.0, 101.0],
-        })
+        df = pd.DataFrame(
+            {
+                "date": ["2020-01-01", "2020-01-02"],
+                "close": [100.0, 101.0],
+            }
+        )
         out = dl._detect_and_normalize_exchange_format(df)
         assert isinstance(out.index, pd.DatetimeIndex)
 
@@ -293,7 +308,9 @@ class TestPromoteDatetimeColumnDeep:
         assert out.index.tz is None
 
     def test_last_resort_object_column(self):
-        df = pd.DataFrame({"dt": ["2020-01-01", "2020-01-02"], "BTC": [0.01, 0.02], "ETH": [0.03, 0.04]})
+        df = pd.DataFrame(
+            {"dt": ["2020-01-01", "2020-01-02"], "BTC": [0.01, 0.02], "ETH": [0.03, 0.04]}
+        )
         out = dl._promote_datetime_column(df)
         assert isinstance(out.index, pd.DatetimeIndex)
 
