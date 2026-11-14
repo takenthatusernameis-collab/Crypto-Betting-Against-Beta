@@ -107,7 +107,7 @@ class TestDataLoaderCampaign:
     def test_coerce_numeric_object_mixed(self):
         df = pd.DataFrame({"BTC": [0.01, "0.02"]})
         out = _coerce_numeric(df)
-        assert out.dtypes.iloc[0] is float
+        assert out.dtypes.iloc[0] == np.float64
 
     def test_validate_returns_none(self):
         with pytest.raises(BABDataError):
