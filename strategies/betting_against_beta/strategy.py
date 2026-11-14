@@ -138,6 +138,7 @@ class BABResult:
     signals: object  # pd.DataFrame of long/short signals
     weights: object  # pd.DataFrame of portfolio weights
     backtest: object  # pd.DataFrame of backtest results
+    kill_switch: object = None  # KillSwitchEvent from risk.py
 
 
 class BABStrategy:
@@ -473,17 +474,296 @@ class BABStrategy:
             max_participation=getattr(cfg, "max_participation", 0.10),
         )
 
+        # R4-B: Apply drawdown-limit kill switch
+        # Extract cumulative returns from backtest to monitor drawdown
+        from .risk import apply_kill_switch, KillSwitchEvent
+
+        cumulative = None
+        if isinstance(backtest, pd.DataFrame) and not backtest.empty:
+            if "cumulative" in backtest.columns:
+                cumulative = backtest["cumulative"]
+
+        kill_switch_event = KillSwitchEvent(triggered=False, date=None, observed_drawdown=0.0, limit=None)
+        final_weights = weights
+        final_backtest = backtest
+
+        mdd_limit = getattr(cfg, "max_drawdown_limit", None)
+        if mdd_limit is not None and cumulative is not None:
+            killed_weights, kill_switch_event = apply_kill_switch(weights, cumulative, mdd_limit)
+            if kill_switch_event.triggered:
+                # Re-run backtest with killed weights (flattened from breach date)
+                final_weights = killed_weights
+                final_backtest = run_backtest(
+                    returns,
+                    killed_weights,
+                    transaction_costs=cfg.transaction_costs,
+                    slippage=getattr(cfg, "slippage", 0.0),
+                    cost_model=cost_model,
+                    prices_df=prices_df,
+                    adv_usd=adv_usd,
+                    partial_fill=partial_fill,
+                    max_participation=getattr(cfg, "max_participation", 0.10),
+                )
+
         result = BABResult(
             config=cfg,
             returns=returns,
             betas=betas,
             signals=signals,
-            weights=weights,
-            backtest=backtest,
+            weights=final_weights,
+            backtest=final_backtest,
+            kill_switch=kill_switch_event,
         )
         # Cache so report()/tear_sheet() can be called without re-running.
         self._last_result = result
         return result
+
+    def dry_run(self, returns_df: object | None = None) -> dict:
+        """Validate inputs and return a portfolio-risk summary without executing trades.
+
+        Returns a strict-JSON-safe dict containing:
+        - resolved config (benchmark, universe, beta_window, quantiles, costs, etc.)
+        - tradable universe (effective assets after intersection with data)
+        - beta window/quantiles
+        - portfolio-risk summary: gross exposure, net exposure, gross leverage,
+          max single-position weight, estimated turnover/cost drag
+        - data-health: rows, columns, NaN counts, benchmark presence
+
+        Raises ``BABDataError``/``BABConfigError`` on invalid inputs (no silent fallback).
+        """
+        import math
+        import numpy as _np
+        import pandas as pd
+
+        def _safe_float(value, default=0.0):
+            try:
+                if value is None:
+                    return float(default)
+                f = float(value)
+                return f if _np.isfinite(f) else float(default)
+            except (TypeError, ValueError):
+                return float(default)
+
+        cfg = self.config
+        returns = self._load_returns(returns_df)
+
+        # Resolve effective universe (same logic as run())
+        effective_universe = cfg.resolved_universe(list(returns.columns))
+        if not effective_universe:
+            raise ValueError(
+                "No tradable assets remain after intersecting the configured "
+                f"universe {cfg.universe} with data columns {list(returns.columns)}"
+            )
+
+        # Subset returns to effective universe + benchmark
+        subset_cols = []
+        bench = getattr(cfg, "benchmark", None)
+        if bench is not None and bench in returns.columns and bench not in subset_cols:
+            subset_cols.append(bench)
+        for a in effective_universe:
+            if a in returns.columns and a not in subset_cols:
+                subset_cols.append(a)
+        if subset_cols:
+            returns = returns.loc[:, [c for c in subset_cols if c in returns.columns]].copy()
+
+        # Compute betas
+        betas = calculate_rolling_beta(
+            returns,
+            cfg.benchmark,
+            window=cfg.beta_window,
+            min_obs=min(getattr(cfg, 'min_observations', cfg.beta_window), cfg.beta_window),
+        )
+
+        # Generate signals
+        signals = generate_bab_signals(
+            betas, long_quantile=cfg.long_quantile, short_quantile=cfg.short_quantile
+        )
+
+        # Apply rebalance
+        rebalance_freq = getattr(cfg, "rebalance_freq", "daily") or "daily"
+        rebalance_freq = str(rebalance_freq).lower()
+        if rebalance_freq != "daily" and len(signals) > 0:
+            signals = _apply_rebalance(signals, rebalance_freq)
+
+        # Construct portfolio (weights)
+        _max_turnover = getattr(cfg, "max_turnover", None) or getattr(cfg, "max_total_turnover", None)
+        _enforce_risk = bool(getattr(cfg, "enforce_risk_checks", False) or getattr(cfg, "risk_checks", False))
+        weights = construct_portfolio(
+            signals,
+            dollar_neutral=cfg.dollar_neutral,
+            max_position_size=getattr(cfg, "max_position_size", None),
+            max_turnover=_max_turnover,
+            enforce_risk_checks=_enforce_risk,
+            gross_exposure_limit=getattr(cfg, "gross_exposure_limit", None),
+            net_exposure_limit=getattr(cfg, "net_exposure_limit", None),
+            max_single_weight=getattr(cfg, "max_single_weight", None),
+        )
+
+        # Apply shorting constraints if configured
+        try:
+            sc = getattr(cfg, "shorting_constraints", None)
+            if sc is not None:
+                if not isinstance(sc, (ShortingConstraints, dict)):
+                    raise BABDataError(
+                        f"shorting_constraints must be a ShortingConstraints or dict, "
+                        f"got {type(sc).__name__}"
+                    )
+                weights = shorting.apply_shorting_constraints(weights, sc)
+        except BABDataError:
+            raise
+        except (TypeError, ValueError, AttributeError) as e:
+            raise BABDataError(f"shorting_constraints failed: {e}") from e
+
+        # Optional dynamic position sizing
+        try:
+            ps = getattr(cfg, "position_sizer", None)
+            if ps is not None:
+                if isinstance(ps, dict):
+                    ps = _normalize_position_sizer(ps)
+                if not isinstance(ps, (KellySizer, VolatilityTargetSizer, RiskParitySizer, EqualWeightSizer, str)):
+                    raise BABDataError(
+                        f"position_sizer must be a sizer or string shorthand, "
+                        f"got {type(ps).__name__}"
+                    )
+                weights = sizing.apply_position_sizing(signals, returns=returns, betas=betas, sizer=ps)
+        except BABDataError:
+            raise
+        except (TypeError, ValueError, AttributeError) as e:
+            raise BABDataError(f"position_sizer failed: {e}") from e
+
+        # Regime filter
+        regime_flag = getattr(cfg, "regime_filter", False)
+        if regime_flag:
+            from . import regime as _regime
+            scale = _regime.regime_scale_scalar(returns, cfg)
+            if scale is not None and not scale.empty:
+                aligned = scale.reindex(index=weights.index).fillna(1.0)
+                weights = weights.mul(aligned, axis=0)
+
+        # Beta-neutral enforcement
+        beta_neutral_enabled = bool(getattr(cfg, "beta_neutral", False)) or bool(
+            getattr(cfg, "beta_neutral_enforcement", False)
+        )
+        if beta_neutral_enabled:
+            from . import portfolio as _portfolio
+            target_beta = getattr(cfg, "beta_target", 0.0)
+            tol = getattr(cfg, "beta_tolerance", getattr(cfg, "max_beta_drift", 1e-4))
+            max_drift = getattr(cfg, "max_beta_drift", tol)
+            te_tol = getattr(cfg, "tracking_error_tolerance", None) or getattr(cfg, "tracking_error_limit", None)
+            enable_te = bool(getattr(cfg, "enable_tracking_error_monitoring", False)) or te_tol is not None
+            correction = bool(getattr(cfg, "beta_neutral_correction", True))
+            benchmark_ret = returns[cfg.benchmark] if cfg.benchmark in returns.columns else None
+            weights = _portfolio.enforce_beta_neutrality(
+                weights,
+                betas,
+                target_beta=target_beta,
+                tolerance=tol,
+                max_drift=max_drift,
+                returns=returns,
+                benchmark_returns=benchmark_ret,
+                tracking_error_tolerance=te_tol,
+                tracking_error_limit=te_tol,
+                enable_tracking_error_monitoring=enable_te,
+                correction=correction,
+            )
+
+        # Finite guard
+        try:
+            wa = weights.to_numpy(dtype=float)
+            if not _np.isfinite(wa).all():
+                if not wa.flags.writeable:
+                    wa = wa.copy()
+                wa[~_np.isfinite(wa)] = 0.0
+                weights.iloc[:] = wa
+        except Exception as exc:
+            try:
+                weights = weights.replace([_np.inf, -_np.inf], 0.0).fillna(0.0)
+            except Exception as exc2:
+                raise BABDataError(
+                    f"weight finiteness cleanup failed: {exc2} (outer: {exc})"
+                ) from exc2
+
+        # ---- Portfolio-risk summary ----
+        # Gross exposure: sum of absolute weights per period
+        gross_exposure = weights.abs().sum(axis=1)
+        # Net exposure: sum of weights per period (should be ~0 for dollar-neutral)
+        net_exposure = weights.sum(axis=1)
+        # Gross leverage: same as gross exposure for this strategy
+        gross_leverage = gross_exposure
+        # Max single-position weight per period
+        max_single_weight = weights.abs().max(axis=1)
+        # Estimated turnover: sum of absolute weight changes per period
+        weight_changes = weights.diff().abs().sum(axis=1)
+        # First period turnover is the full weight (from zero)
+        if len(weight_changes) > 0:
+            weight_changes.iloc[0] = weights.iloc[0].abs().sum()
+        avg_turnover = _safe_float(weight_changes.mean())
+        max_turnover_est = _safe_float(weight_changes.max())
+        # Estimated cost drag: avg_turnover * (transaction_costs + slippage)
+        cost_drag_estimate = avg_turnover * (_safe_float(cfg.transaction_costs) + _safe_float(getattr(cfg, "slippage", 0.0)))
+
+        # Data-health
+        n_rows = int(len(returns))
+        n_cols = int(len(returns.columns))
+        nan_counts = {str(k): int(v) for k, v in returns.isna().sum().items()}
+        total_nans = int(returns.isna().sum().sum())
+        benchmark_present = bool(bench is not None and bench in returns.columns)
+
+        # Build strict-JSON-safe output
+        output = {
+            "config": {
+                "benchmark": str(bench) if bench else None,
+                "universe": [str(u) for u in effective_universe],
+                "beta_window": int(cfg.beta_window),
+                "min_observations": int(getattr(cfg, "min_observations", cfg.beta_window)),
+                "long_quantile": _safe_float(cfg.long_quantile),
+                "short_quantile": _safe_float(cfg.short_quantile),
+                "dollar_neutral": bool(cfg.dollar_neutral),
+                "rebalance_freq": str(rebalance_freq),
+                "transaction_costs": _safe_float(cfg.transaction_costs),
+                "slippage": _safe_float(getattr(cfg, "slippage", 0.0)),
+            },
+            "tradable_universe": [str(u) for u in effective_universe],
+            "beta_window": int(cfg.beta_window),
+            "long_quantile": _safe_float(cfg.long_quantile),
+            "short_quantile": _safe_float(cfg.short_quantile),
+            "portfolio_risk": {
+                "gross_exposure": {
+                    "mean": _safe_float(gross_exposure.mean()),
+                    "max": _safe_float(gross_exposure.max()),
+                    "min": _safe_float(gross_exposure.min()),
+                },
+                "net_exposure": {
+                    "mean": _safe_float(net_exposure.mean()),
+                    "max": _safe_float(net_exposure.max()),
+                    "min": _safe_float(net_exposure.min()),
+                },
+                "gross_leverage": {
+                    "mean": _safe_float(gross_leverage.mean()),
+                    "max": _safe_float(gross_leverage.max()),
+                    "min": _safe_float(gross_leverage.min()),
+                },
+                "max_single_weight": {
+                    "mean": _safe_float(max_single_weight.mean()),
+                    "max": _safe_float(max_single_weight.max()),
+                    "min": _safe_float(max_single_weight.min()),
+                },
+                "estimated_turnover": {
+                    "mean": avg_turnover,
+                    "max": max_turnover_est,
+                },
+                "estimated_cost_drag": _safe_float(cost_drag_estimate),
+            },
+            "data_health": {
+                "rows": n_rows,
+                "columns": n_cols,
+                "nan_counts": nan_counts,
+                "total_nans": total_nans,
+                "benchmark_present": benchmark_present,
+                "benchmark": str(bench) if bench else None,
+            },
+        }
+        return output
 
     def report(self, result: "BABResult | None" = None) -> dict:
         """Return a structured performance report for the last (or given) run.
@@ -568,6 +848,14 @@ class BABStrategy:
             rebalances = 0
 
         cfg = getattr(res, "config", None)
+        # R4-B: Include kill_switch event if present
+        kill_switch = getattr(res, "kill_switch", None)
+        kill_switch_dict = None
+        if kill_switch is not None:
+            try:
+                kill_switch_dict = kill_switch.to_dict()
+            except Exception:
+                kill_switch_dict = None
         return {
             "config": {
                 "universe": list(getattr(cfg, "universe", []) or []),
@@ -583,6 +871,7 @@ class BABStrategy:
             "metrics": sanitized_summary,
             "attribution": attribution,
             "attribution_totals": sanitized_totals,
+            "kill_switch": kill_switch_dict,
         }
 
     def tear_sheet(self, result: "BABResult | None" = None) -> str:
