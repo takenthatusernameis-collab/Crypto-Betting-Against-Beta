@@ -4,15 +4,15 @@
 
 **Priority basis (repo name):** this repository *is* the BAB strategy engine, not a tooling sandbox. Priority order is: (1) BAB beta/signal/backtest correctness; (2) execution realism and reconciliation; (3) live/execution readiness; (4) tests, docs, and coverage. Diagnostics, probe archaeology, and coverage-chasing are means to those ends and must not displace P0/P1 work.
 
-**Refreshed:** 2026-11-14T09:05:33Z (UTC)
-**HEAD at refresh:** `80b9615` (main). **Live run wins** — if any recorded number conflicts with live output on the current `HEAD`, re-measure, record the delta, and update this file immediately.
+**Refreshed:** 2026-11-14T09:22:44Z (UTC)
+**HEAD at refresh:** `c358885` (main, docs-only since `80b9615`; product/test code byte-identical to `bcebae0`/`9dc4ac1` where R5-E was proven). **Live run wins** — if any recorded number conflicts with live output on the current `HEAD`, re-measure, record the delta, and update this file immediately.
 **Single source of truth:** this file. `AGENT_HANDOFF.md` is a pointer only. Read this whole file before doing anything. Do not create parallel handoff/session docs.
 
 ---
 
-## INITIAL TASK MESSAGE (START HERE, 2026-11-14T09:05:33Z UTC) — BINDING
+## INITIAL TASK MESSAGE (START HERE, 2026-11-14T09:22:44Z UTC) — BINDING
 
-**Live baseline verified on `80b9615` (2026-11-14T09:05:33Z UTC):** R2 preflight RC=0 (green; 155 passed; 5000×200 = 221 ms ≤ 800 ceiling, 5000×500 = 582 ms ≤ 2000 ceiling), R4 preflight RC=0 (R4-A/B/C present + green, R2/R3 baseline 217 passed), R5-E+R5 integration RC=0 (46 passed, 18.83s), R5-D CLI sanity RC=0 (`--adapter paper --reconcile --output` emits execution + reconciliation sidecars; strict-JSON-safe), default-path CLI RC=0 (0.413704 / 252 periods). **Full gate RC=0 on `80b9615` (2026-11-14T09:05:33Z UTC): 5667 passed / 35 skipped / 583.66s / coverage 92%** (5784 stmts, 462 missed). **R1–R5 + R5-D + R5-E are all COMPLETE — do NOT reopen them without new reproducible evidence of a defect.**
+**Live baseline re-verified on `c358885` (2026-11-14T09:22:44Z UTC):** R2 preflight RC=0 (green; 155 passed; 5000×200 = 242 ms ≤ 800 ceiling, 5000×500 = 579 ms ≤ 2000 ceiling), R4 preflight RC=0 (R4-A/B/C present + green, R2/R3 baseline 217 passed), R5-E+R5 integration RC=0 (46 passed, 39.65s), R5-D CLI sanity RC=0 (`--adapter paper --reconcile --output` emits execution + reconciliation sidecars; strict-JSON-safe), default-path CLI RC=0 (0.413704 / 252 periods). **Full gate RC=0 on `c358885` (2026-11-14T09:22:44Z UTC): 5667 passed / 35 skipped / 587.24s / coverage 92%** (5784 stmts, 462 missed). **R1–R5 + R5-D + R5-E are all COMPLETE — do NOT reopen them without new reproducible evidence of a defect.**
 
 **Immediate sequence (execute now, in order):**
 1. **Environment/bootstrap (idempotent, not a blocker):**
@@ -33,11 +33,11 @@
    PYTHONPATH=. "$PY" -m strategies.betting_against_beta.cli --synthetic; echo "DEFAULT_PATH_RC=$?"
    ```
    If any fail: fix the regression first (smallest fix + targeted regression test), record evidence, re-run, then continue.
-3. **Full gate (green on `80b9615` — re-run before any release-grade claim):**
+3. **Full gate (green on `c358885` — re-run before any release-grade claim):**
    ```bash
    PATH="$VENV/bin:$PATH" bash scripts/bab_gate.sh; echo "GATE_RC=$?"
    ```
-   Record RC/counts/timings/coverage in this handoff. Last full-gate green: `80b9615` (5667 passed / 35 skipped / 583.66s / coverage 92%).
+   Record RC/counts/timings/coverage in this handoff. Last full-gate green: `c358885` (5667 passed / 35 skipped / 587.24s / coverage 92%, 2026-11-14T09:22:44Z UTC).
 4. **Next focus campaign (binds this session — implement it; analysis is not completion): R5-F end-to-end execution-realism integration + hardening.** Additive, deterministic, strict-JSON-safe, default-path invariant. **This is the only binding campaign. Do not start a new lettered campaign or parallel test suite; extend R5.**
 
    **Why R5-F (evidence-based, not busywork):** R5-E implemented the *mechanisms* (deterministic partial fills, participation caps, sqrt-impact slippage on `PaperAdapter`; ADV plumbing into `OrderIntent`; realized-weight reconciliation), but the live gate shows the wiring/edge branches are still **under-exercised**: `execution.py` 72% coverage (uncovered 128–184 = realism-path branches, 527–545 = numpy JSON sanitizer), `reconciliation.py` 74% (uncovered 55–85 sanitizer, 104–138 cost/weight helpers, 291/300/318–319/358–381 realized-weight shortfall + non-finite guards), `backtest.py` 83% (150–176 participation-scaled slippage drag), `cli.py` 81%. R5-F closes the **integration + adversarial-edge** gap: prove the realism path actually changes end-to-end results (modeled vs executed vs reconciled) and that every guard branch is deterministic and non-crashing.
@@ -65,18 +65,18 @@
 
 ---
 
-## VERIFIED EVIDENCE SNAPSHOT (live-verified on `80b9615`; 2026-11-14T09:05:33Z UTC)
+## VERIFIED EVIDENCE SNAPSHOT (live-verified on `c358885`; 2026-11-14T09:22:44Z UTC)
 
-Captured on HEAD `80b9615` (2026-11-14T09:05:33Z UTC). Product/test code is byte-identical to `9dc4ac1`/`bcebae0` where R5-E was proven; only handoff docs changed since. Re-verify fast checks on current HEAD before new work (env: `VENV=/home/runner/work/_temp/kilo-tmp/bab-venv`, Python 3.12.3). **Use the absolute venv path inline — see step 2 bottleneck note.**
+Captured on HEAD `c358885` (2026-11-14T09:22:44Z UTC). HEAD advanced by checkpoint commits only; product/test code is byte-identical to `bcebae0`/`9dc4ac1` where R5-E was proven. Re-verify fast checks on current HEAD before new work (env: `VENV=/home/runner/work/_temp/kilo-tmp/bab-venv`, Python 3.12.3). **Use the absolute venv path inline — see step 2 bottleneck note.**
 
 | Check | Command | Live result |
 |---|---|---|
-| R2 preflight | `PYTHONPATH=. "$VENV/bin/python" scripts/bab_r2_preflight.py` | RC=0 — green; 155 passed; 5000×200 = 221 ms (≤800), 5000×500 = 582 ms (≤2000) [OK] |
+| R2 preflight | `PYTHONPATH=. "$VENV/bin/python" scripts/bab_r2_preflight.py` | RC=0 — green; 155 passed; 5000×200 = 242 ms (≤800), 5000×500 = 579 ms (≤2000) [OK] |
 | R4 preflight | `PYTHONPATH=. "$VENV/bin/python" scripts/bab_r4_preflight.py` | RC=0 — R4-A/B/C present + green; R2/R3 baseline 217 passed (emits benign `costs.py:213` sqrt RuntimeWarning — see R5-F hardening target) |
-| R5-E + R5 tests | `PYTHONPATH=. "$VENV/bin/python" -m pytest tests/test_bab_execution_integration_r5.py tests/test_bab_execution_realism_r5e.py -q -p no:cacheprovider` | RC=0 — 46 passed, 18.83s |
+| R5-E + R5 tests | `PYTHONPATH=. "$VENV/bin/python" -m pytest tests/test_bab_execution_integration_r5.py tests/test_bab_execution_realism_r5e.py -q -p no:cacheprovider` | RC=0 — 46 passed, 39.65s |
 | R5-D CLI sanity | `--synthetic --adapter paper --reconcile --output /tmp/bab_r5d_sanity.json` | RC=0 — execution + reconciliation sidecars written, strict-JSON-safe (`json.load` OK) |
 | Default-path CLI | `--synthetic` (no adapter) | RC=0 — 0.413704 / 252 periods |
-| Full gate | `PATH="$VENV/bin:$PATH" bash scripts/bab_gate.sh` | **RC=0 — 5667 passed / 35 skipped / 583.66s / coverage 92%** (live on `80b9615`) |
+| Full gate | `PATH="$VENV/bin:$PATH" bash scripts/bab_gate.sh` | **RC=0 — 5667 passed / 35 skipped / 587.24s / coverage 92%** (5784 stmts, 462 missed) |
 
 **Lowest-coverage product modules (R5-F targets):** `execution.py` 72% (uncovered 128, 134-140, 144, 149-162, 167-184, 329, 344, 350-351, 369-370, 378-379, 398, 426-427, 429-435, 444-445, 453-454, 460-461, 463, 478-479, 489-490, 516, 527-545), `reconciliation.py` 74% (55-85, 104-105, 108-114, 116, 137-138, 291, 300, 318-319, 358-359, 366, 373, 377, 381), `cli.py` 81% (34-103, 289-294, 415-446, 510, 559-617, 661), `backtest.py` 83% (150-176). Overall 92% (5784 stmts, 462 missed).
 
@@ -85,13 +85,13 @@ Captured on HEAD `80b9615` (2026-11-14T09:05:33Z UTC). Product/test code is byte
 ## STATUS
 
 - **R1/R2/R3:** closed/locked — do not reopen without new reproducible evidence.
-- **R4:** shipped, re-verified green on `9dc4ac1` (code unchanged through R5-E):
+- **R4:** shipped, re-verified green on `c358885` (code unchanged since R5-E proof on `bcebae0`/`9dc4ac1`):
   - **R4-A** dry-run / portfolio-risk report: `BABStrategy.dry_run()` + CLI `--dry-run` (strict-JSON-safe; no trade execution; `--output` not created). `tests/test_bab_dryrun_risk_report_r4.py`.
   - **R4-B** drawdown-limit kill switch: `max_drawdown_limit` in `BABConfig`/`_validate_ranges`, `strategies/betting_against_beta/risk.py` (`apply_kill_switch`, `KillSwitchEvent`), integrated in `run()`/`report()`; `None` preserves pre-R4 default-path behavior. `tests/test_bab_drawdown_kill_switch_r4.py`.
   - **R4-C** deterministic paper-trading replay harness: `strategies/betting_against_beta/replay.py` (`ReplayHarness`) with stable schema, SHA-256 checksum, byte-identical artifacts on identical inputs. `tests/test_bab_replay_harness_r4.py`.
 - **R5:** **COMPLETE** — R5-A execution adapter contract, R5-B modeled-vs-executed cost reconciliation, R5-C executed-fills backtest reconciliation. `tests/test_bab_execution_integration_r5.py` — 23 passed.
 - **R5-D:** **COMPLETE** — CLI `--adapter` (paper/mock), `--reconcile`, `--fills`; execution + reconciliation artifacts sidecar `--output`; strict-JSON-safe; default-path byte-identical when unconfigured. `strategies/betting_against_beta/cli.py` modified (additive only).
-- **R5-E:** **COMPLETE** (verified `bcebae0`, re-verified `9dc4ac1`) — execution-adapter realism (deterministic partial fills, `max_participation` caps, sqrt-impact slippage on `PaperAdapter`), order-intent ADV/participation plumbing (`order_batches_from_weights` reads `adv_usd`; `OrderIntent` exposes `requested_weight`/`filled_weight`/`fill_ratio`/`order_weight`/`notional_usd`/`price`/`slippage`/`status`/`reason`), reconciliation correctness (`reconcile_costs`/`reconcile_fills_to_backtest` consume realized filled weights, handle partial/rejected fills, fill-level costs, SHA-256 checksums). Preserves full-fill/zero-slippage default when realism is unconfigured (default-path byte-identical). `tests/test_bab_execution_realism_r5e.py` — 23 passed.
+- **R5-E:** **COMPLETE** (verified `bcebae0`, re-verified on `c358885`, 2026-11-14T09:22:44Z UTC) — execution-adapter realism (deterministic partial fills, `max_participation` caps, sqrt-impact slippage on `PaperAdapter`), order-intent ADV/participation plumbing (`order_batches_from_weights` reads `adv_usd`; `OrderIntent` exposes `requested_weight`/`filled_weight`/`fill_ratio`/`order_weight`/`notional_usd`/`price`/`slippage`/`status`/`reason`), reconciliation correctness (`reconcile_costs`/`reconcile_fills_to_backtest` consume realized filled weights, handle partial/rejected fills, fill-level costs, SHA-256 checksums). Preserves full-fill/zero-slippage default when realism is unconfigured (default-path byte-identical). `tests/test_bab_execution_realism_r5e.py` — 23 passed.
 
 ---
 
