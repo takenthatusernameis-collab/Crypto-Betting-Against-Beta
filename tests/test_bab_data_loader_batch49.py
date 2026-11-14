@@ -29,9 +29,8 @@ class TestBatch49:
             cols = k.get("columns") or (a[0] if a and isinstance(a[0], dict) else None)
             if isinstance(cols, dict) and any(
                 str(v).lower() == "btc" or str(k2).lower() == "btc" for k2, v in cols.items()
-            ):
-                if state["n"] == 1:
-                    raise RuntimeError("rename fail")
+            ) and state["n"] == 1:
+                raise RuntimeError("rename fail")
             return orig(self, *a, **k)
 
         monkeypatch.setattr(pd.DataFrame, "rename", flaky)

@@ -50,9 +50,12 @@ select = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/*" = ["F401", "F841", "E402"]
+"tests/*" = ["F401", "F841", "E402", "PERF203", "SIM102", "SIM103", "SIM105", "SIM115", "SIM117", "RUF005", "RUF012", "RUF034", "RUF043", "PERF401"]
 "scripts/bab_backtest_report.py" = ["E402"]
 "scripts/load_real_bab_example.py" = ["E402"]
+"strategies/betting_against_beta/data_loader.py" = ["PERF203"]
+"strategies/betting_against_beta/portfolio.py" = ["PERF203"]
+"strategies/betting_against_beta/quality.py" = ["PERF203"]
 
 [tool.ruff.lint.flake8-comprehensions]
 allow-dict-calls-with-keyword-arguments = true

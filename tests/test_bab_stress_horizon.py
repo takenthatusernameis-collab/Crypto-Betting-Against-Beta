@@ -98,8 +98,10 @@ _horizon_records: list[dict] = []
 @pytest.mark.parametrize("costs", COSTS)
 @pytest.mark.parametrize("slippage", SLIPPAGES)
 def test_horizon_sweep(frame_label, n_days, n_assets, beta_window, quantile, costs, slippage):
-    label = f"{frame_window_label(frame_label, n_days, n_assets, beta_window,
-                                     quantile, costs, slippage)}"
+    label = frame_window_label(
+        frame_label, n_days, n_assets, beta_window, quantile, costs, slippage
+    )
+    label = f"{label}"
     frame = _get_frame(frame_label, n_days, n_assets)
     res1 = _run_once(frame, beta_window, quantile, quantile, costs, slippage)
     _check_run(res1, label)

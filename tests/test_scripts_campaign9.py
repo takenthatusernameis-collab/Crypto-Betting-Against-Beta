@@ -400,9 +400,9 @@ class TestPerfBenchCampaign9:
         assert "True" in r.stdout
 
     def test_main_runs_end_to_end_small_scope(self):
-    """Run main() in-process with small synthetic inputs by invoking script;
-    allow generous timeout.
-    The script uses fixed sizes (720x12) which should complete quickly in this env."""
+        """Run main() in-process with small synthetic inputs by invoking script;
+        allow generous timeout.
+        The script uses fixed sizes (720x12) which should complete quickly in this env."""
         result = _run(self.SCRIPT, [], timeout=300)
         assert result.returncode == 0, f"stdout={result.stdout}\nstderr={result.stderr}"
         out = result.stdout
