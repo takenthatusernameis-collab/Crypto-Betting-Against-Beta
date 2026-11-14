@@ -1,20 +1,20 @@
 # HANDOFF — Crypto-Betting-Against-Beta
 
-**Canonical durable handoff (single source of truth).** Do not create parallel handoff/session/task docs; update this file only.
+**Canonical durable handoff (single source of truth).** Do not create parallel handoff/session docs; update this file only.
 
-- **Timestamp (UTC):** 2026-11-14T15:55:05Z
+- **Timestamp (UTC):** 2026-11-14T16:30:06Z
 - **Repo:** `Crypto-Betting-Against-Beta`
 - **HEAD:** `99202bd05b5ce18cd52ca351d79e833abe6db6a0` (`chore(kilo): checkpoint agent session`) — trust live `git log -1 --oneline` / `git status` if they differ.
 - **Branch:** `main` (clean at snapshot)
 
-## INITIAL TASK MESSAGE (START HERE, 2026-11-14T15:55:05Z UTC) — BINDING
+## INITIAL TASK MESSAGE (START HERE, 2026-11-14T16:30:06Z UTC) — BINDING
 
 This is the only active task. Execute in order. No archaeology (`probe_*.py`, `debug_*.py`, `ast_probe.py`), no new handoff docs, no re-verification of green areas unless your change touches them. If blocked, record exact command + output and continue with the next unblocked priority. **Never stop at analysis — produce code, tests, and evidence.**
 
 ### Campaign objective
 Make the **Crypto Betting Against Beta (BAB)** strategy operational on **real, updatable, reproducible market data** with a clean lint/test baseline and a recorded performance guardrail.
 
-### Verified baseline (2026-11-14T15:55:05Z, no code changes)
+### Verified baseline (2026-11-14T16:30:06Z, no code changes)
 | Check | Command | Result |
 |-------|---------|--------|
 | Lint | `python3 -m ruff check .` | **All checks passed** |
