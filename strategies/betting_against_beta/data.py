@@ -7,7 +7,7 @@ import pandas as pd
 def generate_synthetic_returns(
     n_days: int = 252,
     n_assets: int = 5,
-    asset_names: list = None,
+    asset_names: list | None = None,
     benchmark_name: str = "BTC",
     seed: int = 42,
 ):

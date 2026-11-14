@@ -62,10 +62,7 @@ def max_drawdown(cumulative_or_returns):
         and 0.5 < first < 5.0
         and bool((s.iloc[: min(5, len(s))] >= 0).all())
     )
-    if looks_cumulative:
-        cumulative = s
-    else:
-        cumulative = (1.0 + s).cumprod()
+    cumulative = s if looks_cumulative else (1.0 + s).cumprod()
     running_max = cumulative.expanding().max()
     drawdown = (cumulative - running_max) / running_max
     max_dd = drawdown.min()

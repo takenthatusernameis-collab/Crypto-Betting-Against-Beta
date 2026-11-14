@@ -7,6 +7,7 @@ import math
 from dataclasses import dataclass
 
 import numpy as _np
+import pandas as pd
 
 from . import metrics, shorting, sizing
 from .attribution import attribution_totals, trade_attribution
@@ -484,9 +485,8 @@ class BABStrategy:
         from .risk import apply_kill_switch
 
         cumulative = None
-        if isinstance(backtest, pd.DataFrame) and not backtest.empty:
-            if "cumulative" in backtest.columns:
-                cumulative = backtest["cumulative"]
+        if isinstance(backtest, pd.DataFrame) and not backtest.empty and "cumulative" in backtest.columns:
+            cumulative = backtest["cumulative"]
 
         kill_switch_event = KillSwitchEvent(triggered=False, date=None, observed_drawdown=0.0, limit=None)
         final_weights = weights
@@ -866,9 +866,8 @@ class BABStrategy:
         # Benchmark return series (optional; missing benchmark yields NaN beta).
         benchmark_returns = None
         bench = getattr(getattr(res, "config", None), "benchmark", None)
-        if bench is not None and isinstance(returns, pd.DataFrame) and not returns.empty:
-            if bench in returns.columns:
-                benchmark_returns = returns[bench]
+        if bench is not None and isinstance(returns, pd.DataFrame) and not returns.empty and bench in returns.columns:
+            benchmark_returns = returns[bench]
 
         summary = metrics.summary(
             strat_returns if strat_returns is not None else pd.Series(dtype="float64"),

@@ -62,7 +62,7 @@ CAPABILITIES = [
 
 def _read(path: str) -> str:
     try:
-        with open(path, "r", encoding="utf-8", errors="replace") as fh:
+        with open(path, encoding="utf-8", errors="replace") as fh:
             return fh.read()
     except OSError:
         return ""
@@ -71,9 +71,11 @@ def _read(path: str) -> str:
 def _product_text() -> str:
     chunks = []
     if os.path.isdir(PKG):
-        for name in sorted(os.listdir(PKG)):
-            if name.endswith(".py"):
-                chunks.append(_read(os.path.join(PKG, name)))
+        chunks.extend(
+            _read(os.path.join(PKG, name))
+            for name in sorted(os.listdir(PKG))
+            if name.endswith(".py")
+        )
     return "\n".join(chunks)
 
 

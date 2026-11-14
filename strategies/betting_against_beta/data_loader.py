@@ -7,6 +7,7 @@ ensures the consumed DataFrame matches the shape the strategy pipeline expects
 
 from __future__ import annotations
 
+import contextlib
 import json
 import pickle
 import re
@@ -70,10 +71,7 @@ def _coerce_series_to_datetime_index(df: pd.DataFrame, col, coerced) -> bool:
     try:
         if not _series_has_any_finite(coerced):
             return False
-        if isinstance(coerced, pd.Series):
-            idx = coerced
-        else:
-            idx = pd.Series(coerced, index=df.index)
+        idx = coerced if isinstance(coerced, pd.Series) else pd.Series(coerced, index=df.index)
         # normalize tz
         try:
             clean = []
@@ -214,11 +212,7 @@ def _normalize_index(df: pd.DataFrame) -> pd.DataFrame:
                             # try elementwise with coercer
                             coerced = []
                             for v in idx:
-                                try:
-                                    c = _coerce_to_datetime_scalar(v)
-                                    coerced.append(c)
-                                except Exception:
-                                    raise
+                                coerced.append(_coerce_to_datetime_scalar(v))
                             df.index = coerced
                         if getattr(df.index, "isna", None) is not None and bool(getattr(df.index.isna(), 'any', lambda: False)()):
                             # last ditch: try with dayfirst where safe
@@ -226,20 +220,17 @@ def _normalize_index(df: pd.DataFrame) -> pd.DataFrame:
                                 coerced = []
                                 for v in idx:
                                     try:
-                                        try:
-                                            coerced.append(_coerce_to_datetime_scalar(v))
-                                            continue
-                                        except Exception:
-                                            pass
-                                        # try pandas with dayfirst
-                                        try:
-                                            coerced.append(pd.to_datetime(v, utc=True, errors="raise", dayfirst=True))
-                                            continue
-                                        except Exception:
-                                            pass
-                                        coerced.append(pd.to_datetime(v, utc=False, errors="raise", dayfirst=True))
+                                        coerced.append(_coerce_to_datetime_scalar(v))
+                                        continue
                                     except Exception:
-                                        raise
+                                        pass
+                                    # try pandas with dayfirst
+                                    try:
+                                        coerced.append(pd.to_datetime(v, utc=True, errors="raise", dayfirst=True))
+                                        continue
+                                    except Exception:
+                                        pass
+                                    coerced.append(pd.to_datetime(v, utc=False, errors="raise", dayfirst=True))
                                 df.index = coerced
                             except Exception:
                                 raise ValueError("unparseable")
@@ -249,10 +240,7 @@ def _normalize_index(df: pd.DataFrame) -> pd.DataFrame:
                         except Exception:
                             coerced = []
                             for v in idx:
-                                try:
-                                    coerced.append(_coerce_to_datetime_scalar(v))
-                                except Exception:
-                                    raise
+                                coerced.append(_coerce_to_datetime_scalar(v))
                             df.index = coerced
             except BABDataError:
                 raise
@@ -276,10 +264,8 @@ def _normalize_index(df: pd.DataFrame) -> pd.DataFrame:
                     try:
                         df.index = df.index.tz_convert(None)
                     except Exception:
-                        try:
+                        with contextlib.suppress(Exception):
                             df.index = df.index.tz_localize(None)
-                        except Exception:
-                            pass
         except Exception:
             pass
     df = df.sort_index()
@@ -573,10 +559,8 @@ def _detect_and_normalize_exchange_format(df: pd.DataFrame) -> pd.DataFrame:
                 try:
                     tmp['_dt'] = tmp['_dt'].dt.tz_convert('UTC').dt.tz_localize(None)
                 except Exception:
-                    try:
+                    with contextlib.suppress(Exception):
                         tmp['_dt'] = tmp['_dt'].dt.tz_localize(None)
-                    except Exception:
-                        pass
             # get symbol values (normalize case)
             tmp['_sym'] = tmp[symbol_col].astype(str).str.strip()
             # pivot
@@ -651,10 +635,7 @@ def _detect_and_normalize_exchange_format(df: pd.DataFrame) -> pd.DataFrame:
                     do_coerce = False
             elif isinstance(sample, (int, np.integer, float, np.floating)) and not isinstance(sample, bool):
                 v = float(sample)
-                if not np.isnan(v) and (abs(v) > 1e9):  # likely epoch
-                    do_coerce = True
-                else:
-                    do_coerce = False
+                do_coerce = (not np.isnan(v)) and (abs(v) > 1e9)
             else:
                 do_coerce = False
             if do_coerce:
@@ -699,10 +680,8 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
                 try:
                     df.index = df.index.tz_convert("UTC").tz_localize(None)
                 except Exception:
-                    try:
+                    with contextlib.suppress(Exception):
                         df.index = df.index.tz_convert(None)
-                    except Exception:
-                        pass
         except Exception:
             pass
         return df
@@ -719,10 +698,8 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
             if isinstance(df2.index, pd.DatetimeIndex):
                 try:
                     if getattr(df2.index, "tz", None) is not None:
-                        try:
+                        with contextlib.suppress(Exception):
                             df2.index = df2.index.tz_convert("UTC").tz_localize(None)
-                        except Exception:
-                            pass
                 except Exception:
                     pass
                 return df2
@@ -758,18 +735,14 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
                             dt_attr = getattr(parsed, "tz", None)
                         except Exception:
                             dt_attr = None
-                        try:
+                        with contextlib.suppress(Exception):
                             dt_attr = dt_attr or getattr(getattr(parsed, "dtype", None), "tz", None)
-                        except Exception:
-                            pass
                         if dt_attr is not None:
                             try:
                                 parsed = parsed.tz_convert("UTC").tz_localize(None)
                             except Exception:
-                                try:
+                                with contextlib.suppress(Exception):
                                     parsed = parsed.tz_localize(None)
-                                except Exception:
-                                    pass
                         else:
                             # Element-wise tz normalization for tz-aware scalars.
                             try:
@@ -816,13 +789,7 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
                 pass
             df2 = df.copy()
             try:
-                if len(df.columns) == 2:
-                    # Simple date + single asset case: promote to DatetimeIndex.
-                    df2 = df2.set_index(parsed)
-                else:
-                    # Multi-column exchange frame: be conservative and keep the
-                    # raw column values as the index (strings).
-                    df2 = df2.set_index(df2[col])
+                df2 = df2.set_index(parsed) if len(df.columns) == 2 else df2.set_index(df2[col])
                 df2 = df2.drop(columns=[col])
                 return df2
             except Exception:
@@ -1392,10 +1359,8 @@ def _run_data_quality_campaign(
         if getattr(cleaned.index, "tz", None) is not None:
             cleaned.index = cleaned.index.tz_convert("UTC").tz_localize(None)
     except Exception:
-        try:
+        with contextlib.suppress(Exception):
             cleaned.index = cleaned.index.tz_localize(None)
-        except Exception:
-            pass
     cleaned = cleaned.sort_index()
 
     if cleaned.index.has_duplicates:
@@ -1655,10 +1620,8 @@ def validate_returns_dataframe(
         for col in list(cleaned.columns):
             if pd.api.types.is_numeric_dtype(cleaned[col]):
                 continue
-            if pd.api.types.is_string_dtype(cleaned[col]) or pd.api.types.is_object_dtype(cleaned[col]):
-                if not _series_is_parseable(cleaned[col]):
-                    cols_to_drop.append(col)
-                    continue
+            if (pd.api.types.is_string_dtype(cleaned[col]) or pd.api.types.is_object_dtype(cleaned[col])) and not _series_is_parseable(cleaned[col]):
+                cols_to_drop.append(col)
         if cols_to_drop:
             cleaned = cleaned.drop(columns=cols_to_drop)
     except Exception:
@@ -1967,10 +1930,8 @@ def load_returns_from_json(
         df = pd.DataFrame(data)
         df = _promote_datetime_column(df)
         df = _normalize_columns(df)
-        try:
+        with contextlib.suppress(Exception):
             df = _normalize_index(df)
-        except Exception:
-            pass
         return validate_returns_dataframe(df, benchmark=benchmark, min_rows=min_rows, quality=quality)
     elif orient == "split":
         # {"columns": [...], "index": [...], "data": [[...], ...]}
@@ -1985,10 +1946,8 @@ def load_returns_from_json(
         # {col: {timestamp: value, ...}, ...}
         df = pd.DataFrame(data)
         if not isinstance(df.index, pd.DatetimeIndex):
-            try:
+            with contextlib.suppress(ValueError, TypeError):
                 df.index = pd.to_datetime(df.index, errors="raise")
-            except (ValueError, TypeError):
-                pass
     else:
         # columns / table / anything else pandas understands
         df = pd.DataFrame(data)
@@ -2129,10 +2088,9 @@ def _drop_metadata_columns(df: pd.DataFrame) -> pd.DataFrame:
                     maxv = float(np.max(vals[finite]))
                     if minv <= 0.0:
                         try:
-                            if np.allclose(vals[finite], np.round(vals[finite])):
-                                if float(vals[finite][0]) == 0.0 and np.allclose(np.diff(vals[finite]), 1.0):
-                                    cols_to_drop.append(col)
-                                    continue
+                            if np.allclose(vals[finite], np.round(vals[finite])) and float(vals[finite][0]) == 0.0 and np.allclose(np.diff(vals[finite]), 1.0):
+                                cols_to_drop.append(col)
+                                continue
                         except Exception:
                             pass
                         if minv < 0.0:
@@ -2368,10 +2326,8 @@ def normalize_schema(
     except Exception:
         pass
     # Try exchange format normalization first
-    try:
+    with contextlib.suppress(Exception):
         cleaned = _detect_and_normalize_exchange_format(cleaned)
-    except Exception:
-        pass
     cleaned = _promote_datetime_column(cleaned)
     cleaned = _normalize_columns(cleaned)
     try:

@@ -189,24 +189,30 @@ def detect_outliers(df: pd.DataFrame, method: str = "zscore", threshold: float =
     return results
 
 
+def _stale_runs_single(arr, threshold: int) -> list[dict[str, Any]]:
+    stale_runs = []
+    if len(arr) <= 1:
+        return stale_runs
+    current_run = 1
+    for i in range(1, len(arr)):
+        if np.isfinite(arr[i]) and np.isfinite(arr[i - 1]) and arr[i] == arr[i - 1]:
+            current_run += 1
+        else:
+            if current_run >= threshold:
+                stale_runs.append({"length": current_run, "end_index": i - 1})
+            current_run = 1
+    if current_run >= threshold:
+        stale_runs.append({"length": current_run, "end_index": len(arr) - 1})
+    return stale_runs
+
+
 def detect_stale_data(df: pd.DataFrame, threshold: int = 3) -> dict[str, Any]:
     """Detect consecutive identical values (stale/frozen data)."""
     results = {}
     for col in df.columns:
         try:
             arr = pd.to_numeric(df[col], errors="coerce").to_numpy(dtype=float)
-            stale_runs = []
-            if len(arr) > 1:
-                current_run = 1
-                for i in range(1, len(arr)):
-                    if np.isfinite(arr[i]) and np.isfinite(arr[i - 1]) and arr[i] == arr[i - 1]:
-                        current_run += 1
-                    else:
-                        if current_run >= threshold:
-                            stale_runs.append({"length": current_run, "end_index": i - 1})
-                        current_run = 1
-                if current_run >= threshold:
-                    stale_runs.append({"length": current_run, "end_index": len(arr) - 1})
+            stale_runs = _stale_runs_single(arr, threshold)
             results[col] = {"stale_runs": stale_runs, "count": len(stale_runs)}
         except Exception:
             results[col] = {"stale_runs": [], "count": 0}

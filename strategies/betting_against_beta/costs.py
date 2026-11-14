@@ -15,8 +15,8 @@ term for that asset rather than failing.
 
 from __future__ import annotations
 
+import contextlib
 from dataclasses import dataclass
-from typing import Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -50,14 +50,12 @@ class TransactionCostModel:
     trading_days_per_year: int = 252
     # Per-asset average daily volume in dollars (dict/Series/DataFrame).
     # When absent, the square-root impact term is skipped for those assets.
-    adv_usd: Optional[Union[dict, pd.Series, pd.DataFrame]] = None
+    adv_usd: dict | pd.Series | pd.DataFrame | None = None
 
     def __post_init__(self) -> None:
         self._validate()
-        try:
+        with contextlib.suppress(Exception):
             object.__setattr__(self, "_frozen", True)
-        except Exception:
-            pass
 
     def __setattr__(self, name: str, value) -> None:
         if getattr(self, "_frozen", False) and name != "_frozen":
@@ -92,7 +90,7 @@ class TransactionCostModel:
             raise BABCostError("; ".join(errors))
 
 
-def _adv_series(adv_usd: Optional[Union[dict, pd.Series, pd.DataFrame]]) -> Optional[pd.Series]:
+def _adv_series(adv_usd: dict | pd.Series | pd.DataFrame | None) -> pd.Series | None:
     """Normalize adv_usd to an asset-indexed Series, or None when unavailable."""
     if adv_usd is None:
         return None
@@ -105,7 +103,7 @@ def _adv_series(adv_usd: Optional[Union[dict, pd.Series, pd.DataFrame]]) -> Opti
     return None
 
 
-def _clean_frame(df: Optional[pd.DataFrame]) -> Optional[pd.DataFrame]:
+def _clean_frame(df: pd.DataFrame | None) -> pd.DataFrame | None:
     if df is None:
         return None
     df = pd.DataFrame(df)
@@ -117,9 +115,9 @@ def _clean_frame(df: Optional[pd.DataFrame]) -> Optional[pd.DataFrame]:
 def compute_transaction_costs(
     weights,
     weights_prev=None,
-    prices: Optional[pd.DataFrame] = None,
-    model: Optional[TransactionCostModel] = None,
-    adv_usd: Optional[Union[dict, pd.Series, pd.DataFrame]] = None,
+    prices: pd.DataFrame | None = None,
+    model: TransactionCostModel | None = None,
+    adv_usd: dict | pd.Series | pd.DataFrame | None = None,
 ) -> pd.Series:
     """Per-period transaction costs as a fraction of portfolio value.
 

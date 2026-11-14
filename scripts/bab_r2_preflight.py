@@ -23,10 +23,8 @@ be silently ignored); 2 on a measurement error.
 from __future__ import annotations
 
 import os
-import statistics
 import subprocess
 import sys
-import time
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -95,7 +93,7 @@ print("SCALE_JSON " + repr(out))
     if not line:
         print("[preflight] SCALE MEASUREMENT FAILED. stderr tail:\n" + (r.stderr or "")[-1500:])
         return 2
-    scale = eval(line[len("SCALE_JSON "):])  # noqa: S307 - trusted literal from our own subprocess
+    scale = eval(line[len("SCALE_JSON "):])
     print("[preflight] Live scale baseline (median of 9 warm reps):")
     ok = True
     for label in ("5000x200", "5000x500"):

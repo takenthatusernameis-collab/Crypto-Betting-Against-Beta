@@ -12,10 +12,11 @@ No network is used by any implementation.
 
 from __future__ import annotations
 
+import contextlib
 import json
 import math
 from dataclasses import dataclass, field
-from typing import Optional, Protocol, runtime_checkable
+from typing import Protocol, runtime_checkable
 
 import pandas as pd
 
@@ -33,11 +34,11 @@ class OrderIntent:
     target_weight: float
     current_weight: float
     order_weight: float  # target_weight - current_weight
-    requested_weight: Optional[float] = None  # = order_weight; what the adapter is asked to fill
-    notional_usd: Optional[float] = None
-    price: Optional[float] = None
-    adv_usd: Optional[float] = None  # average daily volume in USD for this asset
-    max_participation: Optional[float] = None  # participation cap in (0,1]
+    requested_weight: float | None = None  # = order_weight; what the adapter is asked to fill
+    notional_usd: float | None = None
+    price: float | None = None
+    adv_usd: float | None = None  # average daily volume in USD for this asset
+    max_participation: float | None = None  # participation cap in (0,1]
     metadata: dict = field(default_factory=dict)
 
     def __post_init__(self) -> None:
@@ -110,8 +111,8 @@ class PaperAdapter:
 
     def __init__(
         self,
-        prices_df: Optional[pd.DataFrame] = None,
-        adv_usd: Optional[object] = None,
+        prices_df: pd.DataFrame | None = None,
+        adv_usd: object | None = None,
         partial_fill: bool = False,
         max_participation: float = _DEFAULT_MAX_PARTICIPATION,
     ) -> None:
@@ -122,7 +123,7 @@ class PaperAdapter:
         self.submitted: list[OrderBatch] = []
         self.fills: list[dict] = []
 
-    def _price_for(self, date_key: str, asset: str) -> Optional[float]:
+    def _price_for(self, date_key: str, asset: str) -> float | None:
         if self.prices is None or asset not in self.prices.columns:
             return None
         try:
@@ -138,7 +139,7 @@ class PaperAdapter:
             pass
         return None
 
-    def _adv_for(self, date_key: str, asset: str) -> Optional[float]:
+    def _adv_for(self, date_key: str, asset: str) -> float | None:
         if self.adv_usd is None:
             return None
         try:
@@ -161,7 +162,7 @@ class PaperAdapter:
         return None
 
     @staticmethod
-    def _adv_from_frame_value(sub, date_key: str) -> Optional[float]:
+    def _adv_from_frame_value(sub, date_key: str) -> float | None:
         """Look up one ADV value by ISO date, then by Timestamp, else None."""
         try:
             if date_key in sub.index:
@@ -288,7 +289,7 @@ class MockAdapter:
 
     def __init__(
         self,
-        fill_map: Optional[dict] = None,
+        fill_map: dict | None = None,
         fill_fn=None,
     ) -> None:
         self.fill_map = dict(fill_map or {})
@@ -363,10 +364,8 @@ def configure_paper_adapter(adapter: PaperAdapter, strategy) -> PaperAdapter:
     # default; an explicitly chosen cap wins over the config value.
     cfg_cap = getattr(cfg, "max_participation", None)
     if cfg_cap is not None and adapter.max_participation == _DEFAULT_MAX_PARTICIPATION:
-        try:
+        with contextlib.suppress(TypeError, ValueError):
             adapter.max_participation = float(cfg_cap)
-        except (TypeError, ValueError):
-            pass
     return adapter
 
 
@@ -380,9 +379,9 @@ def _date_key(date) -> str:
 
 def order_batches_from_weights(
     weights: pd.DataFrame,
-    prices_df: Optional[pd.DataFrame] = None,
-    adv_usd: Optional[object] = None,
-    max_participation: Optional[float] = None,
+    prices_df: pd.DataFrame | None = None,
+    adv_usd: object | None = None,
+    max_participation: float | None = None,
 ) -> list[OrderBatch]:
     """Build deterministic OrderBatch list from a weights DataFrame.
 
@@ -420,18 +419,14 @@ def order_batches_from_weights(
                 for c in cols:
                     v = adv_usd.get(c)
                     if v is not None:
-                        try:
+                        with contextlib.suppress(TypeError, ValueError):
                             adv_map[c] = float(v)
-                        except (TypeError, ValueError):
-                            pass
             elif isinstance(adv_usd, pd.Series):
                 for c in cols:
                     if c in adv_usd.index:
                         v = adv_usd.loc[c]
-                        try:
+                        with contextlib.suppress(TypeError, ValueError):
                             adv_map[c] = float(v)
-                        except (TypeError, ValueError):
-                            pass
             elif isinstance(adv_usd, pd.DataFrame):
                 adv_df = adv_usd.sort_index()
                 for c in cols:
@@ -478,10 +473,7 @@ def order_batches_from_weights(
                         price = None
             if c in adv_map:
                 adv_entry = adv_map[c]
-                if isinstance(adv_entry, dict):
-                    intent_adv = adv_entry.get(date_key)
-                else:
-                    intent_adv = adv_entry
+                intent_adv = adv_entry.get(date_key) if isinstance(adv_entry, dict) else adv_entry
                 if intent_adv is not None:
                     try:
                         intent_adv = float(intent_adv)

@@ -1,5 +1,7 @@
 """Backtesting for BAB strategy."""
 
+import contextlib
+
 import numpy as np
 import pandas as pd
 
@@ -102,10 +104,8 @@ def run_backtest(returns_df, weights_df, transaction_costs=0.0, slippage=0.0,
         if not np.all(np.isfinite(_w_arr)):
             weights = weights.replace([np.inf, -np.inf], np.nan).fillna(0.0)
     except (TypeError, ValueError):
-        try:
+        with contextlib.suppress(TypeError, ValueError):
             weights = weights.replace([np.inf, -np.inf], np.nan).fillna(0.0)
-        except (TypeError, ValueError):
-            pass
 
     # Shift once and reuse: lagged weights (no lookahead) for both returns and
     # turnover, avoiding a second ``shift`` allocation.
@@ -176,10 +176,7 @@ def run_backtest(returns_df, weights_df, transaction_costs=0.0, slippage=0.0,
             pass
 
     # Apply transaction costs if any
-    if tc_val > 0:
-        portfolio_returns = gross_returns - cost_drag
-    else:
-        portfolio_returns = gross_returns.copy()
+    portfolio_returns = gross_returns - cost_drag if tc_val > 0 else gross_returns.copy()
 
     # Apply slippage cost on turnover if any
     if slip_val > 0:
@@ -210,10 +207,8 @@ def run_backtest(returns_df, weights_df, transaction_costs=0.0, slippage=0.0,
             _pr_arr = np.where(np.isfinite(_pr_arr), _pr_arr, 0.0)
             portfolio_returns = pd.Series(_pr_arr, index=portfolio_returns.index)
     except Exception:
-        try:
+        with contextlib.suppress(Exception):
             portfolio_returns = portfolio_returns.replace([np.inf, -np.inf], 0.0).fillna(0.0)
-        except Exception:
-            pass
     portfolio_returns_filled = portfolio_returns.clip(lower=-1.0 + 1e-12)
     try:
         log_returns = np.log1p(portfolio_returns_filled.to_numpy(dtype=float))
@@ -257,9 +252,7 @@ def run_backtest(returns_df, weights_df, transaction_costs=0.0, slippage=0.0,
             _r_arr = np.where(np.isfinite(_r_arr), _r_arr, 0.0)
             results = pd.DataFrame(_r_arr, index=results.index, columns=results.columns)
     except Exception:
-        try:
+        with contextlib.suppress(Exception):
             results = results.replace([np.inf, -np.inf], np.nan).fillna(0.0)
-        except Exception:
-            pass
 
     return results

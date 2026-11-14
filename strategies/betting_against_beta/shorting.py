@@ -8,7 +8,6 @@ construction via :func:`apply_shorting_constraints`.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -27,14 +26,14 @@ class ShortingConstraints:
     # Annualized borrow cost in fraction (e.g. 0.02 = 2% per year). Can be dict
     # per-asset or a single float.
     default_borrow_bps_per_year: float = 0.02
-    borrow_bps_per_year: Optional[Union[float, Dict[str, float]]] = None
+    borrow_bps_per_year: float | dict[str, float] | None = None
     # Whether an asset is borrowable. Defaults to True for all.
-    borrowable: Optional[Dict[str, bool]] = None
+    borrowable: dict[str, bool] | None = None
     # Hard caps on short exposure.
-    max_short_exposure: Optional[float] = None  # total short notional as fraction of portfolio
-    max_short_leverage: Optional[float] = None  # alias for max_short_exposure
-    max_short_notional_per_asset: Optional[float] = None  # per-asset short notional cap
-    max_short_weight: Optional[float] = None  # alias for per-asset cap
+    max_short_exposure: float | None = None  # total short notional as fraction of portfolio
+    max_short_leverage: float | None = None  # alias for max_short_exposure
+    max_short_notional_per_asset: float | None = None  # per-asset short notional cap
+    max_short_weight: float | None = None  # alias for per-asset cap
     # If True, raise on violations (unborrowable short, exceeding caps depending on policy).
     strict: bool = False
 
@@ -65,10 +64,14 @@ class ShortingConstraints:
                 continue
             if not isinstance(val, (int, float)) or isinstance(val, bool) or val < 0:
                 errors.append(f"{name} must be non-negative")
-        if isinstance(self.borrow_bps_per_year, dict):
-            for v in self.borrow_bps_per_year.values():
-                if not isinstance(v, (int, float)) or isinstance(v, bool) or v < 0:
-                    errors.append("borrow_bps_per_year values must be non-negative")
+        if (
+            isinstance(self.borrow_bps_per_year, dict)
+            and any(
+                not isinstance(v, (int, float)) or isinstance(v, bool) or v < 0
+                for v in self.borrow_bps_per_year.values()
+            )
+        ):
+            errors.append("borrow_bps_per_year values must be non-negative")
         if self.borrowable is not None and not isinstance(self.borrowable, dict):
             errors.append("borrowable must be a dict")
         if errors:
@@ -109,7 +112,7 @@ def _clean_df(df):
     return df.replace([np.inf, -np.inf], np.nan)
 
 
-def apply_shorting_constraints(signals_or_weights, constraints: Optional[ShortingConstraints] = None,
+def apply_shorting_constraints(signals_or_weights, constraints: ShortingConstraints | None = None,
                                 **kwargs):
     """Apply shorting constraints to signals/weights.
 
@@ -202,12 +205,11 @@ def apply_shorting_constraints(signals_or_weights, constraints: Optional[Shortin
 
         # Check borrowability first
         for c in weights.columns:
-            if row[c] < 0:  # short
-                if not constraints.is_borrowable(c):
-                    if getattr(constraints, "strict", False):
-                        raise BABShortingError(f"Asset {c} not borrowable")
-                    else:
-                        row[c] = 0.0  # remove short if not strict
+            if row[c] < 0 and not constraints.is_borrowable(c):
+                if getattr(constraints, "strict", False):
+                    raise BABShortingError(f"Asset {c} not borrowable")
+                else:
+                    row[c] = 0.0  # remove short if not strict
 
         # Per-asset short cap
         per_asset_cap = constraints.max_short_notional_per_asset
@@ -216,9 +218,8 @@ def apply_shorting_constraints(signals_or_weights, constraints: Optional[Shortin
             if cap < 0:
                 raise BABShortingError("max_short_notional_per_asset must be non-negative")
             for c in weights.columns:
-                if row[c] < 0:
-                    if abs(row[c]) > cap + 1e-12:
-                        row[c] = -cap  # scale down to cap
+                if row[c] < 0 and abs(row[c]) > cap + 1e-12:
+                    row[c] = -cap  # scale down to cap
 
         # Total short exposure cap
         total_cap = constraints.max_short_exposure if constraints.max_short_exposure is not None else constraints.max_short_leverage

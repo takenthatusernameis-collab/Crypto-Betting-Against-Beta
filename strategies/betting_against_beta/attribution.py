@@ -109,12 +109,9 @@ def attribution_totals(attribution_df: pd.DataFrame) -> dict:
     gross = _finite_sum(df["gross_return"]) if "gross_return" in df.columns else 0.0
     cost = _finite_sum(df["cost_drag"]) if "cost_drag" in df.columns else 0.0
     slip = _finite_sum(df["slippage_drag"]) if "slippage_drag" in df.columns else 0.0
-    if "net_return" in df.columns:
-        net = _finite_sum(df["net_return"])
-    else:
-        net = gross - cost - slip
+    net = _finite_sum(df["net_return"]) if "net_return" in df.columns else gross - cost - slip
     denom = abs(gross)
-    if denom == 0 or not (denom == denom):  # NaN check
+    if denom == 0 or denom != denom:  # NaN check
         cost_share = 0.0
         slip_share = 0.0
     else:

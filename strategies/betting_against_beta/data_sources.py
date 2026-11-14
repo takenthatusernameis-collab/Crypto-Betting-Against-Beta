@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 from abc import ABC, abstractmethod
 from pathlib import Path
 
@@ -74,10 +75,8 @@ class DataCache:
     def get(self, key: str) -> pd.DataFrame | None:
         if key in self._cache:
             # move to end (LRU-ish)
-            try:
+            with contextlib.suppress(ValueError):
                 self._order.remove(key)
-            except ValueError:
-                pass
             self._order.append(key)
             # return a copy to avoid external mutation
             cached = self._cache[key]
@@ -88,10 +87,8 @@ class DataCache:
 
     def set(self, key: str, df: pd.DataFrame) -> None:
         if key in self._cache:
-            try:
+            with contextlib.suppress(ValueError):
                 self._order.remove(key)
-            except ValueError:
-                pass
         self._cache[key] = df.copy() if isinstance(df, pd.DataFrame) else df
         self._order.append(key)
         while len(self._order) > self.max_entries:

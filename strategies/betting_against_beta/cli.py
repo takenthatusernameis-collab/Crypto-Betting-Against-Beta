@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
 import json
 import os
 from pathlib import Path
@@ -190,10 +191,7 @@ def _coerce_finite_scalar(value, default=1.0):
             return float(default)
         if isinstance(value, bool):
             return float(value)
-        if isinstance(value, (int, float)):
-            f = float(value)
-        else:
-            f = float(value)
+        f = float(value)
         if not _np.isfinite(f):
             return float(default)
         return f
@@ -552,10 +550,8 @@ def main(argv=None) -> int:
     try:
         print(f"Final cumulative return: {cum_out:.6f}")
     except Exception as exc:
-        try:
+        with contextlib.suppress(Exception):
             print(f"Error printing cumulative return: {exc}")
-        except Exception:
-            pass
         return 1
     bt = getattr(result, "backtest", None)
     periods = 0
@@ -567,10 +563,8 @@ def main(argv=None) -> int:
     try:
         print(f"Periods: {periods}")
     except Exception as exc:
-        try:
+        with contextlib.suppress(Exception):
             print(f"Error printing periods: {exc}")
-        except Exception:
-            pass
         return 1
 
     # --output handling: write defensively (path already validated).

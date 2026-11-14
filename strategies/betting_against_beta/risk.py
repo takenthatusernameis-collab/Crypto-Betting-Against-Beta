@@ -13,7 +13,6 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
-from typing import Optional
 
 import numpy as np
 import pandas as pd
@@ -28,9 +27,9 @@ class KillSwitchEvent:
     """
 
     triggered: bool
-    date: Optional[object]
+    date: object | None
     observed_drawdown: float
-    limit: Optional[float]
+    limit: float | None
 
     def to_dict(self) -> dict:
         return {
@@ -67,7 +66,7 @@ def compute_running_drawdown(cumulative: pd.Series) -> pd.Series:
 def apply_kill_switch(
     weights: pd.DataFrame,
     cumulative: pd.Series,
-    limit: Optional[float],
+    limit: float | None,
 ) -> tuple[pd.DataFrame, KillSwitchEvent]:
     """Monitor running drawdown; on first breach flatten weights from breach date on.
 

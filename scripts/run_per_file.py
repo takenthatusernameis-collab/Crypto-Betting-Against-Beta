@@ -27,7 +27,7 @@ def main() -> int:
     if args.filter:
         files = [f for f in files if args.filter in f.name]
 
-    green = red = skipped_total = passed_total = 0
+    green = red = 0
     red_files = []
     for f in files:
         cmd = [sys.executable, "-m", "pytest", "-q", str(f)]

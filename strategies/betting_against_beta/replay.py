@@ -12,7 +12,6 @@ from __future__ import annotations
 import hashlib
 import json
 import math
-from typing import Optional
 
 import numpy as np
 import pandas as pd
@@ -47,8 +46,8 @@ class ReplayHarness:
     def __init__(
         self,
         result: BABResult,
-        prices_df: Optional[pd.DataFrame] = None,
-        returns_df: Optional[pd.DataFrame] = None,
+        prices_df: pd.DataFrame | None = None,
+        returns_df: pd.DataFrame | None = None,
         transaction_costs: float = 0.0,
         slippage: float = 0.0,
     ) -> None:

@@ -16,7 +16,6 @@ import hashlib
 import json
 import math
 from dataclasses import dataclass
-from typing import Optional
 
 import numpy as np
 import pandas as pd
@@ -140,10 +139,10 @@ def _date_key(date) -> str:
 
 def reconcile_costs(
     weights: pd.DataFrame,
-    prices: Optional[pd.DataFrame] = None,
-    adv_usd: Optional[object] = None,
-    model: Optional[TransactionCostModel] = None,
-    executed_fills: Optional[list[dict]] = None,
+    prices: pd.DataFrame | None = None,
+    adv_usd: object | None = None,
+    model: TransactionCostModel | None = None,
+    executed_fills: list[dict] | None = None,
     transaction_costs: float = 0.0,
     slippage: float = 0.0,
 ) -> ReconciliationResult:
@@ -250,7 +249,7 @@ def reconcile_fills_to_backtest(
     weights: pd.DataFrame,
     returns: pd.DataFrame,
     backtest: pd.DataFrame,
-    fills: Optional[list[dict]] = None,
+    fills: list[dict] | None = None,
     transaction_costs: float = 0.0,
     slippage: float = 0.0,
 ) -> ReconciliationResult:
@@ -294,10 +293,7 @@ def reconcile_fills_to_backtest(
     n = len(idx)
 
     # Per-period returns matrix aligned to weights universe.
-    if cols:
-        r_sub = r[cols].reindex(idx)
-    else:
-        r_sub = pd.DataFrame(index=idx, columns=cols)
+    r_sub = r[cols].reindex(idx) if cols else pd.DataFrame(index=idx, columns=cols)
     r_arr = r_sub.to_numpy(dtype=float)
     r_arr = np.where(np.isfinite(r_arr), r_arr, 0.0)
 
@@ -346,17 +342,16 @@ def reconcile_fills_to_backtest(
     deltas: list[float] = []
     equity_value = 1.0
     prev_w = np.zeros(len(cols), dtype=float)
-    target_w = np.zeros(len(cols), dtype=float)
+    target_w = (
+        w.reindex(columns=cols)
+        .apply(pd.to_numeric, errors="coerce")
+        .fillna(0.0)
+        .to_numpy(dtype=float)
+    )
     col_pos = {c: j for j, c in enumerate(cols)}
     for t in range(n):
         date = idx[t]
         date_key = _date_key(date)
-        row_w = w.iloc[t]
-        for c in cols:
-            try:
-                target_w[col_pos[c]] = float(row_w[c])
-            except (TypeError, ValueError):
-                target_w[col_pos[c]] = 0.0
         # Realized positions start at target, then absorb the fill shortfall.
         realized_w = target_w.copy()
         date_filled = filled_by_date.get(date_key, {})

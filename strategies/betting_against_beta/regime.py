@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Optional
-
 import numpy as np
 import pandas as pd
 
@@ -26,7 +24,7 @@ def calculate_realized_volatility(returns: pd.DataFrame, window: int = 20, use_e
 def classify_volatility_regimes(
     returns: pd.DataFrame,
     vol_window: int = 20,
-    thresholds: Optional[list] = None,
+    thresholds: list | None = None,
 ) -> pd.DataFrame:
     """Classify volatility regimes using fixed thresholds."""
     if thresholds is None:
@@ -48,7 +46,7 @@ def classify_volatility_regimes(
 def classify_volatility_regimes_percentile(
     returns: pd.DataFrame,
     vol_window: int = 20,
-    quantiles: Optional[list] = None,
+    quantiles: list | None = None,
 ) -> pd.DataFrame:
     """Classify volatility regimes using rolling percentiles."""
     if quantiles is None:
@@ -69,7 +67,7 @@ def classify_volatility_regimes_percentile(
     return regimes
 
 
-def classify_trend_regime(returns: pd.DataFrame, ma_window: int = 20, z_window: Optional[int] = None) -> pd.DataFrame:
+def classify_trend_regime(returns: pd.DataFrame, ma_window: int = 20, z_window: int | None = None) -> pd.DataFrame:
     """Classify trend regime using a moving average or a z-score.
 
     When ``z_window`` is set, the regime is uptrend (1) where the z-score of
@@ -122,7 +120,7 @@ def get_regime_state(returns: pd.DataFrame, vol_window: int = 20, ma_window: int
 
 def apply_regime_scaling(
     signals: pd.DataFrame,
-    returns: Optional[pd.DataFrame] = None,
+    returns: pd.DataFrame | None = None,
     scale_low_vol: float = 1.0,
     scale_medium_vol: float = 1.0,
     scale_high_vol: float = 0.5,

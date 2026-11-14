@@ -86,13 +86,16 @@ def construct_portfolio(signals_df, dollar_neutral=True, gross_exposure_limit=No
                 try:
                     numeric = signals_df.apply(pd.to_numeric, errors="coerce")
                 except Exception:
-                    numeric = signals_df.copy()
-                    for col in numeric.columns:
-                        try:
-                            numeric[col] = pd.to_numeric(numeric[col], errors="coerce")
-                        except Exception:
-                            numeric[col] = 0.0
-                arr = numeric.to_numpy(dtype=float)
+                    try:
+                        numeric = signals_df.apply(pd.to_numeric, errors="coerce")
+                    except Exception:
+                        numeric = signals_df.copy()
+                        for col in numeric.columns:
+                            try:
+                                numeric[col] = pd.to_numeric(numeric[col], errors="coerce")
+                            except Exception:
+                                numeric[col] = 0.0
+                    arr = numeric.to_numpy(dtype=float)
         except Exception:
             return _pd.DataFrame(0.0, index=index, columns=columns)
         iv = np.trunc(arr)
@@ -122,10 +125,7 @@ def construct_portfolio(signals_df, dollar_neutral=True, gross_exposure_limit=No
 
         # Short side is only written when dollar_neutral or the row has no longs.
         short_rows = (n_short > 0) & (dn | (n_long == 0))
-        if dn:
-            short_scale = short_w
-        else:
-            short_scale = np.where(short_rows, short_w, 0.0)
+        short_scale = short_w if dn else np.where(short_rows, short_w, 0.0)
 
         w_arr = long_mask * long_w[:, None] + short_mask * short_scale[:, None]
         w_arr[~np.isfinite(w_arr)] = 0.0
@@ -296,7 +296,6 @@ def enforce_beta_neutrality(
     if not np.isfinite(target):
         target = 0.0
 
-    te_tol = tracking_error_tolerance if tracking_error_tolerance is not None else tracking_error_limit
 
     cols = list(out.columns)
     w_arr = out.to_numpy(dtype=float, copy=True)

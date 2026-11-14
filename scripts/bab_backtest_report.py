@@ -29,8 +29,7 @@ if str(_REPO_ROOT) not in sys.path:
 
 import pandas as pd
 
-from strategies.betting_against_beta import BABConfig, BABStrategy
-from strategies.betting_against_beta import metrics
+from strategies.betting_against_beta import BABConfig, BABStrategy, metrics
 from strategies.betting_against_beta.errors import BABDataError
 
 
@@ -123,20 +122,25 @@ def _empty_summary() -> dict:
     })
 
 
+def _safe_get_step(current, key, default=None):
+    try:
+        if isinstance(current, dict):
+            if key not in current:
+                return default
+            return current[key]
+        if hasattr(current, "__getitem__"):
+            return current[key]
+        return getattr(current, key)
+    except (KeyError, IndexError, TypeError, AttributeError):
+        return default
+
+
 def _safe_get(obj, *keys, default=None):
     """Walk a nested mapping/attribute chain without raising."""
     current = obj
     for key in keys:
-        try:
-            if isinstance(current, dict):
-                if key not in current:
-                    return default
-                current = current[key]
-            elif hasattr(current, "__getitem__"):
-                current = current[key]
-            else:
-                current = getattr(current, key)
-        except (KeyError, IndexError, TypeError, AttributeError):
+        current = _safe_get_step(current, key, default)
+        if current is default:
             return default
     return current
 
@@ -147,8 +151,8 @@ def _compute_rebalances(weights) -> int:
         if weights is None:
             return 0
         if hasattr(weights, "dropna"):
-            return int(len(weights.dropna(how="all")))
-        return int(len(weights))
+            return len(weights.dropna(how="all"))
+        return len(weights)
     except Exception:
         return 0
 

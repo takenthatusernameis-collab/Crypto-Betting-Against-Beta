@@ -13,10 +13,10 @@ import numpy as np
 import pandas as pd
 
 from strategies.betting_against_beta import BABStrategy
-from strategies.betting_against_beta.beta import calculate_rolling_beta
-from strategies.betting_against_beta.signals import generate_bab_signals
-from strategies.betting_against_beta.portfolio import construct_portfolio
 from strategies.betting_against_beta.backtest import run_backtest
+from strategies.betting_against_beta.beta import calculate_rolling_beta
+from strategies.betting_against_beta.portfolio import construct_portfolio
+from strategies.betting_against_beta.signals import generate_bab_signals
 
 
 def _make_returns(n_days=720, n_assets=12, seed=7):
@@ -66,7 +66,7 @@ def main():
     import tracemalloc
     tracemalloc.start()
     stage_full()
-    current, peak = tracemalloc.get_traced_memory()
+    _current, peak = tracemalloc.get_traced_memory()
     tracemalloc.stop()
     print(f"tracemalloc peak during one run: {peak / 1e6:8.2f} MB")
 

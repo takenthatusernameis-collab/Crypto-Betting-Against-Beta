@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
+import contextlib
 import math
 from dataclasses import dataclass, field
-from typing import List, Optional
 
 
 def _is_finite_number(value) -> bool:
@@ -43,7 +43,7 @@ def _dedupe_preserve_order(items: list) -> list:
 @dataclass(frozen=False)
 class BABConfig:
     """Configuration for BAB strategy."""
-    universe: Optional[List[str]] = field(default_factory=lambda: list(_DEFAULT_UNIVERSE))
+    universe: list[str] | None = field(default_factory=lambda: list(_DEFAULT_UNIVERSE))
 
     benchmark: str = "BTC"
     beta_window: int = 90  # days for rolling beta calculation
@@ -54,7 +54,7 @@ class BABConfig:
     min_observations: int = 60
     # Data source configuration. When None, synthetic data is generated.
     # Otherwise pass a path (CSV/JSON) or a pandas DataFrame to BABStrategy.run().
-    data_source: Optional[object] = None
+    data_source: object | None = None
     # Minimum number of return rows required when loading real data.
     min_rows: int = 2
     # Transaction costs as a fraction of turnover (applied in backtest).
@@ -62,9 +62,9 @@ class BABConfig:
     # Slippage as a fraction of turnover (applied in backtest).
     slippage: float = 0.0
     # Liquidity/participation constraints (lightweight guards; no-op if data absent)
-    max_turnover: Optional[float] = None  # max daily turnover (sum of |Δw|/2 or total turnover) if enforced
-    max_position_size: Optional[float] = None  # max |weight| per asset
-    max_total_turnover: Optional[float] = None  # alias for max_turnover
+    max_turnover: float | None = None  # max daily turnover (sum of |Δw|/2 or total turnover) if enforced
+    max_position_size: float | None = None  # max |weight| per asset
+    max_total_turnover: float | None = None  # alias for max_turnover
     # Rolling beta parameters.
     rolling_min_window: int = 60
     # Seed for synthetic data generation.
@@ -73,21 +73,21 @@ class BABConfig:
     synthetic_n_days: int = 252
     # Optional fixed universe override when loading from a data source.
     # When None, the universe is derived from the data columns.
-    universe_override: Optional[List[str]] = None
+    universe_override: list[str] | None = None
     # Dynamic position sizing (optional): instance of sizer or string shorthand
-    position_sizer: Optional[object] = None
+    position_sizer: object | None = None
     # Shorting constraints (borrow costs, availability, caps)
-    shorting_constraints: Optional[object] = None
+    shorting_constraints: object | None = None
     # Regime detection parameters
     regime_filter: bool = False
     regime_method: str = "vol"  # "vol" | "trend" | "combined"
     vol_window: int = 20
     vol_use_ewma: bool = False
-    vol_thresholds: Optional[tuple[float, ...]] = None  # fixed vol band edges (low, high)
-    vol_percentiles: Optional[tuple[float, float]] = None  # percentile band edges (None => (0.33, 0.66) effective)
+    vol_thresholds: tuple[float, ...] | None = None  # fixed vol band edges (low, high)
+    vol_percentiles: tuple[float, float] | None = None  # percentile band edges (None => (0.33, 0.66) effective)
     vol_hysteresis: float = 0.0  # regime-change hysteresis margin in [0, 1]
     trend_ma_window: int = 50
-    trend_z_window: Optional[int] = None  # z-score window for trend regime (None => moving average)
+    trend_z_window: int | None = None  # z-score window for trend regime (None => moving average)
     regime_scale_high: float = 0.5  # scale applied in high-risk regime
     regime_scale_low: float = 1.0   # scale applied in low-risk regime
     # Beta-neutral enforcement parameters
@@ -96,21 +96,21 @@ class BABConfig:
     beta_target: float = 0.0
     beta_tolerance: float = 1e-4
     max_beta_drift: float = 1e-4
-    tracking_error_tolerance: Optional[float] = None
-    tracking_error_limit: Optional[float] = None
+    tracking_error_tolerance: float | None = None
+    tracking_error_limit: float | None = None
     enable_tracking_error_monitoring: bool = False
     beta_neutral_correction: bool = True
     beta_neutral_adjustment: bool = True
     # R3-A: realistic execution cost model (impact/participation/borrow asymmetry).
     # When None the strategy uses only the flat transaction_costs/slippage path
     # (byte-identical to pre-R3). A dict is coerced into TransactionCostModel.
-    cost_model: Optional[object] = None
+    cost_model: object | None = None
     # R3-A: prices DataFrame (or loader path) required for the square-root
     # impact term. When None the impact term is skipped (not an error).
-    prices: Optional[object] = None
+    prices: object | None = None
     # R3-A: ADV in dollars per asset (dict/Series/DataFrame). When None the
     # impact term is skipped for all assets.
-    adv_usd: Optional[object] = None
+    adv_usd: object | None = None
     # R3-A: opt-in participation-aware partial-fill realism. When False the
     # slippage path is a no-op (bit-identical to flat slippage only).
     partial_fill: bool = False
@@ -120,7 +120,7 @@ class BABConfig:
     # the book is flattened (weights -> 0) from the breach date onward and a
     # kill_switch event is emitted in report(). When None (default) the default
     # path is byte-identical to pre-R4 (no monitoring, no flattening).
-    max_drawdown_limit: Optional[float] = None
+    max_drawdown_limit: float | None = None
 
     def __post_init__(self):
         # Normalize shorting_constraints if passed as dict
@@ -175,10 +175,8 @@ class BABConfig:
             )
         self._validate_ranges()
         # Freeze after validation to prevent downstream mutation
-        try:
+        with contextlib.suppress(Exception):
             object.__setattr__(self, "_frozen", True)
-        except Exception:
-            pass
 
     def __setattr__(self, name, value):
         if getattr(self, "_frozen", False) and name != "_frozen":
@@ -356,7 +354,7 @@ class BABConfig:
         if errors:
             raise BABConfigError("; ".join(errors))
 
-    def resolved_universe(self, returns_columns: list[str] | None = None) -> List[str]:
+    def resolved_universe(self, returns_columns: list[str] | None = None) -> list[str]:
         """Return the effective universe.
 
         - If ``universe_override`` is set, use it (intersected with available columns).

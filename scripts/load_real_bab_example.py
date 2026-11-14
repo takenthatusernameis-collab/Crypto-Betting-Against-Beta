@@ -113,7 +113,7 @@ def main() -> int:
         universe = args.universe if args.universe else []
         summary = {
             "final_cumulative": float(cum),
-            "periods": int(len(bt)) if bt is not None and hasattr(bt, "__len__") else 0,
+            "periods": len(bt) if bt is not None and hasattr(bt, "__len__") else 0,
             "benchmark": args.benchmark,
             "universe": [str(u) for u in universe],
         }

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -64,7 +63,7 @@ class VolatilityTargetSizer(_BaseSizer):
 class RiskParitySizer(_BaseSizer):
     lookback: int = 60
     max_leverage: float = 1.0
-    target_vol: Optional[float] = None
+    target_vol: float | None = None
     annualize: int = 252
 
     def __post_init__(self):
@@ -105,7 +104,7 @@ def _get_base_weights(signals: pd.DataFrame) -> pd.DataFrame:
 def apply_position_sizing(signals: pd.DataFrame,
                            returns: pd.DataFrame = None,
                            betas: pd.DataFrame = None,
-                           sizer: Union[KellySizer, VolatilityTargetSizer, RiskParitySizer, EqualWeightSizer, str] = None,
+                           sizer: KellySizer | VolatilityTargetSizer | RiskParitySizer | EqualWeightSizer | str = None,
                            **kwargs) -> pd.DataFrame:
     """Apply position sizing to signals/returns and produce scaled weights.
 

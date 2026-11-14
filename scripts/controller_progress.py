@@ -18,7 +18,6 @@ import argparse
 import json
 import subprocess
 import sys
-from pathlib import Path
 
 # Pathspec patterns that are always excluded from meaningful progress.
 # Both top-level and nested variants are listed so that vendored environments
@@ -92,10 +91,7 @@ def _is_excluded(path: str) -> bool:
     """Check if a path should be excluded from meaningful progress."""
     import fnmatch
 
-    for pattern in EXCLUDE_PATTERNS:
-        if fnmatch.fnmatch(path, pattern):
-            return True
-    return False
+    return any(fnmatch.fnmatch(path, pattern) for pattern in EXCLUDE_PATTERNS)
 
 
 def list_meaningful_changes(base_sha: str, head_sha: str) -> list[str]:
