@@ -251,6 +251,7 @@ tests/test_bab_dryrun_risk_report_r4.py
 tests/test_bab_e2e_performance_guard.py
 tests/test_bab_execution_integration_r5.py
 tests/test_bab_execution_realism_r3.py
+tests/test_bab_execution_realism_r5e.py
 tests/test_bab_integration_chaos_campaign.py
 tests/test_bab_loader_more.py
 tests/test_bab_loader_quality_heavy.py
