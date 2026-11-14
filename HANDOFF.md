@@ -2,15 +2,15 @@
 
 **Repo:** `crypto-betting-against-beta` — Betting Against Beta (BAB) market-neutral crypto strategy (long low-beta / short high-beta vs benchmark, default BTC). See `README.md`, `strategies/betting_against_beta/`. **Priority basis:** the repo *is* the BAB strategy engine, so correctness + live-readiness of the strategy outranks tooling/coverage-chasing.
 
-**Refreshed:** 2026-11-14T03:56:48Z (UTC)
-**HEAD at refresh:** `34af42d` (main).
+**Refreshed:** 2026-11-14T04:03:05Z (UTC)
+**HEAD at refresh:** `93b0c10` (main). Baseline re-verified green on current HEAD (see VERIFIED EVIDENCE SNAPSHOT). **Live run wins** — re-measure, record the delta, update this file.
 **Single source of truth:** this file. `AGENT_HANDOFF.md` is a pointer only. Read this whole file before doing anything. Do not create parallel handoff docs. If live evidence conflicts with a recorded number here, **live run wins** — re-measure, record the delta, update this file.
 
 ---
 
-## INITIAL TASK MESSAGE (START HERE, 2026-11-14T03:56:48Z UTC)
+## INITIAL TASK MESSAGE (START HERE, 2026-11-14T04:03:05Z UTC)
 
-**Do not idle on analysis.** R1–R4 are shipped on prior evidence; your job is to drive **R5 Execution Integration** to tested, evidence-backed completion while preserving default-path behavior.
+**Do not idle on analysis.** R1–R4 are shipped on prior evidence; your job is to drive **R5 Execution Integration** to tested, evidence-backed completion while preserving default-path behavior. R5 (adapter contract + slippage/impact reconciliation + executed-fills backtest reconciliation) has not been started — treat it as the binding next focus campaign.
 
 **Immediate sequence (execute now):**
 1. **Bootstrap env (idempotent, never a blocker):**
@@ -37,16 +37,16 @@
 
 ---
 
-## VERIFIED EVIDENCE SNAPSHOT (captured on HEAD `d84968c`, 2026-11-14T03:39:22Z)
+## VERIFIED EVIDENCE SNAPSHOT (captured on HEAD `93b0c10`, 2026-11-14T04:03:05Z)
 
 Re-verify on current `HEAD` before claiming green; do not trust these numbers without fresh output.
 
 | Check | Command | Result |
 |---|---|---|
-| R2 preflight | `PYTHONPATH=. "$VENV/bin/python" scripts/bab_r2_preflight.py` | **RC=0** — 155 passed, 6 warnings, 31.02s |
-| Live scale (median/9 warm) | same preflight | 5000×200 = **165 ms** (≤800 ms), 5000×500 = **379 ms** (≤2000 ms) |
-| R4 preflight | `PYTHONPATH=. "$VENV/bin/python" scripts/bab_r4_preflight.py` | **RC=0** — R4-A/B/C present + green; R2/R3 baseline green (217 passed, 33.60s) |
-| Full gate | `PATH="$VENV/bin:$PATH" bash scripts/bab_gate.sh` | **RC=0** — **5621 passed / 35 skipped / 418.43s / coverage 95%** |
+| R2 preflight | `PYTHONPATH=. "$VENV/bin/python" scripts/bab_r2_preflight.py` | **RC=0** — 155 passed, 6 warnings, 31.82s |
+| Live scale (median/9 warm) | same preflight | 5000×200 = **156 ms** (≤800 ms), 5000×500 = **381 ms** (≤2000 ms) |
+| R4 preflight | `PYTHONPATH=. "$VENV/bin/python" scripts/bab_r4_preflight.py` | **RC=0** — R4-A/B/C present + green; R2/R3 baseline green (217 passed, 32.17s) |
+| Full gate | `PATH="$VENV/bin:$PATH" bash scripts/bab_gate.sh` | **RC=0** — **5621 passed / 35 skipped / 416.03s / coverage 95%** |
 
 `VENV=/home/runner/work/_temp/kilo-tmp/bab-venv` may or may not exist on a fresh runner; bootstrap idempotently (below).
 
@@ -62,7 +62,7 @@ Re-verify on current `HEAD` before claiming green; do not trust these numbers wi
 
 ---
 
-## R5 CAMPAIGN (binding, 2026-11-14T03:56:48Z, execute in order)
+## R5 CAMPAIGN (binding, 2026-11-14T04:03:05Z, execute in order)
 
 **Objective:** make the strategy executable-adapter-ready with evidence-backed realism, without regressing R1–R4.
 
@@ -77,21 +77,6 @@ Re-verify on current `HEAD` before claiming green; do not trust these numbers wi
 ---
 
 ## MANDATORY START (every session, ~90s, idempotent)
-
-```bash
-VENV=/home/runner/work/_temp/kilo-tmp/bab-venv
-if [ ! -d "$VENV" ]; then python3 -m venv "$VENV"; fi
-"$VENV/bin/python" -m pip install --quiet --upgrade pip
-"$VENV/bin/python" -m pip install --quiet "numpy==2.5.4" "pandas==3.1.1" "scipy==1.18.1" "pytest==9.2.0" "hypothesis==6.170.15" "coverage==7.17.3" "pytest-cov==7.1.0"
-
-cd /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
-PYTHONPATH=. "$VENV/bin/python" scripts/bab_r2_preflight.py; echo "PREFLIGHT_RC=$?"
-PYTHONPATH=. "$VENV/bin/python" scripts/bab_r4_preflight.py; echo "R4_PREFLIGHT_RC=$?"
-# Full gate (after targeted/preflights green): PATH="$VENV/bin:$PATH" bash scripts/bab_gate.sh
-```
-- `bab_gate.sh` invokes bare `python3`; **prefix `PATH="$VENV/bin:$PATH"`**.
-- Do **not** claim missing deps as blockers — run bootstrap above.
-- Do **not** claim green without fresh command output on current `HEAD`.
 
 ---
 
