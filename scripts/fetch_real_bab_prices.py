@@ -8,23 +8,30 @@ This script produces/updates a CSV in the exact schema consumed by
   - benchmark column present (default BTC)
   - numeric price columns per asset
 
-Data source and licensing:
-  - Default source: `deterministic-offline` synthetic market-walk generator
-    embedded in this repository (reproducible, no network, no credentials,
-    no third-party data licensing concerns). It is intended for reproducible
-    local/research runs and CI/offline environments.
-  - Optional source: `fixture` copies from a local fixture/path you provide
-    (`--fixture-path`) and can incrementally extend it deterministically.
-  - This script NEVER performs silent network fetches. Non-deterministic or
-    unavailable external sources fail loudly with an explicit error and a
-    suggested offline alternative.
+Data sources and licensing/ToS:
+  - Default: `deterministic-offline` synthetic market-walk generator embedded
+    in this repository (reproducible, no network, no credentials, no
+    third-party data licensing concerns). This is the only default path.
+  - `fixture`: copies from a local fixture/path you provide (`--fixture-path`)
+    and can incrementally extend it deterministically.
+  - Explicit opt-in: `coinbase-exchange-public` fetches daily candles from the
+    public Coinbase Exchange market-data endpoint (no auth, no API key).
+    Network use is NEVER implicit: you must pass
+    `--source coinbase-exchange-public --allow-public-api --accept-terms
+    "I accept the data provider Terms of Service and rate limits"`.
+    The script enforces bounded rate-limit pacing, fails loudly on
+    network/HTTP/rate-limit/ToS/invalid-source/parse errors, and never silently
+    falls back to bad or synthetic data. Review Coinbase's current Terms of
+    Service, market-data policies, and rate limits before use; data
+    redistribution may be restricted by the provider.
 
 Idempotent incremental updates:
   - If output exists, existing rows are preserved in order for dates already
     present (no history corruption). New rows are appended only for dates
     strictly after the existing last date (or missing dates when merging a
     validated source frame), deduped by date, sorted, and validated.
-  - Re-running with the same arguments yields the same file content.
+  - Re-running with the same arguments yields the same file content for
+    deterministic sources.
 
 Example:
   python scripts/fetch_real_bab_prices.py --output data/real_bab_prices.csv \
@@ -35,7 +42,13 @@ Example:
 from __future__ import annotations
 
 import argparse
+import json
 import sys
+import time
+import urllib.error
+import urllib.parse
+import urllib.request
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import numpy as np
@@ -49,6 +62,14 @@ from strategies.betting_against_beta.data_loader import (  # noqa: E402
     BABDataError,
     load_prices,
 )
+
+COINBASE_PUBLIC_SOURCE = "coinbase-exchange-public"
+COINBASE_PUBLIC_BASE_URL = "https://api.exchange.coinbase.com"
+COINBASE_PUBLIC_TOS_ACK = "I accept the data provider Terms of Service and rate limits"
+COINBASE_PUBLIC_MAX_REQUESTS_PER_SECOND = 3.0
+COINBASE_PUBLIC_DEFAULT_TIMEOUT = 20.0
+COINBASE_PUBLIC_MAX_RETRIES = 2
+COINBASE_PUBLIC_USER_AGENT = "crypto-bab-research-fetch/1.0"
 
 DEFAULT_UNIVERSE = ["BTC", "ETH", "SOL", "BNB", "XRP", "ADA", "AVAX", "DOT", "LINK"]
 DEFAULT_STARTS = {
@@ -204,6 +225,266 @@ def _incremental_update(
     return _validate_schema_contract(merged, benchmark=benchmark)
 
 
+def _parse_iso_date(value: str, flag: str) -> datetime:
+    try:
+        dt = datetime.strptime(str(value), "%Y-%m-%d")
+    except Exception as exc:
+        raise BABDataError(f"{flag} must be YYYY-MM-DD: {value!r}") from exc
+    return dt.replace(tzinfo=timezone.utc)
+
+
+def _enforce_public_api_opt_in(
+    source: str, allow_public_api: bool, accept_terms: str | None
+) -> None:
+    if not allow_public_api:
+        raise BABDataError(
+            f"--source {source} requires explicit opt-in --allow-public-api; "
+            "network fetches are disabled by default. "
+            "Use --source deterministic-offline for the offline path."
+        )
+    if accept_terms != COINBASE_PUBLIC_TOS_ACK:
+        raise BABDataError(
+            f"--source {source} requires explicit ToS/rate-limit acknowledgement "
+            f"via --accept-terms {COINBASE_PUBLIC_TOS_ACK!r}. "
+            "Review provider Terms of Service and rate limits before use."
+        )
+
+
+def _coinbase_product(symbol: str, quote_currency: str) -> str:
+    sym = str(symbol).strip().upper()
+    quote = str(quote_currency).strip().upper()
+    if not sym or not quote:
+        raise BABDataError("symbol and quote currency must be non-empty")
+    return f"{sym}-{quote}"
+
+
+def _rate_limit_wait(
+    last_request_at: float | None, max_requests_per_second: float
+) -> float:
+    if max_requests_per_second <= 0:
+        raise BABDataError("--max-requests-per-second must be > 0")
+    min_interval = 1.0 / float(max_requests_per_second)
+    now = time.monotonic()
+    if last_request_at is not None:
+        sleep_for = min_interval - (now - last_request_at)
+        if sleep_for > 0:
+            time.sleep(sleep_for)
+            now = time.monotonic()
+    return now
+
+
+def _http_get_json(
+    url: str,
+    timeout: float,
+    max_requests_per_second: float,
+    last_request_at: float | None,
+    retries: int = COINBASE_PUBLIC_MAX_RETRIES,
+) -> tuple[object, float]:
+    attempt = 0
+    while True:
+        attempt += 1
+        last_request_at = _rate_limit_wait(last_request_at, max_requests_per_second)
+        req = urllib.request.Request(
+            url,
+            headers={
+                "Accept": "application/json",
+                "User-Agent": COINBASE_PUBLIC_USER_AGENT,
+            },
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=float(timeout)) as resp:
+                status = getattr(resp, "status", None) or resp.getcode()
+                body = resp.read()
+            if status != 200:
+                raise BABDataError(f"HTTP {status} from public API: {url}")
+            try:
+                return json.loads(body.decode("utf-8")), last_request_at
+            except Exception as exc:
+                raise BABDataError(f"invalid JSON from public API: {url}") from exc
+        except urllib.error.HTTPError as exc:
+            status = int(getattr(exc, "code", 0) or 0)
+            headers = getattr(exc, "headers", None) or {}
+            retry_after = headers.get("Retry-After")
+            body_msg = ""
+            try:
+                body_msg = exc.read().decode("utf-8", errors="replace")[:200]
+            except Exception:
+                body_msg = ""
+            if status == 429:
+                if attempt > retries:
+                    raise BABDataError(
+                        f"public API rate limit (HTTP 429) after retries for {url}"
+                        + (f": {body_msg}" if body_msg else "")
+                    ) from exc
+                wait_s = 1.0
+                try:
+                    if retry_after is not None:
+                        wait_s = max(wait_s, float(retry_after))
+                except Exception:
+                    wait_s = 1.0
+                time.sleep(wait_s)
+                continue
+            if status in {500, 502, 503, 504} and attempt <= retries:
+                time.sleep(0.5 * attempt)
+                continue
+            raise BABDataError(
+                f"public API HTTP error {status} for {url}"
+                + (f": {body_msg}" if body_msg else "")
+            ) from exc
+        except (urllib.error.URLError, TimeoutError, OSError) as exc:
+            if attempt > retries:
+                raise BABDataError(
+                    f"network error contacting public API {url}: {exc}. "
+                    "No offline fallback was used; retry later or use "
+                    "--source deterministic-offline/fixture."
+                ) from exc
+            time.sleep(0.5 * attempt)
+            continue
+
+
+def _fetch_coinbase_candles(
+    product: str,
+    start: datetime,
+    end: datetime,
+    timeout: float,
+    max_requests_per_second: float,
+    last_request_at: float | None,
+) -> tuple[list, float]:
+    params = urllib.parse.urlencode(
+        {
+            "granularity": "86400",
+            "start": start.strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "end": end.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        }
+    )
+    url = f"{COINBASE_PUBLIC_BASE_URL}/products/{urllib.parse.quote(product)}/candles?{params}"
+    payload, last_request_at = _http_get_json(
+        url,
+        timeout=timeout,
+        max_requests_per_second=max_requests_per_second,
+        last_request_at=last_request_at,
+    )
+    if not isinstance(payload, list):
+        raise BABDataError(
+            f"unexpected public API response for {product}: expected candle list"
+        )
+    return payload, last_request_at
+
+
+def _coinbase_candles_to_daily_close(
+    payload: list, product: str, start_date: str, end_date: str
+) -> pd.Series:
+    rows: dict[str, float] = {}
+    for item in payload:
+        if not isinstance(item, (list, tuple)) or len(item) < 5:
+            raise BABDataError(f"invalid candle row for {product}: {item!r}")
+        ts_raw, _low, _high, _open, close = item[0], item[1], item[2], item[3], item[4]
+        try:
+            day = datetime.fromtimestamp(float(ts_raw), tz=timezone.utc).strftime(
+                "%Y-%m-%d"
+            )
+        except Exception as exc:
+            raise BABDataError(
+                f"invalid candle timestamp for {product}: {ts_raw!r}"
+            ) from exc
+        try:
+            close_v = float(close)
+        except Exception as exc:
+            raise BABDataError(f"invalid candle close for {product} on {day}") from exc
+        if not np.isfinite(close_v) or close_v <= 0:
+            raise BABDataError(f"non-positive/non-finite close for {product} on {day}")
+        if day < start_date or day > end_date:
+            continue
+        # Coinbase returns buckets in reverse-ish order across windows; keep the
+        # latest-seen close for the UTC day (deterministic overwrite by parse order
+        # is avoided by explicit day key replacement only when absent).
+        rows.setdefault(day, close_v)
+    if not rows:
+        raise BABDataError(
+            f"public API returned no usable daily candles for {product} in "
+            f"{start_date}..{end_date}"
+        )
+    s = pd.Series(rows, name=product.split("-")[0], dtype="float64")
+    s.index = pd.Index(sorted(s.index), name="date")
+    return s.sort_index()
+
+
+def _fetch_coinbase_exchange_public(
+    symbols: list[str],
+    start: str,
+    end: str,
+    benchmark: str,
+    quote_currency: str,
+    allow_public_api: bool,
+    accept_terms: str | None,
+    timeout: float,
+    max_requests_per_second: float,
+) -> pd.DataFrame:
+    _enforce_public_api_opt_in(
+        COINBASE_PUBLIC_SOURCE, allow_public_api=allow_public_api, accept_terms=accept_terms
+    )
+    start_dt = _parse_iso_date(start, "--start")
+    end_dt = _parse_iso_date(end, "--end")
+    if end_dt < start_dt:
+        raise BABDataError("--end must be >= --start")
+    # Coinbase candles endpoint takes [start,end) ISO windows; request in chunks.
+    chunk_days = 250
+    all_series: list[pd.Series] = []
+    last_request_at: float | None = None
+    for symbol in symbols:
+        product = _coinbase_product(symbol, quote_currency)
+        chunk_start = start_dt
+        candles: list = []
+        while chunk_start <= end_dt:
+            chunk_end_exclusive = min(
+                end_dt + timedelta(days=1), chunk_start + timedelta(days=chunk_days)
+            )
+            payload, last_request_at = _fetch_coinbase_candles(
+                product=product,
+                start=chunk_start,
+                end=chunk_end_exclusive,
+                timeout=timeout,
+                max_requests_per_second=max_requests_per_second,
+                last_request_at=last_request_at,
+            )
+            candles.extend(payload)
+            chunk_start = chunk_end_exclusive
+        series = _coinbase_candles_to_daily_close(
+            candles, product=product, start_date=start, end_date=end
+        )
+        series.name = symbol
+        all_series.append(series)
+    out = pd.concat(all_series, axis=1)
+    if benchmark not in out.columns:
+        raise BABDataError(
+            f"public API result missing benchmark column {benchmark!r}"
+        )
+    # Keep rows where all requested symbols have data to satisfy strict loader
+    # contract and avoid silent partial alignment.
+    before = len(out)
+    out = out.dropna(how="any")
+    if out.empty:
+        raise BABDataError(
+            "public API fetch produced no rows with complete symbol coverage; "
+            "check symbol availability on the chosen public market"
+        )
+    if len(out) < 2:
+        raise BABDataError(
+            "public API fetch produced insufficient rows for returns computation"
+        )
+    df = out.reset_index().rename(columns={"index": "date"})
+    df["date"] = pd.to_datetime(df["date"], errors="raise").dt.strftime("%Y-%m-%d")
+    if df["date"].duplicated().any():
+        raise BABDataError("public API fetch produced duplicate dates")
+    if not df["date"].is_monotonic_increasing:
+        df = df.sort_values("date").reset_index(drop=True)
+    if len(df) != before:
+        # Inform via returned frame shape only; caller prints metadata.
+        pass
+    cols = ["date", benchmark] + [c for c in symbols if c != benchmark and c in df.columns]
+    return df[cols]
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="Fetch/update deterministic real-format BAB price data"
@@ -226,13 +507,59 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--source",
         default="deterministic-offline",
-        choices=["deterministic-offline", "fixture"],
-        help="Data source (external/network sources fail loudly; not supported).",
+        choices=["deterministic-offline", "fixture", COINBASE_PUBLIC_SOURCE],
+        help=(
+            "Data source. Default deterministic-offline (no network). "
+            f"{COINBASE_PUBLIC_SOURCE} is an explicit no-auth public API opt-in "
+            "requiring --allow-public-api and --accept-terms."
+        ),
     )
     parser.add_argument(
         "--fixture-path",
         default=None,
         help="Local CSV path when --source fixture (must be load_prices-compatible)",
+    )
+    parser.add_argument(
+        "--allow-public-api",
+        action="store_true",
+        help=(
+            f"Required explicit opt-in for --source {COINBASE_PUBLIC_SOURCE}; "
+            "without this flag network fetches are refused."
+        ),
+    )
+    parser.add_argument(
+        "--accept-terms",
+        default=None,
+        help=(
+            f"Required for --source {COINBASE_PUBLIC_SOURCE}; must exactly match: "
+            f"{COINBASE_PUBLIC_TOS_ACK!r}"
+        ),
+    )
+    parser.add_argument(
+        "--quote-currency",
+        default="USD",
+        help=(
+            f"Quote currency for --source {COINBASE_PUBLIC_SOURCE} product pairs "
+            "(default: USD)."
+        ),
+    )
+    parser.add_argument(
+        "--request-timeout",
+        type=float,
+        default=COINBASE_PUBLIC_DEFAULT_TIMEOUT,
+        help=(
+            f"HTTP timeout seconds for --source {COINBASE_PUBLIC_SOURCE} "
+            f"(default: {COINBASE_PUBLIC_DEFAULT_TIMEOUT})."
+        ),
+    )
+    parser.add_argument(
+        "--max-requests-per-second",
+        type=float,
+        default=COINBASE_PUBLIC_MAX_REQUESTS_PER_SECOND,
+        help=(
+            f"Rate-limit pacing cap for --source {COINBASE_PUBLIC_SOURCE} "
+            f"(default: {COINBASE_PUBLIC_MAX_REQUESTS_PER_SECOND})."
+        ),
     )
     parser.add_argument(
         "--seed", type=int, default=None, help="Optional deterministic RNG seed override"
@@ -273,10 +600,33 @@ def main(argv: list[str] | None = None) -> int:
             source_license = (
                 "repository-generated synthetic market data (no third-party data license)"
             )
+        elif args.source == COINBASE_PUBLIC_SOURCE:
+            new_df = _fetch_coinbase_exchange_public(
+                symbols=symbols,
+                start=args.start,
+                end=args.end,
+                benchmark=args.benchmark,
+                quote_currency=args.quote_currency,
+                allow_public_api=args.allow_public_api,
+                accept_terms=args.accept_terms,
+                timeout=args.request_timeout,
+                max_requests_per_second=args.max_requests_per_second,
+            )
+            new_df = _validate_schema_contract(
+                new_df, benchmark=args.benchmark, symbols=symbols
+            )
+            source_name = (
+                f"{COINBASE_PUBLIC_SOURCE} ({COINBASE_PUBLIC_BASE_URL}, no-auth public API)"
+            )
+            source_license = (
+                "Coinbase Exchange public market data; subject to provider Terms of "
+                "Service/rate limits and possible redistribution restrictions"
+            )
         else:
             raise BABDataError(
                 f"unsupported/unavailable source {args.source!r}; "
-                "use --source deterministic-offline or --source fixture"
+                "use --source deterministic-offline, --source fixture, or "
+                f"--source {COINBASE_PUBLIC_SOURCE} with explicit opt-in flags"
             )
 
         if out_path.exists():

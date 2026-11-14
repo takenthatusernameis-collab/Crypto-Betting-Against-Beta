@@ -91,6 +91,33 @@ Or use the installed `bab-example` console script:
 bab-example prices.csv --from-prices --benchmark BTC
 ```
 
+### Real-format fetch/update pipeline
+
+```bash
+# Default: deterministic offline generator (no network, reproducible)
+python scripts/fetch_real_bab_prices.py --output data/real_bab_prices.csv \
+  --universe BTC,ETH,SOL,BNB,XRP,ADA,AVAX,DOT,LINK --benchmark BTC \
+  --start 2021-01-04 --end 2022-07-15 --print-metadata
+
+# Deterministic local fixture copy/slice (no network)
+python scripts/fetch_real_bab_prices.py --output data/real_bab_prices.csv \
+  --source fixture --fixture-path tests/fixtures/real_market_prices.csv \
+  --benchmark BTC --start 2021-01-04 --end 2022-07-15
+
+# Explicit opt-in: no-auth public Coinbase Exchange daily candles (network)
+# Requires explicit ToS/rate-limit acknowledgement; fails loudly on
+# network/HTTP/rate-limit/invalid-source/parse errors (no silent fallback).
+python scripts/fetch_real_bab_prices.py --output data/real_bab_prices.csv \
+  --source coinbase-exchange-public --allow-public-api \
+  --accept-terms "I accept the data provider Terms of Service and rate limits" \
+  --benchmark BTC --universe BTC,ETH,SOL --quote-currency USD \
+  --start 2024-01-01 --end 2024-06-30 --print-metadata
+```
+
+- Offline `deterministic-offline` is the only default path and is idempotent/incrementally updatable.
+- Public API fetching is never implicit: `--source coinbase-exchange-public` requires `--allow-public-api` and exact `--accept-terms`; requests are rate-limit paced and retried only for bounded transient/rate-limit cases, then fail loudly.
+- Review provider Terms of Service, market-data policies, and rate limits before use; redistribution may be restricted. Output schema is `date,BTC,<assets...>` compatible with `load_prices()` / `--from-prices`.
+
 ### Assumptions
 - Synthetic data by default; swap `returns_df` in `BABStrategy.run()` for real price/return data.
 - Daily rebalance on close; no slippage model beyond optional transaction costs.

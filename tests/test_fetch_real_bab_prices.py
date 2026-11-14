@@ -1,6 +1,8 @@
+import io
 import json
 import subprocess
 import sys
+import urllib.error
 from pathlib import Path
 
 import pandas as pd
@@ -229,3 +231,212 @@ def test_fetch_script_runs_and_loads_via_example_pipeline(tmp_path):
         if line.startswith("cumulative_return="):
             val = float(line.split("=", 1)[1])
             assert val == val and abs(val) != float("inf")
+
+
+def _day_ts(day: str) -> int:
+    return int(pd.Timestamp(day, tz="UTC").timestamp())
+
+
+def _coinbase_candle_payload(days):
+    # [time, low, high, open, close, volume]
+    return [[_day_ts(d), 1, 2, 1.5, c, 10] for d, c in days]
+
+
+class _FakeResponse:
+    def __init__(self, payload, status=200):
+        self._payload = payload
+        self.status = status
+
+    def read(self):
+        return json.dumps(self._payload).encode("utf-8")
+
+    def getcode(self):
+        return self.status
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        return False
+
+
+def _install_fake_urlopen(monkeypatch, handler):
+    import scripts.fetch_real_bab_prices as fetch_mod
+
+    monkeypatch.setattr(
+        fetch_mod.urllib.request, "urlopen", lambda req, timeout=None: handler(req, timeout)
+    )
+
+
+def test_public_api_source_requires_explicit_opt_in_and_terms(tmp_path):
+    out = tmp_path / "prices.csv"
+    base = [
+        "--output",
+        str(out),
+        "--source",
+        "coinbase-exchange-public",
+        "--benchmark",
+        "BTC",
+        "--universe",
+        "BTC,ETH",
+        "--start",
+        "2024-01-01",
+        "--end",
+        "2024-01-10",
+    ]
+    r = run_fetch(base)
+    assert r.returncode != 0
+    assert "allow-public-api" in (r.stderr + r.stdout)
+
+    r2 = run_fetch(base + ["--allow-public-api"])
+    assert r2.returncode != 0
+    assert "accept-terms" in (r2.stderr + r2.stdout)
+
+    r3 = run_fetch(
+        base + ["--allow-public-api", "--accept-terms", "I accept nothing"]
+    )
+    assert r3.returncode != 0
+    assert "accept-terms" in (r3.stderr + r3.stdout)
+
+
+def test_public_api_source_builds_load_prices_compatible_csv(tmp_path, monkeypatch):
+    import scripts.fetch_real_bab_prices as fetch_mod
+
+    days = [
+        "2024-01-01",
+        "2024-01-02",
+        "2024-01-03",
+        "2024-01-04",
+        "2024-01-05",
+        "2024-01-06",
+        "2024-01-07",
+        "2024-01-08",
+        "2024-01-09",
+        "2024-01-10",
+    ]
+    payloads = {
+        "BTC-USD": _coinbase_candle_payload([(d, 40000 + i) for i, d in enumerate(days)]),
+        "ETH-USD": _coinbase_candle_payload([(d, 2000 + i) for i, d in enumerate(days)]),
+    }
+
+    def handler(req, timeout=None):
+        url = req.full_url
+        for product, payload in payloads.items():
+            if f"/products/{product}/candles" in url:
+                return _FakeResponse(payload)
+        raise AssertionError(f"unexpected url {url}")
+
+    _install_fake_urlopen(monkeypatch, handler)
+    monkeypatch.setattr(fetch_mod.time, "sleep", lambda _s: None)
+
+    out = tmp_path / "prices.csv"
+    rc = fetch_mod.main(
+        [
+            "--output",
+            str(out),
+            "--source",
+            "coinbase-exchange-public",
+            "--allow-public-api",
+            "--accept-terms",
+            fetch_mod.COINBASE_PUBLIC_TOS_ACK,
+            "--benchmark",
+            "BTC",
+            "--universe",
+            "BTC,ETH",
+            "--start",
+            days[0],
+            "--end",
+            days[-1],
+            "--print-metadata",
+        ]
+    )
+    assert rc == 0
+    df = pd.read_csv(out)
+    assert list(df.columns)[:3] == ["date", "BTC", "ETH"]
+    assert df["date"].is_unique and df["date"].is_monotonic_increasing
+    assert len(df) == len(days)
+    returns = load_prices(out, benchmark="BTC", min_rows=5)
+    assert "ETH" in returns.columns
+
+    # schema/contract parity: output is accepted by same loader and preserves order.
+    expected_dates = list(pd.Series(days))
+    assert list(df["date"]) == expected_dates
+
+    # offline source remains deterministic default path (no flags, no network).
+    off = tmp_path / "offline.csv"
+    rc2 = fetch_mod.main(
+        [
+            "--output",
+            str(off),
+            "--benchmark",
+            "BTC",
+            "--universe",
+            "BTC,ETH",
+            "--start",
+            days[0],
+            "--end",
+            days[-1],
+        ]
+    )
+    assert rc2 == 0
+    load_prices(off, benchmark="BTC", min_rows=5)
+
+
+def test_public_api_source_fails_loudly_on_network_and_rate_limit(tmp_path, monkeypatch):
+    import scripts.fetch_real_bab_prices as fetch_mod
+
+    monkeypatch.setattr(fetch_mod.time, "sleep", lambda _s: None)
+    out = tmp_path / "prices.csv"
+    base = [
+        "--output",
+        str(out),
+        "--source",
+        "coinbase-exchange-public",
+        "--allow-public-api",
+        "--accept-terms",
+        fetch_mod.COINBASE_PUBLIC_TOS_ACK,
+        "--benchmark",
+        "BTC",
+        "--universe",
+        "BTC,ETH",
+        "--start",
+        "2024-01-01",
+        "--end",
+        "2024-01-10",
+    ]
+
+    def net_fail(req, timeout=None):
+        raise urllib.error.URLError("network down")
+
+    _install_fake_urlopen(monkeypatch, net_fail)
+    rc = fetch_mod.main(base)
+    assert rc != 0
+    assert not out.exists()
+
+    attempts = {"n": 0}
+
+    def rate_limited(req, timeout=None):
+        attempts["n"] += 1
+        raise urllib.error.HTTPError(
+            req.full_url,
+            429,
+            "Too Many Requests",
+            hdrs={"Retry-After": "0"},
+            fp=io.BytesIO(b"rate limit"),
+        )
+
+    _install_fake_urlopen(monkeypatch, rate_limited)
+    rc2 = fetch_mod.main(base)
+    assert rc2 != 0
+    assert attempts["n"] >= 1
+    assert not out.exists()
+
+    def invalid_source(req, timeout=None):
+        raise urllib.error.HTTPError(
+            req.full_url, 404, "Not Found", hdrs=None, fp=io.BytesIO(b"missing")
+        )
+
+    _install_fake_urlopen(monkeypatch, invalid_source)
+    rc3 = fetch_mod.main(base)
+    assert rc3 != 0
+    assert not out.exists()
