@@ -91,6 +91,9 @@ class ExecutionAdapter(Protocol):
         ...
 
 
+_DEFAULT_MAX_PARTICIPATION = 0.10
+
+
 class PaperAdapter:
     """Deterministic paper-trading adapter.
 
@@ -111,7 +114,7 @@ class PaperAdapter:
         prices_df: Optional[pd.DataFrame] = None,
         adv_usd: Optional[object] = None,
         partial_fill: bool = False,
-        max_participation: float = 0.10,
+        max_participation: float = _DEFAULT_MAX_PARTICIPATION,
     ) -> None:
         self.prices = prices_df
         self.adv_usd = adv_usd
@@ -144,21 +147,38 @@ class PaperAdapter:
                 v = self.adv_usd.get(asset)
                 return float(v) if v is not None else None
             if isinstance(self.adv_usd, pd.Series):
-                v = self.adv_usd.get(asset)
-                return float(v) if v is not None and pd.notna(v) else None
+                if asset in self.adv_usd.index:
+                    v = self.adv_usd.loc[asset]
+                    return float(v) if v is not None and pd.notna(v) else None
+                # A date-indexed Series (per-period ADV) is matched by date.
+                return self._adv_from_frame_value(self.adv_usd, date_key)
             if isinstance(self.adv_usd, pd.DataFrame):
                 if asset in self.adv_usd.columns:
-                    sub = self.adv_usd[asset]
-                    if date_key in sub.index:
-                        v = sub.loc[date_key]
-                        return float(v) if pd.notna(v) else None
-                    try:
-                        ts = pd.Timestamp(date_key)
-                        if ts in sub.index:
-                            v = sub.loc[ts]
-                            return float(v) if pd.notna(v) else None
-                    except Exception:
-                        pass
+                    return self._adv_from_frame_value(self.adv_usd[asset], date_key)
+                if asset in self.adv_usd.index:
+                    return self._adv_from_frame_value(self.adv_usd.loc[asset], date_key)
+        except (TypeError, ValueError, KeyError):
+            pass
+        return None
+
+    @staticmethod
+    def _adv_from_frame_value(sub, date_key: str) -> Optional[float]:
+        """Look up one ADV value by ISO date, then by Timestamp, else None."""
+        try:
+            if date_key in sub.index:
+                v = sub.loc[date_key]
+                if isinstance(v, pd.Series):
+                    v = v.iloc[0]
+                return float(v) if v is not None and pd.notna(v) else None
+        except (TypeError, ValueError, KeyError):
+            pass
+        try:
+            ts = pd.Timestamp(date_key)
+            if ts in sub.index:
+                v = sub.loc[ts]
+                if isinstance(v, pd.Series):
+                    v = v.iloc[0]
+                return float(v) if v is not None and pd.notna(v) else None
         except (TypeError, ValueError, KeyError):
             pass
         return None
@@ -191,7 +211,8 @@ class PaperAdapter:
             # Otherwise default full-fill / zero-slippage behavior
             # (byte-identical to pre-R5-E).
             realism = (
-                price is not None
+                self.partial_fill
+                and price is not None
                 and adv is not None
                 and adv > 0
                 and max_participation is not None
@@ -209,6 +230,13 @@ class PaperAdapter:
                     "order_weight": order_w,
                     "notional_usd": notional,
                     "price": price,
+                    "adv_usd": adv,
+                    "max_participation": max_participation,
+                    "participation": (
+                        float(notional / adv)
+                        if adv is not None and adv > 0 and notional is not None
+                        else None
+                    ),
                     "slippage": 0.0,
                     "status": "filled",
                     "reason": None,
@@ -234,6 +262,9 @@ class PaperAdapter:
                     "order_weight": order_w,
                     "notional_usd": notional,
                     "price": price,
+                    "adv_usd": adv,
+                    "max_participation": max_participation,
+                    "participation": float(participation),
                     "slippage": float(slip),
                     "status": status,
                     "reason": reason,
@@ -298,6 +329,56 @@ class MockAdapter:
         return []
 
 
+def configure_paper_adapter(adapter: "PaperAdapter", strategy) -> "PaperAdapter":
+    """Populate a bare ``PaperAdapter`` from the strategy's resolved config.
+
+    R5-E consumes the already-shipped R3 cost-model knobs so the adapter layer
+    stops being a stub: ``prices``/``adv_usd`` come from the config-resolved
+    cost model, and ``partial_fill``/``max_participation`` come from the config.
+    Never overrides values the caller set explicitly on the adapter.
+
+    Returns the same adapter for convenient inline construction.
+    """
+    cfg = getattr(strategy, "config", None)
+    if cfg is None:
+        return adapter
+    resolver = getattr(strategy, "_resolve_cost_model", None)
+    prices = adv = None
+    if callable(resolver):
+        try:
+            _model, prices, adv = resolver(cfg)
+        except Exception:
+            prices = adv = None
+    if prices is None:
+        prices = getattr(cfg, "prices", None)
+    if adv is None:
+        adv = getattr(cfg, "adv_usd", None)
+    if adapter.prices is None:
+        adapter.prices = prices
+    if adapter.adv_usd is None:
+        adapter.adv_usd = adv
+    cfg_partial = bool(getattr(cfg, "partial_fill", False))
+    if cfg_partial:
+        adapter.partial_fill = True
+    # Only adopt the config cap when the caller left the adapter at its
+    # default; an explicitly chosen cap wins over the config value.
+    cfg_cap = getattr(cfg, "max_participation", None)
+    if cfg_cap is not None and adapter.max_participation == _DEFAULT_MAX_PARTICIPATION:
+        try:
+            adapter.max_participation = float(cfg_cap)
+        except (TypeError, ValueError):
+            pass
+    return adapter
+
+
+def _date_key(date) -> str:
+    """Canonical ISO-8601 date key shared by intents, batches and fills."""
+    try:
+        return pd.Timestamp(date).isoformat()
+    except Exception:
+        return str(date)
+
+
 def order_batches_from_weights(
     weights: pd.DataFrame,
     prices_df: Optional[pd.DataFrame] = None,
@@ -321,14 +402,15 @@ def order_batches_from_weights(
     idx = list(w.index)
     n = len(idx)
 
-    # Align prices to weights universe (sorted, deterministic).
+    # Align prices to weights universe (sorted, deterministic). Keyed by the
+    # same ISO-8601 date string used on OrderIntent, so lookups always hit.
     price_map: dict = {}
     if prices_df is not None:
         prices = prices_df.sort_index()
         for c in cols:
             if c in prices.columns:
                 sub = prices[c].reindex(idx)
-                price_map[c] = sub.to_dict()
+                price_map[c] = {_date_key(k): v for k, v in sub.to_dict().items()}
 
     # Align adv_usd to weights universe (sorted, deterministic). Supports
     # dict (asset-indexed), Series (asset-indexed), or DataFrame (date x asset).
@@ -356,7 +438,9 @@ def order_batches_from_weights(
                 for c in cols:
                     if c in adv_df.columns:
                         sub = adv_df[c].reindex(idx)
-                        adv_map[c] = sub.to_dict()
+                        adv_map[c] = {
+                            _date_key(k): v for k, v in sub.to_dict().items()
+                        }
         except Exception:
             adv_map = {}
 

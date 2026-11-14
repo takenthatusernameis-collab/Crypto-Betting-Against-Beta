@@ -524,7 +524,17 @@ class BABStrategy:
         # run() is byte-identical to pre-R5 behavior.
         execution_payload = None
         if self.execution_adapter is not None:
-            from .execution import order_batches_from_weights, execution_payload_to_json
+            from .execution import (
+                configure_paper_adapter,
+                order_batches_from_weights,
+                execution_payload_to_json,
+            )
+
+            # R5-E: consume the shipped R3 cost-model knobs (prices/adv_usd,
+            # partial_fill/max_participation) so the adapter path is not a stub.
+            # This only mutates the caller-supplied adapter object; with no
+            # adapter configured (default) nothing here executes.
+            configure_paper_adapter(self.execution_adapter, self)
 
             _cost_model_for_exec, _prices_for_exec, _adv_for_exec = self._resolve_cost_model(cfg)
             _batches = order_batches_from_weights(
