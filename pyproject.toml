@@ -21,3 +21,40 @@ include = ["strategies*", "scripts*"]
 
 [tool.setuptools.package-data]
 strategies = ["*.pyi", "*.py.typed"]
+
+[tool.ruff]
+target-version = "py39"
+line-length = 100
+
+[tool.ruff.lint]
+# High-signal, behavior-preserving rules only. Deliberately EXCLUDED:
+#   BLE001/S110/S112/S113/S114 - defensive "never crash" try/except is the
+#     documented contract of this codebase (CLI/report paths swallow and coerce
+#     degenerate input); blanket-enforcing would destroy that semantics.
+#   ANN - no type annotations are a known gap, not a tracked defect this campaign.
+#   PLR2004/PLR0913/PLR0915 - magic values / arg-count heuristics, noisy here.
+#   D - docstring conventions not enforced in this repo.
+select = [
+    "F",     # pyflakes: unused imports (F401), unused vars (F841), undefined names (F821), redefinitions (F811)
+    "E",     # pycodestyle errors (real bugs / syntax-adjacent)
+    "W",     # pycodestyle warnings
+    "I",     # isort: import ordering
+    "UP",    # pyupgrade: modern syntax
+    "SIM",   # flake8-simplify: real simplifications
+    "C4",    # flake8-comprehensions
+    "PERF",  # perflint: real perf defects
+    "RUF",   # ruff-specific: RUF013 (optional lru_cache), RUF022 (unused __all__), RUF100 (unused noqa)
+    # TRY is EXCLUDED entirely: this codebase's documented contract is defensive
+    # "never crash" error handling (TRY003 long messages, TRY300/301 re-raise
+    # patterns). Enforcing tryceratops would destroy that semantics.
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["F401", "F841", "E402"]
+
+[tool.ruff.lint.flake8-comprehensions]
+allow-dict-calls-with-keyword-arguments = true
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"

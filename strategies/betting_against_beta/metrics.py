@@ -260,7 +260,7 @@ def summary(returns, weights_df=None, benchmark_returns=None, betas_df=None,
     result["portfolio_beta"] = portfolio_beta(weights_df, betas_df)
     result["total_return"] = total_return(r)
     result["final_cumulative"] = final_cumulative(r)
-    result["n_observations"] = int(len(r))
+    result["n_observations"] = len(r)
     return result
 
 def compute_metrics(returns, weights_df=None, benchmark_returns=None, risk_free: float = 0.0, periods_per_year: int = 252):

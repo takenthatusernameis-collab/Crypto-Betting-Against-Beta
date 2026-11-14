@@ -7,7 +7,7 @@ construction via :func:`apply_shorting_constraints`.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Dict, Optional, Union
 
 import numpy as np

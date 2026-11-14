@@ -15,7 +15,7 @@ term for that asset rather than failing.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Optional, Union
 
 import numpy as np

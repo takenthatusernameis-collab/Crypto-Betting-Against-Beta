@@ -7,12 +7,10 @@ import json
 import os
 from pathlib import Path
 
-import numpy as np
-
 from .config import BABConfig
-from .strategy import BABStrategy
 from .errors import BABDataError
 from .execution import execution_payload_to_json
+from .strategy import BABStrategy
 
 __version__ = "0.1.0"
 
@@ -26,7 +24,7 @@ def _build_adapter(args):
     Returns an ExecutionAdapter instance, or None when no adapter is requested.
     No network or credentials are ever used.
     """
-    from .execution import PaperAdapter, MockAdapter
+    from .execution import MockAdapter, PaperAdapter
 
     adapter_name = getattr(args, "adapter", None)
     if adapter_name is None:
@@ -38,7 +36,7 @@ def _build_adapter(args):
         fill_map = None
         if fills_path:
             try:
-                with open(fills_path, "r", encoding="utf-8") as fh:
+                with open(fills_path, encoding="utf-8") as fh:
                     raw = json.load(fh)
                 # Accept either a list of fill dicts or a dict keyed by [date, asset].
                 if isinstance(raw, list):
@@ -185,7 +183,6 @@ def _validate_rebalance_freq(freq: str) -> None:
 
 def _coerce_finite_scalar(value, default=1.0):
     """Coerce a possibly-nan/inf scalar to a finite float, never raising."""
-    import math
     import numpy as _np
 
     try:
@@ -211,13 +208,12 @@ def _build_output_summary(result, config, cum_out):
     a list, or any non-DataFrame is handled gracefully. Universe elements
     that are not strings are coerced.
     """
-    import numpy as _np
 
     backtest = getattr(result, "backtest", None)
     try:
         periods = 0
         if backtest is not None and hasattr(backtest, "__len__"):
-            periods = int(len(backtest))
+            periods = len(backtest)
     except TypeError:
         periods = 0
     universe = getattr(config, "universe", None)
@@ -249,6 +245,7 @@ def _json_default(obj):
     Non-finite floats are coerced to 0.0 so ``allow_nan=False`` never raises.
     """
     import math
+
     import numpy as _np
     import pandas as _pd
 
@@ -297,9 +294,8 @@ def _json_default(obj):
 
 
 def main(argv=None) -> int:
-    import os
     import math
-    import numpy as _np
+
 
     try:
         parser = argparse.ArgumentParser(description="Betting Against Beta (BAB) crypto strategy")
@@ -462,8 +458,9 @@ def main(argv=None) -> int:
             return 1
         if args.data is not None:
             try:
-                from .data_loader import load_returns, load_prices
                 from pathlib import Path
+
+                from .data_loader import load_prices, load_returns
                 data_p = Path(args.data)
                 if data_p.exists() and data_p.is_dir():
                     print(f"data:             {args.data} (INVALID: Path is a directory, not a file: {data_p})")
@@ -513,8 +510,9 @@ def main(argv=None) -> int:
         if args.synthetic or args.data is None:
             result = strategy.run()
         else:
-            from .data_loader import load_prices, load_returns
             from pathlib import Path
+
+            from .data_loader import load_prices, load_returns
 
             data_p = Path(args.data)
             if data_p.exists() and data_p.is_dir():
@@ -563,7 +561,7 @@ def main(argv=None) -> int:
     periods = 0
     try:
         if bt is not None and hasattr(bt, "__len__"):
-            periods = int(len(bt))
+            periods = len(bt)
     except (TypeError, ValueError, OverflowError):
         periods = 0
     try:
@@ -673,6 +671,7 @@ def _json_safe(obj):
     Non-finite floats are coerced to 0.0.
     """
     import math
+
     import numpy as _np
     import pandas as _pd
 

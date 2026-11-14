@@ -8,23 +8,19 @@ from dataclasses import dataclass
 
 import numpy as _np
 
+from . import metrics, shorting, sizing
+from .attribution import attribution_totals, trade_attribution
 from .backtest import run_backtest
 from .beta import calculate_rolling_beta
 from .config import BABConfig
 from .data import generate_synthetic_returns
 from .data_loader import load_prices, load_returns
-from .portfolio import construct_portfolio
-from .signals import generate_bab_signals
-from . import metrics
-from . import sizing
-from . import shorting
-from .attribution import trade_attribution, attribution_totals
 from .errors import BABDataError
-from .shorting import ShortingConstraints
-from .sizing import KellySizer, VolatilityTargetSizer, RiskParitySizer, EqualWeightSizer
-from . import risk as _risk
+from .portfolio import construct_portfolio
 from .risk import KillSwitchEvent
-from . import execution as _execution
+from .shorting import ShortingConstraints
+from .signals import generate_bab_signals
+from .sizing import EqualWeightSizer, KellySizer, RiskParitySizer, VolatilityTargetSizer
 
 
 def _normalize_position_sizer(ps):
@@ -67,7 +63,7 @@ def _normalize_position_sizer(ps):
         raise BABDataError(f"position_sizer dict has unknown type: {s!r}")
 
 
-def _rebalance_mask(index, freq: str) -> "pd.Series":  # noqa: ANN401
+def _rebalance_mask(index, freq: str) -> pd.Series:
     """Return a boolean Series (aligned to ``index``) marking rebalance dates.
 
     The first date is always a rebalance date. For ``daily`` every date is a
@@ -113,7 +109,6 @@ def _apply_rebalance(signals, freq: str):
     signal from the most recent rebalance date is forward-filled so that
     weights (and therefore turnover) only change on rebalance dates.
     """
-    import pandas as pd  # local import keeps module import light
 
     if signals is None or len(signals) == 0:
         return signals
@@ -191,12 +186,11 @@ class BABStrategy:
             self.execution_adapter = kwargs.pop("execution_adapter")
         # Cached result of the last ``run()``; powers the report()/tear_sheet()
         # accessors without requiring callers to re-run the pipeline.
-        self._last_result: object | None = None  # noqa: ANN401
+        self._last_result: object | None = None
 
 
-    def _load_returns(self, returns_df: object | None) -> "pd.DataFrame":  # noqa: ANN401
+    def _load_returns(self, returns_df: object | None) -> pd.DataFrame:
         """Resolve the returns DataFrame, validating it for the pipeline."""
-        import pandas as pd  # local import keeps module import light
 
         cfg = self.config
         if returns_df is not None:
@@ -275,7 +269,7 @@ class BABStrategy:
                 prices_df = None
         return cm, prices_df, adv
 
-    def run(self, returns_df: object | None = None) -> BABResult:  # noqa: ANN401
+    def run(self, returns_df: object | None = None) -> BABResult:
         """Run the full strategy pipeline and return results."""
         import pandas as pd
 
@@ -487,7 +481,7 @@ class BABStrategy:
 
         # R4-B: Apply drawdown-limit kill switch
         # Extract cumulative returns from backtest to monitor drawdown
-        from .risk import apply_kill_switch, KillSwitchEvent
+        from .risk import apply_kill_switch
 
         cumulative = None
         if isinstance(backtest, pd.DataFrame) and not backtest.empty:
@@ -525,9 +519,8 @@ class BABStrategy:
         execution_payload = None
         if self.execution_adapter is not None:
             from .execution import (
-                configure_paper_adapter,
-                order_batches_from_weights,
-                execution_payload_to_json,
+                    configure_paper_adapter,
+                    order_batches_from_weights,
             )
 
             # R5-E: consume the shipped R3 cost-model knobs (prices/adv_usd,
@@ -587,9 +580,7 @@ class BABStrategy:
 
         Raises ``BABDataError``/``BABConfigError`` on invalid inputs (no silent fallback).
         """
-        import math
         import numpy as _np
-        import pandas as pd
 
         def _safe_float(value, default=0.0):
             try:
@@ -759,8 +750,8 @@ class BABStrategy:
         cost_drag_estimate = avg_turnover * (_safe_float(cfg.transaction_costs) + _safe_float(getattr(cfg, "slippage", 0.0)))
 
         # Data-health
-        n_rows = int(len(returns))
-        n_cols = int(len(returns.columns))
+        n_rows = len(returns)
+        n_cols = len(returns.columns)
         nan_counts = {str(k): int(v) for k, v in returns.isna().sum().items()}
         total_nans = int(returns.isna().sum().sum())
         benchmark_present = bool(bench is not None and bench in returns.columns)
@@ -821,7 +812,7 @@ class BABStrategy:
         }
         return output
 
-    def report(self, result: "BABResult | None" = None) -> dict:
+    def report(self, result: BABResult | None = None) -> dict:
         """Return a structured performance report for the last (or given) run.
 
         The report bundles the scalar summary metrics, the per-period
@@ -844,7 +835,6 @@ class BABStrategy:
                 "or pass an explicit BABResult."
             )
 
-        import math
         import numpy as _np
         import pandas as pd
 
@@ -897,7 +887,7 @@ class BABStrategy:
         # Rebalances: count non-all-NaN weight rows defensively.
         try:
             if isinstance(weights, pd.DataFrame) and not weights.empty:
-                rebalances = int(len(weights.dropna(how="all")))
+                rebalances = len(weights.dropna(how="all"))
             else:
                 rebalances = 0
         except Exception:
@@ -930,7 +920,7 @@ class BABStrategy:
             "kill_switch": kill_switch_dict,
         }
 
-    def tear_sheet(self, result: "BABResult | None" = None) -> str:
+    def tear_sheet(self, result: BABResult | None = None) -> str:
         """Return a human-readable tear-sheet string for the last (or given) run.
 
         Combines the summary metrics and trade-attribution breakdown into a

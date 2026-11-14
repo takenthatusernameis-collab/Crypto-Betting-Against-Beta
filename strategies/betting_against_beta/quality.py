@@ -165,7 +165,7 @@ def detect_outliers(df: pd.DataFrame, method: str = "zscore", threshold: float =
                 outlier_indices = np.where(z_scores > threshold)[0]
                 results[col] = {
                     "outliers": outlier_indices.tolist(),
-                    "count": int(len(outlier_indices)),
+                    "count": len(outlier_indices),
                     "values": finite_arr[outlier_indices].tolist() if len(outlier_indices) > 0 else []
                 }
             elif method == "iqr":
@@ -179,7 +179,7 @@ def detect_outliers(df: pd.DataFrame, method: str = "zscore", threshold: float =
                 outlier_indices = np.where((finite_arr < lower) | (finite_arr > upper))[0]
                 results[col] = {
                     "outliers": outlier_indices.tolist(),
-                    "count": int(len(outlier_indices)),
+                    "count": len(outlier_indices),
                     "values": finite_arr[outlier_indices].tolist() if len(outlier_indices) > 0 else []
                 }
             else:
@@ -239,7 +239,7 @@ def detect_volume_anomalies(df: pd.DataFrame, volume_cols: list[str] | None = No
             anomaly_indices = np.where(anomaly_mask & finite_mask)[0]
             results[col] = {
                 "anomalies": anomaly_indices.tolist(),
-                "count": int(len(anomaly_indices)),
+                "count": len(anomaly_indices),
                 "ratio_threshold": threshold,
             }
         except Exception:

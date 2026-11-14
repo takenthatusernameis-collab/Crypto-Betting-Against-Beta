@@ -71,7 +71,7 @@ def _sanitize(obj):
     if isinstance(obj, (pd.Series, pd.Index, np.ndarray)):
         return [_sanitize(v) for v in obj.tolist()]
     try:
-        import numpy as _np  # noqa: WPS433
+        import numpy as _np
 
         if isinstance(obj, _np.integer):
             return int(obj)

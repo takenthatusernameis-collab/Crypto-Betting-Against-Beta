@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Optional, Union
+from typing import Optional
 
 import numpy as np
 import pandas as pd
@@ -286,7 +286,7 @@ def regime_scale_factors(returns: pd.DataFrame, cfg) -> pd.DataFrame:
     return combined.fillna(1.0)
 
 
-def regime_scale_scalar(returns: pd.DataFrame, cfg) -> "pd.Series":
+def regime_scale_scalar(returns: pd.DataFrame, cfg) -> pd.Series:
     """Return a single causal scalar scale factor per date.
 
     Regime scaling must preserve the portfolio's dollar-neutrality: every

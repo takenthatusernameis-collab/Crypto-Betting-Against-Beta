@@ -12,7 +12,6 @@ No network is used by any implementation.
 
 from __future__ import annotations
 
-import hashlib
 import json
 import math
 from dataclasses import dataclass, field
@@ -329,7 +328,7 @@ class MockAdapter:
         return []
 
 
-def configure_paper_adapter(adapter: "PaperAdapter", strategy) -> "PaperAdapter":
+def configure_paper_adapter(adapter: PaperAdapter, strategy) -> PaperAdapter:
     """Populate a bare ``PaperAdapter`` from the strategy's resolved config.
 
     R5-E consumes the already-shipped R3 cost-model knobs so the adapter layer
@@ -445,7 +444,7 @@ def order_batches_from_weights(
             adv_map = {}
 
     batches: list[OrderBatch] = []
-    prev = {c: 0.0 for c in cols}
+    prev = dict.fromkeys(cols, 0.0)
     for t in range(n):
         date = idx[t]
         try:
@@ -529,7 +528,7 @@ def _sanitize_for_json(obj):
     if isinstance(obj, (pd.Series, pd.Index)):
         return [_sanitize_for_json(v) for v in obj.tolist()]
     try:
-        import numpy as _np  # noqa: WPS433
+        import numpy as _np
 
         if isinstance(obj, _np.ndarray):
             return [_sanitize_for_json(v) for v in obj.tolist()]

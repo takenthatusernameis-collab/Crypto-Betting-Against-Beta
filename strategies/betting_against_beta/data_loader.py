@@ -10,8 +10,8 @@ from __future__ import annotations
 import json
 import pickle
 import re
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Iterable
 
 import numpy as np
 import pandas as pd
@@ -145,13 +145,7 @@ def _normalize_index(df: pd.DataFrame) -> pd.DataFrame:
                                 except Exception:
                                     coerced = [_coerce_to_datetime_scalar(v) for v in idx]
                                     df.index = coerced
-                        elif av > 1e17:  # nanoseconds/us boundary
-                            try:
-                                df.index = pd.to_datetime(idx, unit='us', utc=True)
-                            except Exception:
-                                coerced = [_coerce_to_datetime_scalar(v) for v in idx]
-                                df.index = coerced
-                        elif av > 1e15:  # microseconds
+                        elif av > 1e17 or av > 1e15:  # nanoseconds/us boundary
                             try:
                                 df.index = pd.to_datetime(idx, unit='us', utc=True)
                             except Exception:
@@ -525,7 +519,7 @@ def _detect_and_normalize_exchange_format(df: pd.DataFrame) -> pd.DataFrame:
         # look for columns containing 'time'/'date'
         for c in df.columns:
             cl = str(c).strip().lower()
-            if 'time' in cl or cl == 'date' or cl == 'timestamp' or cl.startswith('open') and 'time' in cl or cl.startswith('close') and 'time' in cl:
+            if 'time' in cl or cl == 'date' or cl == 'timestamp' or (cl.startswith('open') and 'time' in cl) or (cl.startswith('close') and 'time' in cl):
                 date_col = c
                 break
 
@@ -1526,7 +1520,7 @@ def _run_data_quality_campaign(
                 arr = cleaned[col].to_numpy(dtype=float)
             finite_mask = np.isfinite(arr)
             finite_count = int(finite_mask.sum())
-            total = int(len(arr))
+            total = len(arr)
             if total > 0 and float(min_finite_fraction) > 0:
                 frac = finite_count / total if total > 0 else 0.0
                 if frac < float(min_finite_fraction):
@@ -1911,7 +1905,7 @@ def load_returns_from_pickle(
             # turns into 1970-epoch timestamps, silently passing validation.
             if not obj or not isinstance(obj[0], (dict, list, tuple, pd.Series)):
                 raise BABDataError(
-                    f"Unsupported pickle object: flat scalar list is not tabular data"
+                    "Unsupported pickle object: flat scalar list is not tabular data"
                 )
             try:
                 df = pd.DataFrame(obj)
@@ -2122,7 +2116,7 @@ def _drop_metadata_columns(df: pd.DataFrame) -> pd.DataFrame:
             continue
         # Drop obvious junk column names
         cl_low = cl.lower().replace(' ', '').replace('_', '')
-        if cl_low in {'extracol', 'unwanted', 'junk', 'extra', 'garbage'} or 'extra' in cl_low and 'col' in cl_low or cl_low == 'unwanted':
+        if cl_low in {'extracol', 'unwanted', 'junk', 'extra', 'garbage'} or ('extra' in cl_low and 'col' in cl_low) or cl_low == 'unwanted':
             cols_to_drop.append(col)
             continue
         try:
@@ -2471,23 +2465,23 @@ def validate_prices(df: pd.DataFrame) -> pd.DataFrame | None:
 
 __all__ = [
     "BABDataError",
-    "load_returns",
-    "load_prices",
-    "load_returns_from_csv",
-    "load_returns_from_json",
-    "load_returns_from_parquet",
-    "load_returns_from_hdf5",
-    "load_returns_from_pickle",
-    "load_returns_from_dataframe",
-    "load_returns_from_prices",
-    "load_price_data",
-    "validate_returns_dataframe",
-    "normalize_schema",
+    "clean_data",
     "detect_price_or_returns",
     "detect_source_type",
-    "list_columns",
     "iter_assets",
+    "list_columns",
+    "load_price_data",
+    "load_prices",
+    "load_returns",
+    "load_returns_from_csv",
+    "load_returns_from_dataframe",
+    "load_returns_from_hdf5",
+    "load_returns_from_json",
+    "load_returns_from_parquet",
+    "load_returns_from_pickle",
+    "load_returns_from_prices",
+    "normalize_schema",
     "standardize_columns",
-    "clean_data",
     "validate_prices",
+    "validate_returns_dataframe",
 ]
