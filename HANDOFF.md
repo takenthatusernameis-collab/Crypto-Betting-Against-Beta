@@ -1,39 +1,67 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Repo:** `crypto-betting-against-beta` — Betting Against Beta (BAB) market-neutral crypto strategy (long low-beta / short high-beta vs benchmark, default BTC). See `README.md`, `strategies/betting_against_beta/`.
+**Repo:** `crypto-betting-against-beta` — Betting Against Beta (BAB) market-neutral crypto strategy (long low-beta / short high-beta vs benchmark, default BTC). See `README.md`, `strategies/betting_against_beta/`. **Priority basis:** the repo *is* the BAB strategy engine, so correctness + live-readiness of the strategy outranks tooling/coverage-chasing.
 
-**Refreshed:** 2026-11-14T00:36:21Z
-**HEAD:** `4dfbc17` (main), working tree CLEAN — the previously recorded uncommitted `TestFreezeFallback` fix (`cfg.cost_model = None`) is now committed in `4dfbc17` (checkpoint commit at 00:36:13Z; commit message `chore(kilo): checkpoint agent session`, which also refreshed `AGENT_HANDOFF.md`/`HANDOFF.md`). **Commit nothing unless explicitly requested.**
-**Single source of truth:** this file. `AGENT_HANDOFF.md` is a pointer only. Read this whole file before doing anything. Do not create parallel handoff docs. If live evidence conflicts with recorded numbers here, **live run wins** — re-measure, record the delta, and update this file.
-
----
-
-## R3 COMPLETION EVIDENCE (completion bar met on final HEAD `ee1d42c`)
-
-- **R2 green on current HEAD:** preflight `RC=0`; `tests/test_bab_stress_regimes.py tests/test_bab_stress_horizon.py tests/test_bab_scale_perf_guard.py` => **155 passed, 6 warnings, 33.59s**; scale medians 5000×200=151ms (≤800ms OK), 5000×500=383ms (≤2000ms OK). *Verified 2026-11-14T23:46:03Z*
-- **R3-A (execution-realism regression tests):** `tests/test_bab_execution_realism_r3.py` EXISTS and is GREEN — **62 passed, 1.06s**. Covers all 5 hostile regimes × dn on/off × cost on/off; locked columns + finite; `cost_drag>=0`; DN `max|Σw|<=1e-9`; costs-on vs flat deltas; borrow asymmetry (more short notional => strictly higher cost); byte-identical no-model/flat default path; finite `report()`/`tear_sheet()` + strict `report_to_json()`; loud `BABConfigError`/`BABDataError` on invalid `cost_model`/`partial_fill`/`max_participation`; causal betas (no lookahead under cost model). *Verified 2026-11-14T23:46:03Z*
-- **R3-B (rebalance-frequency sweep):** daily/weekly/monthly × 5 hostile regimes × dn on/off with cost model; invariants hold (weekly/monthly rebalance periods ≤ daily; no daily regression vs R2; finite cumulative, locked columns, DN). Green (within the 62 above).
-- **Bottleneck removed:** `tests/test_bab_strategy_campaign_gaps.py::TestFreezeFallback::test_freeze_fallback_path` previously raised `BABDataError: cost_model must be a TransactionCostModel, dict, or None, got MagicMock` because `MagicMock(spec=BABConfig).cost_model` returns a MagicMock child that tripped R3 loud validation (`strategy.py:_resolve_cost_model`, strategy.py:238). Minimal scope-correction fix: added `cfg.cost_model = None` (cost_model is a real BABConfig field, so this is allowed on the spec'd mock). **R3 validation untouched — not weakened.** Gate now green.
-- **Full gate:** `bash scripts/bab_gate.sh` **RC=0** — **5590 passed / 35 skipped / ~419s / coverage 96%** (all of `strategies/betting_against_beta`). *Verified 2026-11-14T23:46:03Z*
-
-**Definition of done for R3:** R2 green on final HEAD, R3-A tests written and green, R3-B sweep implemented/measured and green, `bash scripts/bab_gate.sh` RC=0 recorded, `HANDOFF.md` refreshed with concrete evidence. **ALL MET.** R3 is closed. Do not reopen without new reproducible evidence.
+**Refreshed:** 2026-11-14T00:46:20Z
+**HEAD:** `45563ba` (main). **Working tree:** uncommitted edits from this handoff refresh only — `HANDOFF.md`, `AGENT_HANDOFF.md`, `docs/COVERAGE_NOTES.md`, and new `scripts/bab_r4_preflight.py`. **No product or test code changed**; gate evidence below was captured on `45563ba` before these doc/script-only edits.
+**Single source of truth:** this file. `AGENT_HANDOFF.md` is a pointer only. Read this whole file before doing anything. Do not create parallel handoff docs. If live evidence conflicts with a recorded number here, **live run wins** — re-measure, record the delta, update this file.
 
 ---
 
-## INITIAL TASK FOR NEXT SESSION (binding, timestamped 2026-11-14T00:36:21Z)
+## LIVE VERIFICATION EVIDENCE (measured this session on HEAD `45563ba`)
 
-**Objective:** R3 is closed. Begin **R4 (Live-Readiness)** end-to-end on current `HEAD` (`4dfbc17`) with hard evidence. Partial completion is not acceptable. Ship code/tests/evidence; do not stop at analysis.
+| Check | Command | Result |
+|---|---|---|
+| R2 preflight | `PYTHONPATH=. "$VENV/bin/python" scripts/bab_r2_preflight.py` | **RC=0** — 155 passed, 6 warnings, 33.58s |
+| Live scale (median/9 warm) | same preflight | 5000×200 = **163 ms** (≤800 ms), 5000×500 = **393 ms** (≤2000 ms) |
+| Full gate | `PATH="$VENV/bin:$PATH" bash scripts/bab_gate.sh` | **RC=0** — **5590 passed / 35 skipped / 416.96s / coverage 96%** |
 
-R4 candidates (from prior handoff, now the active campaign):
-1. **R4-A — Dry-run / portfolio-risk report:** CLI dry-run mode (`--dry-run` skeleton present in `cli.py:329`) that validates inputs and prints resolved config + portfolio-risk summary without executing trades; strict, finite, JSON-serializable output.
-2. **R4-B — Drawdown-limit kill switch:** configurable drawdown limit that halts/flattens the book when breached; assert kill-switch triggers on a breaching fixture and does not trigger on a non-breaching one. **Not yet implemented.**
-3. **R4-C — Reproducible paper-trading replay harness:** replay against real/fixture market data deterministically; record orders/fills/costs; output reproducible artifacts. **Not yet implemented.**
+- All numbers above were reproduced on `45563ba`; they supersede the prior `ee1d42c`/`4dfbc17` recordings (same suite counts, fresh wall-clock).
+- `VENV=/home/runner/work/_temp/kilo-tmp/bab-venv` exists and is populated (Python 3.12.3; numpy 2.5.4, pandas 3.1.1, scipy 1.18.1, pytest 9.2.0, hypothesis 6.170.15).
 
-### Bottlenecks removed (this refresh)
-- Env/bootstrap bottleneck solved by the mandatory start block below (idempotent venv at `/home/runner/work/_temp/kilo-tmp/bab-venv`).
-- R3 `TestFreezeFallback` bottleneck closed: `cfg.cost_model = None` committed in `4dfbc17`; R3 validation untouched, gate green. Do not reopen.
+---
 
-### Mandatory start (every session, ~90s, idempotent)
+## STATUS
+
+- **R1:** closed/locked — do not reopen without new reproducible evidence.
+- **R2:** closed/locked — stress regimes + horizon + scale guards green (155 passed; scale within ceilings).
+- **R3:** closed/locked — `tests/test_bab_execution_realism_r3.py` (R3-A cost realism + R3-B rebalance sweep) present and green; full gate RC=0. Do not reopen.
+- **R4 (ACTIVE CAMPAIGN):** live-readiness — R4-A dry-run/portfolio-risk report, R4-B drawdown-limit kill switch, R4-C deterministic paper-trading replay harness. **Not started.** Only a `cli.py --dry-run` config/data-validation skeleton exists (`cli.py:329`); R4-B and R4-C are unimplemented.
+
+---
+
+## INITIAL TASK FOR NEXT SESSION (binding, timestamped 2026-11-14T00:46:20Z)
+
+**Objective:** Ship **R4 (Live-Readiness)** end-to-end on current `HEAD` with hard evidence. **All three components (R4-A, R4-B, R4-C) must be implemented with green regression tests and wired into the gate.** Partial completion / analysis-only is a failed session. Do not stop at "next steps"; land code + tests + measured evidence.
+
+### R4-A — Dry-run / portfolio-risk report
+- **Deliverable:** `BABStrategy.dry_run(returns_df=None) -> dict` (programmatic) plus `--dry-run` CLI output that prints the resolved config, tradable universe, beta window/quantiles, and a **portfolio-risk summary**: gross exposure, net exposure, gross leverage, max single-position weight, estimated turnover/cost drag, data-health (rows, columns, NaN counts, benchmark presence). No backtest/trades executed.
+- **Contract:** result is a plain dict of **finite** floats/ints/bools/str/lists; strict-JSON serializable via `json.dumps(..., allow_nan=False)`; `--output` must **not** write in dry-run. Invalid inputs raise `BABDataError`/`BABConfigError` loudly (no silent fallback).
+- **Tests:** `tests/test_bab_dryrun_risk_report_r4.py` — valid fixture → required keys present and finite; JSON round-trip strict; no trade execution (assert weights/backtest untouched); invalid config/data raises; CLI `--dry-run` returns 0 on valid and non-zero on invalid; `--output` not created.
+- **Reuse:** `tests/fixtures/real_market_prices.csv` (400 rows, BTC + 8 assets + all-NaN `DEL`) and `load_prices`/`load_returns`.
+
+### R4-B — Drawdown-limit kill switch
+- **Deliverable:** new `max_drawdown_limit: Optional[float]` on `BABConfig` (validated to `(0,1]` or `None`), plus a `strategies/betting_against_beta/risk.py` implementing the kill switch: monitor running max drawdown of the strategy cumulative path; on first breach, **halt/flatten** the book (weights → 0 from the breach date onward) and emit a `kill_switch` event `{triggered: bool, date, observed_drawdown, limit}`.
+- **Contract:** when `max_drawdown_limit is None`, behavior is **byte-identical** to pre-R4 (default path invariant). When breached, weights after the trigger are zero and the event is surfaced in `report()` (new key `kill_switch`, JSON-safe).
+- **Tests:** `tests/test_bab_drawdown_kill_switch_r4.py` — breaching fixture triggers exactly once and flattens; non-breaching fixture does not trigger; `None` limit is a no-op and matches baseline; event is finite/JSON-safe; invalid limit raises `BABConfigError`.
+
+### R4-C — Reproducible paper-trading replay harness
+- **Deliverable:** `strategies/betting_against_beta/replay.py` — `ReplayHarness` that replays a `BABResult`'s weights against a price/returns fixture **deterministically**, recording per-period orders, fills, and costs, and emitting a reproducible artifact (stable schema + SHA-256 checksum).
+- **Contract:** two runs on identical inputs produce **byte-identical** artifacts (same checksum); artifact is strict-JSON-safe; includes orders/fills/costs/equity; no wall-clock or random nondeterminism.
+- **Tests:** `tests/test_bab_replay_harness_r4.py` — determinism (two runs equal), schema keys present, finite, checksum stable, records orders/fills/costs; works against `tests/fixtures/real_market_prices.csv`.
+
+### Required work order (complete all; heavy)
+1. **Baseline on current HEAD:** re-run preflight + R2 suites + R3 suite; record RC/pass/time. Any regression → fix first.
+2. **Implement R4-A, R4-B, R4-C** with the tests above. Wire R4-B into `BABStrategy.run`/`report` and R4-A into CLI without regressing the default/no-cost path.
+3. **Gate + durable evidence:** run `PATH="$VENV/bin:$PATH" bash scripts/bab_gate.sh`; record RC, pass/skip, timing, coverage. Then refresh this `HANDOFF.md` with concrete evidence (commands, results, per-component summaries, defects fixed, remaining risks) and keep `AGENT_HANDOFF.md` pointer-only/in-sync.
+4. **Commit nothing unless explicitly requested.**
+
+**Definition of done:** R2/R3 green on final HEAD; R4-A/B/C implemented with green tests; `bash scripts/bab_gate.sh` RC=0 recorded; `HANDOFF.md` refreshed with evidence. If blocked on one sub-item, document the exact error/evidence and continue with the next unblocked R4 item — never stop at analysis.
+
+---
+
+## MANDATORY START (every session, ~90s, idempotent)
+
 ```bash
 VENV=/home/runner/work/_temp/kilo-tmp/bab-venv
 if [ ! -d "$VENV" ]; then python3 -m venv "$VENV"; fi
@@ -42,66 +70,57 @@ if [ ! -d "$VENV" ]; then python3 -m venv "$VENV"; fi
 
 cd /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
 PYTHONPATH=. "$VENV/bin/python" scripts/bab_r2_preflight.py; echo "PREFLIGHT_RC=$?"
+PYTHONPATH=. "$VENV/bin/python" scripts/bab_r4_preflight.py; echo "R4_PREFLIGHT_RC=$?"
 ```
-- Do **not** claim missing deps (`pytest`/`numpy`/etc.) as blockers — run bootstrap above.
-- Do **not** claim green status without fresh command output on current `HEAD` (`4dfbc17`).
-
-### Required work order (heavy; complete all)
-1. **Baseline confirmation on current HEAD**
-   - Run preflight and targeted R2 suites: `tests/test_bab_stress_regimes.py tests/test_bab_stress_horizon.py tests/test_bab_scale_perf_guard.py`.
-   - Record RC/pass/warn/time and live scale medians/ceilings. R2 must remain green (no regression from R3).
-2. **R4-A/B/C implementation** (all three): dry-run/risk report, drawdown-limit kill switch, deterministic paper-trading replay harness against real fixtures, each with regression tests and finite/strict-JSON reporting.
-3. **Gate and durable evidence (completion bar)**
-   - Run targeted R2 + R4 suites, then `bash scripts/bab_gate.sh` on final `HEAD`. Record RC, pass/skip counts, timing, key warnings if material.
-   - Refresh this `HANDOFF.md` with concrete evidence: commands run, results, per-R4-component summaries, any defects fixed, and remaining risks. Keep `AGENT_HANDOFF.md` pointer-only and in sync.
-   - **Commit nothing unless explicitly requested.**
-
-**Definition of done:** R2 green on final HEAD, R4-A/B/C implemented with green tests, `bash scripts/bab_gate.sh` RC=0 recorded, `HANDOFF.md` refreshed with concrete evidence. If blocked on one sub-item, document exact error/evidence and continue with next unblocked R4 work — do not stop at analysis.
+- `bab_gate.sh` invokes bare `python3`; **prefix `PATH="$VENV/bin:$PATH"`** so the gate uses the venv interpreter (otherwise system `python3` may lack numpy/pandas/coverage).
+- Do **not** claim missing deps (`pytest`/`numpy`/etc.) as blockers — run the bootstrap above.
+- Do **not** claim green status without fresh command output on the current `HEAD`.
+- `scripts/bab_r4_preflight.py` is the mechanical campaign gate: it fails (non-zero) with an itemized TODO until R4-A/B/C artifacts + tests exist and pass. Treat its output as the authoritative "what's left" list.
 
 ---
 
-## Current state snapshot (verified at refresh unless noted)
+## BOTTLENECKS REMOVED (this refresh)
 
-- **HEAD / tree:** `4dfbc17`; tree CLEAN (the `TestFreezeFallback` fix is committed). Preflight + R2 + R3-A + R3-B + full gate were last verified green on `ee1d42c`; HEAD advanced only via checkpoint commits (handoff docs + test fix), no strategy-code change, so R3 evidence carries forward but must be re-confirmed with a fresh gate run on `4dfbc17`.
-- **R1:** closed/locked (per prior verified handoff; do not reopen without new reproducible evidence).
-- **R2:** closed/locked — green on `ee1d42c` (155 passed; scale within ceilings). Re-confirm on `4dfbc17`.
-- **R3:** closed/locked — see R3 COMPLETION EVIDENCE above. `tests/test_bab_execution_realism_r3.py` present and green; `bash scripts/bab_gate.sh` RC=0 (verified on `ee1d42c`). Re-confirm on `4dfbc17`.
-- **R4:** not started — this is the active campaign (see INITIAL TASK above). `cli.py --dry-run` skeleton present; kill switch (R4-B) and replay harness (R4-C) not yet implemented.
+1. **Stale HEAD in both handoff docs** — `HANDOFF.md` claimed `4dfbc17`, `AGENT_HANDOFF.md` claimed `ee1d42c`; actual HEAD is `45563ba` (checkpoint commit 2026-11-14T00:37:33Z). Both corrected; evidence re-measured on `45563ba`.
+2. **Contradictory tree state** — `AGENT_HANDOFF.md` said "DIRTY with one uncommitted fix"; actual tree is CLEAN (fix already committed). Corrected.
+3. **Dangling `docs/COVERAGE_NOTES.md` reference** to a non-existent "HANDOFF.md C54 Step 2" and stale gate count (5069); refreshed to current gate (5590 / 96%).
+4. **Gate env ambiguity** — documented the required `PATH="$VENV/bin:$PATH"` prefix.
+5. **Hand-wavable R4** — replaced vague candidate list with concrete file/module/API/test targets and a failing-by-default `scripts/bab_r4_preflight.py`, so the next session cannot skip the heavy work.
 
 ---
 
-## Key anchors / contracts (verified; do not guess)
+## KEY ANCHORS / CONTRACTS (verified; do not guess)
 
-- **Pipeline/API:** `from strategies.betting_against_beta import BABStrategy`; `res = BABStrategy(...).run(returns_df=df)` where `df` is simple returns (DatetimeIndex/rows by date, columns assets, benchmark column present). `res` fields: `betas`, `signals`, `weights`, `backtest`.
+- **Pipeline/API:** `from strategies.betting_against_beta import BABStrategy`; `res = BABStrategy(...).run(returns_df=df)` where `df` is simple returns (DatetimeIndex, columns assets, benchmark column present). `res` fields: `betas`, `signals`, `weights`, `backtest`, `config`, `returns`.
 - **Locked backtest columns:** `["returns","gross_return","cost_drag","slippage_drag","cumulative"]` (do not change without updating all dependents and recording delta).
-- **Dollar neutrality:** when configured, enforce/check `max|weights.sum(axis=1)| <= 1e-9` (project convention).
-- **R3-A config/strategy knobs:** `cost_model` (dict coerced to `TransactionCostModel` or instance), `prices`, `adv_usd`, `partial_fill` (bool), `max_participation` in `(0,1]`; invalid/wrong-typed config must raise loudly.
-- **Cost model:** `strategies/betting_against_beta/costs.py` — `TransactionCostModel(linear_fee,bid_ask_bps,impact_coefficient,participation_cap,borrow_bps_per_year,fixed_fee_per_trade,trading_days_per_year,adv_usd)`; `compute_transaction_costs(weights, weights_prev, prices, model, adv_usd=...)` returns per-period non-negative finite series.
-- **Default path invariant:** no-model/flat path must remain behaviorally/byte-identically consistent with pre-R3 (do not regress performance/semantics).
-- **Hostile regime builders for reuse:** `tests/test_bab_stress_regimes.py` (`_base_frame`, `REGIMES`, `REGIME_BUILDERS`, helpers/constants like `BETA_WINDOW=90`, `MIN_OBS=60`, `DN_TOL=1e-9`).
-- **Canonical commands:** preflight `PYTHONPATH=. "$VENV/bin/python" scripts/bab_r2_preflight.py`; gate `bash scripts/bab_gate.sh` (from repo root, with deps available).
+- **Dollar neutrality:** when configured, `max|weights.sum(axis=1)| <= 1e-9` (project convention `DN_TOL`).
+- **Config validation:** `BABConfig` is effectively frozen after `__post_init__`; unknown/wrong types raise `BABConfigError` (config.py:18). Cost knobs: `cost_model` (dict coerced to `TransactionCostModel` or instance), `prices`, `adv_usd`, `partial_fill` (bool), `max_participation` in `(0,1]`.
+- **Cost model:** `strategies/betting_against_beta/costs.py` — `TransactionCostModel(linear_fee,bid_ask_bps,impact_coefficient,participation_cap,borrow_bps_per_year,fixed_fee_per_trade,trading_days_per_year,adv_usd)`; `compute_transaction_costs(weights, weights_prev, prices, model, adv_usd=...)`.
+- **Default-path invariant:** no-model/flat path must remain behaviorally/byte-identically consistent with pre-R4 (do not regress performance/semantics).
+- **Hostile regime builders for reuse:** `tests/test_bab_stress_regimes.py` (`_base_frame`, `REGIMES`, `REGIME_BUILDERS`, `BETA_WINDOW`, `MIN_OBS`, `DN_TOL`, `BACKTEST_COLUMNS`).
+- **Canonical commands:** preflight `PYTHONPATH=. "$VENV/bin/python" scripts/bab_r2_preflight.py`; R4 preflight `PYTHONPATH=. "$VENV/bin/python" scripts/bab_r4_preflight.py`; gate `PATH="$VENV/bin:$PATH" bash scripts/bab_gate.sh` (from repo root).
 
 ---
 
-## Performance guardrails (do not regress; live-run wins)
+## PERFORMANCE GUARDRAILS (do not regress; live-run wins)
 
-- Prior measured medians (this session, ee1d42c): 5000×200 ~151ms (ceiling 800ms), 5000×500 ~383ms (ceiling 2000ms). Scale guards assert ceilings, not exact medians.
+- Current medians (this session, `45563ba`): 5000×200 ~163 ms (ceiling 800 ms), 5000×500 ~393 ms (ceiling 2000 ms). Scale guards assert ceilings, not exact medians.
 - Keep default/no-model path model-free/lightweight; pay cost-model overhead only when configured.
 
 ---
 
-## Locks / prohibitions (binding)
+## LOCKS / PROHIBITIONS (binding)
 
 - **No** edits to `.github/workflows/*`.
 - **No** edits/commits to tracked root probe/debug artifacts (`probe*`, `debug*`, `ast_probe.py`, scratch cov artifacts as applicable); use `/home/runner/work/_temp/kilo-tmp/` for scratch.
-- **No** weakening/deleting shipped regression suites/guards (incl. `tests/test_beta_neutrality_performance.py`, historical `batch*`/`campaign*` regressions, R2 suites, R3 suite) or changing locked backtest columns without full dependent updates + recorded delta.
+- **No** weakening/deleting shipped regression suites/guards (incl. `tests/test_beta_neutrality_performance.py`, historical `batch*`/`campaign*` regressions, R2/R3 suites) or changing locked backtest columns without full dependent updates + recorded delta.
 - **No** reopening `research_state/workflow_run_diagnostics.jsonl` as a current failure (historical only).
 - **No** broad `data_loader.py` silent-`except` sweep unless tied to a specific reproducible defect + regression test.
-- **No** probe-count/churn campaigns or commentary-only progress. Commit nothing unless explicitly requested.
+- **No** probe-count/churn campaigns or commentary-only progress. **Commit nothing unless explicitly requested.**
 
 ---
 
-## After R4 ships (next candidates)
+## AFTER R4 SHIPS (next candidates)
 
 1. **R5 — Execution integration:** live-order adapter stubs, slippage/impact calibration against real fill data, cost-model backtest vs executed-fills reconciliation.
 2. Revisit locked `data_loader.py` broad-`except` sweep only with concrete reproducible defect + regression test.

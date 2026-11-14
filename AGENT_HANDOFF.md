@@ -1,11 +1,12 @@
 # AGENT_HANDOFF.md (pointer)
 
-**Canonical durable handoff:** [`HANDOFF.md`](HANDOFF.md) — single source of truth. Read it in full before starting.
+**Canonical durable handoff:** [`HANDOFF.md`](HANDOFF.md) — single source of truth. Read it in full before starting. Do not create parallel handoff docs.
 
-- **Refreshed:** 2026-11-14T23:46:03Z
-- **HEAD:** `ee1d42c` (main), working tree DIRTY with one uncommitted reviewed fix (`tests/test_bab_strategy_campaign_gaps.py`: `cfg.cost_model = None` in `TestFreezeFallback` — scope correction, R3 validation untouched). Commit nothing unless explicitly requested.
-- **Environment:** sandbox has no Python deps by default; run the idempotent venv/bootstrap + preflight block at top of `HANDOFF.md` (`/home/runner/work/_temp/kilo-tmp/bab-venv`) before any work. Do not claim missing deps as blockers.
-- **State:** R1 closed/locked. R2 closed/locked — green on `ee1d42c` (preflight RC=0; 155 passed R2 suites; scale 151ms/383ms within ceilings). R3 closed/locked — `tests/test_bab_execution_realism_r3.py` present and green (62 passed), R3-B rebalance-frequency sweep measured and green, full gate RC=0 (5590 passed / 35 skipped / ~419s / coverage 96%). Bottleneck removed: `TestFreezeFallback` no longer trips R3 loud `cost_model` validation.
-- **R4 (active campaign):** live-readiness — dry-run/portfolio-risk report, drawdown-limit kill switch, reproducible paper-trading replay harness against real fixtures. See binding INITIAL TASK in `HANDOFF.md` (timestamped 2026-11-14T23:46:03Z). Heavy; ship code/tests/evidence; do not stop at analysis.
+- **Refreshed:** 2026-11-14T00:46:20Z
+- **HEAD:** `45563ba` (main). Working tree has only this handoff's doc/script edits (no product/test code). Supersedes stale `ee1d42c`/`4dfbc17` references.
+- **Environment:** run the idempotent venv/bootstrap + preflight block at the top of `HANDOFF.md` (`/home/runner/work/_temp/kilo-tmp/bab-venv`). Prefix the gate with `PATH="$VENV/bin:$PATH"`. Do not claim missing deps as blockers.
+- **State:** R1/R2/R3 closed/locked — preflight RC=0 (155 passed; scale 163 ms / 393 ms within ceilings); full gate RC=0 (5590 passed / 35 skipped / 416.96s / coverage 96%), verified on `45563ba`.
+- **R4 (active campaign):** live-readiness — R4-A dry-run/portfolio-risk report, R4-B drawdown-limit kill switch, R4-C deterministic paper-trading replay harness. Not started. See the binding INITIAL TASK in `HANDOFF.md` (timestamped 2026-11-14T00:46:20Z). Heavy; ship code/tests/evidence; do not stop at analysis.
+- **Mechanical gate:** `PYTHONPATH=. "$VENV/bin/python" scripts/bab_r4_preflight.py` fails with an itemized TODO until R4 ships. Run it every session.
 
-Historical diagnostics in `research_state/workflow_run_diagnostics.jsonl` are not current failures. Do not stop at analysis.
+Historical diagnostics in `research_state/workflow_run_diagnostics.jsonl` are not current failures.
