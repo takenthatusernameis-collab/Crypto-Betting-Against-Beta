@@ -38,11 +38,12 @@ def enclosing(node, pred):
 
 def find_tryhandlers(line):
     """Return (try_node, handlers) for the try whose body spans `line`."""
-    out = []
-    for node in ast.walk(tree):
-        if isinstance(node, ast.Try) and node.lineno <= line <= getattr(node, "end_lineno", node.lineno):
-            out.append(node)
-    return out
+    return [
+        node
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Try)
+        and node.lineno <= line <= getattr(node, "end_lineno", node.lineno)
+    ]
 
 
 # Miss clusters -> (function, line)
@@ -71,7 +72,10 @@ for name, (fn, line) in clusters.items():
             et_name = ast.unparse(et) if et else "bare"
             handlers.append((h.lineno, et_name))
         dist = line - t.lineno
-        info.append(f"try@{t.lineno}(body {t.lineno+1}-{t.end_lineno}) handlers={handlers} dist_to_miss={dist}")
+        info.append(
+            f"try@{t.lineno}(body {t.lineno+1}-{t.end_lineno}) "
+            f"handlers={handlers} dist_to_miss={dist}"
+        )
     print(f"\n{name} ({fn}:{line}):")
     for i in info:
         print("   ", i)
