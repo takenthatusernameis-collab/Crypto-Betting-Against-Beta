@@ -2,49 +2,55 @@
 
 **Repo:** `crypto-betting-against-beta` — Betting Against Beta (BAB) market-neutral crypto strategy (long low-beta / short high-beta vs benchmark, default BTC). See `README.md`, `strategies/betting_against_beta/`. **Priority basis (repo name):** the repo *is* the BAB strategy engine, so strategy correctness, realism, and live/execution-readiness outrank tooling, diagnostics archaeology, and coverage-chasing.
 
-**Refreshed:** 2026-11-14T04:19:52Z (UTC)
-**HEAD at refresh:** `479ee9f` (main, `git rev-parse --short HEAD` at refresh). **Live run wins** — if any recorded number conflicts with live output on current `HEAD`, re-measure, record the delta, and update this file immediately.
+**Refreshed:** 2026-11-14T04:40:26Z (UTC)
+**HEAD at refresh:** `196a492` (main, `git rev-parse --short HEAD` at refresh). **Live run wins** — if any recorded number conflicts with live output on current `HEAD`, re-measure, record the delta, and update this file immediately.
 **Single source of truth:** this file. `AGENT_HANDOFF.md` is a pointer only. Read this whole file before doing anything. Do not create parallel handoff/session docs.
 
 ---
 
-## INITIAL TASK MESSAGE (START HERE, 2026-11-14T04:19:52Z UTC) — BINDING
+## INITIAL TASK MESSAGE (START HERE, 2026-11-14T04:40:26Z UTC) — BINDING
 
-**R5 Execution Integration is COMPLETE.** All three R5 sub-campaigns (R5-A adapter contract, R5-B modeled-vs-executed reconciliation, R5-C executed-fills backtest reconciliation) are implemented, tested, and verified. The initial task for the next session is: **do not reopen R5 unless new reproducible evidence of a defect exists.** If starting fresh, re-verify baseline (R2/R4 preflights + R5 tests) then proceed to post-R5 items in the "AFTER R5" section below.
+**Baseline verified green on `196a492` (2026-11-14T04:40:26Z):** R2 preflight RC=0 (155 passed, 170 ms @5000×200, 406 ms @5000×500), R4 preflight RC=0 (31 R4 + 217 R2/R3 baseline passed), R5 integration RC=0 (23 passed). **R1–R5 are complete; do not reopen them without new reproducible evidence of a defect.**
 
 **Immediate sequence (execute now, in order):**
-1. **Re-verify baseline on current HEAD (required before any new work):**
+1. **Environment/bootstrap (idempotent, do not treat as blocker):**
    ```bash
    VENV=/home/runner/work/_temp/kilo-tmp/bab-venv
    cd /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
+   test -x "$VENV/bin/python" || python3 -m venv "$VENV"
+   "$VENV/bin/python" -m pip install -q -r requirements.txt -e .
+   ```
+2. **Fast re-verify on current HEAD before any new work (required):**
+   ```bash
    PYTHONPATH=. "$VENV/bin/python" scripts/bab_r2_preflight.py; echo "PREFLIGHT_RC=$?"
    PYTHONPATH=. "$VENV/bin/python" scripts/bab_r4_preflight.py; echo "R4_PREFLIGHT_RC=$?"
-   ```
-   If either fails: fix the regression first (smallest fix + targeted regression test), record evidence, then re-run.
-2. **Re-verify R5 tests:**
-   ```bash
    PYTHONPATH=. "$VENV/bin/python" -m pytest tests/test_bab_execution_integration_r5.py -q -p no:cacheprovider; echo "R5_TESTS_RC=$?"
    ```
-3. **Full gate when appropriate:** `PATH="$VENV/bin:$PATH" bash scripts/bab_gate.sh; echo "GATE_RC=$?"` (gate needs venv on `PATH`).
-4. **Post-R5 (only after baseline is green):** see "AFTER R5" section below — live/paper execution wiring with real venue adapters only when credentials/sandbox + fill data available (do not fake).
+   If any fail: fix the regression first (smallest fix + targeted regression test), record evidence, re-run, then continue.
+3. **Post-R5 heavy campaign (proceed immediately when baseline is green — do not stop at analysis): R5-D Execution/Reconciliation productization (additive, no live creds).** `execution.py` (`PaperAdapter`/`MockAdapter`, `order_batches_from_weights`) and `reconciliation.py` (`reconcile_costs`, `reconcile_fills_to_backtest`) exist but are **not exposed in CLI or report paths**. Implement additive, deterministic, strict-JSON-safe surfacing so the strategy is operationally usable without faking live venues:
+   - Add CLI support to run with an in-process paper/mock execution adapter (no network, no credentials) and emit execution + reconciliation artifacts alongside existing outputs; `--output`/`--dry-run` contracts and default behavior must remain unchanged when unconfigured (byte-identical default path).
+   - Add/extend report helpers and/or result serialization paths for execution payloads and `ReconciliationResult` (per-period + aggregate deltas, checksums) with stable schema; broaden to cover realistic fill schemas already representable by adapters (no invented/live data).
+   - Write focused tests proving: CLI additive flags/JSON-safety/determinism, reconciliation artifact correctness on deterministic fixtures, and **default-path invariance** (no adapter/config => identical backtest/weights/outputs vs pre-R5-D behavior).
+4. **Proof sequence:** targeted R5-D tests → `PYTHONPATH=. "$VENV/bin/python" -m pytest tests/test_bab_execution_integration_r5.py -q -p no:cacheprovider` → `PYTHONPATH=. "$VENV/bin/python" scripts/bab_r2_preflight.py` → `PYTHONPATH=. "$VENV/bin/python" scripts/bab_r4_preflight.py` → when appropriate full gate `PATH="$VENV/bin:$PATH" bash scripts/bab_gate.sh`. Record all RCs/counts/timings in this handoff.
+5. **Live/paper venue wiring with real credentials/sandbox + real fills:** **only** when such credentials/fill data are actually available in the environment; do not fake. If unavailable, complete R5-D productization and document the exact remaining external dependency.
 
 **Non-negotiable constraints:** no `.github/workflows/*` edits; no edits to tracked root probe/debug artifacts (`probe*`, `debug*`, `ast_probe.py`, scratch cov artifacts); no weakening shipped regression suites/guards or locked backtest columns; do not treat `research_state/workflow_run_diagnostics.jsonl` as a current blocker; commit nothing unless explicitly requested. Use `/home/runner/work/_temp/kilo-tmp/` for throwaway artifacts.
 
-**Bottleneck policy:** environment is not a blocker (bootstrap venv + prefix `PATH`). Historical diagnostics are not a blocker (live run wins). If no real blocker exists, proceed with implementation; do not stop at analysis.
+**Bottleneck policy:** environment is not a blocker (bootstrap venv + prefix `PATH`). Historical diagnostics are not a blocker (live run wins). No credentials are present for real-venue execution in this environment — that is an external dependency, not a reason to stall: execute R5-D productization now. If no real blocker exists, proceed with implementation; do not stop at analysis.
 
 ---
 
-## VERIFIED EVIDENCE SNAPSHOT (live on current HEAD `479ee9f`)
+## VERIFIED EVIDENCE SNAPSHOT (live on current HEAD `196a492`)
 
-Captured on HEAD `479ee9f` (2026-11-14T04:19:52Z UTC). All numbers re-verified live this session.
+Captured on HEAD `196a492` (2026-11-14T04:40:26Z UTC). Re-verified live this session after handoff refresh (env: `VENV=/home/runner/work/_temp/kilo-tmp/bab-venv` present).
 
 | Check | Command | Live result |
 |---|---|---|
-| R2 preflight | `PYTHONPATH=. "$VENV/bin/python" scripts/bab_r2_preflight.py` | RC=0 — 155 passed, 6 warnings, 34.29s |
-| Live scale (median/9 warm) | same preflight | 5000×200 = 167 ms (≤800), 5000×500 = 414 ms (≤2000) |
-| R4 preflight | `PYTHONPATH=. "$VENV/bin/python" scripts/bab_r4_preflight.py` | RC=0 — R4-A/B/C present + green; R2/R3 baseline green (217 passed, 35.52s) |
-| R5 integration tests | `PYTHONPATH=. "$VENV/bin/python" -m pytest tests/test_bab_execution_integration_r5.py -q -p no:cacheprovider` | RC=0 — 23 passed, 17.09s |
-| Full gate | `PATH="$VENV/bin:$PATH" bash scripts/bab_gate.sh` | RC=0 — 5644 passed / 35 skipped / 437.58s / coverage 94% |
+| R5 integration tests | `PYTHONPATH=. "$VENV/bin/python" -m pytest tests/test_bab_execution_integration_r5.py -q -p no:cacheprovider` | RC=0 — 23 passed, 10.33s |
+| R2 preflight | `PYTHONPATH=. "$VENV/bin/python" scripts/bab_r2_preflight.py` | RC=0 — 155 passed, 6 warnings, 37.44s |
+| Live scale (median/9 warm) | same preflight | 5000×200 = 170 ms (≤800), 5000×500 = 406 ms (≤2000) |
+| R4 preflight | `PYTHONPATH=. "$VENV/bin/python" scripts/bab_r4_preflight.py` | RC=0 — R4-A/B/C present + green; R2/R3 baseline green (31 R4 + 217 baseline passed, 14 warnings, ~51.8s total) |
+| Full gate | `PATH="$VENV/bin:$PATH" bash scripts/bab_gate.sh` | **Not re-run this refresh** (last recorded green on `479ee9f`: 5644 passed / 35 skipped / 437.58s / coverage 94%). Re-run before any merge/release-grade claim or if behavior changes. |
 
 `VENV=/home/runner/work/_temp/kilo-tmp/bab-venv` may or may not exist on a fresh runner; bootstrap idempotently.
 
@@ -80,15 +86,16 @@ Captured on HEAD `479ee9f` (2026-11-14T04:19:52Z UTC). All numbers re-verified l
 
 ---
 
-## BOTTLENECKS REMOVED / ENFORCED (2026-11-14T04:19:52Z refresh)
+## BOTTLENECKS REMOVED / ENFORCED (2026-11-14T04:40:26Z refresh)
 
 1. **Single durable handoff enforced** — `HANDOFF.md` only; `AGENT_HANDOFF.md` pointer-only; no parallel/session docs.
-2. **Clear, timestamped initial task at top** — binding R5-complete sequence with exact bootstrap/verify/proof commands so next session cannot avoid heavy work or reopen completed work without evidence.
-3. **Handoff freshness corrected** — refreshed to `HEAD` `479ee9f` @ 2026-11-14T04:19:52Z; all numeric evidence re-verified live on current HEAD.
+2. **Clear, timestamped initial task at top** — binding post-R5 sequence with exact bootstrap/verify/proof commands and a concrete **R5-D heavy campaign** (CLI/report execution + reconciliation productization) so next session cannot avoid substantive implementation.
+3. **Handoff freshness corrected** — refreshed to `HEAD` `196a492` @ 2026-11-14T04:40:26Z; R2/R4/R5 re-verified live on current HEAD (full gate noted as not re-run this refresh).
 4. **Environment de-blocked** — idempotent venv bootstrap and `PATH="$VENV/bin:$PATH"` for gate; do not report env as a blocker.
-5. **Historical noise quarantined** — `research_state/workflow_run_diagnostics.jsonl` is not a current failure/blocker; live run on current `HEAD` wins.
-6. **Scope discipline** — no archaeology/probe-count churn, no commentary-only progress, no workflow/guard weakening, no tracked root probe/debug edits; scratch only under `/home/runner/work/_temp/kilo-tmp/`.
-7. **R5 complete** — execution adapter contract + reconciliation modules implemented and tested; default-path invariance proven by byte-identical backtest/weights with and without adapter.
+5. **Historical noise quarantined** — `research_state/workflow_run_diagnostics.jsonl` contains historical log excerpts only; not a current failure/blocker. **Live run on current `HEAD` wins.**
+6. **External-dependency clarity** — no real venue credentials/sandbox/fill data available in this environment; **do not fake live execution**. This does not block R5-D (deterministic paper/mock adapters, no network) — proceed with implementation.
+7. **Scope discipline** — no archaeology/probe-count churn, no commentary-only progress, no workflow/guard weakening, no tracked root probe/debug edits; scratch only under `/home/runner/work/_temp/kilo-tmp/`.
+8. **R1–R5 locked** — execution adapter + reconciliation modules implemented/tested; default-path invariance proven. Do not reopen without new reproducible evidence.
 
 ---
 
@@ -121,9 +128,10 @@ Captured on HEAD `479ee9f` (2026-11-14T04:19:52Z UTC). All numbers re-verified l
 
 ---
 
-## AFTER R5
+## AFTER R5 (next campaign: R5-D)
 
-- Live/paper execution wiring with real venue adapters only when credentials/sandbox + fill data available (do not fake). Broaden reconciliation to production fill schemas.
-- Revisit locked `data_loader.py` broad-`except` sweep only with concrete reproducible defect + regression test.
+- **R5-D (now, no creds required):** CLI/report execution + reconciliation productization — additive, deterministic, strict-JSON-safe. Wire `PaperAdapter`/`MockAdapter` and `reconcile_costs`/`reconcile_fills_to_backtest` into CLI/report/output paths with stable artifact schema and checksums; preserve default-path invariance and existing `--dry-run`/`--output` contracts. Add focused regression tests.
+- **Live venue execution (external dependency):** wire real exchange adapters only when credentials/sandbox + real fill data are available; do not fake. Broaden reconciliation mapping to production fill schemas once real samples exist.
+- **Deferred:** revisit locked `data_loader.py` broad-`except` sweep only with a concrete reproducible defect + regression test.
 
-**`HANDOFF.md` is the only durable handoff. Keep it current with evidence on every material run.**
+**`HANDOFF.md` is the only durable handoff. Keep it current with evidence (RCs, counts, timings, HEAD) on every material run.**
