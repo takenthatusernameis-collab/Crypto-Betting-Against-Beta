@@ -2,13 +2,13 @@
 
 **Canonical durable handoff (single source of truth).** Do not create parallel handoff/session docs; update this file only.
 
-- **Timestamp (UTC):** 2026-11-14T21:01:26Z
+- **Timestamp (UTC):** 2026-11-14T21:02:26Z
 - **Repo:** `Crypto-Betting-Against-Beta`
-- **HEAD:** `86243be` (`chore(kilo): checkpoint agent session`)
+- **HEAD:** `68f2984` (`chore(kilo): checkpoint agent session`)
 - **Branch:** `main`
-- **Working tree:** clean (verified 2026-11-14T21:01:26Z)
+- **Working tree:** clean at handoff refresh (checkpoint commits advanced HEAD; P8 evidence below remains valid at recorded commits)
 
-## INITIAL TASK MESSAGE (START HERE, 2026-11-14T21:01:26Z UTC) — BINDING
+## INITIAL TASK MESSAGE (START HERE, 2026-11-14T21:02:26Z UTC) — BINDING
 
 This is the only active task. Execute in order. No archaeology (`probe_*.py`, `debug_*.py`, `ast_probe.py`), no new handoff/session docs, no re-verification of green areas unless your change touches them. If blocked, record exact command + output and continue with the next unblocked priority. **Never stop at analysis — produce code, tests, and evidence.**
 
@@ -29,7 +29,7 @@ P8 (paper-trading scaffold, data freshness/staleness guards, signal diagnostics,
 | Lint | `python3 -m ruff check .` | **All checks passed** (exit 0) @ 2026-11-14T21:01:26Z |
 | P8 targeted tests | `python3 -m pytest -q tests/test_bab_paper_trading.py tests/test_bab_data_freshness.py tests/test_bab_diagnostics.py tests/test_betting_against_beta.py` | **99 passed** (18.21s) @ 2026-11-14T21:01:26Z |
 | Full suite | `python3 -m pytest -q` | **Large suite (>10 min)** — iterate targeted subsets when debugging; do not regress full-suite green |
-| Git state | `git log -1 --oneline` / `git status --short` | `86243be` / clean tree @ 2026-11-14T21:01:26Z |
+| Git state (refresh) | `git log -1 --oneline` / `git status --short` | `68f2984` / clean @ 2026-11-14T21:02:26Z |
 
 **No P0/P1/P2/P3/P4/P5/P6/P7/P8 bottlenecks.** Offline deterministic default path unchanged. P5 opt-in public Coinbase fetch complete. P6 complete. P7 complete. P8 complete and verified.
 
@@ -93,6 +93,6 @@ Extend the BAB strategy with **production-grade live execution readiness** while
 - `bab-example` console script requires `pip install -e .` — not a blocker; module CLI works.
 
 ### Protocol
-1. Read this file fully. 2. Execute P9 (live execution adapter, risk management, real-time feed, verification, commit, handoff refresh). 3. Refresh this handoff before stopping. 4. Keep `AGENT_HANDOFF.md` as a pointer only.
+1. Read this file fully. 2. Execute **P9** end-to-end (live execution adapter scaffold, position/risk management overlay, real-time data feed + freshness SLA, verification, commit, handoff refresh). 3. Do not stop at analysis/research; land code + tests + evidence. 4. Refresh this handoff (UTC timestamp, HEAD, completed work with exact evidence, remaining gaps/risks, next binding task) before stopping. 5. Keep `AGENT_HANDOFF.md` as a pointer only.
 
-**Next Agent Mandatory (2026-11-14T21:01:26Z UTC):** Complete **Priority 9** end-to-end (live execution adapter scaffold, risk management overlay, real-time data feed, verification, commit, handoff refresh) before any new feature work. Do not stop at analysis. Report: `git log -1 --oneline`, `git status --short`, `ruff check .`, full pytest output, gate output, paper trading smoke, live adapter smoke (opt-in), perf evidence.
+**Next Agent Mandatory (2026-11-14T21:02:26Z UTC):** Complete **Priority 9** before any other work. Deliverables: `LiveExecutionAdapter` in `execution.py` (CCXT-ready connector abstraction, order lifecycle submit/ack/fill/cancel-replace, idempotency keys, retry/backoff, dry-run default, no implicit network), CLI `--adapter live --exchange <name> --api-key-env <var> --api-secret-env <var>` with routing respecting `max_participation`/`adv_usd`/slippage and `ExecutionReport`-compatible fills; `RiskManager` in `risk.py` with per-asset/side/portfolio limits + `pre_trade_check` hook + kill-switch flattening/audit `RiskEvent`; `RealtimeFeed` base + `CCXTFeed`/`WebSocketFeed` in `data_sources.py` with tick/bar freshness SLA (`max_staleness_seconds`/`max_gap_seconds`), `validate_freshness` integration, and `--health-check` JSON; tests `tests/test_bab_live_adapter.py`, `tests/test_bab_risk_manager.py`, `tests/test_bab_realtime_feed.py` (network/sandbox gated/opt-in as specified). Report: `git log -1 --oneline`, `git status --short`, `ruff check .`, full pytest, `bash scripts/bab_gate.sh`, perf baseline check, paper smoke, live adapter smoke (opt-in). No analysis-only handoff.
