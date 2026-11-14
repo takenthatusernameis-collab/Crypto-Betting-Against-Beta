@@ -4,18 +4,18 @@
 
 **Priority basis (repo name):** this repository *is* the BAB strategy engine, not a tooling sandbox. Priority order is: (1) BAB beta/signal/backtest correctness; (2) execution realism and reconciliation; (3) live/execution readiness; (4) tests, docs, and coverage. Diagnostics, probe archaeology, and coverage-chasing are means to those ends and must not displace P0/P1 work.
 
-**Refreshed:** 2026-11-14T08:08:33Z (UTC)
-**HEAD at refresh:** `bcebae0` (main, `git rev-parse --short HEAD` at refresh). **Live run wins** — if any recorded number conflicts with live output on the current `HEAD`, re-measure, record the delta, and update this file immediately.
-**Single source of truth:** this file. `AGENT_HANDOFF.md` is a pointer only. Read this whole file before doing anything. Do not create parallel handoff/session docs. (`.kilo/task_handoff.md` does not exist — do not create one.)
+**Refreshed:** 2026-11-14T08:48:17Z (UTC)
+**HEAD at refresh:** `9dc4ac1` (main). **Live run wins** — if any recorded number conflicts with live output on the current `HEAD`, re-measure, record the delta, and update this file immediately.
+**Single source of truth:** this file. `AGENT_HANDOFF.md` is a pointer only. Read this whole file before doing anything. Do not create parallel handoff/session docs.
 
 ---
 
-## INITIAL TASK MESSAGE (START HERE, 2026-11-14T06:51:19Z UTC) — BINDING
+## INITIAL TASK MESSAGE (START HERE, 2026-11-14T08:48:17Z UTC) — BINDING
 
-**Baseline last verified live on `a01118d` (2026-11-14T06:49:52Z):** R2 preflight RC=0 (green; 5000×500 = 386 ms ≤ 2000 ceiling), R4 preflight RC=0 (R4-A/B/C present + green, R2/R3 baseline green), R5 integration RC=0 (23 passed, 10.03s), R5-D CLI sanity RC=0 (`--adapter paper --reconcile --output` emits execution + reconciliation sidecars), default-path CLI RC=0 (0.413704 / 252 periods, byte-identical to pre-R5-D). **Code is byte-identical to `fde12bf`** (only `HANDOFF.md`/`AGENT_HANDOFF.md` changed in `fde12bf..88707a7`), so the recorded full-gate green on `fde12bf` (5644 passed / 35 skipped / 425.16s / coverage 93%) still holds for the code, but **re-run the full gate before any release-grade claim**. R1–R5 + R5-D are complete; do not reopen them without new reproducible evidence of a defect. **Step 2 fast re-verify on current HEAD is mandatory before any new work.**
+**Live baseline verified on `9dc4ac1` (2026-11-14T08:48:17Z UTC):** R2 preflight RC=0 (green; 5000×500 = 554 ms ≤ 2000 ceiling), R4 preflight RC=0 (R4-A/B/C present + green, R2/R3 baseline 217 passed), R5-E+R5 integration RC=0 (46 passed, 19.04s), R5-D CLI sanity RC=0 (`--adapter paper --reconcile --output` emits execution + reconciliation sidecars; strict-JSON-safe), default-path CLI RC=0 (0.413704 / 252 periods). **Full gate RC=0: 5667 passed / 35 skipped / 577.63s / coverage 92%** (live on `9dc4ac1`). **R1–R5 + R5-D + R5-E are all COMPLETE — do NOT reopen them without new reproducible evidence of a defect.** `9dc4ac1` changed only `HANDOFF.md` vs `bcebae0` (handoff docs only), so product/test code is byte-identical to `bcebae0` where R5-E was proven.
 
 **Immediate sequence (execute now, in order):**
-1. **Environment/bootstrap (idempotent, do not treat as blocker):**
+1. **Environment/bootstrap (idempotent, not a blocker):**
    ```bash
    VENV=/home/runner/work/_temp/kilo-tmp/bab-venv
    cd /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
@@ -26,103 +26,70 @@
    ```bash
    PYTHONPATH=. "$VENV/bin/python" scripts/bab_r2_preflight.py; echo "PREFLIGHT_RC=$?"
    PYTHONPATH=. "$VENV/bin/python" scripts/bab_r4_preflight.py; echo "R4_PREFLIGHT_RC=$?"
-   PYTHONPATH=. "$VENV/bin/python" -m pytest tests/test_bab_execution_integration_r5.py -q -p no:cacheprovider; echo "R5_TESTS_RC=$?"
+   PYTHONPATH=. "$VENV/bin/python" -m pytest tests/test_bab_execution_integration_r5.py tests/test_bab_execution_realism_r5e.py -q -p no:cacheprovider; echo "R5_TESTS_RC=$?"
    PYTHONPATH=. "$VENV/bin/python" -m strategies.betting_against_beta.cli --synthetic --adapter paper --reconcile --output /tmp/bab_r5d_sanity.json; echo "R5D_CLI_RC=$?"
    PYTHONPATH=. "$VENV/bin/python" -m strategies.betting_against_beta.cli --synthetic; echo "DEFAULT_PATH_RC=$?"
    ```
    If any fail: fix the regression first (smallest fix + targeted regression test), record evidence, re-run, then continue.
-3. **Full gate (green on code `a01118d` — re-run before any release-grade claim):**
+3. **Full gate (green on `9dc4ac1` — re-run before any release-grade claim):**
    ```bash
    PATH="$VENV/bin:$PATH" bash scripts/bab_gate.sh; echo "GATE_RC=$?"
    ```
-   Record RC/counts/timings/coverage in this handoff. Last full-gate green: `fde12bf` (5644 passed / 35 skipped / 425.16s / coverage 93%), code identical on `a01118d`.
-4. **Next focus campaign (binds this session — implement it; analysis is not completion): R5-E execution-realism / live-readiness hardening.** Additive, deterministic, strict-JSON-safe, default-path invariant. **This is the only binding campaign. Do not start a new lettered campaign or parallel test suite; extend R5.**
+   Record RC/counts/timings/coverage in this handoff. Last full-gate green: `9dc4ac1` (5667 passed / 35 skipped / 577.63s / coverage 92%).
+4. **Next focus campaign (binds this session — implement it; analysis is not completion): R5-F end-to-end execution-realism integration + hardening.** Additive, deterministic, strict-JSON-safe, default-path invariant. **This is the only binding campaign. Do not start a new lettered campaign or parallel test suite; extend R5.**
 
-   **R3 vs R5-E boundary (do NOT re-implement R3):** R3 already ships the *cost-model* realism layer — `BABConfig.partial_fill` (bool), `max_participation` (∈(0,1], default 0.10), `prices`, `adv_usd`, `cost_model`, and `compute_transaction_costs` applying sqrt-impact/participation caps to **modeled backtest costs**. `tests/test_bab_execution_realism_r3.py` already covers cost-model sanity, partial-fill-on-slippage, borrow asymmetry, and rebalance-frequency sensitivity. **R5-E is the *execution-adapter* + *reconciliation* layer that consumes those same knobs — it is currently a stub that ignores them.** Do not duplicate R3's cost math.
+   **Why R5-F (evidence-based, not busywork):** R5-E implemented the *mechanisms* (deterministic partial fills, participation caps, sqrt-impact slippage on `PaperAdapter`; ADV plumbing into `OrderIntent`; realized-weight reconciliation), but the live gate shows the wiring/edge branches are still **under-exercised**: `execution.py` 72% coverage (uncovered 128–184 = realism-path branches, 527–545 = numpy JSON sanitizer), `reconciliation.py` 74% (uncovered 55–85 sanitizer, 104–138 cost/weight helpers, 291/300/318–319/358–381 realized-weight shortfall + non-finite guards), `backtest.py` 83% (150–176 participation-scaled slippage drag), `cli.py` 81%. R5-F closes the **integration + adversarial-edge** gap: prove the realism path actually changes end-to-end results (modeled vs executed vs reconciled) and that every guard branch is deterministic and non-crashing.
 
-   **Verified code gaps to close (anchored, on `a01118d`):**
-   - `strategies/betting_against_beta/execution.py:93-118` — `PaperAdapter.__init__` accepts `prices_df` but `submit_intents()` never reads it; every fill is full-size `filled_weight = target_weight`, `slippage = 0.0`, `status = "filled"`. No partial fills, no participation cap, no slippage.
-   - `strategies/betting_against_beta/execution.py:170-246` — `order_batches_from_weights(weights, prices_df, adv_usd)` computes `notional_usd`/`price` from `prices_df` but **never reads `adv_usd`**, so participation cannot be enforced from order batches. `OrderIntent` (`execution.py:24-50`) has no `adv_usd`/`max_participation`/`requested_weight`/`fill_ratio` fields.
-   - `strategies/betting_against_beta/strategy.py:526-546` — wires `prices_df`/`adv_usd` into `order_batches_from_weights` but the adapter cannot consume them.
-   - `strategies/betting_against_beta/reconciliation.py:216-320` — `reconcile_fills_to_backtest` replays **target weights** (`prev_w = w.iloc[t]`), ignoring `filled_weight`; partial/rejected fills are mis-costed/ignored. `_fill_cost` (`reconciliation.py:88-99`) reads `order_weight`/`slippage` but not realized filled weight. `reconcile_costs` (`reconciliation.py:108+`) has the same target-vs-realized gap.
-   - `MockAdapter` (`execution.py:120-167`) canned fills are fine; the gap is the missing shared deterministic realism path.
+   **Verified code anchors (on `9dc4ac1`; verify before editing):**
+   - `strategies/betting_against_beta/execution.py`: `PaperAdapter.__init__` (`:97`), `submit_intents` (`:186`, realism branches ~128–184), `flush` (`:276`), `MockAdapter` (`:281`), `configure_paper_adapter` (`:332`), `order_batches_from_weights` (`:382`), `execution_payload_to_json` (`:548`), `_sanitize_for_json` numpy branch (`:511`).
+   - `strategies/betting_against_beta/reconciliation.py`: `_fill_executed_weight` (`:88`), `_fill_cost` (`:119`), `reconcile_costs` (`:141`), `reconcile_fills_to_backtest` (`:249`, shortfall/non-finite guards ~358–381), `_checksum` (`:47`), `_sanitize` (`:53`).
+   - `strategies/betting_against_beta/backtest.py:150-176` — participation-scaled slippage drag (`_multiplier = 1 + participation_ratio`); its `except Exception: pass` fallback must never emit NaN/inf.
+   - `strategies/betting_against_beta/strategy.py:526-571` — adapter wiring (`configure_paper_adapter`, `order_batches_from_weights`, `submit_intents`, `flush`, `execution_payload`).
+   - `strategies/betting_against_beta/cli.py:23-103, 329-445` — `_build_adapter`, `_write_json`, `_run_reconciliation`, `--adapter`/`--reconcile`/`--fills` validation.
 
    **Minimum heavy-work package (all required):**
-   - **`PaperAdapter` realism:** deterministic partial-fill modeling, `max_participation` cap, and slippage using supplied `prices_df` / `adv_usd`. Preserve the existing **full-fill / zero-slippage default** when realism is not configured (i.e. when `prices_df`/`adv_usd`/`partial_fill`/`max_participation` are absent) — default path must stay byte-identical. Fill records must expose `requested_weight`, `filled_weight`, `fill_ratio`, `order_weight`, `notional_usd`, `price`, `slippage`, `status`, and an explicit rejection/partial `reason` where applicable. `MockAdapter` must keep canned `fill_map`/`fill_fn` behavior and remain deterministic.
-   - **`order_batches_from_weights` plumbing:** actually read `adv_usd`; propagate ADV/participation inputs into `OrderIntent`/`OrderBatch` (extend the dataclass fields or add an adapter-visible side channel) so participation can be enforced end-to-end. Keep deterministic column ordering and strict-JSON-safe output (`execution_payload_to_json`, `allow_nan=False`).
-   - **`reconciliation.py` correctness:** `reconcile_costs` / `reconcile_fills_to_backtest` must use **realized filled weights**, not target weights; handle partial/rejected fills and fill-level slippage/fees. Broaden mapping only to production fill schemas already representable by the adapters (no invented/live data). Keep per-period + aggregate deltas and SHA-256 checksums.
-   - **Integration/CLI:** keep `--adapter`, `--reconcile`, `--fills` additive; with no adapter, `BABStrategy.run()` must keep `execution=None` and the backtest/weights byte-identical. Do not change the default `--output` contract or `--dry-run` behavior.
-   - **Tests (required):** add focused deterministic regression tests for partial fills, participation caps, slippage, rejected/unfilled orders, reconciliation math, strict-JSON/determinism, and default-path invariance. Put them in `tests/test_bab_execution_realism_r5e.py` or extend `tests/test_bab_execution_integration_r5.py`; do not duplicate an entire parallel campaign.
-   - **Proof sequence:** targeted R5-E tests → `PYTHONPATH=. "$VENV/bin/python" -m pytest tests/test_bab_execution_integration_r5.py -q -p no:cacheprovider` → `PYTHONPATH=. "$VENV/bin/python" scripts/bab_r2_preflight.py` → `PYTHONPATH=. "$VENV/bin/python" scripts/bab_r4_preflight.py` → `PATH="$VENV/bin:$PATH" bash scripts/bab_gate.sh`. Record all RCs/counts/timings in this handoff.
+   - **End-to-end realism proof:** one deterministic test that runs `BABStrategy.run()` with a configured `PaperAdapter` (prices_df + adv_usd + `partial_fill=True` + `max_participation`) on synthetic data and asserts (a) at least one partial fill (`0 < fill_ratio < 1`), (b) nonzero slippage drag, (c) `reconcile_fills_to_backtest` realized equity diverges from pure-target-weight replay when fills are partial, (d) `execution_payload` is strict-JSON-safe with `allow_nan=False`.
+   - **Branch coverage for realism edges (deterministic):** tests for `submit_intents` partial-fill branch (128–184), full-fill default (byte-identical), rejection when ADV exhausted, missing-price/missing-ADV fallback, `MockAdapter` `fill_map`/`fill_fn` still deterministic, `order_batches_from_weights` ADV propagation, `_sanitize_for_json` numpy int/float/bool/ndarray/Series/Index branches.
+   - **Reconciliation correctness under stress:** `reconcile_costs` and `reconcile_fills_to_backtest` with mixed full/partial/rejected fills, missing fills for a period, non-finite PnL guard, shortfall absorption, checksum stability across runs and across dict-ordering permutations.
+   - **Backtest slippage-drag edge:** participation ratio clipping (0 and ≥1), zero-ADV / zero-price fallback (no NaN/inf), `_multiplier` sanity; assert `except Exception` path leaves flat drag intact.
+   - **CLI hardening:** `--adapter paper` with realism-producing data, `--reconcile` sidecar schema, `--fills`+`--adapter mock` validation edges, unknown adapter rejection, default-path (`no adapter`) byte-identical.
+   - **Tests (required):** extend `tests/test_bab_execution_realism_r5e.py` and/or add `tests/test_bab_execution_integration_r5f.py`; do not duplicate a parallel campaign. No new lettered campaign.
+   - **Proof sequence:** targeted R5-F tests → `tests/test_bab_execution_integration_r5.py` + `tests/test_bab_execution_realism_r5e.py` → `scripts/bab_r2_preflight.py` → `scripts/bab_r4_preflight.py` → `PATH="$VENV/bin:$PATH" bash scripts/bab_gate.sh`. Record all RCs/counts/timings/coverage in this handoff.
 5. **Definition of done (all required):** implementation + focused tests + full gate green + this handoff updated with live evidence. No TODO-only stubs, no analysis-only completion, no skipped tests, no fake credentials, and no claim of live-venue readiness without real sandbox/fill evidence.
 
 **Non-negotiable constraints:** no `.github/workflows/*` edits; no edits/commits to tracked root probe/debug artifacts (`probe*`, `debug*`, `ast_probe.py`, scratch cov artifacts); no weakening shipped regression suites/guards or locked backtest columns; do not treat `research_state/workflow_run_diagnostics.jsonl` as a current blocker; commit nothing unless explicitly requested. Use `/home/runner/work/_temp/kilo-tmp/` for throwaway artifacts.
 
-**Bottleneck policy (removed/enforced):** environment is not a blocker (bootstrap venv + prefix `PATH`); historical diagnostics are not a blocker (live run wins); no real-venue credentials are present — that is an external dependency, not a stall reason: execute the adapter/reconciliation R5-E productization now with deterministic paper/mock data; single durable handoff only — no parallel/session docs; no probe archaeology. If a new blocker appears, fix the smallest reproducible cause with a regression test; do not stop at analysis.
+**Bottleneck policy (removed/enforced):** environment is not a blocker (bootstrap venv + prefix `PATH`); historical diagnostics are not a blocker (live run wins); no real-venue credentials are present — that is an external dependency, not a stall reason: execute R5-F integration/hardening now with deterministic paper/mock data; single durable handoff only — no parallel/session docs; no probe archaeology. If a new blocker appears, fix the smallest reproducible cause with a regression test; do not stop at analysis.
 
 ---
 
-## VERIFIED EVIDENCE SNAPSHOT (last live-verified on `bcebae0`; code unchanged since `fde12bf`)
+## VERIFIED EVIDENCE SNAPSHOT (live-verified on `9dc4ac1`; 2026-11-14T08:48:17Z UTC)
 
-Captured on HEAD `bcebae0` (2026-11-14T08:08:33Z UTC). Re-verify fast checks on current HEAD before new work (env: `VENV=/home/runner/work/_temp/kilo-tmp/bab-venv` present, Python 3.12.3). No product/test code changed in `fde12bf..bcebae0` (handoff docs + R5-E implementation only).
+Captured on HEAD `9dc4ac1` (2026-11-14T08:48:17Z UTC). `9dc4ac1` vs `bcebae0` changed only `HANDOFF.md` (handoff docs); product/test code is byte-identical to `bcebae0` where R5-E was proven. Re-verify fast checks on current HEAD before new work (env: `VENV=/home/runner/work/_temp/kilo-tmp/bab-venv`, Python 3.12.3).
 
 | Check | Command | Live result |
 |---|---|---|
-| R2 preflight | `PYTHONPATH=. "$VENV/bin/python" scripts/bab_r2_preflight.py` | RC=0 — green; 5000×500 = 386 ms (≤2000) [OK] |
-| R4 preflight | `PYTHONPATH=. "$VENV/bin/python" scripts/bab_r4_preflight.py` | RC=0 — R4-A/B/C present + green; R2/R3 baseline green |
-| R5-E tests | `PYTHONPATH=. "$VENV/bin/python" -m pytest tests/test_bab_execution_realism_r5e.py -q -p no:cacheprovider` | RC=0 — 23 passed, 7.63s |
-| R5 integration tests | `PYTHONPATH=. "$VENV/bin/python" -m pytest tests/test_bab_execution_integration_r5.py -q -p no:cacheprovider` | RC=0 — 23 passed, 12.53s |
-| R5-D CLI sanity | `--synthetic --adapter paper --reconcile --output /tmp/bab_r5d_sanity.json` | RC=0 — execution + reconciliation sidecars written, strict-JSON-safe |
-| Default-path CLI | `--synthetic` (no adapter) | RC=0 — 0.413704 / 252 periods, byte-identical to pre-R5-D behavior |
-| Full gate | `PATH="$VENV/bin:$PATH" bash scripts/bab_gate.sh` | **RC=0 — 5667 passed / 35 skipped / 596.48s / coverage 92%** (live on `bcebae0`) |
+| R2 preflight | `PYTHONPATH=. "$VENV/bin/python" scripts/bab_r2_preflight.py` | RC=0 — green; 155 passed; 5000×200 = 214 ms (≤800), 5000×500 = 554 ms (≤2000) [OK] |
+| R4 preflight | `PYTHONPATH=. "$VENV/bin/python" scripts/bab_r4_preflight.py` | RC=0 — R4-A/B/C present + green; R2/R3 baseline 217 passed |
+| R5-E + R5 tests | `PYTHONPATH=. "$VENV/bin/python" -m pytest tests/test_bab_execution_integration_r5.py tests/test_bab_execution_realism_r5e.py -q -p no:cacheprovider` | RC=0 — 46 passed, 19.04s |
+| R5-D CLI sanity | `--synthetic --adapter paper --reconcile --output /tmp/bab_r5d_sanity.json` | RC=0 — execution + reconciliation sidecars written, strict-JSON-safe (`json.load` OK) |
+| Default-path CLI | `--synthetic` (no adapter) | RC=0 — 0.413704 / 252 periods |
+| Full gate | `PATH="$VENV/bin:$PATH" bash scripts/bab_gate.sh` | **RC=0 — 5667 passed / 35 skipped / 577.63s / coverage 92%** (live on `9dc4ac1`) |
 
-**HEAD delta note:** `git diff --stat fde12bf bcebae0` = `strategies/betting_against_beta/execution.py` (+302), `strategies/betting_against_beta/reconciliation.py` (+100), `strategies/betting_against_beta/strategy.py` (+17), `tests/test_bab_execution_realism_r5e.py` (+541), plus `HANDOFF.md`/`AGENT_HANDOFF.md`. R5-E product code is complete and the full gate is green on the current HEAD.
+**Lowest-coverage product modules (R5-F targets):** `execution.py` 72% (uncovered 128–184, 527–545), `reconciliation.py` 74% (55–85, 104–138, 291–381), `cli.py` 81% (34–103, 289–294, 415–617, 661), `backtest.py` 83% (150–176). Overall 92% (5784 stmts, 462 missed).
 
 ---
 
 ## STATUS
 
 - **R1/R2/R3:** closed/locked — do not reopen without new reproducible evidence.
-- **R4:** shipped and last re-verified green on `a01118d` (code unchanged through `88707a7`):
+- **R4:** shipped, re-verified green on `9dc4ac1` (code unchanged through R5-E):
   - **R4-A** dry-run / portfolio-risk report: `BABStrategy.dry_run()` + CLI `--dry-run` (strict-JSON-safe; no trade execution; `--output` not created). `tests/test_bab_dryrun_risk_report_r4.py`.
   - **R4-B** drawdown-limit kill switch: `max_drawdown_limit` in `BABConfig`/`_validate_ranges`, `strategies/betting_against_beta/risk.py` (`apply_kill_switch`, `KillSwitchEvent`), integrated in `run()`/`report()`; `None` preserves pre-R4 default-path behavior. `tests/test_bab_drawdown_kill_switch_r4.py`.
   - **R4-C** deterministic paper-trading replay harness: `strategies/betting_against_beta/replay.py` (`ReplayHarness`) with stable schema, SHA-256 checksum, byte-identical artifacts on identical inputs. `tests/test_bab_replay_harness_r4.py`.
-- **R5:** **COMPLETE** (2026-11-14T04:19:52Z) — R5-A execution adapter contract, R5-B modeled-vs-executed cost reconciliation, R5-C executed-fills backtest reconciliation. `tests/test_bab_execution_integration_r5.py` — 23 passed.
-- **R5-D:** **COMPLETE** (verified 2026-11-14T06:46:17Z on `fde12bf`, re-confirmed 2026-11-14T06:49:52Z on `a01118d`) — CLI `--adapter` (paper/mock), `--reconcile`, `--fills`; execution + reconciliation artifacts sidecar `--output`; strict-JSON-safe; default-path byte-identical when unconfigured. `strategies/betting_against_beta/cli.py` modified (additive only; `execution_adapter` passed only when an adapter is configured).
-- **R5-E:** **COMPLETE** (verified 2026-11-14T08:08:33Z on `bcebae0`) — execution-adapter realism (deterministic partial fills, `max_participation` caps, sqrt-impact slippage on `PaperAdapter`), order-intent ADV/participation plumbing (`order_batches_from_weights` reads `adv_usd`; `OrderIntent` exposes `requested_weight`/`filled_weight`/`fill_ratio`/`order_weight`/`notional_usd`/`price`/`slippage`/`status`/`reason`), and reconciliation correctness (`reconcile_costs`/`reconcile_fills_to_backtest` consume realized filled weights, handle partial/rejected fills, fill-level costs, SHA-256 checksums). Preserves full-fill/zero-slippage default when realism is unconfigured (default-path byte-identical). `tests/test_bab_execution_realism_r5e.py` — 23 passed.
-
----
-
-## R5 CAMPAIGN (complete — 2026-11-14T04:19:52Z)
-
-**Objective:** make the strategy executable-adapter-ready with evidence-backed realism, without regressing R1–R4. **ACHIEVED.**
-
-1. **Baseline gate (blocking):** re-verified R2/R4 preflights on current `HEAD`; all green before and after feature work.
-2. **R5-A Adapter contract:** `strategies/betting_against_beta/execution.py` — paper + injectable/mock exchange, deterministic strict-JSON-safe intents; no network in tests; default `BABStrategy.run()` unchanged when unconfigured (byte-identical verified by test).
-3. **R5-B Modeled-vs-executed reconciliation:** `reconcile_costs` in `strategies/betting_against_beta/reconciliation.py` — per-period + aggregate deltas, strict-JSON-safe artifact/report, deterministic fixtures proving math (no live-data claims).
-4. **R5-C Executed-fills reconciliation:** `reconcile_fills_to_backtest` in `reconciliation.py` — realized PnL/cost/equity from fill/execution log vs model backtest for same weights/prices window; explicit mismatches surfaced; additive API/CLI/report integration only (default path untouched).
-5. **Proof:** 23 focused R5 tests in `tests/test_bab_execution_integration_r5.py` (adapter contract, reconciliation math, determinism/JSON-safety, default-path invariance). Targeted tests → R2/R4 preflights → full gate all green. Evidence recorded in VERIFIED EVIDENCE SNAPSHOT above.
-
-**New product files:** `strategies/betting_against_beta/execution.py`, `strategies/betting_against_beta/reconciliation.py`.
-**New test file:** `tests/test_bab_execution_integration_r5.py` (23 tests).
-**Modified files:** `strategies/betting_against_beta/strategy.py` (execution_adapter wiring + BABResult.execution field), `strategies/betting_against_beta/__init__.py` (export execution + reconciliation), `strategies/betting_against_beta/cli.py` (R5-D `--adapter`/`--reconcile`/`--fills` + artifacts).
-
----
-
-## R5-E CAMPAIGN (complete — 2026-11-14T08:08:33Z)
-
-**Objective:** harden the execution-adapter and reconciliation layers to consume the already-shipped R3 cost-model knobs (`partial_fill`, `max_participation`, `adv_usd`, `prices`, `cost_model`) deterministically — without faking live venues, requiring credentials, or regressing R1–R4. Additive, deterministic, strict-JSON-safe, default-path invariant. **ACHIEVED.**
-
-1. **Baseline gate (blocking):** re-verified R2/R4 preflights on current `HEAD`; all green before and after feature work.
-2. **R5-E Adapter realism:** `PaperAdapter.submit_intents` now models deterministic partial fills via `max_participation` caps, plus sqrt-impact slippage using supplied `prices_df`/`adv_usd`. Preserves the existing **full-fill / zero-slippage default** when realism is not configured — default path stays byte-identical. Fill records expose `requested_weight`, `filled_weight`, `fill_ratio`, `order_weight`, `notional_usd`, `price`, `slippage`, `status`, and an explicit rejection/partial `reason` where applicable.
-3. **R5-E Order-intent plumbing:** `order_batches_from_weights` now actually reads `adv_usd`; ADV/participation inputs propagate into `OrderIntent`/`OrderBatch` (extended dataclass fields). Deterministic column ordering and strict-JSON-safe output (`execution_payload_to_json`, `allow_nan=False`) preserved.
-4. **R5-E Reconciliation correctness:** `reconcile_costs` / `reconcile_fills_to_backtest` now consume **realized filled weights** (via `_fill_executed_weight`), handle partial/rejected fills, and cost at fill level. Per-period + aggregate deltas and SHA-256 checksums preserved.
-5. **Proof:** 23 focused R5-E tests in `tests/test_bab_execution_realism_r5e.py` (partial fills, participation caps, slippage, rejected/unfilled orders, reconciliation math, JSON-safety/determinism, default-path invariance). Targeted R5-E tests → R5 tests → R2/R4 preflights → full gate all green on `bcebae0`.
-
-**New/modified product files:** `strategies/betting_against_beta/execution.py` (extended), `strategies/betting_against_beta/reconciliation.py` (extended), `strategies/betting_against_beta/strategy.py` (wiring).
-**New test file:** `tests/test_bab_execution_realism_r5e.py` (23 tests).
-
-**Live venue execution (external dependency):** wire real exchange adapters only when credentials/sandbox + real fill data are available; do not fake. Broaden reconciliation mapping to production fill schemas once real samples exist.
+- **R5:** **COMPLETE** — R5-A execution adapter contract, R5-B modeled-vs-executed cost reconciliation, R5-C executed-fills backtest reconciliation. `tests/test_bab_execution_integration_r5.py` — 23 passed.
+- **R5-D:** **COMPLETE** — CLI `--adapter` (paper/mock), `--reconcile`, `--fills`; execution + reconciliation artifacts sidecar `--output`; strict-JSON-safe; default-path byte-identical when unconfigured. `strategies/betting_against_beta/cli.py` modified (additive only).
+- **R5-E:** **COMPLETE** (verified `bcebae0`, re-verified `9dc4ac1`) — execution-adapter realism (deterministic partial fills, `max_participation` caps, sqrt-impact slippage on `PaperAdapter`), order-intent ADV/participation plumbing (`order_batches_from_weights` reads `adv_usd`; `OrderIntent` exposes `requested_weight`/`filled_weight`/`fill_ratio`/`order_weight`/`notional_usd`/`price`/`slippage`/`status`/`reason`), reconciliation correctness (`reconcile_costs`/`reconcile_fills_to_backtest` consume realized filled weights, handle partial/rejected fills, fill-level costs, SHA-256 checksums). Preserves full-fill/zero-slippage default when realism is unconfigured (default-path byte-identical). `tests/test_bab_execution_realism_r5e.py` — 23 passed.
 
 ---
 
@@ -133,17 +100,16 @@ Captured on HEAD `bcebae0` (2026-11-14T08:08:33Z UTC). Re-verify fast checks on 
 - **Dollar neutrality:** `max|weights.sum(axis=1)| <= 1e-9` when configured (`DN_TOL`).
 - **Config:** `BABConfig` frozen-ish after `__post_init__`; unknown/wrong types -> `BABConfigError`. Cost knobs: `cost_model`, `prices`, `adv_usd`, `partial_fill` (bool), `max_participation` (∈(0,1]) in `config.py:107-117`. R4-B: `max_drawdown_limit` in `(0,1]` or `None`. R5-A: `execution_adapter` passed to `BABStrategy.__init__` (not a BABConfig field; stored on instance, `strategy.py:162-191`).
 - **Cost model:** `strategies/betting_against_beta/costs.py` — `TransactionCostModel(...)`, `compute_transaction_costs(...)`.
-- **Execution adapter (R5-A):** `strategies/betting_against_beta/execution.py` — `OrderIntent` (`:24`), `OrderBatch` (`:53`), `ExecutionAdapter` (Protocol, `:67`), `PaperAdapter` (`:88`), `MockAdapter` (`:120`), `order_batches_from_weights()` (`:170`), `execution_payload_to_json()` (`:280`). Deterministic, strict-JSON-safe, no network.
-- **R5-E fill realism fields:** requested vs filled weight, fill ratio, order weight, notional, price, slippage, status, rejection/partial metadata, and participation inputs must be explicit and deterministic.
-- **Reconciliation (R5-B / R5-C):** `strategies/betting_against_beta/reconciliation.py` — `reconcile_costs()` (`:108`), `reconcile_fills_to_backtest()` (`:216`), `_fill_cost()` (`:88`), `ReconciliationResult` (strict-JSON-safe, SHA-256 checksum).
+- **Execution adapter (R5-A/E):** `strategies/betting_against_beta/execution.py` — `OrderIntent` (`:25`), `OrderBatch` (`:65`), `ExecutionAdapter` (Protocol, `:79`), `PaperAdapter` (`:97`), `MockAdapter` (`:281`), `configure_paper_adapter` (`:332`), `order_batches_from_weights` (`:382`), `execution_payload_to_json` (`:548`). Deterministic, strict-JSON-safe, no network.
+- **Reconciliation (R5-B/C/E):** `strategies/betting_against_beta/reconciliation.py` — `reconcile_costs()` (`:141`), `reconcile_fills_to_backtest()` (`:249`), `_fill_cost()` (`:119`), `_fill_executed_weight()` (`:88`), `ReconciliationResult` (strict-JSON-safe, SHA-256 checksum).
 - **R4 contracts:** `dry_run()` strict-JSON-safe/no execution/no `--output`; kill switch `None` = byte-identical default path; replay artifacts deterministic + checksum-stable on identical inputs.
-- **Default-path invariant:** no-model/flat/default path must remain behaviorally/byte-identically consistent with shipped behavior; pay new overhead only when configured. R5-A/D: `BABStrategy.run()`/`cli` with no adapter is byte-identical to pre-R5-D behavior (verified by test).
+- **Default-path invariant:** no-model/flat/default path must remain behaviorally/byte-identically consistent with shipped behavior; pay new overhead only when configured. R5-A/D/E: `BABStrategy.run()`/`cli` with no adapter is byte-identical to pre-R5-D behavior (verified by test).
 - **Hostile regime builders:** `tests/test_bab_stress_regimes.py` (`_base_frame`, `REGIMES`, `REGIME_BUILDERS`, `DN_TOL`, `BACKTEST_COLUMNS`); reuse, do not duplicate.
-- **Canonical commands:** `PYTHONPATH=. "$VENV/bin/python" scripts/bab_r2_preflight.py`; `PYTHONPATH=. "$VENV/bin/python" scripts/bab_r4_preflight.py`; `PYTHONPATH=. "$VENV/bin/python" -m pytest tests/test_bab_execution_integration_r5.py -q -p no:cacheprovider`; `PATH="$VENV/bin:$PATH" bash scripts/bab_gate.sh`.
+- **Canonical commands:** `PYTHONPATH=. "$VENV/bin/python" scripts/bab_r2_preflight.py`; `PYTHONPATH=. "$VENV/bin/python" scripts/bab_r4_preflight.py`; `PYTHONPATH=. "$VENV/bin/python" -m pytest tests/test_bab_execution_integration_r5.py tests/test_bab_execution_realism_r5e.py -q -p no:cacheprovider`; `PATH="$VENV/bin:$PATH" bash scripts/bab_gate.sh`.
 
 ## PERFORMANCE GUARDRAILS (do not regress)
 
-- Current medians (live, `a01118d` fast-check): 5000×200 well under 800 ms; 5000×500 = 386 ms (≤2000). Guards are ceilings; re-measure live before claiming.
+- Current medians (live, `9dc4ac1` fast-check): 5000×200 = 214 ms (ceiling 800 ms); 5000×500 = 554 ms (ceiling 2000 ms). Guards are ceilings; re-measure live before claiming.
 
 ## LOCKS / PROHIBITIONS
 
@@ -152,7 +118,7 @@ Captured on HEAD `bcebae0` (2026-11-14T08:08:33Z UTC). Re-verify fast checks on 
 - **No** weakening/deleting shipped regression suites/guards (R2/R3/R4, historical `batch*`/`campaign*`, `tests/test_beta_neutrality_performance.py`) or changing locked backtest columns without full dependent updates + recorded delta.
 - **No** reopening `research_state/workflow_run_diagnostics.jsonl` as a current failure.
 - **No** broad `data_loader.py` silent-`except` sweep unless tied to a specific reproducible defect + regression test.
-- **No** new lettered campaign or parallel test suite; R5-E extends R5 only.
+- **No** new lettered campaign or parallel test suite; R5-F extends R5 only.
 - **Commit nothing unless explicitly requested.**
 
 **`HANDOFF.md` is the only durable handoff. Keep it current with evidence (RCs, counts, timings, HEAD) on every material run.**
