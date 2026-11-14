@@ -787,7 +787,7 @@ def test_metadata_out_on_failure_writes_error_context(tmp_path):
 
 
 def test_metadata_out_public_api_includes_source_url_and_tos_flag(tmp_path, monkeypatch):
-    """--metadata-out for public API includes source_url_base and tos_flag_only (no raw ToS text)."""
+    """--metadata-out public API includes source_url_base and tos_flag_only; no raw ToS text."""
     import scripts.fetch_real_bab_prices as fetch_mod
 
     days = ["2024-01-01", "2024-01-02", "2024-01-03"]
@@ -837,6 +837,8 @@ def test_metadata_out_public_api_includes_source_url_and_tos_flag(tmp_path, monk
     assert meta["source_url_base"] == fetch_mod.COINBASE_PUBLIC_BASE_URL
     assert meta["tos_flag_only"] is True
     assert meta["tos_acknowledged"] is True
-    assert fetch_mod.COINBASE_PUBLIC_TOS_ACK not in json.dumps(meta), "Raw ToS text must not be persisted"
+    assert fetch_mod.COINBASE_PUBLIC_TOS_ACK not in json.dumps(
+        meta
+    ), "Raw ToS text must not be persisted"
     assert "quote_currency" in meta
     assert meta["quote_currency"] == "USD"
