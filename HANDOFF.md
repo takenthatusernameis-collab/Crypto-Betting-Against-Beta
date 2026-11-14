@@ -2,8 +2,8 @@
 
 **Repo:** `crypto-betting-against-beta` — Betting Against Beta (BAB) market-neutral crypto strategy (long low-beta / short high-beta vs benchmark, default BTC). See `README.md`, `strategies/betting_against_beta/`. **Priority basis:** the repo *is* the BAB strategy engine, so correctness + live-readiness of the strategy outranks tooling/coverage-chasing.
 
-**Refreshed:** 2026-11-14T00:46:20Z
-**HEAD:** `45563ba` (main). **Working tree:** uncommitted edits from this handoff refresh only — `HANDOFF.md`, `AGENT_HANDOFF.md`, `docs/COVERAGE_NOTES.md`, and new `scripts/bab_r4_preflight.py`. **No product or test code changed**; gate evidence below was captured on `45563ba` before these doc/script-only edits.
+**Refreshed:** 2026-11-14T00:48:52Z
+**HEAD:** `45563ba` (main). **Working tree:** uncommitted handoff-maintenance edits only — `HANDOFF.md`, `AGENT_HANDOFF.md`, `docs/COVERAGE_NOTES.md`, and new `scripts/bab_r4_preflight.py`. **No product or test code changed**; baseline gate/preflight evidence below was captured on `45563ba`.
 **Single source of truth:** this file. `AGENT_HANDOFF.md` is a pointer only. Read this whole file before doing anything. Do not create parallel handoff docs. If live evidence conflicts with a recorded number here, **live run wins** — re-measure, record the delta, update this file.
 
 ---
@@ -30,9 +30,11 @@
 
 ---
 
-## INITIAL TASK FOR NEXT SESSION (binding, timestamped 2026-11-14T00:46:20Z)
+## INITIAL TASK FOR NEXT SESSION (binding, timestamped 2026-11-14T00:48:52Z)
 
 **Objective:** Ship **R4 (Live-Readiness)** end-to-end on current `HEAD` with hard evidence. **All three components (R4-A, R4-B, R4-C) must be implemented with green regression tests and wired into the gate.** Partial completion / analysis-only is a failed session. Do not stop at "next steps"; land code + tests + measured evidence.
+
+**Bottleneck check (2026-11-14T00:48:52Z, HEAD `45563ba`):** `PYTHONPATH=. "$VENV/bin/python" scripts/bab_r4_preflight.py` → **RC=1** (R4 NOT SHIPPED). Missing: R4-A (`dry_run`/risk-report capability + `tests/test_bab_dryrun_risk_report_r4.py`), R4-B (`max_drawdown_limit`/`kill_switch` + `tests/test_bab_drawdown_kill_switch_r4.py`), R4-C (`ReplayHarness`/replay harness + `tests/test_bab_replay_harness_r4.py`). This is the sole active blocker — no other campaign is open; remove it by implementing and verifying all three.
 
 ### R4-A — Dry-run / portfolio-risk report
 - **Deliverable:** `BABStrategy.dry_run(returns_df=None) -> dict` (programmatic) plus `--dry-run` CLI output that prints the resolved config, tradable universe, beta window/quantiles, and a **portfolio-risk summary**: gross exposure, net exposure, gross leverage, max single-position weight, estimated turnover/cost drag, data-health (rows, columns, NaN counts, benchmark presence). No backtest/trades executed.
@@ -79,13 +81,13 @@ PYTHONPATH=. "$VENV/bin/python" scripts/bab_r4_preflight.py; echo "R4_PREFLIGHT_
 
 ---
 
-## BOTTLENECKS REMOVED (this refresh)
+## BOTTLENECKS REMOVED / VERIFIED (current refresh 2026-11-14T00:48:52Z)
 
-1. **Stale HEAD in both handoff docs** — `HANDOFF.md` claimed `4dfbc17`, `AGENT_HANDOFF.md` claimed `ee1d42c`; actual HEAD is `45563ba` (checkpoint commit 2026-11-14T00:37:33Z). Both corrected; evidence re-measured on `45563ba`.
-2. **Contradictory tree state** — `AGENT_HANDOFF.md` said "DIRTY with one uncommitted fix"; actual tree is CLEAN (fix already committed). Corrected.
+1. **Stale HEAD in both handoff docs** — `HANDOFF.md` claimed `4dfbc17`, `AGENT_HANDOFF.md` claimed `ee1d42c`; actual HEAD is `45563ba` (checkpoint commit 2026-11-14T00:37:33Z). Corrected; baseline evidence is on `45563ba`.
+2. **Contradictory tree state** — prior pointer claimed dirty fix while tree was clean/committed. Corrected to reflect handoff-only uncommitted edits.
 3. **Dangling `docs/COVERAGE_NOTES.md` reference** to a non-existent "HANDOFF.md C54 Step 2" and stale gate count (5069); refreshed to current gate (5590 / 96%).
-4. **Gate env ambiguity** — documented the required `PATH="$VENV/bin:$PATH"` prefix.
-5. **Hand-wavable R4** — replaced vague candidate list with concrete file/module/API/test targets and a failing-by-default `scripts/bab_r4_preflight.py`, so the next session cannot skip the heavy work.
+4. **Gate env ambiguity** — documented required `PATH="$VENV/bin:$PATH"` prefix and idempotent venv bootstrap.
+5. **Hand-wavable R4 (hard gate in place)** — concrete R4-A/B/C file/API/test targets plus failing-by-default `scripts/bab_r4_preflight.py` (verified **RC=1** at 2026-11-14T00:48:52Z with all three items pending). Next session cannot claim progress without shipping code+tests+green evidence.
 
 ---
 
