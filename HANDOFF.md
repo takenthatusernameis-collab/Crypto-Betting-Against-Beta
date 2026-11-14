@@ -1,151 +1,60 @@
-# Agentic Work Session Handoff — Crypto-Betting-Against-Beta
-**Timestamp:** 2026-11-14T13:16:22Z
-**Repository:** Crypto-Betting-Against-Beta
-**Branch:** main (up to date with origin/main)
+# HANDOFF — Crypto-Betting-Against-Beta
 
----
+**Canonical durable handoff (single source of truth).**
+**Timestamp (UTC):** 2026-11-14T13:33:09Z
+**Repo:** `Crypto-Betting-Against-Beta`
+**HEAD at refresh:** `81ad095` (chore(kilo): checkpoint agent session) — trust live output over this file if they differ.
+**Branch:** `main` (in sync with `origin/main` at refresh)
 
-## Executive Summary
-The Betting Against Beta (BAB) strategy for crypto is **production-ready** with a comprehensive test suite (2,800+ tests). All core functionality passes. One minor test assertion was fixed (`test_coerce_numeric_object_mixed` in `test_bab_data_loader_campaign_heavy.py`). No blockers remain.
+## INITIAL TASK MESSAGE (START HERE, 2026-11-14T13:33:09Z UTC) — BINDING
 
----
+Execute the next focus campaign in order. Do not do probe archaeology, do not add parallel handoff/session docs, and do not re-verify already-green areas unless your change touches them.
 
-## Project Overview
-**Strategy:** Market-neutral Betting Against Beta (Frazzini-Pedersen) for crypto assets.
-- Long low-beta assets, short high-beta assets vs BTC benchmark
-- Rolling OLS beta estimation (default 90-day window, min 60 obs)
-- Quantile-based signals (default 30% long / 30% short)
-- Dollar-neutral equal-weight portfolio construction
-- One-day lagged backtest (no lookahead), optional transaction costs
-- Advanced features: regime filtering, beta-neutral enforcement, kill switch, execution adapter, realistic cost modeling
+### Campaign objective
+Drive **real-data readiness and engineering hygiene** for the Crypto Betting Against Beta (BAB) strategy so future runs can ingest live/updated market data reproducibly, keep CI/lint clean, and expose performance baselines.
 
-**Module Layout:**
-```
-strategies/betting_against_beta/
-  config.py         # BABConfig: universe, benchmark, windows, quantiles
-  data.py           # synthetic return generator (tests / smoke runs)
-  beta.py           # calculate_beta, calculate_rolling_beta
-  signals.py        # generate_bab_signals (rank -> long/short)
-  portfolio.py      # construct_portfolio (equal-weight, dollar-neutral)
-  backtest.py       # run_backtest (lagged weights, costs, cumulative)
-  strategy.py       # BABStrategy: end-to-end entrypoint (run pipeline)
-  data_loader.py    # load_returns / load_prices (CSV/JSON/Parquet/HDF5/Pickle)
-  costs.py          # TransactionCostModel (spread + impact + slippage)
-  regime.py         # volatility/trend regime detection
-  risk.py           # KillSwitchEvent, apply_kill_switch
-  shorting.py       # ShortingConstraints, apply_shorting_constraints
-  sizing.py         # Kelly, VolTarget, RiskParity, EqualWeight sizers
-  execution.py      # order_batches_from_weights, paper adapter
-  attribution.py    # trade_attribution, attribution_totals
-  metrics.py        # summary (Sharpe, vol, maxDD, turnover, beta)
-  quality.py        # data quality reporting, gap/outlier/stale detection
-  reconciliation.py # fills vs intents reconciliation (R5-C)
-  cli.py            # console script entrypoint
-```
+### Priority 1 — Lint baseline repair (bottleneck removal)
+**Why:** `python -m ruff check .` currently reports **128 errors** (mostly `E501` line-length in tests; 1 unsafe fix available). A red lint baseline blocks disciplined progress and obscures real regressions.
+- Fix violations with behavior-preserving edits (prefer wrapping/splitting strings/comments/assertions in tests; avoid changing test intent).
+- Use `ruff check .` / targeted file fixes; apply `--unsafe-fixes` only if you have verified safety case-by-case (default: avoid unsafe).
+- Do not weaken lint policy in `pyproject.toml` unless absolutely necessary and explicitly justified in commit/handoff update.
+- **Done when:** `python -m ruff check .` exits 0 (or remaining issues are documented with evidence why they cannot be fixed safely in-repo).
 
----
+### Priority 2 — Real data pipeline hardening (core product work)
+**Why:** Strategy is mature in tests/synthetic paths, but operational real-data workflow is thin.
+- Build on existing `strategies/betting_against_beta/data_loader.py`, `scripts/generate_real_market_fixture.py`, and `scripts/load_real_bab_example.py`.
+- Implement a reproducible **fetch/update path** for real market prices/returns (e.g. extend generator or add `scripts/fetch_real_data.py`) that:
+  - produces the same schema as `tests/fixtures/real_market_prices.csv` (`date` + BTC benchmark + asset columns),
+  - supports configurable date range/window and output path,
+  - supports incremental append/update without corrupting history (dedupe/sort/validate),
+  - documents data source, licensing/ToS constraints, and failure modes (no silent bad data).
+- Prefer public, no-auth sources where feasible; if network access/credentials are unavailable in CI/runtime, provide a deterministic offline fallback and clearly document it.
+- Add/adjust tests for the new behavior (validation, idempotent updates, schema contract) without bloating runtime unnecessarily.
+- **Done when:** there is a documented, runnable command to obtain/update real data into the expected format and automated tests cover the contract.
 
-## Current State (Verified)
+### Priority 3 — Performance baseline & regression guard
+- Use `scripts/perf_bench.py` (and real fixture path) to establish a recorded baseline (latency/memory/cumulative_return or equivalent available metrics).
+- Add a lightweight, deterministic way to detect regressions (script output artifact, checked-in baseline JSON with tolerance, or CI-friendly check) — choose the least invasive option that is reliable in this environment.
+- **Done when:** baseline is captured/documented and a repeatable check exists for future agents.
 
-### ✅ All Core Tests Pass
-| Test Category | Status | Notes |
-|---------------|--------|-------|
-| Beta calculation (campaign, fill_p0, comprehensive) | ✅ 56 passed | Rolling OLS, edge cases, fallback paths |
-| Data loader (all campaigns) | ✅ 2,674 passed | CSV/JSON/Parquet/HDF5/Pickle, exchange formats |
-| Signals & portfolio | ✅ 117 passed | Quantile ranking, dollar-neutral, constraints |
-| Sizing (Kelly, vol-target, risk-parity) | ✅ 14 passed | Dynamic position sizing |
-| Metrics & attribution | ✅ 93 passed | Sharpe, maxDD, turnover, strategy beta |
-| Execution realism (R3) | ✅ 62 passed | Cost model, partial fills, participation caps |
-| Shorting constraints | ✅ 43 passed | Borrow fees, locate, hard-to-borrow |
-| Regime filtering | ✅ passed | Vol/trend regimes, causal scaling |
-| Beta-neutral enforcement | ✅ passed | Target beta, drift detection, tracking error |
-| Kill switch (R4-B) | ✅ passed | Max drawdown limit, auto-flatten |
-| Real data CLI repro | ✅ 8 passed | End-to-end with fixture |
-| Controller progress accounting | ✅ 69 passed | Git diff, meaningful changes, workflow sync |
+### Priority 4 — Evidence refresh & handoff maintenance
+- Run and record only the commands relevant to what you changed (lint, targeted tests, real-data script smoke, perf check).
+- Update **this file** with: new UTC timestamp, new HEAD, what was completed, exact evidence/commands, remaining gaps, and the next binding task.
+- Keep `AGENT_HANDOFF.md` as a pointer only (no competing directives).
 
-### ✅ CLI Verified
-```bash
-# Synthetic data (default)
-python -m strategies.betting_against_beta.cli --synthetic
+## Verified baseline (at refresh)
+- `python -m pytest tests/test_bab_data_loader_campaign_heavy.py -q` → **46 passed** (0.52s).
+- `python -m pytest --co -q` → **5709 tests collected** (1.24s).
+- `python -m ruff check .` → **128 errors** (lint cleanup required).
+- Key assets present: `strategies/betting_against_beta/` (full BAB pipeline), `scripts/load_real_bab_example.py`, `scripts/generate_real_market_fixture.py`, `tests/fixtures/real_market_prices.csv`, `scripts/perf_bench.py`.
+- No `workflow_diagnostics/` directory present at refresh.
 
-# Real data from prices CSV (generated fixture)
-python scripts/load_real_bab_example.py tests/fixtures/real_market_prices.csv --from-prices --benchmark BTC
-# → cumulative_return=0.456327, periods=398
-```
+## Known non-issues (do not churn)
+- Large test suite is intentional; run targeted subsets while iterating.
+- Pandas 4 / numpy warnings in stress tests are expected unless they indicate a real behavioral regression.
+- Root contains historical probe/debug scripts (`probe_*.py`, `debug_*.py`, `ast_probe.py`) — ignore unless directly relevant; do not spend cycles on probe archaeology.
 
-### ✅ Fixture Generated
-- `tests/fixtures/real_market_prices.csv` — 399 rows × 11 cols (BTC + 8 assets + 1 delisted)
-- Deterministic random walks (seed=20261028), one date gap, one all-NaN column
-
----
-
-## Fixed in This Session
-**File:** `tests/test_bab_data_loader_campaign_heavy.py:110`
-**Issue:** Test assertion `out.dtypes.iloc[0] is float` failed because pandas returns `dtype('float64')`, not Python `float` type.
-**Fix:** Changed to `out.dtypes.iloc[0] == np.float64`
-
-**Note on CI Pattern Sync:** The `test_controller_progress_accounting.py` tests all pass (69/69). The `WORKFLOW_MANAGED_DIRECTLY` set in the test correctly excludes `*/.github/workflows/*` from the pattern comparison because the workflow protects this path via `git restore` + `git clean` (lines 1184-1185 in `.github/workflows/main.yml`), not via the case pattern. The CI failure in diagnostics was likely a transient version/cache mismatch. **No action needed on Priority 1.**
-
----
-
-## Next Focus Campaign — Heavy Working Required
-
-### Priority 1: Real Data Pipeline Hardening
-- The `load_real_bab_example.py` script works but lacks:
-  - Automatic fixture download from a reliable source (CoinGecko, Binance public data)
-  - Date-range CLI args for fetching specific windows
-  - Incremental update capability (append new days to existing CSV)
-- **Deliverable:** Extend `generate_real_market_fixture.py` or create a new `fetch_real_data.py` that pulls live data and writes the same CSV schema.
-
-### Priority 2: Performance Benchmarks & Regression Guards
-- `scripts/perf_bench.py` exists but is not integrated into CI
-- Add a nightly benchmark job that:
-  - Runs the full pipeline on the real fixture
-  - Records: latency (ms), memory (MB), cumulative return
-  - Fails if latency > 2× baseline or return deviates > 5% from expected
-- This prevents silent performance regressions from dependency upgrades.
-
-### Priority 3: Documentation & Examples
-- `README.md` is complete but could add:
-  - Jupyter notebook demonstrating research workflow
-  - Parameter sensitivity heatmaps (beta_window vs quantile vs costs)
-  - Walk-forward validation example
-
----
-
-## Immediate Commands for Next Agent
-
-```bash
-# 1. Verify all tests still pass after any changes
-python -m pytest tests/test_controller_progress_accounting.py -v
-
-# 2. Run the strategy end-to-end
-python -c "
-from strategies.betting_against_beta import BABStrategy
-result = BABStrategy().run()
-print('Cumulative:', float(result.backtest['cumulative'].iloc[-1]))
-print(result.report()['metrics'])
-"
-
-# 3. Run with real data
-python scripts/load_real_bab_example.py tests/fixtures/real_market_prices.csv --from-prices --benchmark BTC
-```
-
----
-
-## Known Non-Issues (Do Not Investigate)
-- **Pandas 4 warnings** in tests: `date_format="iso"` in `to_json()` — cosmetic, no functional impact
-- **RuntimeWarnings** from numpy (overflow in square, invalid value in sqrt) — expected in stress tests with extreme inputs
-- **Large test count** (2,800+) — intentional for coverage; run subsets via pattern matching
-
----
-
-## Handoff Protocol
-This handoff is **durable and timestamped**. The next agent must:
-1. Read this file in full before starting work
-2. Address Priority 1 (Real Data Pipeline Hardening) immediately
-3. Not re-verify already-passing tests unless making changes to those modules
-4. Update this file with new timestamp and status upon completion
-
-**Next Session Start Command:**
-> "Continue from HANDOFF.md — implement real data fetching pipeline, then proceed to Priority 2."
+## Handoff protocol
+1. Read this file fully before acting.
+2. Execute priorities in order unless blocked by hard evidence; document any blocker with command output.
+3. Leave the repo in a coherent, reviewable state and refresh this handoff before stopping.
