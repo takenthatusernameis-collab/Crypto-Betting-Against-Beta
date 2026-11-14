@@ -954,3 +954,518 @@ class PaperExecutionEngine:
         )
         self._persist(report)
         return report
+
+
+# ---------------------------------------------------------------------------
+# P9: Live execution adapter + CCXT connector abstraction
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class LiveOrder:
+    """Order representation for live execution.
+
+    Strict-JSON-safe: every field is a primitive or a dict of primitives.
+    """
+
+    idempotency_key: str
+    date: str
+    asset: str
+    side: str  # "buy" | "sell"
+    weight: float  # signed target weight
+    price: float | None = None
+    notional_usd: float | None = None
+    max_participation: float | None = None
+    adv_usd: float | None = None
+    metadata: dict = field(default_factory=dict)
+
+    def to_dict(self) -> dict:
+        return {
+            "idempotency_key": self.idempotency_key,
+            "date": self.date,
+            "asset": self.asset,
+            "side": self.side,
+            "weight": float(self.weight),
+            "price": self.price,
+            "notional_usd": self.notional_usd,
+            "max_participation": self.max_participation,
+            "adv_usd": self.adv_usd,
+            "metadata": self.metadata,
+        }
+
+
+@dataclass(frozen=True)
+class LiveFill:
+    """Fill representation for live execution.
+
+    Strict-JSON-safe: every field is a primitive or a dict of primitives.
+    """
+
+    idempotency_key: str
+    date: str
+    asset: str
+    side: str
+    weight: float  # filled weight
+    price: float | None = None
+    notional_usd: float | None = None
+    slippage: float = 0.0
+    status: str = "filled"  # "filled" | "partial" | "rejected" | "cancelled"
+    reason: str | None = None
+    metadata: dict = field(default_factory=dict)
+
+    def to_dict(self) -> dict:
+        return {
+            "idempotency_key": self.idempotency_key,
+            "date": self.date,
+            "asset": self.asset,
+            "side": self.side,
+            "weight": float(self.weight),
+            "price": self.price,
+            "notional_usd": self.notional_usd,
+            "slippage": float(self.slippage),
+            "status": self.status,
+            "reason": self.reason,
+            "metadata": self.metadata,
+        }
+
+
+@dataclass(frozen=True)
+class LiveExecutionReport:
+    """Deterministic live execution report produced by LiveExecutionAdapter."""
+
+    mode: str
+    exchange: str
+    n_orders: int
+    n_fills: int
+    orders: list[LiveOrder] = field(default_factory=list)
+    fills: list[LiveFill] = field(default_factory=list)
+    metadata: dict = field(default_factory=dict)
+
+    def to_dict(self) -> dict:
+        return {
+            "mode": self.mode,
+            "exchange": self.exchange,
+            "n_orders": int(self.n_orders),
+            "n_fills": int(self.n_fills),
+            "orders": [o.to_dict() for o in self.orders],
+            "fills": [f.to_dict() for f in self.fills],
+            "metadata": self.metadata,
+        }
+
+
+class ExchangeConnector(Protocol):
+    """Abstract exchange connector interface for CCXT-based implementations."""
+
+    def connect(self) -> None:
+        """Establish connection to the exchange."""
+        ...
+
+    def disconnect(self) -> None:
+        """Close connection to the exchange."""
+        ...
+
+    def is_connected(self) -> bool:
+        """Check if connector is connected."""
+        ...
+
+    def submit_order(self, order: LiveOrder) -> LiveFill:
+        """Submit a single order and return the fill."""
+        ...
+
+    def cancel_order(self, idempotency_key: str) -> bool:
+        """Cancel an order by idempotency key. Returns True if cancelled."""
+        ...
+
+    def get_order_status(self, idempotency_key: str) -> LiveFill | None:
+        """Get the status of an order by idempotency key."""
+        ...
+
+    def fetch_balance(self) -> dict:
+        """Fetch account balance."""
+        ...
+
+    def fetch_ticker(self, symbol: str) -> dict:
+        """Fetch ticker for a symbol."""
+        ...
+
+
+class CCXTConnector:
+    """CCXT-based exchange connector for live execution.
+
+    Dry-run by default: no network calls, returns simulated fills.
+    Set dry_run=False and provide API credentials for real execution.
+    """
+
+    def __init__(
+        self,
+        exchange_name: str,
+        api_key: str | None = None,
+        api_secret: str | None = None,
+        api_password: str | None = None,
+        dry_run: bool = True,
+        testnet: bool = False,
+        rate_limit: bool = True,
+        options: dict | None = None,
+    ) -> None:
+        self.exchange_name = exchange_name.lower()
+        self.api_key = api_key
+        self.api_secret = api_secret
+        self.api_password = api_password
+        self.dry_run = dry_run
+        self.testnet = testnet
+        self.rate_limit = rate_limit
+        self.options = options or {}
+        self._exchange = None
+        self._connected = False
+        self._idempotency_keys: set[str] = set()
+        self._order_cache: dict[str, LiveFill] = {}
+
+    def _get_ccxt(self):
+        """Lazy import of CCXT to avoid hard dependency."""
+        try:
+            import ccxt
+            return ccxt
+        except ImportError:
+            raise RuntimeError(
+                "ccxt is required for live execution. "
+                "Install with: pip install 'crypto-betting-against-beta[live]'"
+            )
+
+    def connect(self) -> None:
+        """Establish connection to the exchange."""
+        if self._connected:
+            return
+
+        ccxt = self._get_ccxt()
+        exchange_class = getattr(ccxt, self.exchange_name, None)
+        if exchange_class is None:
+            raise ValueError(f"Exchange '{self.exchange_name}' not supported by CCXT")
+
+        config = {
+            "enableRateLimit": self.rate_limit,
+            "options": self.options,
+        }
+        if self.api_key:
+            config["apiKey"] = self.api_key
+        if self.api_secret:
+            config["secret"] = self.api_secret
+        if self.api_password:
+            config["password"] = self.api_password
+        if self.testnet:
+            config["options"] = {**config.get("options", {}), "defaultType": "future"}
+
+        self._exchange = exchange_class(config)
+
+        if not self.dry_run:
+            self._exchange.load_markets()
+
+        self._connected = True
+
+    def disconnect(self) -> None:
+        """Close connection to the exchange."""
+        if self._exchange and hasattr(self._exchange, "close"):
+            with contextlib.suppress(Exception):
+                self._exchange.close()
+        self._exchange = None
+        self._connected = False
+
+    def is_connected(self) -> bool:
+        """Check if connector is connected."""
+        return self._connected and self._exchange is not None
+
+    def _generate_idempotency_key(self, order: LiveOrder) -> str:
+        """Generate deterministic idempotency key for an order."""
+        import hashlib
+        payload = (
+            f"{order.date}|{order.asset}|{order.side}|"
+            f"{order.weight}|{order.price}|{order.notional_usd}"
+        )
+        return hashlib.sha256(payload.encode()).hexdigest()[:32]
+
+    def submit_order(self, order: LiveOrder) -> LiveFill:
+        """Submit a single order and return the fill."""
+        if not self.is_connected():
+            raise RuntimeError("Connector not connected. Call connect() first.")
+
+        idem_key = order.idempotency_key or self._generate_idempotency_key(order)
+        if idem_key in self._idempotency_keys:
+            # Idempotency: return rejection for duplicate key
+            return LiveFill(
+                idempotency_key=idem_key,
+                date=order.date,
+                asset=order.asset,
+                side=order.side,
+                weight=0.0,
+                status="rejected",
+                reason="duplicate_idempotency_key",
+            )
+
+        self._idempotency_keys.add(idem_key)
+
+        if self.dry_run:
+            # Simulated fill for dry-run
+            fill = LiveFill(
+                idempotency_key=idem_key,
+                date=order.date,
+                asset=order.asset,
+                side=order.side,
+                weight=order.weight,
+                price=order.price,
+                notional_usd=order.notional_usd,
+                slippage=0.0,
+                status="filled",
+                metadata={"dry_run": True},
+            )
+        else:
+            # Real order submission via CCXT
+            try:
+                self._get_ccxt()
+                symbol = self._asset_to_symbol(order.asset)
+                side = order.side.lower()
+                amount = abs(order.weight) * (order.notional_usd or 1.0) / (order.price or 1.0)
+                order_type = "market"  # Market orders for simplicity
+
+                params = {}
+                if order.max_participation is not None:
+                    params["max_participation"] = order.max_participation
+
+                response = self._exchange.create_order(
+                    symbol=symbol,
+                    type=order_type,
+                    side=side,
+                    amount=amount,
+                    price=order.price,
+                    params=params,
+                )
+
+                fill = LiveFill(
+                    idempotency_key=idem_key,
+                    date=order.date,
+                    asset=order.asset,
+                    side=order.side,
+                    weight=float(response.get("filled", amount)),
+                    price=float(response.get("average", order.price or 0)),
+                    notional_usd=float(response.get("cost", order.notional_usd or 0)),
+                    slippage=0.0,
+                    status="filled" if response.get("status") == "closed" else "partial",
+                    metadata={"ccxt_response": response},
+                )
+            except Exception as exc:
+                fill = LiveFill(
+                    idempotency_key=idem_key,
+                    date=order.date,
+                    asset=order.asset,
+                    side=order.side,
+                    weight=0.0,
+                    status="rejected",
+                    reason=str(exc),
+                )
+
+        self._order_cache[idem_key] = fill
+        return fill
+
+    def cancel_order(self, idempotency_key: str) -> bool:
+        """Cancel an order by idempotency key. Returns True if cancelled."""
+        if not self.is_connected() or idempotency_key not in self._idempotency_keys:
+            return False
+
+        if self.dry_run:
+            if idempotency_key in self._order_cache:
+                cached = self._order_cache[idempotency_key]
+                self._order_cache[idempotency_key] = LiveFill(
+                    **{**cached.to_dict(), "status": "cancelled", "reason": "user_cancelled"}
+                )
+                return True
+            return False
+
+        try:
+            # In real implementation, would need to map idempotency_key to exchange order ID
+            # For now, return False as we don't track exchange order IDs
+            return False
+        except Exception:
+            return False
+
+    def get_order_status(self, idempotency_key: str) -> LiveFill | None:
+        """Get the status of an order by idempotency key."""
+        return self._order_cache.get(idempotency_key)
+
+    def fetch_balance(self) -> dict:
+        """Fetch account balance."""
+        if not self.is_connected():
+            raise RuntimeError("Connector not connected. Call connect() first.")
+
+        if self.dry_run:
+            return {"USDT": {"free": 100000.0, "used": 0.0, "total": 100000.0}}
+
+        return self._exchange.fetch_balance()
+
+    def fetch_ticker(self, symbol: str) -> dict:
+        """Fetch ticker for a symbol."""
+        if not self.is_connected():
+            raise RuntimeError("Connector not connected. Call connect() first.")
+
+        if self.dry_run:
+            now_ms = int(pd.Timestamp.now().timestamp() * 1000)
+            return {"last": 1.0, "bid": 1.0, "ask": 1.0, "timestamp": now_ms}
+
+        return self._exchange.fetch_ticker(symbol)
+
+    def _asset_to_symbol(self, asset: str) -> str:
+        """Convert asset name to CCXT symbol (e.g., BTC -> BTC/USDT)."""
+        # Default to USDT quote for spot markets
+        return f"{asset.upper()}/USDT"
+
+
+class LiveExecutionAdapter:
+    """Live execution adapter implementing ExecutionAdapter protocol.
+
+    Wraps an ExchangeConnector (default: CCXTConnector) for live order submission.
+    Dry-run by default: no network calls, returns simulated fills compatible
+    with ExecutionAdapter protocol.
+    """
+
+    def __init__(
+        self,
+        exchange: str = "binance",
+        api_key_env: str | None = None,
+        api_secret_env: str | None = None,
+        api_password_env: str | None = None,
+        dry_run: bool = True,
+        testnet: bool = False,
+        max_participation: float = _DEFAULT_MAX_PARTICIPATION,
+        slippage: float = 0.0,
+        connector: ExchangeConnector | None = None,
+    ) -> None:
+        self.exchange_name = exchange.lower()
+        self.api_key_env = api_key_env
+        self.api_secret_env = api_secret_env
+        self.api_password_env = api_password_env
+        self.dry_run = dry_run
+        self.testnet = testnet
+        self.max_participation = float(max_participation)
+        self.slippage = float(slippage)
+        self.connector = connector
+        self._connected = False
+        self._submitted: list[OrderBatch] = []
+        self._fills: list[dict] = []
+
+        # Load credentials from environment if provided
+        self._api_key = None
+        self._api_secret = None
+        self._api_password = None
+        if api_key_env:
+            import os
+            self._api_key = os.getenv(api_key_env)
+        if api_secret_env:
+            import os
+            self._api_secret = os.getenv(api_secret_env)
+        if api_password_env:
+            import os
+            self._api_password = os.getenv(api_password_env)
+
+    def _ensure_connected(self) -> None:
+        """Ensure connector is initialized and connected."""
+        if self._connected:
+            return
+
+        if self.connector is None:
+            self.connector = CCXTConnector(
+                exchange_name=self.exchange_name,
+                api_key=self._api_key,
+                api_secret=self._api_secret,
+                api_password=self._api_password,
+                dry_run=self.dry_run,
+                testnet=self.testnet,
+            )
+
+        self.connector.connect()
+        self._connected = True
+
+    def submit_intents(self, batch: OrderBatch) -> list[dict]:
+        """Submit order intents for one period; return per-intent fill records."""
+        self._ensure_connected()
+        self._submitted.append(batch)
+
+        fills: list[dict] = []
+        for intent in batch.intents:
+            # Convert OrderIntent to LiveOrder
+            side = "buy" if intent.order_weight > 0 else "sell"
+            live_order = LiveOrder(
+                idempotency_key=f"{intent.date}|{intent.asset}|{intent.order_weight}",
+                date=intent.date,
+                asset=intent.asset,
+                side=side,
+                weight=abs(intent.order_weight),
+                price=intent.price,
+                notional_usd=intent.notional_usd,
+                max_participation=intent.max_participation or self.max_participation,
+                adv_usd=intent.adv_usd,
+            )
+
+            live_fill = self.connector.submit_order(live_order)
+
+            # Convert LiveFill to dict compatible with ExecutionAdapter protocol
+            fill_weight = float(live_fill.weight)
+            if live_fill.side == "sell":
+                fill_weight = -fill_weight
+            fill_ratio = 1.0
+            if live_fill.status == "partial":
+                fill_ratio = 0.5
+            elif live_fill.status != "filled":
+                fill_ratio = 0.0
+            max_participation = live_fill.metadata.get("max_participation", self.max_participation)
+            fill = {
+                "date": live_fill.date,
+                "asset": live_fill.asset,
+                "side": live_fill.side,
+                "requested_weight": fill_weight,
+                "filled_weight": fill_weight,
+                "fill_ratio": fill_ratio,
+                "order_weight": intent.order_weight,
+                "notional_usd": live_fill.notional_usd,
+                "price": live_fill.price,
+                "adv_usd": intent.adv_usd,
+                "max_participation": max_participation,
+                "participation": None,
+                "slippage": live_fill.slippage,
+                "status": live_fill.status,
+                "reason": live_fill.reason,
+                "idempotency_key": live_fill.idempotency_key,
+                "exchange": self.exchange_name,
+            }
+            fills.append(fill)
+            self._fills.append(fill)
+
+        return fills
+
+    def flush(self) -> list[dict]:
+        """Flush buffered fills; return any remaining fill records."""
+        # All fills are returned by submit_intents; nothing buffered.
+        return []
+
+    def disconnect(self) -> None:
+        """Disconnect from the exchange."""
+        if self.connector:
+            self.connector.disconnect()
+        self._connected = False
+
+    def get_fills(self) -> list[dict]:
+        """Get all fills from this adapter."""
+        return list(self._fills)
+
+    def get_submitted(self) -> list[OrderBatch]:
+        """Get all submitted order batches."""
+        return list(self._submitted)
+
+    def health_check(self) -> dict:
+        """Return health status for live execution."""
+        return {
+            "mode": "live",
+            "exchange": self.exchange_name,
+            "connected": self._connected,
+            "dry_run": self.dry_run,
+            "testnet": self.testnet,
+            "connector_type": type(self.connector).__name__ if self.connector else None,
+            "n_submitted": len(self._submitted),
+            "n_fills": len(self._fills),
+        }

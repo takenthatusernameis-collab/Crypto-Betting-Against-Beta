@@ -12,6 +12,7 @@ dependencies = [
     "pandas",
     "scipy",
 ]
+optional-dependencies = { live = ["ccxt>=4.0.0"] }
 
 [project.scripts]
 bab-example = "scripts.load_real_bab_example:main"

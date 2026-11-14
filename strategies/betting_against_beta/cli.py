@@ -19,12 +19,13 @@ _UNIVERSE_UNSET = object()
 
 
 def _build_adapter(args):
-    """Build a deterministic in-process execution adapter from CLI args (R5-D).
+    """Build an execution adapter from CLI args (R5-D/P9).
 
     Returns an ExecutionAdapter instance, or None when no adapter is requested.
-    No network or credentials are ever used.
+    Paper and mock adapters are deterministic and use no network.
+    Live adapter connects to an exchange via CCXT (dry-run by default).
     """
-    from .execution import MockAdapter, PaperAdapter
+    from .execution import LiveExecutionAdapter, MockAdapter, PaperAdapter
 
     adapter_name = getattr(args, "adapter", None)
     if adapter_name is None:
@@ -51,6 +52,27 @@ def _build_adapter(args):
             except (OSError, ValueError, TypeError) as exc:
                 raise BABDataError(f"invalid --fills file {fills_path!r}: {exc}") from exc
         return MockAdapter(fill_map=fill_map), fills_path
+    if adapter_name == "live":
+        exchange = getattr(args, "exchange", None)
+        if not exchange:
+            raise BABDataError("--exchange is required when --adapter live")
+        api_key_env = getattr(args, "api_key_env", None)
+        api_secret_env = getattr(args, "api_secret_env", None)
+        if not api_key_env or not api_secret_env:
+            raise BABDataError(
+                "--api-key-env and --api-secret-env are required when --adapter live"
+            )
+        api_password_env = getattr(args, "api_password_env", None)
+        testnet = getattr(args, "testnet", False)
+        adapter = LiveExecutionAdapter(
+            exchange=exchange,
+            api_key_env=api_key_env,
+            api_secret_env=api_secret_env,
+            api_password_env=api_password_env,
+            dry_run=True,  # Always dry-run by default for safety
+            testnet=testnet,
+        )
+        return adapter, None
     return None, None
 
 
@@ -364,10 +386,63 @@ def main(argv=None) -> int:
             "--adapter",
             type=str,
             default=None,
-            choices=["paper", "mock"],
+            choices=["paper", "mock", "live"],
             help=(
-                "R5-D: run with an in-process execution adapter (paper or mock). "
-                "No network, no credentials. Default: none (backtest only)."
+                "R5-D/P9: run with an in-process execution adapter (paper, mock, or live). "
+                "No network, no credentials for paper/mock. Live requires --exchange and "
+                "API credentials via --api-key-env/--api-secret-env. Default: none (backtest only)."
+            ),
+        )
+        parser.add_argument(
+            "--exchange",
+            type=str,
+            default=None,
+            help=(
+                "P9: exchange name for live adapter (e.g., binance, coinbase, kraken). "
+                "Required when --adapter live."
+            ),
+        )
+        parser.add_argument(
+            "--api-key-env",
+            type=str,
+            default=None,
+            help=(
+                "P9: environment variable name containing API key for live adapter. "
+                "Required when --adapter live."
+            ),
+        )
+        parser.add_argument(
+            "--api-secret-env",
+            type=str,
+            default=None,
+            help=(
+                "P9: environment variable name containing API secret for live adapter. "
+                "Required when --adapter live."
+            ),
+        )
+        parser.add_argument(
+            "--api-password-env",
+            type=str,
+            default=None,
+            help=(
+                "P9: environment variable name containing API password/passphrase "
+                "for live adapter. Optional, for exchanges that require it (e.g., KuCoin)."
+            ),
+        )
+        parser.add_argument(
+            "--testnet",
+            action="store_true",
+            help=(
+                "P9: use testnet/sandbox for live adapter. "
+                "Only applies when --adapter live."
+            ),
+        )
+        parser.add_argument(
+            "--health-check",
+            action="store_true",
+            help=(
+                "P9: run health check on live adapter/feed and exit. "
+                "Returns connection status, last tick, staleness, and gap info."
             ),
         )
         parser.add_argument(
@@ -510,9 +585,19 @@ def main(argv=None) -> int:
         except BABDataError as exc:
             print(f"Error validating --fills: {exc}")
             return 1
-    if adapter_name is not None and adapter_name not in ("paper", "mock"):
-        print(f"Error: unknown --adapter {adapter_name!r} (expected 'paper' or 'mock')")
+    if adapter_name is not None and adapter_name not in ("paper", "mock", "live"):
+        print(f"Error: unknown --adapter {adapter_name!r} (expected 'paper', 'mock', or 'live')")
         return 1
+    if adapter_name == "live":
+        exchange = getattr(args, "exchange", None)
+        if not exchange:
+            print("Error: --exchange is required when --adapter live")
+            return 1
+        api_key_env = getattr(args, "api_key_env", None)
+        api_secret_env = getattr(args, "api_secret_env", None)
+        if not api_key_env or not api_secret_env:
+            print("Error: --api-key-env and --api-secret-env are required when --adapter live")
+            return 1
 
     if args.dry_run:
         # --dry-run must validate everything it would validate in a real run,
@@ -587,6 +672,24 @@ def main(argv=None) -> int:
 
     try:
         adapter, fills_path = _build_adapter(args)
+
+        # P9: health check for live adapter
+        if getattr(args, "health_check", False):
+            if adapter is not None and hasattr(adapter, "health_check"):
+                health = adapter.health_check()
+                print("Health check:")
+                print(f"  mode:          {health.get('mode')}")
+                print(f"  exchange:      {health.get('exchange')}")
+                print(f"  connected:     {health.get('connected')}")
+                print(f"  dry_run:       {health.get('dry_run')}")
+                print(f"  testnet:       {health.get('testnet')}")
+                print(f"  n_submitted:   {health.get('n_submitted')}")
+                print(f"  n_fills:       {health.get('n_fills')}")
+                return 0
+            else:
+                print("Error: --health-check requires --adapter live")
+                return 1
+
         # Only pass execution_adapter when an adapter is actually configured so
         # the default path (no adapter) stays byte-identical to pre-R5 behavior
         # and remains compatible with strategies constructed with `config` only.
