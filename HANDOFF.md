@@ -4,15 +4,15 @@
 
 **Priority basis (repo name):** this repository *is* the BAB strategy engine, not a tooling sandbox. Priority order is: (1) BAB beta/signal/backtest correctness; (2) execution realism and reconciliation; (3) live/execution readiness; (4) tests, docs, and coverage. Diagnostics, probe archaeology, and coverage-chasing are means to those ends and must not displace P0/P1 work.
 
-**Refreshed:** 2026-11-14T06:49:52Z (UTC)
-**HEAD at refresh:** `a01118d` (main, `git rev-parse --short HEAD` at refresh). **Live run wins** — if any recorded number conflicts with live output on the current `HEAD`, re-measure, record the delta, and update this file immediately.
+**Refreshed:** 2026-11-14T06:51:19Z (UTC)
+**HEAD at refresh:** `88707a7` (main, `git rev-parse --short HEAD` at refresh). **Live run wins** — if any recorded number conflicts with live output on the current `HEAD`, re-measure, record the delta, and update this file immediately.
 **Single source of truth:** this file. `AGENT_HANDOFF.md` is a pointer only. Read this whole file before doing anything. Do not create parallel handoff/session docs. (`.kilo/task_handoff.md` does not exist — do not create one.)
 
 ---
 
-## INITIAL TASK MESSAGE (START HERE, 2026-11-14T06:49:52Z UTC) — BINDING
+## INITIAL TASK MESSAGE (START HERE, 2026-11-14T06:51:19Z UTC) — BINDING
 
-**Baseline verified live on `a01118d` (2026-11-14T06:49:52Z):** R2 preflight RC=0 (green; 5000×500 = 386 ms ≤ 2000 ceiling), R4 preflight RC=0 (R4-A/B/C present + green, R2/R3 baseline green), R5 integration RC=0 (23 passed, 10.03s), R5-D CLI sanity RC=0 (`--adapter paper --reconcile --output` emits execution + reconciliation sidecars), default-path CLI RC=0 (0.413704 / 252 periods, byte-identical to pre-R5-D). **Code is byte-identical to `fde12bf`** (only `HANDOFF.md`/`AGENT_HANDOFF.md` changed between `fde12bf` and `a01118d`), so the recorded full-gate green on `fde12bf` (5644 passed / 35 skipped / 425.16s / coverage 93%) still holds for the code, but **re-run the full gate before any release-grade claim**. R1–R5 + R5-D are complete; do not reopen them without new reproducible evidence of a defect.
+**Baseline last verified live on `a01118d` (2026-11-14T06:49:52Z):** R2 preflight RC=0 (green; 5000×500 = 386 ms ≤ 2000 ceiling), R4 preflight RC=0 (R4-A/B/C present + green, R2/R3 baseline green), R5 integration RC=0 (23 passed, 10.03s), R5-D CLI sanity RC=0 (`--adapter paper --reconcile --output` emits execution + reconciliation sidecars), default-path CLI RC=0 (0.413704 / 252 periods, byte-identical to pre-R5-D). **Code is byte-identical to `fde12bf`** (only `HANDOFF.md`/`AGENT_HANDOFF.md` changed in `fde12bf..88707a7`), so the recorded full-gate green on `fde12bf` (5644 passed / 35 skipped / 425.16s / coverage 93%) still holds for the code, but **re-run the full gate before any release-grade claim**. R1–R5 + R5-D are complete; do not reopen them without new reproducible evidence of a defect. **Step 2 fast re-verify on current HEAD is mandatory before any new work.**
 
 **Immediate sequence (execute now, in order):**
 1. **Environment/bootstrap (idempotent, do not treat as blocker):**
@@ -62,9 +62,9 @@
 
 ---
 
-## VERIFIED EVIDENCE SNAPSHOT (live on current HEAD `a01118d`)
+## VERIFIED EVIDENCE SNAPSHOT (last live-verified on `a01118d`; code unchanged on `88707a7`)
 
-Captured on HEAD `a01118d` (2026-11-14T06:49:52Z UTC). Re-verified live this refresh (env: `VENV=/home/runner/work/_temp/kilo-tmp/bab-venv` present, Python 3.12.3).
+Captured on HEAD `a01118d` (2026-11-14T06:49:52Z UTC). Re-verify fast checks on current HEAD before new work (env: `VENV=/home/runner/work/_temp/kilo-tmp/bab-venv` present, Python 3.12.3). No product/test code changed in `fde12bf..88707a7` (handoff docs only).
 
 | Check | Command | Live result |
 |---|---|---|
@@ -75,14 +75,14 @@ Captured on HEAD `a01118d` (2026-11-14T06:49:52Z UTC). Re-verified live this ref
 | Default-path CLI | `--synthetic` (no adapter) | RC=0 — 0.413704 / 252 periods, byte-identical to pre-R5-D behavior |
 | Full gate | `PATH="$VENV/bin:$PATH" bash scripts/bab_gate.sh` | Last green on `fde12bf` (5644 passed / 35 skipped / 425.16s / coverage 93%); code identical on `a01118d` — re-run before release claim |
 
-**HEAD delta note:** `git diff --stat fde12bf a01118d` = only `AGENT_HANDOFF.md` + `HANDOFF.md` changed (54 insertions / 38 deletions). No product/test code changed, so `fde12bf` full-gate evidence carries; live fast-checks above re-confirmed on `a01118d`.
+**HEAD delta note:** `git diff --stat fde12bf 88707a7` = only `AGENT_HANDOFF.md` + `HANDOFF.md` changed. No product/test code changed, so `fde12bf` full-gate evidence carries; live fast-checks above last re-confirmed on `a01118d`. Re-verify on `88707a7` before new work.
 
 ---
 
 ## STATUS
 
 - **R1/R2/R3:** closed/locked — do not reopen without new reproducible evidence.
-- **R4:** shipped and re-verified green on `a01118d`:
+- **R4:** shipped and last re-verified green on `a01118d` (code unchanged through `88707a7`):
   - **R4-A** dry-run / portfolio-risk report: `BABStrategy.dry_run()` + CLI `--dry-run` (strict-JSON-safe; no trade execution; `--output` not created). `tests/test_bab_dryrun_risk_report_r4.py`.
   - **R4-B** drawdown-limit kill switch: `max_drawdown_limit` in `BABConfig`/`_validate_ranges`, `strategies/betting_against_beta/risk.py` (`apply_kill_switch`, `KillSwitchEvent`), integrated in `run()`/`report()`; `None` preserves pre-R4 default-path behavior. `tests/test_bab_drawdown_kill_switch_r4.py`.
   - **R4-C** deterministic paper-trading replay harness: `strategies/betting_against_beta/replay.py` (`ReplayHarness`) with stable schema, SHA-256 checksum, byte-identical artifacts on identical inputs. `tests/test_bab_replay_harness_r4.py`.
