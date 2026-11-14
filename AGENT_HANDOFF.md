@@ -2,11 +2,11 @@
 
 **Canonical durable handoff:** [`HANDOFF.md`](HANDOFF.md) — single source of truth. Read it in full before starting. Do not create parallel handoff docs.
 
-- **Refreshed:** 2026-11-14T01:33:08Z (UTC)
-- **HEAD:** `640d374` (main). Working tree clean at refresh except handoff update. Baseline evidence (gate/preflight on `45563ba`) unchanged by subsequent checkpoint commits through `640d374`; re-verify on current `HEAD` before claiming green.
+- **Refreshed:** 2026-11-14T02:25:12Z (UTC)
+- **HEAD:** `b9a96d0` (main). Working tree clean at refresh except handoff update. Baseline evidence (gate/preflight on `b9a96d0`) unchanged by subsequent checkpoint commits; re-verify on current `HEAD` before claiming green.
 - **Environment:** run the idempotent venv/bootstrap + preflight block at the top of `HANDOFF.md` (`/home/runner/work/_temp/kilo-tmp/bab-venv`). Prefix the gate with `PATH="$VENV/bin:$PATH"`. Do not claim missing deps as blockers.
-- **State:** R1/R2/R3 closed/locked (last recorded: preflight RC=0, 155 passed, scale 163 ms / 393 ms within ceilings; full gate RC=0, 5621 passed / 35 skipped / 418.28s / 95% on `640d374`). Live run on current HEAD wins if conflicting.
-- **R4 (SHIPPED):** live-readiness — R4-A dry-run/portfolio-risk report, R4-B drawdown-limit kill switch, R4-C deterministic paper-trading replay harness. **All three implemented, tested, and green.** `bab_r4_preflight.py` run 2026-11-14T01:33:00Z on `640d374` reported **RC=0** with all capabilities + tests present and R2/R3 baseline green. Full gate RC=0 with 5621 passed / 35 skipped / 95% coverage.
+- **State:** R1/R2/R3 closed/locked (last recorded: preflight RC=0, 155 passed, scale 176 ms / 396 ms within ceilings; full gate RC=0, 5621 passed / 35 skipped / 456.98s / 95% on `b9a96d0`). Live run on current HEAD wins if conflicting.
+- **R4 (SHIPPED):** live-readiness — R4-A dry-run/portfolio-risk report, R4-B drawdown-limit kill switch, R4-C deterministic paper-trading replay harness. **All three implemented, tested, and green.** `bab_r4_preflight.py` run 2026-11-14T02:25:00Z on `b9a96d0` reported **RC=0** with all capabilities + tests present and R2/R3 baseline green. Full gate RC=0 with 5621 passed / 35 skipped / 95% coverage.
 - **Mechanical gate:** `PYTHONPATH=. "$VENV/bin/python" scripts/bab_r4_preflight.py` — run every session and record output.
 - **Next campaign:** R5 — Execution integration (live-order adapter stubs, slippage/impact calibration against real fill data, cost-model backtest vs executed-fills reconciliation).
 

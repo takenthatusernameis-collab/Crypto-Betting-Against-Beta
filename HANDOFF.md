@@ -2,22 +2,22 @@
 
 **Repo:** `crypto-betting-against-beta` — Betting Against Beta (BAB) market-neutral crypto strategy (long low-beta / short high-beta vs benchmark, default BTC). See `README.md`, `strategies/betting_against_beta/`. **Priority basis:** the repo *is* the BAB strategy engine, so correctness + live-readiness of the strategy outranks tooling/coverage-chasing.
 
-**Refreshed:** 2026-11-14T01:33:08Z (UTC)
-**HEAD:** `640d374` (main). **Working tree:** clean at refresh except this handoff update. Baseline gate/preflight evidence below was captured on `45563ba`; no product/test code changed in subsequent checkpoint commits through `640d374`. Re-verify on current `HEAD` before claiming green.
+**Refreshed:** 2026-11-14T02:25:12Z (UTC)
+**HEAD:** `b9a96d0` (main). **Working tree:** clean at refresh except this handoff update. Baseline gate/preflight evidence below was captured on this HEAD; re-verify on current `HEAD` before claiming green.
 **Single source of truth:** this file. `AGENT_HANDOFF.md` is a pointer only. Read this whole file before doing anything. Do not create parallel handoff docs. If live evidence conflicts with a recorded number here, **live run wins** — re-measure, record the delta, update this file.
 
 ---
 
-## LIVE VERIFICATION EVIDENCE (measured this session on HEAD `640d374`)
+## LIVE VERIFICATION EVIDENCE (measured this session on HEAD `b9a96d0`)
 
 | Check | Command | Result |
 |---|---|---|
-| R2 preflight | `PYTHONPATH=. "$VENV/bin/python" scripts/bab_r2_preflight.py` | **RC=0** — 155 passed, 6 warnings, 33.58s |
-| Live scale (median/9 warm) | same preflight | 5000×200 = **163 ms** (≤800 ms), 5000×500 = **393 ms** (≤2000 ms) |
-| R4 preflight | `PYTHONPATH=. "$VENV/bin/python" scripts/bab_r4_preflight.py` | **RC=0** — R4-A/B/C present + green; R2/R3 baseline green |
-| Full gate | `PATH="$VENV/bin:$PATH" bash scripts/bab_gate.sh` | **RC=0** — **5621 passed / 35 skipped / 418.28s / coverage 95%** |
+| R2 preflight | `PYTHONPATH=. "$VENV/bin/python" scripts/bab_r2_preflight.py` | **RC=0** — 155 passed, 6 warnings, 33.36s |
+| Live scale (median/9 warm) | same preflight | 5000×200 = **176 ms** (≤800 ms), 5000×500 = **396 ms** (≤2000 ms) |
+| R4 preflight | `PYTHONPATH=. "$VENV/bin/python" scripts/bab_r4_preflight.py` | **RC=0** — R4-A/B/C present + green; R2/R3 baseline green (217 passed) |
+| Full gate | `PATH="$VENV/bin:$PATH" bash scripts/bab_gate.sh` | **RC=0** — **5621 passed / 35 skipped / 456.98s / coverage 95%** |
 
-- All numbers above were reproduced on `640d374`; they supersede the prior `ee1d42c`/`4dfbc17`/`45563ba` recordings (same suite counts, fresh wall-clock).
+- All numbers above were reproduced on `b9a96d0`; they supersede the prior `640d374` recordings (same suite counts, fresh wall-clock).
 - `VENV=/home/runner/work/_temp/kilo-tmp/bab-venv` exists and is populated (Python 3.12.3; numpy 2.5.4, pandas 3.1.1, scipy 1.18.1, pytest 9.2.0, hypothesis 6.170.15).
 
 ---
@@ -29,16 +29,16 @@
 - **R3:** closed/locked — `tests/test_bab_execution_realism_r3.py` (R3-A cost realism + R3-B rebalance sweep) present and green; full gate RC=0. Do not reopen.
 - **R4 (SHIPPED):** live-readiness — **all three components implemented, tested, and green**:
   - **R4-A dry-run / portfolio-risk report:** `BABStrategy.dry_run()` implemented with strict-JSON-safe output; CLI `--dry-run` validates inputs and prints resolved config + portfolio-risk summary without executing backtest; `--output` not created in dry-run mode. Tests: `tests/test_bab_dryrun_risk_report_r4.py` (8 passed).
-  - **R4-B drawdown-limit kill switch:** `max_drawdown_limit` added to `BABConfig` (validated to `(0,1]` or `None`); `strategies/betting_against_beta/risk.py` implements `apply_kill_switch()` and `KillSwitchEvent`; integrated into `BABStrategy.run()` (flattens weights from breach date, re-runs backtest with killed weights) and `report()` (surfaces `kill_switch` event). Tests: `tests/test_bab_drawdown_kill_switch_r4.py` (11 passed).
+  - **R4-B drawdown-limit kill switch:** `max_drawdown_limit` added to `BABConfig` (config.py:123) with validation in `_validate_ranges()`; `strategies/betting_against_beta/risk.py` implements `apply_kill_switch()` and `KillSwitchEvent`; integrated into `BABStrategy.run()` (flattens weights from breach date, re-runs backtest with killed weights) and `report()` (surfaces `kill_switch` event). Tests: `tests/test_bab_drawdown_kill_switch_r4.py` (11 passed).
   - **R4-C deterministic paper-trading replay harness:** `strategies/betting_against_beta/replay.py` implements `ReplayHarness` with `replay()` method; records per-period orders, fills, costs, equity; emits strict-JSON-safe artifact with stable schema + SHA-256 checksum; two runs on identical inputs produce byte-identical artifacts. Tests: `tests/test_bab_replay_harness_r4.py` (12 passed).
 
 ---
 
-## INITIAL TASK FOR NEXT SESSION (binding, timestamped 2026-11-14T01:33:08Z, HEAD 640d374)
+## INITIAL TASK FOR NEXT SESSION (binding, timestamped 2026-11-14T02:25:12Z, HEAD b9a96d0)
 
 **Objective:** R4 is **shipped and verified**. Next session should focus on **R5 — Execution integration** (live-order adapter stubs, slippage/impact calibration against real fill data, cost-model backtest vs executed-fills reconciliation) or other post-R4 priorities.
 
-**Bottleneck check (live, 2026-11-14T01:33:00Z, HEAD `640d374`):** `PYTHONPATH=. python3 scripts/bab_r4_preflight.py` reports **RC=0** — all three R4 capabilities present, their tests pass, and R2/R3 baseline remains green. No active blockers.
+**Bottleneck check (live, 2026-11-14T02:25:00Z, HEAD `b9a96d0`):** `PYTHONPATH=. python3 scripts/bab_r4_preflight.py` reports **RC=0** — all three R4 capabilities present, their tests pass, and R2/R3 baseline remains green. No active blockers.
 
 ---
 
@@ -81,11 +81,11 @@ PYTHONPATH=. "$VENV/bin/python" scripts/bab_r4_preflight.py; echo "R4_PREFLIGHT_
 
 ---
 
-## BOTTLENECKS REMOVED / VERIFIED (current refresh 2026-11-14T01:33:08Z)
+## BOTTLENECKS REMOVED / VERIFIED (current refresh 2026-11-14T02:25:12Z)
 
-1. **Handoff HEAD/timestamp drift** — refreshed to current `HEAD` `640d374` and 2026-11-14T01:33:08Z so next session starts from true repo state.
+1. **Handoff HEAD/timestamp drift** — refreshed to current `HEAD` `b9a96d0` and 2026-11-14T02:25:12Z so next session starts from true repo state.
 2. **Single durable handoff enforced** — `HANDOFF.md` remains sole source of truth; `AGENT_HANDOFF.md` kept pointer-only/in-sync.
-3. **Mechanical R4 gate present and executed** — `scripts/bab_r4_preflight.py` run on `640d374` (2026-11-14T01:33:00Z) and returned **RC=0** with all three R4 capabilities + tests green; R2/R3 baseline green. R4 campaign complete.
+3. **Mechanical R4 gate present and executed** — `scripts/bab_r4_preflight.py` run on `b9a96d0` (2026-11-14T02:25:00Z) and returned **RC=0** with all three R4 capabilities + tests green; R2/R3 baseline green. R4 campaign complete.
 4. **Execution blockers pre-empted** — mandatory idempotent venv bootstrap and `PATH="$VENV/bin:$PATH"` gate invocation documented; missing deps must not be claimed as blockers.
 5. **Historical CI noise quarantined** — `research_state/workflow_run_diagnostics.jsonl` remains historical-only and must not justify inaction; live run on current `HEAD` wins.
 6. **Mock compatibility fix** — `risk.py:apply_kill_switch()` now treats invalid limit types (e.g., mock objects in tests) as no-op to maintain backward compatibility with existing regression tests, while real configs are validated in `BABConfig.__post_init__`.
@@ -109,7 +109,7 @@ PYTHONPATH=. "$VENV/bin/python" scripts/bab_r4_preflight.py; echo "R4_PREFLIGHT_
 
 ## PERFORMANCE GUARDRAILS (do not regress; live-run wins)
 
-- Current medians (this session, `640d374`): 5000×200 ~163 ms (ceiling 800 ms), 5000×500 ~393 ms (ceiling 2000 ms). Scale guards assert ceilings, not exact medians.
+- Current medians (this session, `b9a96d0`): 5000×200 ~176 ms (ceiling 800 ms), 5000×500 ~396 ms (ceiling 2000 ms). Scale guards assert ceilings, not exact medians.
 - Keep default/no-model path model-free/lightweight; pay cost-model overhead only when configured.
 
 ---
