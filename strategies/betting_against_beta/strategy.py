@@ -22,6 +22,8 @@ from .attribution import trade_attribution, attribution_totals
 from .errors import BABDataError
 from .shorting import ShortingConstraints
 from .sizing import KellySizer, VolatilityTargetSizer, RiskParitySizer, EqualWeightSizer
+from . import risk as _risk
+from .risk import KillSwitchEvent
 
 
 def _normalize_position_sizer(ps):

@@ -115,6 +115,12 @@ class BABConfig:
     # slippage path is a no-op (bit-identical to flat slippage only).
     partial_fill: bool = False
     max_participation: float = 0.10
+    # R4-B: drawdown-limit kill switch. When set (in (0, 1]), the strategy
+    # monitors the running max drawdown of the cumulative path; on first breach
+    # the book is flattened (weights -> 0) from the breach date onward and a
+    # kill_switch event is emitted in report(). When None (default) the default
+    # path is byte-identical to pre-R4 (no monitoring, no flattening).
+    max_drawdown_limit: Optional[float] = None
 
     def __post_init__(self):
         # Normalize shorting_constraints if passed as dict
@@ -167,6 +173,18 @@ class BABConfig:
             raise BABConfigError(
                 f"max_participation must be in (0, 1], got {self.max_participation}"
             )
+        # R4-B: max_drawdown_limit must be None or in (0, 1].
+        _mdd = getattr(self, "max_drawdown_limit", None)
+        if _mdd is not None:
+            if not isinstance(_mdd, (int, float)) or isinstance(_mdd, bool):
+                errors.append(
+                    f"max_drawdown_limit must be numeric or None, "
+                    f"got {type(_mdd).__name__}"
+                )
+            elif not _is_finite_number(_mdd) or not (0.0 < float(_mdd) <= 1.0):
+                errors.append(
+                    f"max_drawdown_limit must be in (0, 1] or None, got {_mdd}"
+                )
         self._validate_ranges()
         # Freeze after validation to prevent downstream mutation
         try:
