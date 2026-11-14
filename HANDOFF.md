@@ -2,8 +2,8 @@
 
 **Repo:** `crypto-betting-against-beta` — Betting Against Beta (BAB) market-neutral crypto strategy (long low-beta / short high-beta vs benchmark, default BTC). See `README.md`, `strategies/betting_against_beta/`. **Priority basis:** the repo *is* the BAB strategy engine, so correctness + live-readiness of the strategy outranks tooling/coverage-chasing.
 
-**Refreshed:** 2026-11-14T00:50:08Z
-**HEAD:** `8e19958` (main). **Working tree:** clean — commit `8e19958` ("chore(kilo): checkpoint agent session", 2026-11-14T00:50:02Z) handed off only `HANDOFF.md`/`AGENT_HANDOFF.md` (no product/test code changed). Baseline gate/preflight evidence below was captured on `45563ba` and is unchanged by `8e19958` (handoff-only commit); re-verify on `8e19958` before claiming green.
+**Refreshed:** 2026-11-14T00:51:57Z (UTC)
+**HEAD:** `40e5c34` (main). **Working tree:** clean at refresh. Baseline gate/preflight evidence below was captured on `45563ba` and no product/test code changed in the subsequent checkpoint commits through `40e5c34`; re-verify on current `HEAD` before claiming green.
 **Single source of truth:** this file. `AGENT_HANDOFF.md` is a pointer only. Read this whole file before doing anything. Do not create parallel handoff docs. If live evidence conflicts with a recorded number here, **live run wins** — re-measure, record the delta, update this file.
 
 ---
@@ -30,11 +30,11 @@
 
 ---
 
-## INITIAL TASK FOR NEXT SESSION (binding, timestamped 2026-11-14T00:50:08Z)
+## INITIAL TASK FOR NEXT SESSION (binding, timestamped 2026-11-14T00:51:57Z, HEAD 40e5c34)
 
-**Objective:** Ship **R4 (Live-Readiness)** end-to-end on current `HEAD` (`8e19958`) with hard evidence. **All three components (R4-A, R4-B, R4-C) must be implemented with green regression tests and wired into the gate.** Partial completion / analysis-only is a failed session. Do not stop at "next steps"; land code + tests + measured evidence.
+**Objective:** Ship **R4 (Live-Readiness)** end-to-end on current `HEAD` (`40e5c34`) with hard evidence. **All three components (R4-A, R4-B, R4-C) must be implemented with green regression tests and wired into the gate/behavioral contracts.** Partial completion or analysis-only is a failed session. Do not stop at "next steps"; land code + tests + measured evidence.
 
-**Bottleneck check (2026-11-14T00:50:08Z, HEAD `8e19958`):** `PYTHONPATH=. "$VENV/bin/python" scripts/bab_r4_preflight.py` → **RC=1** (R4 NOT SHIPPED; verified live on current HEAD). Missing: R4-A (`dry_run`/risk-report capability + `tests/test_bab_dryrun_risk_report_r4.py`), R4-B (`max_drawdown_limit`/`kill_switch` + `tests/test_bab_drawdown_kill_switch_r4.py`), R4-C (`ReplayHarness`/replay harness + `tests/test_bab_replay_harness_r4.py`). This is the sole active blocker — no other campaign is open; remove it by implementing and verifying all three.
+**Bottleneck check (recorded 2026-11-14T00:51:57Z, HEAD `40e5c34`):** `scripts/bab_r4_preflight.py` exists as the mechanical campaign gate and must be treated as authoritative. R4 is **not shipped** until it returns **RC=0** on current HEAD. Expected pending items until implemented: R4-A (`dry_run`/portfolio-risk-report capability + `tests/test_bab_dryrun_risk_report_r4.py`), R4-B (`max_drawdown_limit`/`kill_switch` + `tests/test_bab_drawdown_kill_switch_r4.py`), R4-C (`ReplayHarness`/replay harness + `tests/test_bab_replay_harness_r4.py`). This is the sole active blocker — no other campaign is open; remove it by implementing and verifying all three. Re-run and record live preflight/gate output on `40e5c34` before claiming status.
 
 ### R4-A — Dry-run / portfolio-risk report
 - **Deliverable:** `BABStrategy.dry_run(returns_df=None) -> dict` (programmatic) plus `--dry-run` CLI output that prints the resolved config, tradable universe, beta window/quantiles, and a **portfolio-risk summary**: gross exposure, net exposure, gross leverage, max single-position weight, estimated turnover/cost drag, data-health (rows, columns, NaN counts, benchmark presence). No backtest/trades executed.
@@ -81,13 +81,13 @@ PYTHONPATH=. "$VENV/bin/python" scripts/bab_r4_preflight.py; echo "R4_PREFLIGHT_
 
 ---
 
-## BOTTLENECKS REMOVED / VERIFIED (current refresh 2026-11-14T00:50:08Z)
+## BOTTLENECKS REMOVED / VERIFIED (current refresh 2026-11-14T00:51:57Z)
 
-1. **Stale HEAD in both handoff docs** — `HANDOFF.md` previously claimed `45563ba`; actual HEAD is now `8e19958` (checkpoint commit 2026-11-14T00:50:02Z, handoff-doc-only). Corrected; baseline evidence captured on `45563ba` is unchanged by `8e19958` (no product/test code changed). Re-verify gate/preflight on `8e19958` before claiming green.
-2. **Contradictory tree state** — prior pointer claimed dirty fix while tree was clean/committed. Corrected to reflect handoff-only committed edits; tree is clean on `8e19958`.
-3. **Dangling `docs/COVERAGE_NOTES.md` reference** to a non-existent "HANDOFF.md C54 Step 2" and stale gate count (5069); refreshed to current gate (5590 / 96%).
-4. **Gate env ambiguity** — documented required `PATH="$VENV/bin:$PATH"` prefix and idempotent venv bootstrap.
-5. **Hand-wavable R4 (hard gate in place)** — concrete R4-A/B/C file/API/test targets plus failing-by-default `scripts/bab_r4_preflight.py` (verified **RC=1** at 2026-11-14T00:50:08Z on HEAD `8e19958` with all three items pending). Next session cannot claim progress without shipping code+tests+green evidence.
+1. **Handoff HEAD/timestamp drift** — refreshed to current `HEAD` `40e5c34` and 2026-11-14T00:51:57Z so next session starts from true repo state.
+2. **Single durable handoff enforced** — `HANDOFF.md` remains sole source of truth; `AGENT_HANDOFF.md` kept pointer-only/in-sync.
+3. **Mechanical R4 gate present** — `scripts/bab_r4_preflight.py` provides an itemized, failing-by-default gate for R4-A/B/C; next session must run it on `HEAD` and record RC/evidence (no hand-waving).
+4. **Execution blockers pre-empted** — mandatory idempotent venv bootstrap and `PATH="$VENV/bin:$PATH"` gate invocation documented; missing deps must not be claimed as blockers.
+5. **Historical CI noise quarantined** — `research_state/workflow_run_diagnostics.jsonl` remains historical-only and must not justify inaction; live run on current `HEAD` wins.
 
 ---
 
