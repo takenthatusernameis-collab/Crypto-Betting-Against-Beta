@@ -1,18 +1,18 @@
 # HANDOFF — Crypto-Betting-Against-Beta (single durable handoff)
 
-**Repo:** `crypto-betting-against-beta` — Betting Against Beta (BAB) market-neutral crypto strategy (long low-beta / short high-beta vs benchmark, default BTC). See `README.md`, `strategies/betting_against_beta/`. **Priority basis:** the repo *is* the BAB strategy engine, so correctness + live-readiness of the strategy outranks tooling/coverage-chasing.
+**Repo:** `crypto-betting-against-beta` — Betting Against Beta (BAB) market-neutral crypto strategy (long low-beta / short high-beta vs benchmark, default BTC). See `README.md`, `strategies/betting_against_beta/`. **Priority basis (repo name):** the repo *is* the BAB strategy engine, so strategy correctness, realism, and live/execution-readiness outrank tooling, diagnostics archaeology, and coverage-chasing.
 
-**Refreshed:** 2026-11-14T04:03:05Z (UTC)
-**HEAD at refresh:** `93b0c10` (main). Baseline re-verified green on current HEAD (see VERIFIED EVIDENCE SNAPSHOT). **Live run wins** — re-measure, record the delta, update this file.
-**Single source of truth:** this file. `AGENT_HANDOFF.md` is a pointer only. Read this whole file before doing anything. Do not create parallel handoff docs. If live evidence conflicts with a recorded number here, **live run wins** — re-measure, record the delta, update this file.
+**Refreshed:** 2026-11-14T04:18:31Z (UTC)
+**HEAD at refresh:** `479ee9f` (main, `git rev-parse --short HEAD` at refresh). **Live run wins** — if any recorded number conflicts with live output on current `HEAD`, re-measure, record the delta, and update this file immediately.
+**Single source of truth:** this file. `AGENT_HANDOFF.md` is a pointer only. Read this whole file before doing anything. Do not create parallel handoff/session docs.
 
 ---
 
-## INITIAL TASK MESSAGE (START HERE, 2026-11-14T04:03:05Z UTC)
+## INITIAL TASK MESSAGE (START HERE, 2026-11-14T04:18:31Z UTC) — BINDING
 
-**Do not idle on analysis.** R1–R4 are shipped on prior evidence; your job is to drive **R5 Execution Integration** to tested, evidence-backed completion while preserving default-path behavior. R5 (adapter contract + slippage/impact reconciliation + executed-fills backtest reconciliation) has not been started — treat it as the binding next focus campaign.
+**Do not idle on analysis, commentary, archaeology, or probe-churn.** R1–R4 are shipped on prior evidence only; **treat baseline as unverified on current `HEAD` until you re-run it**. Your job is to drive **R5 Execution Integration** to tested, evidence-backed completion while preserving default-path behavior.
 
-**Immediate sequence (execute now):**
+**Immediate sequence (execute now, in order):**
 1. **Bootstrap env (idempotent, never a blocker):**
    ```bash
    VENV=/home/runner/work/_temp/kilo-tmp/bab-venv
@@ -26,68 +26,65 @@
    PYTHONPATH=. "$VENV/bin/python" scripts/bab_r2_preflight.py; echo "PREFLIGHT_RC=$?"
    PYTHONPATH=. "$VENV/bin/python" scripts/bab_r4_preflight.py; echo "R4_PREFLIGHT_RC=$?"
    ```
-   If either fails: **stop R5, fix the regression first** (smallest fix + targeted test), record evidence. If both green, run full gate when appropriate: `PATH="$VENV/bin:$PATH" bash scripts/bab_gate.sh; echo "GATE_RC=$?"` (gate needs venv on `PATH`).
-3. **Implement R5 in order (heavy work, tests per step):**
-   - **R5-A:** live-order adapter contract/stubs under `strategies/betting_against_beta/` (e.g. `execution.py`) — paper + injectable/mock exchange, deterministic strict-JSON-safe intents where serialized; **default `BABStrategy.run()` unchanged when no adapter configured**. No network in tests.
-   - **R5-B:** slippage/impact calibration + reconciliation hook comparing modeled costs (`costs.py`) vs supplied executed-fill data; report per-period + aggregate deltas as strict-JSON-safe artifact/report. Use deterministic fixtures (no fake "live" claims).
-   - **R5-C:** executed-fills backtest reconciliation — realized PnL/cost/equity from fill/execution log vs model backtest for same weights/prices window; surface mismatches explicitly. Additive API/CLI/report integration only (default path untouched).
-4. **Proof & closeout:** add focused `tests/test_bab_execution_integration_r5*.py` covering adapter contract, reconciliation math, determinism/JSON-safety, and default-path invariance. Run targeted tests → R2/R4 preflights → full gate; **update this HANDOFF with exact commands, RC/counts/durations, and any contract/perf deltas**. Treat live output as truth.
+   If either fails: **stop R5, fix the regression first** (smallest fix + targeted regression test), record evidence, then re-run. If both green, run full gate when appropriate: `PATH="$VENV/bin:$PATH" bash scripts/bab_gate.sh; echo "GATE_RC=$?"` (gate needs venv on `PATH`).
+3. **Implement R5 in order (heavy work, tests per step, additive/default-path-safe):**
+   - **R5-A Live-order adapter contract (stub, no network in tests):** add `strategies/betting_against_beta/execution.py` (or equivalent) with a clean adapter interface for order-intent generation/submission abstraction (paper + injectable/mock exchange). Deterministic, strict-JSON-safe intents/serialization where applicable. **`BABStrategy.run()` default behavior unchanged when no adapter configured.**
+   - **R5-B Slippage/impact calibration + reconciliation hook:** compare modeled costs (`costs.py`/cost-model path) vs supplied executed-fill data; emit per-period and aggregate deltas as strict-JSON-safe artifact/report. **No fake "live" claims** — use deterministic fixtures and prove reconciliation math in tests.
+   - **R5-C Executed-fills backtest reconciliation:** given a fill/execution log, produce realized PnL/cost/equity series and compare to model backtest for the same weights/prices window; surface mismatches explicitly. Integrate via additive API/CLI/report (default path untouched).
+4. **Proof & closeout:** add focused `tests/test_bab_execution_integration_r5*.py` covering adapter contract, reconciliation math, determinism/JSON-safety, and default-path invariance. Run targeted tests → R2/R4 preflights → full gate. **Update this HANDOFF with exact commands, RC, pass/skip counts, durations, and any contract/perf deltas.**
 
-**Non-negotiable constraints:** no `.github/workflows/*` edits; no edits to tracked root probe/debug artifacts; no weakening shipped regression suites/guards or locked backtest columns; do not treat `research_state/workflow_run_diagnostics.jsonl` as a current blocker; commit nothing unless explicitly requested. Use `/home/runner/work/_temp/kilo-tmp/` for throwaway artifacts.
+**Non-negotiable constraints:** no `.github/workflows/*` edits; no edits to tracked root probe/debug artifacts (`probe*`, `debug*`, `ast_probe.py`, scratch cov artifacts); no weakening shipped regression suites/guards or locked backtest columns; do not treat `research_state/workflow_run_diagnostics.jsonl` as a current blocker; commit nothing unless explicitly requested. Use `/home/runner/work/_temp/kilo-tmp/` for throwaway artifacts.
+
+**Bottleneck policy:** environment is not a blocker (bootstrap venv + prefix `PATH`). Historical diagnostics are not a blocker (live run wins). If no real blocker exists, proceed with implementation; do not stop at analysis.
 
 ---
 
-## VERIFIED EVIDENCE SNAPSHOT (captured on HEAD `93b0c10`, 2026-11-14T04:03:05Z)
+## VERIFIED EVIDENCE SNAPSHOT (stale unless re-verified on current HEAD)
 
-Re-verify on current `HEAD` before claiming green; do not trust these numbers without fresh output.
+Captured on HEAD `93b0c10` (2026-11-14T04:03:05Z). **Not re-verified on `479ee9f` in this refresh** — re-run and replace with live evidence.
 
-| Check | Command | Result |
+| Check | Command | Prior result (snapshot) |
 |---|---|---|
-| R2 preflight | `PYTHONPATH=. "$VENV/bin/python" scripts/bab_r2_preflight.py` | **RC=0** — 155 passed, 6 warnings, 31.82s |
-| Live scale (median/9 warm) | same preflight | 5000×200 = **156 ms** (≤800 ms), 5000×500 = **381 ms** (≤2000 ms) |
-| R4 preflight | `PYTHONPATH=. "$VENV/bin/python" scripts/bab_r4_preflight.py` | **RC=0** — R4-A/B/C present + green; R2/R3 baseline green (217 passed, 32.17s) |
-| Full gate | `PATH="$VENV/bin:$PATH" bash scripts/bab_gate.sh` | **RC=0** — **5621 passed / 35 skipped / 416.03s / coverage 95%** |
+| R2 preflight | `PYTHONPATH=. "$VENV/bin/python" scripts/bab_r2_preflight.py` | RC=0 — 155 passed, 6 warnings, 31.82s |
+| Live scale (median/9 warm) | same preflight | 5000×200 = 156 ms (≤800), 5000×500 = 381 ms (≤2000) |
+| R4 preflight | `PYTHONPATH=. "$VENV/bin/python" scripts/bab_r4_preflight.py` | RC=0 — R4-A/B/C present + green; R2/R3 baseline green (217 passed, 32.17s) |
+| Full gate | `PATH="$VENV/bin:$PATH" bash scripts/bab_gate.sh` | RC=0 — 5621 passed / 35 skipped / 416.03s / coverage 95% |
 
-`VENV=/home/runner/work/_temp/kilo-tmp/bab-venv` may or may not exist on a fresh runner; bootstrap idempotently (below).
+`VENV=/home/runner/work/_temp/kilo-tmp/bab-venv` may or may not exist on a fresh runner; bootstrap idempotently.
 
 ---
 
 ## STATUS
 
 - **R1/R2/R3:** closed/locked — do not reopen without new reproducible evidence.
-- **R4 (SHIPPED on prior evidence):** live-readiness components implemented and green on `23d5145`:
+- **R4 (shipped on prior evidence, not re-verified on `479ee9f`):**
   - **R4-A** dry-run / portfolio-risk report: `BABStrategy.dry_run()` + CLI `--dry-run` (strict-JSON-safe; no trade execution; `--output` not created). `tests/test_bab_dryrun_risk_report_r4.py`.
   - **R4-B** drawdown-limit kill switch: `max_drawdown_limit` in `BABConfig`/`_validate_ranges`, `strategies/betting_against_beta/risk.py` (`apply_kill_switch`, `KillSwitchEvent`), integrated in `run()`/`report()`; `None` preserves pre-R4 default-path behavior. `tests/test_bab_drawdown_kill_switch_r4.py`.
   - **R4-C** deterministic paper-trading replay harness: `strategies/betting_against_beta/replay.py` (`ReplayHarness`) with stable schema, SHA-256 checksum, byte-identical artifacts on identical inputs. `tests/test_bab_replay_harness_r4.py`.
+- **R5:** **NOT STARTED — this is the only acceptable next focus campaign.**
 
 ---
 
-## R5 CAMPAIGN (binding, 2026-11-14T04:03:05Z, execute in order)
+## R5 CAMPAIGN (binding scope/acceptance)
 
 **Objective:** make the strategy executable-adapter-ready with evidence-backed realism, without regressing R1–R4.
 
-1. **Re-verify baseline on current HEAD (no guessing):** run Mandatory Start/bootstrap, then `bab_r2_preflight.py`, `bab_r4_preflight.py`. If green, run full `bab_gate.sh`. Record RC/counts/durations/deltas in this file. If anything fails, stop R5 and fix the regression first (smallest fix + targeted test).
-2. **R5-A Live-order adapter contract (stub, no network in tests):** add a clean adapter interface under `strategies/betting_against_beta/` (e.g. `execution.py`) for order intent generation/submission abstraction (paper + injectable/mock exchange). Keep default `BABStrategy.run()` behavior unchanged when no adapter is configured. Output/intents must be deterministic and strict-JSON-safe where serialized.
-3. **R5-B Slippage/impact calibration + reconciliation hook:** provide a calibration/reconciliation path that compares modeled costs (`costs.py`/cost-model path) against supplied executed-fill data and reports deltas (per-period and aggregate) in a strict-JSON-safe artifact/report. Do not claim live calibration without real fill data; ship deterministic fixtures + tests proving the math/reconciliation logic.
-4. **R5-C Executed-fills backtest reconciliation:** given a fill/execution log, produce a realized PnL/cost/equity series and compare to model backtest for the same weights/prices window; surface mismatches explicitly. Integrate via additive API/CLI flag or report section (default path untouched).
-5. **Proof:** add focused `tests/test_bab_execution_integration_r5*.py` (or equivalent) covering adapter contract, reconciliation math, determinism/JSON-safety, and default-path invariance. Run targeted tests, then R2/R4 preflights, then full gate; update this handoff with exact commands, results, and any perf/contract deltas.
-
-**Bottleneck policy:** do not report "blocked" on environment — bootstrap venv and prefix gate with `PATH="$VENV/bin:$PATH"`. Historical `research_state/workflow_run_diagnostics.jsonl` is noise (not a current failure). If no real blocker exists, proceed with implementation; do not stop at analysis.
+1. **Baseline gate (blocking):** re-verify R2/R4 preflights (and gate when appropriate) on current `HEAD`; fix regressions before feature work.
+2. **R5-A Adapter contract:** paper + injectable/mock exchange, deterministic strict-JSON-safe intents; no network in tests; default `BABStrategy.run()` unchanged when unconfigured.
+3. **R5-B Modeled-vs-executed reconciliation:** per-period + aggregate deltas, strict-JSON-safe artifact/report, deterministic fixtures proving math (no live-data claims).
+4. **R5-C Executed-fills reconciliation:** realized PnL/cost/equity from fill/execution log vs model backtest for same weights/prices window; explicit mismatches; additive API/CLI/report integration only.
+5. **Proof:** focused R5 tests + targeted run + preflights + full gate; record exact evidence and any perf/contract deltas in this file.
 
 ---
 
-## MANDATORY START (every session, ~90s, idempotent)
+## BOTTLENECKS REMOVED / ENFORCED (2026-11-14T04:18:31Z refresh)
 
----
-
-## BOTTLENECKS REMOVED / ENFORCED (2026-11-14T03:56:48Z refresh)
-
-1. **Clear initial task at top** — `INITIAL TASK MESSAGE (START HERE...)` added with timestamp, exact bootstrap/verify commands, and ordered R5 deliverables so next session cannot avoid heavy work.
-2. **Handoff freshness** — refreshed to `HEAD` `34af42d` and current timestamp; prior evidence explicitly marked snapshot requiring re-verification.
-3. **Single durable handoff** — `HANDOFF.md` only; `AGENT_HANDOFF.md` pointer-only and aligned.
-4. **Environment not a blocker** — idempotent venv bootstrap + `PATH="$VENV/bin:$PATH"` for gate preserved.
-5. **Historical CI noise quarantined** — `research_state/workflow_run_diagnostics.jsonl` must not justify inaction; live run on current `HEAD` wins.
-6. **Scratch discipline** — use `/home/runner/work/_temp/kilo-tmp/` for throwaway artifacts; do not touch `.github/workflows/*` or tracked root probe/debug artifacts.
+1. **Single durable handoff enforced** — `HANDOFF.md` only; `AGENT_HANDOFF.md` pointer-only; no parallel/session docs.
+2. **Clear, timestamped initial task at top** — binding R5 sequence with exact bootstrap/verify/proof commands so next session cannot avoid heavy work.
+3. **Handoff freshness corrected** — refreshed to `HEAD` `479ee9f` @ 2026-11-14T04:18:31Z; prior numeric evidence explicitly marked stale/unverified on current HEAD.
+4. **Environment de-blocked** — idempotent venv bootstrap and `PATH="$VENV/bin:$PATH"` for gate; do not report env as a blocker.
+5. **Historical noise quarantined** — `research_state/workflow_run_diagnostics.jsonl` is not a current failure/blocker; live run on current `HEAD` wins.
+6. **Scope discipline** — no archaeology/probe-count churn, no commentary-only progress, no workflow/guard weakening, no tracked root probe/debug edits; scratch only under `/home/runner/work/_temp/kilo-tmp/`.
 
 ---
 
@@ -105,16 +102,16 @@ Re-verify on current `HEAD` before claiming green; do not trust these numbers wi
 
 ## PERFORMANCE GUARDRAILS (do not regress)
 
-- Prior medians (`23d5145`): 5000×200 ~161 ms (≤800), 5000×500 ~374 ms (≤2000). Guards are ceilings.
+- Prior medians (snapshot, `23d5145` era): 5000×200 ~161 ms (≤800), 5000×500 ~374 ms (≤2000). Guards are ceilings; re-measure live before claiming.
 
 ## LOCKS / PROHIBITIONS
 
 - **No** edits to `.github/workflows/*`.
-- **No** edits/commits to tracked root probe/debug artifacts (`probe*`, `debug*`, `ast_probe.py`, scratch cov artifacts as applicable); use `/home/runner/work/_temp/kilo-tmp/`.
+- **No** edits/commits to tracked root probe/debug artifacts; use `/home/runner/work/_temp/kilo-tmp/`.
 - **No** weakening/deleting shipped regression suites/guards (R2/R3/R4, historical `batch*`/`campaign*`, `tests/test_beta_neutrality_performance.py`) or changing locked backtest columns without full dependent updates + recorded delta.
 - **No** reopening `research_state/workflow_run_diagnostics.jsonl` as a current failure.
 - **No** broad `data_loader.py` silent-`except` sweep unless tied to a specific reproducible defect + regression test.
-- **No** probe-count/churn campaigns or commentary-only progress. **Commit nothing unless explicitly requested.**
+- **Commit nothing unless explicitly requested.**
 
 ---
 
