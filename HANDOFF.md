@@ -2,13 +2,13 @@
 
 **Canonical durable handoff (single source of truth).** Do not create parallel handoff/session docs; update this file only.
 
-- **Timestamp (UTC):** 2026-11-14T21:55:00Z
+- **Timestamp (UTC):** 2026-11-14T21:01:26Z
 - **Repo:** `Crypto-Betting-Against-Beta`
-- **HEAD:** `f4ab467` (`chore: capture completed workflow run diagnostics`)
+- **HEAD:** `86243be` (`chore(kilo): checkpoint agent session`)
 - **Branch:** `main`
-- **Working tree:** clean (verified 2026-11-14T21:55:00Z)
+- **Working tree:** clean (verified 2026-11-14T21:01:26Z)
 
-## INITIAL TASK MESSAGE (START HERE, 2026-11-14T21:55:00Z UTC) — BINDING
+## INITIAL TASK MESSAGE (START HERE, 2026-11-14T21:01:26Z UTC) — BINDING
 
 This is the only active task. Execute in order. No archaeology (`probe_*.py`, `debug_*.py`, `ast_probe.py`), no new handoff/session docs, no re-verification of green areas unless your change touches them. If blocked, record exact command + output and continue with the next unblocked priority. **Never stop at analysis — produce code, tests, and evidence.**
 
@@ -26,14 +26,10 @@ P8 (paper-trading scaffold, data freshness/staleness guards, signal diagnostics,
 
 | Check | Command | Result |
 |-------|---------|--------|
-| Lint | `python3 -m ruff check .` | **All checks passed** (exit 0) |
-| P8 targeted tests | `python3 -m pytest -q tests/test_bab_paper_trading.py tests/test_bab_data_freshness.py tests/test_bab_diagnostics.py` | **13 passed** (0.84s) |
-| CLI synthetic | `python -m strategies.betting_against_beta.cli --synthetic` | **Exit 0** — `cumulative_return=0.413704`, `periods=252` |
-| CLI dry-run | `python -m strategies.betting_against_beta.cli --dry-run --data tests/fixtures/real_market_prices.csv --from-prices --benchmark BTC` | **Exit 0** — config resolved, no surprises |
-| CLI version | `python -m strategies.betting_against_beta.cli --version` | **Exit 0** — `bab 0.1.0` |
-| Paper trading smoke | `python -m strategies.betting_against_beta.cli --paper-trading --data tests/fixtures/real_market_prices.csv --from-prices --benchmark BTC --output /tmp/paper_fills.jsonl` | **Exit 0** — `160 orders, 160 fills`, `paper_pnl=-0.384799`, `backtest_pnl=-0.660265`, `diff=0.275465` |
-| Perf baseline check | `python scripts/perf_baseline.py --check --baseline research_state/perf_baseline_real_fixture.json --dataset tests/fixtures/real_market_prices.csv --repeats 2 --warmup 0 --time-tolerance 3.0 --mem-tolerance-mb 50` | **0 failures** (`failures: []`) |
-| Git state | `git log -1 --oneline` / `git status --short` | `f4ab467` / clean tree |
+| Lint | `python3 -m ruff check .` | **All checks passed** (exit 0) @ 2026-11-14T21:01:26Z |
+| P8 targeted tests | `python3 -m pytest -q tests/test_bab_paper_trading.py tests/test_bab_data_freshness.py tests/test_bab_diagnostics.py tests/test_betting_against_beta.py` | **99 passed** (18.21s) @ 2026-11-14T21:01:26Z |
+| Full suite | `python3 -m pytest -q` | **Large suite (>10 min)** — iterate targeted subsets when debugging; do not regress full-suite green |
+| Git state | `git log -1 --oneline` / `git status --short` | `86243be` / clean tree @ 2026-11-14T21:01:26Z |
 
 **No P0/P1/P2/P3/P4/P5/P6/P7/P8 bottlenecks.** Offline deterministic default path unchanged. P5 opt-in public Coinbase fetch complete. P6 complete. P7 complete. P8 complete and verified.
 
@@ -99,4 +95,4 @@ Extend the BAB strategy with **production-grade live execution readiness** while
 ### Protocol
 1. Read this file fully. 2. Execute P9 (live execution adapter, risk management, real-time feed, verification, commit, handoff refresh). 3. Refresh this handoff before stopping. 4. Keep `AGENT_HANDOFF.md` as a pointer only.
 
-**Next Agent Mandatory (2026-11-14T21:55:00Z UTC):** Complete **Priority 9** end-to-end (live execution adapter scaffold, risk management overlay, real-time data feed, verification, commit, handoff refresh) before any new feature work. Do not stop at analysis. Report: `git log -1 --oneline`, `git status --short`, `ruff check .`, full pytest output, gate output, paper trading smoke, live adapter smoke (opt-in), perf evidence.
+**Next Agent Mandatory (2026-11-14T21:01:26Z UTC):** Complete **Priority 9** end-to-end (live execution adapter scaffold, risk management overlay, real-time data feed, verification, commit, handoff refresh) before any new feature work. Do not stop at analysis. Report: `git log -1 --oneline`, `git status --short`, `ruff check .`, full pytest output, gate output, paper trading smoke, live adapter smoke (opt-in), perf evidence.
