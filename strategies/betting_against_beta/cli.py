@@ -12,11 +12,95 @@ import numpy as np
 from .config import BABConfig
 from .strategy import BABStrategy
 from .errors import BABDataError
+from .execution import execution_payload_to_json
 
 __version__ = "0.1.0"
 
 _UNIVERSE_UNSET = object()
 
+
+
+def _build_adapter(args):
+    """Build a deterministic in-process execution adapter from CLI args (R5-D).
+
+    Returns an ExecutionAdapter instance, or None when no adapter is requested.
+    No network or credentials are ever used.
+    """
+    from .execution import PaperAdapter, MockAdapter
+
+    adapter_name = getattr(args, "adapter", None)
+    if adapter_name is None:
+        return None, None
+    if adapter_name == "paper":
+        return PaperAdapter(), None
+    if adapter_name == "mock":
+        fills_path = getattr(args, "fills", None)
+        fill_map = None
+        if fills_path:
+            try:
+                with open(fills_path, "r", encoding="utf-8") as fh:
+                    raw = json.load(fh)
+                # Accept either a list of fill dicts or a dict keyed by [date, asset].
+                if isinstance(raw, list):
+                    fill_map = {}
+                    for f in raw:
+                        if not isinstance(f, dict):
+                            continue
+                        key = (str(f.get("date", "")), str(f.get("asset", "")))
+                        fill_map[key] = f
+                elif isinstance(raw, dict):
+                    fill_map = raw
+            except (OSError, ValueError, TypeError) as exc:
+                raise BABDataError(f"invalid --fills file {fills_path!r}: {exc}") from exc
+        return MockAdapter(fill_map=fill_map), fills_path
+    return None, None
+
+
+def _write_json_artifact(path, payload):
+    """Write a strict-JSON-safe payload to path, coercing non-finite values."""
+    safe = _json_safe(payload)
+    try:
+        path.write_text(json.dumps(safe, indent=2, default=_json_default, allow_nan=False))
+    except Exception as exc:
+        print(f"Error writing artifact {path}: {exc}")
+        return False
+    return True
+
+
+def _run_reconciliation(result, config, adapter_fills):
+    """Build R5-B + R5-C reconciliation artifacts from a run result.
+
+    Returns a dict with keys 'costs' and 'fills' (each a ReconciliationResult
+    to_dict), or None when there is nothing to reconcile.
+    """
+    from .reconciliation import reconcile_costs, reconcile_fills_to_backtest
+
+    weights = getattr(result, "weights", None)
+    returns = getattr(result, "returns", None)
+    backtest = getattr(result, "backtest", None)
+    if not isinstance(weights, __import__("pandas").DataFrame) or weights.empty:
+        return None
+
+    import pandas as _pd  # local
+
+    costs = reconcile_costs(
+        weights,
+        model=None,
+        executed_fills=adapter_fills or [],
+        transaction_costs=float(getattr(config, "transaction_costs", 0.0) or 0.0),
+        slippage=float(getattr(config, "slippage", 0.0) or 0.0),
+    )
+    fills_rec = None
+    if isinstance(returns, _pd.DataFrame) and isinstance(backtest, _pd.DataFrame):
+        fills_rec = reconcile_fills_to_backtest(
+            weights,
+            returns,
+            backtest,
+            fills=adapter_fills or [],
+            transaction_costs=float(getattr(config, "transaction_costs", 0.0) or 0.0),
+            slippage=float(getattr(config, "slippage", 0.0) or 0.0),
+        )
+    return {"costs": costs.to_dict(), "fills": fills_rec.to_dict() if fills_rec else None}
 
 
 def _print_resolved_config(config: BABConfig) -> None:
@@ -241,6 +325,24 @@ def main(argv=None) -> int:
             action="store_true",
             help="Validate inputs and print resolved config without running the backtest",
         )
+        parser.add_argument(
+            "--adapter",
+            type=str,
+            default=None,
+            choices=["paper", "mock"],
+            help="R5-D: run with an in-process execution adapter (paper or mock). No network, no credentials. Default: none (backtest only).",
+        )
+        parser.add_argument(
+            "--reconcile",
+            action="store_true",
+            help="R5-D: after running, emit modeled-vs-executed and fills-vs-backtest reconciliation artifacts alongside execution output.",
+        )
+        parser.add_argument(
+            "--fills",
+            type=str,
+            default=None,
+            help="R5-D: path to a JSON file of canned fills for the mock adapter (deterministic fixture). Ignored unless --adapter mock.",
+        )
 
         args = parser.parse_args(argv)
     except SystemExit as exc:
@@ -326,6 +428,23 @@ def main(argv=None) -> int:
         print(f"Error validating rebalance_freq: {exc}")
         return 1
 
+    # R5-D: validate adapter/fills pairing before any run so a bad --fills
+    # file surfaces as a clean error instead of crashing mid-backtest.
+    adapter_name = getattr(args, "adapter", None)
+    fills_path = getattr(args, "fills", None)
+    if fills_path is not None and adapter_name is None:
+        print("Error: --fills requires --adapter mock")
+        return 1
+    if adapter_name == "mock" and fills_path is not None:
+        try:
+            _build_adapter(args)
+        except BABDataError as exc:
+            print(f"Error validating --fills: {exc}")
+            return 1
+    if adapter_name is not None and adapter_name not in ("paper", "mock"):
+        print(f"Error: unknown --adapter {adapter_name!r} (expected 'paper' or 'mock')")
+        return 1
+
     if args.dry_run:
         # --dry-run must validate everything it would validate in a real run,
         # including the --output path, without ever writing a file or running
@@ -383,7 +502,8 @@ def main(argv=None) -> int:
             return 1
 
     try:
-        strategy = BABStrategy(config)
+        adapter, fills_path = _build_adapter(args)
+        strategy = BABStrategy(config, execution_adapter=adapter)
         if args.synthetic or args.data is None:
             result = strategy.run()
         else:
@@ -459,6 +579,36 @@ def main(argv=None) -> int:
         except Exception as exc:
             print(f"Error writing output: {exc}")
             return 1
+
+    # R5-D: emit execution + reconciliation artifacts when an adapter is used.
+    # Additive only: when no adapter is configured this block is skipped and
+    # default-path behavior (including --output contract) is unchanged.
+    if adapter is not None:
+        exec_payload = getattr(result, "execution", None)
+        if exec_payload is not None:
+            try:
+                exec_json = execution_payload_to_json(exec_payload)
+                print(f"Execution adapter: {exec_payload.get('adapter')}")
+                print(f"  batches: {exec_payload.get('n_batches')}, intents: {exec_payload.get('n_intents')}, fills: {exec_payload.get('n_fills')}")
+                if args.output:
+                    exec_path = out_path.with_suffix(out_path.suffix + ".execution.json")
+                    exec_path.write_text(exec_json)
+            except Exception as exc:
+                print(f"Error writing execution artifact: {exc}")
+                return 1
+
+        if getattr(args, "reconcile", False):
+            fills_list = (exec_payload or {}).get("fills", [])
+            rec = _run_reconciliation(result, config, fills_list)
+            if rec is not None:
+                try:
+                    rec_json = json.dumps(_json_safe(rec), indent=2, default=_json_default, allow_nan=False)
+                    if args.output:
+                        rec_path = out_path.with_suffix(out_path.suffix + ".reconciliation.json")
+                        rec_path.write_text(rec_json)
+                except Exception as exc:
+                    print(f"Error writing reconciliation artifact: {exc}")
+                    return 1
 
     return 0
 
