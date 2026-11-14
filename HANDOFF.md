@@ -2,22 +2,22 @@
 
 **Repo:** `crypto-betting-against-beta` — Betting Against Beta (BAB) market-neutral crypto strategy (long low-beta / short high-beta vs benchmark, default BTC). See `README.md`, `strategies/betting_against_beta/`. **Priority basis:** the repo *is* the BAB strategy engine, so correctness + live-readiness of the strategy outranks tooling/coverage-chasing.
 
-**Refreshed:** 2026-11-14T03:18:12Z (UTC)
-**HEAD:** `5870a0f` (main). **Working tree:** clean at refresh except this handoff update.
+**Refreshed:** 2026-11-14T03:39:22Z (UTC)
+**HEAD:** `d84968c` (main). **Working tree:** clean at refresh except this handoff update.
 **Single source of truth:** this file. `AGENT_HANDOFF.md` is a pointer only. Read this whole file before doing anything. Do not create parallel handoff docs. If live evidence conflicts with a recorded number here, **live run wins** — re-measure, record the delta, update this file.
 
 ---
 
-## VERIFIED EVIDENCE SNAPSHOT (captured on HEAD `23d5145`, 2026-11-14T02:47Z)
+## VERIFIED EVIDENCE SNAPSHOT (captured on HEAD `d84968c`, 2026-11-14T03:39:22Z)
 
 Re-verify on current `HEAD` before claiming green; do not trust these numbers without fresh output.
 
 | Check | Command | Result |
 |---|---|---|
-| R2 preflight | `PYTHONPATH=. "$VENV/bin/python" scripts/bab_r2_preflight.py` | **RC=0** — 155 passed, 6 warnings, 33.41s |
-| Live scale (median/9 warm) | same preflight | 5000×200 = **161 ms** (≤800 ms), 5000×500 = **374 ms** (≤2000 ms) |
-| R4 preflight | `PYTHONPATH=. "$VENV/bin/python" scripts/bab_r4_preflight.py` | **RC=0** — R4-A/B/C present + green; R2/R3 baseline green (217 passed) |
-| Full gate | `PATH="$VENV/bin:$PATH" bash scripts/bab_gate.sh` | **RC=0** — **5621 passed / 35 skipped / 413.02s / coverage 95%** |
+| R2 preflight | `PYTHONPATH=. "$VENV/bin/python" scripts/bab_r2_preflight.py` | **RC=0** — 155 passed, 6 warnings, 31.02s |
+| Live scale (median/9 warm) | same preflight | 5000×200 = **165 ms** (≤800 ms), 5000×500 = **379 ms** (≤2000 ms) |
+| R4 preflight | `PYTHONPATH=. "$VENV/bin/python" scripts/bab_r4_preflight.py` | **RC=0** — R4-A/B/C present + green; R2/R3 baseline green (217 passed, 33.60s) |
+| Full gate | `PATH="$VENV/bin:$PATH" bash scripts/bab_gate.sh` | **RC=0** — **5621 passed / 35 skipped / 418.43s / coverage 95%** |
 
 `VENV=/home/runner/work/_temp/kilo-tmp/bab-venv` may or may not exist on a fresh runner; bootstrap idempotently (below).
 
@@ -33,7 +33,7 @@ Re-verify on current `HEAD` before claiming green; do not trust these numbers wi
 
 ---
 
-## INITIAL TASK FOR NEXT SESSION (binding, timestamped 2026-11-14T03:18:12Z, HEAD 5870a0f)
+## INITIAL TASK FOR NEXT SESSION (binding, timestamped 2026-11-14T03:39:22Z, HEAD d84968c)
 
 **Objective (R5 — Execution integration, heavy/implementation-focused):** make the strategy executable-adapter-ready with evidence-backed realism, without regressing R1–R4.
 
@@ -68,9 +68,9 @@ PYTHONPATH=. "$VENV/bin/python" scripts/bab_r4_preflight.py; echo "R4_PREFLIGHT_
 
 ---
 
-## BOTTLENECKS REMOVED / ENFORCED (2026-11-14T03:18:12Z refresh)
+## BOTTLENECKS REMOVED / ENFORCED (2026-11-14T03:39:22Z refresh)
 
-1. **Handoff freshness** — refreshed to `HEAD` `5870a0f` and current timestamp; prior evidence explicitly marked as snapshot requiring re-verification.
+1. **Handoff freshness** — refreshed to `HEAD` `d84968c` and current timestamp; prior evidence explicitly marked as snapshot requiring re-verification.
 2. **Single durable handoff** — `HANDOFF.md` only; `AGENT_HANDOFF.md` pointer-only.
 3. **Unambiguous next campaign** — R5 broken into ordered, testable deliverables (adapter contract, calibration/reconciliation, executed-fills reconciliation) so future sessions cannot idle on analysis.
 4. **Environment not a blocker** — idempotent venv bootstrap + `PATH` note preserved.
