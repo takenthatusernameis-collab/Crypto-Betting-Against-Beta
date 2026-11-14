@@ -256,7 +256,6 @@ def _calc_rolling_beta_series(bench_arr, a_arr, window, min_obs):
     idx = np.arange(n)
     starts = np.maximum(0, idx - window + 1)
     ends = idx + 1
-    window_len = ends - starts
 
     cnt = csum1[ends] - csum1[starts]
     x_sum = csumx[ends] - csumx[starts]

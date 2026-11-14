@@ -236,8 +236,6 @@ def regime_scale_factors(returns: pd.DataFrame, cfg) -> pd.DataFrame:
     sub = returns[universe]
     vol = calculate_realized_volatility(sub, window=vol_window, use_ewma=vol_use_ewma)
 
-    scale = pd.DataFrame(1.0, index=returns.index, columns=universe, dtype=float)
-
     vol_regime = None
     low_thr = high_thr = None
     if method in ("vol", "combined"):

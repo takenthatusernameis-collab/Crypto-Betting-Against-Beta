@@ -75,7 +75,6 @@ def construct_portfolio(signals_df, dollar_neutral=True, gross_exposure_limit=No
 
         index = signals_df.index
         columns = signals_df.columns
-        n_rows, n_cols = signals_df.shape
 
         # Clean signals elementwise
         try:
@@ -298,7 +297,6 @@ def enforce_beta_neutrality(
         target = 0.0
 
     te_tol = tracking_error_tolerance if tracking_error_tolerance is not None else tracking_error_limit
-    enable_te = bool(enable_tracking_error_monitoring) or te_tol is not None
 
     cols = list(out.columns)
     w_arr = out.to_numpy(dtype=float, copy=True)

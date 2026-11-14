@@ -66,7 +66,7 @@ class ShortingConstraints:
             if not isinstance(val, (int, float)) or isinstance(val, bool) or val < 0:
                 errors.append(f"{name} must be non-negative")
         if isinstance(self.borrow_bps_per_year, dict):
-            for k, v in self.borrow_bps_per_year.items():
+            for v in self.borrow_bps_per_year.values():
                 if not isinstance(v, (int, float)) or isinstance(v, bool) or v < 0:
                     errors.append("borrow_bps_per_year values must be non-negative")
         if self.borrowable is not None and not isinstance(self.borrowable, dict):
@@ -173,8 +173,6 @@ def apply_shorting_constraints(signals_or_weights, constraints: Optional[Shortin
             for idx in weights.index:
                 row = weights.loc[idx]
                 # count longs/shorts
-                longs = row[row > 0]
-                shorts = row[row < 0]
                 n_long = int((row > 0).sum())
                 n_short = int((row < 0).sum())
                 if n_long > 0 and n_short > 0:

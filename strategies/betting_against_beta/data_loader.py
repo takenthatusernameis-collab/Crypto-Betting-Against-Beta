@@ -496,7 +496,6 @@ def _detect_and_normalize_exchange_format(df: pd.DataFrame) -> pd.DataFrame:
         return df
     df = df.copy()
     df = _normalize_columns(df)
-    cols = [str(c).strip().lower() for c in df.columns]
     colmap = {str(c).strip().lower(): c for c in df.columns}
 
     # If index already datetime, still might need column normalization
@@ -536,10 +535,6 @@ def _detect_and_normalize_exchange_format(df: pd.DataFrame) -> pd.DataFrame:
             if cl == 'close' or cl.endswith('close') or cl == 'last price' or cl == 'price' or cl == 'mark price':
                 price_col = c
                 break
-
-    open_col = next((colmap[k.lower()] for k in _EXCHANGE_OPEN_KEYS if k.lower() in colmap), None)
-    high_col = next((colmap[k.lower()] for k in _EXCHANGE_HIGH_KEYS if k.lower() in colmap), None)
-    low_col = next((colmap[k.lower()] for k in _EXCHANGE_LOW_KEYS if k.lower() in colmap), None)
 
     # If it's long format (symbol + date + price) -> pivot to wide prices
     if symbol_col is not None and date_col is not None and price_col is not None:
@@ -1730,7 +1725,6 @@ def validate_returns_dataframe(
             if str(benchmark).strip().lower() in bench_map:
                 bf = bench_map[str(benchmark).strip().lower()]
                 cleaned = cleaned.rename(columns={bf: benchmark})
-        bench_series = cleaned[benchmark]
         bench_finite = finite_arr[:, cleaned.columns.get_loc(benchmark)]
         if not bench_finite.any():
             raise BABDataError(
@@ -2230,9 +2224,7 @@ def _is_likely_returns(df: pd.DataFrame) -> bool:
         # Returns are usually small in magnitude, prices larger
         absmax = np.nanmax(np.abs(arr))
         # Also check if values look like pct changes (-0.5 to 0.5 typical)
-        if absmax < 10:  # likely returns
-            return True
-        return False
+        return bool(absmax < 10)  # likely returns
     except Exception:
         return False
 
