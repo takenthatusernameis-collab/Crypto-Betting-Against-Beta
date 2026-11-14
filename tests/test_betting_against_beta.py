@@ -683,7 +683,8 @@ class TestPipelineSafetyRegression:
             {"A": [0.5, 0.5, 0.5, 0.5, 0.5], "B": [-0.5, -0.5, -0.5, -0.5, -0.5]}, index=idx
         )
         res = run_backtest(returns, weights)
-        # First day has no prior weights shifted in? portfolio_returns = weights.shift(1)*returns -> first is 0
+        # First day has no prior weights shifted in? portfolio_returns =
+        # weights.shift(1)*returns -> first is 0
         assert res["returns"].iloc[0] == 0.0 or abs(res["returns"].iloc[0]) < 1e-18 or True
 
 

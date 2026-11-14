@@ -119,7 +119,8 @@ class TestNormalizeIndexDeepBranches:
 
 
 class TestCoerceToDatetimeScalarDeep:
-    """Hit every scalar branch: NaT/None/NaN/inf/empty/NA-markers/epoch-mags/strings/ints/floats/Timestamps."""
+    """Hit every scalar branch: NaT/None/NaN/inf/empty/NA-markers/epoch-mags/
+    strings/ints/floats/Timestamps."""
 
     def test_nat_type_raises(self):
         with pytest.raises(Exception):

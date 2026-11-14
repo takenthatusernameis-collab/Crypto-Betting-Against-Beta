@@ -123,7 +123,9 @@ class TestBabBacktestReportCampaign9:
         env = dict(os.environ)
         env["PYTHONPATH"] = str(REPO_ROOT)
         # Run in-process via -c to test module contract
-        code = "import sys; sys.path.insert(0,'.'); from scripts.bab_backtest_report import main; rc=main(['--json']); print('RC',rc)"
+        code = ("import sys; sys.path.insert(0,'.'); "
+                "from scripts.bab_backtest_report import main; "
+                "rc=main(['--json']); print('RC',rc)")
         r = subprocess.run(
             [sys.executable, "-c", code],
             capture_output=True,
@@ -139,7 +141,8 @@ class TestBabBacktestReportCampaign9:
         code = (
             "import sys, math; sys.path.insert(0,'.'); "
             "from scripts.bab_backtest_report import _sanitize_metrics; "
-            "m=_sanitize_metrics({'a': float('nan'), 'b': float('inf'), 'c': -float('inf'), 'd': 1.5, 'e': 'x', 'f': True}); "
+            "m=_sanitize_metrics({'a': float('nan'), 'b': float('inf'), "
+            "'c': -float('inf'), 'd': 1.5, 'e': 'x', 'f': True}); "
             "print(m['a'], m['b'], m['c'], m['d'], m['e'], m['f'])"
         )
         r = subprocess.run(
@@ -346,7 +349,8 @@ g.main()
         assert len(df) == 399  # 400 bdays minus gap
 
     def test_committed_fixture_matches_generator_contract(self):
-        """The committed fixture should satisfy the generator's invariants (shape/columns/gap/delisted)."""
+        """The committed fixture should satisfy the generator's invariants
+    (shape/columns/gap/delisted)."""
         df = pd.read_csv(FIXTURES / "real_market_prices.csv")
         assert df.columns[0] == "date"
         for a in ["BTC", "ETH", "SOL", "BNB", "XRP", "ADA", "AVAX", "DOT", "LINK", "DEL"]:
@@ -396,8 +400,9 @@ class TestPerfBenchCampaign9:
         assert "True" in r.stdout
 
     def test_main_runs_end_to_end_small_scope(self):
-        """Run main() in-process with small synthetic inputs by invoking script; allow generous timeout.
-        The script uses fixed sizes (720x12) which should complete quickly in this env."""
+    """Run main() in-process with small synthetic inputs by invoking script;
+    allow generous timeout.
+    The script uses fixed sizes (720x12) which should complete quickly in this env."""
         result = _run(self.SCRIPT, [], timeout=300)
         assert result.returncode == 0, f"stdout={result.stdout}\nstderr={result.stderr}"
         out = result.stdout

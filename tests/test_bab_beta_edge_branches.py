@@ -37,7 +37,8 @@ class TestRollingBetaEmptyInput:
 
 class TestCalculateBetaAlignment:
     def test_series_alignment_disjoint_indexes_returns_nan(self):
-        # unequal lengths + Series -> alignment branch; disjoint indexes -> empty -> np.nan (beta.py:85)
+        # unequal lengths + Series -> alignment branch; disjoint indexes
+        # -> empty -> np.nan (beta.py:85)
         asset = pd.Series([0.01, 0.02], index=[0, 1])
         bench = pd.Series([0.005, 0.01, 0.015], index=[10, 11, 12])
         assert np.isnan(beta.calculate_beta(asset, bench))

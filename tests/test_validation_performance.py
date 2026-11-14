@@ -79,7 +79,8 @@ def _oracle_quality(
             frac = finite_count / total if total > 0 else 0.0
             if frac < float(min_finite_fraction):
                 raise BABDataError(
-                    f"Column '{col}' has insufficient finite data: {frac:.2%} < {float(min_finite_fraction):.2%}"
+                    f"Column '{col}' has insufficient finite data: "
+                    f"{frac:.2%} < {float(min_finite_fraction):.2%}"
                 )
         if (
             stale_run_threshold is not None
@@ -90,7 +91,8 @@ def _oracle_quality(
             max_run = dl._max_consecutive_equal_finite(arr)
             if max_run >= max_allowed_stale:
                 raise BABDataError(
-                    f"Stale/frozen data detected in column '{col}': {max_run} consecutive equal values"
+                    f"Stale/frozen data detected in column '{col}': "
+                    f"{max_run} consecutive equal values"
                 )
     return cleaned
 

@@ -320,7 +320,8 @@ class TestDataQualityReportExtraGaps:
         # Create a case where diff gives NaN median? Unlikely, but let's force
         df2 = df.copy()
         df2.index = pd.to_datetime(df2.index)
-        # Replace index to cause issues? Or just call; maybe all same diffs gives NaN if we had all NaT? Easier to construct
+        # Replace index to cause issues? Or just call; maybe all same diffs
+        # gives NaN if we had all NaT? Easier to construct
         # Just ensure normal path; maybe test with irregular but median computable
         report = quality.data_quality_report(df2)
         assert "index" in report

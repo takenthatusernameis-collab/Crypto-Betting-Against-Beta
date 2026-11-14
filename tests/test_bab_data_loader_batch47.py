@@ -54,7 +54,8 @@ class TestBatch47:
 
     def test_promote_named_block_catches_valueerror_840_841(self, monkeypatch):
         # 840-841: except (ValueError, TypeError, KeyError): pass at end of named-column try (744+)
-        # We need something inside 744-839 to raise ValueError (not BABDataError which is re-raised at 838)
+        # We need something inside 744-839 to raise ValueError (not
+        # BABDataError which is re-raised at 838)
         df = pd.DataFrame(
             {
                 "date": [1704067200, 1704153600, 1704240000, 1704326400],

@@ -654,7 +654,8 @@ class TestNormalizeIndexBatch2:
 # --- Coverage campaign batch 2: _coerce_to_datetime_scalar deep branches ---
 class TestCoerceToDatetimeScalarBatch2:
     def test_bool_rejected_or_handled(self):
-        # bools are ints in Python; should not silently become 1970 epoch in wrong way without intent
+        # bools are ints in Python; should not silently become 1970 epoch in
+        # wrong way without intent
         try:
             r = _coerce_to_datetime_scalar(True)
             assert pd.notna(r)
@@ -721,7 +722,9 @@ class TestCoerceToDatetimeScalarBatch2:
         for s in ["NaN", "NULL", "None", "NA", "n/a"]:
             with pytest.raises(ValueError):
                 _coerce_to_datetime_scalar(s)
-        # "NaT" string: behavior may parse to NaT or raise depending on pandas/path; must not silently wrong-success as valid non-NaT date in a corrupting way
+        # "NaT" string: behavior may parse to NaT or raise depending on
+        # pandas/path; must not silently wrong-success as valid non-NaT date in
+        # a corrupting way
         try:
             r = _coerce_to_datetime_scalar("NaT")
             # if it returns, it should be NaT-like or raise semantics acceptable; assert no crash
@@ -885,7 +888,8 @@ class TestPromoteDatetimeColumnBatch2:
         assert isinstance(out, pd.DataFrame)
 
 
-# --- Coverage campaign batch 3: load_returns_from_json / JSONL / normalize_schema / validate / quality ---
+# --- Coverage campaign batch 3: load_returns_from_json / JSONL /
+# normalize_schema / validate / quality ---
 
 
 class TestLoadReturnsFromJson:
@@ -957,7 +961,8 @@ class TestLoadReturnsFromJson:
         lines = []
         for d in dates:
             lines.append(
-                f'{{"date":"{d.date()}","BTC":{np.random.randn() * 0.01:.6f},"ETH":{np.random.randn() * 0.01:.6f}}}\n'
+                f'{{"date":"{d.date()}","BTC":{np.random.randn() * 0.01:.6f},'
+                f'"ETH":{np.random.randn() * 0.01:.6f}}}\n'
             )
         p.write_text("".join(lines))
         try:
@@ -1472,7 +1477,8 @@ class TestValidateAndQualityBatch4:
                 "ETH": np.random.RandomState(1).randn(70) * 0.01,
             }
         )
-        # default RangeIndex 0..69, no date col -> contract-dependent; must not silently treat as valid dated returns if contract rejects
+        # default RangeIndex 0..69, no date col -> contract-dependent; must not
+        # silently treat as valid dated returns if contract rejects
         try:
             out = validate_returns_dataframe(df, benchmark="BTC")
             # if accepted, must have DatetimeIndex
@@ -2287,7 +2293,8 @@ class TestNormalizeIndexBatch6:
         import strategies.betting_against_beta.data_loader as dl
 
         df = pd.DataFrame({"A": [1, 2]}, index=["2024-01-01", "2024-01-02"])
-        # force final check by monkeypatching isinstance? easier: monkeypatch index after sort not possible
+        # force final check by monkeypatching isinstance? easier: monkeypatch
+        # index after sort not possible
         # instead test by making index stay non-datetime via extreme monkeypatch
         orig_dt = pd.to_datetime
 
@@ -5916,7 +5923,8 @@ class TestBatch3QualityAndDispatchPaths:
 
 class TestBatch13CoerceScalarTzAndLoaderExceptionPaths:
     def test_coerce_scalar_tz_convert_then_localize_fallback(self):
-        # lines 477-483: tz-aware Timestamp where tz_convert raises -> tz_localize(None) -> return ts
+        # lines 477-483: tz-aware Timestamp where tz_convert raises ->
+        # tz_localize(None) -> return ts
         import pandas as pd
 
         class BadTz(pd.Timestamp):
@@ -6120,7 +6128,8 @@ class TestBatch11CoerceNumericAndSeriesParseable:
         assert result is False
 
     def test_coerce_numeric_non_dataframe_first_pass(self):
-        # non-DataFrame -> first-pass TypeError caught -> second-pass BABDataError (1197-1198, 1206-1207)
+        # non-DataFrame -> first-pass TypeError caught -> second-pass
+        # BABDataError (1197-1198, 1206-1207)
         with pytest.raises(dlmod.BABDataError):
             dlmod._coerce_numeric("not a dataframe")
 
@@ -8981,7 +8990,8 @@ class TestBatch33MissingLineTargets:
         except dlmod.BABDataError:
             pass
 
-    # validate_returns_dataframe: coerce_numeric BABDataError -> drop garbage col -> retry (1479-1493)
+    # validate_returns_dataframe: coerce_numeric BABDataError -> drop garbage
+    # col -> retry (1479-1493)
     def test_validate_coerce_numeric_drop_garbage_retry(self):
         df = pd.DataFrame(
             {"BTC": [0.01, 0.02], "garbage": ["@@@", "###"]},
@@ -9018,7 +9028,8 @@ class TestBatch33MissingLineTargets:
 
 
 class TestBatch34MissingLineTargets:
-    # validate_returns_dataframe: coerce_numeric BABDataError -> drop non-parseable col -> retry (1479-1493)
+    # validate_returns_dataframe: coerce_numeric BABDataError -> drop
+    # non-parseable col -> retry (1479-1493)
     def test_validate_coerce_numeric_drop_garbage_retry(self):
         df = pd.DataFrame(
             {
@@ -9049,7 +9060,8 @@ class TestBatch35MissingLineTargets:
         assert out is not None
         assert isinstance(out.index, pd.DatetimeIndex)
 
-    # load_returns_from_dataframe: RangeIndex + benchmark-only -> self-heal then re-raise (1825-1826)
+    # load_returns_from_dataframe: RangeIndex + benchmark-only -> self-heal then
+    # re-raise (1825-1826)
     def test_load_returns_from_dataframe_rangeindex_benchmark_fail(self):
         df = pd.DataFrame({"BTC": [0.01, 0.02]})
         with contextlib.suppress(dlmod.BABDataError):
@@ -9057,7 +9069,8 @@ class TestBatch35MissingLineTargets:
 
 
 class TestBatch36MissingLineTargets:
-    # _detect_and_normalize_exchange_format: OHLCV wide single asset tz-aware element paths (676-684)
+    # _detect_and_normalize_exchange_format: OHLCV wide single asset tz-aware
+    # element paths (676-684)
     def test_detect_exchange_ohlcv_tz_aware_elements(self):
         idx = pd.date_range("2024-01-01", periods=2, tz="UTC")
         df = pd.DataFrame({"Date": idx, "Close": [100.0, 101.0]})
@@ -9087,13 +9100,15 @@ class TestBatch36MissingLineTargets:
             with contextlib.suppress(Exception):
                 delattr(df.index, "_bab_fail")
 
-    # _promote_datetime_column last resort: successful parse but set_index/index assignment paths (908-914)
+    # _promote_datetime_column last resort: successful parse but
+    # set_index/index assignment paths (908-914)
     def test_promote_last_resort_datetime_column(self):
         df = pd.DataFrame({"dateish": ["2024-01-01", "2024-01-02"], "BTC": [0.01, 0.02]})
         out = dlmod._promote_datetime_column(df)
         assert isinstance(out.index, pd.DatetimeIndex)
 
-    # load_returns_from_parquet: validate BABDataError passthrough / generic exc wrap (1620-1623, 1626-1627)
+    # load_returns_from_parquet: validate BABDataError passthrough / generic
+    # exc wrap (1620-1623, 1626-1627)
     def test_load_parquet_validate_generic_exception(self, tmp_path, monkeypatch):
         pa = pytest.importorskip("pyarrow")
         p = tmp_path / "r.parquet"
@@ -9231,7 +9246,8 @@ class TestBatch36MissingLineTargets:
         det = dlmod.detect_price_or_returns(p)
         assert det in ("unknown", "prices", "returns")
 
-    # validate_returns_dataframe: coerce_numeric parse failure drops non-parseable col path (1474-1475,1487-1488,1490)
+    # validate_returns_dataframe: coerce_numeric parse failure drops
+    # non-parseable col path (1474-1475,1487-1488,1490)
     def test_validate_coerce_numeric_partial_drop(self):
         df = pd.DataFrame(
             {"BTC": [0.01, 0.02], "junk": ["a", "b"]},
@@ -9303,7 +9319,8 @@ class TestBatch37MissingLineTargets:
         with pytest.raises(dlmod.BABDataError):
             dlmod.load_returns_from_pickle(p)
 
-    # _drop_metadata_columns: sequential check exception continue (1926-1929) and outer except (1937-1938)
+    # _drop_metadata_columns: sequential check exception continue (1926-1929)
+    # and outer except (1937-1938)
     def test_drop_metadata_sequential_allclose_exception(self, monkeypatch):
         df = pd.DataFrame({"idx": [0.0, 1.0, 2.0], "BTC": [100.0, 101.0, 102.0]})
         orig = np.allclose
@@ -9329,7 +9346,8 @@ class TestBatch37MissingLineTargets:
         df = pd.DataFrame(
             {"ts": ["2024-01-01", "2024-01-02"], "BTC": [0.01, 0.02], "ETH": [0.02, 0.03]}
         )
-        # ensure ts is not in candidate_names and is string-like; candidate_names includes 'time' not 'ts'
+        # ensure ts is not in candidate_names and is string-like;
+        # candidate_names includes 'time' not 'ts'
         out = dlmod._promote_datetime_column(df)
         assert out is not None
 
@@ -9367,7 +9385,8 @@ class TestBatch37MissingLineTargets:
         except dlmod.BABDataError:
             pass
 
-    # detect_price_or_returns: clean_data exception, cleaned empty, finite check exception (2238-2248)
+    # detect_price_or_returns: clean_data exception, cleaned empty, finite
+    # check exception (2238-2248)
     def test_detect_clean_exception_returns_unknown(self, monkeypatch):
         df = pd.DataFrame({"BTC": [100.0, 101.0]})
         monkeypatch.setattr(
@@ -9427,19 +9446,22 @@ class TestBatch38MissingLineTargets:
         )
         assert dlmod.validate_prices(df) is None
 
-    # _promote_datetime_column last resort set_index fallback (908-914) - needs column not in tried, string-like, parses
+    # _promote_datetime_column last resort set_index fallback (908-914) -
+    # needs column not in tried, string-like, parses
     def test_promote_last_resort_set_index_path(self, monkeypatch):
         df = pd.DataFrame({"misc": ["2024-01-01", "2024-01-02"], "BTC": [0.01, 0.02]})
         # force candidate_names miss by using unusual name; misc not in candidate_names
         out = dlmod._promote_datetime_column(df)
         assert out is not None
 
-    # load_returns_from_csv: post-read empty/robust checks (1588-1592) - monkeypatch isinstance behavior unlikely; try df that becomes empty
+    # load_returns_from_csv: post-read empty/robust checks (1588-1592) -
+    # monkeypatch isinstance behavior unlikely; try df that becomes empty
     def test_load_csv_df_empty_after_checks(self, tmp_path, monkeypatch):
         p = tmp_path / "r.csv"
         p.write_text("date,BTC\n2024-01-01,0.01\n")
 
-        # return df that is not empty by .empty? hard to hit 1588-1592; make df.empty False first check, True second?
+        # return df that is not empty by .empty? hard to hit 1588-1592; make
+        # df.empty False first check, True second?
         class WeirdDF(pd.DataFrame):
             _props = [False, True]
 
@@ -9477,7 +9499,8 @@ class TestBatch38MissingLineTargets:
         with pytest.raises(dlmod.BABDataError, match="sentinel"):
             dlmod.load_returns_from_hdf5(p)
 
-    # load_returns_from_pickle: list construction exc (1698-1699) already attempted; try different shape
+    # load_returns_from_pickle: list construction exc (1698-1699) already
+    # attempted; try different shape
     def test_load_pickle_list_of_series(self, tmp_path):
         p = tmp_path / "r.pkl"
         with p.open("wb") as f:
@@ -9495,7 +9518,8 @@ class TestBatch38MissingLineTargets:
         assert "BTC" in out.columns
         assert "seq" not in out.columns
 
-    # exchange OHLCV wide path (676-684): needs single-asset OHLCV with date parsed to tz-aware Timestamp in the loop
+    # exchange OHLCV wide path (676-684): needs single-asset OHLCV with date
+    # parsed to tz-aware Timestamp in the loop
     def test_exchange_ohlcv_wide_tz_timestamp_elements(self, monkeypatch):
         df = pd.DataFrame(
             {

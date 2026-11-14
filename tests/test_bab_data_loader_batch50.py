@@ -105,7 +105,8 @@ class TestBatch50:
             pass
 
     def test_1451_1452_validate_trivial_non_bab_exception(self, monkeypatch):
-        # No date column name, RangeIndex 0..N-1, promote yields 1970 index where .year access raises
+        # No date column name, RangeIndex 0..N-1, promote yields 1970 index where
+        # .year access raises
         df = pd.DataFrame({"BTC": [0.01, 0.02, -0.01, 0.03], "ETH": [0.02, -0.01, 0.01, 0.02]})
         assert isinstance(df.index, pd.RangeIndex)
 

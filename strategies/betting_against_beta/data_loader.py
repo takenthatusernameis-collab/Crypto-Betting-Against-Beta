@@ -1690,7 +1690,8 @@ def _run_data_quality_campaign(
                 frac = finite_count / total if total > 0 else 0.0
                 if frac < float(min_finite_fraction):
                     raise BABDataError(
-                        f"Column '{col}' has insufficient finite data: {frac:.2%} < {float(min_finite_fraction):.2%}"
+                        f"Column '{col}' has insufficient finite data: "
+                        f"{frac:.2%} < {float(min_finite_fraction):.2%}"
                     )
             if (
                 stale_run_threshold is not None

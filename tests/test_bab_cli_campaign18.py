@@ -1,12 +1,13 @@
-"""Regression tests for Campaign 18: BAB metrics, report, attribution & sizing fidelity on real & defective data.
+"""Regression tests for Campaign 18: BAB metrics, report, attribution & sizing fidelity
+on real & defective data.
 
 Evidence: /home/runner/work/_temp/kilo-tmp/c18_bab_metrics_report_attribution_fidelity_probe_evidence.log
 Conclusion: no proven gaps. These tests lock in the verified C18 probe behavior
 (report()/tear_sheet()/report_to_json() metric finiteness & strict-JSON fidelity,
 trade-attribution totals, position-sizer dict shorthands, regime filter, beta-neutral
+trading, execution-adapter plumbing, and output determinism,
 enforcement, and CLI dry-run/version/error edges) so future sessions cannot regress
 reporting/analytics fidelity without a failing test.
-
 Console script equivalent: `python -m scripts.load_real_bab_example` (the
 `bab-example` console-script main(); the installed entry point is not on PATH
 in this environment).

@@ -42,7 +42,8 @@ class TestValidateReturnsDataFrame:
             validate_returns_dataframe(df, min_rows=2)
 
     def test_all_nan_columns_dropped(self):
-        # All-NaN delisted column dropped, benchmark + real asset remain (data_loader.py:117-119 path)
+        # All-NaN delisted column dropped, benchmark + real asset remain
+        # (data_loader.py:117-119 path)
         df = pd.DataFrame(
             {"BTC": [0.01, 0.02], "ETH": [0.03, 0.04], "DELISTED": [np.nan, np.nan]},
             index=pd.date_range("2024-01-01", periods=2),

@@ -73,7 +73,8 @@ def test_signals_extreme_quantiles_zero_one_boundaries():
 
 def test_portfolio_ties_equal_betas_dollar_neutral():
     dates = pd.date_range("2023-01-01", periods=2)
-    # All equal betas -> signals may be all zero depending on ranking; if any signals exist, weights must be neutral
+    # All equal betas -> signals may be all zero depending on ranking; if any
+    # signals exist, weights must be neutral
     sig = pd.DataFrame({"A": [1, -1], "B": [-1, 1], "C": [0, 0]}, index=dates)
     w = construct_portfolio(sig, dollar_neutral=True)
     assert np.isfinite(w.values).all()
@@ -87,7 +88,8 @@ def test_portfolio_single_asset_row_dollar_neutral_long_only_case():
     sig = pd.DataFrame({"BTC": [1, 1, 0]}, index=dates)
     w = construct_portfolio(sig, dollar_neutral=True)
     assert np.isfinite(w.values).all()
-    # Long only with dollar_neutral True in current semantics gives equal weights on longs? Let us check behavior
+    # Long only with dollar_neutral True in current semantics gives equal
+    # weights on longs? Let us check behavior
     assert (w.values >= 0).all()
     # Weights finite and sum appropriately for long only
     assert np.allclose(w.sum(axis=1).values, [1.0, 1.0, 0.0], atol=1e-10)

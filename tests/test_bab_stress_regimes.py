@@ -224,7 +224,8 @@ def test_regime_evidence_summary():
         "\n[R2-A] regime stress evidence (worst case across beta_neutral x dollar_neutral x costs):"
     )
     print(
-        f"{'regime':<16} {'max_drawdown':>12} {'worst_period':>12} {'turnover':>10} {'max|net|':>10}"
+        f"{'regime':<16} {'max_drawdown':>12} {'worst_period':>12} "
+        f"{'turnover':>10} {'max|net|':>10}"
     )
     for regime_name, _ in REGIMES:
         rows = [r for r in _regime_records if r["regime"] == regime_name]

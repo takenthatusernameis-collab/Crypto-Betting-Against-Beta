@@ -207,7 +207,8 @@ def test_ba_strategy_with_adapter_records_execution_payload():
 
 
 def test_ba_strategy_with_adapter_default_backtest_unchanged():
-    """Adapter configured: backtest/weights identical to no-adapter run (adapter is observational)."""
+    """Adapter configured: backtest/weights identical to no-adapter run
+    (adapter is observational)."""
     s_no_adapter = BABStrategy(benchmark="BTC")
     res_no = s_no_adapter.run(returns_df=REAL_PRICES)
 

@@ -168,7 +168,8 @@ def test_main_dry_run_data_babdataerror_outer(monkeypatch, tmp_path, capsys):
     data = _make_rets(tmp_path)
     import strategies.betting_against_beta.data_loader as dl
 
-    # raise from Path.exists/is_dir area? easier: make load_returns raise BABDataError caught at 261/267
+    # raise from Path.exists/is_dir area? easier: make load_returns raise
+    # BABDataError caught at 261/267
     monkeypatch.setattr(
         dl, "load_returns", lambda *a, **k: (_ for _ in ()).throw(BABDataError("babboom"))
     )

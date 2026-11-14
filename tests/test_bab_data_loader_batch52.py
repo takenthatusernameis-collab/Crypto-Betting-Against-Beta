@@ -60,8 +60,10 @@ class TestBatch52:
 
         h.n = 0
 
-        # patching builtins is risky; instead monkeypatch parsed to have apply that raises when checked? no.
-        # simpler: monkeypatch pd.Timestamp in that module context? 791 catches Exception around 760-790
+        # patching builtins is risky; instead monkeypatch parsed to have apply
+        # that raises when checked? no.
+        # simpler: monkeypatch pd.Timestamp in that module context? 791 catches
+        # Exception around 760-790
         class X(pd.Series):
             @property
             def tz(self):
@@ -98,8 +100,11 @@ class TestBatch52:
             raise KeyError("k")
 
         monkeypatch.setattr(dlmod, "_coerce_to_datetime_scalar", c)
-        # also break to_datetime fallback? 745-749 try will catch and go to 809? 749 apply raises KeyError caught by 809 Exception? 809 catches Exception broadly.
-        # 840 catches ValueError,TypeError,KeyError - so if 809 re-raises? no, 809 is except Exception: pass then ... need to see structure.
+        # also break to_datetime fallback? 745-749 try will catch and go to 809?
+        # 749 apply raises KeyError caught by 809 Exception? 809 catches Exception
+        # broadly.
+        # 840 catches ValueError,TypeError,KeyError - so if 809 re-raises? no,
+        # 809 is except Exception: pass then ... need to see structure.
         with contextlib.suppress(Exception):
             dlmod._promote_datetime_column(df.copy())
 

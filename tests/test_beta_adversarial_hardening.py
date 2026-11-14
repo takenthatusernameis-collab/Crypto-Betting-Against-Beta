@@ -36,7 +36,8 @@ class TestBetaAdversarialHardening:
             }
         )
         res = beta.calculate_rolling_beta(df, "BTC", window=30, min_obs=15)
-        # SOL is all NaN - per-series path should still give NaN; ETH/XRP finite but benchmark constant -> NaN
+        # SOL is all NaN - per-series path should still give NaN; ETH/XRP
+        # finite but benchmark constant -> NaN
         assert np.all(np.isnan(res["ETH"].values))
         assert np.all(np.isnan(res["SOL"].values))
         assert np.all(np.isnan(res["XRP"].values))

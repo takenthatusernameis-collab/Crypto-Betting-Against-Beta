@@ -200,7 +200,8 @@ class TestBatch40MissingLineTargets:
 
             with contextlib.suppress(Exception):
                 object.__setattr__(b, "_boom", True)
-            # monkeypatch instance columns access is hard; fallback: patch pd.api.types.is_numeric_dtype to raise once
+            # monkeypatch instance columns access is hard; fallback: patch
+            # pd.api.types.is_numeric_dtype to raise once
             return r
 
         # most reliable: raise from is_numeric_dtype in that loop

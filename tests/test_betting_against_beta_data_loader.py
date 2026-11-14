@@ -556,7 +556,8 @@ class TestExchangeFormatSupport:
         path = tmp_path / "prices.csv"
         df.to_csv(path)
         out = load_returns(path, benchmark="BTC")
-        # load_returns expects returns; if prices loaded, behavior depends - but our load_returns passes through validate
+        # load_returns expects returns; if prices loaded, behavior depends -
+        # but our load_returns passes through validate
         # For wide price data, better to use load_prices; but test should be compatible
         assert "BTC" in out.columns
 

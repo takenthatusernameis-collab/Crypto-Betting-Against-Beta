@@ -1,18 +1,21 @@
 """Regression tests for Campaign 14: CLI reporting fidelity + console-script parity.
 
 Proven gaps (evidence: /home/runner/work/_temp/kilo-tmp/c14_cli_reporting_probe_evidence.log):
-- `bab-example --version` exited rc=2 (argparse required data_path before --version); now rc=0, prints `bab 0.1.0`.
-- `bab-example <data> --from-prices --benchmark BTC --output <json>` exited rc=2 (no --output flag);
-  now rc=0, writes valid JSON with keys {final_cumulative, periods, benchmark, universe}.
+- `bab-example --version` exited rc=2 (argparse required data_path before --version);
+  now rc=0, prints `bab 0.1.0`.
+- `bab-example <data> --from-prices --benchmark BTC --output <json>` exited rc=2
+  (no --output flag); now rc=0, writes valid JSON with keys
+  {final_cumulative, periods, benchmark, universe}.
 
 Covered no-gap areas (explicit "no proven gaps", evidence-backed):
-- subprocess --synthetic / --data --from-prices / --dry-run / --version -> rc=0, clean stdout, empty stderr.
-- error paths (bad quantile, --from-prices without --data, --output is a directory) -> rc=1, actionable, no Traceback.
+- subprocess --synthetic / --data --from-prices / --dry-run / --version -> rc=0,
+  clean stdout, empty stderr.
+- error paths (bad quantile, --from-prices without --data, --output is a directory)
+  -> rc=1, actionable, no Traceback.
 - --output JSON valid with required keys; allow_nan=False safe.
 - stdout/stderr separation on success; determinism across repeated runs.
 - in-process main(argv) parity with subprocess for 4 representative combos.
 """
-
 import json
 import subprocess
 import sys

@@ -175,8 +175,8 @@ class TestBatch46:
     def test_validate_trivial_sequence_1970_raises_1451_1452(self, monkeypatch):
         df = pd.DataFrame({"BTC": [0.1, 0.2, 0.3, 0.4], "ETH": [0.05, 0.06, 0.07, 0.08]})
         # RangeIndex 0..3, no date col -> had_date_col False, is_trivial_sequence True
-        # cleaned index will be promoted? _promote_datetime_column won't find date col; _normalize_index parses index
-        # 0,1,2,3 as epoch seconds -> 1970
+        # cleaned index will be promoted? _promote_datetime_column won't find date
+        # col; _normalize_index parses index 0,1,2,3 as epoch seconds -> 1970
         with pytest.raises(BABDataError, match="lacks a datetime index"):
             dlmod.validate_returns_dataframe(df.copy(), benchmark="BTC", min_rows=1)
 
@@ -203,8 +203,10 @@ class TestBatch46:
         assert "BTC" in out.columns
 
     def test_unnamed_set_index_outer_exception_path_840_841(self, monkeypatch):
-        # 840-841 catches ValueError/TypeError/KeyError in the named-col try block (744-841 context?)
-        # actually 840-841 is: except (ValueError, TypeError, KeyError): pass at end of named col block
+        # 840-841 catches ValueError/TypeError/KeyError in the named-col try block
+        # (744-841 context?)
+        # actually 840-841 is: except (ValueError, TypeError, KeyError): pass
+        # at end of named col block
         df = pd.DataFrame(
             {
                 "date": ["not-a-date"] * 4,
@@ -217,8 +219,9 @@ class TestBatch46:
             raise ValueError("bad")
 
         monkeypatch.setattr(dlmod, "_coerce_to_datetime_scalar", coerce)
-        # pd.to_datetime(..., errors='raise') on "not-a-date" will raise BABDataError at 814-815 which propagates
-        # 840-841 catches ValueError/TypeError/KeyError from the block - need to trigger differently
+        # pd.to_datetime(..., errors='raise') on "not-a-date" will raise BABDataError
+        # at 814-815 which propagates  # 840-841 catches ValueError/TypeError/KeyError
+        # from the block - need to trigger differently
         with contextlib.suppress(Exception):
             out = dlmod._promote_datetime_column(df.copy())
 

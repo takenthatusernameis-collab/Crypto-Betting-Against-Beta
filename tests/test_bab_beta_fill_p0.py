@@ -221,7 +221,8 @@ class TestBetaFinalGaps:
                 raise AttributeError("bad")
 
         df["BAD"] = BadAsset()
-        # But it's stored as column value? No - df['BAD'] needs to be a Series; easier to construct differently
+        # But it's stored as column value? No - df['BAD'] needs to be a Series;
+        # easier to construct differently
         with contextlib.suppress(Exception):
             res = beta.calculate_rolling_beta(df, "BTC", window=3, min_obs=2)
 

@@ -186,8 +186,9 @@ def test_main_run_data_directory(tmp_path, capsys):
 def test_main_universe_empty_flag_defensive(capsys):
     # parser uses SUPPRESS default; simulate via direct call with empty universe tricky.
     # easiest: pass --universe followed by nothing is not directly possible; but code path 211-215
-    # triggers if universe_arg is empty list - simulate by monkeypatching BABConfig? instead call with args
-    # where argparse may not produce it; cover helper behavior indirectly by constructing args.
+    # triggers if universe_arg is empty list - simulate by monkeypatching BABConfig?
+    # instead call with args where argparse may not produce it; cover helper behavior
+    # indirectly by constructing args.
     # Use main normally; at least ensure no crash
     rc = cli.main(["--synthetic"])
     assert rc == 0

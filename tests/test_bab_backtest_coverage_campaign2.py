@@ -172,7 +172,8 @@ def test_cumulative_fallback_sanitizes_nonfinite_cumprod(monkeypatch):
 
     def series_factory(data=None, index=None, *args, **kwargs):
         obj = real_series(data=data, index=index, *args, **kwargs)
-        # Only wrap the specific portfolio_returns_filled path (length matches index, float-ish data).
+        # Only wrap the specific portfolio_returns_filled path (length matches index,
+        # float-ish data).
         if (
             index is not None
             and len(obj) == len(returns.index)
