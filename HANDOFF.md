@@ -2,22 +2,22 @@
 
 **Repo:** `crypto-betting-against-beta` — Betting Against Beta (BAB) market-neutral crypto strategy (long low-beta / short high-beta vs benchmark, default BTC). See `README.md`, `strategies/betting_against_beta/`. **Priority basis:** the repo *is* the BAB strategy engine, so correctness + live-readiness of the strategy outranks tooling/coverage-chasing.
 
-**Refreshed:** 2026-11-14T02:25:12Z (UTC)
-**HEAD:** `b9a96d0` (main). **Working tree:** clean at refresh except this handoff update. Baseline gate/preflight evidence below was captured on this HEAD; re-verify on current `HEAD` before claiming green.
+**Refreshed:** 2026-11-14T02:35:18Z (UTC)
+**HEAD:** `ce29274` (main). **Working tree:** clean at refresh except this handoff update. Baseline gate/preflight evidence below was captured on this HEAD; re-verify on current `HEAD` before claiming green.
 **Single source of truth:** this file. `AGENT_HANDOFF.md` is a pointer only. Read this whole file before doing anything. Do not create parallel handoff docs. If live evidence conflicts with a recorded number here, **live run wins** — re-measure, record the delta, update this file.
 
 ---
 
-## LIVE VERIFICATION EVIDENCE (measured this session on HEAD `b9a96d0`)
+## LIVE VERIFICATION EVIDENCE (measured this session on HEAD `ce29274`)
 
 | Check | Command | Result |
 |---|---|---|
-| R2 preflight | `PYTHONPATH=. "$VENV/bin/python" scripts/bab_r2_preflight.py` | **RC=0** — 155 passed, 6 warnings, 33.36s |
-| Live scale (median/9 warm) | same preflight | 5000×200 = **176 ms** (≤800 ms), 5000×500 = **396 ms** (≤2000 ms) |
+| R2 preflight | `PYTHONPATH=. "$VENV/bin/python" scripts/bab_r2_preflight.py` | **RC=0** — 155 passed, 6 warnings, 33.41s |
+| Live scale (median/9 warm) | same preflight | 5000×200 = **162 ms** (≤800 ms), 5000×500 = **383 ms** (≤2000 ms) |
 | R4 preflight | `PYTHONPATH=. "$VENV/bin/python" scripts/bab_r4_preflight.py` | **RC=0** — R4-A/B/C present + green; R2/R3 baseline green (217 passed) |
-| Full gate | `PATH="$VENV/bin:$PATH" bash scripts/bab_gate.sh` | **RC=0** — **5621 passed / 35 skipped / 456.98s / coverage 95%** |
+| Full gate | `PATH="$VENV/bin:$PATH" bash scripts/bab_gate.sh` | **RC=0** — **5621 passed / 35 skipped / 442.30s / coverage 95%** |
 
-- All numbers above were reproduced on `b9a96d0`; they supersede the prior `640d374` recordings (same suite counts, fresh wall-clock).
+- All numbers above were reproduced on `ce29274`; they supersede the prior `b9a96d0` recordings (same suite counts, fresh wall-clock).
 - `VENV=/home/runner/work/_temp/kilo-tmp/bab-venv` exists and is populated (Python 3.12.3; numpy 2.5.4, pandas 3.1.1, scipy 1.18.1, pytest 9.2.0, hypothesis 6.170.15).
 
 ---
@@ -34,11 +34,11 @@
 
 ---
 
-## INITIAL TASK FOR NEXT SESSION (binding, timestamped 2026-11-14T02:25:12Z, HEAD b9a96d0)
+## INITIAL TASK FOR NEXT SESSION (binding, timestamped 2026-11-14T02:35:18Z, HEAD ce29274)
 
 **Objective:** R4 is **shipped and verified**. Next session should focus on **R5 — Execution integration** (live-order adapter stubs, slippage/impact calibration against real fill data, cost-model backtest vs executed-fills reconciliation) or other post-R4 priorities.
 
-**Bottleneck check (live, 2026-11-14T02:25:00Z, HEAD `b9a96d0`):** `PYTHONPATH=. python3 scripts/bab_r4_preflight.py` reports **RC=0** — all three R4 capabilities present, their tests pass, and R2/R3 baseline remains green. No active blockers.
+**Bottleneck check (live, 2026-11-14T02:35:00Z, HEAD `ce29274`):** `PYTHONPATH=. python3 scripts/bab_r4_preflight.py` reports **RC=0** — all three R4 capabilities present, their tests pass, and R2/R3 baseline remains green. No active blockers.
 
 ---
 
@@ -81,11 +81,11 @@ PYTHONPATH=. "$VENV/bin/python" scripts/bab_r4_preflight.py; echo "R4_PREFLIGHT_
 
 ---
 
-## BOTTLENECKS REMOVED / VERIFIED (current refresh 2026-11-14T02:25:12Z)
+## BOTTLENECKS REMOVED / VERIFIED (current refresh 2026-11-14T02:35:18Z)
 
-1. **Handoff HEAD/timestamp drift** — refreshed to current `HEAD` `b9a96d0` and 2026-11-14T02:25:12Z so next session starts from true repo state.
+1. **Handoff HEAD/timestamp drift** — refreshed to current `HEAD` `ce29274` and 2026-11-14T02:35:18Z so next session starts from true repo state.
 2. **Single durable handoff enforced** — `HANDOFF.md` remains sole source of truth; `AGENT_HANDOFF.md` kept pointer-only/in-sync.
-3. **Mechanical R4 gate present and executed** — `scripts/bab_r4_preflight.py` run on `b9a96d0` (2026-11-14T02:25:00Z) and returned **RC=0** with all three R4 capabilities + tests green; R2/R3 baseline green. R4 campaign complete.
+3. **Mechanical R4 gate present and executed** — `scripts/bab_r4_preflight.py` run on `ce29274` (2026-11-14T02:35:00Z) and returned **RC=0** with all three R4 capabilities + tests green; R2/R3 baseline green. R4 campaign complete.
 4. **Execution blockers pre-empted** — mandatory idempotent venv bootstrap and `PATH="$VENV/bin:$PATH"` gate invocation documented; missing deps must not be claimed as blockers.
 5. **Historical CI noise quarantined** — `research_state/workflow_run_diagnostics.jsonl` remains historical-only and must not justify inaction; live run on current `HEAD` wins.
 6. **Mock compatibility fix** — `risk.py:apply_kill_switch()` now treats invalid limit types (e.g., mock objects in tests) as no-op to maintain backward compatibility with existing regression tests, while real configs are validated in `BABConfig.__post_init__`.
@@ -109,7 +109,7 @@ PYTHONPATH=. "$VENV/bin/python" scripts/bab_r4_preflight.py; echo "R4_PREFLIGHT_
 
 ## PERFORMANCE GUARDRAILS (do not regress; live-run wins)
 
-- Current medians (this session, `b9a96d0`): 5000×200 ~176 ms (ceiling 800 ms), 5000×500 ~396 ms (ceiling 2000 ms). Scale guards assert ceilings, not exact medians.
+- Current medians (this session, `ce29274`): 5000×200 ~162 ms (ceiling 800 ms), 5000×500 ~383 ms (ceiling 2000 ms). Scale guards assert ceilings, not exact medians.
 - Keep default/no-model path model-free/lightweight; pay cost-model overhead only when configured.
 
 ---
