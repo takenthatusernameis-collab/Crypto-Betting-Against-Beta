@@ -2,8 +2,8 @@
 
 **Repo:** `crypto-betting-against-beta` — Betting Against Beta (BAB) market-neutral crypto strategy (long low-beta / short high-beta vs benchmark, default BTC). See `README.md`, `strategies/betting_against_beta/`. **Priority basis:** the repo *is* the BAB strategy engine, so correctness + live-readiness of the strategy outranks tooling/coverage-chasing.
 
-**Refreshed:** 2026-11-14T00:51:57Z (UTC)
-**HEAD:** `40e5c34` (main). **Working tree:** clean at refresh. Baseline gate/preflight evidence below was captured on `45563ba` and no product/test code changed in the subsequent checkpoint commits through `40e5c34`; re-verify on current `HEAD` before claiming green.
+**Refreshed:** 2026-11-14T00:53:30Z (UTC)
+**HEAD:** `640d374` (main). **Working tree:** clean at refresh except this handoff update. Baseline gate/preflight evidence below was captured on `45563ba`; no product/test code changed in subsequent checkpoint commits through `640d374`. Re-verify on current `HEAD` before claiming green.
 **Single source of truth:** this file. `AGENT_HANDOFF.md` is a pointer only. Read this whole file before doing anything. Do not create parallel handoff docs. If live evidence conflicts with a recorded number here, **live run wins** — re-measure, record the delta, update this file.
 
 ---
@@ -30,11 +30,24 @@
 
 ---
 
-## INITIAL TASK FOR NEXT SESSION (binding, timestamped 2026-11-14T00:51:57Z, HEAD 40e5c34)
+## INITIAL TASK FOR NEXT SESSION (binding, timestamped 2026-11-14T00:53:30Z, HEAD 640d374)
 
-**Objective:** Ship **R4 (Live-Readiness)** end-to-end on current `HEAD` (`40e5c34`) with hard evidence. **All three components (R4-A, R4-B, R4-C) must be implemented with green regression tests and wired into the gate/behavioral contracts.** Partial completion or analysis-only is a failed session. Do not stop at "next steps"; land code + tests + measured evidence.
+**Objective:** Ship **R4 (Live-Readiness)** end-to-end on current `HEAD` (`640d374`) with hard evidence. **All three components (R4-A, R4-B, R4-C) must be implemented with green regression tests and wired into the gate/behavioral contracts.** Partial completion or analysis-only is a failed session. Do not stop at "next steps"; land code + tests + measured evidence.
 
-**Bottleneck check (recorded 2026-11-14T00:51:57Z, HEAD `40e5c34`):** `scripts/bab_r4_preflight.py` exists as the mechanical campaign gate and must be treated as authoritative. R4 is **not shipped** until it returns **RC=0** on current HEAD. Expected pending items until implemented: R4-A (`dry_run`/portfolio-risk-report capability + `tests/test_bab_dryrun_risk_report_r4.py`), R4-B (`max_drawdown_limit`/`kill_switch` + `tests/test_bab_drawdown_kill_switch_r4.py`), R4-C (`ReplayHarness`/replay harness + `tests/test_bab_replay_harness_r4.py`). This is the sole active blocker — no other campaign is open; remove it by implementing and verifying all three. Re-run and record live preflight/gate output on `40e5c34` before claiming status.
+**Bottleneck check (live, 2026-11-14T00:53:22Z, HEAD `640d374`):** `PYTHONPATH=. python3 scripts/bab_r4_preflight.py` reported **R4 NOT SHIPPED** with itemized TODOs (captured output below). This is the sole active blocker — no other campaign is open; remove it by implementing and verifying all three, then re-run and record preflight/gate on final HEAD.
+
+Pending (authoritative preflight):
+- **R4-A dry-run / portfolio-risk report:** missing product capability (`dry_run` / `portfolio_risk|risk_report|risk_summary`) and `tests/test_bab_dryrun_risk_report_r4.py`.
+- **R4-B drawdown-limit kill switch:** missing product capability (`max_drawdown_limit`, `kill_switch`) and `tests/test_bab_drawdown_kill_switch_r4.py`.
+- **R4-C deterministic paper-trading replay harness:** missing product capability (`class ReplayHarness` / `replay`) and `tests/test_bab_replay_harness_r4.py`.
+
+Captured preflight output (2026-11-14T00:53:22Z):
+```
+[r4] R4 NOT SHIPPED. Remaining work (itemized):
+  - R4-A dry-run / portfolio-risk report: product capability (no symbol matching any of ['def\s+dry_run\s*\(', 'def\s+(portfolio_risk|risk_report|risk_summary)\s*\(']); missing test file tests/test_bab_dryrun_risk_report_r4.py
+  - R4-B drawdown-limit kill switch: product capability (no symbol matching any of ['max_drawdown_limit', 'kill_switch']); missing test file tests/test_bab_drawdown_kill_switch_r4.py
+  - R4-C deterministic paper-trading replay harness: product capability (no symbol matching any of ['class\s+ReplayHarness', 'def\s+replay\b', 'replay_harness']); missing test file tests/test_bab_replay_harness_r4.py
+```
 
 ### R4-A — Dry-run / portfolio-risk report
 - **Deliverable:** `BABStrategy.dry_run(returns_df=None) -> dict` (programmatic) plus `--dry-run` CLI output that prints the resolved config, tradable universe, beta window/quantiles, and a **portfolio-risk summary**: gross exposure, net exposure, gross leverage, max single-position weight, estimated turnover/cost drag, data-health (rows, columns, NaN counts, benchmark presence). No backtest/trades executed.
@@ -81,11 +94,11 @@ PYTHONPATH=. "$VENV/bin/python" scripts/bab_r4_preflight.py; echo "R4_PREFLIGHT_
 
 ---
 
-## BOTTLENECKS REMOVED / VERIFIED (current refresh 2026-11-14T00:51:57Z)
+## BOTTLENECKS REMOVED / VERIFIED (current refresh 2026-11-14T00:53:30Z)
 
-1. **Handoff HEAD/timestamp drift** — refreshed to current `HEAD` `40e5c34` and 2026-11-14T00:51:57Z so next session starts from true repo state.
+1. **Handoff HEAD/timestamp drift** — refreshed to current `HEAD` `640d374` and 2026-11-14T00:53:30Z so next session starts from true repo state.
 2. **Single durable handoff enforced** — `HANDOFF.md` remains sole source of truth; `AGENT_HANDOFF.md` kept pointer-only/in-sync.
-3. **Mechanical R4 gate present** — `scripts/bab_r4_preflight.py` provides an itemized, failing-by-default gate for R4-A/B/C; next session must run it on `HEAD` and record RC/evidence (no hand-waving).
+3. **Mechanical R4 gate present and executed** — `scripts/bab_r4_preflight.py` run on `640d374` (2026-11-14T00:53:22Z) and returned itemized "R4 NOT SHIPPED" TODOs for R4-A/B/C; this is the only active blocker and cannot be hand-waved.
 4. **Execution blockers pre-empted** — mandatory idempotent venv bootstrap and `PATH="$VENV/bin:$PATH"` gate invocation documented; missing deps must not be claimed as blockers.
 5. **Historical CI noise quarantined** — `research_state/workflow_run_diagnostics.jsonl` remains historical-only and must not justify inaction; live run on current `HEAD` wins.
 
