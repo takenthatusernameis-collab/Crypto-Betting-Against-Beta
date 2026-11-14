@@ -2,9 +2,8 @@
 
 **Repo:** `crypto-betting-against-beta` — Betting Against Beta (BAB) market-neutral crypto strategy (long low-beta / short high-beta vs benchmark, default BTC). See `README.md`, `strategies/betting_against_beta/`.
 
-**Refreshed:** 2026-11-14T23:46:03Z
-**HEAD:** `ee1d42c` (`chore(kilo): checkpoint agent session`, main) — advances past stale `3c585f2` recorded earlier.
-**Working tree:** DIRTY with one uncommitted, reviewed fix (`tests/test_bab_strategy_campaign_gaps.py`: added `cfg.cost_model = None` to `TestFreezeFallback` so it targets the `object.__setattr__` freeze-fallback path instead of tripping R3 loud `cost_model` validation). **Commit nothing unless explicitly requested.**
+**Refreshed:** 2026-11-14T00:36:21Z
+**HEAD:** `4dfbc17` (main), working tree CLEAN — the previously recorded uncommitted `TestFreezeFallback` fix (`cfg.cost_model = None`) is now committed in `4dfbc17` (checkpoint commit at 00:36:13Z; commit message `chore(kilo): checkpoint agent session`, which also refreshed `AGENT_HANDOFF.md`/`HANDOFF.md`). **Commit nothing unless explicitly requested.**
 **Single source of truth:** this file. `AGENT_HANDOFF.md` is a pointer only. Read this whole file before doing anything. Do not create parallel handoff docs. If live evidence conflicts with recorded numbers here, **live run wins** — re-measure, record the delta, and update this file.
 
 ---
@@ -21,16 +20,20 @@
 
 ---
 
-## INITIAL TASK FOR NEXT SESSION (binding, timestamped 2026-11-14T23:46:03Z)
+## INITIAL TASK FOR NEXT SESSION (binding, timestamped 2026-11-14T00:36:21Z)
 
-**Objective:** R3 is closed. Begin **R4 (Live-Readiness)** end-to-end on current `HEAD` with hard evidence. Partial completion is not acceptable. Ship code/tests/evidence; do not stop at analysis.
+**Objective:** R3 is closed. Begin **R4 (Live-Readiness)** end-to-end on current `HEAD` (`4dfbc17`) with hard evidence. Partial completion is not acceptable. Ship code/tests/evidence; do not stop at analysis.
 
 R4 candidates (from prior handoff, now the active campaign):
-1. **R4-A — Dry-run / portfolio-risk report:** CLI dry-run mode that validates inputs and prints resolved config + portfolio-risk summary without executing trades; strict, finite, JSON-serializable output.
-2. **R4-B — Drawdown-limit kill switch:** configurable drawdown limit that halts/flattens the book when breached; assert kill-switch triggers on a breaching fixture and does not trigger on a non-breaching one.
-3. **R4-C — Reproducible paper-trading replay harness:** replay against real/fixture market data deterministically; record orders/fills/costs; output reproducible artifacts.
+1. **R4-A — Dry-run / portfolio-risk report:** CLI dry-run mode (`--dry-run` skeleton present in `cli.py:329`) that validates inputs and prints resolved config + portfolio-risk summary without executing trades; strict, finite, JSON-serializable output.
+2. **R4-B — Drawdown-limit kill switch:** configurable drawdown limit that halts/flattens the book when breached; assert kill-switch triggers on a breaching fixture and does not trigger on a non-breaching one. **Not yet implemented.**
+3. **R4-C — Reproducible paper-trading replay harness:** replay against real/fixture market data deterministically; record orders/fills/costs; output reproducible artifacts. **Not yet implemented.**
 
-### Mandatory start (every session, ~90s, idempotent — env bottleneck already solved by this block)
+### Bottlenecks removed (this refresh)
+- Env/bootstrap bottleneck solved by the mandatory start block below (idempotent venv at `/home/runner/work/_temp/kilo-tmp/bab-venv`).
+- R3 `TestFreezeFallback` bottleneck closed: `cfg.cost_model = None` committed in `4dfbc17`; R3 validation untouched, gate green. Do not reopen.
+
+### Mandatory start (every session, ~90s, idempotent)
 ```bash
 VENV=/home/runner/work/_temp/kilo-tmp/bab-venv
 if [ ! -d "$VENV" ]; then python3 -m venv "$VENV"; fi
@@ -41,7 +44,7 @@ cd /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
 PYTHONPATH=. "$VENV/bin/python" scripts/bab_r2_preflight.py; echo "PREFLIGHT_RC=$?"
 ```
 - Do **not** claim missing deps (`pytest`/`numpy`/etc.) as blockers — run bootstrap above.
-- Do **not** claim green status without fresh command output on current `HEAD`.
+- Do **not** claim green status without fresh command output on current `HEAD` (`4dfbc17`).
 
 ### Required work order (heavy; complete all)
 1. **Baseline confirmation on current HEAD**
@@ -59,11 +62,11 @@ PYTHONPATH=. "$VENV/bin/python" scripts/bab_r2_preflight.py; echo "PREFLIGHT_RC=
 
 ## Current state snapshot (verified at refresh unless noted)
 
-- **HEAD / tree:** `ee1d42c`; tree DIRTY (one uncommitted reviewed test fix). Preflight + R2 + R3-A + R3-B + full gate all green on this HEAD.
+- **HEAD / tree:** `4dfbc17`; tree CLEAN (the `TestFreezeFallback` fix is committed). Preflight + R2 + R3-A + R3-B + full gate were last verified green on `ee1d42c`; HEAD advanced only via checkpoint commits (handoff docs + test fix), no strategy-code change, so R3 evidence carries forward but must be re-confirmed with a fresh gate run on `4dfbc17`.
 - **R1:** closed/locked (per prior verified handoff; do not reopen without new reproducible evidence).
-- **R2:** closed/locked — green on `ee1d42c` (155 passed; scale within ceilings).
-- **R3:** closed/locked — see R3 COMPLETION EVIDENCE above. `tests/test_bab_execution_realism_r3.py` present and green; `bash scripts/bab_gate.sh` RC=0.
-- **R4:** not started — this is the active campaign (see INITIAL TASK above).
+- **R2:** closed/locked — green on `ee1d42c` (155 passed; scale within ceilings). Re-confirm on `4dfbc17`.
+- **R3:** closed/locked — see R3 COMPLETION EVIDENCE above. `tests/test_bab_execution_realism_r3.py` present and green; `bash scripts/bab_gate.sh` RC=0 (verified on `ee1d42c`). Re-confirm on `4dfbc17`.
+- **R4:** not started — this is the active campaign (see INITIAL TASK above). `cli.py --dry-run` skeleton present; kill switch (R4-B) and replay harness (R4-C) not yet implemented.
 
 ---
 
