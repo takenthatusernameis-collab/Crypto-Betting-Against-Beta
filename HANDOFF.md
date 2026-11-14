@@ -2,7 +2,7 @@
 
 **Repo:** `crypto-betting-against-beta` — Betting Against Beta (BAB) market-neutral crypto strategy (long low-beta / short high-beta vs benchmark, default BTC). See `README.md`, `strategies/betting_against_beta/`.
 
-**Refreshed:** 2026-11-13T23:28:39Z
+**Refreshed:** 2026-11-14T23:46:03Z
 **HEAD:** `ee1d42c` (`chore(kilo): checkpoint agent session`, main) — advances past stale `3c585f2` recorded earlier.
 **Working tree:** DIRTY with one uncommitted, reviewed fix (`tests/test_bab_strategy_campaign_gaps.py`: added `cfg.cost_model = None` to `TestFreezeFallback` so it targets the `object.__setattr__` freeze-fallback path instead of tripping R3 loud `cost_model` validation). **Commit nothing unless explicitly requested.**
 **Single source of truth:** this file. `AGENT_HANDOFF.md` is a pointer only. Read this whole file before doing anything. Do not create parallel handoff docs. If live evidence conflicts with recorded numbers here, **live run wins** — re-measure, record the delta, and update this file.
@@ -11,17 +11,17 @@
 
 ## R3 COMPLETION EVIDENCE (completion bar met on final HEAD `ee1d42c`)
 
-- **R2 green on current HEAD:** preflight `RC=0`; `tests/test_bab_stress_regimes.py tests/test_bab_stress_horizon.py tests/test_bab_scale_perf_guard.py` => **155 passed, 6 warnings, 32.66s**; scale medians 5000×200=151ms (≤800ms OK), 5000×500=378ms (≤2000ms OK).
-- **R3-A (execution-realism regression tests):** `tests/test_bab_execution_realism_r3.py` EXISTS and is GREEN — **62 passed, 1.06s**. Covers all 5 hostile regimes × dn on/off × cost on/off; locked columns + finite; `cost_drag>=0`; DN `max|Σw|<=1e-9`; costs-on vs flat deltas; borrow asymmetry (more short notional => strictly higher cost); byte-identical no-model/flat default path; finite `report()`/`tear_sheet()` + strict `report_to_json()`; loud `BABConfigError`/`BABDataError` on invalid `cost_model`/`partial_fill`/`max_participation`; causal betas (no lookahead under cost model).
+- **R2 green on current HEAD:** preflight `RC=0`; `tests/test_bab_stress_regimes.py tests/test_bab_stress_horizon.py tests/test_bab_scale_perf_guard.py` => **155 passed, 6 warnings, 33.59s**; scale medians 5000×200=151ms (≤800ms OK), 5000×500=383ms (≤2000ms OK). *Verified 2026-11-14T23:46:03Z*
+- **R3-A (execution-realism regression tests):** `tests/test_bab_execution_realism_r3.py` EXISTS and is GREEN — **62 passed, 1.06s**. Covers all 5 hostile regimes × dn on/off × cost on/off; locked columns + finite; `cost_drag>=0`; DN `max|Σw|<=1e-9`; costs-on vs flat deltas; borrow asymmetry (more short notional => strictly higher cost); byte-identical no-model/flat default path; finite `report()`/`tear_sheet()` + strict `report_to_json()`; loud `BABConfigError`/`BABDataError` on invalid `cost_model`/`partial_fill`/`max_participation`; causal betas (no lookahead under cost model). *Verified 2026-11-14T23:46:03Z*
 - **R3-B (rebalance-frequency sweep):** daily/weekly/monthly × 5 hostile regimes × dn on/off with cost model; invariants hold (weekly/monthly rebalance periods ≤ daily; no daily regression vs R2; finite cumulative, locked columns, DN). Green (within the 62 above).
 - **Bottleneck removed:** `tests/test_bab_strategy_campaign_gaps.py::TestFreezeFallback::test_freeze_fallback_path` previously raised `BABDataError: cost_model must be a TransactionCostModel, dict, or None, got MagicMock` because `MagicMock(spec=BABConfig).cost_model` returns a MagicMock child that tripped R3 loud validation (`strategy.py:_resolve_cost_model`, strategy.py:238). Minimal scope-correction fix: added `cfg.cost_model = None` (cost_model is a real BABConfig field, so this is allowed on the spec'd mock). **R3 validation untouched — not weakened.** Gate now green.
-- **Full gate:** `bash scripts/bab_gate.sh` **RC=0** — 5589 passed / 35 skipped / ~410s / coverage 96% (all of `strategies/betting_against_beta`).
+- **Full gate:** `bash scripts/bab_gate.sh` **RC=0** — **5590 passed / 35 skipped / ~419s / coverage 96%** (all of `strategies/betting_against_beta`). *Verified 2026-11-14T23:46:03Z*
 
 **Definition of done for R3:** R2 green on final HEAD, R3-A tests written and green, R3-B sweep implemented/measured and green, `bash scripts/bab_gate.sh` RC=0 recorded, `HANDOFF.md` refreshed with concrete evidence. **ALL MET.** R3 is closed. Do not reopen without new reproducible evidence.
 
 ---
 
-## INITIAL TASK FOR NEXT SESSION (binding, timestamped 2026-11-13T23:28:39Z)
+## INITIAL TASK FOR NEXT SESSION (binding, timestamped 2026-11-14T23:46:03Z)
 
 **Objective:** R3 is closed. Begin **R4 (Live-Readiness)** end-to-end on current `HEAD` with hard evidence. Partial completion is not acceptable. Ship code/tests/evidence; do not stop at analysis.
 
@@ -35,7 +35,7 @@ R4 candidates (from prior handoff, now the active campaign):
 VENV=/home/runner/work/_temp/kilo-tmp/bab-venv
 if [ ! -d "$VENV" ]; then python3 -m venv "$VENV"; fi
 "$VENV/bin/python" -m pip install --quiet --upgrade pip
-"$VENV/bin/python" -m pip install --quiet "numpy==2.5.4" "pandas==3.1.1" "scipy==1.18.1" "pytest==9.2.0" "hypothesis==6.170.15" "coverage==7.17.3"
+"$VENV/bin/python" -m pip install --quiet "numpy==2.5.4" "pandas==3.1.1" "scipy==1.18.1" "pytest==9.2.0" "hypothesis==6.170.15" "coverage==7.17.3" "pytest-cov==7.1.0"
 
 cd /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
 PYTHONPATH=. "$VENV/bin/python" scripts/bab_r2_preflight.py; echo "PREFLIGHT_RC=$?"
@@ -82,7 +82,7 @@ PYTHONPATH=. "$VENV/bin/python" scripts/bab_r2_preflight.py; echo "PREFLIGHT_RC=
 
 ## Performance guardrails (do not regress; live-run wins)
 
-- Prior measured medians (this session, ee1d42c): 5000×200 ~151ms (ceiling 800ms), 5000×500 ~378ms (ceiling 2000ms). Scale guards assert ceilings, not exact medians.
+- Prior measured medians (this session, ee1d42c): 5000×200 ~151ms (ceiling 800ms), 5000×500 ~383ms (ceiling 2000ms). Scale guards assert ceilings, not exact medians.
 - Keep default/no-model path model-free/lightweight; pay cost-model overhead only when configured.
 
 ---
