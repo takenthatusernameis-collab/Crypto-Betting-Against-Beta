@@ -4,15 +4,15 @@
 
 **Priority basis (repo name):** this repository *is* the BAB strategy engine, not a tooling sandbox. Priority order is: (1) BAB beta/signal/backtest correctness; (2) execution realism and reconciliation; (3) live/execution readiness; (4) tests, docs, and coverage. Diagnostics, probe archaeology, and coverage-chasing are means to those ends and must not displace P0/P1 work.
 
-**Refreshed:** 2026-11-14T08:48:17Z (UTC)
-**HEAD at refresh:** `9dc4ac1` (main). **Live run wins** — if any recorded number conflicts with live output on the current `HEAD`, re-measure, record the delta, and update this file immediately.
+**Refreshed:** 2026-11-14T08:49:22Z (UTC)
+**HEAD at refresh:** `186e70e` (main). **Live run wins** — if any recorded number conflicts with live output on the current `HEAD`, re-measure, record the delta, and update this file immediately.
 **Single source of truth:** this file. `AGENT_HANDOFF.md` is a pointer only. Read this whole file before doing anything. Do not create parallel handoff/session docs.
 
 ---
 
 ## INITIAL TASK MESSAGE (START HERE, 2026-11-14T08:48:17Z UTC) — BINDING
 
-**Live baseline verified on `9dc4ac1` (2026-11-14T08:48:17Z UTC):** R2 preflight RC=0 (green; 5000×500 = 554 ms ≤ 2000 ceiling), R4 preflight RC=0 (R4-A/B/C present + green, R2/R3 baseline 217 passed), R5-E+R5 integration RC=0 (46 passed, 19.04s), R5-D CLI sanity RC=0 (`--adapter paper --reconcile --output` emits execution + reconciliation sidecars; strict-JSON-safe), default-path CLI RC=0 (0.413704 / 252 periods). **Full gate RC=0: 5667 passed / 35 skipped / 577.63s / coverage 92%** (live on `9dc4ac1`). **R1–R5 + R5-D + R5-E are all COMPLETE — do NOT reopen them without new reproducible evidence of a defect.** `9dc4ac1` changed only `HANDOFF.md` vs `bcebae0` (handoff docs only), so product/test code is byte-identical to `bcebae0` where R5-E was proven.
+**Live baseline verified on `186e70e` (2026-11-14T08:49:22Z UTC):** R2 preflight RC=0 (green; 5000×200 = 203 ms ≤ 800 ceiling, 5000×500 = 535 ms ≤ 2000 ceiling), R4 preflight RC=0 (R4-A/B/C present + green, R2/R3 baseline 217 passed), R5-E+R5 integration RC=0 (46 passed, 18.89s), R5-D CLI sanity RC=0 (`--adapter paper --reconcile --output` emits execution + reconciliation sidecars; strict-JSON-safe), default-path CLI RC=0 (0.413704 / 252 periods). **Full gate RC=0: 5667 passed / 35 skipped / 577.63s / coverage 92%** (live on `9dc4ac1`; product/test code byte-identical on `186e70e` — only handoff docs changed since `bcebae0`). **R1–R5 + R5-D + R5-E are all COMPLETE — do NOT reopen them without new reproducible evidence of a defect.**
 
 **Immediate sequence (execute now, in order):**
 1. **Environment/bootstrap (idempotent, not a blocker):**
@@ -63,18 +63,18 @@
 
 ---
 
-## VERIFIED EVIDENCE SNAPSHOT (live-verified on `9dc4ac1`; 2026-11-14T08:48:17Z UTC)
+## VERIFIED EVIDENCE SNAPSHOT (live-verified on `186e70e`; 2026-11-14T08:49:22Z UTC)
 
-Captured on HEAD `9dc4ac1` (2026-11-14T08:48:17Z UTC). `9dc4ac1` vs `bcebae0` changed only `HANDOFF.md` (handoff docs); product/test code is byte-identical to `bcebae0` where R5-E was proven. Re-verify fast checks on current HEAD before new work (env: `VENV=/home/runner/work/_temp/kilo-tmp/bab-venv`, Python 3.12.3).
+Captured on HEAD `186e70e` (2026-11-14T08:49:22Z UTC). `186e70e` vs `bcebae0` changed only handoff docs (`AGENT_HANDOFF.md`, `HANDOFF.md`); product/test code is byte-identical to `bcebae0` where R5-E was proven. Re-verify fast checks on current HEAD before new work (env: `VENV=/home/runner/work/_temp/kilo-tmp/bab-venv`, Python 3.12.3).
 
 | Check | Command | Live result |
 |---|---|---|
-| R2 preflight | `PYTHONPATH=. "$VENV/bin/python" scripts/bab_r2_preflight.py` | RC=0 — green; 155 passed; 5000×200 = 214 ms (≤800), 5000×500 = 554 ms (≤2000) [OK] |
+| R2 preflight | `PYTHONPATH=. "$VENV/bin/python" scripts/bab_r2_preflight.py` | RC=0 — green; 155 passed; 5000×200 = 203 ms (≤800), 5000×500 = 535 ms (≤2000) [OK] |
 | R4 preflight | `PYTHONPATH=. "$VENV/bin/python" scripts/bab_r4_preflight.py` | RC=0 — R4-A/B/C present + green; R2/R3 baseline 217 passed |
-| R5-E + R5 tests | `PYTHONPATH=. "$VENV/bin/python" -m pytest tests/test_bab_execution_integration_r5.py tests/test_bab_execution_realism_r5e.py -q -p no:cacheprovider` | RC=0 — 46 passed, 19.04s |
+| R5-E + R5 tests | `PYTHONPATH=. "$VENV/bin/python" -m pytest tests/test_bab_execution_integration_r5.py tests/test_bab_execution_realism_r5e.py -q -p no:cacheprovider` | RC=0 — 46 passed, 18.89s |
 | R5-D CLI sanity | `--synthetic --adapter paper --reconcile --output /tmp/bab_r5d_sanity.json` | RC=0 — execution + reconciliation sidecars written, strict-JSON-safe (`json.load` OK) |
 | Default-path CLI | `--synthetic` (no adapter) | RC=0 — 0.413704 / 252 periods |
-| Full gate | `PATH="$VENV/bin:$PATH" bash scripts/bab_gate.sh` | **RC=0 — 5667 passed / 35 skipped / 577.63s / coverage 92%** (live on `9dc4ac1`) |
+| Full gate | `PATH="$VENV/bin:$PATH" bash scripts/bab_gate.sh` | **RC=0 — 5667 passed / 35 skipped / 577.63s / coverage 92%** (live on `9dc4ac1`; product/test code byte-identical on `186e70e`) |
 
 **Lowest-coverage product modules (R5-F targets):** `execution.py` 72% (uncovered 128–184, 527–545), `reconciliation.py` 74% (55–85, 104–138, 291–381), `cli.py` 81% (34–103, 289–294, 415–617, 661), `backtest.py` 83% (150–176). Overall 92% (5784 stmts, 462 missed).
 
