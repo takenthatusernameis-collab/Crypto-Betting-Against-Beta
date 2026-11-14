@@ -95,7 +95,7 @@ def construct_portfolio(signals_df, dollar_neutral=True, gross_exposure_limit=No
                                 numeric[col] = pd.to_numeric(numeric[col], errors="coerce")
                             except Exception:
                                 numeric[col] = 0.0
-                    arr = numeric.to_numpy(dtype=float)
+                arr = numeric.to_numpy(dtype=float)
         except Exception:
             return _pd.DataFrame(0.0, index=index, columns=columns)
         iv = np.trunc(arr)

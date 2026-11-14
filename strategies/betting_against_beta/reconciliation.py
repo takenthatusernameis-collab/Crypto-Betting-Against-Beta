@@ -352,8 +352,8 @@ def reconcile_fills_to_backtest(
     for t in range(n):
         date = idx[t]
         date_key = _date_key(date)
-        # Realized positions start at target, then absorb the fill shortfall.
-        realized_w = target_w.copy()
+        # Realized positions start at target for this period, then absorb the fill shortfall.
+        realized_w = target_w[t].copy()
         date_filled = filled_by_date.get(date_key, {})
         date_ordered = ordered_by_date.get(date_key, {})
         for asset in set(date_filled) | set(date_ordered):
