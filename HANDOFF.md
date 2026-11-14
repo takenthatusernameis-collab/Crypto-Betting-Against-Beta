@@ -1,12 +1,12 @@
 # HANDOFF — Crypto-Betting-Against-Beta
 
 **Canonical durable handoff (single source of truth).**
-**Timestamp (UTC):** 2026-11-14T15:35:29Z
+**Timestamp (UTC):** 2026-11-14T15:52:23Z
 **Repo:** `Crypto-Betting-Against-Beta`
-**HEAD:** `fedcd89e76cc7c8255dfbb4e6230b324daec59d9` (`chore(kilo): checkpoint agent session`) — trust live `git log --oneline -3` / `git status` over this file if they differ.
+**HEAD:** `8fd0812d994559b976509bc233029b5cdab2789e` (`chore(kilo): checkpoint agent session`) — trust live `git log --oneline -3` / `git status` over this file if they differ.
 **Branch:** `main` (clean working tree)
 
-## INITIAL TASK MESSAGE (START HERE, 2026-11-14T15:35:29Z UTC) — BINDING
+## INITIAL TASK MESSAGE (START HERE, 2026-11-14T15:52:23Z UTC) — BINDING
 
 Execute this campaign in order. Do **not** do probe/debug archaeology (`probe_*.py`, `debug_*.py`, `ast_probe.py`), do **not** create parallel handoff/session/task docs, and do **not** re-verify already-green areas unless your change touches them. If a step is blocked, produce concrete evidence (exact command + output summary) and continue with the next unblocked priority; never stop at analysis.
 
@@ -15,7 +15,7 @@ Make the Betting Against Beta (BAB) crypto strategy **operational on real, updat
 
 ---
 
-### Status snapshot (2026-11-14T15:35:29Z, pre-change) — all green
+### Status snapshot (2026-11-14T15:52:23Z, pre-change) — all green
 
 | Check | Command | Result |
 |-------|---------|--------|
@@ -78,4 +78,4 @@ Use `scripts/perf_bench.py` (and a real-format dataset path, fixture or generate
 2. Execute priorities in order; document blockers with command evidence and continue where possible.
 3. Leave repo coherent and refresh this handoff before stopping.
 
-**Next Agent Mandate:** Execute Priority 2 → Priority 3 → Priority 4. Report completion with `ruff check .`, targeted real-data pipeline test output, `scripts/load_real_bab_example.py ... --from-prices` smoke output, and perf baseline evidence.
+**Next Agent Mandatory:** Priority 2 (real data fetch/update pipeline) is the heavy, unavoidable work and must be executed before Priority 3 or 4 — do not skip or defer it. Report completion with `ruff check .`, targeted real-data pipeline test output, `scripts/load_real_bab_example.py tests/fixtures/real_market_prices.csv --from-prices --benchmark BTC` smoke output (finite `cumulative_return`), and perf baseline evidence.
