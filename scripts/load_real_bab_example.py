@@ -5,7 +5,8 @@ Example: Load real returns data and run BABStrategy.
 This script shows the concrete contract for swapping in real data:
 - CSV/JSON/JSONL/Parquet/HDF5/Pickle with datetime index/column and numeric
 return columns per asset
-- Use load_returns() for validation/coercion/normalization (tz-aware -> UTC naive, dedup, drop all-NaN, numeric coercion)
+- Use load_returns() for validation/coercion/normalization (tz-aware -> UTC
+  naive, dedup, drop all-NaN, numeric coercion)
 - Pass returns_df to BABStrategy.run(returns_df=...)
 - Also demonstrates price->returns via load_prices() if needed
 """

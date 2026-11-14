@@ -623,7 +623,8 @@ def main(argv=None) -> int:
                 print(f"Execution adapter: {exec_payload.get('adapter')}")
                 print(
                     f"  batches: {exec_payload.get('n_batches')}, "
-                    f"intents: {exec_payload.get('n_intents')}, fills: {exec_payload.get('n_fills')}"
+                    f"intents: {exec_payload.get('n_intents')}, "
+                    f"fills: {exec_payload.get('n_fills')}"
                 )
                 if args.output:
                     exec_path = out_path.with_suffix(out_path.suffix + ".execution.json")
