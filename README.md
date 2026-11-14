@@ -114,6 +114,41 @@ python scripts/fetch_real_bab_prices.py --output data/real_bab_prices.csv \
   --start 2024-01-01 --end 2024-06-30 --print-metadata
 ```
 
+#### Metadata audit sidecar (`--metadata-out`)
+
+Write a machine-readable JSON audit trail for reproducibility and CI/CD integration:
+
+```bash
+python scripts/fetch_real_bab_prices.py --output data/real_bab_prices.csv \
+  --source coinbase-exchange-public --allow-public-api \
+  --accept-terms "I accept the data provider Terms of Service and rate limits" \
+  --benchmark BTC --universe BTC,ETH,SOL --quote-currency USD \
+  --start 2024-01-01 --end 2024-06-30 \
+  --metadata-out data/fetch_meta.json
+```
+
+The JSON sidecar contains:
+- `tool`, `source`, `source_url_base` (for public API), `benchmark`, `universe`, `request_range`
+- `request_settings`: `timeout_seconds`, `max_requests_per_second`, `max_retries`, `user_agent`
+- `tos_acknowledged` (boolean only), `tos_flag_only` (true for public API; raw ToS text never persisted)
+- `fetch_time_utc`, `mode` (`created`/`updated`/`failed`), `seed` (if set)
+- `outcome`: on success — `ok:true`, `rows`, `date_coverage` (`first`/`last`/`unique_dates`), `columns`, `output`; on failure — `ok:false`, `error` context
+
+#### Failure modes (public API path)
+
+| Failure scenario | Behavior |
+|------------------|----------|
+| Missing `--allow-public-api` | Exits non-zero with clear message; no network request |
+| Invalid/mismatched `--accept-terms` | Exits non-zero; exact ToS text required |
+| Network unreachable / DNS failure | Exits non-zero after retries; no offline fallback |
+| HTTP 429 rate limit | Retries with `Retry-After` backoff; fails after max retries |
+| HTTP 5xx server errors | Retries with exponential backoff; fails after max retries |
+| HTTP 404 / invalid product | Exits non-zero; symbol unavailable on public market |
+| Non-JSON / invalid candle payload | Exits non-zero; `BABDataError` with parse context |
+| Empty candle response (no data in window) | Exits non-zero; `BABDataError` |
+| Partial symbol coverage (some symbols missing) | Exits non-zero; `BABDataError` — no silent partial alignment |
+| Duplicate dates / non-monotonic output | Exits non-zero; schema validation failure |
+
 - Offline `deterministic-offline` is the only default path and is idempotent/incrementally updatable.
 - Public API fetching is never implicit: `--source coinbase-exchange-public` requires `--allow-public-api` and exact `--accept-terms`; requests are rate-limit paced and retried only for bounded transient/rate-limit cases, then fail loudly.
 - Review provider Terms of Service, market-data policies, and rate limits before use; redistribution may be restricted. Output schema is `date,BTC,<assets...>` compatible with `load_prices()` / `--from-prices`.

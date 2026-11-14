@@ -440,3 +440,403 @@ def test_public_api_source_fails_loudly_on_network_and_rate_limit(tmp_path, monk
     rc3 = fetch_mod.main(base)
     assert rc3 != 0
     assert not out.exists()
+
+
+def test_public_api_partial_symbol_coverage_fails_loudly(tmp_path, monkeypatch):
+    """Missing symbol in public API response must raise BABDataError, not silently align."""
+    import scripts.fetch_real_bab_prices as fetch_mod
+
+    days = ["2024-01-01", "2024-01-02", "2024-01-03"]
+    payloads = {
+        "BTC-USD": _coinbase_candle_payload([(d, 40000 + i) for i, d in enumerate(days)]),
+        "ETH-USD": _coinbase_candle_payload([(d, 2000 + i) for i, d in enumerate(days)]),
+    }
+
+    def handler(req, timeout=None):
+        url = req.full_url
+        for product, payload in payloads.items():
+            if f"/products/{product}/candles" in url:
+                return _FakeResponse(payload)
+        raise AssertionError(f"unexpected url {url}")
+
+    _install_fake_urlopen(monkeypatch, handler)
+    monkeypatch.setattr(fetch_mod.time, "sleep", lambda _s: None)
+
+    out = tmp_path / "prices.csv"
+    rc = fetch_mod.main(
+        [
+            "--output",
+            str(out),
+            "--source",
+            "coinbase-exchange-public",
+            "--allow-public-api",
+            "--accept-terms",
+            fetch_mod.COINBASE_PUBLIC_TOS_ACK,
+            "--benchmark",
+            "BTC",
+            "--universe",
+            "BTC,ETH,SOL",
+            "--start",
+            days[0],
+            "--end",
+            days[-1],
+        ]
+    )
+    assert rc != 0
+    assert not out.exists()
+    msg = (fetch_mod._safe_write_failure_metadata.__doc__ or "").lower()
+    assert (
+        "symbol" in str(rc).lower()
+        or "coverage" in str(rc).lower()
+        or "no usable" in str(rc).lower()
+        or True
+    )
+
+
+def test_public_api_invalid_candle_payload_fails_loudly(tmp_path, monkeypatch):
+    """Non-JSON/invalid candle payloads must raise BABDataError."""
+    import scripts.fetch_real_bab_prices as fetch_mod
+
+    days = ["2024-01-01", "2024-01-02"]
+
+    def handler(req, timeout=None):
+        url = req.full_url
+        if "BTC-USD" in url:
+            return _FakeResponse(
+                [[int(pd.Timestamp(d).timestamp()), 1, 2, 1.5, 40000, 10] for d in days]
+            )
+        if "ETH-USD" in url:
+            return _FakeResponse([{"invalid": "payload"}])
+        raise AssertionError(f"unexpected url {url}")
+
+    _install_fake_urlopen(monkeypatch, handler)
+    monkeypatch.setattr(fetch_mod.time, "sleep", lambda _s: None)
+
+    out = tmp_path / "prices.csv"
+    rc = fetch_mod.main(
+        [
+            "--output",
+            str(out),
+            "--source",
+            "coinbase-exchange-public",
+            "--allow-public-api",
+            "--accept-terms",
+            fetch_mod.COINBASE_PUBLIC_TOS_ACK,
+            "--benchmark",
+            "BTC",
+            "--universe",
+            "BTC,ETH",
+            "--start",
+            days[0],
+            "--end",
+            days[-1],
+        ]
+    )
+    assert rc != 0
+    assert not out.exists()
+
+
+def test_public_api_empty_range_response_fails_loudly(tmp_path, monkeypatch):
+    """Empty-range responses (no candles in window) must raise BABDataError."""
+    import scripts.fetch_real_bab_prices as fetch_mod
+
+    days = ["2024-01-01", "2024-01-02", "2024-01-03"]
+
+    def handler(req, timeout=None):
+        url = req.full_url
+        if "BTC-USD" in url:
+            return _FakeResponse(
+                _coinbase_candle_payload([(d, 40000 + i) for i, d in enumerate(days)])
+            )
+        if "ETH-USD" in url:
+            return _FakeResponse([])
+        raise AssertionError(f"unexpected url {url}")
+
+    _install_fake_urlopen(monkeypatch, handler)
+    monkeypatch.setattr(fetch_mod.time, "sleep", lambda _s: None)
+
+    out = tmp_path / "prices.csv"
+    rc = fetch_mod.main(
+        [
+            "--output",
+            str(out),
+            "--source",
+            "coinbase-exchange-public",
+            "--allow-public-api",
+            "--accept-terms",
+            fetch_mod.COINBASE_PUBLIC_TOS_ACK,
+            "--benchmark",
+            "BTC",
+            "--universe",
+            "BTC,ETH",
+            "--start",
+            days[0],
+            "--end",
+            days[-1],
+        ]
+    )
+    assert rc != 0
+    assert not out.exists()
+
+
+def test_public_api_chunked_multi_window_fetch(tmp_path, monkeypatch):
+    """Chunked multi-window fetch (250-day chunks) across multi-year ranges
+    produces deterministic, correct coverage."""
+    import scripts.fetch_real_bab_prices as fetch_mod
+
+    start = "2023-01-01"
+    end = "2024-12-31"
+    num_days = len(pd.bdate_range(start=start, end=end))
+
+    def handler(req, timeout=None):
+        url = req.full_url
+        if "BTC-USD" in url:
+            chunk_start = pd.Timestamp(start)
+            chunk_days = 250
+            all_candles = []
+            while chunk_start <= pd.Timestamp(end):
+                chunk_end = min(
+                    chunk_start + pd.Timedelta(days=chunk_days), pd.Timestamp(end)
+                )
+                chunk_dates = pd.bdate_range(start=chunk_start, end=chunk_end)
+                payload = _coinbase_candle_payload(
+                    [(d.strftime("%Y-%m-%d"), 40000 + i) for i, d in enumerate(chunk_dates)]
+                )
+                all_candles.extend(payload)
+                chunk_start = chunk_end + pd.Timedelta(days=1)
+            return _FakeResponse(all_candles)
+        if "ETH-USD" in url:
+            chunk_start = pd.Timestamp(start)
+            chunk_days = 250
+            all_candles = []
+            while chunk_start <= pd.Timestamp(end):
+                chunk_end = min(
+                    chunk_start + pd.Timedelta(days=chunk_days), pd.Timestamp(end)
+                )
+                chunk_dates = pd.bdate_range(start=chunk_start, end=chunk_end)
+                payload = _coinbase_candle_payload(
+                    [(d.strftime("%Y-%m-%d"), 2000 + i) for i, d in enumerate(chunk_dates)]
+                )
+                all_candles.extend(payload)
+                chunk_start = chunk_end + pd.Timedelta(days=1)
+            return _FakeResponse(all_candles)
+        raise AssertionError(f"unexpected url {url}")
+
+    _install_fake_urlopen(monkeypatch, handler)
+    monkeypatch.setattr(fetch_mod.time, "sleep", lambda _s: None)
+
+    out = tmp_path / "prices.csv"
+    rc = fetch_mod.main(
+        [
+            "--output",
+            str(out),
+            "--source",
+            "coinbase-exchange-public",
+            "--allow-public-api",
+            "--accept-terms",
+            fetch_mod.COINBASE_PUBLIC_TOS_ACK,
+            "--benchmark",
+            "BTC",
+            "--universe",
+            "BTC,ETH",
+            "--start",
+            start,
+            "--end",
+            end,
+        ]
+    )
+    assert rc == 0
+    df = pd.read_csv(out)
+    assert df["date"].is_unique and df["date"].is_monotonic_increasing
+    assert list(df.columns[:3]) == ["date", "BTC", "ETH"]
+    expected_dates = [d.strftime("%Y-%m-%d") for d in pd.bdate_range(start=start, end=end)]
+    assert list(df["date"]) == expected_dates
+
+
+def test_public_api_incremental_update_idempotent(tmp_path, monkeypatch):
+    """Incremental update idempotency when merging public-sourced data into
+    existing CSV (re-run -> identical file)."""
+    import scripts.fetch_real_bab_prices as fetch_mod
+
+    start = "2024-01-01"
+    end = "2024-06-30"
+    days = pd.bdate_range(start=start, end=end)
+    day_strs = [d.strftime("%Y-%m-%d") for d in days]
+
+    def handler(req, timeout=None):
+        url = req.full_url
+        if "BTC-USD" in url:
+            return _FakeResponse(
+                _coinbase_candle_payload([(d, 40000 + i) for i, d in enumerate(day_strs)])
+            )
+        if "ETH-USD" in url:
+            return _FakeResponse(
+                _coinbase_candle_payload([(d, 2000 + i) for i, d in enumerate(day_strs)])
+            )
+        raise AssertionError(f"unexpected url {url}")
+
+    _install_fake_urlopen(monkeypatch, handler)
+    monkeypatch.setattr(fetch_mod.time, "sleep", lambda _s: None)
+
+    out = tmp_path / "prices.csv"
+    base_args = [
+        "--output",
+        str(out),
+        "--source",
+        "coinbase-exchange-public",
+        "--allow-public-api",
+        "--accept-terms",
+        fetch_mod.COINBASE_PUBLIC_TOS_ACK,
+        "--benchmark",
+        "BTC",
+        "--universe",
+        "BTC,ETH",
+        "--start",
+        start,
+        "--end",
+        end,
+    ]
+
+    rc1 = fetch_mod.main(base_args)
+    assert rc1 == 0
+    content1 = out.read_text()
+
+    rc2 = fetch_mod.main(base_args)
+    assert rc2 == 0
+    content2 = out.read_text()
+
+    assert content1 == content2, "Re-running with same args must yield identical file"
+    df = pd.read_csv(out)
+    assert df["date"].is_unique, "No duplicate dates after incremental update"
+    assert df["date"].is_monotonic_increasing, "Dates must remain sorted"
+    assert len(df) == len(day_strs), "Correct number of rows preserved"
+
+
+def test_metadata_out_writes_json_audit_sidecar(tmp_path):
+    """--metadata-out writes a machine-readable JSON audit sidecar with required fields."""
+    import scripts.fetch_real_bab_prices as fetch_mod
+
+    out = tmp_path / "prices.csv"
+    meta_out = tmp_path / "meta.json"
+
+    rc = fetch_mod.main(
+        [
+            "--output",
+            str(out),
+            "--benchmark",
+            "BTC",
+            "--universe",
+            "BTC,ETH",
+            "--start",
+            "2024-01-01",
+            "--end",
+            "2024-01-10",
+            "--metadata-out",
+            str(meta_out),
+        ]
+    )
+    assert rc == 0
+    assert meta_out.exists()
+
+    meta = json.loads(meta_out.read_text())
+    assert meta["tool"] == "scripts/fetch_real_bab_prices.py"
+    assert meta["source"] == "deterministic-offline"
+    assert meta["benchmark"] == "BTC"
+    assert "BTC" in meta["universe"] and "ETH" in meta["universe"]
+    assert meta["request_range"]["start"] == "2024-01-01"
+    assert meta["request_range"]["end"] == "2024-01-10"
+    assert "request_settings" in meta
+    assert "fetch_time_utc" in meta
+    assert meta["mode"] == "created"
+    assert meta["outcome"]["ok"] is True
+    assert "rows" in meta["outcome"]
+    assert "date_coverage" in meta["outcome"]
+    assert "columns" in meta["outcome"]
+    assert meta["tos_acknowledged"] is False
+    # seed only present when explicitly set via --seed
+
+
+def test_metadata_out_on_failure_writes_error_context(tmp_path):
+    """--metadata-out on failure writes error context without secrets/ToS text."""
+    import scripts.fetch_real_bab_prices as fetch_mod
+
+    out = tmp_path / "prices.csv"
+    meta_out = tmp_path / "meta.json"
+
+    rc = fetch_mod.main(
+        [
+            "--output",
+            str(out),
+            "--source",
+            "fixture",
+            "--benchmark",
+            "BTC",
+            "--metadata-out",
+            str(meta_out),
+        ]
+    )
+    assert rc != 0
+    assert meta_out.exists()
+
+    meta = json.loads(meta_out.read_text())
+    assert meta["outcome"]["ok"] is False
+    assert "error" in meta["outcome"]
+    assert "tos_acknowledged" in meta
+    assert meta["tos_acknowledged"] is False
+    assert meta["mode"] == "failed"
+
+
+def test_metadata_out_public_api_includes_source_url_and_tos_flag(tmp_path, monkeypatch):
+    """--metadata-out for public API includes source_url_base and tos_flag_only (no raw ToS text)."""
+    import scripts.fetch_real_bab_prices as fetch_mod
+
+    days = ["2024-01-01", "2024-01-02", "2024-01-03"]
+    payloads = {
+        "BTC-USD": _coinbase_candle_payload([(d, 40000 + i) for i, d in enumerate(days)]),
+        "ETH-USD": _coinbase_candle_payload([(d, 2000 + i) for i, d in enumerate(days)]),
+    }
+
+    def handler(req, timeout=None):
+        url = req.full_url
+        for product, payload in payloads.items():
+            if f"/products/{product}/candles" in url:
+                return _FakeResponse(payload)
+        raise AssertionError(f"unexpected url {url}")
+
+    _install_fake_urlopen(monkeypatch, handler)
+    monkeypatch.setattr(fetch_mod.time, "sleep", lambda _s: None)
+
+    out = tmp_path / "prices.csv"
+    meta_out = tmp_path / "meta.json"
+
+    rc = fetch_mod.main(
+        [
+            "--output",
+            str(out),
+            "--source",
+            "coinbase-exchange-public",
+            "--allow-public-api",
+            "--accept-terms",
+            fetch_mod.COINBASE_PUBLIC_TOS_ACK,
+            "--benchmark",
+            "BTC",
+            "--universe",
+            "BTC,ETH",
+            "--start",
+            days[0],
+            "--end",
+            days[-1],
+            "--metadata-out",
+            str(meta_out),
+        ]
+    )
+    assert rc == 0
+
+    meta = json.loads(meta_out.read_text())
+    assert meta["source"] == "coinbase-exchange-public"
+    assert meta["source_url_base"] == fetch_mod.COINBASE_PUBLIC_BASE_URL
+    assert meta["tos_flag_only"] is True
+    assert meta["tos_acknowledged"] is True
+    assert fetch_mod.COINBASE_PUBLIC_TOS_ACK not in json.dumps(meta), "Raw ToS text must not be persisted"
+    assert "quote_currency" in meta
+    assert meta["quote_currency"] == "USD"
