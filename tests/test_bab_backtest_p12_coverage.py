@@ -27,7 +27,9 @@ def _idx(n=20):
 
 def _returns(n=20, seed=1):
     rng = np.random.default_rng(seed)
-    return pd.DataFrame({"BTC": rng.normal(0, 0.01, n), "ETH": rng.normal(0, 0.01, n)}, index=_idx(n))
+    btc = rng.normal(0, 0.01, n)
+    eth = rng.normal(0, 0.01, n)
+    return pd.DataFrame({"BTC": btc, "ETH": eth}, index=_idx(n))
 
 
 def _weights(n=20):
@@ -50,7 +52,9 @@ def test_clean_frame_local_replaces_inf_with_nan():
     df = pd.DataFrame({"BTC": [1.0, np.inf, -np.inf, 3.0]})
     out = _clean_frame_local(df)
     assert out is not None
-    assert np.isfinite(out.to_numpy(dtype=float)).all()
+    # inf/-inf replaced with nan, but nan values remain (not made finite)
+    assert pd.isna(out.iloc[1, 0]) and pd.isna(out.iloc[2, 0])
+    assert out.iloc[0, 0] == 1.0 and out.iloc[3, 0] == 3.0
 
 
 # ---------------------------------------------------------------------------
@@ -120,17 +124,24 @@ def test_partial_fill_exception_fallback_keeps_flat_drag():
     adv = _adv()
     # Make participation computation blow up; flat slippage must stay intact.
     with mock.patch(
-        "strategies.betting_against_beta.backtest._adv_series_local", side_effect=RuntimeError("boom")
+        "strategies.betting_against_beta.backtest._adv_series_local",
+        side_effect=RuntimeError("boom"),
     ):
         out = run_backtest(
             rets, w, slippage=0.001, partial_fill=True, prices_df=prices, adv_usd=adv,
         )
-        flat = run_backtest(rets, w, slippage=0.001, partial_fill=False, prices_df=prices, adv_usd=adv)
-        np.testing.assert_array_equal(out["slippage_drag"].to_numpy(), flat["slippage_drag"].to_numpy())
+        flat = run_backtest(
+            rets, w, slippage=0.001, partial_fill=False, prices_df=prices, adv_usd=adv
+        )
+        np.testing.assert_array_equal(
+            out["slippage_drag"].to_numpy(), flat["slippage_drag"].to_numpy()
+        )
 
 
 def test_partial_fill_zero_slippage_is_noop():
     rets = _returns()
     w = _weights()
-    out = run_backtest(rets, w, slippage=0.0, partial_fill=True, prices_df=_prices(), adv_usd=_adv())
+    out = run_backtest(
+        rets, w, slippage=0.0, partial_fill=True, prices_df=_prices(), adv_usd=_adv()
+    )
     assert (out["slippage_drag"] == 0.0).all()

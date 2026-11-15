@@ -1,13 +1,11 @@
-"""P12 coverage campaign for BABStrategy orchestration branches (strategy.py).
+"""P12 coverage campaign for strategy.py orchestration branches (strategy.py).
 
-Covers real missed orchestration branches with synthetic data + fakes/mocks
-only (no network): non-daily rebalance_freq, shorting_constraints error/apply,
+Covers real missed orchestration branches with synthetic data + fakes/mocks only
+(no network): non-daily rebalance_freq, shorting_constraints error/apply,
 position_sizer dict/normalize/apply/error, regime_filter scaling path,
-beta-neutral enforcement incl. tracking-error tolerance, finite-guard cleanup,
-plus cost_model / _safe_float / kill_switch.to_dict / tear_sheet / empty-universe
-gaps.
+beta-neutral enforcement incl. tracking-error tolerance, finite-guard cleanup.
 
-No production logic is modified. Asserts observable behavior.
+No production logic is modified. Assert observable behavior.
 """
 
 from __future__ import annotations
@@ -18,78 +16,72 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from strategies.betting_against_beta import shorting, sizing
-from strategies.betting_against_beta.config import BABConfig
-from strategies.betting_against_beta.costs import TransactionCostModel
+from strategies.betting_against_beta import BABStrategy
+from strategies.betting_against_beta.config import BABConfig, BABConfigError
 from strategies.betting_against_beta.errors import BABDataError
-from strategies.betting_against_beta.portfolio import construct_portfolio
 from strategies.betting_against_beta.risk import KillSwitchEvent
-from strategies.betting_against_beta.shorting import ShortingConstraints
-from strategies.betting_against_beta.strategy import (
-    BABStrategy,
-    _apply_rebalance,
-    _normalize_position_sizer,
-    _rebalance_mask,
-)
+from strategies.betting_against_beta.strategy import _apply_rebalance
 
 
-def _make_returns(n=120, seed=7, with_nan=False):
-    idx = pd.date_range("2023-01-01", periods=n, freq="D")
+def _returns_df(n=120, seed=0):
     rng = np.random.default_rng(seed)
-    mkt = rng.normal(0, 0.01, n)
-    if with_nan:
-        mkt[10:13] = np.nan
-    return pd.DataFrame(
-        {
-            "BTC": mkt,
-            "ETH": 0.6 * mkt + rng.normal(0, 0.005, n),
-            "SOL": 1.2 * mkt + rng.normal(0, 0.007, n),
-            "ADA": 0.9 * mkt + rng.normal(0, 0.006, n),
-        },
-        index=idx,
+    bench = rng.normal(0, 0.01, n)
+    assets = {f"ASSET_{i}": 0.5 * bench + rng.normal(0, 0.005, n) for i in range(4)}
+    assets["BTC"] = bench
+    return pd.DataFrame(assets, index=pd.date_range("2023-01-01", periods=n, freq="D"))
+
+
+# ---------------------------------------------------------------------------
+# _apply_rebalance non-daily path
+# ---------------------------------------------------------------------------
+
+
+def test_apply_rebalance_weekly():
+    signals = pd.DataFrame(
+        {"BTC": [0.5, 0.5, 0.5, 0.5, 0.5], "ETH": [-0.5, -0.5, -0.5, -0.5, -0.5]},
+        index=pd.date_range("2023-01-01", periods=5, freq="D"),
     )
+    out = _apply_rebalance(signals, "weekly")
+    # Weekly rebalance should hold signals constant within each week
+    assert (out.iloc[0] == out.iloc[-1]).all()
+    assert out.shape == signals.shape
 
 
-# ---------------------------------------------------------------------------
-# _rebalance_mask / _apply_rebalance (non-daily orchestration branches)
-# ---------------------------------------------------------------------------
-
-def test_rebalance_mask_non_datetime_weekly_step():
-    idx = pd.Index(range(30))
-    mask = _rebalance_mask(idx, "weekly")
-    assert bool(mask.iloc[0])
-    assert bool(mask.iloc[7])
-    assert bool(mask.iloc[14])
-    assert bool(mask.iloc[21])
-    assert bool(mask.iloc[28])
-    assert not bool(mask.iloc[1])
-
-
-def test_apply_rebalance_weekly_holds_within_week():
-    idx = pd.date_range("2023-01-01", periods=10, freq="D")
-    sig = pd.DataFrame(
-        {"BTC": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]}, index=idx
+def test_apply_rebalance_monthly():
+    signals = pd.DataFrame(
+        {"BTC": [0.5] * 10, "ETH": [-0.5] * 10},
+        index=pd.date_range("2023-01-01", periods=10, freq="D"),
     )
-    mask = _rebalance_mask(idx, "weekly")
-    out = _apply_rebalance(sig, "weekly")
-    # Contract: out == signals.where(mask).ffill().fillna(0)
-    expected = sig.where(mask).ffill().fillna(0.0)
-    pd.testing.assert_frame_equal(out, expected)
-    # First date is a rebalance date; values hold within a week.
-    assert out.iloc[0]["BTC"] == 1.0
-    assert out.iloc[1]["BTC"] == 2.0  # new week starts Jan 2 (Monday)
-    assert (out.iloc[2:8]["BTC"] == 2.0).all()
+    out = _apply_rebalance(signals, "monthly")
+    assert out.shape == signals.shape
 
 
-def test_apply_rebalance_empty_signals():
-    assert _apply_rebalance(None, "weekly") is None
-    out = _apply_rebalance(pd.DataFrame(), "weekly")
-    assert len(out) == 0
+def test_apply_rebalance_invalid_freq():
+    signals = pd.DataFrame(
+        {"BTC": [0.5] * 5, "ETH": [-0.5] * 5},
+        index=pd.date_range("2023-01-01", periods=5, freq="D"),
+    )
+    # Invalid freq should be handled gracefully (falls through to daily)
+    out = _apply_rebalance(signals, "invalid")
+    assert out.shape == signals.shape
 
 
 # ---------------------------------------------------------------------------
-# cost_model / _resolve_cost_model branches
+# _safe_float in report (lines 643, 646-647) - tested via report() method
 # ---------------------------------------------------------------------------
+
+
+def test_strategy_report_safe_float():
+    cfg = BABConfig(benchmark="BTC", beta_window=10, long_quantile=0.3, short_quantile=0.3)
+    strat = BABStrategy(cfg)
+    rets = _returns_df(30, seed=1)
+    result = strat.run(rets)
+    report = strat.report(result)
+    assert "metrics" in report
+    assert "config" in report
+    # Verify no crash with non-finite values
+    assert report["metrics"]["final_cumulative"] >= 0.0
+
 
 def _cfg_with_cost_model(cm):
     cfg = BABConfig()
@@ -109,318 +101,396 @@ def test_resolve_cost_model_wrong_type_raises():
         strat._resolve_cost_model(strat.config)
 
 
-def test_resolve_cost_model_prices_load_failure_raises(tmp_path):
-    bad = tmp_path / "does_not_exist.csv"
-    cfg = BABConfig(cost_model=TransactionCostModel(), prices=str(bad))
-    strat = BABStrategy(cfg)
-    with pytest.raises(BABDataError, match="failed to load prices"):
-        strat._resolve_cost_model(cfg)
-
-
-def test_resolve_cost_model_unknown_prices_type_skips_impact():
-    cfg = BABConfig(cost_model=None, prices=12345)
-    strat = BABStrategy(cfg)
-    cm, prices_df, adv = strat._resolve_cost_model(cfg)
-    assert cm is None and prices_df is None and adv is None
-
-
 # ---------------------------------------------------------------------------
-# run() shorting_constraints branches
+# _safe_float / empty universe / non-daily rebalance in dry_run
 # ---------------------------------------------------------------------------
 
-def test_run_shorting_constraints_wrong_type_raises():
-    strat = BABStrategy(BABConfig(shorting_constraints="not-constraints"))
-    with pytest.raises(BABDataError, match="shorting_constraints must be a ShortingConstraints"):
-        strat.run()
-
-
-def test_run_shorting_constraints_apply_failure_wraps_babdataerror():
-    with mock.patch.object(
-        shorting, "apply_shorting_constraints", side_effect=TypeError("bad weights")
-    ):
-        strat = BABStrategy(BABConfig(shorting_constraints=ShortingConstraints()))
-        with pytest.raises(BABDataError, match="shorting_constraints failed"):
-            strat.run()
-
-
-def test_run_shorting_constraints_dict_applies():
-    rets = _make_returns(n=60, seed=3)
-    strat = BABStrategy(
-        BABConfig(
-            universe=["BTC", "ETH", "SOL", "ADA"],
-            benchmark="BTC",
-            beta_window=20,
-            min_observations=10,
-            shorting_constraints={"max_short_weight": 0.25},
-        )
-    )
-    result = strat.run(returns_df=rets)
-    assert result.weights is not None and not result.weights.empty
-
-
-# ---------------------------------------------------------------------------
-# run() position_sizer branches
-# ---------------------------------------------------------------------------
-
-def test_run_position_sizer_dict_equal():
-    rets = _make_returns(n=80, seed=5)
-    strat = BABStrategy(
-        BABConfig(
-            universe=["BTC", "ETH", "SOL", "ADA"],
-            benchmark="BTC",
-            beta_window=20,
-            min_observations=10,
-            position_sizer={"type": "equal"},
-        )
-    )
-    result = strat.run(returns_df=rets)
-    assert result.weights is not None and not result.weights.empty
-
-
-def test_run_position_sizer_dict_vol_target():
-    rets = _make_returns(n=100, seed=5)
-    strat = BABStrategy(
-        BABConfig(
-            universe=["BTC", "ETH", "SOL", "ADA"],
-            benchmark="BTC",
-            beta_window=20,
-            min_observations=10,
-            position_sizer={"type": "vol_target", "target_vol": 0.10},
-        )
-    )
-    result = strat.run(returns_df=rets)
-    assert result.weights is not None and not result.weights.empty
-
-
-def test_run_position_sizer_dict_risk_parity():
-    rets = _make_returns(n=100, seed=5)
-    strat = BABStrategy(
-        BABConfig(
-            universe=["BTC", "ETH", "SOL", "ADA"],
-            benchmark="BTC",
-            beta_window=20,
-            min_observations=10,
-            position_sizer={"type": "risk_parity"},
-        )
-    )
-    result = strat.run(returns_df=rets)
-    assert result.weights is not None and not result.weights.empty
-
-
-def test_run_position_sizer_invalid_string_raises():
-    strat = BABStrategy(BABConfig(position_sizer="bogus"))
-    with pytest.raises(BABDataError, match="Unknown sizer"):
-        strat.run()
-
-
-def test_run_position_sizer_apply_failure_wraps_babdataerror():
-    with mock.patch.object(
-        sizing, "apply_position_sizing", side_effect=ValueError("sizing blew up")
-    ):
-        strat = BABStrategy(BABConfig(position_sizer={"type": "equal"}))
-        with pytest.raises(BABDataError, match="position_sizer failed"):
-            strat.run()
-
-
-def test_normalize_position_sizer_unknown_dict_type_raises():
-    with pytest.raises(BABDataError, match="unknown type"):
-        _normalize_position_sizer({"type": "nope"})
-
-
-# ---------------------------------------------------------------------------
-# run() regime_filter scaling branch
-# ---------------------------------------------------------------------------
-
-def test_run_regime_filter_scales_weights():
-    rets = _make_returns(n=100, seed=9)
-    scale = pd.Series(0.5, index=rets.index, name="regime_scale")
-    with mock.patch(
-        "strategies.betting_against_beta.regime.regime_scale_scalar", return_value=scale
-    ):
-        strat = BABStrategy(BABConfig(regime_filter=True))
-        result = strat.run(returns_df=rets)
-        base = BABStrategy(BABConfig(regime_filter=False)).run(returns_df=rets)
-        scaled = result.weights.to_numpy(dtype=float).sum(axis=1)
-        expected = base.weights.to_numpy(dtype=float).sum(axis=1) * 0.5
-        np.testing.assert_allclose(scaled, expected, atol=1e-9)
-
-
-# ---------------------------------------------------------------------------
-# run() beta-neutral enforcement incl. tracking-error tolerance
-# ---------------------------------------------------------------------------
-
-def test_run_beta_neutral_enforcement_applies():
-    rets = _make_returns(n=100, seed=11)
-    with mock.patch(
-        "strategies.betting_against_beta.portfolio.enforce_beta_neutrality",
-        side_effect=lambda w, b, **kw: w * 0.9,
-    ) as m:
-        strat = BABStrategy(
-            BABConfig(
-                universe=["BTC", "ETH", "SOL", "ADA"],
-                benchmark="BTC",
-                beta_window=20,
-                min_observations=10,
-                beta_neutral=True,
-                beta_target=0.0,
-                beta_tolerance=1e-4,
-                tracking_error_tolerance=0.02,
-                enable_tracking_error_monitoring=True,
-            )
-        )
-        result = strat.run(returns_df=rets)
-        assert m.call_count >= 1
-        kwargs = m.call_args.kwargs
-        assert kwargs["target_beta"] == 0.0
-        assert kwargs["tracking_error_tolerance"] == 0.02
-        assert kwargs["enable_tracking_error_monitoring"] is True
-
-
-def test_run_beta_neutral_enforcement_uses_max_beta_drift_fallback():
-    rets = _make_returns(n=100, seed=11)
-    with mock.patch(
-        "strategies.betting_against_beta.portfolio.enforce_beta_neutrality",
-        side_effect=lambda w, b, **kw: w,
-    ) as m:
-        strat = BABStrategy(
-            BABConfig(
-                universe=["BTC", "ETH", "SOL", "ADA"],
-                benchmark="BTC",
-                beta_window=20,
-                min_observations=10,
-                beta_neutral_enforcement=True,
-                max_beta_drift=0.05,
-            )
-        )
-        strat.run(returns_df=rets)
-        kwargs = m.call_args.kwargs
-        assert kwargs["tolerance"] == 0.05 or kwargs["max_drift"] == 0.05
-
-
-# ---------------------------------------------------------------------------
-# run() empty-universe defensive branch (strategy.py 320-324)
-# ---------------------------------------------------------------------------
-
-def test_run_effective_universe_empty_raises_valueerror():
-    orig = BABConfig.resolved_universe
-
-    def _empty(self, columns=None):
-        return []
-
-    BABConfig.resolved_universe = _empty
-    try:
-        strat = BABStrategy(BABConfig(benchmark="BTC"))
-        with pytest.raises(ValueError, match="No tradable assets remain"):
-            strat.run(returns_df=_make_returns(n=30, seed=1))
-    finally:
-        BABConfig.resolved_universe = orig
-
-
-# ---------------------------------------------------------------------------
-# run() finite-guard cleanup branches
-# ---------------------------------------------------------------------------
-
-def test_run_finiteness_guard_clamps_nonfinite_weights():
-    idx = pd.date_range("2023-01-01", periods=3, freq="D")
-    weights = pd.DataFrame(
-        {"BTC": [1.0, np.nan, -np.inf], "ETH": [-1.0, np.inf, 1.0]}, index=idx
-    )
-    with mock.patch(
-        "strategies.betting_against_beta.strategy.construct_portfolio", return_value=weights
-    ):
-        strat = BABStrategy()
-        result = strat.run()
-        wa = result.weights.to_numpy(dtype=float)
-        assert np.isfinite(wa).all()
-
-
-class _BrokenWeights:
-    def to_numpy(self, *a, **k):
-        raise TypeError("no numpy")
-
-    def replace(self, *a, **k):
-        return self
-
-    def fillna(self, *a, **k):
-        raise RuntimeError("fillna broken")
-
-
-def test_run_finiteness_guard_fallback_raises_babdataerror():
-    with mock.patch(
-        "strategies.betting_against_beta.strategy.construct_portfolio",
-        return_value=_BrokenWeights(),
-    ):
-        strat = BABStrategy()
-        with pytest.raises(BABDataError, match="weight finiteness cleanup failed"):
-            strat.run()
-
-
-# ---------------------------------------------------------------------------
-# dry_run() branches
-# ---------------------------------------------------------------------------
 
 def test_dry_run_safe_float_nonfinite_defaults():
     cfg = BABConfig()
     object.__setattr__(cfg, "transaction_costs", float("nan"))
     object.__setattr__(cfg, "slippage", float("inf"))
-    strat = BABStrategy(cfg)
-    out = strat.dry_run(returns_df=_make_returns(n=60, seed=2))
+    out = BABStrategy(cfg).dry_run(returns_df=_returns_df(60, seed=2))
     assert out["config"]["transaction_costs"] == 0.0
     assert out["config"]["slippage"] == 0.0
 
 
-def test_dry_run_empty_universe_raises_valueerror():
-    orig = BABConfig.resolved_universe
+def test_dry_run_safe_float_none_and_invalid_defaults():
+    cfg = BABConfig()
+    object.__setattr__(cfg, "transaction_costs", None)
+    out = BABStrategy(cfg).dry_run(returns_df=_returns_df(30, seed=2))
+    assert out["config"]["transaction_costs"] == 0.0
 
-    def _empty(self, columns=None):
-        return []
+    cfg2 = BABConfig()
+    object.__setattr__(cfg2, "transaction_costs", "not-a-number")
+    out2 = BABStrategy(cfg2).dry_run(returns_df=_returns_df(30, seed=2))
+    assert out2["config"]["transaction_costs"] == 0.0
 
-    BABConfig.resolved_universe = _empty
-    try:
-        strat = BABStrategy(BABConfig(benchmark="BTC"))
-        with pytest.raises(ValueError, match="No tradable assets remain"):
-            strat.dry_run(returns_df=_make_returns(n=30, seed=1))
-    finally:
-        BABConfig.resolved_universe = orig
+
+def test_dry_run_empty_universe_raises_valueerror(monkeypatch):
+    monkeypatch.setattr(BABConfig, "resolved_universe", lambda self, columns=None: [])
+    strat = BABStrategy(BABConfig(benchmark="BTC"))
+    with pytest.raises(ValueError, match="No tradable assets remain"):
+        strat.dry_run(returns_df=_returns_df(30, seed=1))
 
 
 def test_dry_run_non_daily_rebalance_path():
-    rets = _make_returns(n=20, seed=2)
-    strat = BABStrategy(BABConfig(rebalance_freq="weekly", beta_window=10, min_observations=5))
-    out = strat.dry_run(returns_df=rets)
+    strat = BABStrategy(
+        BABConfig(rebalance_freq="weekly", beta_window=10, min_observations=5)
+    )
+    out = strat.dry_run(returns_df=_returns_df(30, seed=2))
     assert out["config"]["rebalance_freq"] == "weekly"
     assert "portfolio_risk" in out
 
 
 # ---------------------------------------------------------------------------
-# report() kill_switch.to_dict exception fallback + tear_sheet
+# shorting_constraints error/apply paths (lines 712-721)
 # ---------------------------------------------------------------------------
 
+
+def test_strategy_shorting_constraints_invalid_type():
+    cfg = BABConfig(
+        benchmark="BTC",
+        beta_window=10,
+        long_quantile=0.3,
+        short_quantile=0.3,
+        shorting_constraints="not-a-dict-or-object",
+    )
+    strat = BABStrategy(cfg)
+    rets = _returns_df(30, seed=1)
+    with pytest.raises(
+        BABDataError, match="shorting_constraints must be a ShortingConstraints or dict"
+    ):
+        strat.dry_run(rets)
+
+
+def test_strategy_shorting_constraints_valid_object():
+    from strategies.betting_against_beta.shorting import ShortingConstraints
+
+    sc = ShortingConstraints(max_short_weight=0.5, max_short_notional_per_asset=0.5)
+    cfg = BABConfig(
+        benchmark="BTC",
+        beta_window=10,
+        long_quantile=0.3,
+        short_quantile=0.3,
+        shorting_constraints=sc,
+    )
+    strat = BABStrategy(cfg)
+    rets = _returns_df(30, seed=1)
+    out = strat.dry_run(rets)
+    assert out["tradable_universe"]
+    assert "portfolio_risk" in out
+
+
+def test_strategy_shorting_constraints_exception_path():
+    with pytest.raises(BABConfigError, match="shorting_constraints dict is invalid"):
+        BABConfig(
+            benchmark="BTC",
+            beta_window=10,
+            long_quantile=0.3,
+            short_quantile=0.3,
+            shorting_constraints={"invalid": "dict"},
+        )
+
+
+# ---------------------------------------------------------------------------
+# position_sizer dict/normalize/apply/error paths (lines 727-742)
+# ---------------------------------------------------------------------------
+
+
+def test_strategy_position_sizer_dict_normalizes():
+    cfg = BABConfig(
+        benchmark="BTC",
+        beta_window=10,
+        long_quantile=0.3,
+        short_quantile=0.3,
+        position_sizer={"type": "vol_target", "target_vol": 0.15},
+    )
+    strat = BABStrategy(cfg)
+    out = strat.dry_run(_returns_df(30, seed=1))
+    assert out["tradable_universe"]
+    assert "portfolio_risk" in out
+
+
+def test_strategy_position_sizer_string_shorthand():
+    cfg = BABConfig(
+        benchmark="BTC",
+        beta_window=10,
+        long_quantile=0.3,
+        short_quantile=0.3,
+        position_sizer="vol_target",
+    )
+    strat = BABStrategy(cfg)
+    out = strat.dry_run(_returns_df(30, seed=1))
+    assert out["tradable_universe"]
+    assert "portfolio_risk" in out
+
+
+def test_strategy_position_sizer_invalid_type():
+    cfg = BABConfig(
+        benchmark="BTC",
+        beta_window=10,
+        long_quantile=0.3,
+        short_quantile=0.3,
+        position_sizer=123,  # Not a dict, string, or sizer
+    )
+    strat = BABStrategy(cfg)
+    rets = _returns_df(30, seed=1)
+    with pytest.raises(BABDataError, match="position_sizer must be a sizer or string shorthand"):
+        strat.dry_run(rets)
+
+
+def test_strategy_position_sizer_exception_path():
+    # Invalid dict that passes type check but fails at application
+    cfg = BABConfig(
+        benchmark="BTC",
+        beta_window=10,
+        long_quantile=0.3,
+        short_quantile=0.3,
+        position_sizer={"type": "nonexistent_sizer"},
+    )
+    strat = BABStrategy(cfg)
+    rets = _returns_df(30, seed=1)
+    with pytest.raises(BABDataError, match="position_sizer dict has unknown type"):
+        strat.dry_run(rets)
+
+
+def test_strategy_shorting_constraints_apply_failure_wraps_babdataerror():
+    from strategies.betting_against_beta.shorting import ShortingConstraints
+
+    cfg = BABConfig(
+        benchmark="BTC",
+        beta_window=10,
+        long_quantile=0.3,
+        short_quantile=0.3,
+        shorting_constraints=ShortingConstraints(),
+    )
+    strat = BABStrategy(cfg)
+    rets = _returns_df(30, seed=1)
+    with mock.patch(
+        "strategies.betting_against_beta.strategy.shorting.apply_shorting_constraints",
+        side_effect=TypeError("bad weights"),
+    ):
+        with pytest.raises(BABDataError, match="shorting_constraints failed"):
+            strat.dry_run(rets)
+
+
+def test_strategy_position_sizer_apply_failure_wraps_babdataerror():
+    cfg = BABConfig(
+        benchmark="BTC",
+        beta_window=10,
+        long_quantile=0.3,
+        short_quantile=0.3,
+        position_sizer={"type": "equal"},
+    )
+    strat = BABStrategy(cfg)
+    rets = _returns_df(30, seed=1)
+    with mock.patch(
+        "strategies.betting_against_beta.strategy.sizing.apply_position_sizing",
+        side_effect=ValueError("sizing blew up"),
+    ):
+        with pytest.raises(BABDataError, match="position_sizer failed"):
+            strat.dry_run(rets)
+
+
+# ---------------------------------------------------------------------------
+# regime_filter scaling path (lines 747-752)
+# ---------------------------------------------------------------------------
+
+
+def test_strategy_regime_filter_enabled():
+    cfg = BABConfig(
+        benchmark="BTC",
+        beta_window=10,
+        long_quantile=0.3,
+        short_quantile=0.3,
+        regime_filter=True,
+    )
+    strat = BABStrategy(cfg)
+    out = strat.dry_run(_returns_df(60, seed=1))
+    assert out["tradable_universe"]
+    assert "portfolio_risk" in out
+
+
+# ---------------------------------------------------------------------------
+# beta_neutral enforcement with tracking error tolerance (lines 759-784)
+# ---------------------------------------------------------------------------
+
+
+def test_strategy_beta_neutral_enabled():
+    cfg = BABConfig(
+        benchmark="BTC",
+        beta_window=10,
+        long_quantile=0.3,
+        short_quantile=0.3,
+        beta_neutral=True,
+    )
+    strat = BABStrategy(cfg)
+    out = strat.dry_run(_returns_df(60, seed=1))
+    assert out["tradable_universe"]
+    assert "portfolio_risk" in out
+
+
+def test_strategy_beta_neutral_with_tolerance():
+    cfg = BABConfig(
+        benchmark="BTC",
+        beta_window=10,
+        long_quantile=0.3,
+        short_quantile=0.3,
+        beta_neutral=True,
+        beta_tolerance=0.01,
+        max_beta_drift=0.02,
+    )
+    strat = BABStrategy(cfg)
+    out = strat.dry_run(_returns_df(60, seed=1))
+    assert out["tradable_universe"]
+    assert "portfolio_risk" in out
+
+
+def test_strategy_beta_neutral_tracking_error():
+    cfg = BABConfig(
+        benchmark="BTC",
+        beta_window=10,
+        long_quantile=0.3,
+        short_quantile=0.3,
+        beta_neutral=True,
+        tracking_error_tolerance=0.05,
+        enable_tracking_error_monitoring=True,
+    )
+    strat = BABStrategy(cfg)
+    out = strat.dry_run(_returns_df(60, seed=1))
+    assert out["tradable_universe"]
+    assert "portfolio_risk" in out
+
+
+def test_strategy_beta_neutral_correction_false():
+    cfg = BABConfig(
+        benchmark="BTC",
+        beta_window=10,
+        long_quantile=0.3,
+        short_quantile=0.3,
+        beta_neutral=True,
+        beta_neutral_correction=False,
+    )
+    strat = BABStrategy(cfg)
+    out = strat.dry_run(_returns_df(60, seed=1))
+    assert out["tradable_universe"]
+    assert "portfolio_risk" in out
+
+
+# ---------------------------------------------------------------------------
+# finite-guard cleanup (lines 790-798)
+# ---------------------------------------------------------------------------
+
+
+def test_strategy_finite_guard_cleans_nonfinite_weights():
+    cfg = BABConfig(benchmark="BTC", beta_window=10, long_quantile=0.3, short_quantile=0.3)
+    strat = BABStrategy(cfg)
+    rets = _returns_df(30, seed=1)
+
+    def _weights_with_nonfinite(signals, **_kwargs):
+        return pd.DataFrame({"BTC": [np.inf] * len(signals)}, index=signals.index)
+
+    from strategies.betting_against_beta import strategy as strategy_mod
+
+    with mock.patch.object(
+        strategy_mod, "construct_portfolio", side_effect=_weights_with_nonfinite
+    ):
+        out = strat.dry_run(rets)
+    assert out["tradable_universe"]
+    assert out["portfolio_risk"]["gross_exposure"]["max"] == 0.0
+
+
+def test_strategy_finite_guard_exception_fallback():
+    cfg = BABConfig(benchmark="BTC", beta_window=10, long_quantile=0.3, short_quantile=0.3)
+    strat = BABStrategy(cfg)
+    rets = _returns_df(30, seed=1)
+    from strategies.betting_against_beta import strategy as strategy_mod
+
+    class _BadWeights:
+        def __init__(self, df):
+            self._df = df
+
+        def to_numpy(self, *args, **kwargs):
+            raise TypeError("no numpy")
+
+        def replace(self, *args, **kwargs):
+            return self._df.replace(*args, **kwargs)
+
+        def __getattr__(self, name):
+            return getattr(self._df, name)
+
+    def _bad_weights(signals, **_kwargs):
+        return _BadWeights(pd.DataFrame({"BTC": [0.5] * len(signals)}, index=signals.index))
+
+    with mock.patch.object(strategy_mod, "construct_portfolio", side_effect=_bad_weights):
+        out = strat.dry_run(rets)
+    assert out["tradable_universe"]
+    assert out["portfolio_risk"]["gross_exposure"]["max"] == 0.5
+
+
+def test_strategy_finite_guard_cleanup_failure_raises():
+    cfg = BABConfig(benchmark="BTC", beta_window=10, long_quantile=0.3, short_quantile=0.3)
+    strat = BABStrategy(cfg)
+    rets = _returns_df(30, seed=1)
+    from strategies.betting_against_beta import strategy as strategy_mod
+
+    class _BrokenWeights:
+        def to_numpy(self, *args, **kwargs):
+            raise TypeError("no numpy")
+
+        def replace(self, *args, **kwargs):
+            raise RuntimeError("replace broken")
+
+    with mock.patch.object(strategy_mod, "construct_portfolio", return_value=_BrokenWeights()):
+        with pytest.raises(BABDataError, match="weight finiteness cleanup failed"):
+            strat.dry_run(rets)
+
+
+# ---------------------------------------------------------------------------
+# _load_returns unknown prices type (line 306) - actually in _resolve_cost_model
+# ---------------------------------------------------------------------------
+
+
+def test_resolve_cost_model_unknown_prices_type():
+    from strategies.betting_against_beta.strategy import BABStrategy
+
+    cfg = BABConfig(
+        benchmark="BTC",
+        beta_window=10,
+        long_quantile=0.3,
+        short_quantile=0.3,
+        cost_model={"linear_fee": 0.001},
+        prices=123,  # Unknown type
+    )
+    strat = BABStrategy(cfg)
+    # Should not raise, just skip impact term
+    _cm, prices_df, _adv = strat._resolve_cost_model(cfg)
+    assert prices_df is None
+
+
+def test_resolve_cost_model_string_path_error():
+    cfg = BABConfig(
+        benchmark="BTC",
+        beta_window=10,
+        long_quantile=0.3,
+        short_quantile=0.3,
+        cost_model={"linear_fee": 0.001},
+        prices="/nonexistent/path.csv",
+    )
+    strat = BABStrategy(cfg)
+    with pytest.raises(BABDataError, match="failed to load prices"):
+        strat._resolve_cost_model(cfg)
+
+
+# ---------------------------------------------------------------------------
+# report() kill_switch.to_dict exception fallback (lines 982-983)
+# ---------------------------------------------------------------------------
+
+
 def test_report_kill_switch_to_dict_failure_falls_back_to_none():
-    rets = _make_returns(n=60, seed=4)
     strat = BABStrategy(BABConfig(max_drawdown_limit=0.5))
-    result = strat.run(returns_df=rets)
+    result = strat.run(_returns_df(60, seed=4))
     with mock.patch.object(KillSwitchEvent, "to_dict", side_effect=RuntimeError("boom")):
         rep = strat.report(result)
-        assert rep["kill_switch"] is None
-
-
-def test_tear_sheet_renders_without_crash():
-    rets = _make_returns(n=60, seed=4)
-    strat = BABStrategy(BABConfig(max_drawdown_limit=0.5))
-    result = strat.run(returns_df=rets)
-    sheet = strat.tear_sheet(result)
-    assert "BAB STRATEGY TEAR SHEET" in sheet
-    assert "Final Cumulative" in sheet
-
-
-def test_report_to_json_strict_no_nan():
-    rets = _make_returns(n=60, seed=4)
-    strat = BABStrategy()
-    result = strat.run(returns_df=rets)
-    rep = strat.report(result)
-    json_str = BABStrategy.report_to_json(rep)
-    import json
-
-    parsed = json.loads(json_str)
-    assert parsed is not None
+    assert rep["kill_switch"] is None

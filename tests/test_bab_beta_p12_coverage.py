@@ -133,7 +133,7 @@ def test_rolling_sum_1d_finite_matches_pandas():
 
 def test_rolling_sum_1d_nan_not_poisoned():
     arr = np.array([1.0, np.nan, 3.0, 4.0, 5.0])
-    sums, counts = _rolling_sum(arr, window=3, min_periods=1)
+    sums, _counts = _rolling_sum(arr, window=3, min_periods=1)
     expected = pd.Series(arr).rolling(3, min_periods=1).sum().to_numpy(dtype=float)
     np.testing.assert_allclose(sums, expected, equal_nan=True)
 
@@ -146,7 +146,7 @@ def test_rolling_sum_1d_min_periods_gate():
 
 def test_rolling_sum_2d_finite_matches_pandas():
     arr = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0], [7.0, 8.0]], dtype=float)
-    sums, counts = _rolling_sum(arr, window=2, min_periods=1)
+    sums, _counts = _rolling_sum(arr, window=2, min_periods=1)
     for j in range(2):
         expected = pd.Series(arr[:, j]).rolling(2, min_periods=1).sum().to_numpy(dtype=float)
         np.testing.assert_allclose(sums[:, j], expected)
@@ -166,7 +166,7 @@ def test_rolling_sum_2d_nan_not_poisoned():
 
 def test_rolling_sum_finite_1d_matches_pandas():
     arr = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
-    sums, counts = _rolling_sum_finite(arr, window=3, min_periods=2)
+    sums, _counts = _rolling_sum_finite(arr, window=3, min_periods=2)
     expected = pd.Series(arr).rolling(3, min_periods=2).sum().to_numpy(dtype=float)
     np.testing.assert_allclose(sums, expected)
 
@@ -192,7 +192,7 @@ def test_rolling_sum_finite_min_periods_gate_2d():
 
 def test_rolling_sum_finite_stack_1d_delegates():
     arr = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
-    sums, counts = _rolling_sum_finite_stack(arr, window=3, min_periods=2)
+    sums, _counts = _rolling_sum_finite_stack(arr, window=3, min_periods=2)
     expected = pd.Series(arr).rolling(3, min_periods=2).sum().to_numpy(dtype=float)
     np.testing.assert_allclose(sums, expected)
 
