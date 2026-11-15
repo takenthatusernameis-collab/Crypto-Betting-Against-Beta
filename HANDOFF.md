@@ -2,13 +2,13 @@
 
 **Canonical durable handoff (single source of truth).** Do not create parallel handoff/session docs; update this file only. `AGENT_HANDOFF.md` is a pointer to this file and must not carry a parallel task message.
 
-- **Timestamp (UTC):** 2026-11-15T08:01:52Z
+- **Timestamp (UTC):** 2026-11-15T08:44:25Z
 - **Repo:** `Crypto-Betting-Against-Beta`
-- **Git HEAD (verified):** `1285fd3` — baseline clean at HEAD; no parallel handoff docs. P11 step 2 (`cli.py` coverage) **DONE** this session via `tests/test_bab_cli_p11_coverage.py` (added between `f2298bf` and `1285fd3`); `cli.py` is now **99%** (≥90% target met/exceeded). First act next session: execute P11 campaign top-down starting at **step 3** (`data_sources.py` coverage) (baseline step 1 and step 2 are DONE).
+- **Git HEAD (verified):** `0551f44` — baseline clean at HEAD; no parallel handoff docs. Only handoff-document changes between `1285fd3` and `0551f44` (kilo checkpoint); no code changes. P11 step 2 (`cli.py` coverage) **DONE** via `tests/test_bab_cli_p11_coverage.py`; `cli.py` is **99%** (≥90% target met/exceeded). First act next session: execute P11 campaign top-down starting at **step 3** (`data_sources.py` coverage) (baseline steps 1 & 2 are DONE — do not repeat).
 - **Branch:** `main`
-- **Working tree:** clean except this `HANDOFF.md` + `AGENT_HANDOFF.md` pointer refresh (single durable handoff only); no code changes. Shell note: gate toolchain (`ruff`, `pytest`, `pytest-cov`, `pytest-xdist`, `coverage`, `hypothesis`, `ccxt`) had to be installed in this shell before the gate could run — install `pip install --break-system-packages pytest pytest-cov pytest-xdist coverage ruff numpy pandas scipy hypothesis ccxt` (or `pip install -e .[test]` + `ccxt`) as step 0 of any fresh shell.
+- **Working tree:** clean except this `HANDOFF.md` + `AGENT_HANDOFF.md` pointer refresh (single durable handoff only); no code changes. Shell note: gate toolchain (`ruff`, `pytest`, `pytest-cov`, `pytest-xdist`, `coverage`, `hypothesis`, `ccxt`) must be installed in any fresh shell before running the gate — `pip install --break-system-packages pytest pytest-cov pytest-xdist coverage ruff numpy pandas scipy hypothesis ccxt` (or `pip install -e .[test]` + `ccxt`) as step 0. Do not treat a missing-toolchain shell as a gate failure.
 
-## INITIAL TASK MESSAGE (START HERE, 2026-11-15T08:01:52Z UTC) — BINDING
+## INITIAL TASK MESSAGE (START HERE, 2026-11-15T08:44:25Z UTC) — BINDING
 
 This is the only active task. Execute top-down. No archaeology (`probe_*.py`, `debug_beta*.py`, `ast_probe.py`), no new parallel handoff/session docs. If blocked, record the exact command + output and continue with the next unblocked priority. **Never stop at analysis — every session must produce code, tests, and fresh gate evidence.**
 
@@ -32,11 +32,11 @@ Also added `scripts/bab_quick.sh` (fast inner-loop: ruff + targeted trio + smoke
 
 **Bottleneck removed this session (shell):** the gate could not run at all in a fresh shell because `ruff`/`pytest`/`pytest-cov`/`pytest-xdist`/`coverage`/`hypothesis`/`ccxt` were not installed. Fixed by installing the test toolchain (`pip install --break-system-packages pytest pytest-cov pytest-xdist coverage ruff numpy pandas scipy hypothesis ccxt`, or `pip install -e .[test]` + `ccxt`). Make this step 0 of any fresh session before running the gate; do not treat a missing-toolchain shell as a gate failure.
 
-## Verified state (fresh this session, 2026-11-15T08:01:52Z; re-verify after every change)
+## Verified state (re-established fresh this session, 2026-11-15T08:44:25Z UTC; re-verify after every change)
 
 - `python3 -m ruff check .` → **clean** (All checks passed) — verified this session.
 - `bash scripts/bab_quick.sh` → **green** (ruff clean; targeted trio **104 passed**; smoke **195 passed**, ~26s) — verified this session.
-- `bash scripts/bab_gate.sh` → **green at `1285fd3`: 5844 passed, 35 skipped, 0 failed, 0 errors; TOTAL 92% in ~9m11s** (parallel xdist, sysmon; ~6m08s reference on faster CI). Per-file coverage below is live evidence from this gate run. Gate toolchain must be installed in the shell first (see header note).
+- `bash scripts/bab_gate.sh` → **green at `0551f44`: 5844 passed, 35 skipped, 0 failed, 0 errors; TOTAL 92% in ~9m18s** (parallel xdist, sysmon; ~6m08s reference on faster CI). Per-file coverage below is live evidence from this gate run. Gate toolchain must be installed in the shell first (see header note).
 - `python3 scripts/perf_baseline.py --check` → **not re-run this session** (last known `failures: []` per prior handoff); re-run in final gate pass.
 - Default offline/dry-run behavior unchanged; live execution safe-by-default (dry-run, env-only creds, no implicit network). Real (non-dry-run) live execution is out of scope.
 
@@ -62,10 +62,10 @@ Fresh gate (missing lines are the actual targets):
 
 ### Priority order (execute top-down; each step ends with `bab_quick.sh` then a full `bab_gate.sh`)
 
-1. **Re-establish baseline (DONE — steps 1 & 2 complete at `1285fd3` — do not repeat unless you make code changes)**
-   - `python3 -m ruff check .` → clean
-   - `bash scripts/bab_quick.sh` → green (104 + 195 passed)
-   - `bash scripts/bab_gate.sh` → green, 5844 passed / 35 skipped / 0 failed / 0 errors, TOTAL 92%, ~9m11s this shell (~6m08s CI reference); per-file coverage recorded above.
+1. **Re-establish baseline (DONE — steps 1 & 2 complete at `0551f44` — do not repeat unless you make code changes)**
+    - `python3 -m ruff check .` → clean
+    - `bash scripts/bab_quick.sh` → green (104 + 195 passed)
+    - `bash scripts/bab_gate.sh` → green, 5844 passed / 35 skipped / 0 failed / 0 errors, TOTAL 92%, ~9m18s this shell (~6m08s CI reference); per-file coverage recorded above.
 2. **`data_sources.py` fetch/parse/error hardening → `tests/test_bab_data_sources_p11_coverage.py` (new).** Retry/rate-limit/backoff, HTTP 4xx/5xx, non-JSON/invalid candle payload, empty window, partial-symbol coverage, schema/monotonic validation — **fakes/mocks only**. Public API stays explicit opt-in with loud failures; `deterministic-offline` default unchanged.
 3. **`execution.py` adapter failure modes (dry-run safe) → `tests/test_bab_execution_p11_coverage.py` (new).** `LiveExecutionAdapter` error/rejection/fill/diagnostic branches, risk-gating edges, connector/health edges — **fakes/mocks only; no real network, no credentials, no enabling real execution.**
 4. **`reconciliation.py` error branches → `tests/test_bab_reconciliation_p11_coverage.py` (new).** Cost/fill mismatch, missing fills, empty weights — deterministic, no network.
