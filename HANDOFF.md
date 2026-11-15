@@ -2,46 +2,54 @@
 
 **Canonical durable handoff (single source of truth).** Do not create parallel handoff/session docs; update this file only. `AGENT_HANDOFF.md` is a pointer to this file and must not carry a parallel task message.
 
-- **Timestamp (UTC):** 2026-11-14T23:58:00Z
+- **Timestamp (UTC):** 2026-11-15T00:46:04Z
 - **Repo:** `Crypto-Betting-Against-Beta`
-- **HEAD (at refresh):** `5727249` (`chore(kilo): checkpoint agent session`)
+- **HEAD (at refresh):** `ac7b9e9` (`feat(p9): harden live execution adapter and wire optional pre-trade risk gating`)
 - **Branch:** `main`
 - **Working tree:** clean (at refresh)
 
-## INITIAL TASK MESSAGE (START HERE, 2026-11-14T23:58:00Z UTC) — BINDING
+## INITIAL TASK MESSAGE (START HERE, 2026-11-15T00:46:04Z UTC) — BINDING
 
 This is the only active task. Execute in order. No archaeology (`probe_*.py`, `debug_*.py`, `ast_probe.py`), no new parallel handoff/session docs. If blocked, record exact command + output and continue with the next unblocked priority. **Never stop at analysis — produce code, tests, and evidence.**
 
-Repo-prioritized mission: `Crypto-Betting-Against-Beta` = harden the Betting Against Beta (BAB) crypto strategy into an ops-ready live path without changing default offline/dry-run behavior, then ship a release-ready evidence bundle. Everything below is heavy, concrete work — future agents must not avoid it.
+Repo-prioritized mission: `Crypto-Betting-Against-Beta` = harden the Betting Against Beta (BAB) crypto strategy into an ops-ready live path without changing default offline/dry-run behavior, then ship a release-ready evidence bundle.
 
-### Current verified state (2026-11-14T23:58:00Z UTC, this workspace)
+## Campaign status: COMPLETE (all six priorities done, evidence recorded)
+
+The P9 "ops-ready live path" campaign is complete. Default offline/dry-run behavior is unchanged; live execution is safe-by-default (dry-run, env-only creds, no implicit network).
+
+### Current verified state (2026-11-15T00:46:04Z UTC, this workspace)
 - `python3 -m ruff check .` → **All checks passed**.
-- `python3 -m pytest -q tests/test_bab_live_adapter.py tests/test_bab_risk_manager.py tests/test_bab_realtime_feed.py tests/test_bab_paper_trading.py tests/test_bab_data_freshness.py tests/test_bab_diagnostics.py` → **98 passed, 1 warning** (`Timestamp.utcnow` deprecation; non-blocking).
-- Paper smoke: `python3 -m strategies.betting_against_beta.cli --paper-trading --data tests/fixtures/real_market_prices.csv --from-prices --benchmark BTC --output /tmp/paper_fills.jsonl` → exit 0 (`Paper trading: 160 orders, 160 fills`, `paper_pnl=-0.384799 backtest_pnl=-0.6602645030669475 diff=0.275465`).
-- Live dry-run smoke: `python3 -m strategies.betting_against_beta.cli --adapter live --exchange binance --api-key-env BAB_TEST_KEY --api-secret-env BAB_TEST_SECRET --health-check` → exit 0; prints health (`connected False`, `dry_run True`, `testnet False`).
-- Perf guardrail: `python3 scripts/perf_baseline.py --check --baseline research_state/perf_baseline_real_fixture.json --dataset tests/fixtures/real_market_prices.csv --repeats 2 --warmup 0 --time-tolerance 3.0 --mem-tolerance-mb 50` → `failures: []`.
-- **Full suite (`python3 -m pytest -q`)**: large; timed out in this session (~10 min) without completing. Previously documented green (5674 passed / 35 skipped / 0 failed). Re-run before any final completion claim.
-- `bash scripts/bab_gate.sh`: large; previously invoked green. Re-run before any final completion claim.
+- Targeted trio (`test_bab_live_adapter.py test_bab_risk_manager.py test_bab_realtime_feed.py test_bab_paper_trading.py test_bab_data_freshness.py test_bab_diagnostics.py`) → **98 passed, 1 warning** (`Timestamp.utcnow` deprecation; non-blocking).
+- Full suite `python3 -m pytest -q` → **5790 passed, 35 skipped, 0 failed** (~16 min).
+- `bash scripts/bab_gate.sh` → **5796 passed, 35 skipped, 0 failed**, coverage **TOTAL 90%**.
+- Perf guardrail → `failures: []`.
+- Paper smoke → exit 0 (`Paper trading: 160 orders, 160 fills`, `paper_pnl=-0.384799 backtest_pnl=-0.6602645030669475 diff=0.275465`).
+- Live dry-run smoke → exit 0; `--health-check` now prints one strict JSON object (`{"mode": "live", "exchange": "binance", "connected": false, "dry_run": true, ...}`).
+
+### What changed (commit `ac7b9e9`, 4 files, +264/-11)
+1. `strategies/betting_against_beta/execution.py` — `LiveExecutionAdapter` gained optional, opt-in `RiskManager` pre-trade gating (`risk_manager`/`current_positions`/`cumulative` constructor args). Off by default → default path byte-identical, no risk checks, no silent fallbacks. When wired, breached assets yield explicit `status="rejected"` fills; portfolio-level breach / kill-switch rejects the whole batch. Safe-by-default: `dry_run=True`, env-only credentials, lazy `ccxt` import (no implicit network).
+2. `strategies/betting_against_beta/cli.py` — `--health-check` now emits a single strict-JSON object (machine-parseable, CI-gateable) instead of human-readable lines; human-readable text reserved for the `--adapter live` requirement error path.
+3. `tests/test_bab_live_adapter.py` — added `TestLiveExecutionAdapterRiskGating` (no-risk-manager passthrough, asset-position-limit rejection, portfolio gross-exposure whole-batch rejection, kill-switch rejects all) and `TestLiveExecutionAdapterHealthJSON` + `test_cli_health_check_emits_strict_json` (adapter dict and CLI output strict-JSON-safe).
+4. `README.md` — documented `--adapter paper/mock/live`, env-only credentials, dry-run default, and `--health-check` strict JSON output (no new docs files).
 
 ### Bottlenecks removed (do not reopen unless regression)
-1. **P9 RiskManager/realtime test blockers addressed** (risk defaults/semantics, kill-switch/flatten behavior, realtime deterministic `now`/timestamps/stubs). Treat current green trio as baseline; do not churn without a failing test or concrete bug.
-2. **No parallel handoff files to reconcile**: only `HANDOFF.md` is canonical; `AGENT_HANDOFF.md` is pointer-only; `AGENT_TASK_2026-11-14.md` and `HANDOFF_TASK_20261114.md` are SUPERSEDED — do not edit.
+1. **P9 RiskManager/realtime test blockers addressed** — baseline green; do not churn without a failing test or concrete bug.
+2. **No parallel handoff files** — only `HANDOFF.md` canonical; `AGENT_HANDOFF.md` pointer-only; `AGENT_TASK_2026-11-14.md` and `HANDOFF_TASK_20261114.md` SUPERSEDED — do not edit.
 3. Root `probe_*.py` / `debug_*.py` / `ast_probe.py` are historical noise — ignore.
 4. Ruff debt and P0 workflow bottlenecks resolved; `ruff check .` exits 0.
 
-### Next focus campaign (build the future — no analysis-only handoff)
-**Goal:** harden P9 into “ops-ready” BAB live path without changing default offline/dry-run behavior, then produce a release-ready evidence bundle.
+## Next focus campaign (maintain the green gate)
 
-**Priority order (execute top-down; stop only when every checked item has evidence or is explicitly blocked with exact error):**
+**Goal:** keep the BAB live path ops-ready and the gate green; do not regress default offline/dry-run behavior.
 
-1. **Close verification gaps:** run and record `python3 -m pytest -q` (full) and `bash scripts/bab_gate.sh`. If slow, run targeted slices first, but you must finish full + gate before final handoff refresh/commit claim.
-2. **Live adapter operational hardening (code + tests as needed):** in `strategies/betting_against_beta/execution.py`/`cli.py`, ensure `LiveExecutionAdapter` path is safe-by-default (no implicit network), env-only creds, clear errors on missing deps/config, and `--health-check` output is strict JSON-serializable where practical (document any human-readable exceptions). Add/adjust tests only for real contracts.
-3. **RiskManager integration completeness:** verify integration points with paper/live paths preserve default behavior; if gaps exist (e.g. pre-trade not wired in a live entrypoint), implement minimally and add focused tests. Do **not** weaken limits or add silent fallbacks.
-4. **Realtime/SLA production posture:** confirm `data_sources.py` `RealtimeFeed`/`CCXTFeed`/`WebSocketFeed` semantics, deterministic testing hooks, and `validate_freshness`/CLI health behavior remain strict (`BABDataError` on violation). Add tests only for uncovered real failure modes.
-5. **Docs + CLI discoverability:** update `README.md`/CLI help text only where needed to reflect current `--adapter live` dry-run health/smoke workflow and safety guarantees (no new docs files).
-6. **Evidence + commit + handoff refresh (required):** when changes are made, commit with a clear message and report `git log -1 --oneline`, `git status --short`, ruff, targeted trio, full pytest, gate, perf, paper smoke, live smoke. Then refresh this `HANDOFF.md` (and `AGENT_HANDOFF.md` pointer timestamp/HEAD) with a new UTC timestamp and the next concrete task (or “done” state with remaining risks listed).
+**Remaining risks / next concrete work (do not avoid):**
+1. **Gate before any claim:** any future change must re-run `python3 -m pytest -q` (full) and `bash scripts/bab_gate.sh` and pass before a completion/commit claim. Full suite is large (~16 min); iterate targeted slices first, then finish full + gate.
+2. **Coverage-risk modules:** total coverage 90% but `cli.py` 77%, `data_sources.py` 78%, `execution.py` 81% are below the ceiling. Add focused tests only for real, uncovered failure modes — do not add coverage for coverage's sake.
+3. **`Timestamp.utcnow` deprecation** in `tests/test_bab_data_freshness.py:58` — non-blocking unless behavioral; consider migrating to `Timestamp.now("UTC")` only if it breaks.
+4. **Real (non-dry-run) live execution** is intentionally untested (requires network/credentials) and out of scope; the live path remains dry-run-safe-by-default. Do not enable real execution without explicit opt-in and credential handling review.
 
-**Acceptance for this campaign:** any code changes are tested (ruff + targeted + full + gate as applicable), perf guardrail holds, paper + live dry-run smokes pass, docs/CLI accurate if touched, all evidence recorded, and this handoff updated to a new UTC timestamp with the next concrete task (or “done” state with remaining risks listed). No analysis-only stopping point.
+**Acceptance:** ruff clean, full pytest + gate green, perf guardrail holds, paper + live dry-run smokes pass, docs/CLI accurate, handoff at a new UTC timestamp with this task (done state + risks above) or the next concrete task.
 
 ### Known non-issues (do not churn)
 - Large test suite is intentional; iterate targeted, then finish full/gate before stopping.
