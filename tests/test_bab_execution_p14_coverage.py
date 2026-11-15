@@ -20,8 +20,10 @@ from strategies.betting_against_beta.execution import (
     CCXTConnector,
     ExecutionReport,
     LiveExecutionAdapter,
+    LiveExecutionReport,
     LiveFill,
     LiveOrder,
+    Order,
     OrderBatch,
     OrderIntent,
     PaperAdapter,
@@ -566,3 +568,107 @@ def test_live_adapter_env_credentials_and_lazy_connector(monkeypatch):
     pos = pd.Series({"BTC": 1.0})
     adapter2 = LiveExecutionAdapter(connector=StubConnector(), current_positions=pos)
     assert adapter2.current_positions is not pos
+
+
+# --- execution.py remaining missed branches (139-141, 182-185, 463-464, 472-473, 555-556, 591, 692, 847-848, 1047, 1281, 1386, 1389) ---
+
+
+def test_price_for_timestamp_fallback_object_index():
+    # string date_key not in Index-of-Timestamps; Timestamp fallback hits (139-141)
+    idx = pd.Index([pd.Timestamp("2024-01-01")])
+    prices = pd.DataFrame({"BTC": [100.0]}, index=idx)
+    pa = PaperAdapter(prices_df=prices)
+    assert pa._price_for("2024-01-01", "BTC") == 100.0
+
+
+def test_adv_from_frame_value_timestamp_and_series_branch():
+    # Timestamp fallback path (182-185) incl. isinstance-Series branch (183-184)
+    sub = pd.DataFrame({"x": [1e6]}, index=pd.Index([pd.Timestamp("2024-01-01")]))
+    assert PaperAdapter._adv_from_frame_value(sub, "2024-01-01") == 1e6
+
+
+def test_order_batches_adv_map_exception_path():
+    # adv_usd DataFrame whose sort_index raises -> adv_map = {} (463-464)
+    idx = [pd.Timestamp("2024-01-01")]
+    w = pd.DataFrame({"BTC": [0.1]}, index=idx)
+    df = pd.DataFrame({"BTC": [1e6]}, index=idx)
+    df.sort_index = lambda *a, **k: (_ for _ in ()).throw(RuntimeError("nope"))
+    batches = order_batches_from_weights(w, adv_usd=df)
+    assert isinstance(batches, list)
+
+
+def test_order_batches_bad_date_key_fallback():
+    # pd.Timestamp(date) raises -> date_key = str(date) (472-473)
+    w = pd.DataFrame({"BTC": [0.1]}, index=["bad-date-string"])
+    batches = order_batches_from_weights(w)
+    assert isinstance(batches, list)
+
+
+def test_sanitize_for_json_nonfinite_numpy_float():
+    assert _sanitize_for_json(np.float64(np.nan)) == 0.0
+    assert _sanitize_for_json(np.float64(-np.inf)) == 0.0
+
+
+def test_order_to_dict():
+    o = Order(
+        date="2024-01-01",
+        asset="BTC",
+        side="buy",
+        weight=0.5,
+        price=100.0,
+        notional_usd=50.0,
+    )
+    d = o.to_dict()
+    assert d["date"] == "2024-01-01" and d["asset"] == "BTC" and d["weight"] == 0.5
+
+
+def test_execution_report_to_dict():
+    eng = PaperExecutionEngine()
+    report = eng.execute(pd.DataFrame(), backtest_pnl=1.23)
+    d = report.to_dict()
+    assert d["backtest_pnl"] == 1.23 and d["n_orders"] == 0 and d["mode"] == "paper"
+
+
+def test_paper_pnl_non_convertible_return_value():
+    # ret.loc[nxt, asset] raises ValueError -> continue (847-848)
+    eng = PaperExecutionEngine()
+    eng.fills = [  # type: ignore[assignment]
+        types.SimpleNamespace(date="2023-12-31T00:00:00", asset="BTC", weight=1.0)
+    ]
+    ret = pd.DataFrame(
+        {"BTC": ["bad", 0.1]}, index=pd.to_datetime(["2024-01-01", "2024-01-02"])
+    )
+    pnl = eng._paper_pnl(ret)
+    assert pnl is not None and math.isfinite(pnl)
+
+
+def test_live_execution_report_to_dict():
+    report = LiveExecutionReport(mode="live", exchange="kraken", n_orders=1, n_fills=1)
+    d = report.to_dict()
+    assert d["mode"] == "live" and d["exchange"] == "kraken" and d["n_orders"] == 1
+
+
+def test_cancel_order_dry_run_cache_miss(monkeypatch):
+    fake_ccxt = types.SimpleNamespace(binance=lambda config: FakeExchange(config))
+    monkeypatch.setitem(sys.modules, "ccxt", fake_ccxt)
+    conn = CCXTConnector("binance", dry_run=True)
+    conn.connect()
+    conn._idempotency_keys.add("ghost-key")  # in keys, not in order cache
+    assert conn.cancel_order("ghost-key") is False  # 1281
+
+
+def test_ensure_connected_early_return_and_create_connector(monkeypatch):
+    fake_ccxt = types.SimpleNamespace(binance=lambda config: FakeExchange(config))
+    monkeypatch.setitem(sys.modules, "ccxt", fake_ccxt)
+    adapter = LiveExecutionAdapter(exchange_name="binance", dry_run=True)
+    assert adapter.connector is None and adapter._connected is False
+    # early return when already connected (1386)
+    adapter._connected = True
+    adapter._ensure_connected()
+    assert adapter.connector is None
+    # create-connector path (1388-1389)
+    adapter2 = LiveExecutionAdapter(exchange_name="binance", dry_run=True)
+    adapter2._ensure_connected()
+    assert adapter2._connected is True
+    assert isinstance(adapter2.connector, CCXTConnector)
+    assert adapter2.connector.is_connected()
