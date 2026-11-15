@@ -56,22 +56,6 @@ def _make_returns(tmp_path, n_days=120, seed=3):
     return p
 
 
-def _make_returns(tmp_path, n_days=120, seed=3):
-    rng = np.random.RandomState(seed)
-    dates = pd.date_range("2023-01-01", periods=n_days)
-    df = pd.DataFrame(
-        {
-            "BTC": rng.normal(0.0, 0.01, n_days),
-            "ETH": rng.normal(0.0, 0.015, n_days),
-            "SOL": rng.normal(0.0, 0.02, n_days),
-        },
-        index=dates,
-    )
-    p = tmp_path / "rets.csv"
-    df.to_csv(p)
-    return p
-
-
 # ---------------------------------------------------------------------------
 # _build_adapter
 # ---------------------------------------------------------------------------
@@ -289,9 +273,12 @@ def test_build_adapter_mock_list_with_non_dict_entries(tmp_path):
     assert "not-a-dict" not in adapter.fill_map
 
 
-def test_main_unknown_adapter_rc1():
+def test_main_unknown_adapter_rc2():
+    # argparse enforces `choices=["paper", "mock", "live"]` on --adapter, so an
+    # unknown adapter is rejected by argparse with exit code 2 (SystemExit)
+    # before reaching the defensive guard at cli.py:588.
     rc = main(["--synthetic", "--adapter", "nope"])
-    assert rc == 1
+    assert rc == 2
 
 
 def test_main_paper_trading_unwritable_output_rc1(tmp_path):
@@ -323,8 +310,8 @@ def test_main_paper_trading_bad_cumulative_pnl_rc1(tmp_path, monkeypatch):
         backtest = bad_bt
 
     monkeypatch.setattr(
-        "strategies.betting_against_beta.cli._run_backtest",
-        lambda args, adapter, fills_path: FakeResult(),
+        "strategies.betting_against_beta.cli.BABStrategy.run",
+        lambda self, returns_df=None: FakeResult(),
     )
     out = tmp_path / "fills.jsonl"
     rc = main(["--synthetic", "--paper-trading", "--output", str(out)])
@@ -333,7 +320,8 @@ def test_main_paper_trading_bad_cumulative_pnl_rc1(tmp_path, monkeypatch):
 
 
 def test_main_periods_len_raises_rc1(tmp_path, monkeypatch):
-    # bt.__len__ raises -> periods stays 0 (803-804); then printing succeeds.
+    # bt.__len__ raises inside _extract_cumulative (cli.py:878) -> caught by the
+    # outer try/except at cli.py:789-791 -> clean exit 1.
     class BadLen:
         def __len__(self):
             raise TypeError("no len")
@@ -349,12 +337,12 @@ def test_main_periods_len_raises_rc1(tmp_path, monkeypatch):
         backtest = BadLen()
 
     monkeypatch.setattr(
-        "strategies.betting_against_beta.cli._run_backtest",
-        lambda args, adapter, fills_path: FakeResult(),
+        "strategies.betting_against_beta.cli.BABStrategy.run",
+        lambda self, returns_df=None: FakeResult(),
     )
     out = tmp_path / "out.json"
     rc = main(["--synthetic", "--output", str(out)])
-    assert rc == 0
+    assert rc == 1
 
 
 def test_main_print_periods_raises_rc1(tmp_path, monkeypatch):
@@ -367,8 +355,8 @@ def test_main_print_periods_raises_rc1(tmp_path, monkeypatch):
         backtest = pd.DataFrame({"cumulative": [1.0, 1.5]})
 
     monkeypatch.setattr(
-        "strategies.betting_against_beta.cli._run_backtest",
-        lambda args, adapter, fills_path: FakeResult(),
+        "strategies.betting_against_beta.cli.BABStrategy.run",
+        lambda self, returns_df=None: FakeResult(),
     )
 
     real_print = print
