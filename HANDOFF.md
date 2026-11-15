@@ -2,25 +2,27 @@
 
 **Canonical durable handoff (single source of truth).** Do not create parallel handoff/session docs; update this file only. `AGENT_HANDOFF.md` is a pointer to this file and must not carry a parallel task message.
 
-- **Timestamp (UTC):** 2026-11-15T11:09:06Z (refreshed)
+- **Timestamp (UTC):** 2026-11-15T11:20:38Z (refreshed)
 - **Repo:** `Crypto-Betting-Against-Beta`
-- **Git HEAD (verified):** `38be994` (`chore(kilo): checkpoint agent session`, `main`)
-- **Working tree:** clean at refresh (no uncommitted product/code changes).
-- **Toolchain (verified present):** `python3`, `pytest 9.2.0`, `pytest-xdist`, `coverage 7.17.3`, `numpy/pandas/scipy/hypothesis/ccxt`. `ruff 0.17.5` available as **`python3 -m ruff`** (bare `ruff` may be missing from `$PATH`; use module form if needed).
+- **Git HEAD (verified):** `0b0ff9e` (`chore(kilo): checkpoint agent session`, `main`)
+- **Working tree:** dirty only for this handoff refresh / active work in this session (no unrelated product changes intended).
+- **Toolchain (verified present):** `python3`, `pytest 9.2.0`, `pytest-xdist`, `coverage 7.17.3`, `numpy 2.5.4/pandas 3.1.1/scipy/hypothesis/ccxt`. `ruff 0.17.5` available as **`python3 -m ruff`** (bare `ruff` may be missing from `$PATH`; use module form).
 
-## INITIAL TASK MESSAGE (START HERE, 2026-11-15T11:09:06Z UTC) — BINDING
+## INITIAL TASK MESSAGE (START HERE, 2026-11-15T11:20:38Z UTC) — BINDING
 
 This is the only active task. Execute top-down. No archaeology (`probe_*.py`, `debug_beta*.py`, `ast_probe.py`), no new parallel handoff/session docs, no analysis-only stopping point. **Every session must produce code/tests and fresh gate evidence** (or an exact command+output for any external blocker, then continue with the next unblocked item).
 
 **Repo-prioritized mission (inferred from `Crypto-Betting-Against-Beta`):** make the Betting Against Beta (crypto) strategy release-ready and ops-ready. Preserve byte-identical default offline/deterministic behavior and live execution that is **dry-run-safe-by-default** (env-only creds, no implicit network). Close remaining P11 real-path coverage/gate gaps on the lowest-covered production modules.
 
-### Current state at HEAD `38be994` (verified this refresh)
-- `python3 -m ruff check .` → clean (exit 0).
-- `bash scripts/bab_quick.sh` → green (targeted trio 104 passed; smoke 195 passed).
-- Full `bash scripts/bab_gate.sh` (319 test files, parallel+coverage/sysmon) → **in progress at refresh**; capture exact evidence (pass/skip/fail/error, TOTAL %, per-file coverage) before declaring done.
+### Current state at HEAD `0b0ff9e` (verified this refresh)
+- `python3 -m ruff check .` → **clean** (exit 0).
+- `bash scripts/bab_quick.sh` → **green** (targeted trio 104 passed in 1.64s; smoke 195 passed in 24.59s).
+- `python3 -m strategies.betting_against_beta.cli --dry-run --synthetic` → **ok** (resolved config printed).
+- `python3 -m strategies.betting_against_beta.cli --adapter live --exchange binance --api-key-env BAB_TEST_KEY --api-secret-env BAB_TEST_SECRET --health-check` → **ok** (`{"mode":"live","exchange":"binance","connected":false,"dry_run":true,"testnet":false,"connector_type":null,"n_submitted":0,"n_fills":0}`), dry-run-safe, no network.
+- `python3 scripts/perf_baseline.py --check` → **FAIL (environment drift, not logic regression)** vs recorded baseline `research_state/perf_baseline_real_fixture.json` (recorded `beta_ms_median 0.4852`, `full_ms_median 3.1852`, numpy 2.5.4/pandas 3.1.1): current `beta_ms_median 0.9031ms > limit 0.8491ms`, `full_ms_median 5.7105ms > limit 5.5741ms` (peak tracemalloc stable ~0.345 MB). Treat as perf evidence to reconcile (re-baseline only if justified by environment/toolchain and documented) without masking real regressions.
+- Full `bash scripts/bab_gate.sh` (319 test files, parallel+coverage/sysmon) → **not yet captured this session**; must be run and exact evidence recorded (pass/skip/fail/error, TOTAL %, per-file coverage for `cli.py`, `data_sources.py`, `execution.py`, `reconciliation.py`, `backtest.py`, `beta.py`, `strategy.py`).
 - P11 tests present: `tests/test_bab_cli_p11_coverage.py`, `tests/test_bab_data_sources_p11_coverage.py`, `tests/test_bab_reconciliation_p11_coverage.py`.
 - **Missing:** `tests/test_bab_execution_p11_coverage.py` — does **not exist** (major required work, P11 step 1).
-- `python3 scripts/perf_baseline.py --check` and paper/live dry-run CLI smokes → **not re-verified at HEAD `38be994`** (stale until re-verified).
 
 ## Immediate execution order (mandatory)
 
