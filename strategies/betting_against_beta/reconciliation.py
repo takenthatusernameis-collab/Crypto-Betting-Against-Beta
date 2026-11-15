@@ -297,7 +297,16 @@ def reconcile_fills_to_backtest(
     n = len(idx)
 
     # Per-period returns matrix aligned to weights universe.
-    r_sub = r[cols].reindex(idx) if cols else pd.DataFrame(index=idx, columns=cols)
+    if cols:
+        existing = [c for c in cols if c in r.columns]
+        if existing:
+            r_sub = r.reindex(index=idx, columns=existing)
+            # ensure all weight cols present for dot-product alignment
+            r_sub = r_sub.reindex(columns=cols)
+        else:
+            r_sub = pd.DataFrame(0.0, index=idx, columns=cols)
+    else:
+        r_sub = pd.DataFrame(index=idx, columns=cols)
     r_arr = r_sub.to_numpy(dtype=float)
     r_arr = np.where(np.isfinite(r_arr), r_arr, 0.0)
 

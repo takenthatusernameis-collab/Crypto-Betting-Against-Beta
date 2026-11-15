@@ -343,6 +343,8 @@ class CCXTFeed(RealtimeFeed):
 
     def fetch_latest(self) -> dict[str, dict]:
         """Fetch latest ticker data for all symbols."""
+        import time
+
         if not self.is_connected():
             raise RuntimeError("Feed not connected. Call connect() first.")
 
@@ -352,7 +354,6 @@ class CCXTFeed(RealtimeFeed):
             if self.dry_run:
                 # Simulated tick
                 import random
-                import time
                 base_price = 100.0 + hash(symbol) % 10000 / 100
                 price = base_price * (1 + random.uniform(-0.01, 0.01))
                 result[symbol] = {
