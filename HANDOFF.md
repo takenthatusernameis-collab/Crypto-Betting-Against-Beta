@@ -2,13 +2,13 @@
 
 **Canonical durable handoff (single source of truth).** Do not create parallel handoff/session docs; update this file only. `AGENT_HANDOFF.md` is a pointer to this file and must not carry a parallel task message.
 
-- **Timestamp (UTC):** 2026-11-15T04:29:12Z
+- **Timestamp (UTC):** 2026-11-15T04:32:34Z
 - **Repo:** `Crypto-Betting-Against-Beta`
-- **Git HEAD (verified):** `f2298bf8` — baseline re-established this session; code tree clean at HEAD; no uncommitted changes. First act of the next session: execute the P11 campaign top-down (no commit needed first; commit at the end of each finished step).
+- **Git HEAD (verified):** `f2298bf` — baseline clean at HEAD; no parallel handoff docs. First act next session: re-establish baseline (ruff/quick/gate) then execute P11 campaign top-down.
 - **Branch:** `main`
-- **Working tree:** code clean at HEAD `f2298bf8`; no uncommitted changes.
+- **Working tree:** clean except this `HANDOFF.md` + `AGENT_HANDOFF.md` pointer refresh (single durable handoff only); no code changes.
 
-## INITIAL TASK MESSAGE (START HERE, 2026-11-15T04:29:12Z UTC) — BINDING
+## INITIAL TASK MESSAGE (START HERE, 2026-11-15T04:32:34Z UTC) — BINDING
 
 This is the only active task. Execute top-down. No archaeology (`probe_*.py`, `debug_beta*.py`, `ast_probe.py`), no new parallel handoff/session docs. If blocked, record the exact command + output and continue with the next unblocked priority. **Never stop at analysis — every session must produce code, tests, and fresh gate evidence.**
 
@@ -28,12 +28,12 @@ The prior session left the gate effectively un-runnable inside a session budget:
 
 Also added `scripts/bab_quick.sh` (fast inner-loop: ruff + targeted trio + smoke, ~15s) and declared `pytest-cov`/`pytest-xdist` in `requirements.txt` + `pyproject.toml [test]`.
 
-## Verified state (fresh this session, 2026-11-15T04:29:12Z; re-verify after every change)
+## Verified state (fresh this session, 2026-11-15T04:32:34Z; re-verify after every change)
 
-- `python3 -m ruff check .` → **clean** (All checks passed).
-- `bash scripts/bab_quick.sh` → ruff clean; targeted trio **104 passed**; smoke **195 passed** (~14s).
-- `bash scripts/bab_gate.sh` → last green **5796 passed, 35 skipped, 0 failed; TOTAL 90% in 6m07s** (parallel xdist, sysmon coverage; re-run full gate before claiming done).
-- `python3 scripts/perf_baseline.py --check` → `failures: []`.
+- `python3 -m ruff check .` → **clean** (All checks passed) — verified this session.
+- `bash scripts/bab_quick.sh` → **green** (ruff clean; targeted trio **104 passed**; smoke **195 passed**, ~14s) — verified this session.
+- `bash scripts/bab_gate.sh` → **last recorded green at `be9b5c2`: 5796 passed, 35 skipped, 0 failed; TOTAL 90% in ~6m07s** (parallel xdist, sysmon). Full gate was not re-run to completion in this handoff-refresh session; **must be re-run as P11 step 1 before any new code changes are claimed done.**
+- `python3 scripts/perf_baseline.py --check` → **not re-run this session** (last known `failures: []` per prior handoff); re-run in final gate pass.
 - Default offline/dry-run behavior unchanged; live execution safe-by-default (dry-run, env-only creds, no implicit network). Real (non-dry-run) live execution is out of scope.
 
 ## Per-file coverage at this HEAD (the real targets)
