@@ -570,7 +570,9 @@ def test_live_adapter_env_credentials_and_lazy_connector(monkeypatch):
     assert adapter2.current_positions is not pos
 
 
-# --- execution.py remaining missed branches (139-141, 182-185, 463-464, 472-473, 555-556, 591, 692, 847-848, 1047, 1281, 1386, 1389) ---
+# --- execution.py remaining missed branches ---
+# 139-141, 182-185, 463-464, 472-473, 555-556, 591, 692, 847-848,
+# 1047, 1281, 1386, 1389
 
 
 def test_price_for_timestamp_fallback_object_index():
@@ -660,14 +662,14 @@ def test_cancel_order_dry_run_cache_miss(monkeypatch):
 def test_ensure_connected_early_return_and_create_connector(monkeypatch):
     fake_ccxt = types.SimpleNamespace(binance=lambda config: FakeExchange(config))
     monkeypatch.setitem(sys.modules, "ccxt", fake_ccxt)
-    adapter = LiveExecutionAdapter(exchange_name="binance", dry_run=True)
+    adapter = LiveExecutionAdapter(exchange="binance", dry_run=True)
     assert adapter.connector is None and adapter._connected is False
     # early return when already connected (1386)
     adapter._connected = True
     adapter._ensure_connected()
     assert adapter.connector is None
     # create-connector path (1388-1389)
-    adapter2 = LiveExecutionAdapter(exchange_name="binance", dry_run=True)
+    adapter2 = LiveExecutionAdapter(exchange="binance", dry_run=True)
     adapter2._ensure_connected()
     assert adapter2._connected is True
     assert isinstance(adapter2.connector, CCXTConnector)

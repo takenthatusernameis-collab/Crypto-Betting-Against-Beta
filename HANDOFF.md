@@ -2,29 +2,30 @@
 
 **Canonical durable handoff (single source of truth).** Do not create parallel handoff/session docs; update this file only. `AGENT_HANDOFF.md` is a pointer to this file and must not carry a parallel task message.
 
-- **Timestamp (UTC):** 2026-11-15T18:35:00Z
+- **Timestamp (UTC):** 2026-11-15T18:58:00Z
 - **Repo:** `Crypto-Betting-Against-Beta` (crypto market-neutral BAB research → backtest → execution/ops)
-- **Git HEAD (verified this refresh):** `520d7e7` (`chore(kilo): checkpoint agent session`, `main...origin/main`)
-- **Working tree:** dirty (uncommitted new file `tests/test_bab_execution_p14_coverage.py` from P14-B progress). Verify with `git status --short` and `git log -1 --oneline` before acting; do not trust a stale SHA if it diverges.
+- **Git HEAD (verified this refresh):** `5ebd881` (`chore(kilo): checkpoint agent session`, `main...origin/main`)
+- **Working tree:** clean at refresh (`git status --short` empty). Verify with `git status --short` and `git log -1 --oneline` before acting.
 - **Toolchain:** `python3 3.12.3`; `ruff 0.17.5`; numpy/pandas/scipy/pytest/hypothesis/coverage/pytest-cov/pytest-xdist/ccxt installed (`deps_ok`). `bash scripts/bab_bootstrap.sh` is the supported bootstrap (called by quick/gate).
 
-## INITIAL TASK MESSAGE (START HERE, 2026-11-15T18:35:00Z) — BINDING (DO NOT IGNORE)
+## INITIAL TASK MESSAGE (START HERE, 2026-11-15T18:58:00Z) — BINDING (DO NOT IGNORE)
 
 You are the next agentic worker on **Crypto-Betting-Against-Beta**. Execute **P14 — Zero-Excuse Coverage & Safety Push** until the release gate is met. P14 is the **only** active campaign. **No archaeology** (`probe_*.py`, `debug_beta*.py`, `ast_probe.py`), **no new parallel handoff/session docs**, **no analysis-only ending**.
 
 ### Campaign objective (heavy, measurable)
 Raise BAB strategy coverage and safety confidence to **TOTAL >= 98.5%** (stretch 99%) with `bash scripts/bab_gate.sh` green and ruff clean, while preserving byte-identical default offline/deterministic behavior and **live dry-run-safe-by-default**. Every session must produce concrete progress: new passing P14 tests and/or a production bug fix with regression — never a handoff-only turn.
 
-### Verified state (2026-11-15T18:35:00Z, this session)
+### Verified state (2026-11-15T18:58:00Z, this session)
 - `bash scripts/bab_quick.sh` → **PASS** (`== quick preflight OK ==`: ruff clean, targeted trio 104 passed, smoke 195 passed).
 - `python3 -m ruff check .` → **clean**.
-- `tests/test_bab_execution_p14_coverage.py` → **21 passed** (new P14-B file; fakes/mocks only, no network/credentials, no real live execution).
-- Combined execution coverage run: `python3 -m coverage run -m pytest tests/test_bab_execution_p14_coverage.py tests/test_bab_execution_integration_r5.py tests/test_bab_execution_realism_r3.py tests/test_bab_execution_realism_r5e.py tests/test_bab_execution_p11_coverage.py -q -p no:xdist` → **191 passed, 8 warnings**; `execution.py` **97% (23 missed)**, missing: `139-141, 182-185, 463-464, 472-473, 555-556, 591, 692, 847-848, 1047, 1281, 1287-1288, 1386, 1389`.
-- Full gate: `BAB_GATE_MIN_COVERAGE=98.5 bash scripts/bab_gate.sh` was started this session but **did not complete to final summary in-session** (captured log reached ~24% progress, 326 files, jobs=4/sysmon, then interrupted; no process left running at refresh). **No current gate TOTAL/pass/fail/skip recorded this session** — rerun gate and record exact evidence before claiming release-gate status.
-- Prior recorded full gate (stale, re-measure): **6071 passed, 35 skipped, 0 failed, 501.15s, TOTAL 97% (201 missed)**, ruff clean, floor 98.5% not met.
+- `tests/test_bab_execution_p14_coverage.py` → **32 passed** (fixed this session: removed E501 line-too-long and corrected `LiveExecutionAdapter` kwarg `exchange_name`→`exchange`). Fakes/mocks only, no network/credentials, no real live execution.
+- **Coverage signals (re-measure under gate for truth):**
+  - Isolated P14-B file: `coverage run -m pytest tests/test_bab_execution_p14_coverage.py -q -p no:xdist` → 32 passed; `execution.py` **98% (13 missed: 139-141,182-185,555-556,1287-1288,1386,1389)**.
+  - Combined execution set: `coverage run -m pytest tests/test_bab_execution_p14_coverage.py tests/test_bab_execution_integration_r5.py tests/test_bab_execution_realism_r3.py tests/test_bab_execution_realism_r5e.py tests/test_bab_execution_p11_coverage.py -q -p no:xdist` → **202 passed, 8 warnings**; `execution.py` **92% (62 missed)** in this combined run (large divergence from isolated run — investigate under `bab_gate`/full suite context, avoid false confidence from single-file coverage).
+- Full gate: **not run to completion this session**. No current gate TOTAL/pass/fail/skip recorded. Prior recorded full gate (stale, re-measure): **6071 passed, 35 skipped, 0 failed, 501.15s, TOTAL 97% (201 missed)**, ruff clean, floor 98.5% not met.
 
 ### Priority (continue in order, heavy work required)
-1. **P14-B `execution.py` (CONTINUE, highest execution-safety risk):** 23 missed remain in combined run (above). Extend `tests/test_bab_execution_p14_coverage.py` to cover feasible branches (paper realism/adapter fallbacks, sanitize/import-edge, CCXT idempotent connect/guards, LiveFill/report edge paths, _finite/_date_key/_adv exception branches, engine pnl/batch skips) targeting **execution.py >= 98% (<= 10 missed)**. Fakes/mocks only — **no network, no credentials, no real live execution**.
+1. **P14-B `execution.py` (CONTINUE, highest execution-safety risk):** Reconcile/raise gate-relevant coverage. Use `BAB_GATE_MIN_COVERAGE=98.5 bash scripts/bab_gate.sh` and/or targeted `coverage run -m pytest` that matches gate collection to identify true remaining missed lines in `execution.py`, then extend `tests/test_bab_execution_p14_coverage.py` to hit feasible branches (paper realism/adapter fallbacks, sanitize/import-edge, CCXT idempotent connect/guards, LiveFill/report edge paths, `_finite/_date_key/_adv` exception branches, engine pnl/batch skips) targeting **execution.py >= 98% in gate**. Fakes/mocks only — **no network, no credentials, no real live execution**.
 2. **P14-C correctness:** create `tests/test_bab_beta_backtest_p14_coverage.py` targeting `beta.py` >= 98%, `backtest.py` >= 98% (finite/NaN/window/min-period inputs; prove equivalence to pandas rolling-OLS reference where applicable).
 3. **P14-D ops safety residue:** create `tests/test_bab_ops_safety_p14_coverage.py` targeting `replay.py`, `portfolio.py`, `reconciliation.py`, `risk.py` each >= 98%.
 4. **P14-A `data_loader.py`:** extend `tests/test_bab_data_loader_p14_coverage.py` for remaining missed coverable lines where feasible; `data_loader < 99%` acceptable only if **TOTAL >= 98.5%**.
@@ -32,8 +33,8 @@ Raise BAB strategy coverage and safety confidence to **TOTAL >= 98.5%** (stretch
 
 ### First 10 minutes (mandatory)
 1. `bash scripts/bab_quick.sh` — must end with `== quick preflight OK ==`.
-2. `git status --short` and `git log -1 --oneline` — record real HEAD/tree (note uncommitted `tests/test_bab_execution_p14_coverage.py`).
-3. Read this file fully, then continue P14-B (extend existing P14 test) or proceed to first unblocked step with missing coverage. Do not spend the session re-planning.
+2. `git status --short` and `git log -1 --oneline` — record real HEAD/tree.
+3. Read this file fully, then continue P14-B (measure gate-relevant execution misses, extend P14 test) or proceed to first unblocked step. Do not spend the session re-planning.
 
 ### Session output contract (binding)
 A session that only edits this file is a **FAILED session**. Before finishing, ALL must hold:
@@ -58,21 +59,21 @@ A session that only edits this file is a **FAILED session**. Before finishing, A
 
 | Step | Target | New test file | Status | Evidence |
 |------|--------|---------------|--------|----------|
-| P14-0 | Baseline quick green | — | [x] | 2026-11-15T18:35:00Z: `bash scripts/bab_quick.sh` PASS (ruff clean, 104 targeted + 195 smoke). HEAD `520d7e7`, deps ok. |
+| P14-0 | Baseline quick green | — | [x] | 2026-11-15T18:58:00Z: `bash scripts/bab_quick.sh` PASS (ruff clean, 104 targeted + 195 smoke). HEAD `5ebd881`, deps ok, tree clean. |
 | P14-A | `data_loader.py` coverable gaps (TOTAL floor governs) | `tests/test_bab_data_loader_p14_coverage.py` | [~] | Prior: file exists (33 tests). Extend for remaining coverable lines or accept if TOTAL >= 98.5%. |
-| P14-B | `execution.py` >= 98% | `tests/test_bab_execution_p14_coverage.py` | [~] | 2026-11-15T18:35:00Z: created/extended `tests/test_bab_execution_p14_coverage.py` (21 passed). `ruff check .` clean; quick green. Combined exec coverage: `coverage run -m pytest tests/test_bab_execution_p14_coverage.py tests/test_bab_execution_integration_r5.py tests/test_bab_execution_realism_r3.py tests/test_bab_execution_realism_r5e.py tests/test_bab_execution_p11_coverage.py -q -p no:xdist` → 191 passed,8w; **execution.py 97% (23 missed: 139-141,182-185,463-464,472-473,555-556,591,692,847-848,1047,1281,1287-1288,1386,1389)**. Full gate started but incomplete in-session (log ~24%, 326 files, jobs=4/sysmon, interrupted) — **rerun and record exact TOTAL/pass/fail/skip**. |
+| P14-B | `execution.py` >= 98% (gate-relevant) | `tests/test_bab_execution_p14_coverage.py` | [~] | 2026-11-15T18:58:00Z: fixed existing P14 test (E501 + `exchange_name`→`exchange`); `pytest tests/test_bab_execution_p14_coverage.py -q -p no:xdist` 32 passed, ruff clean, quick green. Coverage: isolated 98% (13 missed); combined exec suite 202 passed,8w but 92% (62 missed) — **gate-context coverage not yet confirmed, continue P14-B**. Full gate not completed this session. |
 | P14-C | `beta.py` >= 98%, `backtest.py` >= 98% | `tests/test_bab_beta_backtest_p14_coverage.py` | [ ] | |
 | P14-D | replay/portfolio/reconciliation/risk >= 98% | `tests/test_bab_ops_safety_p14_coverage.py` | [ ] | |
 | P14-E | TOTAL >= 98.5%, gate green, handoff refreshed | — | [ ] | |
 
 ### Coverage notes (stale full-gate baseline 6071p/35s/0f, TOTAL 97%, 201 missed — re-measure)
-- `execution.py` improved this session in combined targeted run to **97%/23 missed** (see ledger); gate-wide TOTAL unknown until rerun.
+- `execution.py` P14-B in progress; isolated vs combined coverage diverges this session — trust gate/full-suite measurement.
 - Other per-file baselines unchanged from prior handoff until fresh gate.
 
 | Module | Cover | Miss | Notes / remaining |
 |--------|-------|------|-------------------|
 | `__init__, attribution, costs, data, errors, quality, regime, shorting, sizing, strategy` | 100% | 0 | — |
-| `execution.py` | ~97% (combined run) | 23 | **P14-B continue** |
+| `execution.py` | ? (gate TBD) | ? | **P14-B continue**; isolated 98%/13, combined exec 92%/62 (this session) |
 | `data_loader.py` | ~97% | ~42 est. | P14-A extendable gaps |
 | `beta.py` | 93% | 28 | P14-C |
 | `replay.py` | 92% | 11 | P14-D |
