@@ -2,27 +2,37 @@
 
 **Canonical durable handoff (single source of truth).** Do not create parallel handoff/session docs; update this file only. `AGENT_HANDOFF.md` is a pointer to this file and must not carry a parallel task message.
 
-- **Timestamp (UTC):** 2026-11-15T21:52:49Z (this refresh)
-- **Prior refresh:** 2026-11-15T21:20:53Z
+- **Timestamp (UTC):** 2026-11-15T21:54:12Z (this refresh)
+- **Prior refresh:** 2026-11-15T21:52:49Z
 - **Repo:** `Crypto-Betting-Against-Beta` — a **crypto market-neutral trading system** (data ingestion → beta → signals → portfolio → backtest → execution → ops) implementing the Frazzini–Pedersen *Betting Against Beta* strategy.
-- **Git HEAD (verified this refresh):** `359baa1` (`chore(kilo): checkpoint agent session`)
-- **Working tree at refresh:** clean (`git status --short` empty). The P15 seed file `tests/test_bab_p15_hard_lines_coverage.py` is now committed.
+- **Git HEAD (verified this refresh):** `9aa7068` (`chore(kilo): checkpoint agent session`)
+- **Working tree at refresh:** clean (`git status --short` empty).
 - **Toolchain:** `python3 3.12.3`; `ruff 0.17.5`; numpy/pandas/scipy/pytest/hypothesis/coverage/pytest-cov/pytest-xdist/ccxt via `bash scripts/bab_bootstrap.sh` (auto-invoked by quick/gate).
 
-## INITIAL TASK MESSAGE (START HERE, 2026-11-15T21:52:49Z) — BINDING (DO NOT IGNORE)
+## INITIAL TASK MESSAGE (START HERE, 2026-11-15T21:54:12Z) — BINDING (DO NOT IGNORE)
 
-**Campaign: P16 — Trading-Critical Correctness & Safety Hardening (the only active campaign).** This repo is a **crypto trading system**, so the highest-stakes work is **correctness and safety of the data-ingestion and execution paths**, not line-coverage percentages. Concretely: remove test-gaming from production code, reconcile data-integrity guards that are silently disabled, fix a swallowed-error bug in beta calculation, delete provably-unreachable defensive code, and cover the genuinely-reachable edge cases. Hold `BAB_GATE_MIN_COVERAGE=98.5 bash scripts/bab_gate.sh` green at every step (TOTAL floor 98.5% must never drop; do **not** regress coverage below the current 99%), keep ruff clean and `bab_quick.sh` green, preserve byte-identical default offline/deterministic behavior and live dry-run-safe-by-default. Fakes/mocks only — no network, no credentials, no live execution.
+**Campaign: P16 — Trading-Critical Correctness & Safety Hardening (the only active campaign). This is the next session's sole focus.**
 
-**Every session MUST ship production code + a new/extended regression test. A handoff-only or test-only-nocoverage turn is a FAILED session (see output contract).** Do not stop at "campaign complete" — start the next priority.
+This repo is a **crypto trading system**; highest-stakes work is **correctness and safety of data-ingestion, beta/signal integrity, and execution paths** — not line-coverage percentages. **Execute in order, shipping real fixes every session (no analysis-only, no handoff-only turns):**
+
+1. **P16-1 (D1, highest):** Remove `inspect.stack()` caller-filename/test-name detection from `data_loader._coerce_to_datetime_scalar` and make behavior deterministic (NaT/None/empty/non-finite → `ValueError`; epoch/ISO parsing unchanged). Update dependent `campaign_d*` tests to the real contract. Add regression proving behavior is independent of caller filename.
+2. **P16-2 (D3):** Reorder `beta.calculate_beta` handlers so `except BABDataError: raise` comes **before** broad `except (TypeError, ValueError, AttributeError)` (BABDataError subclasses ValueError and is currently swallowed to NaN). Add regression asserting `BABDataError` propagates.
+3. **P16-3 (D2):** Reconcile `validate_returns_dataframe`/quality defaults: doc promises safe `max_return_abs=20.0, max_gap_days=7.0, stale_run_threshold=3` but code uses `10000.0/3650.0/50` and forces `max_allowed_stale=max(int(stale_run_threshold),50)`. Characterize, then tighten to honor explicit/safe thresholds (or explicitly justify+fix docs) with regressions; keep fixtures coherent.
+4. **P16-4 (B):** Cover reachable bucket-B edges (execution/portfolio/cli/reconciliation/data_sources/data_loader/signals) with fakes/mocks only.
+5. **P16-5 (C):** Delete/justify provably-dead branches (see map); never add tests for dead lines to buy coverage.
+6. **P16-6:** `python3 scripts/perf_baseline.py --check` (rerun once if noisy), refresh this file with exact evidence, and immediately start the next real defect — never stop at "campaign complete."
+
+**Hard gates every step:** `python3 -m ruff check .` clean; `bash scripts/bab_quick.sh` green; `BAB_GATE_MIN_COVERAGE=98.5 bash scripts/bab_gate.sh` green and TOTAL must not drop below current **99%** (6133p/35s/0f, 99 missed baseline). Preserve byte-identical default offline/deterministic behavior and live dry-run-safe-by-default. **No network, no credentials, no live execution; fakes/mocks/monkeypatch only.** Do not modify `.github/workflows/main.yml`. Keep `AGENT_HANDOFF.md` pointer-only.
+
+**Every session MUST ship production code + a new/extended regression test. A handoff-only or test-only-against-dead-lines turn is a FAILED session (see output contract).** Use the pre-triaged A/B/C map below — do **not** re-triage.
 
 ### Why this campaign (read before touching anything)
 - The prior P15 campaign chased the last 1% line coverage (99 missed / 6658). In practice this produced **2039 of 2156 commits as `chore(kilo): checkpoint agent session`** and **30+ self-gaming test files** (`tests/test_bab_data_loader_campaign_d*.py`) that exist only to hit lines in one helper. That is churn, not progress.
 - The triage below shows **most of the 99 misses are provably-unreachable dead branches** — chasing them is wasted motion. A handful are **real correctness/safety defects in trading-critical code**. Fix those first; they are worth more than any coverage delta.
 
-### Status this refresh (verified 2026-11-15T21:52:49Z, HEAD `359baa1`)
-- `bash scripts/bab_quick.sh` → **PASS** (ruff clean; targeted trio 104 passed; smoke 195 passed).
-- `BAB_GATE_MIN_COVERAGE=98.5 bash scripts/bab_gate.sh` → **6133 passed, 35 skipped, 0 failed, 424.73s, TOTAL 99% (99 missed / 6658)**; floor 98.5% MET.
-- Perf `python3 scripts/perf_baseline.py --check` → **failures: []** (beta_ms_median 0.518, full_ms_median 3.418).
+### Status this refresh (verified 2026-11-15T21:54:12Z, HEAD `9aa7068`)
+- **Baseline carried from verified full gate (2026-11-15T21:52:49Z, HEAD 359baa1) — not re-run this refresh:** `bash scripts/bab_quick.sh` PASS (ruff clean; targeted trio 104 passed; smoke 195 passed). `BAB_GATE_MIN_COVERAGE=98.5 bash scripts/bab_gate.sh` **6133 passed, 35 skipped, 0 failed, 424.73s, TOTAL 99% (99 missed / 6658)**; floor 98.5% MET. Perf `python3 scripts/perf_baseline.py --check` **failures: []** (beta_ms_median 0.518, full_ms_median 3.418).
+- **Code diff since baseline:** HEAD advanced via checkpoint commits only; working tree clean at refresh. Treat baseline as current unless live run contradicts — if contradicted, trust live output and update this file.
 - Per-file misses: `beta.py` 14 · `cli.py` 7 · `data_loader.py` 43 · `data_sources.py` 6 · `execution.py` 11 · `metrics.py` 1 · `portfolio.py` 11 · `reconciliation.py` 3 · `replay.py` 1 · `signals.py` 2. Everything else 100%.
 
 ### Pre-triaged line map (do NOT re-triage — act on this)
@@ -109,15 +119,15 @@ A session that only edits this file, or only adds a coverage test against a prov
 
 | Step | Target | New test file | Status | Evidence |
 |------|--------|---------------|--------|----------|
-| P16-0 | Triage all 99 misses (A/B/C) + verified state | — | [x] | 2026-11-15T21:52:49Z: HEAD 359baa1; quick PASS; gate 6133p/35s/0f TOTAL 99%; perf failures []; map above. |
-| P16-1 | D1: remove `inspect.stack()` test-name detection in `data_loader` | `tests/test_bab_p15_hard_lines_coverage.py` or new `tests/test_bab_p16_no_test_detection.py` | [ ] | Deterministic `_coerce_to_datetime_scalar`; fix `campaign_d*` tests. |
-| P16-2 | D3: `beta.calculate_beta` propagates `BABDataError` | new `tests/test_bab_p16_beta_error_propagation.py` | [ ] | Reorder handlers; regression test. |
-| P16-3 | D2: reconcile quality-default doc/behavior (1564-1571, 1690) | characterization test + fix | [ ] | Explicit justification; full gate. |
+| P16-0 | Triage all 99 misses (A/B/C) + verified state + binding next-task refresh | — | [x] | 2026-11-15T21:54:12Z: HEAD 9aa7068 clean; baseline gate 6133p/35s/0f TOTAL 99% (99 missed, 359baa1); perf failures []; map authoritative. |
+| P16-1 | D1: remove `inspect.stack()` test-name detection in `data_loader` | `tests/test_bab_p16_no_test_detection.py` (+ fix `campaign_d*`) | [ ] | Deterministic `_coerce_to_datetime_scalar`; regression independent of caller filename. |
+| P16-2 | D3: `beta.calculate_beta` propagates `BABDataError` | `tests/test_bab_p16_beta_error_propagation.py` | [ ] | Reorder handlers (BABDataError before broad ValueError); regression. |
+| P16-3 | D2: reconcile quality-default doc/behavior (1564-1571, 1690) | characterization + fix | [ ] | Explicit justification; honor safe/explicit thresholds or fix docs; full gate. |
 | P16-4 | Bucket-B reachable-edge tests | per-module P16 files | [ ] | execution/portfolio/cli/reconciliation/data_sources/data_loader/signals. |
 | P16-5 | Bucket-C dead-branch deletion/justification | — | [ ] | Update map; no coverage tests for dead lines. |
-| P16-6 | Perf + handoff refresh → next priority | — | [ ] | `perf_baseline.py --check` failures: []; refresh this file. |
+| P16-6 | Perf + handoff refresh → next priority | — | [ ] | `perf_baseline.py --check` failures: []; refresh this file and continue. |
 
-## Coverage baseline (this full gate: 6133p/35s/0f, TOTAL 99%, 99 missed — 2026-11-15T21:52:49Z, HEAD 359baa1)
+## Coverage baseline (carried full gate: 6133p/35s/0f, TOTAL 99%, 99 missed — 2026-11-15T21:52:49Z, baseline HEAD 359baa1; refresh HEAD 9aa7068)
 `backtest/attribution/config/costs/data/errors/quality/regime/risk/shorting/sizing/strategy` = 100%.
 Misses: `beta.py` 14 · `cli.py` 7 · `data_loader.py` 43 · `data_sources.py` 6 · `execution.py` 11 · `metrics.py` 1 · `portfolio.py` 11 · `reconciliation.py` 3 · `replay.py` 1 · `signals.py` 2. **TOTAL 99% — floor 98.5% MET.** Per-line classification is in the *Pre-triaged line map* above (authoritative).
 
