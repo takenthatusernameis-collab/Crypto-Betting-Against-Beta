@@ -16,6 +16,10 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 export PYTHONPATH="$ROOT${PYTHONPATH:+:$PYTHONPATH}"
 
+# Fresh runners may lack numpy/pandas/scipy/pytest/hypothesis/ccxt/ruff. Install
+# only missing modules once; this is a no-op when the toolchain is complete.
+bash "$ROOT/scripts/bab_bootstrap.sh"
+
 QARGS=(-q -p no:cacheprovider -W ignore::UserWarning -W ignore::RuntimeWarning -W ignore::FutureWarning -W ignore::DeprecationWarning)
 
 echo "== ruff =="

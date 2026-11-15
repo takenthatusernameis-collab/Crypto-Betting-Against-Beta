@@ -5,11 +5,15 @@
 #   scripts/bab_gate.sh                # parallel full suite + coverage (default)
 #   BAB_GATE_SERIAL=1 scripts/bab_gate.sh   # force single-process (debug bisect)
 #   BAB_GATE_JOBS=8 scripts/bab_gate.sh     # override worker count
+#   BAB_GATE_MIN_COVERAGE=98.5 scripts/bab_gate.sh  # fail unless TOTAL >= 98.5%
+#   BAB_GATE_LOG=/tmp/bab_gate.log scripts/bab_gate.sh  # preserve the full log
 #
-# Exit 0  => GREEN (suite passed, coverage ceiling held).
-# Exit 1  => REGRESSION (failures, or coverage ceiling breached).
+# Exit 0  => GREEN (suite passed; coverage floor met when requested).
+# Exit 1  => REGRESSION (failures, or requested coverage floor not met).
 #
-# This is the ONLY command future agents need to run to verify the BAB gate.
+# This is the only gate script future agents need. Use
+# BAB_GATE_MIN_COVERAGE=98.5 for the P14 release gate; without it the script
+# still runs the full suite and prints coverage but does not enforce a floor.
 #
 # Why parallel by default: the full suite is ~5,800 tests. Serially it takes
 # ~16 min on the CI runner, which used to exceed the per-session budget and made
@@ -25,6 +29,10 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
 export PYTHONPATH="$ROOT${PYTHONPATH:+:$PYTHONPATH}"
+
+# Fresh runners may lack numpy/pandas/scipy/pytest/hypothesis/ccxt/ruff. Install
+# only missing modules once; this is a no-op when the toolchain is complete.
+bash "$ROOT/scripts/bab_bootstrap.sh"
 
 # Quiet the noisy pandas/numpy deprecation & runtime warnings so real failures
 # are visible; warnings never fail the gate.
@@ -86,4 +94,46 @@ PYEOF
 )
 
 echo "[bab_gate] running ${#TEST_FILES[@]} test files"
-exec python3 -m pytest "${PYTEST_ARGS[@]}" "${TEST_FILES[@]}"
+
+# Keep a log so the coverage floor can be checked without re-running pytest.
+# A caller-provided BAB_GATE_LOG is preserved; the default temp log is removed.
+if [[ -n "${BAB_GATE_LOG:-}" ]]; then
+  GATE_LOG="$BAB_GATE_LOG"
+  KEEP_GATE_LOG=1
+else
+  GATE_LOG="${TMPDIR:-/tmp}/bab_gate.$$.log"
+  KEEP_GATE_LOG=0
+fi
+trap 'if [[ "${KEEP_GATE_LOG:-0}" == "0" ]]; then rm -f "$GATE_LOG"; fi' EXIT
+
+set +e
+python3 -m pytest "${PYTEST_ARGS[@]}" "${TEST_FILES[@]}" 2>&1 | tee "$GATE_LOG"
+rc=${PIPESTATUS[0]}
+set -e
+if (( rc != 0 )); then
+  echo "[bab_gate] pytest failed with exit code ${rc}"
+  exit "$rc"
+fi
+
+MIN_COVERAGE="${BAB_GATE_MIN_COVERAGE:-0}"
+if [[ "$MIN_COVERAGE" != "0" ]]; then
+  if ! [[ "$MIN_COVERAGE" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
+    echo "[bab_gate] invalid BAB_GATE_MIN_COVERAGE=${MIN_COVERAGE}; expected a percentage >= 0" >&2
+    exit 2
+  fi
+  if [[ "$COVERAGE" != "1" ]]; then
+    echo "[bab_gate] BAB_GATE_MIN_COVERAGE=${MIN_COVERAGE} requested but pytest-cov is unavailable" >&2
+    exit 1
+  fi
+  total_pct="$(awk '/^TOTAL[[:space:]]/ {gsub(/%/, "", $NF); print $NF}' "$GATE_LOG" | tail -n 1)"
+  if [[ -z "$total_pct" ]]; then
+    echo "[bab_gate] could not parse TOTAL coverage from ${GATE_LOG}; failing closed" >&2
+    exit 1
+  fi
+  if ! awk -v t="$total_pct" -v f="$MIN_COVERAGE" 'BEGIN { exit !(t + 0 >= f + 0) }'; then
+    echo "[bab_gate] COVERAGE FLOOR NOT MET: TOTAL ${total_pct}% < ${MIN_COVERAGE}%" >&2
+    echo "[bab_gate] Add the missing P14 tests; do not lower the floor." >&2
+    exit 1
+  fi
+  echo "[bab_gate] coverage floor met: TOTAL ${total_pct}% >= ${MIN_COVERAGE}%"
+fi

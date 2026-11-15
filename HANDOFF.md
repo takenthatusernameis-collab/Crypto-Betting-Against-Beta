@@ -2,35 +2,96 @@
 
 **Canonical durable handoff (single source of truth).** Do not create parallel handoff/session docs; update this file only. `AGENT_HANDOFF.md` is a pointer to this file and must not carry a parallel task message.
 
-- **Timestamp (UTC):** 2026-11-15T16:49:08Z (refreshed; next session starts here)
-- **Repo:** `Crypto-Betting-Against-Beta` (prioritized: a credible crypto Betting-Against-Beta research→backtest→ops workflow with deterministic offline defaults, dry-run-safe live execution, and gateable quality)
-- **Git HEAD (verified this refresh):** `abca6ea` (`chore(kilo): checkpoint agent session`, `main...origin/main`)
-- **Working tree:** four modified P12 test files (`tests/test_bab_backtest_p12_coverage.py`, `tests/test_bab_beta_p12_coverage.py`, `tests/test_bab_p12d_coverage.py`, `tests/test_bab_strategy_p12_coverage.py`). These are **required repairs**, not scratch edits: they fix a test collection syntax error and align tests with real production contracts. Do not blindly revert them. No production code changed.
-- **Toolchain (verified this runner):** `python3 3.12.3`; `ruff 0.17.5`; runtime/test deps installed (`numpy/pandas/scipy/pytest/hypothesis/coverage/pytest-cov/pytest-xdist/ccxt`). Env/bootstrap bottleneck removed.
+- **Timestamp (UTC):** 2026-11-15T17:00:17Z
+- **Repo:** `Crypto-Betting-Against-Beta` (crypto market-neutral BAB research -> backtest -> execution/ops)
+- **Git HEAD (verified this refresh, before checkpoint):** `d74c84e` (`chore(kilo): checkpoint agent session`, `main...origin/main`)
+- **Working tree:** this refresh adds `scripts/bab_bootstrap.sh`, wires it into `scripts/bab_quick.sh` and `scripts/bab_gate.sh`, adds an opt-in `BAB_GATE_MIN_COVERAGE` floor to the gate, refreshes `docs/COVERAGE_NOTES.md` to the P14 baseline, and updates this file plus the `AGENT_HANDOFF.md` pointer. No production code and no existing test changed.
+- **Toolchain:** `python3 3.12.3`; `ruff 0.17.5`; numpy/pandas/scipy/pytest/hypothesis/coverage/pytest-cov/pytest-xdist/ccxt installed. `bash scripts/bab_bootstrap.sh` is a no-op here.
 
-## INITIAL TASK MESSAGE (START HERE, 2026-11-15T16:49:08Z UTC) — BINDING (DO NOT IGNORE)
+## INITIAL TASK MESSAGE (START HERE, 2026-11-15T17:00:17Z) — BINDING (DO NOT IGNORE)
 
-You are the next agentic worker on **Crypto-Betting-Against-Beta**. Your job is **heavy, measurable progress** on the P13 **data-integrity + execution-safety coverage campaign**. This is the **only** active task list. Follow it top-down. **No archaeology** (`probe_*.py`, `debug_beta*.py`, `ast_probe.py`), **no new parallel handoff/session docs**, **no “analysis-only” ending**.
+You are the next agentic worker on **Crypto-Betting-Against-Beta**. Execute **P14 — Zero-Excuse Coverage & Safety Push**. P14 supersedes P13: P13 was defined but never executed, so do not create P13 files and do not restart it. P14 is the **only** active task list. Follow it top-down. **No archaeology** (`probe_*.py`, `debug_beta*.py`, `ast_probe.py`), **no new parallel handoff/session docs**, **no analysis-only ending**.
 
-### Hard rules (non-negotiable)
-- **A session that ends without new tests/code AND fresh gate evidence is a FAILED session.** If something is externally blocked, record the exact command + output and continue with the next unblocked item—never stop at analysis.
-- Preserve **byte-identical default offline/deterministic behavior** and **live execution dry-run-safe-by-default** (env-only creds, no implicit network). **No real (non-dry-run) live execution, no network, no credentials** in tests.
-- Prefer small, tested diffs. Do not re-litigate P12: `strategy.py` is now **100%** covered.
-- **Single durable handoff:** only `HANDOFF.md` is canonical; keep `AGENT_HANDOFF.md` pointer-only.
+### First 10 minutes (do this before anything else)
+1. `bash scripts/bab_quick.sh` — this now bootstraps missing deps; it must end with `== quick preflight OK ==`.
+2. `git status --short` and `git log -1 --oneline` — record the real HEAD; do not trust a stale handoff SHA.
+3. Read this file fully, then start P14-A. Do not spend the session re-planning.
 
-### Repo-prioritized mission (inferred from name `Crypto-Betting-Against-Beta`)
-1. **Data integrity first:** loader/format/schema/error paths must fail loudly or coerce deterministically; no silent partial alignment.
-2. **Backtest correctness:** rolling-beta and backtest edge semantics must be proven on finite/NaN/window/min-period inputs.
-3. **Ops/execution safety:** adapter rejection/fill/diagnostic/replay/reconciliation/risk branches must be covered without network or credentials.
-4. **Coverage gates:** drive **TOTAL to ≥ 98.5%** (stretch 99%) with **zero regressions**, then re-run the full gate.
+### Why this order (inferred from the repo name)
+`Crypto-Betting-Against-Beta` is a crypto BAB strategy. The highest-severity failures are:
+1. **Data integrity** — silently wrong/partial market data corrupts every downstream result; `data_loader.py` has the most missed branches (62).
+2. **Execution safety** — paper/live adapters can mis-fill, mis-cost, or mis-reconcile; `execution.py` has 45 missed branches.
+3. **Beta/backtest correctness** — rolling beta and backtest edges must be proven on finite/NaN/window/min-period inputs.
+4. **Ops residue** — replay/portfolio/reconciliation/risk edge paths.
+Coverage is the measurable proxy; **TOTAL >= 98.5%** (stretch 99%) is the release gate.
+
+### Session output contract (binding)
+A session that only edits this file is a **FAILED session**. Before finishing, ALL must hold:
+1. At least one new P14 test file (named below) exists and passes, or a production bug is fixed with a new regression test.
+2. `python3 -m ruff check .` is clean.
+3. `bash scripts/bab_quick.sh` is green.
+4. You ran `BAB_GATE_MIN_COVERAGE=98.5 bash scripts/bab_gate.sh` (or the plain gate) and recorded the exact TOTAL, pass/fail counts, and remaining gap in the ledger. A TOTAL below 98.5% is expected until P14 is complete; record it and continue to the next unblocked step in the same session.
+5. The P14 ledger below has a new row with exact command evidence.
+6. If all P14 steps are done, start P15 by attacking the next lowest-coverage module from the fresh gate table; do not stop at "campaign complete".
+No handoff-only sessions. No analysis-only endings. If blocked, record the exact command + output and move to the next unblocked item.
+
+### Hard rules
+- Preserve byte-identical default offline/deterministic behavior and live dry-run-safe-by-default.
+- No real live execution, no network, no credentials in tests.
+- Prefer small tested diffs. Do not change production logic unless a new failing test proves a bug.
+- Do not re-litigate P12: `strategy.py` is 100% covered.
+- Single durable handoff: only `HANDOFF.md` is canonical; keep `AGENT_HANDOFF.md` pointer-only.
+- If you see `SAME-RUN RECOVERY`, preserve local commits and work; do not reset or rewrite history.
+- Tool hygiene: if `edit` fails with invalid arguments, re-read the file and retry with a smaller unique `oldString`; after two failures use `write` for that file. Do not repeat a malformed call three times.
+
+### P14 execution order (heavy work first)
+
+**P14-A — `data_loader.py` (HEAVY, do FIRST).** Create `tests/test_bab_data_loader_p14_coverage.py`.
+- Target: `data_loader.py` **>= 99%** (<= 10 missed). Cover every missed line in the table below.
+- Test seeds: dayfirst/unparseable index -> `BABDataError` (283-300, 318-319); NaT/None/inf scalar coercion (373, 385-389, 453-454); exchange-format fallback (697-698, 749-750, 868-869); empty asset token (1032); all-NaN columns -> `BABDataError` (1268-1272); parseable-series pending count (1391); quality campaign finite/stale branches (1636-1712); finite-count fallback (1958-1959); freshness reference/tz fallbacks (2742-2761).
+- Use temp files/fakes only; assert observable behavior; do not weaken existing tests.
+
+**P14-B — `execution.py` (HEAVY).** Create `tests/test_bab_execution_p14_coverage.py`.
+- Target: `execution.py` **>= 98%** (<= 10 missed). Cover adapter rejection/fill/diagnostic/reconciliation, partial-fill/error paths, batching edges, and safety guards with fakes/mocks only (no network, no credentials, no real live execution).
+- Test seeds: `_price_for` Timestamp fallback (139-141); `_adv_for` dict/Series/DataFrame + errors (164-166); `_adv_from_frame_value` Timestamp/Series (177-187); `_date_key`/`_as_timestamp` fallbacks (380-381, 403-404); ADV/date/target coercion (463-480, 505-506); JSON sanitize numpy/non-finite/ImportError (555-560); diagnostics without betas index (783-784); paper PnL bad date/returns (836-848); `LiveFill.to_dict` (1047); `cancel_order`/status dry-run paths (1281-1288); API password env (1380-1381); idempotent connect (1386).
+
+**P14-C — `beta.py` + `backtest.py` correctness (HEAVY).** Create `tests/test_bab_beta_backtest_p14_coverage.py`.
+- Targets: `beta.py` **>= 98%** (<= 5 missed), `backtest.py` **>= 98%** (<= 2 missed).
+- Test seeds: `calculate_beta` empty/`BABDataError` (125, 150-151); `calculate_beta_fast` None/ragged/empty/non-finite (163, 170-171, 189, 216-219); `_finalize_betas` 1D degenerate/obs-short/non-finite (435-436) and fallback when the fast path fails (544-558); `backtest.py` 17-21 (ADV Series/DataFrame/None) and 163 (partial-fill ADV alignment). Prove equivalence to a pandas rolling-OLS reference on finite/NaN/window/min-period inputs.
+
+**P14-D — ops safety residue (MEDIUM).** Create `tests/test_bab_ops_safety_p14_coverage.py`.
+- Targets: `replay.py`, `portfolio.py`, `reconciliation.py`, `risk.py` each **>= 98%**.
+- Test seeds: replay weight resize/non-finite/equity fallback/date+payload sanitize (172-251); portfolio extreme weights/dtype/index failure -> `BABPortfolioError` (152-180); reconciliation sanitize numpy/ImportError/fill weight+cost fallbacks (78-113, 309, 377-385); risk HHI/position-age/drawdown/turnover/kill-switch/event filtering (245, 326-356, 566-568).
+
+**P14-E — final verification + handoff refresh (REQUIRED).**
+1. `python3 -m ruff check .`
+2. `bash scripts/bab_quick.sh`
+3. `BAB_GATE_MIN_COVERAGE=98.5 bash scripts/bab_gate.sh` — use a 600000 ms tool timeout or run it as a background process; rerun once if the runner is noisy.
+4. `python3 scripts/perf_baseline.py --check` — rerun once if noisy; must be `failures: []`.
+5. Paper smoke: `python3 -m strategies.betting_against_beta.cli --dry-run --synthetic --benchmark BTC`
+6. Live dry-run smoke: `BAB_TEST_KEY=dummy BAB_TEST_SECRET=dummy python3 -m strategies.betting_against_beta.cli --adapter live --exchange kraken --api-key-env BAB_TEST_KEY --api-secret-env BAB_TEST_SECRET --health-check`
+7. Update this file's timestamp, HEAD, table, ledger, and the next binding campaign. Keep `AGENT_HANDOFF.md` pointer-only.
+
+### P14 campaign ledger (update every session)
+
+| Step | Target | New test file | Status | Evidence |
+|------|--------|---------------|--------|----------|
+| P14-0 | Baseline quick green | — | [x] | 2026-11-15T17:00Z: `bash scripts/bab_quick.sh` -> ruff clean, 104 targeted + 195 smoke passed; perf `failures: []` |
+| P14-A | `data_loader.py` >= 99% | `tests/test_bab_data_loader_p14_coverage.py` | [ ] | |
+| P14-B | `execution.py` >= 98% | `tests/test_bab_execution_p14_coverage.py` | [ ] | |
+| P14-C | `beta.py` >= 98%, `backtest.py` >= 98% | `tests/test_bab_beta_backtest_p14_coverage.py` | [ ] | |
+| P14-D | replay/portfolio/reconciliation/risk >= 98% | `tests/test_bab_ops_safety_p14_coverage.py` | [ ] | |
+| P14-E | TOTAL >= 98.5%, gate green, handoff refreshed | — | [ ] | |
 
 ### Current verified state (this refresh)
-- **Git:** `abca6ea` (`chore(kilo): checkpoint agent session`, `main...origin/main`); four modified P12 test files only.
-- **Full gate (fresh, 2026-11-15T16:49Z UTC):** `bash scripts/bab_gate.sh` → **6038 passed, 35 skipped, 0 failed, ~506s**, TOTAL **97% (204 missed)**, ruff clean, `strategy.py` **100%**.
-- **Quick preflight:** `bash scripts/bab_quick.sh` → ruff clean; targeted trio **104 passed**; smoke (strategy/cli/costs) **195 passed**; `== quick preflight OK ==`.
-- **Perf:** `python3 scripts/perf_baseline.py --check` → `failures: []` on the final rerun. This runner is noisy; one earlier run exceeded the 1.75x limit transiently, then passed. **Rerun before declaring a real perf regression.**
+
+- **Git:** `d74c84e` (`chore(kilo): checkpoint agent session`, `main...origin/main`) at refresh before checkpoint. This refresh will be checkpointed as a new commit.
+- **Full gate (fresh this refresh; 6678 statements):** `bash scripts/bab_gate.sh` -> **6038 passed, 35 skipped, 0 failed, 508.47s**, TOTAL **97%** (204 missed), ruff clean, `strategy.py` **100%**. The later script-only edits (bootstrap + optional floor) do not change test collection or coverage; P14 final must rerun the floor command.
+- **Quick preflight:** `bash scripts/bab_quick.sh` -> ruff clean; targeted trio **104 passed**; smoke (strategy/cli/costs) **195 passed**; `== quick preflight OK ==`.
+- **Controller tests:** `python3 -m pytest -q tests/test_controller_progress_accounting.py tests/test_workflow_diagnostics_scanner.py tests/test_nonfinite_result_serialization.py tests/test_campaign_resume.py` -> **125 passed**.
+- **Perf:** `python3 scripts/perf_baseline.py --check` -> `failures: []` (rerun once if the runner is noisy).
 - **Paper smoke:** `python3 -m strategies.betting_against_beta.cli --dry-run --synthetic --benchmark BTC` passes.
-- **Live dry-run smoke:** `BAB_TEST_KEY=dummy BAB_TEST_SECRET=dummy python3 -m strategies.betting_against_beta.cli --adapter live --exchange kraken --api-key-env BAB_TEST_KEY --api-secret-env BAB_TEST_SECRET --health-check` → `{"connected": false, "dry_run": true, "n_submitted": 0, "n_fills": 0}`.
+- **Live dry-run smoke:** `BAB_TEST_KEY=dummy BAB_TEST_SECRET=dummy python3 -m strategies.betting_against_beta.cli --adapter live --exchange kraken --api-key-env BAB_TEST_KEY --api-secret-env BAB_TEST_SECRET --health-check` -> `{"connected": false, "dry_run": true, "n_submitted": 0, "n_fills": 0}`.
 
 ### Per-file coverage baseline (fresh full gate; re-measure in every full gate you run)
 
@@ -52,62 +113,24 @@ You are the next agentic worker on **Crypto-Betting-Against-Beta**. Your job is 
 | `config.py` | 99% | 1 | 173 |
 | **TOTAL** | **97%** | **204** | — |
 
-## Immediate execution order (mandatory, heavy work first)
-
-1. **Baseline sanity (fast):** `bash scripts/bab_quick.sh` must stay green before feature work.
-2. **P13-A — `data_loader.py` (HEAVY, do FIRST).** Create `tests/test_bab_data_loader_p13_coverage.py`.
-   - Cover the 62 missed loader branches above with synthetic temp files and fakes only: format dispatch/errors, schema/index validation, empty/duplicate/non-monotonic data, benchmark/universe alignment, missing-column and parse-failure paths, and the remaining format-specific helpers.
-   - Target: `data_loader.py` **≥ 99%** (≤ 10 missed). Assert observable behavior; do not weaken existing tests.
-3. **P13-B — `execution.py` (HEAVY).** Create `tests/test_bab_execution_p13_coverage.py`.
-   - Cover adapter rejection/fill/diagnostic/reconciliation branches, partial-fill and error paths, order-batching edges, and safety guards with fakes/mocks only (no network, no credentials, no real live execution).
-   - Target: `execution.py` **≥ 98%** (≤ 10 missed).
-4. **P13-C — `beta.py` and `backtest.py` correctness edges (HEAVY).**
-   - Cover `beta.py` 125, 150-151, 163, 170-171, 189, 216-219, 435-436, 544-558 with finite/NaN/window/min-period equivalence assertions.
-   - Cover `backtest.py` 17-21, 163 (local cleaning/import/error fallback).
-   - Targets: `beta.py` **≥ 98%** (≤ 5 missed), `backtest.py` **≥ 98%** (≤ 2 missed).
-5. **P13-D — ops safety residue (MEDIUM).** Cover `replay.py`, `portfolio.py`, `reconciliation.py`, `risk.py` missed lines above.
-   - Targets: each **≥ 98%**; no silent exception swallowing without an assertion.
-6. **Optional only if trivial/safe (do NOT churn):** `cli.py` 589-590, 746-748, 803-804; `data_sources.py` 480-508; `metrics.py` 94, 139-145; `signals.py` 37, 75; `config.py` 173.
-7. **Final verification + handoff refresh (REQUIRED):** run in order: `python3 -m ruff check .`, `bash scripts/bab_quick.sh`, full `bash scripts/bab_gate.sh`, `python3 scripts/perf_baseline.py --check` (rerun once if noisy; must be `failures: []`), then paper/live dry-run smokes:
-   - `python3 -m strategies.betting_against_beta.cli --dry-run --synthetic --benchmark BTC`
-   - `BAB_TEST_KEY=dummy BAB_TEST_SECRET=dummy python3 -m strategies.betting_against_beta.cli --adapter live --exchange kraken --api-key-env BAB_TEST_KEY --api-secret-env BAB_TEST_SECRET --health-check`
-   - Update this file with new UTC timestamp, HEAD, exact command evidence, per-file coverage delta vs the table above, remaining gaps, and the next binding campaign. Keep `AGENT_HANDOFF.md` pointer-only.
-
-**Cadence:** run `bash scripts/bab_quick.sh` after each meaningful slice; run full `bash scripts/bab_gate.sh` at least after each P13 step (A→B→C→D) and at the end.
-
-## Definition of Done (session not done until ALL hold)
-1. New P13 test files for steps completed exist and pass.
-2. `python3 -m ruff check .` clean.
-3. `bash scripts/bab_gate.sh` green: **0 failed, 0 errors**, TOTAL **≥ 98.5%** (stretch 99%).
-4. Per-file targets met with **no regression** on any previously-green module (especially `strategy.py` 100%).
-5. `python3 scripts/perf_baseline.py --check` → `failures: []`.
-6. Paper (`--dry-run --synthetic`) + live `--dry-run` health-check smokes pass.
-7. This `HANDOFF.md` refreshed (and `AGENT_HANDOFF.md` pointer-only) with fresh evidence.
-
-## Hard targets / acceptance
-- `ruff check .` clean.
-- `bash scripts/bab_gate.sh`: 0 failed, 0 errors, TOTAL ≥ 98.5%.
-- No regression elsewhere; P13 targets: `data_loader.py ≥ 99%`, `execution.py ≥ 98%`, `beta.py ≥ 98%`, `backtest.py ≥ 98%`, `replay.py/portfolio.py/reconciliation.py/risk.py ≥ 98%`, `strategy.py = 100%`.
-- `perf_baseline --check` `failures: []`.
-- Dry-run CLIs pass as above.
-- Default offline/deterministic unchanged; live dry-run-safe-by-default.
-
-## Bottlenecks removed / constraints (do not reopen)
-- **P12 collection blocker:** `tests/test_bab_p12d_coverage.py` had a `SyntaxError` at line 376 (`match("...")`); fixed. `python3 -m compileall -q tests` now exits 0.
-- **P12 contract mismatches:** invalid `shorting_constraints`/`cost_model` dicts are rejected by `BABConfig.__post_init__` as `BABConfigError`, not later as `BABDataError`; tests corrected. `TransactionCostModel` uses fields such as `linear_fee`, not `{"type": "linear"}`.
-- **P12 target mismatch:** several P12 tests called `run()` where the branch lives in `dry_run()`; corrected. `strategy.py` moved 89% → **100%**.
-- **CLI smoke drift:** the old handoff commands (`--n-days`, `--csv`, `--source live`, `--live-dry-run`, `--health-check-only`) are invalid. Use the actual commands in this file.
+### Bottlenecks removed / constraints (do not reopen)
+- **Dependency bootstrap (new):** `scripts/bab_bootstrap.sh` detects missing imports and installs only missing modules from `requirements.txt` + `ruff`; `scripts/bab_quick.sh` and `scripts/bab_gate.sh` call it. This directly removes the repeated `ModuleNotFoundError` / `ccxt is required` blocks seen in prior runs. `CI=true` allows `--break-system-packages` on PEP-668 hosts; `BAB_SKIP_ENV_BOOTSTRAP=1` skips the check.
+- **Stale handoff state:** the previous refresh claimed four modified P12 files while the tree was clean at `d74c84e`; this refresh records the real HEAD/tree and does not re-list committed work as pending.
+- **P13 never started:** P13 is folded into P14. Do not create P13 files; use the P14 names above.
+- **Coverage floor:** `BAB_GATE_MIN_COVERAGE=98.5 bash scripts/bab_gate.sh` now fails when TOTAL is below the floor. A red floor is expected until P14 is complete; do not lower it.
+- **Tool invalid-argument loops:** after two failed `edit` calls, re-read and retry with a smaller unique `oldString` or use `write`; do not repeat the same malformed call three times.
+- **Gate timeout:** the full gate takes ~8-9 minutes; use a 600000 ms tool timeout or run it in the background. A tool timeout is not a test failure; rerun.
 - **Perf noise:** this runner occasionally reports a transient >1.75x slowdown; rerun `perf_baseline.py --check` before treating it as a regression.
-- Env/bootstrap: **REMOVED** (ruff + deps installed; quick green verified). If missing in a new env, install with `python3 -m pip install --quiet -e ".[test,live]" ruff` and record.
-- Gate speed: `scripts/bab_gate.sh` parallel (`pytest-xdist`, loadscope, sysmon on CPython≥3.12), serial fallback via `BAB_GATE_SERIAL=1` / `BAB_GATE_JOBS=N`. Do not make gate serial-only by default.
-- Parallel-safety: follow `_*_cell_record`/`_*_records_full` patterns in stress/realism tests; summary tests must recompute deterministically under any worker subset.
-- Historical noise: ignore root `probe_*.py`, `debug_*.py`, `ast_probe.py`.
-- Canonical CLI: `python3 -m strategies.betting_against_beta.cli`.
-- Safety: no real live trading, no network, no credentials in tests. Live defaults to dry-run/health-check only.
+- **CLI smoke drift:** the old handoff commands (`--n-days`, `--csv`, `--source live`, `--live-dry-run`, `--health-check-only`) are invalid. Use the actual commands in this file.
+- **Gate speed:** `scripts/bab_gate.sh` parallel (`pytest-xdist`, loadscope, sysmon on CPython >= 3.12), serial fallback via `BAB_GATE_SERIAL=1` / `BAB_GATE_JOBS=N`. Do not make the gate serial-only by default.
+- **Parallel-safety:** follow `_*_cell_record`/`_*_records_full` patterns in stress/realism tests; summary tests must recompute deterministically under any worker subset.
+- **Historical noise:** ignore root `probe_*.py`, `debug_*.py`, `ast_probe.py`.
+- **Canonical CLI:** `python3 -m strategies.betting_against_beta.cli`.
+- **Safety:** no real live trading, no network, no credentials in tests. Live defaults to dry-run/health-check only.
 
-## Protocol (for this session and every next session)
+### Protocol (for this session and every next session)
 1. Read this file fully (and `AGENT_HANDOFF.md` pointer only).
 2. Run `bash scripts/bab_quick.sh`; if red, fix before feature work.
-3. Execute P13 A→B→C→D top-down with minimal tested diffs; create only the named P13 test files unless absolutely necessary (justify any extra file in this handoff).
+3. Execute P14 A -> B -> C -> D top-down with minimal tested diffs; create only the named P14 test files unless absolutely necessary (justify any extra file in this handoff).
 4. Never stop at analysis; if blocked, record exact command+output and proceed on unblocked work.
-5. Before finishing: run full verification suite above and rewrite this file’s “Current verified state”, tables/deltas, and the new INITIAL TASK MESSAGE timestamp if you hand off again (otherwise keep this timestamp but update evidence sections accurately).
+5. Before finishing: run the P14-E verification suite and rewrite this file's "Current verified state", tables/deltas, ledger, and the new INITIAL TASK MESSAGE timestamp. Keep `AGENT_HANDOFF.md` pointer-only.
