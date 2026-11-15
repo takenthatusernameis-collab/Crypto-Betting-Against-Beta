@@ -2,23 +2,34 @@
 
 **Canonical durable handoff (single source of truth).** Do not create parallel handoff/session docs; update this file only. `AGENT_HANDOFF.md` is a pointer to this file and must not carry a parallel task message.
 
-- **Timestamp (UTC):** 2026-11-15T19:47:04Z (this refresh)
-- **Prior refresh:** 2026-11-15T19:22:44Z
+- **Timestamp (UTC):** 2026-11-15T19:49:12Z (this refresh)
+- **Prior refresh:** 2026-11-15T19:47:04Z
 - **Repo:** `Crypto-Betting-Against-Beta` (crypto market-neutral BAB research → backtest → execution/ops)
 - **Git HEAD (verified this refresh):** `d8a8467` (`chore: capture completed workflow run diagnostics`)
-- **Working tree at refresh:** clean tracked state except handoff refresh in progress during this session; verify with `git status --short` and `git log -1 --oneline` before acting.
+- **Working tree at refresh:** clean tracked state; verify with `git status --short` and `git log -1 --oneline` before acting.
 - **Toolchain:** `python3 3.12.3`; `ruff 0.17.5` after bootstrap; numpy/pandas/scipy/pytest/hypothesis/coverage/pytest-cov/pytest-xdist/ccxt installed via `bash scripts/bab_bootstrap.sh` (supported bootstrap called by quick/gate).
 
-## INITIAL TASK MESSAGE (START HERE, 2026-11-15T19:47:04Z) — BINDING (DO NOT IGNORE)
+## INITIAL TASK MESSAGE (START HERE, 2026-11-15T19:49:12Z) — BINDING (DO NOT IGNORE)
 
-**Gate status: COMPLETED — TOTAL 98% (152 missed / 6658 stmts), floor 98.5% NOT MET (last recorded full gate).** The primary blocker is the **coverage gap of ~53 statements** to reach 98.5% (≤99 missed). `execution.py` is **99% in gate** (11 missed: 139-141, 182-185, 555-556, 1287-1288) — P14-B target met. **Pivot immediately to P14-C and P14-D** which hold the largest coverage deficits.
+**Gate status: COMPLETED — TOTAL 98% (152 missed / 6658 stmts), floor 98.5% NOT MET (last recorded full gate).** The primary blocker is the **coverage gap of ~53 statements** to reach 98.5% (≤99 missed). `execution.py` is **99% in gate** (11 missed: 139-141, 182-185, 555-556, 1287-1288) — P14-B target met. **Pivot immediately to P14-C** which holds the highest-impact coverage deficit.
+
+**P14-C is the ONLY active work item.** Create `tests/test_bab_beta_backtest_p14_coverage.py` targeting:
+- **`beta.py` (93% → ≥98%)**: 28 missed lines — 125, 150-151, 163, 170-171, 189, 216-219, 435-436, 544-558
+  - `calculate_beta`: empty-finite-array paths (125), BABDataError re-raise (150-151)
+  - `calculate_beta_fast`: None/empty inputs (163), ravel failures (170-171), zero valid obs (189), broad exception handlers (216-219)
+  - `calculate_rolling_beta`: `_finalize_betas` degenerate/obs_short masks (435-436), fallback except block (544-558)
+- **`backtest.py` (96% → ≥98%)**: 6 missed lines — 17-21, 163
+  - `_adv_series_local`: dict/Series/DataFrame/None branches (17-21)
+  - `run_backtest`: partial-fill ADV DataFrame alignment path (163)
+
+**Fakes/mocks only — no network, no credentials, no live execution.** Prove equivalence to pandas rolling-OLS reference where applicable. Pattern: follow `test_bab_execution_p14_coverage.py` / `test_bab_data_loader_p14_coverage.py` style.
 
 You are the next agentic worker on **Crypto-Betting-Against-Beta**. Execute **P14 — Zero-Excuse Coverage & Safety Push** until the release gate is met. P14 is the **only** active campaign. **No archaeology** (`probe_*.py`, `debug_beta*.py`, `ast_probe.py`), **no new parallel handoff/session docs**, **no analysis-only ending**.
 
 ### Campaign objective (heavy, measurable)
 Raise BAB strategy coverage and safety confidence to **TOTAL >= 98.5%** (stretch 99%) with `bash scripts/bab_gate.sh` green and ruff clean, while preserving byte-identical default offline/deterministic behavior and **live dry-run-safe-by-default**. Every session must produce concrete progress: new passing P14 tests and/or a production bug fix with regression — never a handoff-only turn.
 
-### Verified state (2026-11-15T19:47:04Z, this session)
+### Verified state (2026-11-15T19:49:12Z, this session)
 - `bash scripts/bab_quick.sh` → **PASS** (`== quick preflight OK ==`: bootstrap installed deps, ruff clean, targeted trio **104 passed**, smoke **195 passed**). HEAD `d8a8467`, clean tracked tree at start.
 - `python3 -m ruff check .` → **clean** (via quick preflight).
 - **Last recorded full gate (prior session, 2026-11-15T19:22:44Z):** `BAB_GATE_MIN_COVERAGE=98.5 bash scripts/bab_gate.sh` → **6103 passed, 35 skipped, 0 failed, 510.11s, TOTAL 98% (152 missed / 6658 stmts)**, ruff clean, **floor 98.5% NOT MET**. Not rerun this refresh (handoff/bottleneck-unblock session); rerun in P14-E or when claiming TOTAL movement.
