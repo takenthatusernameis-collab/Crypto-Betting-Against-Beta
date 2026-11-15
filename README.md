@@ -85,6 +85,32 @@ python -m strategies.betting_against_beta.cli --version
 
 Supported flags: `--data`, `--benchmark`, `--universe`, `--beta-window`, `--long-quantile`, `--short-quantile`, `--rebalance-freq`, `--transaction-costs`, `--slippage`, `--output`, `--synthetic`, `--from-prices`, `--dry-run`, `--version`.
 
+### Execution adapters (`--adapter`)
+
+The CLI supports pluggable execution adapters. The default path (no `--adapter`) runs a backtest only and is byte-identical to the historical behavior.
+
+| Adapter | Behavior | Network / credentials |
+|---------|----------|-----------------------|
+| `--adapter paper` | Deterministic paper-trading engine (orders/fills JSONL + diagnostics sidecar). | None, no network |
+| `--adapter mock` | Injectable canned fills (`--fills JSON fixture`). | None, no network |
+| `--adapter live` | Live execution via `LiveExecutionAdapter` (CCXT connector). **Dry-run by default**: no network, simulated fills, env-only API credentials. Real execution is never implicit. | Env vars only (`--api-key-env`/`--api-secret-env`), no network in dry-run |
+
+Examples:
+
+```bash
+# Paper trading: emit timestamped orders/fills to JSONL plus diagnostics sidecar
+python -m strategies.betting_against_beta.cli --paper-trading --data prices.csv --from-prices --benchmark BTC --output /tmp/paper_fills.jsonl
+
+# Live adapter health check (dry-run by default; strict JSON output)
+python -m strategies.betting_against_beta.cli --adapter live --exchange binance \
+  --api-key-env BAB_TEST_KEY --api-secret-env BAB_TEST_SECRET --health-check
+
+# Safety: live adapter always runs dry-run unless explicitly configured otherwise;
+# credentials are read only from environment variables, never from CLI args.
+```
+
+`--health-check` prints a single strict-JSON object (`mode`, `exchange`, `connected`, `dry_run`, `testnet`, `n_submitted`, `n_fills`, ...) suitable for machine consumption and CI gating.
+
 Or use the installed `bab-example` console script:
 
 ```bash

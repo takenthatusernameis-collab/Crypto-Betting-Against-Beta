@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+import json
 import os
 
+import pandas as pd
 import pytest
 
+from strategies.betting_against_beta.cli import main
 from strategies.betting_against_beta.execution import (
     CCXTConnector,
     LiveExecutionAdapter,
@@ -14,6 +17,7 @@ from strategies.betting_against_beta.execution import (
     OrderBatch,
     OrderIntent,
 )
+from strategies.betting_against_beta.risk import RiskLimits, RiskManager
 
 
 class TestLiveOrder:
@@ -390,6 +394,141 @@ class TestLiveExecutionAdapterCLI:
         finally:
             os.environ.pop("TEST_BAB_API_KEY", None)
             os.environ.pop("TEST_BAB_API_SECRET", None)
+
+
+class TestLiveExecutionAdapterRiskGating:
+    """Tests for optional RiskManager pre-trade gating on LiveExecutionAdapter.
+
+    Risk gating is opt-in: when no ``risk_manager`` is wired, behavior is
+    byte-identical to the default path.  When wired, breached intents/batches
+    are rejected explicitly (``status="rejected"``) with no silent fallback.
+    """
+
+    def _make_adapter(self, **kwargs):
+        kw = dict(
+            exchange="binance",
+            api_key_env="KEY",
+            api_secret_env="SECRET",
+            dry_run=True,
+        )
+        kw.update(kwargs)
+        return LiveExecutionAdapter(**kw)
+
+    def _intent(
+        self,
+        asset="BTC",
+        order_weight=0.1,
+        target_weight=0.1,
+        current_weight=0.0,
+        price=50000.0,
+    ):
+        return OrderIntent(
+            date="2024-01-01",
+            asset=asset,
+            target_weight=target_weight,
+            current_weight=current_weight,
+            order_weight=order_weight,
+            price=price,
+            notional_usd=abs(order_weight) * price,
+        )
+
+    def test_no_risk_manager_preserves_default_behavior(self):
+        adapter = self._make_adapter()
+        batch = OrderBatch(date="2024-01-01", intents=(self._intent(),))
+        fills = adapter.submit_intents(batch)
+        assert len(fills) == 1
+        assert fills[0]["status"] == "filled"
+        assert fills[0]["filled_weight"] == 0.1
+
+    def test_rejects_asset_position_limit(self):
+        limits = RiskLimits(max_position_weight=0.05)
+        manager = RiskManager(limits=limits)
+        adapter = self._make_adapter(risk_manager=manager)
+        intent = self._intent(order_weight=0.2, target_weight=0.2)  # exceeds 0.05
+        batch = OrderBatch(date="2024-01-01", intents=(intent,))
+        fills = adapter.submit_intents(batch)
+        assert len(fills) == 1
+        assert fills[0]["status"] == "rejected"
+        assert fills[0]["filled_weight"] == 0.0
+        assert fills[0]["reason"]
+
+    def test_rejects_portfolio_gross_exposure_whole_batch(self):
+        positions = pd.Series({"BTC": 0.0, "ETH": 0.0})
+        limits = RiskLimits(max_gross_exposure=0.1)
+        manager = RiskManager(limits=limits)
+        adapter = self._make_adapter(risk_manager=manager, current_positions=positions)
+        btc = self._intent(asset="BTC", order_weight=0.1, target_weight=0.1)
+        eth = self._intent(asset="ETH", order_weight=0.1, target_weight=0.1)
+        batch = OrderBatch(date="2024-01-01", intents=(btc, eth))
+        fills = adapter.submit_intents(batch)
+        assert len(fills) == 2
+        assert all(f["status"] == "rejected" for f in fills)
+        assert all(f["filled_weight"] == 0.0 for f in fills)
+
+    def test_kill_switch_rejects_all(self):
+        limits = RiskLimits(max_drawdown=0.1)
+        manager = RiskManager(limits=limits, kill_switch_enabled=True)
+        cumulative = pd.Series(
+            [1.0, 0.9, 0.8], index=pd.date_range("2024-01-01", periods=3)
+        )
+        adapter = self._make_adapter(
+            risk_manager=manager,
+            current_positions=pd.Series({"BTC": 0.0}),
+            cumulative=cumulative,
+        )
+        intent = self._intent()
+        batch = OrderBatch(date="2024-01-05", intents=(intent,))
+        fills = adapter.submit_intents(batch)
+        assert len(fills) == 1
+        assert fills[0]["status"] == "rejected"
+        assert manager._kill_switch_triggered is True
+
+
+class TestLiveExecutionAdapterHealthJSON:
+    """Tests that live-adapter health output is strict-JSON-safe."""
+
+    def test_health_check_dict_is_strict_json(self):
+        adapter = self._make_adapter_health()
+        health = adapter.health_check()
+        # Strict serialization: no NaN/Infinity tokens permitted.
+        payload = json.dumps(health, allow_nan=False)
+        obj = json.loads(payload)
+        assert obj["mode"] == "live"
+        assert obj["exchange"] == "binance"
+        assert obj["dry_run"] is True
+
+    def _make_adapter_health(self):
+        return LiveExecutionAdapter(
+            exchange="binance",
+            api_key_env="KEY",
+            api_secret_env="SECRET",
+            dry_run=True,
+        )
+
+
+def test_cli_health_check_emits_strict_json(capsys, monkeypatch):
+    """``--health-check`` prints one strict JSON object (machine-parseable)."""
+    monkeypatch.setenv("BAB_TEST_KEY", "dummy")
+    monkeypatch.setenv("BAB_TEST_SECRET", "dummy")
+    rc = main(
+        [
+            "--adapter",
+            "live",
+            "--exchange",
+            "binance",
+            "--api-key-env",
+            "BAB_TEST_KEY",
+            "--api-secret-env",
+            "BAB_TEST_SECRET",
+            "--health-check",
+        ]
+    )
+    assert rc == 0
+    out = capsys.readouterr().out.strip()
+    payload = json.loads(out)
+    assert payload["mode"] == "live"
+    assert payload["exchange"] == "binance"
+    assert payload["dry_run"] is True
 
 
 if __name__ == "__main__":

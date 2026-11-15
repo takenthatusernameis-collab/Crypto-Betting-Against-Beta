@@ -673,18 +673,14 @@ def main(argv=None) -> int:
     try:
         adapter, fills_path = _build_adapter(args)
 
-        # P9: health check for live adapter
+        # P9: health check for live adapter.  Emits strict, JSON-serializable
+        # output (one compact JSON object) so the result is machine-parseable
+        # and safe for strict JSON consumers.  Human-readable error text is
+        # reserved for the failure path below.
         if getattr(args, "health_check", False):
             if adapter is not None and hasattr(adapter, "health_check"):
                 health = adapter.health_check()
-                print("Health check:")
-                print(f"  mode:          {health.get('mode')}")
-                print(f"  exchange:      {health.get('exchange')}")
-                print(f"  connected:     {health.get('connected')}")
-                print(f"  dry_run:       {health.get('dry_run')}")
-                print(f"  testnet:       {health.get('testnet')}")
-                print(f"  n_submitted:   {health.get('n_submitted')}")
-                print(f"  n_fills:       {health.get('n_fills')}")
+                print(json.dumps(_json_safe(health), default=_json_default, allow_nan=False))
                 return 0
             else:
                 print("Error: --health-check requires --adapter live")

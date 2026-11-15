@@ -22,6 +22,8 @@ from typing import Protocol, runtime_checkable
 import numpy as np
 import pandas as pd
 
+from .risk import RiskManager
+
 
 @dataclass(frozen=True)
 class OrderIntent:
@@ -1335,6 +1337,9 @@ class LiveExecutionAdapter:
         max_participation: float = _DEFAULT_MAX_PARTICIPATION,
         slippage: float = 0.0,
         connector: ExchangeConnector | None = None,
+        risk_manager: RiskManager | None = None,
+        current_positions: pd.Series | None = None,
+        cumulative: pd.Series | None = None,
     ) -> None:
         self.exchange_name = exchange.lower()
         self.api_key_env = api_key_env
@@ -1348,6 +1353,18 @@ class LiveExecutionAdapter:
         self._connected = False
         self._submitted: list[OrderBatch] = []
         self._fills: list[dict] = []
+
+        # Optional pre-trade risk gating. When ``risk_manager`` is None (the
+        # default) submit_intents behaves exactly as before — byte-identical
+        # default path, no risk checks, no silent fallbacks.  When wired, each
+        # batch is run through ``RiskManager.pre_trade_check`` before
+        # submission and breached intents/batches are rejected explicitly.
+        self.risk_manager: RiskManager | None = risk_manager
+        if current_positions is not None:
+            self.current_positions: pd.Series = current_positions.copy()
+        else:
+            self.current_positions: pd.Series = pd.Series(dtype="float64")
+        self.cumulative: pd.Series | None = cumulative
 
         # Load credentials from environment if provided
         self._api_key = None
@@ -1382,16 +1399,61 @@ class LiveExecutionAdapter:
         self._connected = True
 
     def submit_intents(self, batch: OrderBatch) -> list[dict]:
-        """Submit order intents for one period; return per-intent fill records."""
+        """Submit order intents for one period; return per-intent fill records.
+
+        When a :class:`RiskManager` was wired in (``risk_manager`` is not
+        ``None``), the batch is run through ``pre_trade_check`` before any
+        submission.  Individually rejected assets are skipped with an explicit
+        ``status="rejected"`` fill record, and a portfolio-level breach or
+        kill-switch triggers rejects the whole batch.  When no risk manager is
+        configured (the default) this method behaves exactly as before — no
+        risk checks, no silent fallbacks, byte-identical default path.
+        """
         self._ensure_connected()
         self._submitted.append(batch)
 
         fills: list[dict] = []
+        date = batch.date
+
+        # Optional pre-trade risk gating (opt-in, off by default).
+        rejected_assets: dict[str, str] = {}
+        reject_all = False
+        if self.risk_manager is not None:
+            result = self.risk_manager.pre_trade_check(
+                batch, self.current_positions, self.cumulative, date
+            )
+            for r in result.rejected_intents:
+                asset = str(r.get("asset", ""))
+                reason = str(r.get("reason", "risk_limit_breach"))
+                if asset == "portfolio":
+                    reject_all = True
+                else:
+                    rejected_assets[asset] = reason
+            if not result.allowed and self.risk_manager._kill_switch_triggered:
+                reject_all = True
+
         for intent in batch.intents:
             # Convert OrderIntent to LiveOrder
             side = "buy" if intent.order_weight > 0 else "sell"
+            idem_key = f"{intent.date}|{intent.asset}|{intent.order_weight}"
+
+            if reject_all:
+                fill = self._rejected_fill(
+                    intent, date, idem_key, side, "portfolio_limit_breach"
+                )
+                fills.append(fill)
+                self._fills.append(fill)
+                continue
+            if intent.asset in rejected_assets:
+                fill = self._rejected_fill(
+                    intent, date, idem_key, side, rejected_assets[intent.asset]
+                )
+                fills.append(fill)
+                self._fills.append(fill)
+                continue
+
             live_order = LiveOrder(
-                idempotency_key=f"{intent.date}|{intent.asset}|{intent.order_weight}",
+                idempotency_key=idem_key,
                 date=intent.date,
                 asset=intent.asset,
                 side=side,
@@ -1437,6 +1499,36 @@ class LiveExecutionAdapter:
             self._fills.append(fill)
 
         return fills
+
+    def _rejected_fill(
+        self,
+        intent: OrderIntent,
+        date: str,
+        idem_key: str,
+        side: str,
+        reason: str,
+    ) -> dict:
+        """Build an explicit ``status='rejected'`` fill record (no network)."""
+        return {
+            "date": date,
+            "asset": intent.asset,
+            "side": side,
+            "requested_weight": 0.0,
+            "filled_weight": 0.0,
+            "fill_ratio": 0.0,
+            "order_weight": intent.order_weight,
+            "notional_usd": None,
+            "price": intent.price,
+            "adv_usd": intent.adv_usd,
+            "max_participation": intent.max_participation or self.max_participation,
+            "participation": None,
+            "slippage": 0.0,
+            "status": "rejected",
+            "reason": reason,
+            "idempotency_key": idem_key,
+            "exchange": self.exchange_name,
+        }
+
 
     def flush(self) -> list[dict]:
         """Flush buffered fills; return any remaining fill records."""
