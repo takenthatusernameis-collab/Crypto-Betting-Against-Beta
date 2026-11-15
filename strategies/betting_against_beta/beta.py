@@ -145,10 +145,10 @@ def calculate_beta(asset_returns, benchmark_returns, min_obs=None):
             return float(beta)
         except np.linalg.LinAlgError:
             return np.nan
-    except (TypeError, ValueError, AttributeError):
-        return np.nan
     except BABDataError:
         raise
+    except (TypeError, ValueError, AttributeError):
+        return np.nan
 
 
 def calculate_beta_fast(a, b, min_obs=None):
