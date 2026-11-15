@@ -47,7 +47,6 @@ from strategies.betting_against_beta.execution import (
     order_batches_from_weights,
 )
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -244,8 +243,12 @@ class TestPaperAdapterRealismFill:
     def test_partial_fill_when_participation_exceeds_cap(self):
         prices = pd.DataFrame({"BTC": [100.0]}, index=["2024-01-01"])
         adv = {"BTC": 100.0}
-        adapter = PaperAdapter(prices_df=prices, adv_usd=adv, partial_fill=True, max_participation=0.1)
-        intent = _intent(order_weight=1.0, price=100.0, notional=100.0, adv=100.0, max_participation=0.1)
+        adapter = PaperAdapter(
+            prices_df=prices, adv_usd=adv, partial_fill=True, max_participation=0.1
+        )
+        intent = _intent(
+            order_weight=1.0, price=100.0, notional=100.0, adv=100.0, max_participation=0.1
+        )
         fills = adapter.submit_intents(OrderBatch(date="2024-01-01", intents=(intent,)))
         f = fills[0]
         assert f["status"] == "partial"
@@ -518,7 +521,9 @@ class TestCCXTConnectorRealPaths:
         return conn, fake
 
     def test_submit_real_order_filled(self):
-        conn, fake = self._connector(response={"filled": 0.5, "average": 100.0, "cost": 50.0, "status": "closed"})
+        conn, fake = self._connector(
+            response={"filled": 0.5, "average": 100.0, "cost": 50.0, "status": "closed"}
+        )
         order = LiveOrder(
             idempotency_key="k1", date="2024-01-01", asset="BTC", side="buy",
             weight=1.0, price=100.0, notional_usd=100.0,
@@ -529,7 +534,9 @@ class TestCCXTConnectorRealPaths:
         assert fake.calls and fake.calls[0]["type"] == "market"
 
     def test_submit_real_order_partial_status(self):
-        conn, _ = self._connector(response={"filled": 0.2, "average": 100.0, "cost": 20.0, "status": "open"})
+        conn, _ = self._connector(
+            response={"filled": 0.2, "average": 100.0, "cost": 20.0, "status": "open"}
+        )
         order = LiveOrder(
             idempotency_key="k2", date="2024-01-01", asset="BTC", side="sell",
             weight=1.0, price=100.0, notional_usd=100.0,
@@ -548,7 +555,9 @@ class TestCCXTConnectorRealPaths:
         assert "network down" in (fill.reason or "")
 
     def test_submit_real_order_max_participation_param(self):
-        conn, fake = self._connector(response={"filled": 1.0, "average": 1.0, "cost": 1.0, "status": "closed"})
+        conn, fake = self._connector(
+            response={"filled": 1.0, "average": 1.0, "cost": 1.0, "status": "closed"}
+        )
         order = LiveOrder(
             idempotency_key="k4", date="2024-01-01", asset="BTC", side="buy",
             weight=1.0, price=1.0, notional_usd=1.0, max_participation=0.05,
@@ -560,7 +569,10 @@ class TestCCXTConnectorRealPaths:
         conn = CCXTConnector(exchange_name="binance", dry_run=True)
         with pytest.raises(RuntimeError, match="not connected"):
             conn.submit_order(
-                LiveOrder(idempotency_key="x", date="2024-01-01", asset="BTC", side="buy", weight=1.0)
+                LiveOrder(
+                    idempotency_key="x", date="2024-01-01", asset="BTC",
+                    side="buy", weight=1.0,
+                )
             )
         with pytest.raises(RuntimeError, match="not connected"):
             conn.fetch_balance()
@@ -637,7 +649,7 @@ class TestCCXTConnectorRealPaths:
         assert captured["closed"] is True
 
     def test_real_fetch_balance_and_ticker(self):
-        conn, fake = self._connector()
+        conn, _ = self._connector()
         assert conn.fetch_balance()["USDT"]["free"] == 1.0
         assert conn.fetch_ticker("BTC/USDT")["last"] == 2.0
 
@@ -770,7 +782,11 @@ class TestLiveExecutionAdapterNonDryRun:
 
 class TestMockAdapterEdges:
     def test_fill_map_and_fn_and_fallback(self):
-        adapter = MockAdapter(fill_map={("2024-01-01", "BTC"): {"status": "filled", "filled_weight": 1.0}})
+        adapter = MockAdapter(
+            fill_map={
+                ("2024-01-01", "BTC"): {"status": "filled", "filled_weight": 1.0}
+            }
+        )
         intents = (
             _intent(asset="BTC", date="2024-01-01"),
             _intent(asset="ETH", date="2024-01-01"),
@@ -782,7 +798,13 @@ class TestMockAdapterEdges:
         assert adapter.flush() == []
 
     def test_fill_fn_takes_precedence(self):
-        adapter = MockAdapter(fill_fn=lambda i: {"status": "filled", "filled_weight": 9.0, "asset": i.asset})
+        adapter = MockAdapter(
+            fill_fn=lambda i: {
+                "status": "filled",
+                "filled_weight": 9.0,
+                "asset": i.asset,
+            }
+        )
         fill = adapter.submit_intents(
             OrderBatch(date="2024-01-01", intents=(_intent(),))
         )[0]
