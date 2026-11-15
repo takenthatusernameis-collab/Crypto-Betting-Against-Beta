@@ -2,17 +2,19 @@
 
 **Canonical durable handoff (single source of truth).** Do not create parallel handoff/session docs; update this file only. `AGENT_HANDOFF.md` is a pointer to this file and must not carry a parallel task message.
 
-- **Timestamp (UTC):** 2026-11-15T04:32:34Z
+- **Timestamp (UTC):** 2026-11-15T04:33:50Z
 - **Repo:** `Crypto-Betting-Against-Beta`
-- **Git HEAD (verified):** `f2298bf` — baseline clean at HEAD; no parallel handoff docs. First act next session: re-establish baseline (ruff/quick/gate) then execute P11 campaign top-down.
+- **Git HEAD (verified):** `f2298bf` — baseline clean at HEAD; no parallel handoff docs. Baseline re-established this session (ruff clean; `bab_quick.sh` green 104+195; `bab_gate.sh` green 5796 passed / 35 skipped / 0 failed, TOTAL 90%, ~6m08s). First act next session: execute P11 campaign top-down starting at **step 2** (baseline step 1 is DONE).
 - **Branch:** `main`
 - **Working tree:** clean except this `HANDOFF.md` + `AGENT_HANDOFF.md` pointer refresh (single durable handoff only); no code changes.
 
-## INITIAL TASK MESSAGE (START HERE, 2026-11-15T04:32:34Z UTC) — BINDING
+## INITIAL TASK MESSAGE (START HERE, 2026-11-15T04:33:50Z UTC) — BINDING
 
 This is the only active task. Execute top-down. No archaeology (`probe_*.py`, `debug_beta*.py`, `ast_probe.py`), no new parallel handoff/session docs. If blocked, record the exact command + output and continue with the next unblocked priority. **Never stop at analysis — every session must produce code, tests, and fresh gate evidence.**
 
 Repo-prioritized mission: `Crypto-Betting-Against-Beta` = keep the Betting Against Beta (BAB) crypto strategy **ops-ready** (live path dry-run-safe-by-default; default offline/dry-run behavior byte-identical) and **close the remaining coverage/gate gaps to a release-ready state**. The gate is now fast (~6 min) — there is no longer any excuse to skip it. The remaining heavy work is raising real-path coverage on the four lowest files.
+
+**WHERE TO START (this session):** P11 step 1 (baseline re-establishment) is **DONE** — do not repeat ruff/quick/gate unless you make code changes. Begin at **P11 step 2**: `cli.py` real uncovered paths → new `tests/test_bab_cli_p11_coverage.py`. Target `cli.py` 77% → ≥ 90% via reachable branches only (see hard targets below).
 
 ## Bottleneck removal — DONE & VERIFIED (DO NOT REDO, DO NOT REVERT)
 
@@ -28,11 +30,11 @@ The prior session left the gate effectively un-runnable inside a session budget:
 
 Also added `scripts/bab_quick.sh` (fast inner-loop: ruff + targeted trio + smoke, ~15s) and declared `pytest-cov`/`pytest-xdist` in `requirements.txt` + `pyproject.toml [test]`.
 
-## Verified state (fresh this session, 2026-11-15T04:32:34Z; re-verify after every change)
+## Verified state (fresh this session, 2026-11-15T04:33:50Z; re-verify after every change)
 
 - `python3 -m ruff check .` → **clean** (All checks passed) — verified this session.
 - `bash scripts/bab_quick.sh` → **green** (ruff clean; targeted trio **104 passed**; smoke **195 passed**, ~14s) — verified this session.
-- `bash scripts/bab_gate.sh` → **last recorded green at `be9b5c2`: 5796 passed, 35 skipped, 0 failed; TOTAL 90% in ~6m07s** (parallel xdist, sysmon). Full gate was not re-run to completion in this handoff-refresh session; **must be re-run as P11 step 1 before any new code changes are claimed done.**
+- `bash scripts/bab_gate.sh` → **green at `f2298bf`: 5796 passed, 35 skipped, 0 failed; TOTAL 90% in ~6m08s** (parallel xdist, sysmon). Per-file coverage below is live evidence from this gate run.
 - `python3 scripts/perf_baseline.py --check` → **not re-run this session** (last known `failures: []` per prior handoff); re-run in final gate pass.
 - Default offline/dry-run behavior unchanged; live execution safe-by-default (dry-run, env-only creds, no implicit network). Real (non-dry-run) live execution is out of scope.
 
@@ -58,10 +60,10 @@ Fresh gate (missing lines are the actual targets):
 
 ### Priority order (execute top-down; each step ends with `bab_quick.sh` then a full `bab_gate.sh`)
 
-1. **Re-establish baseline (mandatory first step, every session)**
-   - `python3 -m ruff check .`
-   - `bash scripts/bab_quick.sh`
-   - `bash scripts/bab_gate.sh` (now ~6 min — run it; record pass/skip/fail, TOTAL %, per-file deltas for the four targets).
+1. **Re-establish baseline (DONE this session at `f2298bf` — do not repeat unless you make code changes)**
+   - `python3 -m ruff check .` → clean
+   - `bash scripts/bab_quick.sh` → green (104 + 195 passed)
+   - `bash scripts/bab_gate.sh` → green, 5796 passed / 35 skipped / 0 failed, TOTAL 90%, ~6m08s; per-file coverage recorded below.
 2. **`cli.py` real uncovered paths → `tests/test_bab_cli_p11_coverage.py` (new).** Reachable branches only:
    - `_build_adapter` mock-fills parsing (36-54): list-of-dicts, dict-keyed map, malformed JSON/OSError → `BABDataError`; missing `--fills` file.
    - `_json_safe` numpy scalar coercion (328-333) and `_write_json_artifact` failure (81-87).
