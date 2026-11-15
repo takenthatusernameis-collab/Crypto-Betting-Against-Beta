@@ -2,22 +2,22 @@
 
 **Canonical durable handoff (single source of truth).** Do not create parallel handoff/session docs; update this file only. `AGENT_HANDOFF.md` is a pointer to this file and must not carry a parallel task message.
 
-- **Timestamp (UTC):** 2026-11-15T02:10:32Z
+- **Timestamp (UTC):** 2026-11-15T02:24:03Z
 - **Repo:** `Crypto-Betting-Against-Beta`
-- **HEAD (at refresh):** `050c8bc` (`chore(kilo): checkpoint agent session`)
+- **HEAD (at refresh):** `24087f7` (`chore(kilo): checkpoint agent session`)
 - **Branch:** `main`
 - **Working tree:** clean at refresh; `python3 -m ruff check .` → All checks passed.
 
-## INITIAL TASK MESSAGE (START HERE, 2026-11-15T02:10:32Z UTC) — BINDING
+## INITIAL TASK MESSAGE (START HERE, 2026-11-15T02:24:03Z UTC) — BINDING
 
 This is the only active task. Execute top-down. No archaeology (`probe_*.py`, `debug_*.py`, `ast_probe.py`), no new parallel handoff/session docs. If blocked, record exact command + output and continue with the next unblocked priority. **Never stop at analysis — produce code, tests, and evidence.**
 
 Repo-prioritized mission: `Crypto-Betting-Against-Beta` = keep the Betting Against Beta (BAB) crypto strategy ops-ready (live path dry-run-safe-by-default, default offline/dry-run behavior unchanged) and close remaining coverage/gate gaps to a release-ready state.
 
-## Current verified state (as of 2026-11-15T02:10:32Z refresh; re-verify after changes)
+## Current verified state (as of 2026-11-15T02:24:03Z refresh; re-verify after changes)
 
-- `python3 -m ruff check .` → clean (re-verified 2026-11-15T02:10:32Z).
-- Targeted trio (`test_bab_live_adapter.py test_bab_risk_manager.py test_bab_realtime_feed.py test_bab_paper_trading.py test_bab_data_freshness.py test_bab_diagnostics.py`) → **104 passed** (rerun at 2026-11-15T02:10:32Z).
+- `python3 -m ruff check .` → clean (re-verified 2026-11-15T02:24:03Z).
+- Targeted trio (`test_bab_live_adapter.py test_bab_risk_manager.py test_bab_realtime_feed.py test_bab_paper_trading.py test_bab_data_freshness.py test_bab_diagnostics.py`) → **104 passed** (rerun at 2026-11-15T02:24:03Z).
 - Prior full-suite gate (from previous refresh): **5796 passed, 35 skipped, 0 failed**, coverage **TOTAL 90%**. Current environment re-verification in progress — `bash scripts/bab_gate.sh` timed out at ~10 min (dependency version drift: pandas 3.1.1/numpy 2.5.4 installed vs original; full suite slower than ~16 min estimate). Finish full+gate before claiming done.
 - Perf guardrail → `failures: []`. Paper smoke exit 0. Live dry-run smoke exit 0; `--health-check` prints strict JSON.
 - Default offline/dry-run behavior unchanged; live execution safe-by-default (dry-run, env-only creds, no implicit network).
