@@ -2,13 +2,13 @@
 
 **Canonical durable handoff (single source of truth).** Do not create parallel handoff/session docs; update this file only. `AGENT_HANDOFF.md` is a pointer to this file and must not carry a parallel task message.
 
-- **Timestamp (UTC):** 2026-11-15T14:02:31Z (refreshed; next session starts here)
+- **Timestamp (UTC):** 2026-11-15T14:04:48Z (refreshed; next session starts here)
 - **Repo:** `Crypto-Betting-Against-Beta` (prioritized: ship a credible crypto Betting-Against-Beta research→backtest→ops workflow with deterministic offline defaults, dry-run-safe live execution, and gateable quality)
-- **Git HEAD (verified this refresh):** `4484697` (`chore(kilo): checkpoint agent session`, `main...origin/main`)
+- **Git HEAD (verified this refresh):** `9bb93e7` (`chore(kilo): checkpoint agent session`, `main...origin/main`)
 - **Working tree:** clean (`git status --porcelain -b` shows only branch line) at refresh before this edit.
 - **Toolchain (verified this runner):** `python3 3.12.3`; `ruff 0.17.5`; runtime/test deps installed (`numpy/pandas/scipy/pytest/hypothesis/coverage/pytest-cov/pytest-xdist/ccxt`). `ruff check .` clean. **Env/bootstrap bottleneck REMOVED.**
 
-## INITIAL TASK MESSAGE (START HERE, 2026-11-15T14:02:31Z UTC) — BINDING (DO NOT IGNORE)
+## INITIAL TASK MESSAGE (START HERE, 2026-11-15T14:04:48Z UTC) — BINDING (DO NOT IGNORE)
 
 You are the next agentic worker on **Crypto-Betting-Against-Beta**. Your job is **heavy, measurable progress** toward a release-ready crypto BAB pipeline (research correctness, backtest realism hooks, ops/CLI safety, and gate-level coverage). This is the **only** active task list. Follow top-down. **No archaeology** (`probe_*.py`, `debug_beta*.py`, `ast_probe.py`), **no new parallel handoff/session docs**, **no “analysis-only” ending**.
 
@@ -26,9 +26,9 @@ Make the repo unambiguously useful and shippable for crypto BAB:
 4. **No dead-end work:** every step ends with commands run and results recorded in this file.
 
 ### Current verified state (this refresh)
-- **Git:** `4484697` (`chore(kilo): checkpoint agent session`, `main...origin/main`), working tree clean.
-- **Fresh quick preflight (2026-11-15T14:02Z UTC, this runner):**
-  - `bash scripts/bab_quick.sh` → **ruff clean**; targeted trio **104 passed** (1.40s); smoke (strategy/cli/costs) **195 passed** (16.60s); `== quick preflight OK ==`
+- **Git:** `9bb93e7` (`chore(kilo): checkpoint agent session`, `main...origin/main`), working tree clean.
+- **Fresh quick preflight (2026-11-15T14:04Z UTC, this runner):**
+  - `bash scripts/bab_quick.sh` → **ruff clean**; targeted trio **104 passed** (1.39s); smoke (strategy/cli/costs) **195 passed** (16.77s); `== quick preflight OK ==`
 - **Baseline full-gate evidence (carried forward, baseline-to-preserve; RECONFIRM after each P12 slice and at end):** prior full run at commit `48f4be5` recorded **5931 passed, 35 skipped in ~554.86s, TOTAL 95% (340 missed)**, ruff clean, `perf_baseline --check` `failures: []`. Live state is `4484697` (checkpoint commit); treat carried numbers as “last known good” until you produce fresh full-gate output.
 - **P12 status:** **UNSTARTED** — no `tests/*p12*` files present. P11 coverage files exist (`test_bab_*_p11_coverage.py`) and are not the current target except “no regression”.
 
@@ -64,17 +64,18 @@ Make the repo unambiguously useful and shippable for crypto BAB:
 ## Immediate execution order (mandatory, heavy work first)
 0. **Env/toolchain — DONE.** Do not reopen unless a command fails; if it fails, fix deps in the same session and record output.
 1. **Baseline sanity (fast):** `bash scripts/bab_quick.sh` (must stay green). Then proceed.
-2. **P12-A — `strategy.py` orchestration branches (HEAVY, do FIRST).** Create `tests/test_bab_strategy_p12_coverage.py`.
+2. **Data prerequisite for step 7 smokes (do once, before final verification):** `mkdir -p data` (repo root `data/` is absent this refresh; the CLI smoke in step 7 writes `data/crypto_returns.csv`). Creating the directory is sufficient; the smoke command generates the file itself.
+3. **P12-A — `strategy.py` orchestration branches (HEAVY, do FIRST).** Create `tests/test_bab_strategy_p12_coverage.py`.
    - Cover real missed orchestration branches with synthetic data + fakes/mocks only (no network): non-daily `rebalance_freq` (688), `shorting_constraints` error/apply (712–721), `position_sizer` dict/normalize/apply/error (727–742), `regime_filter` scaling path (747–752), beta-neutral enforcement incl. tracking-error tolerance (759–772), finite-guard cleanup (790–798). Also gaps 280–283, 285, 298–301, 306, 643, 646–647, 655, 982–983 as applicable.
    - **Do not** modify production logic except the smallest bugfix proven by a new failing test (rare). Assert observable behavior.
    - Target: `strategy.py` **≥ 93%** under full gate.
-3. **P12-B — `beta.py` rolling fast paths (HEAVY).** Create `tests/test_bab_beta_p12_coverage.py`.
+4. **P12-B — `beta.py` rolling fast paths (HEAVY).** Create `tests/test_bab_beta_p12_coverage.py`.
    - Cover 1D/2D `_rolling_sum_finite` (315–328), `_rolling_sum_finite_stack` (372–386), `_rolling_sum` finite/NaN paths (125, 150–151, 163, 170–171, 189, 216–219), 435–436, 544–558. Prove semantic equivalence to reference behavior on finite/NaN/window/min-period inputs (property-style assertions ok).
    - Target: `beta.py` **≥ 92%** under full gate.
-4. **P12-C — `backtest.py` error/edge paths (MEDIUM).** Create `tests/test_bab_backtest_p12_coverage.py` for 15–21, 27–30, 161–189. Target **≥ 90%**.
-5. **P12-D — `risk.py` and `data_sources.py` final gaps (MEDIUM).** Add focused cases for `risk.py` 55–56,90,93,104,164,223–227,242–245,326–328,347,353,356,525,566–568,583–584,589,599–600 (target **≥ 93%**) and `data_sources.py` 236–237,311,320–324,376–378,424,476–508 (target **≥ 95%**). Fakes/mocks only; public API opt-in, dry-run-safe.
-6. **Optional only if trivial/safe (do NOT churn):** `cli.py` 589–590,746–748,803–804; `config.py` 173; `metrics.py` 94,139–145; `signals.py` 37,75. Migrate `pd.Timestamp.utcnow` → `pd.Timestamp.now("UTC")` only if semantics identical and covered.
-7. **Final verification + handoff refresh (REQUIRED):** run in order: `python3 -m ruff check .`, `bash scripts/bab_quick.sh`, full `bash scripts/bab_gate.sh`, `python3 scripts/perf_baseline.py --check` (must be `failures: []`), then paper/live dry-run CLI smokes:
+5. **P12-C — `backtest.py` error/edge paths (MEDIUM).** Create `tests/test_bab_backtest_p12_coverage.py` for 15–21, 27–30, 161–189. Target **≥ 90%**.
+6. **P12-D — `risk.py` and `data_sources.py` final gaps (MEDIUM).** Add focused cases for `risk.py` 55–56,90,93,104,164,223–227,242–245,326–328,347,353,356,525,566–568,583–584,589,599–600 (target **≥ 93%**) and `data_sources.py` 236–237,311,320–324,376–378,424,476–508 (target **≥ 95%**). Fakes/mocks only; public API opt-in, dry-run-safe.
+7. **Optional only if trivial/safe (do NOT churn):** `cli.py` 589–590,746–748,803–804; `config.py` 173; `metrics.py` 94,139–145; `signals.py` 37,75. Migrate `pd.Timestamp.utcnow` → `pd.Timestamp.now("UTC")` only if semantics identical and covered.
+8. **Final verification + handoff refresh (REQUIRED):** run in order: `python3 -m ruff check .`, `bash scripts/bab_quick.sh`, full `bash scripts/bab_gate.sh`, `python3 scripts/perf_baseline.py --check` (must be `failures: []`), then paper/live dry-run CLI smokes:
    - `python3 -m strategies.betting_against_beta.cli --dry-run --synthetic --n-days 60 --csv data/crypto_returns.csv --benchmark BTC`
    - `python3 -m strategies.betting_against_beta.cli --source live --live-dry-run --health-check-only --exchange kraken --benchmark BTC --universe "BTC,ETH,ADA,SOL"`
    Update this file with new UTC timestamp, HEAD, exact command evidence, **per-file coverage delta vs table above**, remaining gaps, and the next binding campaign. Keep `AGENT_HANDOFF.md` pointer-only.
