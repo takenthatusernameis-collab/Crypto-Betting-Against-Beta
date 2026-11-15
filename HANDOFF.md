@@ -2,11 +2,11 @@
 
 **Canonical durable handoff (single source of truth).** Do not create parallel handoff/session docs; update this file only. `AGENT_HANDOFF.md` is a pointer to this file and must not carry a parallel task message.
 
-- **Timestamp (UTC):** 2026-11-15T04:13:44Z
+- **Timestamp (UTC):** 2026-11-15T04:14:51Z
 - **Repo:** `Crypto-Betting-Against-Beta`
-- **Git HEAD (verified):** `0e529af` — includes the handoff refresh + gate/parallel-safety work (`be9b5c2`); docs pointer `7fac037` folded in.
+- **Git HEAD (verified):** `ce7217f` — checkpoint after the handoff refresh + gate/parallel-safety work (`be9b5c2`); docs pointer `7fac037` folded in. Code tree identical to `0e529af`; only HANDOFF.md refreshed.
 - **Branch:** `main`
-- **Working tree:** code clean at HEAD `0e529af`; no uncommitted changes. First act of the next session: execute the P11 campaign top-down (no commit needed first; commit at the end of each finished step).
+- **Working tree:** code clean at HEAD `ce7217f`; no uncommitted changes. First act of the next session: execute the P11 campaign top-down (no commit needed first; commit at the end of each finished step).
 
 ## INITIAL TASK MESSAGE (START HERE, 2026-11-15T04:13:44Z UTC) — BINDING
 
