@@ -272,6 +272,118 @@ def test_main_freshness_guard_pass_dry_run(tmp_path):
     assert rc == 0
 
 
+def test_build_adapter_mock_list_with_non_dict_entries(tmp_path):
+    # Non-dict entries in the list are skipped (line 47); only dicts fill the map.
+    fills = [
+        {"date": "2023-01-02", "asset": "BTC", "price": 1.0},
+        "not-a-dict",
+        42,
+        {"date": "2023-01-03", "asset": "ETH", "price": 2.0},
+    ]
+    p = tmp_path / "fills.json"
+    p.write_text(json.dumps(fills))
+    args = SimpleNamespace(adapter="mock", fills=str(p))
+    adapter, _ = _build_adapter(args)
+    assert ("2023-01-02", "BTC") in adapter.fill_map
+    assert ("2023-01-03", "ETH") in adapter.fill_map
+    assert "not-a-dict" not in adapter.fill_map
+
+
+def test_main_unknown_adapter_rc1():
+    rc = main(["--synthetic", "--adapter", "nope"])
+    assert rc == 1
+
+
+def test_main_paper_trading_unwritable_output_rc1(tmp_path):
+    ro = tmp_path / "ro"
+    ro.mkdir()
+    ro.chmod(0o555)
+    try:
+        rc = main(["--synthetic", "--paper-trading", "--output", str(ro / "fills.jsonl")])
+        assert rc == 1
+    finally:
+        ro.chmod(0o755)
+
+
+def test_main_paper_trading_bad_cumulative_pnl_rc1(tmp_path, monkeypatch):
+    # bt has a "cumulative" column but indexing it raises -> backtest_pnl=None (759-760).
+    class BadCumDF(pd.DataFrame):
+        def __getitem__(self, key):
+            if key == "cumulative":
+                raise KeyError("simulated")
+            return super().__getitem__(key)
+
+    bad_bt = BadCumDF({"cumulative": [1.0, 2.0]})
+
+    class FakeResult:
+        weights = pd.DataFrame()
+        betas = pd.DataFrame()
+        signals = pd.DataFrame()
+        returns = pd.DataFrame()
+        backtest = bad_bt
+
+    monkeypatch.setattr(
+        "strategies.betting_against_beta.cli._run_backtest",
+        lambda args, adapter, fills_path: FakeResult(),
+    )
+    out = tmp_path / "fills.jsonl"
+    rc = main(["--synthetic", "--paper-trading", "--output", str(out)])
+    assert rc == 0
+    assert out.exists()
+
+
+def test_main_periods_len_raises_rc1(tmp_path, monkeypatch):
+    # bt.__len__ raises -> periods stays 0 (803-804); then printing succeeds.
+    class BadLen:
+        def __len__(self):
+            raise TypeError("no len")
+
+        def __getattr__(self, item):
+            raise AttributeError(item)
+
+    class FakeResult:
+        weights = pd.DataFrame()
+        betas = pd.DataFrame()
+        signals = pd.DataFrame()
+        returns = pd.DataFrame()
+        backtest = BadLen()
+
+    monkeypatch.setattr(
+        "strategies.betting_against_beta.cli._run_backtest",
+        lambda args, adapter, fills_path: FakeResult(),
+    )
+    out = tmp_path / "out.json"
+    rc = main(["--synthetic", "--output", str(out)])
+    assert rc == 0
+
+
+def test_main_print_periods_raises_rc1(tmp_path, monkeypatch):
+    # print() of the periods line raises -> caught, returns 1 (807-810).
+    class FakeResult:
+        weights = pd.DataFrame()
+        betas = pd.DataFrame()
+        signals = pd.DataFrame()
+        returns = pd.DataFrame()
+        backtest = pd.DataFrame({"cumulative": [1.0, 1.5]})
+
+    monkeypatch.setattr(
+        "strategies.betting_against_beta.cli._run_backtest",
+        lambda args, adapter, fills_path: FakeResult(),
+    )
+
+    real_print = print
+
+    def failing_print(*a, **k):
+        if a and isinstance(a[0], str) and a[0].startswith("Periods:"):
+            raise OSError("simulated stdout failure")
+        return real_print(*a, **k)
+
+    monkeypatch.setattr("builtins.print", failing_print)
+    out = tmp_path / "out.json"
+    rc = main(["--synthetic", "--output", str(out)])
+    assert rc == 1
+
+
 def test_main_fills_mock_malformed_file_rc1(tmp_path):
     # Malformed --fills with --adapter mock hits the BABDataError except block (585-587).
     p = tmp_path / "bad.json"
