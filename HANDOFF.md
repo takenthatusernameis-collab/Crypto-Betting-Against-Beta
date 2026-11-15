@@ -2,19 +2,19 @@
 
 **Canonical durable handoff (single source of truth).** Do not create parallel handoff/session docs; update this file only. `AGENT_HANDOFF.md` is a pointer to this file and must not carry a parallel task message.
 
-- **Timestamp (UTC):** 2026-11-15T13:30:19Z (refreshed; next session starts here)
+- **Timestamp (UTC):** 2026-11-15T13:31:37Z (refreshed; next session starts here)
 - **Repo:** `Crypto-Betting-Against-Beta`
 - **Git HEAD (verified this refresh):** `2235b2a` (`chore(kilo): checkpoint agent session`, `main`)
 - **Working tree:** clean at refresh (`git status --porcelain` empty).
 - **Toolchain (verified present):** `python3` 3.12.3, `pytest 9.2.0`, `pytest-xdist`, `pytest-cov`, `coverage 7.17.3`, `numpy 2.5.4`/`pandas 3.1.1`/`scipy`/`hypothesis`/`ccxt`. `ruff 0.17.5` available as **`python3 -m ruff`** (bare `ruff` may be missing from `$PATH`; use module form). CLI `bab 0.1.0`.
 
-## INITIAL TASK MESSAGE (START HERE, 2026-11-15T13:30:19Z UTC) — BINDING
+## INITIAL TASK MESSAGE (START HERE, 2026-11-15T13:31:37Z UTC) — BINDING
 
 This is the only active task. Execute top-down. No archaeology (`probe_*.py`, `debug_beta*.py`, `ast_probe.py`), no new parallel handoff/session docs, no analysis-only stopping point. **A session that ends without new tests/code and fresh gate evidence is a FAILED session.** If an item is externally blocked, record the exact command+output and continue with the next unblocked item — never stop at analysis.
 
 **Repo-prioritized mission (inferred from `Crypto-Betting-Against-Beta`):** make the Betting Against Beta (crypto) strategy release-ready and ops-ready. Preserve byte-identical default offline/deterministic behavior and live execution that is **dry-run-safe-by-default** (env-only creds, no implicit network). Close the remaining real coverage gaps on the lowest-covered production modules (P12) and drive TOTAL coverage to **≥ 96%** with **zero** regressions. Heavy, real work only: new tests must assert observable behavior, not smoke imports.
 
-### Current state at HEAD `2235b2a` (verified this session, 2026-11-15T13:30Z)
+### Current state at HEAD `2235b2a` (verified this session, 2026-11-15T13:31Z)
 
 - `python3 -m ruff check .` → **clean** (exit 0, verified this refresh).
 - `bash scripts/bab_quick.sh` → **green** (targeted trio **104 passed** 1.60s; smoke **195 passed** 24.75s; verified this refresh).
@@ -23,7 +23,7 @@ This is the only active task. Execute top-down. No archaeology (`probe_*.py`, `d
 - CLI smokes (verified at `48f4be5`, exit 0): `--synthetic --dry-run` prints resolved config; `--adapter live --health-check` → `{"mode":"live","exchange":"binance","connected":false,"dry_run":true,"testnet":false,"connector_type":null,"n_submitted":0,"n_fills":0}`.
 - Bottlenecks: **none blocking** observed at refresh (clean tree; ruff + quick green; full gate green at prior HEAD). Use `scripts/bab_quick.sh` for the inner loop; budget ~9 min for a full `scripts/bab_gate.sh` after each P12 slice. Historical root `probe_*/debug/ast_probe` files are noise — do not touch. No new parallel handoff docs. Live execution remains dry-run-safe-by-default only; no network/credentials in tests.
 
-Per-file coverage baseline (verified full-gate at `48f4be5`, 2026-11-15T13:29Z):
+Per-file coverage baseline (verified full-gate at `48f4be5`, 2026-11-15T13:31Z):
 
 | Module | Cover | Miss | Gate-missed lines (missing) |
 |--------|-------|------|------------------------------|
