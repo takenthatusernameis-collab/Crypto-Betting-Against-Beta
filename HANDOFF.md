@@ -4,9 +4,9 @@
 
 - **Timestamp (UTC):** 2026-11-15T03:58:53Z
 - **Repo:** `Crypto-Betting-Against-Beta`
-- **HEAD (at refresh):** `7fe9ac7` (this refresh adds gate/parallel-safety work on top; see “What this session changed”)
+- **HEAD (at refresh):** `be9b5c2` (this refresh; gate/parallel-safety work committed)
 - **Branch:** `main`
-- **Working tree:** dirty at refresh (gate + 4 test files + deps); full gate re-run GREEN at this state.
+- **Working tree:** clean at this HEAD; full gate re-run GREEN (5796 passed / 35 skipped / 90%).
 
 ## INITIAL TASK MESSAGE (START HERE, 2026-11-15T03:58:53Z UTC) — BINDING
 
