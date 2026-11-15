@@ -2,13 +2,13 @@
 
 **Canonical durable handoff (single source of truth).** Do not create parallel handoff/session docs; update this file only. `AGENT_HANDOFF.md` is a pointer to this file and must not carry a parallel task message.
 
-- **Timestamp (UTC):** 2026-11-15T04:12:48Z
+- **Timestamp (UTC):** 2026-11-15T04:13:44Z
 - **Repo:** `Crypto-Betting-Against-Beta`
-- **Git HEAD (verified):** `7fac037` — the code/bench/gate work is in `be9b5c2` (`7fac037` is a docs pointer on top of it).
+- **Git HEAD (verified):** `0e529af` — includes the handoff refresh + gate/parallel-safety work (`be9b5c2`); docs pointer `7fac037` folded in.
 - **Branch:** `main`
-- **Working tree:** code clean at HEAD `7fac037`; this handoff refresh (`HANDOFF.md`, `AGENT_HANDOFF.md`, `docs/COVERAGE_NOTES.md` reconciled to 90% reality) plus removal of the two dead superseded docs is on disk **uncommitted** (deletions already staged). First act of the next session: `git add -A && git commit -m "docs(handoff): refresh durable handoff + heavy P11 campaign (2026-11-15T04:12:48Z)"`.
+- **Working tree:** code clean at HEAD `0e529af`; no uncommitted changes. First act of the next session: execute the P11 campaign top-down (no commit needed first; commit at the end of each finished step).
 
-## INITIAL TASK MESSAGE (START HERE, 2026-11-15T04:12:48Z UTC) — BINDING
+## INITIAL TASK MESSAGE (START HERE, 2026-11-15T04:13:44Z UTC) — BINDING
 
 This is the only active task. Execute top-down. No archaeology (`probe_*.py`, `debug_beta*.py`, `ast_probe.py`), no new parallel handoff/session docs. If blocked, record the exact command + output and continue with the next unblocked priority. **Never stop at analysis — every session must produce code, tests, and fresh gate evidence.**
 
@@ -28,7 +28,7 @@ The prior session left the gate effectively un-runnable inside a session budget:
 
 Also added `scripts/bab_quick.sh` (fast inner-loop: ruff + targeted trio + smoke, ~15s) and declared `pytest-cov`/`pytest-xdist` in `requirements.txt` + `pyproject.toml [test]`.
 
-## Verified state (fresh this session, 2026-11-15T04:12:48Z; re-verify after every change)
+## Verified state (fresh this session, 2026-11-15T04:13:44Z; re-verify after every change)
 
 - `python3 -m ruff check .` → **clean** (All checks passed).
 - `bash scripts/bab_quick.sh` → ruff clean; targeted trio **104 passed**; smoke **195 passed** (~14s).
@@ -86,4 +86,4 @@ Fresh gate (missing lines are the actual targets):
 - Real (non-dry-run) live execution is out of scope; never enable without explicit opt-in and credential review.
 
 ## Protocol
-1. Read this file fully. 2. Commit the refresh first (see Working tree note). 3. Execute the "Next focus campaign" top-down; minimal, tested diffs; every step ends with gate evidence. 4. Never stop at analysis. 5. Keep `AGENT_HANDOFF.md` pointer only.
+1. Read this file fully. 2. Re-establish baseline (`ruff check .`, `bab_quick.sh`, `bab_gate.sh`). 3. Execute the "Next focus campaign" top-down; minimal, tested diffs; every step ends with gate evidence. 4. Never stop at analysis. 5. Keep `AGENT_HANDOFF.md` pointer only.
