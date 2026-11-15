@@ -2,19 +2,19 @@
 
 **Canonical durable handoff (single source of truth).** Do not create parallel handoff/session docs; update this file only. `AGENT_HANDOFF.md` is a pointer to this file and must not carry a parallel task message.
 
-- **Timestamp (UTC):** 2026-11-15T20:47:00Z (this refresh)
-- **Prior refresh:** 2026-11-15T20:05:00Z
+- **Timestamp (UTC):** 2026-11-15T21:20:53Z (this refresh)
+- **Prior refresh:** 2026-11-15T20:47:00Z
 - **Repo:** `Crypto-Betting-Against-Beta` (crypto market-neutral BAB research → backtest → execution/ops)
 - **Git HEAD (verified this refresh):** `63cdecb` (`chore(kilo): checkpoint agent session`)
-- **Working tree at refresh:** clean (`git status --short` empty). P14 seed test `tests/test_bab_p15_hard_lines_coverage.py` is new but uncommitted — do not reset history; commit only when explicitly asked.
+- **Working tree at refresh:** clean (`git status --short` empty). P15 seed test `tests/test_bab_p15_hard_lines_coverage.py` is new but uncommitted — do not reset history; commit only when explicitly asked.
 - **Toolchain:** `python3 3.12.3`; `ruff 0.17.5` after bootstrap; numpy/pandas/scipy/pytest/hypothesis/coverage/pytest-cov/pytest-xdist/ccxt installed via `bash scripts/bab_bootstrap.sh` (supported bootstrap called by quick/gate).
 
-## INITIAL TASK MESSAGE (START HERE, 2026-11-15T20:47:00Z) — BINDING (DO NOT IGNORE)
+## INITIAL TASK MESSAGE (START HERE, 2026-11-15T21:20:53Z) — BINDING (DO NOT IGNORE)
 
 **Campaign: P15 — Zero-Miss Hardening & Determinism Lock (the only active campaign).** Goal: eliminate the remaining 99 missed statements (TOTAL 99% → 100%) across `beta`/`cli`/`data_loader`/`data_sources`/`execution`/`metrics`/`portfolio`/`reconciliation`/`replay`/`signals`, holding `BAB_GATE_MIN_COVERAGE=98.5 bash scripts/bab_gate.sh` green at every step (target TOTAL 100%, floor 98.5% must never drop), ruff clean, quick green, perf baseline within tolerance. Preserve byte-identical default offline/deterministic behavior and live dry-run-safe-by-default. Fakes/mocks only — no network, no credentials, no live execution. Every session must produce concrete progress: new passing P15 test(s) and/or a production bug fix with regression — never a handoff-only turn.
 
-**Status this refresh (2026-11-15T20:47:00Z, HEAD 63cdecb):**
-- P14 **COMPLETE** (P14-0 → P14-E all done). Gate GREEN: **6133 passed, 35 skipped, 0 failed, 394.46s, TOTAL 99% (99 missed / 6658)**, ruff clean, **floor 98.5% MET**.
+**Status this refresh (2026-11-15T21:20:53Z, HEAD 63cdecb):**
+- P14 **COMPLETE** (P14-0 → P14-E all done). Gate GREEN: **6133 passed, 35 skipped, 0 failed, 412.85s, TOTAL 99% (99 missed / 6658)**, ruff clean, **floor 98.5% MET**.
 - `bash scripts/bab_quick.sh` → **PASS** (`== quick preflight OK ==`: ruff clean, targeted trio 104 passed, smoke 195 passed).
 - Controller tests: **125 passed**. Perf `python3 scripts/perf_baseline.py --check`: **failures: []**.
 - P15 seed file `tests/test_bab_p15_hard_lines_coverage.py` created (3 tests pass); metrics line 94 and data_sources tz-coverable branches confirmed executable but coverage attribution did not flip them — hard-line triage pending.
@@ -33,11 +33,11 @@
 3. **Perf + controller hardening.**
 4. **Handoff refresh → P16.**
 
-## Verified state (2026-11-15T20:47:00Z, this session)
+## Verified state (2026-11-15T21:20:53Z, this session)
 
 - `bash scripts/bab_quick.sh` → **PASS**. HEAD `63cdecb`, clean tracked tree.
 - `python3 -m ruff check .` → **clean**.
-- Last full gate (this session): `BAB_GATE_MIN_COVERAGE=98.5 bash scripts/bab_gate.sh` → **6133 passed, 35 skipped, 0 failed, 394.46s, TOTAL 99% (99 missed / 6658)**, ruff clean, **floor 98.5% MET**.
+- Last full gate (this session): `BAB_GATE_MIN_COVERAGE=98.5 bash scripts/bab_gate.sh` → **6133 passed, 35 skipped, 0 failed, 412.85s, TOTAL 99% (99 missed / 6658)**, ruff clean, **floor 98.5% MET**.
 - Gate-context per-file coverage (this full gate):
   - `backtest.py` 100% (0 miss); `attribution.py` 100%; `config.py` 100%; `costs.py` 100%; `data.py` 100%; `errors.py` 100%; `quality.py` 100%; `regime.py` 100%; `risk.py` 100%; `shorting.py` 100%; `sizing.py` 100%; `strategy.py` 100%
   - `beta.py` 96% (14 miss); `cli.py` 99% (7 miss); `data_loader.py` 98% (43 miss); `data_sources.py` 98% (6 miss); `execution.py` 99% (11 miss); `metrics.py` 99% (1 miss); `portfolio.py` 95% (11 miss); `reconciliation.py` 98% (3 miss); `replay.py` 99% (1 miss); `signals.py` 98% (2 miss)
@@ -76,7 +76,7 @@ A session that only edits this file is a **FAILED session**. Before finishing, A
 | P15-4 | Controller/ops hardening + regression tests | — | [ ] | Diagnostics scanner, campaign resume, nonfinite serialization. |
 | P15-5 | Handoff refresh → P16 | — | [ ] | Refresh this file; start P16. Do not stop at "campaign complete". |
 
-## Coverage notes (this full gate baseline: 6133p/35s/0f, TOTAL 99%, 99 missed — 2026-11-15T20:47:00Z, HEAD 63cdecb)
+## Coverage notes (this full gate baseline: 6133p/35s/0f, TOTAL 99%, 99 missed — 2026-11-15T21:20:53Z, HEAD 63cdecb)
 - `beta.py` 14 miss assessed likely-dead/hard (P14-C): `BABDataError` subclasses `ValueError` and is swallowed by the earlier handler; `_finalize_betas` always invoked 2-D; `to_numpy`/`asarray` inner except reachable only if single-key access fails. Triage in P15-1.
 - `reconciliation.py` 82-83 (`except ImportError: pass`, numpy always importable → dead) and 309 (empty-columns early-return → line not reached) likely dead.
 - `replay.py` 172 (row-resize branch) likely unreachable via normal DataFrame path → dead candidate.
