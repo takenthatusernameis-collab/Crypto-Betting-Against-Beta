@@ -2,27 +2,27 @@
 
 **Canonical durable handoff (single source of truth).** Do not create parallel handoff/session docs; update this file only. `AGENT_HANDOFF.md` is a pointer to this file and must not carry a parallel task message.
 
-- **Timestamp (UTC):** 2026-11-15T13:51:57Z (refreshed; next session starts here)
+- **Timestamp (UTC):** 2026-11-15T13:54:18Z (refreshed; next session starts here)
 - **Repo:** `Crypto-Betting-Against-Beta`
-- **Git HEAD (verified this refresh):** `806c520` (`chore: capture completed workflow run diagnostics`, `main...origin/main`)
+- **Git HEAD (verified this refresh):** `0a5a2fc` (`chore(kilo): checkpoint agent session`, `main...origin/main`), 1 commit ahead of prior recorded `806c520` (handoff files only; no `strategies/`/`tests/` change)
 - **Working tree:** clean at refresh (`git status --porcelain -b` shows branch line only).
-- **Toolchain (this runner, verified 2026-11-15T13:51Z):** `python3` present; `ruff` not installed (`python3 -m ruff`/`pip show ruff`/`which ruff` missing); project runtime/test deps not importable (`numpy` missing → CLI import fails at `attribution.py`). Prior CI env reported `pytest 9.2.0`, `numpy 2.5.4`/`pandas 3.1.1`/`scipy`/`hypothesis`/`ccxt`, `ruff 0.17.5` — **must bootstrap in-session to proceed**.
+- **Toolchain (this runner, verified 2026-11-15T13:54Z):** `python3` 3.12.3; `ruff` 0.17.5 installed; runtime/test deps (numpy/pandas/scipy/pytest/pytest-xdist/pytest-cov/hypothesis/ccxt) installed via `python3 -m pip install --quiet -e ".[test,live]" ruff`. **Env bootstrap bottleneck REMOVED.**
 
-## INITIAL TASK MESSAGE (START HERE, 2026-11-15T13:51:57Z UTC) — BINDING
+## INITIAL TASK MESSAGE (START HERE, 2026-11-15T13:54:18Z UTC) — BINDING
 
 This is the only active task. Execute top-down. No archaeology (`probe_*.py`, `debug_beta*.py`, `ast_probe.py`), no new parallel handoff/session docs, no analysis-only stopping point. **A session that ends without new tests/code and fresh gate evidence is a FAILED session.** If an item is externally blocked, record the exact command+output and continue with the next unblocked item — never stop at analysis.
 
 **Repo-prioritized mission (inferred from `Crypto-Betting-Against-Beta`):** make the Betting Against Beta (crypto) strategy release-ready and ops-ready. Preserve byte-identical default offline/deterministic behavior and live execution that is **dry-run-safe-by-default** (env-only creds, no implicit network). Close the remaining real coverage gaps on the lowest-covered production modules (P12) and drive TOTAL coverage to **≥ 96%** with **zero** regressions. Heavy, real work only: new tests must assert observable behavior, not smoke imports.
 
-### Current state at HEAD `806c520` (verified this session, 2026-11-15T13:51Z UTC)
+### Current state at HEAD `0a5a2fc` (verified this session, 2026-11-15T13:54Z UTC)
 
-- **Git:** `806c520` (`chore: capture completed workflow run diagnostics`, `main...origin/main`), working tree clean. Code/test delta since last full gate at `48f4be5`: diagnostics + handoff commits only (no `strategies/` or `tests/` changes).
-- **Baseline verification in this runner (blocked by missing deps/tooling; exact outputs recorded):**
-  - `python3 -m ruff check .` → `/usr/bin/python3: No module named ruff` (exit 1). `pip show ruff` / `which ruff` → not found.
-  - `python3 -c "import strategies.betting_against_beta.cli..."` → `ModuleNotFoundError: No module named 'numpy'` (fails at `attribution.py`). `pytest`, `numpy`, `pandas`, `scipy`, `hypothesis`, `ccxt` not importable in this bare Python.
-  - Therefore `bash scripts/bab_quick.sh`, `bash scripts/bab_gate.sh`, `python3 scripts/perf_baseline.py --check`, and CLI smokes **cannot be executed in this environment without installing dependencies**.
-- **Last known good evidence (CI env, carried forward from prior handoff, not re-run here):** at `48f4be5` full `bash scripts/bab_gate.sh` (parallel, jobs=4, sysmon) → **5931 passed, 35 skipped in 554.86s, TOTAL 95% (340 missed)**; `ruff` clean; `bab_quick.sh` green (104+195 passed); `perf_baseline --check` `failures: []`; CLI smokes exit 0 (`--synthetic --dry-run`, live `--health-check` dry-run JSON). Treat as baseline-to-preserve, but **must be re-confirmed with fresh gate evidence after env bootstrap and after each P12 slice**.
-- **Bottleneck (active): environment not bootstrapped for tests/lint in this runner.** Removal is first action (item 0 below): install project + dev deps (and ruff) into a usable env, then re-run baseline with recorded evidence. Do not claim green without fresh command evidence. Historical root `probe_*/debug_*/ast_probe.py` files are noise — do not touch. No new parallel handoff docs. Live execution remains dry-run-safe-by-default only; no network/credentials in tests.
+- **Git:** `0a5a2fc` (`chore(kilo): checkpoint agent session`, `main...origin/main`), working tree clean. Code/test delta since last full gate at `48f4be5`: diagnostics + handoff commits only (no `strategies/` or `tests/` changes).
+- **Baseline verification in this runner (fresh evidence, env now bootstrapped):**
+  - `python3 -m ruff check .` → `All checks passed!` (ruff 0.17.5)
+  - `python3 -c "import numpy, pandas, scipy, pytest, hypothesis, coverage, ccxt"` → runtime deps OK
+  - `bash scripts/bab_quick.sh` → ruff clean; targeted trio **104 passed**; smoke (strategy/cli/costs) **195 passed**; quick preflight OK
+- **Last known good evidence (CI env, carried forward from prior handoff):** at `48f4be5` full `bash scripts/bab_gate.sh` → **5931 passed, 35 skipped in 554.86s, TOTAL 95% (340 missed)**; `ruff` clean; `bab_quick.sh` green (104+195 passed); `perf_baseline --check` `failures: []`. Treat as baseline-to-preserve; full gate **must be re-confirmed with fresh evidence after each P12 slice**.
+- **Bottleneck (REMOVED):** environment was not bootstrapped; deps + ruff now installed and baseline re-confirmed above. Do not reopen. Historical root `probe_*/debug_*/ast_probe.py` files are noise — do not touch. No new parallel handoff docs. Live execution remains dry-run-safe-by-default only; no network/credentials in tests.
 
 Per-file coverage baseline (verified full-gate at `48f4be5`, 2026-11-15T13:31Z; carried forward — re-confirm after bootstrap/gate):
 
@@ -57,8 +57,8 @@ P11 test files present: `tests/test_bab_cli_p11_coverage.py`, `tests/test_bab_da
 
 ## Immediate execution order (mandatory)
 
-0. **Bootstrap env/toolchain (REMOVE BOTTLENECK, do first):** install deps so tests/lint run in this environment (e.g. `python3 -m pip install -e ".[dev]"` or install `numpy pandas scipy pytest pytest-xdist pytest-cov hypothesis ccxt ruff`; use `--user`/venv as available). Record exact commands+outcomes. Use `python3 -m ruff check .` if bare `ruff` unavailable; keep `PYTHONPATH=$PWD` for ad-hoc pytest when needed.
-1. **Re-confirm baseline (fast, after bootstrap):** `python3 -m ruff check .` + `bash scripts/bab_quick.sh`. If either is red, fix with minimal diffs before adding coverage. Capture fresh evidence (pass counts/timing).
+0. **Bootstrap env/toolchain — DONE (bottleneck removed):** `python3 -m pip install --quiet -e ".[test,live]" ruff`; verified `ruff check .` clean, runtime deps importable, `bash scripts/bab_quick.sh` green (104+195 passed). Do not reopen; proceed to item 1.
+1. **Re-confirm baseline — CONFIRMED via `bab_quick.sh` above (ruff clean, 104+195 passed).** Proceed directly to P12-A; full `bash scripts/bab_gate.sh` re-confirmation is required after each P12 slice and at the end (item 7).
 2. **P12-A — `strategy.py` orchestration branches (HEAVY, do FIRST):** create `tests/test_bab_strategy_p12_coverage.py`. Cover the real gate-missed orchestration branches reachable with synthetic data + fakes only: non-daily `rebalance_freq` (line 688), `shorting_constraints` error/apply (712-721), `position_sizer` dict/normalize/apply/error (727-742), `regime_filter` scaling path (747-752), beta-neutral enforcement incl. tracking-error tolerance (759-772), and the finite-guard cleanup (790-798). Also cover `_safe_float` defaults (643, 646-647) and the remaining early gaps (280-283, 285, 298-301, 306, 655, 982-983). Do not modify production logic; assert observable behavior. Target `strategy.py` **≥ 93%** under full gate.
 3. **P12-B — `beta.py` rolling fast-path variants (HEAVY):** create `tests/test_bab_beta_p12_coverage.py` for uncovered rolling-sum/median fast paths and validation edges: 1-D and 2-D `_rolling_sum_finite` (315-328), `_rolling_sum_finite_stack` (372-386), `_rolling_sum` finite/NaN paths (125, 150-151, 163, 170-171, 189, 216-219), and 435-436, 544-558. Prove semantic equivalence to reference path on finite/NaN/window/min-period inputs (property-style assertions, not smoke). Target `beta.py` **≥ 92%** under full gate.
 4. **P12-C — `backtest.py` error/edge paths (MEDIUM):** create `tests/test_bab_backtest_p12_coverage.py` for lines 15-21, 27-30, 161-189 (cost/slippage/lag/empty-window/validation errors). Target `backtest.py` **≥ 90%** under full gate.
@@ -90,7 +90,7 @@ Run `bash scripts/bab_quick.sh` after each meaningful slice; run full `bash scri
 
 ## Bottlenecks removed / constraints (do not reopen)
 
-- **Env bootstrap bottleneck (ACTIVE, this runner 2026-11-15T13:51Z, HEAD 806c520):** `ruff` and runtime/test deps (numpy/pandas/scipy/pytest/pytest-xdist/pytest-cov/hypothesis/ccxt) missing, so lint/quick/gate/perf/CLI smokes cannot run until installed. **First action:** bootstrap deps and obtain fresh baseline evidence. Prior CI gate evidence at `48f4be5` (5931 passed, 35 skipped, TOTAL 95%) is baseline-to-preserve but not re-verified here. Budget ~9 min for full `bash scripts/bab_gate.sh` after each P12 slice. Do not stop at analysis.
+- **Env bootstrap bottleneck (REMOVED, this runner 2026-11-15T13:54Z, HEAD 0a5a2fc):** `ruff` 0.17.5 and runtime/test deps installed via `python3 -m pip install --quiet -e ".[test,live]" ruff`; `ruff check .` clean, `bab_quick.sh` green (104+195 passed). Fresh baseline evidence recorded in HANDOFF.md. Prior CI gate evidence at `48f4be5` (5931 passed, 35 skipped, TOTAL 95%) is baseline-to-preserve. Budget ~9 min for full `bash scripts/bab_gate.sh` after each P12 slice. Do not stop at analysis.
 - **Gate speed:** `scripts/bab_gate.sh` runs parallel (`pytest-xdist`, `--dist loadscope`, sysmon on CPython ≥3.12) with serial fallback (`BAB_GATE_SERIAL=1`, `BAB_GATE_JOBS=N`). Do not reintroduce serial-only gate.
 - **Parallel-safety:** any new module-level record list must follow the `_*_cell_record`/`_*_records_full` pattern used in `tests/test_bab_execution_realism_r3.py`, `tests/test_bab_stress_regimes.py`, `tests/test_bab_stress_horizon.py`, `tests/test_bab_scale_perf_guard.py`. Summary tests must recompute deterministically under any worker subset.
 - **Single durable handoff:** only `HANDOFF.md` canonical; `AGENT_HANDOFF.md` pointer-only.
