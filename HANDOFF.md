@@ -2,13 +2,13 @@
 
 **Canonical durable handoff (single source of truth).** Do not create parallel handoff/session docs; update this file only. `AGENT_HANDOFF.md` is a pointer to this file and must not carry a parallel task message.
 
-- **Timestamp (UTC):** 2026-11-15T08:44:25Z
+- **Timestamp (UTC):** 2026-11-15T09:15:57Z
 - **Repo:** `Crypto-Betting-Against-Beta`
 - **Git HEAD (verified):** `0551f44` — baseline clean at HEAD; no parallel handoff docs. Only handoff-document changes between `1285fd3` and `0551f44` (kilo checkpoint); no code changes. P11 step 2 (`cli.py` coverage) **DONE** via `tests/test_bab_cli_p11_coverage.py`; `cli.py` is **99%** (≥90% target met/exceeded). First act next session: execute P11 campaign top-down starting at **step 3** (`data_sources.py` coverage) (baseline steps 1 & 2 are DONE — do not repeat).
 - **Branch:** `main`
 - **Working tree:** clean except this `HANDOFF.md` + `AGENT_HANDOFF.md` pointer refresh (single durable handoff only); no code changes. Shell note: gate toolchain (`ruff`, `pytest`, `pytest-cov`, `pytest-xdist`, `coverage`, `hypothesis`, `ccxt`) must be installed in any fresh shell before running the gate — `pip install --break-system-packages pytest pytest-cov pytest-xdist coverage ruff numpy pandas scipy hypothesis ccxt` (or `pip install -e .[test]` + `ccxt`) as step 0. Do not treat a missing-toolchain shell as a gate failure.
 
-## INITIAL TASK MESSAGE (START HERE, 2026-11-15T08:44:25Z UTC) — BINDING
+## INITIAL TASK MESSAGE (START HERE, 2026-11-15T09:15:57Z UTC) — BINDING
 
 This is the only active task. Execute top-down. No archaeology (`probe_*.py`, `debug_beta*.py`, `ast_probe.py`), no new parallel handoff/session docs. If blocked, record the exact command + output and continue with the next unblocked priority. **Never stop at analysis — every session must produce code, tests, and fresh gate evidence.**
 
@@ -32,7 +32,7 @@ Also added `scripts/bab_quick.sh` (fast inner-loop: ruff + targeted trio + smoke
 
 **Bottleneck removed this session (shell):** the gate could not run at all in a fresh shell because `ruff`/`pytest`/`pytest-cov`/`pytest-xdist`/`coverage`/`hypothesis`/`ccxt` were not installed. Fixed by installing the test toolchain (`pip install --break-system-packages pytest pytest-cov pytest-xdist coverage ruff numpy pandas scipy hypothesis ccxt`, or `pip install -e .[test]` + `ccxt`). Make this step 0 of any fresh session before running the gate; do not treat a missing-toolchain shell as a gate failure.
 
-## Verified state (re-established fresh this session, 2026-11-15T08:44:25Z UTC; re-verify after every change)
+## Verified state (re-established fresh this session, 2026-11-15T09:15:57Z UTC; re-verify after every change)
 
 - `python3 -m ruff check .` → **clean** (All checks passed) — verified this session.
 - `bash scripts/bab_quick.sh` → **green** (ruff clean; targeted trio **104 passed**; smoke **195 passed**, ~26s) — verified this session.
