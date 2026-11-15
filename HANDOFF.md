@@ -2,19 +2,19 @@
 
 **Canonical durable handoff (single source of truth).** Do not create parallel handoff/session docs; update this file only. `AGENT_HANDOFF.md` is a pointer to this file and must not carry a parallel task message.
 
-- **Timestamp (UTC):** 2026-11-15T00:47:00Z
+- **Timestamp (UTC):** 2026-11-15T01:30:13Z
 - **Repo:** `Crypto-Betting-Against-Beta`
 - **HEAD (at refresh):** `cbc04e8` (`docs(handoff): refresh HANDOFF.md to campaign-complete state (2026-11-15T00:46:04Z)`)
 - **Branch:** `main`
 - **Working tree:** clean (at refresh)
 
-## INITIAL TASK MESSAGE (START HERE, 2026-11-15T00:47:00Z UTC) — BINDING
+## INITIAL TASK MESSAGE (START HERE, 2026-11-15T01:30:13Z UTC) — BINDING
 
-This is the only active task. Execute in order. No archaeology (`probe_*.py`, `debug_*.py`, `ast_probe.py`), no new parallel handoff/session docs. If blocked, record exact command + output and continue with the next unblocked priority. **Never stop at analysis — produce code, tests, and evidence.**
+This is the only active task. Execute top-down. No archaeology (`probe_*.py`, `debug_*.py`, `ast_probe.py`), no new parallel handoff/session docs. If blocked, record exact command + output and continue with the next unblocked priority. **Never stop at analysis — produce code, tests, and evidence.**
 
-Repo-prioritized mission: `Crypto-Betting-Against-Beta` = harden the Betting Against Beta (BAB) crypto strategy into an ops-ready live path without changing default offline/dry-run behavior, then ship a release-ready evidence bundle.
+Repo-prioritized mission: `Crypto-Betting-Against-Beta` = keep the Betting Against Beta (BAB) crypto strategy ops-ready (live path dry-run-safe-by-default, default offline/dry-run behavior unchanged) and close the remaining coverage/gate gaps to a release-ready state.
 
-## Campaign status: COMPLETE (all six priorities done, evidence recorded)
+## Campaign status: P9 COMPLETE (all six priorities done, evidence recorded) — NEXT FOCUS CAMPAIGN ACTIVE
 
 The P9 "ops-ready live path" campaign is complete. Default offline/dry-run behavior is unchanged; live execution is safe-by-default (dry-run, env-only creds, no implicit network).
 
