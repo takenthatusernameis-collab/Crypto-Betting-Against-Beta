@@ -2,8 +2,8 @@
 
 **Canonical durable handoff:** [`HANDOFF.md`](HANDOFF.md) — single source of truth. Read it in full before starting. Do not create parallel handoff/session docs.
 
-- **Refreshed:** 2026-11-15T13:10:13Z (UTC)
+- **Refreshed:** 2026-11-15T13:17:59Z (UTC)
 - **Git HEAD (at refresh):** `7710b7b`
-- **Start here:** `HANDOFF.md` → `INITIAL TASK MESSAGE (START HERE, 2026-11-15T13:10:13Z UTC) — BINDING`
+- **Start here:** `HANDOFF.md` → `INITIAL TASK MESSAGE (START HERE, 2026-11-15T13:17:59Z UTC) — BINDING`
 
 If evidence conflicts with live output, trust live output and update `HANDOFF.md`.
