@@ -2,13 +2,13 @@
 
 **Canonical durable handoff (single source of truth).** Do not create parallel handoff/session docs; update this file only. `AGENT_HANDOFF.md` is a pointer to this file and must not carry a parallel task message.
 
-- **Timestamp (UTC):** 2026-11-15T10:06:35Z
+- **Timestamp (UTC):** 2026-11-15T10:07:26Z
 - **Repo:** `Crypto-Betting-Against-Beta`
 - **Git HEAD (verified):** `3fd7cc4` (`chore(kilo): checkpoint agent session`, `main`)
 - **Working tree:** clean at this handoff refresh (only `HANDOFF.md`/pointer updated). Keep changes minimal and task-focused.
 - **Shell/toolchain (verified this session):** `python3`, `pytest 9.2.0`, `pytest-xdist`, `coverage 7.17.3`, `numpy/pandas/scipy/hypothesis/ccxt` present. `ruff 0.17.5` installed but **not on `$PATH`** — invoke as `python3 -m ruff` (`scripts/bab_quick.sh`/`bab_gate.sh` assume `ruff` on PATH; if they fail only on that, use `python3 -m ruff check .` or PATH-fix). No network/credentials in tests. `python3 -m ruff check .` clean at HEAD.
 
-## INITIAL TASK MESSAGE (START HERE, 2026-11-15T10:06:35Z UTC) — BINDING
+## INITIAL TASK MESSAGE (START HERE, 2026-11-15T10:07:26Z UTC) — BINDING
 
 This is the only active task. Execute top-down. No archaeology (`probe_*.py`, `debug_beta*.py`, `ast_probe.py`), no new parallel handoff/session docs, no analysis-only stopping point. **Every session must produce code/tests and fresh gate evidence** (or a concrete command+output for any external blocker, then continue with the next unblocked item).
 
@@ -45,7 +45,7 @@ Run `bash scripts/bab_quick.sh` after each meaningful slice; run full `bash scri
 - `bash scripts/bab_gate.sh` green: **5844 passed, 35 skipped, 0 failed, 0 errors; TOTAL 92%** (~9m18s, parallel xdist/sysmon).
 - Per-file (historical): `cli.py` **99%** (555 stmts, 7 missed); `data_sources.py` **78%** (282, 62 missed incl. 164-165,169,173,230-237,260,302-303,311,320,322,324,329-330,347,366-377,400-403,422-427,431-434,438-447,475-480,483,487-488,497-499,506-507); `execution.py` **81%** (772, 145 missed); `reconciliation.py` **74%** (49 missed); `backtest.py` 84%; `beta.py` 85%; `strategy.py` 88%; `risk.py` 89%.
 - `python3 scripts/perf_baseline.py --check` last known `failures: []` (not re-run at HEAD).
-- **Current-session note (2026-11-15T10:06:35Z):** HEAD `3fd7cc4`; `python3 -m ruff check .` clean; toolchain/deps present (`ruff` via `python3 -m ruff`). `tests/test_bab_data_sources_p11_coverage.py` exists, `tests/test_bab_execution_p11_coverage.py` and `tests/test_bab_reconciliation_p11_coverage.py` absent. **No fresh quick/gate/perf/per-file baseline executed yet** — P11 step 1 is the first blocking action (capture exact evidence before changing code). No parallel handoff/session docs found; `AGENT_HANDOFF.md` remains pointer-only.
+- **Current-session note (2026-11-15T10:07:26Z):** HEAD `3fd7cc4`; `python3 -m ruff check .` clean; toolchain/deps present (`ruff` via `python3 -m ruff`). `tests/test_bab_data_sources_p11_coverage.py` exists, `tests/test_bab_execution_p11_coverage.py` and `tests/test_bab_reconciliation_p11_coverage.py` absent. **No fresh quick/gate/perf/per-file baseline executed yet at HEAD `3fd7cc4`** — P11 step 1 is the first blocking action (capture exact evidence before changing code). No parallel handoff/session docs found; `AGENT_HANDOFF.md` remains pointer-only.
 
 ## Bottlenecks removed / constraints (do not reopen)
 
