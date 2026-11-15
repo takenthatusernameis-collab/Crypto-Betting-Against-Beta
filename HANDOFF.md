@@ -2,13 +2,13 @@
 
 **Canonical durable handoff (single source of truth).** Do not create parallel handoff/session docs; update this file only. `AGENT_HANDOFF.md` is a pointer to this file and must not carry a parallel task message.
 
-- **Timestamp (UTC):** 2026-11-15T10:17:28Z
+- **Timestamp (UTC):** 2026-11-15T10:26:51Z
 - **Repo:** `Crypto-Betting-Against-Beta`
 - **Git HEAD (verified):** `2d76d59` (`chore(kilo): checkpoint agent session`, `main`)
 - **Working tree:** clean — changes committed at HEAD `2d76d59`.
 - **Shell/toolchain (verified):** `python3`, `pytest 9.2.0`, `pytest-xdist`, `coverage 7.17.3`, `numpy/pandas/scipy/hypothesis/ccxt` present. `ruff 0.17.5` installed but **not on `$PATH`** — invoke as `python3 -m ruff` (`scripts/bab_quick.sh`/`bab_gate.sh` assume `ruff` on PATH; if they fail only on that, use `python3 -m ruff check .` or PATH-fix). No network/credentials in tests.
 
-## INITIAL TASK MESSAGE (START HERE, 2026-11-15T10:17:28Z UTC) — BINDING
+## INITIAL TASK MESSAGE (START HERE, 2026-11-15T10:26:51Z UTC) — BINDING
 
 This is the only active task. Execute top-down. No archaeology (`probe_*.py`, `debug_beta*.py`, `ast_probe.py`), no new parallel handoff/session docs, no analysis-only stopping point. **Every session must produce code/tests and fresh gate evidence** (or a concrete command+output for any external blocker, then continue with the next unblocked item).
 
@@ -43,7 +43,7 @@ Run `bash scripts/bab_quick.sh` after each meaningful slice; run full `bash scri
 - Paper + live `--dry-run` smokes pass.
 - Default offline/deterministic behavior unchanged; live path remains dry-run-safe-by-default; **no real (non-dry-run) live execution, no network, no credentials**.
 
-## Fresh evidence (this session, 2026-11-15T10:17:28Z UTC, HEAD `2d76d59`)
+## Fresh evidence (this session, 2026-11-15T10:26:51Z UTC, HEAD `2d76d59`)
 
 - `python3 -m ruff check .` → **clean** (exit 0).
 - Targeted trio: `PYTHONPATH=$PWD python3 -m pytest -q tests/test_bab_live_adapter.py tests/test_bab_risk_manager.py tests/test_bab_realtime_feed.py tests/test_bab_paper_trading.py tests/test_bab_data_freshness.py tests/test_bab_diagnostics.py` → **104 passed in 1.63s**.
