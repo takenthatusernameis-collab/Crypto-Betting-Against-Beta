@@ -2,19 +2,19 @@
 
 **Canonical durable handoff (single source of truth).** Do not create parallel handoff/session docs; update this file only. `AGENT_HANDOFF.md` is a pointer to this file and must not carry a parallel task message.
 
-- **Timestamp (UTC):** 2026-11-15T11:20:38Z (refreshed)
+- **Timestamp (UTC):** 2026-11-15T11:24:26Z (refreshed)
 - **Repo:** `Crypto-Betting-Against-Beta`
-- **Git HEAD (verified):** `0b0ff9e` (`chore(kilo): checkpoint agent session`, `main`)
-- **Working tree:** dirty only for this handoff refresh / active work in this session (no unrelated product changes intended).
+- **Git HEAD (verified):** `ae89da6` (`chore(kilo): checkpoint agent session`, `main`) — product state identical to `0b0ff9e` (only handoff files changed).
+- **Working tree:** clean (this handoff refresh is the only intended change).
 - **Toolchain (verified present):** `python3`, `pytest 9.2.0`, `pytest-xdist`, `coverage 7.17.3`, `numpy 2.5.4/pandas 3.1.1/scipy/hypothesis/ccxt`. `ruff 0.17.5` available as **`python3 -m ruff`** (bare `ruff` may be missing from `$PATH`; use module form).
 
-## INITIAL TASK MESSAGE (START HERE, 2026-11-15T11:20:38Z UTC) — BINDING
+## INITIAL TASK MESSAGE (START HERE, 2026-11-15T11:24:26Z UTC) — BINDING
 
 This is the only active task. Execute top-down. No archaeology (`probe_*.py`, `debug_beta*.py`, `ast_probe.py`), no new parallel handoff/session docs, no analysis-only stopping point. **Every session must produce code/tests and fresh gate evidence** (or an exact command+output for any external blocker, then continue with the next unblocked item).
 
 **Repo-prioritized mission (inferred from `Crypto-Betting-Against-Beta`):** make the Betting Against Beta (crypto) strategy release-ready and ops-ready. Preserve byte-identical default offline/deterministic behavior and live execution that is **dry-run-safe-by-default** (env-only creds, no implicit network). Close remaining P11 real-path coverage/gate gaps on the lowest-covered production modules.
 
-### Current state at HEAD `0b0ff9e` (verified this refresh)
+### Current state at HEAD `ae89da6` (verified this refresh)
 - `python3 -m ruff check .` → **clean** (exit 0).
 - `bash scripts/bab_quick.sh` → **green** (targeted trio 104 passed in 1.64s; smoke 195 passed in 24.59s).
 - `python3 -m strategies.betting_against_beta.cli --dry-run --synthetic` → **ok** (resolved config printed).
