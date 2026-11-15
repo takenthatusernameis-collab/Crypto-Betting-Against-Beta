@@ -2,34 +2,28 @@
 
 **Canonical durable handoff (single source of truth).** Do not create parallel handoff/session docs; update this file only. `AGENT_HANDOFF.md` is a pointer to this file and must not carry a parallel task message.
 
-- **Timestamp (UTC):** 2026-11-15T22:09:38Z (this refresh)
+- **Timestamp (UTC):** 2026-11-15T22:52:39Z (this refresh)
 - **Repo:** `Crypto-Betting-Against-Beta` — a **crypto market-neutral trading system** (data ingestion → beta → signals → portfolio → backtest → execution → ops) implementing the Frazzini–Pedersen *Betting Against Beta* strategy.
-- **Git HEAD (verified this refresh):** `8b9466d` (`chore(kilo): checkpoint agent session`)
-- **Working tree at refresh:** clean; `python3 -m ruff check .` passes. P16-1 is shipped at HEAD: caller-filename detection was removed, the three wrong-contract tests were rewritten, and the filename-independence regression is present.
+- **Git HEAD (verified this refresh):** `a0a0919` (`chore(kilo): checkpoint agent session`)
+- **Working tree at refresh:** clean; `python3 -m ruff check .` passes. P16-1 and P16-2 are shipped at HEAD: caller-filename detection was removed, the three wrong-contract tests were rewritten, and `BABDataError` now precedes the broad coercion handler in `beta.calculate_beta` with four regression tests in `tests/test_bab_p16_beta_error_propagation.py` (all 4 pass; combined with `test_bab_p16_no_test_detection.py`: 7 passed).
 - **Toolchain:** `python3 3.12.3`; `ruff 0.17.5`; numpy/pandas/scipy/pytest/hypothesis/coverage/pytest-cov/pytest-xdist/ccxt via `bash scripts/bab_bootstrap.sh` (auto-invoked by quick/gate).
 
-## INITIAL TASK MESSAGE (START HERE, 2026-11-15T22:09:38Z) — BINDING (DO NOT IGNORE)
+## INITIAL TASK MESSAGE (START HERE, 2026-11-15T22:52:39Z) — BINDING (DO NOT IGNORE)
 
-**Campaign: P16 — Trading-Critical Correctness & Safety Hardening. This is the next session's sole focus. Start at P16-2; do not restart P16-1 or re-triage the map.**
+**Campaign: P16 — Trading-Critical Correctness & Safety Hardening. This is the next session's sole focus. Start at P16-3; do not restart P16-1/P16-2 or re-triage the map.**
 
 This is a **crypto trading system**. The highest-stakes work is correctness and safety of data ingestion, beta/signal integrity, portfolio construction, and execution/ops — not line-coverage percentages. **Ship real production fixes with proof tests every session. Analysis-only, handoff-only, formatting-only, and coverage-against-dead-lines turns are failed sessions.**
 
 ### Execute in this order
 
-1. **P16-2 (highest) — fix swallowed data errors in `beta.calculate_beta`.**
-   - Reorder the handlers at `strategies/betting_against_beta/beta.py:148-151` so `except BABDataError: raise` precedes `except (TypeError, ValueError, AttributeError): return np.nan`.
-   - Prove the defect before editing with a temporary failing regression (or an equivalent one-off probe): `BABDataError` inherits `ValueError`, so the broad handler currently converts a genuine data error into `NaN` and can become “no signal.”
-   - Add `tests/test_bab_p16_beta_error_propagation.py` with the reachable `__array__`-raising object from the existing probe. Assert `calculate_beta(..., benchmark_returns=...)` raises `BABDataError` rather than returning `NaN`. Also test the error when it originates from either argument path that reaches the guarded conversion.
-   - Run at least the new test, then `ruff`, quick gate, and the full gate below. Do not broaden into unrelated beta rewrites.
-
-2. **P16-3 (D2) — resolve the quality-validation contract contradiction with a safety-first, staged rollout.**
-   - Current code at `data_loader.py:1537-1541` defaults to `max_return_abs=10_000.0`, `max_gap_days=3650.0`, `stale_run_threshold=50`; the public docstring at `:1713-1718` promises `20.0`, `7.0`, and `3`. Both stale paths at `:1622-1629` and `:1657-1664` also compute `max_allowed_stale = max(threshold, 50)`, so an explicit threshold of 3 cannot detect a 3–49 run.
+1. **P16-3 (highest, now unblocked) — resolve the quality-validation contract contradiction with a safety-first, staged rollout.**
+   - Current code at `data_loader.py:1537-1541` still defaults to `max_return_abs=10_000.0`, `max_gap_days=3650.0`, `stale_run_threshold=50`; the public docstring at `:1713-1718` promises `20.0`, `7.0`, and `3`. Both stale paths at `:1622-1629` and `:1657-1664` still compute `max_allowed_stale = max(threshold, 50)`, so an explicit threshold of 3 cannot detect a 4–49 run.
    - First add characterization tests that document current behavior for: a 10000% return, a 100-day gap, a 4–49 equal-value run with explicit `stale_run_threshold=3`, and the fast numeric path. Then tighten behavior to honor explicit thresholds and the documented safe defaults. `quality=False` must remain an explicit opt-out; `quality=True` must not silently disable the documented guards.
    - Treat fixtures/tests that encode the old lenient contract as regressions to update, not contracts to preserve. Search all callers/tests before changing defaults, especially `validate_returns_dataframe`, `_run_data_quality_campaign`, real-data loaders, backtests, and validation-performance oracles.
    - If the full gate exposes unavoidable compatibility coupling, do not weaken the new checks: keep the stricter behavior, document the deliberate migration, and isolate any compatibility switch behind an explicit opt-in. Do not invent an undocumented global escape hatch.
    - Required proof: one test that fails on HEAD and passes after the fix for each changed safety guard; record exact commands/results in the ledger.
 
-3. **P16-4 — convert the remaining reachable bucket-B edges into targeted tests.** Use fakes/mocks only; batch by module and rerun the full gate after each batch:
+2. **P16-4 — convert the remaining reachable bucket-B edges into targeted tests.** Use fakes/mocks only; batch by module and rerun the full gate after each batch:
    - `execution.py:139-141` Timestamp-key fallback with a string `date_key`.
    - `execution.py:182-185` Timestamp-indexed ADV sub-frame.
    - `execution.py:555-556` non-finite numpy float JSON sanitization with `allow_nan=False`.
@@ -73,14 +67,14 @@ Do not spend a session re-deriving the A/B/C triage, rewording this handoff, or 
 ## Current verified state
 
 - **P16-1 (D1) shipped:** `inspect.stack()` caller-filename detection is gone; `pd.NaT`/`NaTType`, `None`, empty/non-finite values raise `ValueError`; `np.datetime64("NaT")` retains its legitimate passthrough. `tests/test_bab_p16_no_test_detection.py` proves caller-filename independence.
-- **P16-2 still open:** broad `ValueError` handler precedes `BABDataError` in `calculate_beta`; the reachable `__array__` proof is the first required fix.
+- **P16-2 (D3) shipped:** `BABDataError` is re-raised before the broad coercion handler in `calculate_beta`; `tests/test_bab_p16_beta_error_propagation.py` proves propagation from either argument path while plain `ValueError`/`TypeError` still become `NaN`. Verified this refresh: 4/4 pass (7/7 with the no-detection suite).
 - **P16-3 still open:** contradictory defaults and the hard-coded 50-run floor disable explicit stale-data thresholds; safety-first tightening is the next production change.
 - **Coverage baseline:** 99% TOTAL, 93 missed at the prior full gate. Per-file misses: `beta.py` 14 · `cli.py` 7 · `data_loader.py` 37 · `data_sources.py` 6 · `execution.py` 11 · `metrics.py` 1 · `portfolio.py` 11 · `reconciliation.py` 3 · `replay.py` 1 · `signals.py` 2; all other measured modules 100%. Treat this as a baseline to verify live, not a target.
-- **Performance baseline:** `research_state/perf_baseline_real_fixture.json` records beta median `0.4852 ms`, full median `3.1852 ms`, peak `0.3441 MB`; the prior check reported no failures. Rerun rather than trusting stale output.
+- **Performance baseline:** `research_state/perf_baseline_real_fixture.json` records beta median `0.4852 ms`, full median `3.1852 ms`, peak `0.3441 MB`; this refresh’s `--check` reported `failures: []` (current: beta median `0.6585 ms`, full median `4.0471 ms`, peak `0.3447 MB`). Rerun rather than trusting stale output.
 
 ## Pre-triaged line map (authoritative — do not re-triage)
 
-**A. Real defects:** D1 shipped; D3/P16-2 and D2/P16-3 remain. D3 proof: an object whose `__array__` raises `BABDataError` passed as either return argument must propagate. D2 proof: explicit `stale_run_threshold=3` currently cannot detect a 4–49 run because both implementations clamp the allowance to 50.
+**A. Real defects:** D1 and D3 shipped; D2/P16-3 remains. D3 proof is green: an object whose `__array__` raises `BABDataError` passed as either return argument propagates. D2 proof: explicit `stale_run_threshold=3` currently cannot detect a 4–49 run because both implementations clamp the allowance to 50.
 
 **B. Reachable edges:** the P16-4 list above. Use targeted, behavior-rich tests with fakes/mocks.
 
@@ -88,7 +82,7 @@ Do not spend a session re-deriving the A/B/C triage, rewording this handoff, or 
 
 ## Bottlenecks removed this refresh (do not reopen)
 
-- **Stale handoff pointer:** previous prose claimed P16-1 was unshipped while HEAD `8b9466d` already contained the production and regression changes. This refresh verifies the live tree and starts at P16-2.
+- **Stale handoff pointer:** previous prose claimed P16-1 was unshipped while HEAD `8b9466d` already contained the production and regression changes; this refresh also advances past P16-2, which is shipped at `a0a0919`, and starts at P16-3.
 - **Ambiguous next action:** “continue P16” is replaced by a named first fix, exact file/handler, proof obligation, and command order.
 - **Quality-default stall:** the next session is told to characterize first, then tighten explicit thresholds and documented defaults, rather than debating the contradiction or weakening tests.
 - **Coverage-chasing incentive:** the output contract fails handoff-only and dead-line-coverage sessions; reachable behavior tests and production fixes are mandatory.
@@ -101,8 +95,8 @@ Do not spend a session re-deriving the A/B/C triage, rewording this handoff, or 
 | Step | Target | New/changed test | Status | Exact evidence |
 |---|---|---|---|---|
 | P16-1 | D1: remove caller-filename detection in `data_loader` | `tests/test_bab_p16_no_test_detection.py`; 3 wrong-contract tests | [x] | Shipped at HEAD `8b9466d`; clean tree and ruff pass verified 2026-11-15T22:09:38Z. Prior full gate: 6136p/35s/0f, 99% TOTAL (93 missed), floor 98.5%. |
-| P16-2 | D3: propagate `BABDataError` from `beta.calculate_beta` | `tests/test_bab_p16_beta_error_propagation.py` | [ ] | Next action. Reorder handlers; prove failing-before/passing-after with `__array__` object. |
-| P16-3 | D2: honor documented/explicit quality safety thresholds | characterization + regression tests | [ ] | Pin old behavior, then remove 50-run override and reconcile defaults with docs; full gate. |
+| P16-2 | D3: propagate `BABDataError` from `beta.calculate_beta` | `tests/test_bab_p16_beta_error_propagation.py` | [x] | Shipped at HEAD `a0a0919`; 4/4 new tests pass (7/7 with no-detection suite) and `ruff check .` passes 2026-11-15T22:52:39Z. |
+| P16-3 | D2: honor documented/explicit quality safety thresholds | characterization + regression tests | [ ] | Next action. Pin old behavior, then remove 50-run override and reconcile defaults with docs; full gate. |
 | P16-4 | Bucket-B reachable edges | per-module tests | [ ] | execution/portfolio/cli/reconciliation/data_sources/data_loader/signals. |
 | P16-5 | Bucket-C dead-branch deletion/justification | — | [ ] | Update map; no dead-line coverage tests. |
 | P16-6 | Performance + next-defect handoff refresh | — | [ ] | `perf_baseline.py --check` failures must be `[]`; refresh and continue. |
