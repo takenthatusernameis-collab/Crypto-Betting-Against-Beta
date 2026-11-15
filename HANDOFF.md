@@ -2,13 +2,13 @@
 
 **Canonical durable handoff (single source of truth).** Do not create parallel handoff/session docs; update this file only. `AGENT_HANDOFF.md` is a pointer to this file and must not carry a parallel task message.
 
-- **Timestamp (UTC):** 2026-11-15T00:46:04Z
+- **Timestamp (UTC):** 2026-11-15T00:47:00Z
 - **Repo:** `Crypto-Betting-Against-Beta`
-- **HEAD (at refresh):** `ac7b9e9` (`feat(p9): harden live execution adapter and wire optional pre-trade risk gating`)
+- **HEAD (at refresh):** `cbc04e8` (`docs(handoff): refresh HANDOFF.md to campaign-complete state (2026-11-15T00:46:04Z)`)
 - **Branch:** `main`
 - **Working tree:** clean (at refresh)
 
-## INITIAL TASK MESSAGE (START HERE, 2026-11-15T00:46:04Z UTC) — BINDING
+## INITIAL TASK MESSAGE (START HERE, 2026-11-15T00:47:00Z UTC) — BINDING
 
 This is the only active task. Execute in order. No archaeology (`probe_*.py`, `debug_*.py`, `ast_probe.py`), no new parallel handoff/session docs. If blocked, record exact command + output and continue with the next unblocked priority. **Never stop at analysis — produce code, tests, and evidence.**
 
@@ -18,11 +18,10 @@ Repo-prioritized mission: `Crypto-Betting-Against-Beta` = harden the Betting Aga
 
 The P9 "ops-ready live path" campaign is complete. Default offline/dry-run behavior is unchanged; live execution is safe-by-default (dry-run, env-only creds, no implicit network).
 
-### Current verified state (2026-11-15T00:46:04Z UTC, this workspace)
+### Current verified state (2026-11-15T00:47:00Z UTC, this workspace)
 - `python3 -m ruff check .` → **All checks passed**.
-- Targeted trio (`test_bab_live_adapter.py test_bab_risk_manager.py test_bab_realtime_feed.py test_bab_paper_trading.py test_bab_data_freshness.py test_bab_diagnostics.py`) → **98 passed, 1 warning** (`Timestamp.utcnow` deprecation; non-blocking).
-- Full suite `python3 -m pytest -q` → **5790 passed, 35 skipped, 0 failed** (~16 min).
-- `bash scripts/bab_gate.sh` → **5796 passed, 35 skipped, 0 failed**, coverage **TOTAL 90%**.
+- Targeted trio (`test_bab_live_adapter.py test_bab_risk_manager.py test_bab_realtime_feed.py test_bab_paper_trading.py test_bab_data_freshness.py test_bab_diagnostics.py`) → **104 passed, 1 warning** (`Timestamp.utcnow` deprecation; non-blocking).
+- Full suite `python3 -m pytest -q` → **5831 tests collected**; gate `bash scripts/bab_gate.sh` → **5796 passed, 35 skipped, 0 failed**, coverage **TOTAL 90%**.
 - Perf guardrail → `failures: []`.
 - Paper smoke → exit 0 (`Paper trading: 160 orders, 160 fills`, `paper_pnl=-0.384799 backtest_pnl=-0.6602645030669475 diff=0.275465`).
 - Live dry-run smoke → exit 0; `--health-check` now prints one strict JSON object (`{"mode": "live", "exchange": "binance", "connected": false, "dry_run": true, ...}`).
@@ -57,4 +56,6 @@ The P9 "ops-ready live path" campaign is complete. Default offline/dry-run behav
 - Canonical CLI: `python3 -m strategies.betting_against_beta.cli` (`bab-example` may require editable install).
 
 ### Protocol
-1. Read this file fully. 2. Execute the “Next focus campaign” top-down; prefer minimal, tested diffs. 3. Never stop at analysis. 4. Keep `AGENT_HANDOFF.md` as pointer only.
+1. Read this file fully. 2. Execute the "Next focus campaign" top-down; prefer minimal, tested diffs. 3. Never stop at analysis. 4. Keep `AGENT_HANDOFF.md` as pointer only.
+
+(End of file - total 60 lines)

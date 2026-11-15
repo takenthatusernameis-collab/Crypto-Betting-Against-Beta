@@ -55,7 +55,7 @@ def test_freshness_gap_at_boundary_passes():
 
 
 def test_freshness_default_reference_now_passes_recent_data():
-    today = pd.Timestamp.utcnow().normalize()
+    today = pd.Timestamp.now("UTC").normalize()
     dates = pd.date_range(today - pd.Timedelta(days=1), periods=2, freq="D")
     assert validate_freshness(_frame(dates), max_staleness_days=2, max_gap_days=7) is True
 
