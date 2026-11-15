@@ -46,47 +46,61 @@ def _time_run(df):
 
 
 _scale_records: list[dict] = []
+_SCALE_CELLS = [("5000x200", 5000, 200), ("5000x500", 5000, 500)]
 
 
-@pytest.mark.parametrize(
-    "label,n_days,n_assets", [("5000x200", 5000, 200), ("5000x500", 5000, 500)]
-)
-def test_scale_perf_guard(label, n_days, n_assets):
-    """``BABStrategy.run`` at scale stays under its hard ceiling."""
+def _scale_cell_record(label, n_days, n_assets) -> dict:
+    """Time one scale cell, assert its ceiling, and return its evidence record."""
     df = _frame(n_days, n_assets)
     # One warmup rep (caches imports/JIT-adjacent paths), then 9 timed reps.
     _time_run(df)
-    times = [_time_run(df) for _ in range(REPS)]
-    times = np.asarray(times)
+    times = np.asarray([_time_run(df) for _ in range(REPS)])
     median_s = float(np.median(times))
     ceiling = CEILINGS[label]
-
-    _scale_records.append(
-        {
-            "label": label,
-            "median_ms": median_s * 1000.0,
-            "min_ms": float(times.min()) * 1000.0,
-            "max_ms": float(times.max()) * 1000.0,
-            "ceiling_ms": ceiling * 1000.0,
-        }
-    )
-
-    print(
-        f"[R2-C] {label}: median={median_s * 1000:.1f}ms "
-        f"min={times.min() * 1000:.1f}ms max={times.max() * 1000:.1f}ms "
-        f"(ceiling {ceiling * 1000:.0f}ms)"
-    )
+    record = {
+        "label": label,
+        "median_ms": median_s * 1000.0,
+        "min_ms": float(times.min()) * 1000.0,
+        "max_ms": float(times.max()) * 1000.0,
+        "ceiling_ms": ceiling * 1000.0,
+    }
     assert median_s <= ceiling, (
         f"scale regression: {label} median {median_s * 1000:.1f}ms exceeds ceiling "
         f"{ceiling * 1000:.0f}ms"
+    )
+    return record
+
+
+def _scale_records_full() -> list[dict]:
+    """Full scale record set, distribution-agnostic.
+
+    ``_scale_records`` only holds cells that ran on the current worker; under
+    ``pytest -n`` the summary test may see a strict subset, so recompute
+    deterministically when incomplete.
+    """
+    if len(_scale_records) == len(_SCALE_CELLS):
+        return list(_scale_records)
+    return [_scale_cell_record(label, n_days, n_assets) for label, n_days, n_assets in _SCALE_CELLS]
+
+
+@pytest.mark.parametrize("label,n_days,n_assets", _SCALE_CELLS)
+def test_scale_perf_guard(label, n_days, n_assets):
+    """``BABStrategy.run`` at scale stays under its hard ceiling."""
+    record = _scale_cell_record(label, n_days, n_assets)
+    _scale_records.append(record)
+    print(
+        f"[R2-C] {record['label']}: median={record['median_ms']:.1f}ms "
+        f"min={record['min_ms']:.1f}ms max={record['max_ms']:.1f}ms "
+        f"(ceiling {record['ceiling_ms']:.0f}ms)"
     )
 
 
 def test_scale_evidence_summary():
     """Recorded scale baselines vs ceilings."""
+    records = _scale_records_full()
     print("\n[R2-C] scale performance guard evidence (median of 9 warm reps):")
     print(f"{'frame':<10} {'median_ms':>11} {'min_ms':>10} {'max_ms':>10} {'ceiling_ms':>12}")
-    for rec in _scale_records:
+    for rec in records:
         assert rec["median_ms"] <= rec["ceiling_ms"]
         print(
             f"{rec['label']:<10} {rec['median_ms']:>11.1f} {rec['min_ms']:>10.1f} "

@@ -12,7 +12,7 @@ dependencies = [
     "pandas",
     "scipy",
 ]
-optional-dependencies = { live = ["ccxt>=4.0.0"] }
+optional-dependencies = { live = ["ccxt>=4.0.0"], test = ["pytest", "pytest-cov", "pytest-xdist", "hypothesis", "coverage"] }
 
 [project.scripts]
 bab-example = "scripts.load_real_bab_example:main"

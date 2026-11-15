@@ -131,13 +131,16 @@ def _assert_r3_sane(strat, res, label, dollar_neutral: bool):
 # R3-A: execution-realism cost-model regression tests
 # --------------------------------------------------------------------------- #
 _r3a_records: list[dict] = []
+_R3A_CELLS = [
+    (regime_name, dollar_neutral, cost_model_on)
+    for regime_name in REGIME_NAMES
+    for dollar_neutral in (False, True)
+    for cost_model_on in (False, True)
+]
 
 
-@pytest.mark.parametrize("regime_name", REGIME_NAMES)
-@pytest.mark.parametrize("dollar_neutral", (False, True))
-@pytest.mark.parametrize("cost_model_on", (False, True))
-def test_regime_cost_model_sane(regime_name, dollar_neutral, cost_model_on):
-    """Every hostile regime is finite/DN/reportable with cost model on or off."""
+def _r3a_cell_record(regime_name, dollar_neutral, cost_model_on) -> dict:
+    """Run one R3-A cell, assert its invariants, and return its evidence record."""
     frame = REGIME_BUILDERS[regime_name](_base_frame())
     prices = _make_prices(frame)
     adv = _make_adv(frame)
@@ -155,21 +158,35 @@ def test_regime_cost_model_sane(regime_name, dollar_neutral, cost_model_on):
         strat, res, f"{regime_name}|dn={dollar_neutral}|cm={cost_model_on}", dollar_neutral
     )
     bt = res.backtest
-    _r3a_records.append(
-        {
-            "regime": regime_name,
-            "dollar_neutral": dollar_neutral,
-            "cost_model_on": cost_model_on,
-            "max_drawdown": float(
-                np.minimum.accumulate(bt["cumulative"]).min()
-                if False
-                else (1 - bt["cumulative"] / bt["cumulative"].cummax()).max()
-            ),
-            "turnover": float((bt.index.to_series().diff().fillna(pd.Timedelta(0))).size),
-            "final_cumulative": float(bt["cumulative"].iloc[-1]),
-            "cost_drag_sum": float(bt["cost_drag"].sum()),
-        }
-    )
+    return {
+        "regime": regime_name,
+        "dollar_neutral": dollar_neutral,
+        "cost_model_on": cost_model_on,
+        "max_drawdown": float((1 - bt["cumulative"] / bt["cumulative"].cummax()).max()),
+        "turnover": float((bt.index.to_series().diff().fillna(pd.Timedelta(0))).size),
+        "final_cumulative": float(bt["cumulative"].iloc[-1]),
+        "cost_drag_sum": float(bt["cost_drag"].sum()),
+    }
+
+
+def _r3a_records_full() -> list[dict]:
+    """Full R3-A record set, distribution-agnostic.
+
+    ``_r3a_records`` only holds cells that ran on the current worker. Under
+    ``pytest -n`` (any ``--dist``) the summary test may run on a worker that saw
+    a strict subset, so recompute deterministically when incomplete.
+    """
+    if len(_r3a_records) == len(_R3A_CELLS):
+        return list(_r3a_records)
+    return [_r3a_cell_record(r, d, c) for r, d, c in _R3A_CELLS]
+
+
+@pytest.mark.parametrize("regime_name", REGIME_NAMES)
+@pytest.mark.parametrize("dollar_neutral", (False, True))
+@pytest.mark.parametrize("cost_model_on", (False, True))
+def test_regime_cost_model_sane(regime_name, dollar_neutral, cost_model_on):
+    """Every hostile regime is finite/DN/reportable with cost model on or off."""
+    _r3a_records.append(_r3a_cell_record(regime_name, dollar_neutral, cost_model_on))
 
 
 def test_cost_model_compute_returns_non_negative_finite():
@@ -340,28 +357,32 @@ def test_causal_betas_with_cost_model():
 
 def test_r3a_evidence_summary():
     """Recorded R3-A per-regime metrics (max drawdown, turnover, final cumulative)."""
+    records = _r3a_records_full()
     print("\n[R3-A] execution realism evidence (regime x dn x cost_model_on):")
     print(f"{'regime':<14} {'dn':>4} {'cm':>6} {'max_dd':>9} {'final_cum':>10} {'cost_drag':>9}")
-    for rec in _r3a_records:
+    for rec in records:
         print(
             f"{rec['regime']:<14} {rec['dollar_neutral']!s:>4} "
             f"{rec['cost_model_on']!s:>6} {rec['max_drawdown']:>9.4f} "
             f"{rec['final_cumulative']:>10.4f} {rec['cost_drag_sum']:>9.6f}"
         )
-    assert len(_r3a_records) == len(REGIME_NAMES) * 2 * 2
+    assert len(records) == len(REGIME_NAMES) * 2 * 2
 
 
 # --------------------------------------------------------------------------- #
 # R3-B: rebalance-frequency sensitivity sweep (not previously measured)
 # --------------------------------------------------------------------------- #
 _r3b_records: list[dict] = []
+_R3B_CELLS = [
+    (rebalance_freq, regime_name, dollar_neutral)
+    for rebalance_freq in FREQS
+    for regime_name in REGIME_NAMES
+    for dollar_neutral in (False, True)
+]
 
 
-@pytest.mark.parametrize("rebalance_freq", FREQS)
-@pytest.mark.parametrize("regime_name", REGIME_NAMES)
-@pytest.mark.parametrize("dollar_neutral", (False, True))
-def test_rebalance_freq_sensitivity(rebalance_freq, regime_name, dollar_neutral):
-    """daily/weekly/monthly x 5 regimes x dn on/off with cost model: invariants hold."""
+def _r3b_cell_record(rebalance_freq, regime_name, dollar_neutral) -> dict:
+    """Run one R3-B cell, assert invariants, and return its evidence record."""
     frame = REGIME_BUILDERS[regime_name](_base_frame())
     prices = _make_prices(frame)
     adv = _make_adv(frame)
@@ -399,22 +420,42 @@ def test_rebalance_freq_sensitivity(rebalance_freq, regime_name, dollar_neutral)
     assert math.isfinite(record["max_drawdown"])
     assert math.isfinite(record["final_cumulative"])
     assert record["final_cumulative"] > 0.0
+    return record
+
+
+def _r3b_records_full() -> list[dict]:
+    """Full R3-B record set, distribution-agnostic (see ``_r3a_records_full``)."""
+    if len(_r3b_records) == len(_R3B_CELLS):
+        return list(_r3b_records)
+    return [_r3b_cell_record(f, r, d) for f, r, d in _R3B_CELLS]
+
+
+@pytest.mark.parametrize("rebalance_freq", FREQS)
+@pytest.mark.parametrize("regime_name", REGIME_NAMES)
+@pytest.mark.parametrize("dollar_neutral", (False, True))
+def test_rebalance_freq_sensitivity(rebalance_freq, regime_name, dollar_neutral):
+    """daily/weekly/monthly x 5 regimes x dn on/off with cost model: invariants hold."""
+    record = _r3b_cell_record(rebalance_freq, regime_name, dollar_neutral)
     _r3b_records.append(record)
     print(
-        f"[R3-B] {label}: turnover={record['turnover']:.4f} "
-        f"n_rebal_periods={n_rebalance_periods} max_dd={record['max_drawdown']:.4f} "
-        f"final_cum={record['final_cumulative']:.4f} cost_drag={record['cost_drag_sum']:.6f}"
+        f"[R3-B] {record['regime']}|freq={record['freq']}|dn={record['dollar_neutral']}: "
+        f"turnover={record['turnover']:.4f} "
+        f"n_rebal_periods={record['n_rebalance_periods']} "
+        f"max_dd={record['max_drawdown']:.4f} "
+        f"final_cum={record['final_cumulative']:.4f} "
+        f"cost_drag={record['cost_drag_sum']:.6f}"
     )
 
 
 def test_rebalance_freq_turnover_ordering_invariant():
     """Less frequent rebalancing must not produce MORE rebalance periods than daily
     (structural invariant: weekly/monthly rebalance <= daily rebalance dates)."""
+    records = _r3b_records_full()
     for regime_name in REGIME_NAMES:
         for dollar_neutral in (False, True):
             by_freq = {
                 r["freq"]: r
-                for r in _r3b_records
+                for r in records
                 if r["regime"] == regime_name and r["dollar_neutral"] == dollar_neutral
             }
             daily = by_freq["daily"]["n_rebalance_periods"]
@@ -430,11 +471,12 @@ def test_rebalance_freq_turnover_ordering_invariant():
 
 def test_daily_cells_no_r2_regression():
     """Daily R3-B cells match R2 defaults: finite, DN, locked columns, bounded drawdown."""
+    records = _r3b_records_full()
     for regime_name in REGIME_NAMES:
         for dollar_neutral in (False, True):
             recs = [
                 r
-                for r in _r3b_records
+                for r in records
                 if r["regime"] == regime_name
                 and r["freq"] == "daily"
                 and r["dollar_neutral"] == dollar_neutral
@@ -448,16 +490,17 @@ def test_daily_cells_no_r2_regression():
 
 def test_r3b_evidence_summary():
     """Recorded R3-B per-cell metrics (turnover, drawdown, Sharpe, cost drag)."""
+    records = _r3b_records_full()
     print("\n[R3-B] rebalance-frequency sensitivity evidence (freq x regime x dn):")
     print(
         f"{'freq':<9} {'regime':<14} {'dn':>4} {'turnover':>9} {'rebal_per':>10} "
         f"{'max_dd':>9} {'final_cum':>10} {'cost_drag':>9} {'sharpe':>7}"
     )
-    for rec in _r3b_records:
+    for rec in records:
         print(
             f"{rec['freq']:<9} {rec['regime']:<14} {rec['dollar_neutral']!s:>4} "
             f"{rec['turnover']:>9.4f} {rec['n_rebalance_periods']:>10} "
             f"{rec['max_drawdown']:>9.4f} {rec['final_cumulative']:>10.4f} "
             f"{rec['cost_drag_sum']:>9.6f} {rec['sharpe']:>7.3f}"
         )
-    assert len(_r3b_records) == len(FREQS) * len(REGIME_NAMES) * 2
+    assert len(records) == len(FREQS) * len(REGIME_NAMES) * 2

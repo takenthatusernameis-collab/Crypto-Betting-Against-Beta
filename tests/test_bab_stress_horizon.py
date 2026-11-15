@@ -90,14 +90,20 @@ def _check_run(res, label):
 
 
 _horizon_records: list[dict] = []
+_HORIZON_CELLS = [
+    (frame_label, n_days, n_assets, beta_window, quantile, costs, slippage)
+    for frame_label, n_days, n_assets in FRAMES
+    for beta_window in BETA_WINDOWS
+    for quantile in QUANTILES
+    for costs in COSTS
+    for slippage in SLIPPAGES
+]
 
 
-@pytest.mark.parametrize("frame_label,n_days,n_assets", FRAMES)
-@pytest.mark.parametrize("beta_window", BETA_WINDOWS)
-@pytest.mark.parametrize("quantile", QUANTILES)
-@pytest.mark.parametrize("costs", COSTS)
-@pytest.mark.parametrize("slippage", SLIPPAGES)
-def test_horizon_sweep(frame_label, n_days, n_assets, beta_window, quantile, costs, slippage):
+def _horizon_cell_record(
+    frame_label, n_days, n_assets, beta_window, quantile, costs, slippage
+) -> dict:
+    """Run one R2-B cell, assert invariants, and return its evidence record."""
     label = frame_window_label(
         frame_label, n_days, n_assets, beta_window, quantile, costs, slippage
     )
@@ -127,7 +133,30 @@ def test_horizon_sweep(frame_label, n_days, n_assets, beta_window, quantile, cos
     }
     assert math.isfinite(record["max_drawdown"])
     assert record["final_cumulative"] > 0.0
-    _horizon_records.append(record)
+    return record
+
+
+def _horizon_records_full() -> list[dict]:
+    """Full R2-B record set, distribution-agnostic.
+
+    ``_horizon_records`` only holds cells that ran on the current worker; under
+    ``pytest -n`` the summary test may see a strict subset, so recompute
+    deterministically when incomplete.
+    """
+    if len(_horizon_records) == len(_HORIZON_CELLS):
+        return list(_horizon_records)
+    return [_horizon_cell_record(*cell) for cell in _HORIZON_CELLS]
+
+
+@pytest.mark.parametrize("frame_label,n_days,n_assets", FRAMES)
+@pytest.mark.parametrize("beta_window", BETA_WINDOWS)
+@pytest.mark.parametrize("quantile", QUANTILES)
+@pytest.mark.parametrize("costs", COSTS)
+@pytest.mark.parametrize("slippage", SLIPPAGES)
+def test_horizon_sweep(frame_label, n_days, n_assets, beta_window, quantile, costs, slippage):
+    _horizon_records.append(
+        _horizon_cell_record(frame_label, n_days, n_assets, beta_window, quantile, costs, slippage)
+    )
 
 
 def frame_window_label(frame_label, n_days, n_assets, beta_window, quantile, costs, slippage):
@@ -137,12 +166,13 @@ def frame_window_label(frame_label, n_days, n_assets, beta_window, quantile, cos
 def test_horizon_evidence_summary():
     """Worst-case drawdown / Sharpe / turnover recorded across the full grid."""
     t0 = time.perf_counter()
+    records = _horizon_records_full()
     # Elapsed measured across the whole parametrized module run is captured by
     # the runner; here we aggregate and print recorded evidence only.
     print("\n[R2-B] horizon sweep evidence (worst case across the full grid):")
     print(f"{'frame':<9} {'max_drawdown':>12} {'sharpe':>9} {'turnover':>10} {'n_configs':>9}")
     for frame_label, _, _ in FRAMES:
-        rows = [r for r in _horizon_records if r["frame"] == frame_label]
+        rows = [r for r in records if r["frame"] == frame_label]
         assert rows, f"no records for {frame_label}"
         worst_dd = min(r["max_drawdown"] for r in rows)
         worst_sharpe = min(r["sharpe"] for r in rows)
@@ -151,3 +181,4 @@ def test_horizon_evidence_summary():
             f"{frame_label:<9} {worst_dd:>12.4f} {worst_sharpe:>9.3f} "
             f"{max_turnover:>10.4f} {len(rows):>9}"
         )
+    _ = t0

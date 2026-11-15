@@ -4,4 +4,6 @@ pytest
 scipy
 hypothesis
 coverage  # required by scripts/bab_gate.sh for the coverage report (gate still runs without it)
+pytest-cov  # gate coverage via --cov; gate still runs without it
+pytest-xdist  # parallel gate (scripts/bab_gate.sh); gate falls back to serial without it
 ccxt>=4.0.0  # optional: live execution adapter (CCXT-based exchange connectors)

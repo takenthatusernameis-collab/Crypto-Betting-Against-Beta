@@ -177,12 +177,15 @@ def _assert_sane(strat, res, frame, beta_neutral, dollar_neutral, label):
 # R2-A matrix: regime x bn x dn x costs
 # --------------------------------------------------------------------------- #
 _regime_records: list[dict] = []
+_REGIME_CELLS = [
+    (regime_name, beta_neutral, dollar_neutral, costs)
+    for regime_name, _ in REGIMES
+    for beta_neutral, dollar_neutral, costs in CONFIGS
+]
 
 
-@pytest.mark.parametrize("regime_name", [name for name, _ in REGIMES])
-@pytest.mark.parametrize("beta_neutral,dollar_neutral,costs", CONFIGS)
-def test_regime_stress_matrix(regime_name, beta_neutral, dollar_neutral, costs):
-    """Every hostile regime stays finite, DN, causal, and reportable."""
+def _regime_cell_record(regime_name, beta_neutral, dollar_neutral, costs) -> dict:
+    """Run one R2-A cell, assert invariants, and return its evidence record."""
     frame = REGIME_BUILDERS[regime_name](_base_frame())
     strat, res = _run_config(frame, beta_neutral, dollar_neutral, costs)
     label = f"{regime_name}|bn={beta_neutral}|dn={dollar_neutral}|costs={costs}"
@@ -206,10 +209,30 @@ def test_regime_stress_matrix(regime_name, beta_neutral, dollar_neutral, costs):
     assert math.isfinite(record["max_drawdown"])
     assert math.isfinite(record["worst_period"])
     assert math.isfinite(record["final_cumulative"])
-    _regime_records.append(record)
+    return record
 
+
+def _regime_records_full() -> list[dict]:
+    """Full R2-A record set, distribution-agnostic.
+
+    ``_regime_records`` only holds cells that ran on the current worker; under
+    ``pytest -n`` the summary test may see a strict subset, so recompute
+    deterministically when incomplete.
+    """
+    if len(_regime_records) == len(_REGIME_CELLS):
+        return list(_regime_records)
+    return [_regime_cell_record(r, bn, dn, c) for r, bn, dn, c in _REGIME_CELLS]
+
+
+@pytest.mark.parametrize("regime_name", [name for name, _ in REGIMES])
+@pytest.mark.parametrize("beta_neutral,dollar_neutral,costs", CONFIGS)
+def test_regime_stress_matrix(regime_name, beta_neutral, dollar_neutral, costs):
+    """Every hostile regime stays finite, DN, causal, and reportable."""
+    record = _regime_cell_record(regime_name, beta_neutral, dollar_neutral, costs)
+    _regime_records.append(record)
     print(
-        f"[R2-A] {label}: dd={record['max_drawdown']:.4f} "
+        f"[R2-A] {record['regime']}|bn={record['beta_neutral']}|dn={record['dollar_neutral']}|"
+        f"costs={record['costs']}: dd={record['max_drawdown']:.4f} "
         f"worst_period={record['worst_period']:.5f} "
         f"turnover={record['turnover']:.4f} "
         f"sharpe={record['sharpe']:.3f} "
@@ -220,6 +243,7 @@ def test_regime_stress_matrix(regime_name, beta_neutral, dollar_neutral, costs):
 
 def test_regime_evidence_summary():
     """Recorded worst-case numbers per regime (aggregated over all configs)."""
+    records = _regime_records_full()
     print(
         "\n[R2-A] regime stress evidence (worst case across beta_neutral x dollar_neutral x costs):"
     )
@@ -228,7 +252,7 @@ def test_regime_evidence_summary():
         f"{'turnover':>10} {'max|net|':>10}"
     )
     for regime_name, _ in REGIMES:
-        rows = [r for r in _regime_records if r["regime"] == regime_name]
+        rows = [r for r in records if r["regime"] == regime_name]
         assert rows, f"no records for regime {regime_name}"
         worst_dd = min(r["max_drawdown"] for r in rows)
         worst_period = min(r["worst_period"] for r in rows)
