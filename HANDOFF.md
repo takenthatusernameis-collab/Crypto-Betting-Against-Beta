@@ -2,22 +2,22 @@
 
 **Canonical durable handoff (single source of truth).** Do not create parallel handoff/session docs; update this file only. `AGENT_HANDOFF.md` is a pointer to this file and must not carry a parallel task message.
 
-- **Timestamp (UTC):** 2026-11-15T13:32:39Z (refreshed; next session starts here)
+- **Timestamp (UTC):** 2026-11-15T13:34:02Z (refreshed; next session starts here)
 - **Repo:** `Crypto-Betting-Against-Beta`
 - **Git HEAD (verified this refresh):** `3e5e39b` (`chore(kilo): checkpoint agent session`, `main`)
 - **Working tree:** clean at refresh (`git status --porcelain` empty).
 - **Toolchain (verified present):** `python3` 3.12.3, `pytest 9.2.0`, `pytest-xdist`, `pytest-cov`, `coverage 7.17.3`, `numpy 2.5.4`/`pandas 3.1.1`/`scipy`/`hypothesis`/`ccxt`. `ruff 0.17.5` available as **`python3 -m ruff`** (bare `ruff` may be missing from `$PATH`; use module form). CLI `bab 0.1.0`.
 
-## INITIAL TASK MESSAGE (START HERE, 2026-11-15T13:32:39Z UTC) — BINDING
+## INITIAL TASK MESSAGE (START HERE, 2026-11-15T13:34:02Z UTC) — BINDING
 
 This is the only active task. Execute top-down. No archaeology (`probe_*.py`, `debug_beta*.py`, `ast_probe.py`), no new parallel handoff/session docs, no analysis-only stopping point. **A session that ends without new tests/code and fresh gate evidence is a FAILED session.** If an item is externally blocked, record the exact command+output and continue with the next unblocked item — never stop at analysis.
 
 **Repo-prioritized mission (inferred from `Crypto-Betting-Against-Beta`):** make the Betting Against Beta (crypto) strategy release-ready and ops-ready. Preserve byte-identical default offline/deterministic behavior and live execution that is **dry-run-safe-by-default** (env-only creds, no implicit network). Close the remaining real coverage gaps on the lowest-covered production modules (P12) and drive TOTAL coverage to **≥ 96%** with **zero** regressions. Heavy, real work only: new tests must assert observable behavior, not smoke imports.
 
-### Current state at HEAD `3e5e39b` (verified this session, 2026-11-15T13:32Z)
+### Current state at HEAD `3e5e39b` (verified this session, 2026-11-15T13:34Z)
 
 - `python3 -m ruff check .` → **clean** (exit 0, verified this refresh).
-- `bash scripts/bab_quick.sh` → **green** (targeted trio **104 passed** 1.73s; smoke **195 passed** 24.89s; verified this refresh).
+- `bash scripts/bab_quick.sh` → **green** (targeted trio **104 passed** 1.75s; smoke **195 passed** 24.85s; verified this refresh).
 - `bash scripts/bab_gate.sh` (full, parallel `jobs=4`, coverage sysmon) → **green at `48f4be5`**: **5931 passed, 35 skipped in 554.86s (0:09:14), `TOTAL 95%` (340 missed)**. `3e5e39b` changed only `AGENT_HANDOFF.md`/`HANDOFF.md`; no code/test delta since `48f4be5`, so this gate evidence still holds. Re-confirm with a full gate at the end of the next session.
 - `python3 scripts/perf_baseline.py --check` → **`failures: []`** (verified at `48f4be5`; do not re-baseline).
 - CLI smokes (verified at `48f4be5`, exit 0): `--synthetic --dry-run` prints resolved config; `--adapter live --health-check` → `{"mode":"live","exchange":"binance","connected":false,"dry_run":true,"testnet":false,"connector_type":null,"n_submitted":0,"n_fills":0}`.
@@ -91,7 +91,7 @@ Run `bash scripts/bab_quick.sh` after each meaningful slice; run full `bash scri
 
 ## Bottlenecks removed / constraints (do not reopen)
 
-- **No blocked bottlenecks observed at refresh (2026-11-15T13:32Z, HEAD 3e5e39b):** tree clean; `ruff` and `bab_quick.sh` green this refresh; full `bab_gate.sh` green at `48f4be5` (docs-only delta since); perf baseline `failures: []`; dry-run smokes exit 0. Gate parallelized; use `bab_quick.sh` inner loop and budget ~9 min for full `bash scripts/bab_gate.sh` after each P12 slice. Do not stop at analysis.
+- **No blocked bottlenecks observed at refresh (2026-11-15T13:34Z, HEAD 3e5e39b):** tree clean; `ruff` and `bab_quick.sh` green this refresh; full `bab_gate.sh` green at `48f4be5` (docs-only delta since); perf baseline `failures: []`; dry-run smokes exit 0. Gate parallelized; use `bab_quick.sh` inner loop and budget ~9 min for full `bash scripts/bab_gate.sh` after each P12 slice. Do not stop at analysis.
 - **Gate speed:** `scripts/bab_gate.sh` runs parallel (`pytest-xdist`, `--dist loadscope`, sysmon on CPython ≥3.12) with serial fallback (`BAB_GATE_SERIAL=1`, `BAB_GATE_JOBS=N`). Do not reintroduce serial-only gate or claim suite-timeout excuse.
 - **Parallel-safety:** any new module-level record list must follow the `_*_cell_record`/`_*_records_full` pattern used in `tests/test_bab_execution_realism_r3.py`, `tests/test_bab_stress_regimes.py`, `tests/test_bab_stress_horizon.py`, `tests/test_bab_scale_perf_guard.py`. Summary tests must recompute deterministically under any worker subset.
 - **Single durable handoff:** only `HANDOFF.md` canonical; `AGENT_HANDOFF.md` pointer-only.
