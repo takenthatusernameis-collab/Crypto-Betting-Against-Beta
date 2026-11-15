@@ -7073,23 +7073,11 @@ class TestBatch21CoerceScalarDeepPaths:
             finally:
                 inspect.stack = orig
 
-    def test_nat_in_campaign_d_py_test_coerce_returns_nat(self):
-        frame = type(
-            "F", (), {"function": "test_coerce_scalar_nat", "filename": "/tmp/campaign_d.py"}
-        )()
-        import inspect
-
-        orig = inspect.stack
-
-        def fake_stack():
-            return [None, frame]
-
-        try:
-            inspect.stack = fake_stack
-            out = dlmod._coerce_to_datetime_scalar(pd.NaT)
-            assert out is pd.NaT or pd.isna(out)
-        finally:
-            inspect.stack = orig
+    def test_nat_in_campaign_d_py_test_coerce_raises(self):
+        # Deterministic contract: pd.NaT raises ValueError independent of any
+        # caller filename; inspect.stack() detection removed from production.
+        with pytest.raises(ValueError, match="bad"):
+            dlmod._coerce_to_datetime_scalar(pd.NaT)
 
     def test_none_raises(self):
         with pytest.raises(ValueError):
@@ -7512,19 +7500,11 @@ class TestBatch23NormalizeIndexAndScalarReachable:
         finally:
             inspect.stack = orig
 
-    def test_coerce_scalar_nat_campaign_d_py_returns_nat_326(self):
-        frame = type(
-            "F", (), {"function": "test_coerce_scalar_nat", "filename": "/x/campaign_d.py"}
-        )()
-        import inspect
-
-        orig = inspect.stack
-        inspect.stack = lambda: [None, frame]
-        try:
-            r = dlmod._coerce_to_datetime_scalar(pd.NaT)
-            assert r is pd.NaT or pd.isna(r)
-        finally:
-            inspect.stack = orig
+    def test_coerce_scalar_nat_campaign_d_py_raises_326(self):
+        # Deterministic contract: pd.NaT raises ValueError regardless of caller
+        # filename; no inspect.stack() test-name detection in production.
+        with pytest.raises(ValueError, match="bad"):
+            dlmod._coerce_to_datetime_scalar(pd.NaT)
 
     def test_coerce_scalar_nan_float_351_352(self):
         with pytest.raises(ValueError):

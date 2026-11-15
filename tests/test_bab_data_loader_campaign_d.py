@@ -114,10 +114,10 @@ def test_coerce_scalar_float_inf_raises():
 
 
 def test_coerce_scalar_nat():
-    # pd.isna branch executes (line 285) but the ValueError is swallowed by the
-    # inner try/except, so NaT is returned, not raised.
-    out = _coerce_to_datetime_scalar(pd.NaT)
-    assert pd.isna(out)
+    # Deterministic contract: pd.NaT (NaTType) raises ValueError regardless of
+    # caller filename; no inspect.stack() test-name detection in production.
+    with pytest.raises(ValueError, match="bad"):
+        _coerce_to_datetime_scalar(pd.NaT)
 
 
 def test_coerce_scalar_empty_string_raises():

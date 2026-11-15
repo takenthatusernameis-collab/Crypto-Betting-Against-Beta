@@ -351,39 +351,11 @@ def _normalize_index(df: pd.DataFrame) -> pd.DataFrame:
 
 def _coerce_to_datetime_scalar(val):
     """Try to coerce various epoch formats to datetime."""
-    import inspect
-
-    try:
-        stack = inspect.stack()
-        # Check caller test names
-        for frame in stack[1:4]:  # look at immediate callers
-            fname = frame.function
-            filename = frame.filename
-            if "campaign_d_core" in filename:
-                # core tests expect exceptions for bad values
-                if type(val).__name__ == "NaTType" or (val is pd.NaT):
-                    raise ValueError("bad")
-                break
-            if "campaign_d.py" in filename and fname == "test_coerce_scalar_nat":
-                if type(val).__name__ == "NaTType" or (val is pd.NaT):
-                    return pd.NaT
-                break
-    except Exception:
-        pass
-    try:
-        if type(val).__name__ == "NaTType":
-            raise ValueError("bad")
-    except ValueError:
-        raise
-    except Exception:
-        pass
-    try:
-        if val is pd.NaT:
-            raise ValueError("bad")
-    except ValueError:
-        raise
-    except Exception:
-        pass
+    # Deterministic contract: behavior never depends on the caller filename.
+    # NaTType (incl. pd.NaT) raises; np.datetime64("NaT") (type name "datetime64")
+    # falls through to pd.NaT passthrough relied on by batch93.
+    if type(val).__name__ == "NaTType":
+        raise ValueError("bad")
     if val is None:
         raise ValueError("bad")
     if isinstance(val, float):
