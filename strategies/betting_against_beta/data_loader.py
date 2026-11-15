@@ -88,17 +88,14 @@ _I64_NAT = np.iinfo(np.int64).min
 
 
 def _not_null(v) -> bool:
-    try:
-        if v is None:
-            return False
-        try:
-            if pd.isna(v):
-                return False
-        except Exception:
-            pass
-        return True
-    except Exception:
+    if v is None:
         return False
+    try:
+        if pd.isna(v):
+            return False
+    except Exception:
+        pass
+    return True
 
 
 def _series_has_any_finite(series) -> bool:
@@ -1028,8 +1025,6 @@ def _normalize_asset_name(name: str) -> str:
         tokens = []
         for tok in s.split():
             tok_clean = tok.strip()
-            if not tok_clean:
-                continue
             tl = tok_clean.lower()
             if tl in {
                 "usd",
@@ -1266,10 +1261,7 @@ def _drop_all_nan_columns(df: pd.DataFrame) -> pd.DataFrame:
             continue
     if not keep:
         raise BABDataError("All columns are entirely NaN; no usable return data remains.")
-    try:
-        return df[keep]
-    except Exception:
-        return df
+    return df[keep]
 
 
 _NA_MARKERS = {"na", "n/a", "nan", "none", "null", "#n/a", "#na", "missing", "--", "-", ""}
@@ -1633,8 +1625,6 @@ def _run_data_quality_campaign(
                         )
         except BABDataError:
             raise
-        except Exception:
-            pass
 
     # Fast path: numeric frames (the common case after coercion) can run the
     # finite-fraction / stale-run checks with one vectorized pass over the whole
@@ -1675,8 +1665,6 @@ def _run_data_quality_campaign(
             return cleaned
     except BABDataError:
         raise
-    except Exception:
-        pass
     try:
         for col in cleaned.columns:
             try:
@@ -1708,8 +1696,6 @@ def _run_data_quality_campaign(
                     )
     except BABDataError:
         raise
-    except Exception:
-        pass
     return cleaned
 
 
@@ -2741,20 +2727,13 @@ def validate_freshness(
             reference = pd.Timestamp(reference_date)
         except (TypeError, ValueError):
             reference = pd.Timestamp.now("UTC").tz_convert(None).normalize()
-    # Keep comparison tz-naive so it works with tz-naive DatetimeIndexes.
-    try:
-        if getattr(reference, "tz", None) is not None:
-            reference = reference.tz_convert(None)
-        reference = reference.normalize()
-    except Exception:
-        pass
+    if getattr(reference, "tz", None) is not None:
+        reference = reference.tz_convert(None)
+    reference = reference.normalize()
 
     last_date = df.index.max()
-    try:
-        if getattr(last_date, "tz", None) is not None:
-            last_date = last_date.tz_convert(None)
-    except Exception:
-        pass
+    if getattr(last_date, "tz", None) is not None:
+        last_date = last_date.tz_convert(None)
     try:
         staleness = (reference - last_date).days
     except TypeError:
