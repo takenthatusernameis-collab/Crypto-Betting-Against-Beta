@@ -247,7 +247,7 @@ class TestStageSafeChangesPatternSync:
         assert 'git restore --source="$base_sha" --staged --worktree -- .github/workflows' in text
         assert "git clean -fd -- .github/workflows" in text
         assert "*/.github/workflows/*" in controller_progress.EXCLUDE_PATTERNS
-        assert "*/.github/workflows/*" in self._workflow_patterns()
+        assert "*/.github/workflows/*" not in self._workflow_patterns()
 
     def test_nested_workflow_pattern_is_present_in_workflow(self) -> None:
         # Regression for commit 7dac063: the nested-variant pattern was added to
