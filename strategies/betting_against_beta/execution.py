@@ -333,16 +333,21 @@ class MockAdapter:
         return []
 
 
-def configure_paper_adapter(adapter: PaperAdapter, strategy) -> PaperAdapter:
-    """Populate a bare ``PaperAdapter`` from the strategy's resolved config.
+def configure_paper_adapter(adapter, strategy):
+    """Populate a bare paper-like adapter from the strategy's resolved config.
 
     R5-E consumes the already-shipped R3 cost-model knobs so the adapter layer
     stops being a stub: ``prices``/``adv_usd`` come from the config-resolved
     cost model, and ``partial_fill``/``max_participation`` come from the config.
     Never overrides values the caller set explicitly on the adapter.
 
-    Returns the same adapter for convenient inline construction.
+    Live adapters are left untouched (their safety-critical ``dry_run``/opt-in
+    state must never be mutated by config injection). Returns the same adapter
+    for convenient inline construction.
     """
+    # P18-2: never mutate a live adapter's execution/safety state.
+    if adapter.__class__.__name__ == "LiveExecutionAdapter":
+        return adapter
     cfg = getattr(strategy, "config", None)
     if cfg is None:
         return adapter
@@ -357,9 +362,9 @@ def configure_paper_adapter(adapter: PaperAdapter, strategy) -> PaperAdapter:
         prices = getattr(cfg, "prices", None)
     if adv is None:
         adv = getattr(cfg, "adv_usd", None)
-    if adapter.prices is None:
+    if getattr(adapter, "prices", None) is None:
         adapter.prices = prices
-    if adapter.adv_usd is None:
+    if getattr(adapter, "adv_usd", None) is None:
         adapter.adv_usd = adv
     cfg_partial = bool(getattr(cfg, "partial_fill", False))
     if cfg_partial:
@@ -367,7 +372,10 @@ def configure_paper_adapter(adapter: PaperAdapter, strategy) -> PaperAdapter:
     # Only adopt the config cap when the caller left the adapter at its
     # default; an explicitly chosen cap wins over the config value.
     cfg_cap = getattr(cfg, "max_participation", None)
-    if cfg_cap is not None and adapter.max_participation == _DEFAULT_MAX_PARTICIPATION:
+    if (
+        cfg_cap is not None
+        and getattr(adapter, "max_participation", None) == _DEFAULT_MAX_PARTICIPATION
+    ):
         with contextlib.suppress(TypeError, ValueError):
             adapter.max_participation = float(cfg_cap)
     return adapter
@@ -1326,6 +1334,8 @@ class LiveExecutionAdapter:
     with ExecutionAdapter protocol.
     """
 
+    _LIVE_ACCEPT_TERMS = "I_UNDERSTAND_LIVE_TRADING"
+
     def __init__(
         self,
         exchange: str = "binance",
@@ -1340,7 +1350,20 @@ class LiveExecutionAdapter:
         risk_manager: RiskManager | None = None,
         current_positions: pd.Series | None = None,
         cumulative: pd.Series | None = None,
+        allow_live_execution: bool = False,
+        accept_terms: str | None = None,
     ) -> None:
+        # P18-2: real execution requires an explicit two-key opt-in. dry_run=True
+        # is the safe default and needs no acknowledgment. A caller requesting
+        # dry_run=False must supply allow_live_execution=True and the exact
+        # accept_terms token; refusal happens before any network/CCXT call.
+        if not dry_run and (
+            not allow_live_execution or accept_terms != self._LIVE_ACCEPT_TERMS
+        ):
+            raise PermissionError(
+                "Live execution requires allow_live_execution=True and the exact "
+                f"accept_terms={self._LIVE_ACCEPT_TERMS!r}; dry_run=False refused"
+            )
         self.exchange_name = exchange.lower()
         self.api_key_env = api_key_env
         self.api_secret_env = api_secret_env
@@ -1353,6 +1376,12 @@ class LiveExecutionAdapter:
         self._connected = False
         self._submitted: list[OrderBatch] = []
         self._fills: list[dict] = []
+        # Strategy-level config injection (configure_paper_adapter) reads these;
+        # live adapter does not use them but must accept the attributes.
+        self.prices = None
+        self.adv_usd = None
+        self.partial_fill = False
+        self.allow_live_execution = bool(allow_live_execution)
 
         # Optional pre-trade risk gating. When ``risk_manager`` is None (the
         # default) submit_intents behaves exactly as before — byte-identical

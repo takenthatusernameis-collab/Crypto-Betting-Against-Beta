@@ -240,14 +240,15 @@ def test_write_json_artifact_success(tmp_path):
     assert json.loads(p.read_text()) == {"a": 1, "b": [1, 2, 3]}
 
 
-def test_main_fills_mock_valid_file_rc1(tmp_path):
+def test_main_fills_mock_valid_file_rc0(tmp_path):
     # Valid --fills with --adapter mock reaches the _build_adapter validation
-    # call (582-587); the run then fails downstream (mock adapter isn't a
-    # PaperAdapter), but the validation path itself is exercised cleanly.
+    # call (582-587) and the run completes: the strategy configures the mock
+    # adapter (paper-like attrs) and the empty fill list means the adapter uses
+    # its fallback full-fill behavior, so execution succeeds cleanly.
     fills = tmp_path / "fills.json"
     fills.write_text("[]")
     rc = main(["--synthetic", "--adapter", "mock", "--fills", str(fills)])
-    assert rc == 1
+    assert rc == 0
 
 
 def test_main_freshness_guard_pass_dry_run(tmp_path):

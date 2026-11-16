@@ -670,6 +670,12 @@ class TestLiveExecutionAdapterNonDryRun:
         kw.setdefault("exchange", "binance")
         kw.setdefault("dry_run", False)
         kw.setdefault("connector", connector)
+        # P18-2: non-dry-run construction requires the explicit two-key opt-in.
+        # These tests exercise the real (non-dry-run) path with an injected fake
+        # connector (no network); supplying the opt-in is the authorized wiring.
+        if kw.get("dry_run", True) is False:
+            kw.setdefault("allow_live_execution", True)
+            kw.setdefault("accept_terms", LiveExecutionAdapter._LIVE_ACCEPT_TERMS)
         return LiveExecutionAdapter(**kw)
 
     def test_filled_and_sell_sign_flip(self):

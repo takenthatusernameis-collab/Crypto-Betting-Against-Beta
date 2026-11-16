@@ -64,13 +64,28 @@ def _build_adapter(args):
             )
         api_password_env = getattr(args, "api_password_env", None)
         testnet = getattr(args, "testnet", False)
+        allow_live_execution = bool(getattr(args, "allow_live_execution", False))
+        accept_terms = getattr(args, "accept_terms", None)
+        # P18-2: live adapter stays dry-run unless explicitly authorized with the
+        # two-key opt-in. The adapter enforces the exact terms string itself;
+        # never echo accept_terms to logs or artifacts.
+        live_dry_run = True
+        if allow_live_execution:
+            if accept_terms != LiveExecutionAdapter._LIVE_ACCEPT_TERMS:
+                raise BABDataError(
+                    "--allow-live-execution requires the exact --accept-terms value "
+                    f"{LiveExecutionAdapter._LIVE_ACCEPT_TERMS!r}"
+                )
+            live_dry_run = False
         adapter = LiveExecutionAdapter(
             exchange=exchange,
             api_key_env=api_key_env,
             api_secret_env=api_secret_env,
             api_password_env=api_password_env,
-            dry_run=True,  # Always dry-run by default for safety
+            dry_run=live_dry_run,
             testnet=testnet,
+            allow_live_execution=allow_live_execution,
+            accept_terms=accept_terms,
         )
         return adapter, None
     return None, None
@@ -441,6 +456,27 @@ def main(argv=None) -> int:
             ),
         )
         parser.add_argument(
+            "--allow-live-execution",
+            dest="allow_live_execution",
+            action="store_true",
+            help=(
+                "P18: explicit first key to permit real (non-dry-run) live "
+                "execution. Requires --accept-terms with the exact token; "
+                "without both keys --adapter live stays dry-run."
+            ),
+        )
+        parser.add_argument(
+            "--accept-terms",
+            dest="accept_terms",
+            type=str,
+            default=None,
+            help=(
+                "P18: exact terms acknowledgment required with "
+                "--allow-live-execution to permit real live execution. "
+                "Never echoed to logs or artifacts."
+            ),
+        )
+        parser.add_argument(
             "--health-check",
             action="store_true",
             help=(
@@ -630,6 +666,16 @@ def main(argv=None) -> int:
         if not api_key_env or not api_secret_env:
             print("Error: --api-key-env and --api-secret-env are required when --adapter live")
             return 1
+        # P18-2: the two-key opt-in is enforced before any adapter/run. The
+        # terms value itself is never echoed to output or artifacts.
+        if getattr(args, "allow_live_execution", False):
+            from .execution import LiveExecutionAdapter as _Live
+
+            if getattr(args, "accept_terms", None) != _Live._LIVE_ACCEPT_TERMS:
+                print(
+                    "Error: --allow-live-execution requires the exact --accept-terms acknowledgment"
+                )
+                return 2
 
     if args.dry_run:
         # --dry-run must validate everything it would validate in a real run,
