@@ -2,13 +2,13 @@
 
 **Canonical durable handoff (single source of truth).** Do not create parallel handoff/session docs; update this file only. `AGENT_HANDOFF.md` is a pure pointer and must not carry a second task message.
 
-- **Timestamp (UTC):** 2026-11-16T02:37:46Z (this refresh)
+- **Timestamp (UTC):** 2026-11-16T02:41:36Z (this refresh)
 - **Repo identity:** `Crypto-Betting-Against-Beta` — a **crypto market-neutral trading system** (ingest → beta → signals → portfolio → backtest → execution → ops) implementing the Frazzini–Pedersen *Betting Against Beta* strategy. The highest-stakes code is the **data-quality contract** that decides whether frozen, gapped, or implausible market data reaches beta estimation → portfolio construction → execution.
-- **Git HEAD (verified this refresh):** `9e15f9a` (branch `main`). Source tree is unchanged since `a845eff` (only handoff consolidation + the reverted workflow-pattern assertion landed). This refresh leaves P17-1 uncommitted; the gate evidence below carries.
-- **Gate evidence (live-verified 2026-11-16T02:06Z, working tree after the gate fix):** `bash scripts/bab_gate.sh` → **GREEN**: **6,153 passed, 35 skipped in 121.17s**, TOTAL **99%** (6,643 statements, 91 missed). The immediately preceding run at the same tree except the reverted assertion was **RED** (`1 failed, 6152 passed`). Re-run the gate after every change and trust live output over this note.
+- **Git HEAD (verified this refresh):** `9e15f9a` (branch `main`). Source tree is unchanged since `a845eff` (only handoff consolidation + the reverted workflow-pattern assertion landed). P17-1 remains uncommitted; the gate evidence below carries.
+- **Gate evidence (live-verified 2026-11-16T02:37Z, working tree after the gate fix):** `bash scripts/bab_gate.sh` → **GREEN**: **6,153 passed, 35 skipped in 122.31s**, TOTAL **99%** (6,643 statements, 91 missed). Re-run the gate after every change and trust live output over this note.
 - **Toolchain:** `python3 3.12.3`; `ruff 0.17.5`; numpy/pandas/scipy/pytest/hypothesis/coverage/pytest-cov/pytest-xdist/ccxt via `bash scripts/bab_bootstrap.sh` (auto-invoked by quick/gate).
 
-## INITIAL TASK MESSAGE (START HERE, 2026-11-16T02:37:46Z) — BINDING (DO NOT IGNORE)
+## INITIAL TASK MESSAGE (START HERE, 2026-11-16T02:41:36Z) — BINDING (DO NOT IGNORE)
 
 **Campaign P17 — Make the data-quality gate safe-by-default in the actual trading pipeline. This is the next session's sole focus and the only authorized starting point. Start at P17-1 immediately and do not stop until P17-1's Definition of Done is met.**
 
@@ -158,6 +158,7 @@ BAB_GATE_MIN_COVERAGE=98.5 bash scripts/bab_gate.sh   # P14 release floor must h
 | 2026-11-16T01:21:28Z | 64fd194 | Consolidated handoff: live-verified `ruff` clean + gate GREEN (**6,153 passed / 35 skipped / 135.38s / 99%**) at real HEAD `64fd194`; live-probed all five P17-1 bottlenecks (all PASS/lenient); deleted divergent `NEXT_SESSION_HANDOFF.md` and refreshed `AGENT_HANDOFF.md` pointer; re-stamped binding **P17-1** with a reproduction script. No code change this turn. | GREEN @01:21:28Z |
 | 2026-11-16T01:36:55Z | 65cea9e | Refreshed canonical handoff: restamped HEAD to real `65cea9e` (removed stale-HEAD bottleneck); gate evidence carries (no source/test change since `64fd194`); re-stamped binding **P17-1** initial task message. No code change this turn. | carried @64fd194 |
 | 2026-11-16T02:07:21Z | a845eff | Live-verified all five P17-1 probes still lenient; found gate RED from an inverted workflow-pattern assertion (1 failed / 6152 passed); reverted the assertion to `not in` (nested workflows are protected by force-restore, not a case pattern); deleted duplicate `HANDOFF_TASK.md`; reduced `AGENT_HANDOFF.md` to a pure pointer; re-stamped binding **P17-1**; gate GREEN (**6,153 passed / 35 skipped / 121.17s / 99%**). | GREEN @02:06Z |
+| 2026-11-16T02:41:36Z | 9e15f9a | Handoff timestamp refresh only: re-stamped binding **P17-1** initial task message; confirmed source tree unchanged since `a845eff`; live-verified `ruff` clean + gate GREEN (**6,153 passed / 35 skipped / 122.31s / 99%**). No code change this turn; P17-1 remains uncommitted and is the next session's sole focus. | GREEN @02:37:46Z |
 | 2026-11-16T02:37:46Z | 9e15f9a | Handoff timestamp refresh only: re-stamped binding **P17-1** initial task message; confirmed source tree unchanged since `a845eff` (only handoff files + progress-accounting test landed); live-verified `ruff` clean + gate GREEN (**6,153 passed / 35 skipped / 122.31s / 99%**). No code change this turn; P17-1 remains uncommitted and is the next session's sole focus. | GREEN @02:37:46Z |
 
 ---
