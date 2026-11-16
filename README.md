@@ -122,7 +122,7 @@ Two enforcement flags gate the artifact:
 | `--reconcile-tolerance <float>` | Max absolute modeled-vs-executed cost delta allowed when `--reconcile` is set. Drift strictly above this exits non-zero (exit 2) with a violation message. `None` (default) = emit only, no enforcement. |
 | `--reconcile-max-mismatch <int>` | Max allowed mismatch count when `--reconcile` is set. More mismatches than this exits non-zero (exit 2). `None` (default) = emit only. |
 
-A tolerance of exactly the observed drift passes; drift just above fails. Enforcement is deterministic and uses no network. CI enforcement lives in `scripts/bab_reconcile_gate.sh` (fail-closed on injected drift, pass on clean) and is invoked by `.github/workflows/main.yml`, so dropping enforcement turns CI RED.
+A tolerance of exactly the observed drift passes; drift just above fails. Enforcement is deterministic and uses no network. CI enforcement lives in the `bab-gate` job of `.github/workflows/main.yml` (runs `ruff check .`, `BAB_GATE_MIN_COVERAGE=98.5 bash scripts/bab_gate.sh`, and `bash scripts/bab_reconcile_gate.sh` on push, pull request, and workflow dispatch), so dropping enforcement turns CI RED.
 
 Example — enforce a tight cost tolerance and fail closed on drift:
 
