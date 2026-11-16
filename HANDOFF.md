@@ -2,13 +2,13 @@
 
 **Canonical durable handoff (single source of truth).** Do not create parallel handoff/session docs; update this file only. `AGENT_HANDOFF.md` is a pure pointer and must not carry a second task message. Any other `*HANDOFF*.md` is stale and must be deleted on sight.
 
-- **Timestamp (UTC):** 2026-11-16T04:54:45Z (this refresh)
+- **Timestamp (UTC):** 2026-11-16T04:55:25Z (this refresh)
 - **Repo identity:** `Crypto-Betting-Against-Beta` — a **crypto market-neutral trading system** (ingest → beta → signals → portfolio → backtest → execution → ops) implementing the Frazzini–Pedersen *Betting Against Beta* strategy. The highest-stakes code is the path that decides **what real orders are placed and whether live fills still match the model**. Data quality is now safe-by-default; execution/reconciliation is the next live risk.
-- **Git HEAD (verified this refresh):** `8ff2115` (branch `main`, working tree clean).
+- **Git HEAD (verified this refresh):** `13c4662` (branch `main`, working tree clean except for this handoff refresh).
 - **Gate evidence (live-verified 2026-11-16T04:54Z at HEAD `8ff2115`):** `bash scripts/bab_gate.sh` → **GREEN**: **6,163 passed, 35 skipped in 123.34s**, TOTAL **99%** (6,645 statements, 88 missed). `python3 -m ruff check .` → clean. Re-run the gate after every change and trust live output over this note.
 - **Toolchain:** `python3 3.12.3`; `ruff 0.17.5`; numpy/pandas/scipy/pytest/hypothesis/coverage/pytest-cov/pytest-xdist/ccxt via `bash scripts/bab_bootstrap.sh` (auto-invoked by quick/gate).
 
-## INITIAL TASK MESSAGE (START HERE, 2026-11-16T04:54:45Z) — BINDING (DO NOT IGNORE)
+## INITIAL TASK MESSAGE (START HERE, 2026-11-16T04:55:25Z) — BINDING (DO NOT IGNORE)
 
 **Campaign P18 — Make live execution and reconciliation SAFE-BY-DEFAULT and ENFORCED. This is the next session's sole focus and the only authorized starting point. Start at P18-1 immediately and do not stop until P18-1's Definition of Done is met, then continue to P18-2 and P18-3.**
 
