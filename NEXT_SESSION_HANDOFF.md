@@ -1,160 +1,98 @@
 # NEXT AGENTIC WORK SESSION HANDOFF
-**Timestamp:** 2026-11-16T01:04:16Z
+**Timestamp:** 2026-11-16T01:17:06Z
 **Project:** Crypto-Betting-Against-Beta (Betting Against Beta - BAB strategy for crypto)
 **Repository:** /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
 
 ---
 
-## PROJECT STATUS SUMMARY
+## CANONICAL DURABLE HANDOFF → [`HANDOFF.md`](HANDOFF.md)
 
-### ✅ GREEN - GATE PASSING
-- **Test Suite:** 6,153 passed, 35 skipped (0 failed)
-- **Coverage:** 99% TOTAL (exceeds 98.5% floor)
-- **Gate Script:** `scripts/bab_gate.sh` - passes with `BAB_GATE_MIN_COVERAGE=98.5`
-- **Runtime:** ~4 min serial, ~5-6 min parallel (pytest-xdist loadscope)
+**READ HANDOFF.md IN FULL BEFORE STARTING.** It is the single source of truth.
 
-### 📊 COVERAGE GAPS (Priority Order)
+### Current Binding Task (from HANDOFF.md INITIAL TASK MESSAGE @ 2026-11-16T01:03:44Z)
 
-| Module | Coverage | Missing Lines | Key Areas |
-|--------|----------|---------------|-----------|
-| `portfolio.py` | 95% | 11 | Risk checks (L152-153, 170-177, 180), beta neutrality edge cases |
-| `beta.py` | 97% | 12 | Degenerate beta handling (L125, 163, 170-171, 189, 435-436, 552-556) |
-| `data_loader.py` | 98% | 37 | Date coercion edge cases (L280-292, 296-297, 315-316, 422-423, 666-667, 718-719, 837-838, 1355, 1609, 1648-1649, 1654-1656, 1667-1675, 1951-1952, 2746-2747) |
-| `data_sources.py` | 98% | 6 | Exchange API error paths (L480-481, 499-500, 507-508) |
-| `execution.py` | 99% | 11 | Order fill edge cases (L139-141, 182-185, 555-556, 1287-1288) |
-| `reconciliation.py` | 98% | 3 | Position reconciliation gaps (L82-83, 309) |
-| `signals.py` | 98% | 2 | Signal generation edge cases (L37, 75) |
-| `cli.py` | 99% | 7 | CLI error reporting (L589-590, 746-748, 803-804) |
+**Campaign P17 — Make the data-quality gate safe-by-default in the actual trading pipeline.**
+
+**Sole focus: P17-1 (execute first, do not advance until Definition of Done is fully checked)**
 
 ---
 
-## TOP 3 BOTTLENECKS TO REMOVE
+### P17-1 — Strict, explicit safety defaults + wire them through the real pipeline
 
-### 1. DATA_LOADER COVERAGE GAPS (37 lines)
-**File:** `strategies/betting_against_beta/data_loader.py`
-**Impact:** Core data ingestion - any gap risks silent data corruption
-**Action:** Add tests for:
-- `_coerce_series_to_datetime_index` failure paths (L125-148)
-- `_normalize_index` numeric index parsing edge cases (L169-246)
-- `_coerce_to_datetime_scalar` NaT/None/float edge cases (L357-512)
-- `_detect_and_normalize_exchange_format` long-format pivot failures (L574-667)
-- `_promote_datetime_column` conservative promotion logic (L743-758)
-- `_drop_all_nan_columns` all-NaN DataFrame handling (L1199-1200)
-- `_strip_units_and_parse` malformed numeric strings (L1299-1300)
+**Why (priority from repo identity):** This is a trading system, not a coverage exercise. A wrong/lax data-quality gate lets frozen or corrupt market data silently drive real positions. P16 fixed the plumbing but the default safety posture is still unsafe and the real trading entrypoints bypass the quality campaign entirely.
 
-### 2. PORTFOLIO RISK CHECKS (11 lines)
-**File:** `strategies/betting_against_beta/portfolio.py`
-**Impact:** Risk management - uncovered paths = untested constraint violations
-**Action:** Add tests for:
-- Position size limit enforcement (L196-198)
-- Turnover limit with previous weights (L217-219)
-- Gross/net exposure limits (L243-250)
-- Beta neutrality correction with degenerate betas (L342-366)
+**Live-verified bottlenecks at HEAD `dc58017`:**
+- Default `quality=True` uses `max_return_abs=10_000.0`, `max_gap_days=3650.0`, `stale_run_threshold=50` — 100% returns and 8-day frozen runs pass silently
+- `BABStrategy._load_returns` and CLI loaders pass **no** quality thresholds → inherit lenient defaults
+- `load_prices` hardcodes `quality=False` on all loads → price→returns path runs **no quality campaign at all**
 
-### 3. BETA CALCULATION DEGENERATE CASES (12 lines)
-**File:** `strategies/betting_against_beta/beta.py`
-**Impact:** Core alpha signal - beta estimation errors propagate to weights
-**Action:** Add tests for:
-- `calculate_beta` all-NaN mask (L125)
-- `calculate_beta_fast` empty/None input guards (L163, 170-171, 189)
-- `calculate_rolling_beta` degenerate benchmark per-window (L435-436)
-- Fallback path `_calc_rolling_beta_series` error handling (L552-556)
+**Non-negotiable steps (in order):**
 
----
+1. **Characterization tests first (must FAIL on HEAD, pass after fix).** Add to `tests/test_bab_pipeline_safety_contract.py`:
+   - Default `quality=True` **rejects** 100% return with `BABDataError` match `Implausible return`
+   - Default `quality=True` **rejects** >7-day gap
+   - `BABStrategy(returns_df=frozen_df).run()` raises `BABDataError` (frozen column)
+   - CLI dry-run with frozen/implausible CSV exits non-zero
+   - *Run them, record RED failures in ledger. A test that cannot fail is worse than no test.*
 
-## MANDATORY NEXT FOCUS CAMPAIGN
+2. **Reconcile defaults to safe contract** in `_run_data_quality_campaign` (`data_loader.py:1537-1541`):
+   - Change `None` defaults to `max_return_abs=20.0`, `max_gap_days=7.0`, `stale_run_threshold=3`
+   - Update docstring lenient-default paragraphs in `validate_returns_dataframe` (`data_loader.py:1679+`)
+   - Keep `quality=False` as explicit opt-out; keep threshold `0` disabling stale check
 
-### Campaign: **ACHIEVE 100% COVERAGE - CLOSE ALL GAPS**
+3. **Stop bypassing the gate in the real pipeline:**
+   - Thread explicit safe thresholds through `BABStrategy._load_returns` and CLI loaders
+   - Make `load_prices` validate converted returns with quality campaign **ON** (not `quality=False`), using safe defaults, unless caller explicitly opts out
 
-**Non-negotiable deliverables for next session:**
-1. **Zero missing lines** across all 8 modules with <100% coverage
-2. **No new test files** - extend existing campaign tests (`test_bab_*_campaign*.py`)
-3. **Preserve gate performance** - tests must complete within existing 6-min parallel budget
-4. **No coverage floor reduction** - 98.5% is minimum, target is 100%
+4. **Fix tests encoding old lax contract:**
+   - Invert `TestLenientDefaultsAreHonored` in `tests/test_bab_quality_threshold_contract.py` (line 113)
+   - Update robustness/stress suites and `tests/test_validation_performance.py` oracle (`_oracle_quality`)
+   - *A test that masks the fix is a defect.*
 
-**Test Strategy:**
-- Target the specific line numbers above with hypothesis-based property tests
-- Use existing test patterns: `test_bab_beta_deep_final.py`, `test_bab_data_loader_campaign_d_final_push.py`
-- Each gap needs 1-3 focused tests covering the exact branch
+5. **No undocumented escape hatch.** No lenient default re-add, no `max(...,50)` floor.
 
-**Validation:**
-```bash
-BAB_GATE_SERIAL=1 BAB_GATE_MIN_COVERAGE=99.0 ./scripts/bab_gate.sh
-# Must pass with 100% TOTAL coverage
-```
+6. **Proof obligation:** For each changed guard, record one test that is RED on HEAD and GREEN after, with exact commands/results in ledger.
 
 ---
 
-## CONTEXT FOR FUTURE AGENTS
+### Definition of Done for P17-1 (all must be true)
 
-### Architecture
-```
-strategies/betting_against_beta/
-├── beta.py          # Rolling beta estimation (OLS, vectorized)
-├── data_loader.py   # CSV/JSON/exchange format normalization
-├── portfolio.py     # Equal-weight long/short + risk checks + beta neutrality
-├── execution.py     # Order simulation, slippage, fill models
-├── signals.py       # Signal generation from beta ranks
-├── sizing.py        # Position sizing logic
-├── costs.py         # Transaction cost models
-├── metrics.py       # Performance attribution
-├── backtest.py      # Backtest orchestration
-├── config.py        # BABConfig dataclass
-├── strategy.py      # BABStrategy main entry point
-├── cli.py           # CLI commands (backtest, report, dry-run)
-└── *.py             # quality, regime, shorting, reconciliation, data_sources, replay
-```
-
-### Key Invariants (DO NOT BREAK)
-- **Beta neutrality:** Portfolio beta → 0 via minimum-norm correction
-- **Dollar neutrality:** Long weight = |Short weight| per rebalance
-- **No lookahead:** All calculations use only data available at t
-- **NaN propagation:** Invalid inputs → NaN, never synthetic 0.0
-- **Deterministic:** Same seed = same results (hypothesis derandomized)
-
-### Performance Baselines (from `scripts/perf_baseline.py`)
-- Full backtest (100 assets, 2 years): <2s
-- Beta estimation (1000 assets, 5000 obs): <500ms
-- Data loading (100 CSV files): <1s
+- [ ] RED characterization tests committed/run; failures recorded in ledger
+- [ ] `data_loader.py` defaults are `20.0 / 7.0 / 3`; docstring/comments match
+- [ ] `BABStrategy.run()` and CLI enforce gate (no lenient bypass); `load_prices` runs campaign ON by default
+- [ ] `TestLenientDefaultsAreHonored` inverted; no test asserts old lax contract
+- [ ] `python3 -m ruff check .` clean AND `bash scripts/bab_gate.sh` GREEN (≥ 6,153 passed / 35 skipped, 99%)
+- [ ] One RED→GREEN proof per changed guard recorded in ledger
 
 ---
 
-## IF BLOCKED OR INEFFICIENT
-
-### Common Blockers & Resolutions
-| Blocker | Resolution |
-|---------|------------|
-| Gate timeout (>10 min) | Use `BAB_GATE_SERIAL=1` for debugging, `BAB_GATE_JOBS=8` for speed |
-| Coverage stuck at 99% | Check `term-missing` output - target exact line numbers |
-| Hypothesis flaky | Run with `--hypothesis-show-statistics` - add `@example` for edge cases |
-| Data loader test explosion | Consolidate into `test_bab_data_loader_campaign_d_final_push.py` pattern |
-
-### Escalation Path
-1. Run `scripts/bab_r4_preflight.py` - validates core invariants
-2. Run `scripts/bab_r2_preflight.py` - validates beta parity
-3. Check `probe_beta_94_v7.py` for beta numerics debugging
-4. If all else fails: `git bisect` on `tests/` directory
-
----
-
-## COMMANDS FOR NEXT SESSION
+### Hard Gates Every Session (run in order, repo root)
 
 ```bash
-# Quick validation (30s)
-BAB_GATE_SERIAL=1 python -m pytest tests/test_bab_beta_deep_final.py -v
-
-# Targeted gap closure (2-3 min each)
-BAB_GATE_SERIAL=1 python -m pytest tests/test_bab_data_loader_campaign_d_final_push.py -v --cov=strategies.betting_against_beta.data_loader --cov-report=term-missing
-BAB_GATE_SERIAL=1 python -m pytest tests/test_bab_portfolio_coverage_campaign.py -v --cov=strategies.betting_against_beta.portfolio --cov-report=term-missing
-BAB_GATE_SERIAL=1 python -m pytest tests/test_bab_beta_deep_coverage.py -v --cov=strategies.betting_against_beta.beta --cov-report=term-missing
-
-# Full gate with higher floor (6 min)
-BAB_GATE_SERIAL=1 BAB_GATE_MIN_COVERAGE=99.5 ./scripts/bab_gate.sh
-
-# Final verification (100% target)
-BAB_GATE_SERIAL=1 BAB_GATE_MIN_COVERAGE=100 ./scripts/bab_gate.sh
+python3 -m ruff check .                 # must pass
+bash scripts/bab_gate.sh                # full suite + coverage, must be GREEN (~2.2 min)
+BAB_GATE_MIN_COVERAGE=98.5 bash scripts/bab_gate.sh   # P14 release floor must hold
 ```
 
 ---
 
-**HANDOFF COMPLETE** - Next agent MUST achieve 100% coverage. No exceptions. No floor lowering. Heavy working required.
+### Non-Goals (DO NOT PURSUE)
+
+- ❌ Adding type annotations (ANN excluded by policy)
+- ❌ Refactoring defensive try/except patterns (BLE/TRY excluded)
+- ❌ Lowering the coverage floor — add tests, don't lower the bar
+- ❌ **Coverage-only work substituting for correctness work** (HANDOFF.md: "Analysis-only, handoff-only, formatting-only, and coverage-chasing turns are failed sessions")
+
+---
+
+### Session Ledger (append one line per session; keep it honest)
+
+| Session (UTC) | HEAD | Did | Gate |
+|---|---|---|---|
+| 2026-11-16T01:00:30Z | 99a841b | Handoff refresh: live-verified `ruff` clean + gate GREEN (6,153 passed / 35 skipped / 132.01s / 99%) at HEAD `99a841b`; confirmed P16-3 landed; restamped binding campaign **P17** | GREEN @01:00:30Z |
+| 2026-11-16T01:03:44Z | dc58017 | Handoff re-verification: `ruff` clean + gate GREEN (6,153 passed / 35 skipped / 131.89s / 99%) at HEAD `dc58017`; re-confirmed open bottlenecks; re-stamped binding **P17-1** with Definition of Done | GREEN @01:01:20Z |
+| 2026-11-16T01:17:06Z | dc58017 | **This session:** Synchronized NEXT_SESSION_HANDOFF.md to canonical HANDOFF.md; confirmed P17-1 is binding initial task | — |
+
+---
+
+**NEXT AGENT: Start with P17-1, step 1 — write RED characterization tests in `tests/test_bab_pipeline_safety_contract.py` and confirm they fail on HEAD (`dc58017`). Then fix in order. Rerun `bash scripts/bab_gate.sh` after each fix and keep it GREEN. Only move to P17-2 once P17-1 Definition of Done is fully checked. Record your session line in the ledger before finishing.**
