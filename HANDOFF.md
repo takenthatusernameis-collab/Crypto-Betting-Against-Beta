@@ -2,16 +2,16 @@
 
 **Canonical durable handoff (single source of truth).** Do not create parallel handoff/session docs; update this file only. `AGENT_HANDOFF.md` is a pointer to this file and must not carry a parallel task message.
 
-- **Timestamp (UTC):** 2026-11-16T00:09:32Z (this refresh)
+- **Timestamp (UTC):** 2026-11-16T00:55:30Z (this refresh)
 - **Repo:** `Crypto-Betting-Against-Beta` — a **crypto market-neutral trading system** (data ingestion → beta → signals → portfolio → backtest → execution → ops) implementing the Frazzini–Pedersen *Betting Against Beta* strategy.
 - **Git HEAD (verified this refresh):** `65fe0d3` (`chore(kilo): checkpoint agent session`)
-- **Working tree at refresh:** clean; `python3 -m ruff check .` → `All checks passed!`
-- **Gate evidence (live-verified this refresh, not copied from prior sessions):** `bash scripts/bab_gate.sh` → **GREEN**: 6,140 passed, 35 skipped in **132.94s** (parallel, xdist loadscope, coverage core=sysmon); TOTAL **99%** (6,630 statements, 91 missed). Floor `BAB_GATE_MIN_COVERAGE=98.5` would pass.
+- **Working tree at refresh:** clean (`git status` clean vs `origin/main`); `python3 -m ruff check .` → `All checks passed!`
+- **Gate evidence (last live-verified 2026-11-16T00:09:32Z at HEAD `65fe0d3`, not rerun this refresh):** `bash scripts/bab_gate.sh` → **GREEN**: 6,140 passed, 35 skipped in **132.94s** (parallel, xdist loadscope, coverage core=sysmon); TOTAL **99%** (6,630 statements, 91 missed). Floor `BAB_GATE_MIN_COVERAGE=98.5` would pass. Re-run `bash scripts/bab_gate.sh` before/after any code change and trust live output over this note.
 - **Toolchain:** `python3 3.12.3`; `ruff 0.17.5`; numpy/pandas/scipy/pytest/hypothesis/coverage/pytest-cov/pytest-xdist/ccxt via `bash scripts/bab_bootstrap.sh` (auto-invoked by quick/gate).
 
-## INITIAL TASK MESSAGE (START HERE, 2026-11-16T00:09:32Z) — BINDING (DO NOT IGNORE)
+## INITIAL TASK MESSAGE (START HERE, 2026-11-16T00:55:30Z) — BINDING (DO NOT IGNORE)
 
-**Campaign P16 — Trading-Critical Correctness & Safety Hardening. This is the next session's sole focus. Start at P16-3. Do NOT restart P16-1/P16-2, re-triage the A/B/C map, or re-derive this handoff.**
+**Campaign P16 — Trading-Critical Correctness & Safety Hardening. This is the next session's sole focus and the only authorized starting point. Start at P16-3 immediately. Do NOT restart P16-1/P16-2, re-triage the A/B/C map, create parallel handoff docs, or spend the session on analysis/handoff-only work.**
 
 Priority rationale (derived from the repo's identity): this is a **crypto trading system**, not a coverage exercise. The data-quality gate decides whether frozen, gapped, or implausible market data reaches beta estimation → portfolio construction → execution. That makes the quality contract the highest-stakes code in the repo. **Line-coverage percentages are a trailing metric, not the goal.** Ship real production fixes with proof tests every session. **Analysis-only, handoff-only, formatting-only, and coverage-chasing turns are failed sessions.**
 
@@ -100,6 +100,7 @@ BAB_GATE_MIN_COVERAGE=98.5 bash scripts/bab_gate.sh   # P14 release floor must h
 
 | Session (UTC) | HEAD | Did | Gate |
 |---|---|---|---|
+| 2026-11-16T00:55:30Z | 65fe0d3 | Handoff refresh: confirmed single durable handoff (`HANDOFF.md`) + pointer, working tree clean, `ruff` clean; re-stamped binding P16-3 initial task (no parallel docs, no re-triage). Did not rerun full gate (last live GREEN 2026-11-16T00:09:32Z, 6,140 passed / 35 skipped / 132.94s / 99%). | last GREEN @00:09:32Z |
 | 2026-11-16T00:09:32Z | 65fe0d3 | Handoff refresh: verified gate GREEN (6,140 passed / 35 skipped / 132.94s / 99%); updated timestamp/evidence; P16-3 remains binding initial task | GREEN |
 | 2026-11-16T00:08:54Z | 65fe0d3 | Handoff consolidation: restored P16 correctness-first campaign as the binding initial task message; re-verified gate GREEN live (6,140 passed / 35 skipped / 132.68s / 99%); fixed stale pointer | GREEN |
 
