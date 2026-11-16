@@ -4,7 +4,7 @@
 
 - **Timestamp (UTC):** 2026-11-16T01:00:30Z (this refresh)
 - **Repo identity:** `Crypto-Betting-Against-Beta` — a **crypto market-neutral trading system** (ingest → beta → signals → portfolio → backtest → execution → ops) implementing the Frazzini–Pedersen *Betting Against Beta* strategy. The highest-stakes code is the **data-quality contract** that decides whether frozen, gapped, or implausible market data reaches beta estimation → portfolio construction → execution.
-- **Git HEAD (verified this refresh):** `99a841b` (`chore(kilo): checkpoint agent session`); working tree clean; `python3 -m ruff check .` → `All checks passed!`
+- **Git HEAD (verified this refresh):** `53bae72` (handoff re-stamp commit on top of `99a841b`; working tree clean; `python3 -m ruff check .` → `All checks passed!`)
 - **Gate evidence (live-verified this refresh 2026-11-16T01:00Z at HEAD `99a841b`):** `bash scripts/bab_gate.sh` → **GREEN**: **6,153 passed, 35 skipped in 132.01s**, TOTAL **99%** (6,643 statements, 91 missed). Re-run the gate after every change and trust live output over this note.
 - **Toolchain:** `python3 3.12.3`; `ruff 0.17.5`; numpy/pandas/scipy/pytest/hypothesis/coverage/pytest-cov/pytest-xdist/ccxt via `bash scripts/bab_bootstrap.sh` (auto-invoked by quick/gate).
 
