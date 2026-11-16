@@ -2,12 +2,12 @@
 
 **Canonical durable handoff (single source of truth).** Do not create parallel handoff/session docs; update this file only. `AGENT_HANDOFF.md` is a pure pointer and must not carry a second task message. Any other `*HANDOFF*.md` is stale and must be deleted on sight.
 
-- **Timestamp (UTC):** 2026-11-16T10:45:54Z (this refresh)
+- **Timestamp (UTC):** 2026-11-16T11:22:45Z (this refresh)
 - **Repo identity:** `Crypto-Betting-Against-Beta` — a **crypto market-neutral trading system** (ingest → beta → signals → portfolio → backtest → execution → ops) implementing the Frazzini–Pedersen *Betting Against Beta* strategy. Highest-stakes paths, in order: **(1) what real orders are placed, (2) whether live fills still match the model, (3) whether the real-data ingest accepts only data fit to trade on.**
 - **Git HEAD (verified this refresh):** `91d6dc5` (`main`, working tree clean, `origin/main` in sync — 0 ahead / 0 behind).
-- **Live probes re-verified 2026-11-16T10:45Z @91d6dc5:** `python3 -m ruff check .` **clean**. `BAB_GATE_MIN_COVERAGE=98.5 bash scripts/bab_gate.sh` **GREEN** — **6215 passed / 35 skipped in 105s**, TOTAL **99%** (89 missed stmts / 6710, across 10 modules). `python3 scripts/perf_baseline.py --check` **PASS** (full_ms_median 2.35 vs baseline 3.19). Gate log preserved at `/tmp/bab_gate_verify.log`.
+- **Live probes re-verified 2026-11-16T11:22Z @91d6dc5:** `python3 -m ruff check .` **clean**. `BAB_GATE_MIN_COVERAGE=98.5 bash scripts/bab_gate.sh` **GREEN** — **6215 passed / 35 skipped in 105s**, TOTAL **99%** (89 missed stmts / 6710, across 10 modules). `python3 scripts/perf_baseline.py --check` **PASS** (full_ms_median 2.35 vs baseline 3.19). Gate log preserved at `/tmp/bab_gate_verify.log`.
 
-## INITIAL TASK MESSAGE (START HERE, 2026-11-16T10:45:54Z) — BINDING (DO NOT IGNORE)
+## INITIAL TASK MESSAGE (START HERE, 2026-11-16T11:22:45Z) — BINDING (DO NOT IGNORE)
 
 **Campaign P19-1 — CI ENFORCEMENT ARMBAR (highest priority; the repo's safety work is currently UNGUARDED).**
 
