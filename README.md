@@ -83,7 +83,7 @@ python -m strategies.betting_against_beta.cli --dry-run --data prices.csv --from
 python -m strategies.betting_against_beta.cli --version
 ```
 
-Supported flags: `--data`, `--benchmark`, `--universe`, `--beta-window`, `--long-quantile`, `--short-quantile`, `--rebalance-freq`, `--transaction-costs`, `--slippage`, `--output`, `--synthetic`, `--from-prices`, `--dry-run`, `--version`.
+Supported flags: `--data`, `--benchmark`, `--universe`, `--beta-window`, `--long-quantile`, `--short-quantile`, `--rebalance-freq`, `--transaction-costs`, `--slippage`, `--output`, `--synthetic`, `--from-prices`, `--dry-run`, `--version`, `--adapter`, `--exchange`, `--api-key-env`, `--api-secret-env`, `--api-password-env`, `--testnet`, `--allow-live-execution`, `--accept-terms`, `--health-check`, `--reconcile`, `--reconcile-tolerance`, `--reconcile-max-mismatch`, `--fills`, `--paper-trading`, `--max-staleness-days`, `--max-gap-days`.
 
 ### Execution adapters (`--adapter`)
 
@@ -110,6 +110,61 @@ python -m strategies.betting_against_beta.cli --adapter live --exchange binance 
 ```
 
 `--health-check` prints a single strict-JSON object (`mode`, `exchange`, `connected`, `dry_run`, `testnet`, `n_submitted`, `n_fills`, ...) suitable for machine consumption and CI gating.
+
+### Reconciliation enforcement (`--reconcile`, `--reconcile-tolerance`, `--reconcile-max-mismatch`)
+
+`--reconcile` runs the modeled-vs-executed cost reconciliation (R5-B) and fills-vs-backtest reconciliation (R5-C) after a run and emits a strict-JSON artifact alongside execution output. `--reconcile` alone is **emit-only / backward compatible**: it writes the artifact but never fails a run.
+
+Two enforcement flags gate the artifact:
+
+| Flag | Semantics |
+|------|-----------|
+| `--reconcile-tolerance <float>` | Max absolute modeled-vs-executed cost delta allowed when `--reconcile` is set. Drift strictly above this exits non-zero (exit 2) with a violation message. `None` (default) = emit only, no enforcement. |
+| `--reconcile-max-mismatch <int>` | Max allowed mismatch count when `--reconcile` is set. More mismatches than this exits non-zero (exit 2). `None` (default) = emit only. |
+
+A tolerance of exactly the observed drift passes; drift just above fails. Enforcement is deterministic and uses no network. CI enforcement lives in `scripts/bab_reconcile_gate.sh` (fail-closed on injected drift, pass on clean) and is invoked by `.github/workflows/main.yml`, so dropping enforcement turns CI RED.
+
+Example — enforce a tight cost tolerance and fail closed on drift:
+
+```bash
+python -m strategies.betting_against_beta.cli --synthetic --adapter paper --reconcile \
+  --transaction-costs 0.01 --reconcile-tolerance 0.0 --output /tmp/reconcile.json
+# exits 2 with "Reconciliation drift gate breached"
+```
+
+Example — tolerance above drift passes:
+
+```bash
+python -m strategies.betting_against_beta.cli --synthetic --adapter paper --reconcile \
+  --transaction-costs 0.01 --reconcile-tolerance 0.5 --output /tmp/reconcile.json
+# exits 0
+```
+
+### Live-execution safety (`--allow-live-execution`, `--accept-terms`)
+
+The live adapter (`--adapter live`) is **dry-run by default**: no network, simulated fills, env-only API credentials. Real execution is never implicit.
+
+To permit real (non-dry-run) live execution, both keys must be present:
+
+| Flag | Requirement |
+|------|-------------|
+| `--allow-live-execution` | First key: explicit opt-in to permit non-dry-run live execution. |
+| `--accept-terms` | Second key: must equal the exact token `I_UNDERSTAND_LIVE_TRADING`. Never echoed to logs or artifacts. |
+
+Without both keys, `--adapter live` stays dry-run. With `--allow-live-execution` but a missing or inexact `--accept-terms`, the CLI exits non-zero (rc 2). The adapter enforces the exact terms string itself before any CCXT/network call.
+
+```bash
+# Health check (dry-run, safe in CI): strict JSON output, no network.
+python -m strategies.betting_against_beta.cli --adapter live --exchange binance \
+  --api-key-env BAB_TEST_KEY --api-secret-env BAB_TEST_SECRET --health-check
+
+# Real execution path (explicit two-key opt-in; still no network unless
+# credentials and the exact accept_terms are supplied):
+python -m strategies.betting_against_beta.cli --adapter live --exchange binance \
+  --api-key-env BAB_TEST_KEY --api-secret-env BAB_TEST_SECRET \
+  --allow-live-execution --accept-terms I_UNDERSTAND_LIVE_TRADING \
+  --data prices.csv --from-prices --benchmark BTC
+```
 
 Or use the installed `bab-example` console script:
 
