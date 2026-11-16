@@ -2,83 +2,72 @@
 
 **Canonical durable handoff (single source of truth).** Do not create parallel handoff/session docs; update this file only. `AGENT_HANDOFF.md` is a pure pointer and must not carry a second task message. Any other `*HANDOFF*.md` is stale and must be deleted on sight.
 
-- **Timestamp (UTC):** 2026-11-16T19:43:52Z (this refresh)
+- **Timestamp (UTC):** 2026-11-16T19:46:57Z (this refresh)
 - **Repo identity:** `Crypto-Betting-Against-Beta` — a **crypto market-neutral trading system** (ingest → beta → signals → portfolio → backtest → execution → ops) implementing the Frazzini–Pedersen *Betting Against Beta* strategy. Highest-stakes paths, in order: **(1) what real orders are placed, (2) whether live fills still match the model, (3) whether the real-data ingest accepts only data fit to trade on.**
-- **Git state:** local HEAD `3a0a789` == `origin/main` `3a0a789` (sync verified this session). Working tree clean; no unstaged changes. Currently on `main`.
-- **Live gate evidence (re-verified this session, 19:43Z):**
-  - `python3 -m ruff check .` → **All checks passed!**
-  - `bash scripts/bab_reconcile_gate.sh` → **GREEN** (drift rc=2, clean rc=0, emit-only rc=0)
-  - `bash scripts/bab_gate.sh` → **GREEN 6244 passed / 35 skipped / 99% (86 missed / 6710)**
+- **Git state (at refresh):** HEAD `3a0a789` == `origin/main` `3a0a789` (verified 19:43Z). Working tree expected clean aside from this handoff refresh; commit this handoff update if you make other changes.
+- **Last verified gates (2026-11-16T19:43:52Z):** `python3 -m ruff check .` clean; `bash scripts/bab_reconcile_gate.sh` GREEN; `bash scripts/bab_gate.sh` GREEN → **6244 passed, 35 skipped, TOTAL 99% (86 missed / 6710)**.
 
 ---
 
-## INITIAL TASK MESSAGE (START HERE, 2026-11-16T19:43:52Z) — BINDING (DO NOT IGNORE)
+## INITIAL TASK MESSAGE (START HERE, 2026-11-16T19:46:57Z) — BINDING
 
-**EXECUTE P19-3 NOW: CLOSE THE 86-LINE CORRECTNESS GAP *CORRECTLY*. Ship behavior tests this session. Do NOT do a handoff-only pass. Do NOT re-attempt the CI workflow push.**
+**EXECUTE P19-3 NOW. SHIP CODE/TESTS THIS SESSION. NO HANDOFF-ONLY PASS. NO CI WORKFLOW PUSH ATTEMPTS.**
 
-**Why this is the start:**
-1. **P19-2 is DONE.** `tests/test_p19_2_hardening.py` (29 tests) covers real-data ingest network path (`fetch_real_bab_prices.py`), `execution.py` reconciliation fidelity (`_price_for`/`_adv_from_frame_value`/`_sanitize_for_json` numpy branches, PaperAdapter edge cases), and CLI `--health-check` JSON contract. Coverage moved 89→86 missed.
-2. **P19-3 is the binding next step.** 86 missed statements remain a **correctness smell list, not a coverage chore.** For each line: add a behavior test that reaches it, OR delete/justify with concrete unreachability proof. Do **not** lower the floor, do **not** add type annotations (ANN excluded by policy), do **not** refactor defensive try/except (BLE/TRY excluded by policy).
-3. **P19-1 (CI enforcement) is a maintainer follow-up. Do not re-attempt the workflow push.** The repo token lacks `workflows:write`; a prior commit (`b641b7a`, branch `kilo-p19-1-push`) was lost when its branch vanished. A maintainer must add the `bab-gate` job via the GitHub web UI or a `workflows:write` PAT.
+**Mission:** Close the **86-line correctness gap correctly** in `strategies/betting_against_beta/`. For every missed line: add a **behavior test** that reaches it, OR **delete/justify with concrete unreachability proof** (and remove dead defensive code where proven unreachable). Do not stop after analysis or after covering only "easy" lines — every session must reduce the remaining justified/uncovered list and update this file with the new exact missed-line inventory.
+
+**Non-negotiable constraints:** do **not** lower coverage floor; do **not** add type annotations (ANN excluded); do **not** refactor defensive try/except (BLE/TRY excluded) except deleting truly unreachable dead branches with proof; do **not** claim CI enforcement (P19-1 is maintainer-only, token lacks `workflows:write`).
+
+**Immediate execution plan (do in order, commit progress):**
+1. **Reproduce baseline:** `python3 -m ruff check . && bash scripts/bab_reconcile_gate.sh` (quick), then run targeted coverage for areas you touch before full gate. Confirm current missed set matches/updates the list below.
+2. **Easy reachable wins (ship tests first):**
+   - `cli.py:657-658` — unknown `--adapter` returns rc=1 + error (invoke `main`/parser path).
+   - `signals.py:37,75`, `metrics.py:94`, `replay.py:172`, `reconciliation.py:82-83,309`, `data_sources.py:480-481,499-500,507-508`.
+3. **Medium reachable (crafted inputs):** `portfolio.py:152-153` (clip extreme >1e12), `portfolio.py:170-177` (dollar-neutral net-fix drift >1e-12 path), `data_loader.py:1355` (insufficient pending threshold), `data_loader.py:280-292,296-297,315-316`, `beta.py:125,163,170-171,189`.
+4. **Prove-or-delete with evidence:** `execution.py:1295-1296` is likely dead (`try` body is unconditional `return False`; except cannot fire) — prove and remove dead except or replace with real behavior+test; `portfolio.py:180` (`except BABPortfolioError: raise` passthrough) — prove reachability or justify/remove; `data_loader.py:1654-1655` — inspect and prove/cover.
+5. **Long tail:** remaining `beta.py` (435-436,552-556), `data_loader.py` (422-423,666-667,718-719,837-838,1615,1660-1662,1676-1681,1958-1959,2762-2763), `cli.py` (75,836-838,893-894), `execution.py` (140-141,182-185).
+6. **Gates before handoff update:** `python3 -m ruff check .`, `bash scripts/bab_reconcile_gate.sh`, `bash scripts/bab_gate.sh` (and note `BAB_GATE_MIN_COVERAGE=98.5` status). Record exact results and **updated missed-line list/count** in this file.
+
+**Definition of done for a session:** measurable reduction in uncovered/unjustified lines with passing gates, or a committed proof-driven deletion/justification for specific lines — never a no-op refresh.
 
 ---
 
-## P19-3 — CLOSE 86-LINE CORRECTNESS GAP *CORRECTLY*
+## P19-3 — 86-LINE CORRECTNESS GAP (baseline @19:43Z; update after each session)
 
-86 missed statements are a **correctness smell list**, not a coverage chore. For each line: add a behavior test that reaches it, or delete/justify with concrete unreachability proof. Do **not** lower the floor, do **not** add type annotations, do **not** refactor defensive try/except (BLE/TRY excluded by policy).
-
-Missed lines **re-verified live this session (6244 passed / 86 missed / 99%):**
+Missed lines (re-verified 19:43Z, 6244 passed / 86 missed / 99%): treat as correctness smell list.
 - `beta.py`: 125, 163, 170-171, 189, 435-436, 552-556 (12)
 - `data_loader.py`: 280-292, 296-297, 315-316, 422-423, 666-667, 718-719, 837-838, 1355, 1615, 1654-1655, 1660-1662, 1676-1681, 1958-1959, 2762-2763 (34)
-- `execution.py`: 140-141, 182-185, 1295-1296 (8) — 139, 563-564 now covered by P19-2b; **1295-1296 needs independent proof** (see below)
+- `execution.py`: 140-141, 182-185, 1295-1296 (8)
 - `cli.py`: 75, 657-658, 836-838, 893-894 (8)
-- `portfolio.py`: 152-153, 170-177, 180 (11) — **180 needs independent proof** (see below)
+- `portfolio.py`: 152-153, 170-177, 180 (11)
 - `data_sources.py`: 480-481, 499-500, 507-508 (6)
 - `reconciliation.py`: 82-83, 309 (3)
 - `signals.py`: 37, 75 (2)
 - `metrics.py`: 94 (1)
 - `replay.py`: 172 (1)
 
-### Claims needing INDEPENDENT PROOF (do not inherit; this session's spot-check evidence below)
-
-Do not inherit prior claims — verify each with a live probe or a behavior test. Concrete findings from this session's inspection:
-
-- **`execution.py:1295-1296` — LIKELY DEAD CODE (prove or delete).** The `try` at line 1291 has body `return False` (line 1294) with a comment "would need to map idempotency_key to exchange order ID; for now return False". The `except Exception: return False` (1295-1296) can never fire because the try body cannot raise. **Action:** prove unreachability (no input reaches a raising path) and delete the dead `except`, OR if the try is meant to call a connector in the future, replace the `return False` body with a real call and add a behavior test that forces the exception. Do not leave a fake `except` that inflates the defensive surface.
-- **`portfolio.py:180` — `except BABPortfolioError: raise` passthrough (prove or cover).** This re-raises `BABPortfolioError` from the `construct_portfolio` try body (lines ~130-178, numpy ops). The body is unlikely to raise `BABPortfolioError` directly. **Action:** prove whether any input path raises `BABPortfolioError` inside the try; if not, the passthrough is unreachable and should be justified/removed. If it is reachable, add a test that triggers it (e.g. a crafted frame that makes a helper raise `BABPortfolioError`).
-- **`cli.py:657-658` — REACHABLE, easy cover.** Unknown `--adapter` value (not `paper`/`mock`/`live`) prints error and returns 1. **Action:** add a test invoking the CLI arg parser / `main` with `--adapter bogus` and assert rc=1 + message. This is a clean behavior test, no proof needed.
-- **`data_loader.py:1355` — REACHABLE.** `return False` when `pending_count < remaining_needed` in the numeric-coercion threshold check. **Action:** craft a frame where too few cells remain pending to reach the parseable threshold; assert the quality check returns False.
-- **`data_loader.py:1654-1655` — verify.** Inspect lines 1654-1655 in `data_loader.py` (numeric/parse edge branch); determine reachability with a crafted input or justify unreachability.
-
-### Suggested attack order (highest value first)
-
-1. **Easy reachable wins (cover now):** `cli.py:657-658` (unknown adapter), `signals.py:37,75`, `metrics.py:94`, `replay.py:172`, `data_sources.py:480-481/499-500/507-508`, `reconciliation.py:82-83/309`. Each is a small, targeted behavior test.
-2. **Medium reachable (cover with crafted inputs):** `portfolio.py:152-153` (extreme-value clip: craft weights >1e12), `portfolio.py:170-177` (net-fix: craft a dollar-neutral frame whose net drift exceeds 1e-12), `data_loader.py:1355` (insufficient pending), `data_loader.py:280-292/296-297/315-316` (parse-threshold branches), `beta.py:125/163/170-171/189` (rolling-beta edge windows).
-3. **Prove-or-delete (do the analysis, then act):** `execution.py:1295-1296` (dead except), `portfolio.py:180` (BABPortfolioError passthrough), `data_loader.py:1654-1655`. Write the proof in the commit message; if unreachable, delete the line or replace with a reachable equivalent.
-4. **Long tail (cover or justify):** remaining `beta.py` (435-436, 552-556), `data_loader.py` (422-423, 666-667, 718-719, 837-838, 1615, 1660-1662, 1676-1681, 1958-1959, 2762-2763), `cli.py` (75, 836-838, 893-894).
-
-**Do not** stop at "covered the easy ones." The task is to close the gap: every one of the 86 lines must end each session either covered by a behavior test or justified as unreachable in writing. If lines remain, the next session continues from the updated list in this file.
+**Known proof targets:** `execution.py:1295-1296` likely unreachable dead `except` (try returns False only); `portfolio.py:180` re-raise passthrough — verify with live probe/test before keeping or deleting.
 
 ---
 
 ## Verified completion state (do not redo)
 
-- **P17-1 DONE:** safe data-quality defaults wired (20/7/3); `load_prices` runs the quality campaign by default; `tests/test_bab_pipeline_safety_contract.py` present.
-- **P17-2 DONE:** `tests/test_bab_p17_2_targeted_gaps.py` repaired to match actual APIs (38 pass).
-- **P18-1 DONE:** `evaluate_reconciliation_gate` in `reconciliation.py`; CLI `--reconcile-tolerance`/`--reconcile-max-mismatch` (exit 2 on breach; `--reconcile` alone unchanged); `tests/test_bab_reconciliation_gate.py` green.
-- **P18-2 DONE:** `LiveExecutionAdapter` requires `allow_live_execution=True` + exact `accept_terms='I_UNDERSTAND_LIVE_TRADING'` for `dry_run=False`; CLI flags wired, dry-run default preserved; `tests/test_bab_live_opt_in.py` green.
-- **P18-3 DONE:** `scripts/bab_reconcile_gate.sh` exists and locally proven (drift rc=2, clean/emit-only rc=0). Re-verified GREEN this session.
-- **P19-2 DONE:** Real-data ingest + live-fill fidelity hardening. `tests/test_p19_2_hardening.py` (29 tests) covers all three deliverables. Gates GREEN.
-- **Kill switch (R4-B) covered:** `tests/test_bab_drawdown_kill_switch_r4.py` — verify only.
-- **Toolchain bootstrap:** `scripts/bab_bootstrap.sh` installs missing deps (numpy/pandas/scipy/pytest/pytest-cov/xdist/hypothesis/coverage/ccxt/ruff); safe to run on any fresh runner.
+- **P17-1 DONE:** safe data-quality defaults wired (20/7/3); `load_prices` quality campaign by default; `tests/test_bab_pipeline_safety_contract.py`.
+- **P17-2 DONE:** `tests/test_bab_p17_2_targeted_gaps.py` repaired (38 pass).
+- **P18-1 DONE:** `evaluate_reconciliation_gate`; CLI tolerance/mismatch flags (exit 2 on breach); `tests/test_bab_reconciliation_gate.py`.
+- **P18-2 DONE:** `LiveExecutionAdapter` two-key opt-in for non-dry-run; `tests/test_bab_live_opt_in.py`.
+- **P18-3 DONE:** `scripts/bab_reconcile_gate.sh` proven GREEN locally.
+- **P19-2 DONE:** `tests/test_p19_2_hardening.py` (29 tests) for ingest/execution fidelity/CLI health-check.
+- **Kill switch (R4-B):** `tests/test_bab_drawdown_kill_switch_r4.py`.
+- **Bootstrap:** `scripts/bab_bootstrap.sh` installs deps on fresh runners.
 
 ---
 
-## Deferred / external (do NOT let these block agent work)
+## Deferred / external (non-blocking)
 
-- **P19-1 (CI ENFORCEMENT) — MAINTAINER FOLLOW-UP, not an agent task.** Adding a `bab-gate` job (ruff + suite + 98.5% coverage floor + reconcile gate) to `.github/workflows/main.yml` requires `workflows: write` permission that no agent session can obtain. A prior commit (`b641b7a`, branch `kilo-p19-1-push`) was lost when its branch vanished. **Do not re-attempt the push, do not re-create the branch in the agent loop.** A maintainer must add the `bab-gate` job via the GitHub web UI or a `workflows:write` PAT. This never blocks P19-3. **Note:** `README.md` was corrected this session to remove a false "CI enforcement shipped (P19-1)" claim — the workflow file has only the `kilo` controller/diagnostics job, no `bab-gate` job.
-- **P20-1:** `python3 scripts/perf_baseline.py --record` after any perf-touching change; `--check` must stay GREEN.
-- **P20-2:** add `--durations=20` visibility to gate output/logging for slow tests; keep `--dist loadscope`.
-- **P20-3:** repo hygiene — `probe_*.py` / `debug_beta*.py` tracked but gitignored (12 files); decide keep-vs-delete and align `.gitignore` + index.
+- **P19-1 CI enforcement — MAINTAINER ONLY:** requires `workflows:write` (GitHub UI or PAT) to add `bab-gate` job to `.github/workflows/main.yml`. Prior commit/branch lost; no agent push possible. README corrected to not claim CI enforcement shipped.
+- **P20-1:** `python3 scripts/perf_baseline.py --record` after perf-touching change; `--check` must stay GREEN.
+- **P20-2:** add `--durations=20` visibility to gate output/logging.
+- **P20-3:** repo hygiene — tracked but gitignored `probe_*.py` / `debug_beta*.py` (decide keep/delete, align index).
 
 ---
 
@@ -88,34 +77,28 @@ Do not inherit prior claims — verify each with a live probe or a behavior test
 python3 -m ruff check .                 # must pass
 bash scripts/bab_reconcile_gate.sh      # reconciliation fail-closed, must be GREEN
 bash scripts/bab_gate.sh                # full suite + coverage, must be GREEN
-BAB_GATE_MIN_COVERAGE=98.5 bash scripts/bab_gate.sh   # release floor must hold
+BAB_GATE_MIN_COVERAGE=98.5 bash scripts/bab_gate.sh   # release floor target
 ```
 
 ---
 
-## Non-goals (do not pursue)
+## Non-goals
 
-- ❌ Handoff-only sessions or refreshing this file without shipping code/tests.
-- ❌ Re-attempting the `.github/workflows/*` push (impossible without `workflows:write`) — see Deferred.
-- ❌ Claiming CI enforcement without observed RED/GREEN evidence in real CI runs.
-- ❌ Lowering the coverage floor — add tests, don't lower the bar.
-- ❌ Adding type annotations (ANN excluded by policy).
-- ❌ Refactoring defensive try/except patterns (BLE/TRY excluded).
-- ❌ Coverage-chasing *instead of* correctness/production fixes.
-- ❌ Adding a second diagnostics collector or parallel handoff docs.
+- ❌ Handoff-only sessions / no-op refreshes
+- ❌ Re-attempting `.github/workflows/*` push
+- ❌ Claiming CI enforcement without observed RED/GREEN CI evidence
+- ❌ Lowering coverage floor, adding ANN annotations, refactoring BLE/TRY defensively
+- ❌ Parallel handoff docs or second diagnostics collector
 
 ---
 
 ## Bottleneck removal status (this refresh)
 
-- [DONE] Single durable handoff: only `HANDOFF.md` (+ pointer `AGENT_HANDOFF.md`). No parallel docs.
-- [DONE] **Corrected false README claim:** `README.md` previously stated "CI enforcement shipped (P19-1)" with a `bab-gate` job. Live inspection of `.github/workflows/main.yml` confirms **no such job exists** (only the `kilo` controller/diagnostics job). README now accurately states P19-1 is maintainer-only and not shipped. This removes a misleading signal that could cause a future agent to skip P19-3 or chase a non-existent CI job.
-- [DONE] **Refreshed stale state:** HEAD advanced `b81ba35` → `3a0a789` since last handoff (P19-2 tests + handoff edits landed). Timestamps and gate evidence re-verified live this session.
-- [DONE] **Removed the false P19-1 hard-blocker:** the workflow-push campaign is structurally un-winnable by agents. P19-1 is reclassified as maintainer follow-up; P19-3 is unblocked and is the binding start.
-- [DONE] **Enriched P19-3 with concrete reachability evidence** so the next agent cannot avoid the heavy work: attack order, easy-win list, prove-or-delete list, and per-line notes for the flagged claims (`execution.py:1295-1296`, `portfolio.py:180`, `cli.py:657-658`, `data_loader.py:1355`).
-- [DONE] Verified `main` == `origin/main` at `3a0a789`; working tree clean.
-- [DONE] Local gates re-verified GREEN this session (ruff clean; reconcile GREEN; gate 6244/35/99% / 86 missed).
-- [EXTERNAL] P19-1 CI enforcement: requires maintainer `workflows:write` (web UI or PAT). Non-blocking.
+- [DONE] Single durable handoff maintained (`HANDOFF.md` + pointer `AGENT_HANDOFF.md`).
+- [DONE] Binding initial task message refreshed at 2026-11-16T19:46:57Z with explicit execution order and "ship tests now" mandate to prevent avoidance.
+- [DONE] P19-1 kept external/non-blocking so it cannot stall P19-3 progress.
+- [DONE] Proof/delete targets called out (`execution.py:1295-1296`, `portfolio.py:180`) to force resolution, not deferral.
+- [UNCHANGED/EXTERNAL] CI `bab-gate` job not in `.github/workflows/main.yml`; maintainer action required.
 
 ---
 
@@ -130,5 +113,6 @@ BAB_GATE_MIN_COVERAGE=98.5 bash scripts/bab_gate.sh   # release floor must hold
 | 2026-11-16T13:39:35Z | d23011e | State refresh; P19-1 push still blocked; P19-2/P19-3 BLOCKED behind it. | GREEN local; push blocked |
 | 2026-11-16T18:46:07Z | b81ba35 (= origin/main) | Handoff timestamp refreshed to 18:46:07Z; binding task P19-2 unchanged; gates GREEN. | GREEN local |
 | 2026-11-16T19:01:30Z | b81ba35 (= origin/main) | Handoff timestamp refreshed to 19:01:30Z; binding task P19-3 unchanged; gates GREEN. | GREEN local |
-| 2026-11-16T19:02:16Z | b81ba35 (= origin/main) | Handoff refreshed to 19:02:16Z; verified single durable handoff (HANDOFF.md + pointer), clean working tree, and no remediable bottlenecks (P19-1 remains maintainer-only). Binding task unchanged: P19-3 close 86-line correctness gap with behavior tests. | GREEN local (per prior verified evidence; not re-run this pass) |
-| 2026-11-16T19:43:52Z | 3a0a789 (= origin/main) | Refreshed handoff with live-verified evidence (ruff clean, reconcile GREEN, gate 6244/35/99%/86 missed). Corrected false README "P19-1 shipped" claim (no bab-gate job exists in workflow). Enriched P19-3 with per-line reachability evidence + attack order. Binding task unchanged: P19-3 close 86-line correctness gap with behavior tests. | GREEN local |
+| 2026-11-16T19:02:16Z | b81ba35 (= origin/main) | Handoff refreshed to 19:02:16Z; verified single durable handoff, clean tree, no remediable bottlenecks. Binding task: P19-3. | GREEN local (prior evidence) |
+| 2026-11-16T19:43:52Z | 3a0a789 (= origin/main) | Live-verified gates (ruff/reconcile/gate 6244/35/99%/86). Corrected false README CI claim. Enriched P19-3 evidence. | GREEN local |
+| 2026-11-16T19:46:57Z | 3a0a789 (= origin/main) | Refreshed canonical `HANDOFF.md` as single durable task message for next session: sharpened binding P19-3 execution plan, preserved verified state, kept P19-1 external/non-blocking, no parallel docs. | N/A (handoff refresh; gates last verified 19:43Z GREEN) |
