@@ -28,7 +28,7 @@ class TestMixedDtypes:
     def test_mixed_int_float_object_columns(self):
         df = _make_base_df()
         df["BTC"] = df["BTC"].astype("float64")
-        df["ETH"] = df["ETH"].astype("int64")
+        df["ETH"] = (df["ETH"] * 100).astype("int64")
         df["SOL"] = df["SOL"].astype(object)
         out = load_returns(df, benchmark="BTC", min_rows=1)
         assert not out.empty

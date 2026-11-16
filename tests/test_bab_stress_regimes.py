@@ -64,8 +64,12 @@ def regime_crash(base: pd.DataFrame) -> pd.DataFrame:
     out = base.copy()
     sigma = float(out["BTC"].std())
     start = len(out) // 2
-    out.loc[out.index[start : start + 6], "BTC"] = -5.0 * sigma
-    out.loc[out.index[start + 6 : start + 9], "BTC"] = 2.5 * sigma
+    out.loc[out.index[start : start + 6], "BTC"] = -5.0 * sigma * np.linspace(
+        1.0, 1.005, 6
+    )
+    out.loc[out.index[start + 6 : start + 9], "BTC"] = 2.5 * sigma * np.linspace(
+        1.0, 1.005, 3
+    )
     return out
 
 

@@ -1193,7 +1193,7 @@ class TestRunDataQualityCampaign:
 
         idx = pd.date_range("2024-01-01", periods=5, freq="D").tz_localize("UTC")
         df = pd.DataFrame({"BTC": [0.01] * 5, "ETH": [0.02] * 5}, index=idx)
-        out = _run_data_quality_campaign(df)
+        out = _run_data_quality_campaign(df, stale_run_threshold=0)
         assert out.index.tz is None
 
     def test_none_raises(self):
@@ -4837,7 +4837,10 @@ class TestLoaderExceptionTails:
 
     def test_load_pickle_tuple_of_dicts(self, tmp_path):
         p = tmp_path / "t.pkl"
-        rows = [{"date": f"2024-01-{i + 1:02d}", "BTC": 0.01} for i in range(28)]
+        rows = [
+            {"date": f"2024-01-{i + 1:02d}", "BTC": round(0.01 + i * 0.0001, 6)}
+            for i in range(28)
+        ]
         with open(p, "wb") as f:
             _pickle.dump(tuple(rows), f)
         out = load_returns_from_pickle(p)
@@ -4960,7 +4963,10 @@ class TestPromoteAndNormalizeBranchCoverage:
 class TestLoaderDispatchAndDetect:
     def test_load_returns_from_json_records(self, tmp_path):
         p = tmp_path / "r.json"
-        rows = [{"date": f"2024-01-{i + 1:02d}", "BTC": 0.01} for i in range(28)]
+        rows = [
+            {"date": f"2024-01-{i + 1:02d}", "BTC": round(0.01 + i * 0.0001, 6)}
+            for i in range(28)
+        ]
         p.write_text(json.dumps(rows))
         out = load_returns_from_json(p)
         assert isinstance(out, pd.DataFrame)
@@ -4978,7 +4984,10 @@ class TestLoaderDispatchAndDetect:
 
     def test_load_returns_dispatch_json(self, tmp_path):
         p = tmp_path / "r.json"
-        rows = [{"date": f"2024-01-{i + 1:02d}", "BTC": 0.01} for i in range(28)]
+        rows = [
+            {"date": f"2024-01-{i + 1:02d}", "BTC": round(0.01 + i * 0.0001, 6)}
+            for i in range(28)
+        ]
         p.write_text(json.dumps(rows))
         out = load_returns(p)
         assert isinstance(out, pd.DataFrame)
@@ -5252,7 +5261,14 @@ class TestSchemaAndUtilityTails:
 
     def test_load_json_records_valid(self, tmp_path):
         p = tmp_path / "r.json"
-        rows = [{"date": f"2024-01-{i + 1:02d}", "BTC": 0.01, "ETH": 0.02} for i in range(28)]
+        rows = [
+            {
+                "date": f"2024-01-{i + 1:02d}",
+                "BTC": round(0.01 + i * 0.0001, 6),
+                "ETH": round(0.02 + i * 0.0001, 6),
+            }
+            for i in range(28)
+        ]
         p.write_text(json.dumps(rows))
         out = load_returns_from_json(p)
         assert "BTC" in out.columns or len(out.columns) >= 1
@@ -5478,7 +5494,14 @@ class TestBatch1LoaderAndNormalizePaths:
 
     def test_load_returns_dispatch_json(self, tmp_path):
         p = tmp_path / "r.json"
-        rows = [{"date": f"2020-01-{i + 1:02d}", "BTC": 0.01, "ETH": 0.02} for i in range(5)]
+        rows = [
+            {
+                "date": f"2020-01-{i + 1:02d}",
+                "BTC": round(0.01 + i * 0.0001, 6),
+                "ETH": round(0.02 + i * 0.0001, 6),
+            }
+            for i in range(5)
+        ]
         p.write_text(json.dumps(rows))
         out = dlmod.load_returns(p)
         assert "BTC" in out.columns

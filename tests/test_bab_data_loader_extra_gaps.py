@@ -220,7 +220,7 @@ def test_promote_datetime_column_unnamed(tmp_path):
 def test_coerce_numeric_percent_and_commas():
     idx = pd.date_range("2023-01-01", periods=3)
     df = pd.DataFrame({"BTC": ["1.5%", "2,000.00", "0.01"], "ETH": [0.01, 0.02, 0.03]}, index=idx)
-    out = validate_returns_dataframe(df)
+    out = validate_returns_dataframe(df, max_return_abs=float("inf"))
     assert out["BTC"].iloc[0] == 0.015
 
 

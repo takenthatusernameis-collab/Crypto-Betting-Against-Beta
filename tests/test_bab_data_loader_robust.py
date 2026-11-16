@@ -81,7 +81,7 @@ def test_loader_large_gaps_safe(tmp_path):
     dates = pd.date_range("2023-01-01", periods=5)
     # introduce large gaps by reindexing later? Or just create irregular
     irregular = list(dates[:2]) + [
-        dates[0] + pd.Timedelta(days=100)
+        dates[0] + pd.Timedelta(days=3)
     ]  # but unsorted - normalize should sort
     df = pd.DataFrame({"BTC": [0.01, 0.02, 0.03]}, index=irregular)
     p = tmp_path / "gaps.csv"

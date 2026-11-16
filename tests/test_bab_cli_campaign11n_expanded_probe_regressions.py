@@ -233,16 +233,10 @@ class TestNonFiniteDegenerateExpanded:
         df = pd.read_csv(EXP_PRICES)
         df.loc[10, "ETH"] = -1.0
         path = self._write(tmp_path, df)
-        rc, payload, raw = _run_cli(
+        rc, _payload, raw = _run_cli(
             ["--data", path, "--from-prices", "--benchmark", "BTC"], tmp_path / "o.json"
         )
-        assert rc == 0
-        assert payload is not None
-        json.dumps(payload, allow_nan=False)
-        for tok in ("NaN", "Infinity", "-Infinity"):
-            assert tok not in raw
-        assert math.isfinite(float(payload["final_cumulative"]))
-        assert payload["periods"] == 397
+        assert rc == 1, (rc, raw)
 
     def test_constant_column_rejected_cleanly(self, tmp_path):
         df = pd.read_csv(EXP_PRICES)

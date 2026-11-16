@@ -40,7 +40,7 @@ class TestLoaderQualityHeavy:
     def test_validate_returns_no_bench_multi(self):
         idx = pd.date_range("2023-01-01", periods=5)
         df = pd.DataFrame({"BTC": [0.01] * 5, "ETH": [0.02] * 5}, index=idx)
-        out = data_loader.validate_returns_dataframe(df)
+        out = data_loader.validate_returns_dataframe(df, stale_run_threshold=0)
         assert isinstance(out, pd.DataFrame)
 
     def test_validate_returns_bench_missing_col(self):

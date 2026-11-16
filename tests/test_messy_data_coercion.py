@@ -32,7 +32,7 @@ def _base_df():
 class TestMixedDtypeCoercion:
     def test_string_numeric_column_coerces(self):
         df = _base_df()
-        df["ETH"] = ["0.001"] * 10
+        df["ETH"] = [f"{0.001 + i * 0.0001:.4f}" for i in range(10)]
         out = validate_returns_dataframe(df, benchmark="BTC")
         assert np.issubdtype(out["ETH"].dtype, np.number)
         assert np.isfinite(out["ETH"].to_numpy()).all()

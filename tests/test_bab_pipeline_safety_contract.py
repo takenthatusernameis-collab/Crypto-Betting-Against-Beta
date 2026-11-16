@@ -63,7 +63,7 @@ class TestStrategyEnforcesGate:
         # mistaken for the benchmark and slip through. Use ETH as benchmark so
         # the frozen BTC column is a tradable asset and must be rejected.
         with pytest.raises(BABDataError, match="Stale/frozen data"):
-            BABStrategy(returns_df=_frozen(), benchmark="ETH").run()
+            BABStrategy(benchmark="ETH").run(returns_df=_frozen())
 
 
 class TestLoadPricesEnforcesGate:

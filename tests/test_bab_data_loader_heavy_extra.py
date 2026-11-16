@@ -20,26 +20,26 @@ class TestDataLoaderHeavyExtra:
         # column named Date
         idx = pd.date_range("2023-01-01", periods=5)
         df = pd.DataFrame({"Date": idx, "BTC": [0.01] * 5, "ETH": [0.02] * 5})
-        out = data_loader.validate_returns_dataframe(df, benchmark="BTC")
+        out = data_loader.validate_returns_dataframe(df, benchmark="BTC", stale_run_threshold=0)
         assert isinstance(out.index, pd.DatetimeIndex)
         # datetime
         df = pd.DataFrame({"datetime": idx, "BTC": [0.01] * 5, "ETH": [0.02] * 5})
-        out = data_loader.validate_returns_dataframe(df, benchmark="BTC")
+        out = data_loader.validate_returns_dataframe(df, benchmark="BTC", stale_run_threshold=0)
         assert isinstance(out.index, pd.DatetimeIndex)
         # timestamp/time/dt/index/idx
         for name in ["timestamp", "time", "dt", "index", "idx"]:
             df = pd.DataFrame({name: idx, "BTC": [0.01] * 5, "ETH": [0.01] * 5})
-            out = data_loader.validate_returns_dataframe(df, benchmark="BTC")
+            out = data_loader.validate_returns_dataframe(df, benchmark="BTC", stale_run_threshold=0)
             assert isinstance(out.index, pd.DatetimeIndex)
         # unnamed: 0
         df = pd.DataFrame({"Unnamed: 0": idx, "BTC": [0.01] * 5, "ETH": [0.01] * 5})
-        out = data_loader.validate_returns_dataframe(df, benchmark="BTC")
+        out = data_loader.validate_returns_dataframe(df, benchmark="BTC", stale_run_threshold=0)
         assert isinstance(out.index, pd.DatetimeIndex)
         # try to find string date column as last resort
         df = pd.DataFrame(
             {"BTC": [0.01] * 5, "ETH": [0.02] * 5, "datestr": idx.strftime("%Y-%m-%d")}
         )
-        out = data_loader.validate_returns_dataframe(df, benchmark="BTC")
+        out = data_loader.validate_returns_dataframe(df, benchmark="BTC", stale_run_threshold=0)
         assert isinstance(out.index, pd.DatetimeIndex)
 
     def test_normalize_index_tz_aware(self):
@@ -47,19 +47,19 @@ class TestDataLoaderHeavyExtra:
         df = pd.DataFrame(
             {"BTC": np.random.randn(5) * 0.01, "ETH": np.random.randn(5) * 0.01}, index=idx
         )
-        out = data_loader.validate_returns_dataframe(df, benchmark="BTC")
+        out = data_loader.validate_returns_dataframe(df, benchmark="BTC", stale_run_threshold=0)
         assert out.index.tz is None
         idx2 = pd.date_range("2023-01-01", periods=5, tz="US/Eastern")
         df2 = pd.DataFrame(
             {"BTC": np.random.randn(5) * 0.01, "ETH": np.random.randn(5) * 0.01}, index=idx2
         )
-        out2 = data_loader.validate_returns_dataframe(df2, benchmark="BTC")
+        out2 = data_loader.validate_returns_dataframe(df2, benchmark="BTC", stale_run_threshold=0)
         assert out2.index.tz is None
 
     def test_drop_all_nan_columns(self):
         idx = pd.date_range("2023-01-01", periods=5)
         df = pd.DataFrame({"BTC": [0.01] * 5, "ETH": [0.01] * 5, "DEAD": [np.nan] * 5}, index=idx)
-        out = data_loader.validate_returns_dataframe(df, benchmark="BTC")
+        out = data_loader.validate_returns_dataframe(df, benchmark="BTC", stale_run_threshold=0)
         assert "DEAD" not in out.columns
         # all nan -> error
         df = pd.DataFrame({"A": [np.nan] * 5}, index=idx)
@@ -68,7 +68,7 @@ class TestDataLoaderHeavyExtra:
         # all nan but benchmark
         df = pd.DataFrame({"BTC": [np.nan] * 5, "ETH": [np.nan] * 5}, index=idx)
         with pytest.raises(BABDataError):
-            data_loader.validate_returns_dataframe(df, benchmark="BTC")
+            data_loader.validate_returns_dataframe(df, benchmark="BTC", stale_run_threshold=0)
 
     def test_coerce_numeric_percent_commas_na(self):
         idx = pd.date_range("2023-01-01", periods=4)
@@ -76,7 +76,7 @@ class TestDataLoaderHeavyExtra:
             {"BTC": ["1.0%", "2.0%", "1.2%", "1.5%"], "ETH": ["1,000.50", "500", "750", "250"]},
             index=idx,
         )
-        out = data_loader.validate_returns_dataframe(df)
+        out = data_loader.validate_returns_dataframe(df, max_return_abs=float("inf"))
         assert isinstance(out, pd.DataFrame)
         assert np.isfinite(out.to_numpy()).all()
         # with NA values
@@ -94,7 +94,7 @@ class TestDataLoaderHeavyExtra:
         p = tmp_path / "test.pkl"
         with open(p, "wb") as f:
             pickle.dump(df, f)
-        out = data_loader.load_returns(p, benchmark="BTC")
+        out = data_loader.load_returns(p, benchmark="BTC", stale_run_threshold=0)
         assert "BTC" in out.columns
         # dict form
         p2 = tmp_path / "test2.pkl"
@@ -102,7 +102,7 @@ class TestDataLoaderHeavyExtra:
             pickle.dump({"BTC": df["BTC"].values, "ETH": df["ETH"].values}, f)
         # might need datetime index - but let us see
         with contextlib.suppress(Exception):
-            out2 = data_loader.load_returns(p2, benchmark="BTC")
+            out2 = data_loader.load_returns(p2, benchmark="BTC", stale_run_threshold=0)
         # bad pickle
         p3 = tmp_path / "bad.pkl"
         with open(p3, "wb") as f:
@@ -153,10 +153,10 @@ class TestDataLoaderHeavyExtra:
                     + "\n"
                 )
         with contextlib.suppress(Exception):
-            out = data_loader.load_returns(p, benchmark="BTC")
+            out = data_loader.load_returns(p, benchmark="BTC", stale_run_threshold=0)
         # pq
         with pytest.raises(BABDataError):
-            data_loader.load_returns(tmp_path / "x.pq", benchmark="BTC")
+            data_loader.load_returns(tmp_path / "x.pq", benchmark="BTC", stale_run_threshold=0)
         # bad ext
         with pytest.raises(BABDataError):
             data_loader.load_returns(tmp_path / "x.txt")
@@ -171,13 +171,13 @@ class TestDataLoaderHeavyExtra:
             index=idx,
         )
         # df
-        out = data_loader.load_prices(prices, benchmark="BTC")
+        out = data_loader.load_prices(prices, benchmark="BTC", stale_run_threshold=0)
         assert isinstance(out, pd.DataFrame)
         # csv
         p = tmp_path / "p.csv"
         prices.to_csv(p)
         try:
-            out = data_loader.load_prices(p, benchmark="BTC")
+            out = data_loader.load_prices(p, benchmark="BTC", stale_run_threshold=0)
             assert isinstance(out, pd.DataFrame)
         except Exception:
             pass
@@ -185,7 +185,7 @@ class TestDataLoaderHeavyExtra:
         p = tmp_path / "p.json"
         prices.to_json(p)
         with contextlib.suppress(Exception):
-            out = data_loader.load_prices(p, benchmark="BTC")
+            out = data_loader.load_prices(p, benchmark="BTC", stale_run_threshold=0)
         # bad ext
         with pytest.raises(BABDataError):
             data_loader.load_prices(tmp_path / "bad.xyz")

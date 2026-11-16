@@ -143,7 +143,7 @@ class TestSafeDefaultsAreEnforced:
         df = _frozen_and_live(8)
         df.iloc[2, 0] = 100.0
         out = validate_returns_dataframe(
-            df, benchmark="ETH", quality=True, max_return_abs=200.0
+            df, benchmark="ETH", quality=True, max_return_abs=200.0, stale_run_threshold=0
         )
         assert "BTC" in out.columns
 

@@ -501,6 +501,15 @@ def main(argv=None) -> int:
         print(f"Error parsing arguments: {exc}")
         return 1
 
+    # P17-1: the CLI must enforce the safe data-quality contract by default.
+    # A frozen/implausible/gapped CSV must exit non-zero instead of silently
+    # driving positions. Explicit CLI flags may still opt out.
+    _safe_quality = {
+        "max_return_abs": 20.0,
+        "max_gap_days": 7.0,
+        "stale_run_threshold": 3,
+    }
+
     try:
         universe_arg = getattr(args, "universe", None) if hasattr(args, "universe") else None
         if universe_arg is not None:
@@ -676,14 +685,6 @@ def main(argv=None) -> int:
             print(f"Error validating output path: {exc}")
             return 1
 
-    # P17-1: the CLI must enforce the safe data-quality contract by default.
-    # A frozen/implausible/gapped CSV must exit non-zero instead of silently
-    # driving positions. Explicit CLI flags may still opt out.
-    _safe_quality = {
-        "max_return_abs": 20.0,
-        "max_gap_days": 7.0,
-        "stale_run_threshold": 3,
-    }
     try:
         adapter, fills_path = _build_adapter(args)
 
