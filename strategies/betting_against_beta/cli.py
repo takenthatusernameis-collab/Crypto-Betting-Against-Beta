@@ -120,7 +120,10 @@ def _run_reconciliation(result, config, adapter_fills):
             transaction_costs=float(getattr(config, "transaction_costs", 0.0) or 0.0),
             slippage=float(getattr(config, "slippage", 0.0) or 0.0),
         )
-    return {"costs": costs.to_dict(), "fills": fills_rec.to_dict() if fills_rec else None}
+    return {
+        "costs": costs.to_dict(),
+        "fills": fills_rec.to_dict() if fills_rec else None,
+    }, costs, fills_rec
 
 
 def _print_resolved_config(config: BABConfig) -> None:
@@ -451,6 +454,26 @@ def main(argv=None) -> int:
             help=(
                 "R5-D: after running, emit modeled-vs-executed and fills-vs-backtest "
                 "reconciliation artifacts alongside execution output."
+            ),
+        )
+        parser.add_argument(
+            "--reconcile-tolerance",
+            type=float,
+            default=None,
+            help=(
+                "P18: max absolute modeled-vs-executed cost delta allowed when "
+                "--reconcile is set. Drift strictly above this exits non-zero. "
+                "None (default) = emit the artifact only, no enforcement "
+                "(--reconcile alone stays byte-compatible)."
+            ),
+        )
+        parser.add_argument(
+            "--reconcile-max-mismatch",
+            type=int,
+            default=None,
+            help=(
+                "P18: max allowed mismatch count when --reconcile is set. More "
+                "mismatches than this exits non-zero. None (default) = emit only."
             ),
         )
         parser.add_argument(
@@ -866,8 +889,30 @@ def main(argv=None) -> int:
 
         if getattr(args, "reconcile", False):
             fills_list = (exec_payload or {}).get("fills", [])
-            rec = _run_reconciliation(result, config, fills_list)
+            rec, costs_obj, fills_obj = _run_reconciliation(result, config, fills_list)
             if rec is not None:
+                # P18: enforce the reconciliation drift gate when a tolerance is
+                # supplied. --reconcile alone stays emit-only (byte-compatible).
+                cost_tolerance = getattr(args, "reconcile_tolerance", None)
+                max_mismatch = getattr(args, "reconcile_max_mismatch", None)
+                if cost_tolerance is not None or max_mismatch is not None:
+                    from .reconciliation import evaluate_reconciliation_gate
+
+                    gate = evaluate_reconciliation_gate(
+                        costs_obj,
+                        fills_obj,
+                        cost_tolerance=cost_tolerance,
+                        equity_tolerance=None,
+                        mismatch_tolerance=max_mismatch,
+                    )
+                    if not gate["ok"]:
+                        print("Reconciliation drift gate breached:")
+                        for v in gate["violations"]:
+                            print(
+                                f"  {v['source']}.{v['check']}: "
+                                f"actual={v['actual']} tolerance={v['tolerance']}"
+                            )
+                        return 2
                 try:
                     rec_json = json.dumps(
                         _json_safe(rec), indent=2, default=_json_default, allow_nan=False

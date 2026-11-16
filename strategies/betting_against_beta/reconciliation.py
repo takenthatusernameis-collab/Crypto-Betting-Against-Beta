@@ -424,3 +424,89 @@ def reconcile_fills_to_backtest(
         aggregate=aggregate,
         checksum=_checksum(payload),
     )
+
+
+def evaluate_reconciliation_gate(
+    costs_rec: ReconciliationResult | dict | None = None,
+    fills_rec: ReconciliationResult | dict | None = None,
+    *,
+    cost_tolerance: float | None = None,
+    equity_tolerance: float | None = None,
+    mismatch_tolerance: int | None = None,
+) -> dict:
+    """Strict-JSON-safe reconciliation drift gate (P18-1).
+
+    Compares aggregate drift from :func:`reconcile_costs` (cost) and
+    :func:`reconcile_fills_to_backtest` (equity) against the supplied
+    tolerances and returns ``{"ok": bool, "violations": [...]}``.
+
+    A tolerance of ``None`` means that check is not enforced. A breach is
+    recorded when the observed value is *strictly greater* than the tolerance,
+    so drift exactly at tolerance passes and drift just above fails.
+
+    Never raises on clean input and never mutates the input artifacts. The
+    returned payload is strict-JSON-safe (finite floats, ints, strs, bools,
+    lists and dicts only).
+    """
+    violations: list[dict] = []
+
+    def _aggregate(rec):
+        if rec is None:
+            return None
+        aggregate = getattr(rec, "aggregate", None)
+        if aggregate is None and isinstance(rec, dict):
+            aggregate = rec.get("aggregate")
+        return aggregate if isinstance(aggregate, dict) else None
+
+    costs_agg = _aggregate(costs_rec)
+    fills_agg = _aggregate(fills_rec)
+
+    if costs_agg is not None:
+        if cost_tolerance is not None:
+            delta_max_abs = float(costs_agg.get("delta_max_abs", 0.0) or 0.0)
+            if delta_max_abs > float(cost_tolerance):
+                violations.append(
+                    {
+                        "check": "delta_max_abs",
+                        "source": "costs",
+                        "actual": delta_max_abs,
+                        "tolerance": float(cost_tolerance),
+                    }
+                )
+        if mismatch_tolerance is not None:
+            n_mismatches = int(costs_agg.get("n_mismatches", 0) or 0)
+            if n_mismatches > int(mismatch_tolerance):
+                violations.append(
+                    {
+                        "check": "n_mismatches",
+                        "source": "costs",
+                        "actual": float(n_mismatches),
+                        "tolerance": float(mismatch_tolerance),
+                    }
+                )
+
+    if fills_agg is not None:
+        if equity_tolerance is not None:
+            max_delta_abs = float(fills_agg.get("max_delta_abs", 0.0) or 0.0)
+            if max_delta_abs > float(equity_tolerance):
+                violations.append(
+                    {
+                        "check": "max_delta_abs",
+                        "source": "fills",
+                        "actual": max_delta_abs,
+                        "tolerance": float(equity_tolerance),
+                    }
+                )
+        if mismatch_tolerance is not None:
+            n_mismatches = int(fills_agg.get("n_mismatches", 0) or 0)
+            if n_mismatches > int(mismatch_tolerance):
+                violations.append(
+                    {
+                        "check": "n_mismatches",
+                        "source": "fills",
+                        "actual": float(n_mismatches),
+                        "tolerance": float(mismatch_tolerance),
+                    }
+                )
+
+    return _sanitize({"ok": len(violations) == 0, "violations": violations})
