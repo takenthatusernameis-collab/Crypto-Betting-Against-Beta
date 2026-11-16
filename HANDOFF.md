@@ -2,14 +2,14 @@
 
 **Canonical durable handoff (single source of truth).** Do not create parallel handoff/session docs; update this file only. `AGENT_HANDOFF.md` is a pure pointer and must not carry a second task message. Any other `*HANDOFF*.md` is stale and must be deleted on sight.
 
-- **Timestamp (UTC):** 2026-11-16T22:02:47Z (this refresh)
+- **Timestamp (UTC):** 2026-11-16T22:11:15Z (this refresh)
 - **Repo identity:** `Crypto-Betting-Against-Beta` — a **crypto market-neutral trading system** (ingest → beta → signals → portfolio → backtest → execution → ops) implementing the Frazzini–Pedersen *Betting Against Beta* strategy. Highest-stakes paths, in order: **(1) what real orders are placed, (2) whether live fills still match the model, (3) whether the real-data ingest accepts only data fit to trade on.**
 - **Git state (at refresh):** HEAD `3a0a789` == `origin/main` `3a0a789` (verified 19:43Z). Working tree clean at refresh.
 - **Last verified gates (2026-11-16T22:02:47Z):** `python3 -m ruff check .` clean; `bash scripts/bab_reconcile_gate.sh` GREEN (drift rc=2, clean rc=0, emit-only rc=0); `bash scripts/bab_gate.sh` GREEN → **6267 passed, 35 skipped, TOTAL 99% (84 missed / 6710)**. No new line coverage closed this session (attempted targeted tests removed due API mismatches); P19-3 remains binding.
 
 ---
 
-## INITIAL TASK MESSAGE (START HERE, 2026-11-16T22:02:47Z) — BINDING
+## INITIAL TASK MESSAGE (START HERE, 2026-11-16T22:11:15Z) — BINDING
 
 **EXECUTE P19-3 NOW. SHIP CODE/TESTS THIS SESSION. NO HANDOFF-ONLY PASS. NO CI WORKFLOW PUSH ATTEMPTS.**
 
