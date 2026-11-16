@@ -15,7 +15,6 @@ import pandas as pd
 import pytest
 
 from strategies.betting_against_beta.beta import (
-    BABDataError,
     calculate_beta,
     calculate_beta_fast,
     calculate_rolling_beta,
@@ -23,25 +22,25 @@ from strategies.betting_against_beta.beta import (
 from strategies.betting_against_beta.cli import main
 from strategies.betting_against_beta.data_loader import load_prices, load_returns
 from strategies.betting_against_beta.data_sources import validate_freshness
+from strategies.betting_against_beta.errors import BABDataError
 from strategies.betting_against_beta.execution import (
     LiveExecutionAdapter,
     OrderBatch,
     OrderIntent,
     _sanitize_for_json,
 )
-from strategies.betting_against_beta.metrics import mean_turnover
-from strategies.betting_against_beta.portfolio import construct_portfolio
+from strategies.betting_against_beta.metrics import turnover
+from strategies.betting_against_beta.portfolio import BABPortfolioError, construct_portfolio
 from strategies.betting_against_beta.reconciliation import (
-    _reconcile_costs,
     evaluate_reconciliation_gate,
+    reconcile_costs,
 )
-from strategies.betting_against_beta.replay import ReplayEngine
+from strategies.betting_against_beta.replay import ReplayHarness
 from strategies.betting_against_beta.signals import (
     _finite_beta_series,
     _reference_generate_bab_signals,
     generate_bab_signals,
 )
-from strategies.betting_against_beta.errors import BABPortfolioError
 
 
 # ---------------------------------------------------------------------------
@@ -69,13 +68,13 @@ class TestSignalsLine75EmptyCleanReference:
 # metrics.py  --  line 94
 # ---------------------------------------------------------------------------
 class TestMetricsLine94AllNaNAverage:
-    def test_mean_turnover_all_nan_changes_returns_zero(self):
+    def test_turnover_all_nan_changes_returns_zero(self):
         # line 94: pd.isna(turnover_mean) -> return 0.0
         df = pd.DataFrame(
             {"A": [np.nan, np.nan], "B": [np.nan, np.nan]},
             index=pd.date_range("2024-01-01", periods=2),
         )
-        assert mean_turnover(df) == 0.0
+        assert turnover(df) == 0.0
 
 
 # ---------------------------------------------------------------------------
@@ -84,16 +83,29 @@ class TestMetricsLine94AllNaNAverage:
 class TestReplayLine172ShapeMismatchResize:
     def test_replay_row_width_mismatch_resize(self):
         # line 172: w_arr.shape[0] != n_cols -> np.resize
+        from strategies.betting_against_beta.strategy import BABConfig, BABResult
+
         idx = pd.date_range("2024-01-01", periods=3)
-        prices = pd.DataFrame(
-            {"A": [1.0, 2.0, 3.0], "B": [4.0, 5.0, 6.0]}, index=idx
-        )
+        # weights has 2 columns, but we'll create a result where n_cols=3
         weights = pd.DataFrame(
             {"A": [0.5, 0.5], "B": [0.5, 0.5]},
             index=idx[:2],
         )
-        eng = ReplayEngine(prices=prices)
-        result = eng.run(weights)
+        prices = pd.DataFrame(
+            {"A": [1.0, 2.0, 3.0], "B": [4.0, 5.0, 6.0], "C": [7.0, 8.0, 9.0]},
+            index=idx,
+        )
+        cfg = BABConfig()
+        result = BABResult(
+            config=cfg,
+            returns=pd.DataFrame({"A": [0.01, 0.02], "B": [0.02, 0.03]}, index=idx[:2]),
+            betas=pd.DataFrame({"A": [0.5, 0.6], "B": [1.5, 1.6]}, index=idx[:2]),
+            signals=pd.DataFrame({"A": [1, -1], "B": [-1, 1]}, index=idx[:2]),
+            weights=weights,
+            backtest=pd.DataFrame({"A": [0.0, 0.0]}, index=idx[:2]),
+        )
+        eng = ReplayHarness(result=result, prices_df=prices)
+        result = eng.replay()
         assert result is not None
 
 
@@ -418,6 +430,65 @@ class TestDataLoaderLines27622763:
 
 
 # ---------------------------------------------------------------------------
+# data_loader.py  --  lines 718-719 (except pass in promotion fallback)
+# ---------------------------------------------------------------------------
+class TestDataLoaderLines718719PromotionFallbackExcept:
+    def test_load_prices_promotion_fallback_except_silent(self, tmp_path):
+        # lines 718-719: except Exception: pass in promotion fallback
+        csv = tmp_path / "p_fallback.csv"
+        csv.write_text("date,BTC,ETH\n2024-01-01,50000,4000\n")
+        df = load_prices(str(csv), benchmark="BTC")
+        assert df is not None
+
+
+# ---------------------------------------------------------------------------
+# data_loader.py  --  lines 837-838 (except pass in column promotion)
+# ---------------------------------------------------------------------------
+class TestDataLoaderLines837838ColumnPromotionExcept:
+    def test_load_returns_column_promotion_except_silent(self, tmp_path):
+        # lines 837-838: except Exception: pass in column promotion
+        csv = tmp_path / "r_promo.csv"
+        csv.write_text("date,BTC,ETH\n2024-01-01,0.01,0.02\n")
+        df = load_returns(str(csv), benchmark="BTC")
+        assert df is not None
+
+
+# ---------------------------------------------------------------------------
+# data_loader.py  --  line 1615 (finite_all = np.isfinite(arr2))
+# ---------------------------------------------------------------------------
+class TestDataLoaderLine1615FiniteAllAssignment:
+    def test_load_prices_finite_all_computed(self, tmp_path):
+        # line 1615: finite_all = np.isfinite(arr2) when finite_all is None
+        csv = tmp_path / "p_finite.csv"
+        csv.write_text("date,BTC,ETH\n2024-01-01,50000,4000\n2024-01-02,51000,4100\n")
+        df = load_prices(str(csv), benchmark="BTC", min_finite_fraction=0.0)
+        assert df is not None
+
+
+# ---------------------------------------------------------------------------
+# data_loader.py  --  lines 1676-1681 (stale run detection raises)
+# ---------------------------------------------------------------------------
+class TestDataLoaderLines16761681StaleRunRaises:
+    def test_load_prices_stale_run_threshold_raises(self, tmp_path):
+        # lines 1676-1681: stale run >= threshold -> BABDataError
+        csv = tmp_path / "p_stale.csv"
+        # Create data with 5 consecutive equal values (frozen/stale)
+        csv.write_text(
+            "date,BTC,ETH\n"
+            "2024-01-01,50000,4000\n"
+            "2024-01-02,50000,4000\n"
+            "2024-01-03,50000,4000\n"
+            "2024-01-04,50000,4000\n"
+            "2024-01-05,50000,4000\n"
+            "2024-01-06,51000,4100\n"
+        )
+        with pytest.raises(BABDataError, match="Stale/frozen data detected"):
+            load_prices(
+                str(csv), benchmark="BTC", min_finite_fraction=0.0, stale_run_threshold=5
+            )
+
+
+# ---------------------------------------------------------------------------
 # data_sources.py  --  lines 480-481, 499-500, 507-508
 # ---------------------------------------------------------------------------
 class TestDataSourcesLine480481DatetimeIndexCheck:
@@ -465,7 +536,7 @@ class TestReconciliationLines8283ImportError:
 class TestReconciliationLine309EmptyDataFrame:
     def test_evaluate_reconciliation_empty_returns_frame(self):
         # line 309: r_sub = pd.DataFrame(index=idx, columns=cols) empty path
-        result = _reconcile_costs(
+        result = reconcile_costs(
             returns=pd.DataFrame(),
             weights=pd.DataFrame(),
             fills=[],
