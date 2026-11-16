@@ -2,13 +2,13 @@
 
 **Canonical durable handoff (single source of truth).** Do not create parallel handoff/session docs; update this file only. `AGENT_HANDOFF.md` is a pure pointer and must not carry a second task message. Any other `*HANDOFF*.md` is stale and must be deleted on sight.
 
-- **Timestamp (UTC):** 2026-11-16T13:29:57Z (this refresh)
+- **Timestamp (UTC):** 2026-11-16T13:39:10Z (this refresh)
 - **Repo identity:** `Crypto-Betting-Against-Beta` — a **crypto market-neutral trading system** (ingest → beta → signals → portfolio → backtest → execution → ops) implementing the Frazzini–Pedersen *Betting Against Beta* strategy. Highest-stakes paths, in order: **(1) what real orders are placed, (2) whether live fills still match the model, (3) whether the real-data ingest accepts only data fit to trade on.**
 - **Git state:** local HEAD `3707ee5` == `origin/main` `3707ee5` (sync verified via `git ls-remote origin refs/heads/main`). Working tree clean **except** an unstaged modification to `.github/workflows/main.yml` whose content is byte-identical to commit `de9eeac` (the P19-1 `bab-gate` job). Commit `de9eeac` `ci: ship P19-1 bab-gate enforcement job (ruff + suite + coverage floor + reconcile gate)` exists locally on branch `kilo-recovery-session-105` (pre-recovery HEAD `2b72ed8` also preserved there) and is **NOT on `origin/main`**. Recovery bundle at `/tmp/kilo-recovery-session-105.bundle`. All local hard gates GREEN (ruff clean, reconcile GREEN, gate 6215/35/99%, gate RED @99.5% fail-closed proven).
 
 ---
 
-## INITIAL TASK MESSAGE (START HERE, 2026-11-16T13:29:57Z) — BINDING (DO NOT IGNORE)
+## INITIAL TASK MESSAGE (START HERE, 2026-11-16T13:39:10Z) — BINDING (DO NOT IGNORE)
 
 **P19-1 — CI ENFORCEMENT COMMITTED LOCALLY, PUSH BLOCKED BY GH `workflows` PERMISSION — UNBLOCK THIS FIRST. DO NOT START P19-2.**
 
