@@ -2,78 +2,62 @@
 
 **Canonical durable handoff (single source of truth).** Do not create parallel handoff/session docs; update this file only. `AGENT_HANDOFF.md` is a pointer to this file and must not carry a parallel task message.
 
-- **Timestamp (UTC):** 2026-11-16T00:55:30Z (this refresh)
-- **Repo:** `Crypto-Betting-Against-Beta` — a **crypto market-neutral trading system** (data ingestion → beta → signals → portfolio → backtest → execution → ops) implementing the Frazzini–Pedersen *Betting Against Beta* strategy.
-- **Git HEAD (verified this refresh):** `65fe0d3` (`chore(kilo): checkpoint agent session`)
-- **Working tree at refresh:** clean (`git status` clean vs `origin/main`); `python3 -m ruff check .` → `All checks passed!`
-- **Gate evidence (last live-verified 2026-11-16T00:09:32Z at HEAD `65fe0d3`, not rerun this refresh):** `bash scripts/bab_gate.sh` → **GREEN**: 6,140 passed, 35 skipped in **132.94s** (parallel, xdist loadscope, coverage core=sysmon); TOTAL **99%** (6,630 statements, 91 missed). Floor `BAB_GATE_MIN_COVERAGE=98.5` would pass. Re-run `bash scripts/bab_gate.sh` before/after any code change and trust live output over this note.
+- **Timestamp (UTC):** 2026-11-16T01:00:30Z (this refresh)
+- **Repo identity:** `Crypto-Betting-Against-Beta` — a **crypto market-neutral trading system** (ingest → beta → signals → portfolio → backtest → execution → ops) implementing the Frazzini–Pedersen *Betting Against Beta* strategy. The highest-stakes code is the **data-quality contract** that decides whether frozen, gapped, or implausible market data reaches beta estimation → portfolio construction → execution.
+- **Git HEAD (verified this refresh):** `99a841b` (`chore(kilo): checkpoint agent session`); working tree clean; `python3 -m ruff check .` → `All checks passed!`
+- **Gate evidence (live-verified this refresh 2026-11-16T01:00Z at HEAD `99a841b`):** `bash scripts/bab_gate.sh` → **GREEN**: **6,153 passed, 35 skipped in 132.01s**, TOTAL **99%** (6,643 statements, 91 missed). Re-run the gate after every change and trust live output over this note.
 - **Toolchain:** `python3 3.12.3`; `ruff 0.17.5`; numpy/pandas/scipy/pytest/hypothesis/coverage/pytest-cov/pytest-xdist/ccxt via `bash scripts/bab_bootstrap.sh` (auto-invoked by quick/gate).
 
-## INITIAL TASK MESSAGE (START HERE, 2026-11-16T00:55:30Z) — BINDING (DO NOT IGNORE)
+## INITIAL TASK MESSAGE (START HERE, 2026-11-16T01:00:30Z) — BINDING (DO NOT IGNORE)
 
-**Campaign P16 — Trading-Critical Correctness & Safety Hardening. This is the next session's sole focus and the only authorized starting point. Start at P16-3 immediately. Do NOT restart P16-1/P16-2, re-triage the A/B/C map, create parallel handoff docs, or spend the session on analysis/handoff-only work.**
+**Campaign P17 — Make the data-quality gate safe-by-default in the actual trading pipeline. This is the next session's sole focus and the only authorized starting point. Start at P17-1 immediately.**
 
-Priority rationale (derived from the repo's identity): this is a **crypto trading system**, not a coverage exercise. The data-quality gate decides whether frozen, gapped, or implausible market data reaches beta estimation → portfolio construction → execution. That makes the quality contract the highest-stakes code in the repo. **Line-coverage percentages are a trailing metric, not the goal.** Ship real production fixes with proof tests every session. **Analysis-only, handoff-only, formatting-only, and coverage-chasing turns are failed sessions.**
+Do **NOT**: restart P16/P17-1/P17-2 already-done work, re-triage the coverage map, create a parallel handoff doc, or spend the session on analysis/handoff/formatting/coverage-only work. **Analysis-only, handoff-only, formatting-only, and coverage-chasing turns are failed sessions.** Ship real production fixes with proof tests.
 
-### P16-3 (highest priority — execute first) — honor quality-safety thresholds, safety-first
+**Why this campaign (priority derived from repo identity):** this is a trading system, not a coverage exercise. A wrong/lax data-quality gate lets frozen or corrupt market data silently drive real positions. P16 fixed the *plumbing* (explicit `stale_run_threshold` no longer floored at 50; dict `quality` now parsed; `BABDataError` propagates from beta). **But the default safety posture is still unsafe and — critically — the actual trading entrypoints bypass the quality campaign entirely.** That is the live bottleneck.
 
-The data-quality contract is currently **unsafe and self-contradictory**. Live-verified at HEAD `65fe0d3` (reproduce with the two probes below before editing):
+### Live-verified current state (reproduce before editing)
 
-- **Doc/impl contradiction.** `validate_returns_dataframe` docstring (`data_loader.py:1697-1719`) promises defaults `stale_run_threshold=3`, `max_gap_days=7.0`, `max_return_abs=20.0`. The implementation (`data_loader.py:1536-1541`) uses `10_000.0`, `3650.0`, `50` ("very lenient").
-- **Explicit thresholds are ignored.** Both quality paths clamp the allowance with `max_allowed_stale = max(int(stale_run_threshold), 50)` — fast path `data_loader.py:1622-1636`, slow path `data_loader.py:1656-1668`. An explicit `stale_run_threshold=3` therefore **cannot** reject a 4–49 equal-value run.
-- **Dict `quality` is silently dropped (worse than a type error).** `quality` is typed `bool` (`data_loader.py:1679`) and dispatched by truthiness only (`data_loader.py:1895`). **There is no dict parsing anywhere in the module.** Six tests already pass `quality={"stale_run_threshold": 3}` / `{"max_gap_days": 2}` / `{"allow_duplicate_timestamps": ...}` (all in `tests/test_bab_data_loader_coverage_gaps.py`, lines 5402, 5719, 5727, 5738), and those tests wrap the call in `contextlib.suppress(BABDataError)` / `try/except pass` — they **pass trivially whether or not the dict is honored**. Caller intent is lost silently.
+- Explicit thresholds now honored: `stale_run_threshold=3` rejects a 4–49 equal-value run; dict `{"stale_run_threshold": 3}` is parsed. ✅ (P16 done)
+- **Default `quality=True` is still "very lenient":** `_run_data_quality_campaign` (`data_loader.py:1536-1541`) uses `max_return_abs=10_000.0`, `max_gap_days=3650.0`, `stale_run_threshold=50`. A 100% (10,000%) single-period return and an 8-day frozen run **pass silently** by default. The `validate_returns_dataframe` docstring was *updated to match* the lenient behavior (data_loader.py:1715-1731), so docs and impl no longer contradict — but the defaults are still unsafe for production. ⚠️
+- **The real pipeline never passes strict thresholds.** `BABStrategy._load_returns` (`strategy.py:236-246`) and the CLI (`cli.py:633-637`, `cli.py:710-714`) call `load_returns`/`load_prices` with **no** quality thresholds, so every real run inherits the lenient defaults. ⚠️ (open bottleneck)
+- **`load_prices` hardcodes `quality=False`** on both its load and final validation (`data_loader.py:2391, 2412, 2433`), so the price→returns path runs **no quality campaign at all** — gaps, frozen prices, and absurd returns reach the strategy unchecked. ⚠️ (open bottleneck)
 
-**Reproduce (run from repo root):**
+### P17-1 (execute first) — strict, explicit safety defaults + wire them through the real pipeline
 
-```bash
-python3 - <<'EOF'
-import pandas as pd
-from strategies.betting_against_beta import data_loader as dl
-idx = pd.date_range("2020-01-01", periods=8, freq="D")
-df = pd.DataFrame({"BTC":[0.01]*8, "ETH":[0.02,0.03,0.04,0.05,0.06,0.07,0.08,0.09]}, index=idx)
-for label, kw in [
-    ("explicit threshold=3 (direct)", dict(quality=True, stale_run_threshold=3)),
-    ("dict quality threshold=3",      dict(quality={"stale_run_threshold": 3})),
-]:
-    try:
-        dl.validate_returns_dataframe(df.copy(), benchmark="ETH", **kw)
-        print(f"{label}: NO RAISE  <-- BUG (8-long frozen BTC run not rejected)")
-    except Exception as e:
-        print(f"{label}: rejected {type(e).__name__}")
-EOF
-```
+1. **Characterization tests first (must FAIL on HEAD, pass after fix).** Add to `tests/test_bab_quality_threshold_contract.py` (or a new `tests/test_bab_pipeline_safety_contract.py`):
+   - default `quality=True` **rejects** a 100% return (`df.iloc[2,0]=100.0`) with `BABDataError` match `Implausible return`;
+   - default `quality=True` **rejects** a >7-day gap;
+   - `BABStrategy(returns_df=frozen_df).run()` raises `BABDataError` (frozen column) — proving the pipeline actually enforces the gate;
+   - CLI dry-run with a frozen/implausible CSV exits non-zero.
+   Run them and record the RED failures in the ledger. A test that cannot fail is worse than no test.
+2. **Reconcile defaults to the safe contract.** In `_run_data_quality_campaign` (data_loader.py:1536-1541) change `None` defaults to `max_return_abs=20.0`, `max_gap_days=7.0`, `stale_run_threshold=3`. Update the docstring (data_loader.py:1715-1731) and the inline comments that justify the old lenient `10000/3650/50`. Keep `quality=False` as the explicit opt-out and keep threshold `0` disabling the stale check.
+3. **Stop bypassing the gate in the real pipeline.** Thread explicit, safe thresholds through `BABStrategy._load_returns` and the CLI loaders so `run()` and `--from-prices`/`--data` actually enforce them (pass a strict `quality` dict or explicit kwargs from config/CLI defaults). Make `load_prices` validate its converted returns with the quality campaign **on** (not `quality=False`), using safe defaults, unless the caller explicitly opts out.
+4. **Fix the tests that encode the old lax contract, not the fix.** Search and update every caller/test that assumes 10000/3650/50: `tests/test_bab_quality_threshold_contract.py` (`TestLenientDefaultsAreHonored` currently *asserts* the lax behavior — invert it), the robustness/stress suites that feed degenerate constant columns, and `tests/test_validation_performance.py` oracle (`_oracle_quality`). A test that masks the fix is a defect.
+5. **No undocumented escape hatch.** Do not re-add a lenient default or a `max(...,50)` floor. If full-gate compatibility coupling is unavoidable, keep the stricter behavior, document the migration, and put any compatibility switch behind an explicit opt-in kwarg.
+6. **Proof obligation:** for *each* changed guard (return/gap/stale default + pipeline wiring + `load_prices` gate), record one test that is RED on HEAD and GREEN after, with exact commands/results in the ledger.
 
-**Fix, in this order:**
+### P17-2 — convert remaining reachable bucket-B edges into targeted behavior tests
 
-1. **Characterization tests first.** Add tests that pin *current* behavior for: (a) a 10000% return, (b) a 100-day gap, (c) a 4–49 equal-value run with explicit `stale_run_threshold=3`, (d) the fast numeric path, (e) `quality` passed as a dict. These must fail on HEAD for the cases you are about to fix and pass after. Replace the `contextlib.suppress`/`try: ... except: pass` wrappers in `tests/test_bab_data_loader_coverage_gaps.py:5708-5739` with real assertions — a test that cannot fail is worse than no test.
-2. **Remove the 50-run floor.** Delete `max(int(stale_run_threshold), 50)` in both paths (`data_loader.py:1623`, `:1662`) so an explicit threshold is honored. Keep the `finite_count >= threshold` / `int(stale_run_threshold) > 0` guards intact (threshold `0` still disables).
-3. **Reconcile defaults with the docstring.** When `quality` is truthy and a threshold arg is `None`, use the documented safe defaults (`max_return_abs=20.0`, `max_gap_days=7.0`, `stale_run_threshold=3`) instead of `10000/3650/50`. Update the inline comments at `data_loader.py:1848-1854` that justify the lenient `10000` threshold — that justification is now wrong.
-4. **Parse dict `quality`.** Accept `quality` as `bool | dict`. When it is a dict, treat it as per-call overrides merged under the explicit kwargs (`{max_return_abs, max_gap_days, stale_run_threshold, min_finite_fraction, allow_duplicate_timestamps}`), with explicit function kwargs taking precedence. Preserve `quality=False` as the explicit opt-out. `quality=True` must not silently disable the documented guards.
-5. **Treat old-contract tests as regressions to update, not contracts to preserve.** Search every caller/test before flipping defaults: `validate_returns_dataframe`, `_run_data_quality_campaign`, the real-data loaders (`load_returns*`, `load_prices*`), backtests, and the performance oracles in `tests/test_validation_performance.py` (`_oracle_quality` at lines 54-97 and the `stale_run_threshold=50` references) — those must be updated to the new semantics or they will mask the fix.
-6. **No undocumented global escape hatch.** If the full gate exposes unavoidable compatibility coupling, keep the stricter behavior, document the deliberate migration, and isolate any compatibility switch behind an explicit opt-in kwarg. Do **not** re-add a lenient default or a `max(...,50)` floor.
-7. **Proof obligation:** one test that fails on HEAD and passes after the fix, for *each* changed guard (defaults, 50-run floor, dict parsing). Record exact commands/results in the ledger below.
+Only after P17-1. Use fakes/mocks; add behavior assertions, not smoke tests; rerun the full gate per batch. The 91 missed statements are a checklist, not the goal:
 
-### P16-4 — convert remaining reachable bucket-B edges into targeted behavior tests
-
-Use fakes/mocks only; batch by module and rerun the full gate after each batch. Add behavior assertions, not coverage-only smoke tests. If an edge is now unreachable, prove it and move it to bucket C. These are the 91 statements the 2026-11-16T00:00:00Z refresh catalogued — useful as a checklist, but **only after P16-3 correctness work**:
-
-- `execution.py:139-141` Timestamp-key fallback with a string `date_key`; `execution.py:182-185` Timestamp-indexed ADV sub-frame; `execution.py:555-556` non-finite numpy float JSON sanitization with `allow_nan=False`.
-- `portfolio.py:152-153` extreme-weight clipping; `portfolio.py:170-177` dollar-neutral `need_fix` renormalization under one-sided underflow.
-- `cli.py:589-590` unknown adapter; `cli.py:746-748` invalid output path.
+- `execution.py:139-141` Timestamp-key fallback; `182-185` Timestamp-indexed ADV; `555-556` non-finite numpy float JSON sanitize (`allow_nan=False`).
+- `portfolio.py:152-153` extreme-weight clipping; `170-177` dollar-neutral `need_fix` renorm under one-sided underflow.
+- `cli.py:589-590` unknown adapter; `746-748` invalid output path.
 - `reconciliation.py:309` empty-column early return.
 - `data_sources.py:480-481, 499-500, 507-508` timezone/format edges.
-- `data_loader.py` (37 lines) mixed-dtype slow path, finite-fraction boundary, stale-run boundary, adversarial datetime dayfirst retry/error wrap, multi-source fallback chains (280-292, 666-667, 718-719), empty/malformed CSV (422-423, 837-838), batch fetch error paths (1355, 1609, 1644-1670, 1916-1917, 2711-2712).
+- `data_loader.py` (37 lines) mixed-dtype slow path, finite-fraction boundary, stale-run boundary, datetime dayfirst retry/error wrap, multi-source fallback chains (280-292, 666-667, 718-719), empty/malformed CSV (422-423, 837-838), batch fetch error paths.
 - `signals.py:37` object dtype after numeric coercion.
 
-### P16-5 — delete or justify bucket-C dead branches
+### P17-3 — delete or justify bucket-C dead branches
 
-Do not add tests to "buy" coverage. Candidates: `beta.py` 125, 163, 170-171, 189, 435-436, 552-556; `execution.py:1287-1288`; `portfolio.py:180`; `metrics.py:94`; `signals.py:75`; `reconciliation.py:82-83`; `replay.py:172`; `cli.py:803-804`. Delete only with a concrete unreachability proof in the test/commit rationale; otherwise leave and document why it is defensive/dead. Never delete reachable safety behavior.
+Do not add tests to "buy" coverage. Candidates: `beta.py` 125, 163, 170-171, 189, 435-436, 552-556; `execution.py:1287-1288`; `portfolio.py:180`; `metrics.py:94`; `signals.py:75`; `reconciliation.py:82-83`; `replay.py:172`; `cli.py:803-804`. Delete only with a concrete unreachability proof in the commit/test rationale; otherwise document why defensive. **Never delete reachable safety behavior.**
 
-### P16-6 — prove performance, then continue to the next real defect
+### P17-4 — prove performance, then continue to the next real defect
 
 Run `python3 scripts/perf_baseline.py --check` (rerun once if noisy), record exact metrics, refresh this file with timestamp/HEAD/tree/ledger/coverage evidence, then immediately start the next real correctness or safety defect. **Never stop at "campaign complete."**
 
-### Hard gates every session (run from repo root, in order)
+### Hard gates every session (repo root, in order)
 
 ```bash
 python3 -m ruff check .                 # must pass
@@ -83,27 +67,26 @@ BAB_GATE_MIN_COVERAGE=98.5 bash scripts/bab_gate.sh   # P14 release floor must h
 
 ### Non-goals (do not pursue)
 
-- ❌ Adding type annotations (ANN rules excluded by policy).
-- ❌ Refactoring defensive try/except patterns (BLE/TRY rules excluded).
+- ❌ Adding type annotations (ANN excluded by policy).
+- ❌ Refactoring defensive try/except patterns (BLE/TRY excluded).
 - ❌ Lowering the coverage floor — add tests, don't lower the bar.
-- ❌ Coverage-against-dead-lines turns that substitute for correctness work (see P16-5).
+- ❌ Coverage-against-dead-lines turns substituting for correctness work (see P17-3).
 
 ### Bottleneck removal status
 
 - ✅ Gate runs parallel by default (`-n $(nproc) --dist loadscope`, coverage core=sysmon) — ~2.2 min vs ~16 min serial; verified this refresh.
 - ✅ `scripts/bab_bootstrap.sh` auto-installs missing deps — no manual setup.
 - ✅ No flaky tests; the 35 skipped are explicit `pytest.mark.skip` (known gaps).
-- ✅ Stale-pointer bottleneck removed: `AGENT_HANDOFF.md` is now a pure pointer to this file; the previous session's pointer referenced a P16 campaign body that no longer existed — a future agent would have chased a dead reference.
-- ⚠️ Open bottleneck being fixed by P16-3: the quality gate cannot honor explicit thresholds (50-run floor) or dict overrides — i.e., safety configuration is silently inert in production paths.
+- ✅ P16 correctness plumbing done: explicit thresholds honored, dict `quality` parsed, `BABDataError` propagates from beta; ruff clean; gate GREEN at `99a841b`.
+- ⚠️ **Open bottleneck (P17-1 fixes it):** the quality gate is strict only when a caller explicitly opts in; `BABStrategy`/CLI pass no thresholds and `load_prices` hardcodes `quality=False` — so **production runs enforce no implausible-return / gap / frozen-data guard**. This is the single most dangerous remaining gap in the repo.
+- ⚠️ Stale-handoff bottleneck removed: this refresh re-stamped HEAD/`gate` evidence (previous file cited HEAD `65fe0d3` and a 00:09:32Z gate that no longer matched `99a841b`); a future agent would have chased a dead baseline.
 
 ### Session ledger (append one line per session; keep it honest)
 
 | Session (UTC) | HEAD | Did | Gate |
 |---|---|---|---|
-| 2026-11-16T00:55:30Z | 65fe0d3 | Handoff refresh: confirmed single durable handoff (`HANDOFF.md`) + pointer, working tree clean, `ruff` clean; re-stamped binding P16-3 initial task (no parallel docs, no re-triage). Did not rerun full gate (last live GREEN 2026-11-16T00:09:32Z, 6,140 passed / 35 skipped / 132.94s / 99%). | last GREEN @00:09:32Z |
-| 2026-11-16T00:09:32Z | 65fe0d3 | Handoff refresh: verified gate GREEN (6,140 passed / 35 skipped / 132.94s / 99%); updated timestamp/evidence; P16-3 remains binding initial task | GREEN |
-| 2026-11-16T00:08:54Z | 65fe0d3 | Handoff consolidation: restored P16 correctness-first campaign as the binding initial task message; re-verified gate GREEN live (6,140 passed / 35 skipped / 132.68s / 99%); fixed stale pointer | GREEN |
+| 2026-11-16T01:00:30Z | 99a841b | Handoff refresh: live-verified `ruff` clean + gate GREEN (6,153 passed / 35 skipped / 132.01s / 99%) at HEAD `99a841b`; confirmed P16-3 landed (explicit thresholds + dict parsing) and that lenient defaults + un-wired pipeline/`load_prices quality=False` remain; restamped binding campaign **P17** (safe-by-default quality gate wired through strategy/CLI). No code change this turn. | GREEN @01:00:30Z |
 
 ---
 
-**Next agent**: Start with P16-3, step 1 — write the five characterization tests and run the two-line repro probe above. Confirm the bug reproduces, then fix in order (floor → defaults → dict parsing). After each fix, rerun `bash scripts/bab_gate.sh` and keep it GREEN. Then proceed to P16-4. Record your session line in the ledger before finishing.
+**Next agent**: Start with P17-1, step 1 — write the RED characterization tests and confirm they fail on HEAD (`99a841b`). Then fix in order (safe defaults → wire through `BABStrategy`/CLI/`load_prices` → update lax-contract tests). Rerun `bash scripts/bab_gate.sh` after each fix and keep it GREEN. Then proceed to P17-2. Record your session line in the ledger before finishing.
