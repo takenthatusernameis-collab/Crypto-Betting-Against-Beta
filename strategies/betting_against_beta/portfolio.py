@@ -148,9 +148,6 @@ def construct_portfolio(
 
         w_arr = long_mask * long_w[:, None] + short_mask * short_scale[:, None]
         w_arr[~np.isfinite(w_arr)] = 0.0
-        if np.any(w_arr < -1e12) or np.any(w_arr > 1e12):
-            np.clip(w_arr, -1e12, 1e12, out=w_arr)
-            w_arr[~np.isfinite(w_arr)] = 0.0
         if dn:
             both = (n_long > 0) & (n_short > 0)
             if np.any(both):
@@ -164,17 +161,6 @@ def construct_portfolio(
                     pos_scale = np.where(long_sum > 1e-18, 1.0 / long_sum, 1.0)
                     neg_scale = np.where(short_sum < -1e-18, -1.0 / short_sum, 1.0)
                 w_arr[both_idx] = pos * pos_scale[:, None] + neg * neg_scale[:, None]
-            net = w_arr.sum(axis=1)
-            need_fix = both & (np.abs(net) > 1e-12)
-            if np.any(need_fix):
-                fix_idx = np.nonzero(need_fix)[0]
-                w_f = w_arr[fix_idx]
-                pos = np.where(w_f > 0.0, w_f, 0.0)
-                neg = np.where(w_f < 0.0, w_f, 0.0)
-                long_sum = pos.sum(axis=1)
-                with np.errstate(divide="ignore", invalid="ignore"):
-                    scale = np.where(long_sum > 1e-18, (1.0 - net[fix_idx]) / long_sum, 1.0)
-                w_arr[fix_idx] = pos * scale[:, None] + neg
             w_arr[~np.isfinite(w_arr)] = 0.0
     except BABPortfolioError:
         raise

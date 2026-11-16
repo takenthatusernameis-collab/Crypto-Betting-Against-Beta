@@ -33,8 +33,6 @@ def _finite_beta_series(betas) -> pd.Series | None:
     # to_numeric would otherwise convert numeric-looking strings ("1.5"),
     # which the isinstance-based oracle rejects.
     numeric = pd.to_numeric(betas, errors="coerce")
-    if numeric.dtype == object:
-        numeric = numeric.astype("float64")
     arr = numeric.to_numpy(dtype=float, copy=False)
     if betas.dtype == object:
         betas_np = betas.to_numpy()
@@ -71,9 +69,6 @@ def _reference_generate_bab_signals(betas_df, long_quantile=0.3, short_quantile=
             continue
         sorted_betas = clean.sort_values()
         n = len(sorted_betas)
-        if n == 0:
-            continue
-
         # A single asset cannot form a long/short spread; keep the row flat.
         if n < 2:
             continue

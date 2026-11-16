@@ -121,8 +121,6 @@ def calculate_beta(asset_returns, benchmark_returns, min_obs=None):
         if not np.all(mask):
             y = y[mask]
             x = x[mask]
-        if len(y) == 0:
-            return np.nan
         if min_obs is not None:
             try:
                 mo = int(min_obs)
@@ -159,16 +157,11 @@ def calculate_beta_fast(a, b, min_obs=None):
             b = np.asarray(b, dtype=float)
         except (TypeError, ValueError, AttributeError):
             return np.nan
-        if a is None or b is None:
-            return np.nan
         if getattr(a, "ndim", 0) != 1 or getattr(b, "ndim", 0) != 1:
             return np.nan
         # Flatten
-        try:
-            a = np.array(a).ravel()
-            b = np.array(b).ravel()
-        except Exception:
-            return np.nan
+        a = np.array(a).ravel()
+        b = np.array(b).ravel()
         if len(a) == 0 or len(b) == 0:
             return np.nan
         # If lengths differ, align

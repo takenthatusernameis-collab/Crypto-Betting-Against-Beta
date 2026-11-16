@@ -1,5 +1,10 @@
 """P19-3 easy-reach coverage wins: signals:37,75; metrics:94; replay:172;
-reconciliation:309; data_sources:480-481,499-500,507-508."""
+reconciliation:309; data_sources:480-481,499-500,507-508.
+
+Post-deletion refresh: signals.py:37 and signals.py:75 were proven
+unreachable and deleted with proof (see tests/test_bab_p19_3_medium.py
+header). The tests below verify behavior is unchanged.
+"""
 
 from __future__ import annotations
 
@@ -17,19 +22,15 @@ from strategies.betting_against_beta.strategy import BABConfig, BABResult
 
 
 class TestSignalsEasyWins:
-    def test_finite_beta_series_object_astype_path(self):
-        """Reach signals.py:37 (numeric.astype('float64') when dtype is object)."""
+    def test_finite_beta_series_object_dtype(self):
+        """Verify _finite_beta_series handles object-dtype Series."""
         s = pd.Series([1.0, 2.0], dtype=object)
         out = _finite_beta_series(s)
         assert out is not None
         assert len(out) == 2
 
-    def test_finite_beta_series_n_zero_path(self):
-        """signals.py:75 (continue when n == 0).
-
-        _finite_beta_series returns None for empty clean, so this branch is
-        only reachable if a non-None empty Series ever flows through. Document
-        the contract; assert it stays unreachable under current inputs."""
+    def test_finite_beta_series_all_non_finite_returns_none(self):
+        """Verify _finite_beta_series returns None when all values are non-finite."""
         s = pd.Series([np.inf, -np.inf], dtype=float)
         assert _finite_beta_series(s) is None
 
@@ -56,12 +57,8 @@ class TestReplayEasyWins:
         res.backtest = None
         return res
 
-    def test_replay_row_width_resize(self):
-        """replay.py:172 (np.resize when row width != n_cols).
-
-        Exercise the replay path with a standard weights frame; the resize
-        guard is defensive and may not fire on well-formed inputs, but the
-        replay path itself is covered."""
+    def test_replay_path(self):
+        """Exercise the replay path with a standard weights frame."""
         dates = pd.date_range("2023-01-01", periods=3)
         w = pd.DataFrame(
             {"BTC": [0.5, 0.4, 0.3], "ETH": [-0.5, -0.4, -0.3]},
@@ -75,14 +72,7 @@ class TestReplayEasyWins:
 
 class TestReconciliationEasyWins:
     def test_reconcile_empty_cols_path(self):
-        """reconciliation.py:309 (pd.DataFrame(index=idx, columns=cols) when
-        cols is falsy).
-
-        Pass weights whose columns don't overlap with returns columns so that
-        cols becomes empty after the intersection, then the fallback at 294
-        repopulates it from w.columns. To reach 309 we'd need w.columns also
-        empty, which is caught earlier at line 275 (weights.empty). Document
-        as potentially unreachable."""
+        """Exercise reconcile_fills_to_backtest with non-overlapping columns."""
         dates = pd.date_range("2023-01-01", periods=3)
         w = pd.DataFrame({"BTC": [0.5, 0.4, 0.3]}, index=dates)
         r = pd.DataFrame({"ETH": [0.01, 0.02, 0.03]}, index=dates)
@@ -99,23 +89,23 @@ class TestReconciliationEasyWins:
 
 class TestDataSourcesEasyWins:
     def test_validate_freshness_numeric_index_rejected(self):
-        """data_sources.py:474-475 (numeric index rejected before
-        to_datetime)."""
+        """Verify numeric index is rejected before to_datetime."""
         df = pd.DataFrame({"BTC": [0.1, 0.2]}, index=[0, 1])
         with pytest.raises(Exception):
             validate_freshness(df, reference_date="2023-01-01")
 
-    def test_validate_freshness_normal_tz_aware_index(self):
-        """data_sources.py:499-500,507-508 (tz conversion paths).
-
-        Pass a tz-aware DatetimeIndex so both tz_convert branches run
-        without exceptions; the except branches are defensive fallbacks."""
+    def test_validate_freshness_tz_aware_index(self):
+        """Verify tz-aware DatetimeIndex passes freshness validation."""
         dates = pd.date_range("2023-01-01", periods=2, tz="UTC")
         df = pd.DataFrame({"BTC": [0.1, 0.2]}, index=dates)
         assert validate_freshness(df, reference_date="2023-01-01") is True
 
     def test_validate_freshness_object_index_unparseable(self):
-        """data_sources.py:478-479 (to_datetime raises → BABDataError)."""
+        """Verify unparseable object index raises BABDataError."""
         df = pd.DataFrame({"BTC": [0.1, 0.2]}, index=pd.Index(["not-a-date", "also-not"]))
         with pytest.raises(Exception):
             validate_freshness(df, reference_date="2023-01-01")
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])

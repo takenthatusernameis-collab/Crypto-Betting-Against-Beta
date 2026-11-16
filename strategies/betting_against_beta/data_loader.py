@@ -1349,11 +1349,6 @@ def _series_is_parseable(series: pd.Series) -> bool:
 
         # Only cells that to_numeric could not coerce but are non-NA may still be
         # parseable via _strip_units_and_parse (e.g. "$1", "1,000.5", "2%", "1,5").
-        remaining_needed = threshold - parseable
-        pending_count = int(pending.sum())
-        if pending_count < remaining_needed:
-            return False
-
         for i in np.flatnonzero(pending):
             try:
                 _strip_units_and_parse(values[i])
