@@ -2,24 +2,30 @@
 
 **Canonical durable handoff (single source of truth).** Do not create parallel handoff/session docs; update this file only. `AGENT_HANDOFF.md` is a pure pointer and must not carry a second task message. Any other `*HANDOFF*.md` is stale and must be deleted on sight.
 
-- **Timestamp (UTC):** 2026-11-16T13:39:10Z (this refresh)
+- **Timestamp (UTC):** 2026-11-16T13:39:35Z (this refresh)
 - **Repo identity:** `Crypto-Betting-Against-Beta` — a **crypto market-neutral trading system** (ingest → beta → signals → portfolio → backtest → execution → ops) implementing the Frazzini–Pedersen *Betting Against Beta* strategy. Highest-stakes paths, in order: **(1) what real orders are placed, (2) whether live fills still match the model, (3) whether the real-data ingest accepts only data fit to trade on.**
-- **Git state:** local HEAD `3707ee5` == `origin/main` `3707ee5` (sync verified via `git ls-remote origin refs/heads/main`). Working tree clean **except** an unstaged modification to `.github/workflows/main.yml` whose content is byte-identical to commit `de9eeac` (the P19-1 `bab-gate` job). Commit `de9eeac` `ci: ship P19-1 bab-gate enforcement job (ruff + suite + coverage floor + reconcile gate)` exists locally on branch `kilo-recovery-session-105` (pre-recovery HEAD `2b72ed8` also preserved there) and is **NOT on `origin/main`**. Recovery bundle at `/tmp/kilo-recovery-session-105.bundle`. All local hard gates GREEN (ruff clean, reconcile GREEN, gate 6215/35/99%, gate RED @99.5% fail-closed proven).
+- **Git state:** local HEAD `d23011e` == `origin/main` `d23011e` (sync verified via `git ls-remote origin refs/heads/main`). Working tree clean; no unstaged changes. Currently on `main`.
 
 ---
 
-## INITIAL TASK MESSAGE (START HERE, 2026-11-16T13:39:10Z) — BINDING (DO NOT IGNORE)
+## INITIAL TASK MESSAGE (START HERE, 2026-11-16T13:39:35Z) — BINDING (DO NOT IGNORE)
 
 **P19-1 — CI ENFORCEMENT COMMITTED LOCALLY, PUSH BLOCKED BY GH `workflows` PERMISSION — UNBLOCK THIS FIRST. DO NOT START P19-2.**
 
-P19-1 is **locally proven AND committed** as `de9eeac`. The `bab-gate` job exists as unstaged working-tree changes on `main` matching `de9eeac` exactly, and as commit `de9eeac` on branch `kilo-recovery-session-105`. The job gates `kilo` via `needs: bab-gate`. `de9eeac` is **NOT on `origin/main`** — HEAD `3707ee5` lacks the `bab-gate` job.
+P19-1 is **locally proven AND committed**. The `bab-gate` job is commit `b641b7a` ("ci: ship P19-1 bab-gate enforcement job (ruff + suite + coverage floor + reconcile gate)") on local branch `kilo-p19-1-push`, rebased onto `d23011e` so it fast-forwards onto `origin/main`. It is **NOT on `origin/main`** — remote main `d23011e` lacks the `bab-gate` job.
 
-**Root cause (diagnosed this session):** the repo-scoped `GITHUB_TOKEN` cannot write `.github/workflows/*` by design (`permissions: actions: read, contents: write` — no `workflows:write`). The controller's `stage_safe_changes` also strips `.github/workflows/*` from checkpoint staging. Repeated bounded push retries already failed (session 105) and will keep failing — do **not** burn the checkpoint budget re-pushing this ref.
+**Root cause (re-confirmed this session):** push of `kilo-p19-1-push:main` passes the fast-forward check but GitHub rejects it:
+
+```
+! [remote rejected] ... -> main (refusing to allow a GitHub App to create or update workflow `.github/workflows/main.yml` without `workflows` permission)
+```
+
+The repo-scoped `GITHUB_TOKEN` has `actions: read, contents: write` only — no `workflows:write`. The controller's `stage_safe_changes` also strips `.github/workflows/*` from checkpoint staging, so the controller cannot push a `main` ref carrying a workflow-file change.
 
 To complete P19-1 DoD:
 
-1. **Obtain push access to `.github/workflows/main.yml`** — a maintainer with `workflows` write permission pushes `de9eeac` (or cherry-picks it onto `origin/main`), OR the workflow is amended via the GitHub web UI, OR a PAT/scoped token with `workflows:write` is used for this single push. Do **not** work around this by removing the `bab-gate` job or weakening the gate. This blocker cannot be removed locally; the change is pre-staged in the working tree and committed on `kilo-recovery-session-105`, so once push access exists the push is one command plus remote-SHA verification.
-2. **Verify persistence:** only after the push, confirm `git ls-remote origin refs/heads/main` returns the SHA of `de9eeac` (remote SHA must match the commit carrying `bab-gate`). Do **not** claim persistence until the remote SHA matches.
+1. **Obtain push access to `.github/workflows/main.yml`** — a maintainer with `workflows` write permission pushes `kilo-p19-1-push` (or cherry-picks `b641b7a`) onto `origin/main`, OR the workflow is amended via the GitHub web UI, OR a PAT/scoped token with `workflows:write` is used for this single push. Do **not** work around this by removing the `bab-gate` job or weakening the gate. This blocker cannot be removed locally; once push access exists the push is one fast-forward command plus remote-SHA verification.
+2. **Verify persistence:** only after the push, confirm `git ls-remote origin refs/heads/main` returns the SHA of `b641b7a` (remote SHA must match the commit carrying `bab-gate`). Do **not** claim persistence until the remote SHA matches.
 3. **Watch the `bab-gate` CI job on `origin/main`** and confirm GREEN (ruff clean, suite 6215/35/99%, reconcile gate GREEN, 99.5% fail-closed proven).
 4. **Do not proceed to P19-2 until `bab-gate` is observed GREEN on `origin/main`.**
 
@@ -31,7 +37,7 @@ The work is **fully preserved and verified locally**; the next agent's only rema
 
 Behavioral correctness, not coverage chores (prioritized to repo identity: real orders → fills match model → data fit to trade):
 
-1. **P19-2a — `scripts/fetch_real_bab_prices.py` network path (fetch_real_bab_prices.py:412, `_http_get_json`/`_rate_limit_wait`):** add deterministic offline (monkeypatched transport, no real network) tests proving:
+1. **P19-2a — `scripts/fetch_real_bab_prices.py` network path (`_http_get_json`/`_rate_limit_wait`):** add deterministic offline (monkeypatched transport, no real network) tests proving:
    - 429 with `Retry-After` honored/retried/bounded
    - Transient 5xx (500/502/503/504) retried with backoff then fail loudly after `COINBASE_PUBLIC_MAX_RETRIES`
    - Network/URLError/timeout retries bounded then fail loudly with **no offline/synthetic fallback**
@@ -71,7 +77,7 @@ Claims needing **independent proof** (do not inherit): `execution.py:1295-1296`,
 - **P18-1 DONE:** `evaluate_reconciliation_gate` in `reconciliation.py`; CLI `--reconcile-tolerance`/`--reconcile-max-mismatch` (exit 2 on breach, `--reconcile` alone unchanged); `tests/test_bab_reconciliation_gate.py` green.
 - **P18-2 DONE:** `LiveExecutionAdapter` requires `allow_live_execution=True` + exact `accept_terms='I_UNDERSTAND_LIVE_TRADING'` for `dry_run=False`; CLI flags wired, dry-run default preserved; `tests/test_bab_live_opt_in.py` green.
 - **P18-3 DONE:** `scripts/bab_reconcile_gate.sh` exists and locally proven (drift rc=2, clean/emit-only rc=0).
-- **P19-1 DONE (committed, push blocked):** `bab-gate` job added to `.github/workflows/main.yml:42-98` (checkout@7.0.1, setup-python@7.1.0, bootstrap, ruff, `bab_gate.sh @98.5%`, 99.5% fail-closed proof step, `bab_reconcile_gate.sh`); `kilo` job now gated via `needs: bab-gate`. Commit `de9eeac` local on branch `kilo-recovery-session-105`, **NOT on `origin/main`**; requires maintainer `workflows` access (or PAT with `workflows:write`) to push and observe CI GREEN. All local gates GREEN (ruff clean, reconcile GREEN, gate 6215/35/99%, gate RED @99.5% fail-closed proven).
+- **P19-1 DONE (committed, push blocked):** `bab-gate` job = commit `b641b7a` on local branch `kilo-p19-1-push` (rebased from `de9eeac`/`fdb0550`), **NOT on `origin/main`**; requires maintainer `workflows` access (or PAT with `workflows:write`) to push and observe CI GREEN. All local gates GREEN (ruff clean, reconcile GREEN, gate 6215/35/99%, gate RED @99.5% fail-closed proven).
 - **Kill switch (R4-B) covered:** `tests/test_bab_drawdown_kill_switch_r4.py` — verify only.
 
 ---
@@ -112,9 +118,9 @@ BAB_GATE_MIN_COVERAGE=98.5 bash scripts/bab_gate.sh   # release floor must hold
 - [DONE] Single durable handoff: only `HANDOFF.md` (+ pointer `AGENT_HANDOFF.md`).
 - [DONE] Recovery bundle preserved: `/tmp/kilo-recovery-session-105.bundle` + branch `kilo-recovery-session-105` at pre-recovery HEAD `2b72ed8`.
 - [DONE] Checkpoint commits persisted: rebased `71bdccc`+`2b72ed8` onto `ace159e`, pushed to `origin/main` `a9b061b`, remote SHA verified == local HEAD at time of push.
-- [DONE] No merge bottleneck known: `main` synced to `origin/main` at `3707ee5`.
-- [DONE] Bottleneck diagnosed and pre-staged: P19-1 `bab-gate` change is committed as `de9eeac` on `kilo-recovery-session-105` AND present as unstaged worktree changes on `main` matching `de9eeac` byte-for-byte; ready to push the moment `workflows` write access exists.
-- [PENDING] P19-1: `de9eeac` cannot be pushed by repo-scoped token (no `workflows:write`). Needs maintainer push, web UI amendment, or PAT with `workflows:write`. P19-2/P19-3 remain blocked until `de9eeac` is GREEN on `origin/main`.
+- [DONE] No merge bottleneck known: `main` synced to `origin/main` at `d23011e`.
+- [DONE] P19-1 change committed locally as `b641b7a` on `kilo-p19-1-push`, rebased onto `d23011e`, ready to fast-forward push the moment `workflows` write access exists.
+- [PENDING / EXTERNAL] P19-1 push: rejected by GitHub — repo-scoped token lacks `workflows:write` for `.github/workflows/main.yml`. Needs maintainer push, web UI amendment, or PAT with `workflows:write`. P19-2/P19-3 remain blocked until `b641b7a` is GREEN on `origin/main`.
 
 ---
 
@@ -128,7 +134,7 @@ The repo-scoped `GITHUB_TOKEN` cannot write `.github/workflows/*` — GitHub rej
 
 **Diagnosed root cause:** by design (`permissions: actions: read, contents: write` — no `workflows:write`). Additionally, the controller's checkpoint stage strips `.github/workflows/*` from new checkpoint staging, so the controller itself cannot push a `main` ref that carries a workflow-file change.
 
-**Remedy:** push `de9eeac` to `origin/main` via a maintainer with `workflows` write permission, a PAT/scoped token with `workflows:write`, or the GitHub web UI. Until `git ls-remote origin refs/heads/main` returns the `de9eeac` SHA, P19-1 persistence is NOT claimed and P19-2 must not start.
+**Remedy:** push `kilo-p19-1-push` (`b641b7a`) to `origin/main` via a maintainer with `workflows` write permission, a PAT/scoped token with `workflows:write`, or the GitHub web UI. Until `git ls-remote origin refs/heads/main` returns the `b641b7a` SHA, P19-1 persistence is NOT claimed and P19-2 must not start.
 
 ---
 
@@ -142,8 +148,9 @@ The repo-scoped `GITHUB_TOKEN` cannot write `.github/workflows/*` — GitHub rej
 | 2026-11-16T10:45:54Z | 91d6dc5 | Live-verified gate GREEN 6215/35/99%, ruff clean, perf PASS. Found CI does not enforce ruff/suite/coverage/reconcile gate. | GREEN @10:45Z |
 | 2026-11-16T11:40:00Z | 91d6dc5 | Claimed P19-1 complete in docs; **not reflected in workflow at 8562f91** (no `bab-gate` job). Treat as unproven/rolled-back claim. | claim unverified |
 | 2026-11-16T12:29:00Z | 8562f91 | Re-verified live: `ruff` clean, `bab_reconcile_gate.sh` GREEN, `bab_gate.sh` GREEN 6215/35/99%, workflow has **no bab enforcement**. Corrected README+HANDOFF to remove false CI-enforcement claim and re-bound next work to **P19-1 ship+prove**. | GREEN local @12:29Z |
-| 2026-11-16T12:34:01Z | 8562f91 | HANDOFF refreshed (P19-1 claimed shipped but uncommitted). | — |
+| 2026-11-16T12:34:01Z | 700d2af | HANDOFF refreshed (P19-1 claimed shipped but uncommitted). | — |
 | 2026-11-16T12:39:43Z | 700d2af | **Truth refresh:** working tree clean, HEAD=700d2af, workflow **still lacks `bab-gate` job**. P19-1 NOT shipped. Re-bound initial task to **P19-1 ship CI enforcement first**. | GREEN local |
 | 2026-11-16T12:50:00Z | de9eeac | **P19-1 SHIPPED (committed, push blocked).** Added `bab-gate` job to `.github/workflows/main.yml:42-98`; `kilo` job gated via `needs: bab-gate`. Live-verified: ruff clean, reconcile GREEN, gate GREEN 6215/35/99%, gate RED @99.5% (fail-closed proven). Committed `de9eeac`. **Push rejected by GitHub policy** — repo-scoped token lacks `workflows` write permission; commit is local, 1 ahead of origin/main, working tree clean. Requires maintainer `workflows` access to push. | GREEN local; push blocked |
 | 2026-11-16T13:27:00Z | a9b061b | **SAME-RUN RECOVERY:** diagnosed push failure (repo-scoped token lacks `workflows:write` for `.github/workflows/main.yml`; confirmed by push rejection + `main.yml:25-26` + controller `stage_safe_changes` at `main.yml:1247-1249`). Preserved recovery bundle `/tmp/kilo-recovery-session-105.bundle` + branch `kilo-recovery-session-105` at pre-recovery HEAD `2b72ed8`. Rebased HANDOFF-only checkpoint commits (`71bdccc`, `2b72ed8`) onto `ace159e`, skipping `de9eeac`; pushed to `origin/main` `a9b061b`; verified `git ls-remote origin refs/heads/main` == `a9b061b` == local HEAD. **P19-1 commit `de9eeac` preserved locally on `kilo-recovery-session-105` but NOT remotely persisted** — needs maintainer/PAT with `workflows:write` to push. P19-2 must not start until `de9eeac` is GREEN on `origin/main`. | GREEN local; push blocked for de9eeac |
-| 2026-11-16T13:29:57Z | 3707ee5 (= origin/main) | **State refresh:** `main` == `origin/main` at `3707ee5` (no `bab-gate` job). Working tree has unstaged modification to `.github/workflows/main.yml` **byte-identical to `de9eeac`**; `de9eeac` committed locally on `kilo-recovery-session-105`, NOT on `origin/main`. Local gates re-verified GREEN: ruff clean, reconcile gate GREEN (drift rc=2, clean rc=0, emit-only rc=0). P19-1 push still blocked by `workflows` permission; remedy requires maintainer/PAT with `workflows:write` or web UI. P19-2 focus campaign defined but BLOCKED until P19-1 DoD (`de9eeac` GREEN on `origin/main`). | GREEN local; push blocked for de9eeac |
+| 2026-11-16T13:29:57Z | 3707ee5 (= origin/main) | **State refresh:** `main` == `origin/main` at `3707ee5` (no `bab-gate` job). Working tree had unstaged modification to `.github/workflows/main.yml` byte-identical to `de9eeac`; `de9eeac` committed locally on `kilo-recovery-session-105`, NOT on `origin/main`. Local gates re-verified GREEN: ruff clean, reconcile gate GREEN (drift rc=2, clean rc=0, emit-only rc=0). P19-1 push still blocked by `workflows` permission; remedy requires maintainer/PAT with `workflows:write` or web UI. P19-2 focus campaign defined but BLOCKED until P19-1 DoD (`de9eeac` GREEN on `origin/main`). | GREEN local; push blocked for de9eeac |
+| 2026-11-16T13:39:35Z | d23011e (= origin/main) | **State refresh:** `main` == `origin/main` at `d23011e` (no `bab-gate` job). Working tree clean; no unstaged changes. P19-1 commit `b641b7a` (rebased `de9eeac`/`fdb0550`, "ci: ship P19-1 bab-gate enforcement job") on local branch `kilo-p19-1-push`, rebased onto `d23011e` for fast-forward push. Push **rejected** by GitHub: `workflows` permission required for `.github/workflows/main.yml`; repo-scoped token has `contents: write` only. Remote SHA still `d23011e`. Local gates re-verified GREEN: ruff clean. P19-1 push remains the single external bottleneck; P19-2/P19-3 BLOCKED until `b641b7a` is GREEN on `origin/main`. | GREEN local; push blocked for b641b7a |
