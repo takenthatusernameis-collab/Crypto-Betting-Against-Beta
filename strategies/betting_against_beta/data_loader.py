@@ -1533,12 +1533,18 @@ def _run_data_quality_campaign(
                 "use allow_duplicate_timestamps=True to drop duplicates"
             )
 
+    # P17-1: safe-by-default contract. A crypto trading pipeline must not let
+    # frozen, gapped, or implausible market data silently drive positions, so
+    # the default ``quality=True`` campaign rejects a 100% single-period
+    # return, a >7-day gap, and any frozen run of >=3 equal finite values.
+    # Callers may still opt out explicitly (``quality=False``) or pass
+    # ``math.inf`` / ``0`` to disable an individual guard.
     if max_return_abs is None:
-        max_return_abs = 10_000.0  # very lenient
+        max_return_abs = 20.0
     if max_gap_days is None:
-        max_gap_days = 3650.0  # very lenient
+        max_gap_days = 7.0
     if stale_run_threshold is None:
-        stale_run_threshold = 50  # very lenient
+        stale_run_threshold = 3
     if min_finite_fraction is None:
         min_finite_fraction = 0.0
 
@@ -1714,20 +1720,21 @@ def validate_returns_dataframe(
         function kwargs take precedence over dict keys.
     max_return_abs:
         Reject any return whose absolute value exceeds this threshold.
-        Defaults to a lenient ``10000.0`` when ``quality`` is True and
-        ``max_return_abs`` is None. Pass an explicit value (or a
-        ``quality`` dict entry) to tighten, e.g. ``20.0`` for real returns.
+        Defaults to ``20.0`` when ``quality`` is True and ``max_return_abs``
+        is None (the safe contract: a 20% single-period return is already far
+        beyond any plausible daily crypto move). Pass an explicit value (or
+        a ``quality`` dict entry) to tighten or loosen, e.g. ``math.inf`` to
+        disable.
     max_gap_days:
         Reject data whose largest inter-timestamp gap exceeds this many
-        days. Defaults to a lenient ``3650.0`` when ``quality`` is True and
-        ``max_gap_days`` is None. Set to ``math.inf`` to disable, or pass an
-        explicit value (e.g. ``7.0``) to tighten.
+        days. Defaults to ``7.0`` when ``quality`` is True and ``max_gap_days``
+        is None. Set to ``math.inf`` to disable, or pass an explicit value
+        to tighten.
     stale_run_threshold:
         Reject columns with a run of ``>=`` this many consecutive equal
-        finite values (stale/frozen data). Defaults to a lenient ``50`` when
-        ``quality`` is True and ``stale_run_threshold`` is None. An explicit
-        threshold is honored exactly (e.g. ``3`` rejects a 3-run); ``0``
-        disables the check.
+        finite values (stale/frozen data). Defaults to ``3`` when ``quality``
+        is True and ``stale_run_threshold`` is None. An explicit threshold is
+        honored exactly (e.g. ``3`` rejects a 3-run); ``0`` disables the check.
     min_finite_fraction:
         Reject columns whose finite-fraction is below this threshold.
         Defaults to 0.0 when ``quality`` is True (i.e. any finite data
@@ -2382,6 +2389,8 @@ def load_prices(
     source: str | Path | pd.DataFrame,
     benchmark: str | None = None,
     min_rows: int = 2,
+    *,
+    quality: bool | dict = True,
     **kwargs,
 ) -> pd.DataFrame:
     """Load a price CSV/JSON/DataFrame and convert it to a returns DataFrame.
@@ -2393,6 +2402,11 @@ def load_prices(
     A price fixture with date gaps and an all-NaN (delisted) column is handled:
     gaps become NaN returns that beta estimation tolerates, and the delisted
     column is dropped by validation.
+
+    ``quality`` defaults to ``True`` so the price -> returns path runs the
+    data-quality campaign with the safe defaults (20.0 / 7.0 / 3). Pass
+    ``quality=False`` to opt out, or a ``quality`` dict to override individual
+    thresholds.
     """
     if isinstance(source, pd.DataFrame):
         prices = load_returns_from_dataframe(
@@ -2430,8 +2444,10 @@ def load_prices(
     prices = _drop_metadata_columns(prices)
     returns = _prices_to_returns(prices)
     # pct_change drops the first row, so require one fewer return row than price rows.
+    # P17-1: the price -> returns path must run the data-quality campaign ON by
+    # default (safe defaults 20.0 / 7.0 / 3). ``quality=False`` opts out.
     return validate_returns_dataframe(
-        returns, benchmark=benchmark, min_rows=max(min_rows - 1, 1), quality=False
+        returns, benchmark=benchmark, min_rows=max(min_rows - 1, 1), quality=quality
     )
 
 

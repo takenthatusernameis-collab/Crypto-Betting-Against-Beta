@@ -228,15 +228,29 @@ class BABStrategy:
         self._last_result: object | None = None
 
     def _load_returns(self, returns_df: object | None) -> pd.DataFrame:
-        """Resolve the returns DataFrame, validating it for the pipeline."""
+        """Resolve the returns DataFrame, validating it for the pipeline.
+
+        P17-1: the real trading entrypoint must not bypass the data-quality
+        gate. Every load path passes explicit, safe thresholds
+        (20.0 / 7.0 / 3) so frozen, gapped, or implausible market data raises
+        ``BABDataError`` instead of silently driving positions. Callers may
+        still opt out by passing a strict ``quality=False`` dict or explicit
+        ``math.inf``/``0`` values via ``returns_df`` kwargs.
+        """
 
         cfg = self.config
+        safe_quality = {
+            "max_return_abs": 20.0,
+            "max_gap_days": 7.0,
+            "stale_run_threshold": 3,
+        }
         if returns_df is not None:
             # Explicit override wins over config.data_source.
             return load_returns(
                 returns_df,
                 benchmark=cfg.benchmark,
                 min_rows=cfg.min_rows,
+                quality=safe_quality,
             )
 
         if cfg.data_source is not None:
@@ -244,6 +258,7 @@ class BABStrategy:
                 cfg.data_source,
                 benchmark=cfg.benchmark,
                 min_rows=cfg.min_rows,
+                quality=safe_quality,
             )
 
         universe = list(cfg.universe) if cfg.universe else None

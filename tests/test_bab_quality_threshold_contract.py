@@ -110,29 +110,49 @@ class TestDictQualityOverrides:
         assert "BTC" in out.columns
 
 
-class TestLenientDefaultsAreHonored:
-    """The lenient defaults are the intended contract (the robustness suite
-    feeds degenerate constant columns and expects the pipeline to tolerate
-    them). Callers tighten via explicit kwargs or a ``quality`` dict."""
+class TestSafeDefaultsAreEnforced:
+    """P17-1: the default ``quality=True`` contract is now strict (20.0 / 7.0 / 3).
 
-    def test_default_tolerates_frozen_column(self):
+    The old ``TestLenientDefaultsAreHonored`` asserted the lax 10000/3650/50
+    behavior; those assertions are inverted here. Callers may still opt out via
+    ``quality=False`` or explicit ``math.inf``/``0`` values.
+    """
+
+    def test_default_rejects_frozen_column(self):
         df = _frozen_and_live(8)  # BTC has an 8-long frozen run
-        out = validate_returns_dataframe(df, benchmark="ETH", quality=True)
-        assert "BTC" in out.columns
+        with pytest.raises(BABDataError, match="Stale/frozen data"):
+            validate_returns_dataframe(df, benchmark="ETH", quality=True)
 
-    def test_default_tolerates_implausible_return(self):
+    def test_default_rejects_implausible_return(self):
         df = _frozen_and_live(8)
-        df.iloc[2, 0] = 100.0  # 10000% is within the lenient default of 10000
-        out = validate_returns_dataframe(df, benchmark="ETH", quality=True)
-        assert "BTC" in out.columns
+        df.iloc[2, 0] = 100.0  # 10000% exceeds the safe default of 20.0
+        with pytest.raises(BABDataError, match="Implausible return"):
+            validate_returns_dataframe(df, benchmark="ETH", quality=True)
 
-    def test_explicit_kwarg_tightens_return_threshold(self):
+    def test_default_rejects_large_gap(self):
+        idx = list(pd.date_range("2020-01-01", periods=5, freq="D"))
+        idx[3] = idx[2] + pd.Timedelta(days=30)
+        df = pd.DataFrame(
+            {"BTC": np.linspace(0.01, 0.05, 5), "ETH": np.linspace(0.02, 0.06, 5)},
+            index=idx,
+        )
+        with pytest.raises(BABDataError, match="Data gap too large"):
+            validate_returns_dataframe(df, benchmark="ETH", quality=True)
+
+    def test_explicit_kwarg_can_loosen_return_threshold(self):
         df = _frozen_and_live(8)
         df.iloc[2, 0] = 100.0
-        with pytest.raises(BABDataError, match="Implausible return"):
-            validate_returns_dataframe(
-                df, benchmark="ETH", quality=True, max_return_abs=20.0
-            )
+        out = validate_returns_dataframe(
+            df, benchmark="ETH", quality=True, max_return_abs=200.0
+        )
+        assert "BTC" in out.columns
+
+    def test_explicit_kwarg_can_disable_stale_check(self):
+        df = _frozen_and_live(8)  # 8-long frozen run
+        out = validate_returns_dataframe(
+            df, benchmark="ETH", quality=True, stale_run_threshold=0
+        )
+        assert "BTC" in out.columns
 
 
 class TestOptOutAndHappyPath:

@@ -631,11 +631,17 @@ def main(argv=None) -> int:
                 try:
                     if getattr(args, "from_prices", False):
                         loaded = load_prices(
-                            args.data, benchmark=args.benchmark, min_rows=config.min_rows
+                            args.data,
+                            benchmark=args.benchmark,
+                            min_rows=config.min_rows,
+                            quality=_safe_quality,
                         )
                     else:
                         loaded = load_returns(
-                            args.data, benchmark=args.benchmark, min_rows=config.min_rows
+                            args.data,
+                            benchmark=args.benchmark,
+                            min_rows=config.min_rows,
+                            quality=_safe_quality,
                         )
                     if not _apply_freshness_guard(
                         loaded, args.max_staleness_days, args.max_gap_days
@@ -670,6 +676,14 @@ def main(argv=None) -> int:
             print(f"Error validating output path: {exc}")
             return 1
 
+    # P17-1: the CLI must enforce the safe data-quality contract by default.
+    # A frozen/implausible/gapped CSV must exit non-zero instead of silently
+    # driving positions. Explicit CLI flags may still opt out.
+    _safe_quality = {
+        "max_return_abs": 20.0,
+        "max_gap_days": 7.0,
+        "stale_run_threshold": 3,
+    }
     try:
         adapter, fills_path = _build_adapter(args)
 
@@ -708,11 +722,17 @@ def main(argv=None) -> int:
             try:
                 if args.from_prices:
                     returns_df = load_prices(
-                        args.data, benchmark=args.benchmark, min_rows=config.min_rows
+                        args.data,
+                        benchmark=args.benchmark,
+                        min_rows=config.min_rows,
+                        quality=_safe_quality,
                     )
                 else:
                     returns_df = load_returns(
-                        args.data, benchmark=args.benchmark, min_rows=config.min_rows
+                        args.data,
+                        benchmark=args.benchmark,
+                        min_rows=config.min_rows,
+                        quality=_safe_quality,
                     )
             except BABDataError:
                 raise
