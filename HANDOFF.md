@@ -2,30 +2,36 @@
 
 **Canonical durable handoff (single source of truth).** Do not create parallel handoff/session docs; update this file only. `AGENT_HANDOFF.md` is a pure pointer and must not carry a second task message. Any other `*HANDOFF*.md` is stale and must be deleted on sight.
 
-- **Timestamp (UTC):** 2026-11-16T12:50:00Z (this refresh)
+- **Timestamp (UTC):** 2026-11-16T12:57:00Z (this refresh)
 - **Repo identity:** `Crypto-Betting-Against-Beta` — a **crypto market-neutral trading system** (ingest → beta → signals → portfolio → backtest → execution → ops) implementing the Frazzini–Pedersen *Betting Against Beta* strategy. Highest-stakes paths, in order: **(1) what real orders are placed, (2) whether live fills still match the model, (3) whether the real-data ingest accepts only data fit to trade on.**
-- **Git HEAD:** `de9eeac` (local commit ahead of `origin/main` by 1; **NOT pushed** — see blocker below).
+- **Git HEAD:** `71bdccc` (local commits ahead of `origin/main` `ace159e` by 2: `de9eeac` + `71bdccc`; **NOT pushed** — see blocker below). Working tree clean. All local hard gates GREEN (ruff, reconcile, 98.5% gate 6215/35/99%, 99.5% fail-closed RED). Remote persistence NOT claimed — remote SHA `ace159e` != local HEAD `71bdccc`.
 - **Live probes this session:** `python3 -m ruff check .` **clean**. `bash scripts/bab_reconcile_gate.sh` **GREEN** (drift rc=2, clean/emit-only rc=0). `BAB_GATE_MIN_COVERAGE=98.5 bash scripts/bab_gate.sh` **GREEN** — **6215 passed / 35 skipped**, TOTAL **99%** (89 missed). `BAB_GATE_MIN_COVERAGE=99.5 bash scripts/bab_gate.sh` **RED** (rc=1, floor not met — fail-closed proven). **`bab-gate` job IS NOW PRESENT in `.github/workflows/main.yml`** (lines 42-98) and gates the `kilo` job via `needs: bab-gate`.
 
-## INITIAL TASK MESSAGE (START HERE, 2026-11-16T12:50:00Z) — BINDING (DO NOT IGNORE)
+## INITIAL TASK MESSAGE (START HERE, 2026-11-16T12:57:00Z) — BINDING (DO NOT IGNORE)
 
-**P19-1 — SHIP CI ENFORCEMENT: COMMIT DONE, PUSH BLOCKED BY GH POLICY — UNBLOCK THIS FIRST.**
+**P19-1 — CI ENFORCEMENT COMMITTED LOCALLY, PUSH BLOCKED BY GH `workflows` PERMISSION — UNBLOCK THIS FIRST. SAME-RUN RECOVERY (session 93): bounded remote checkpoint persistence failed; this is a NEW session in the SAME active run, not a request to end the workflow. Current local HEAD `71bdccc`; last known remote-tracking SHA `ace159e`; failed-session HEAD was `71bdccc`. Preserve all existing local commits (`de9eeac`, `71bdccc`) and work; do not reset or discard them. Do not rewrite history unless a confirmed root cause requires it, and then only after preserving a recovery bundle and documenting the rollback plan.**
 
-P19-1 is **locally proven AND committed** (HEAD `de9eeac`, `ci: ship P19-1 bab-gate enforcement job ...`). The `bab-gate` job now exists in `.github/workflows/main.yml:42-98` and the `kilo` job has `needs: bab-gate`. The push was **rejected by GitHub**:
+P19-1 is **locally proven AND committed** (HEAD `71bdccc`, 2 commits ahead of `origin/main`: `de9eeac` `ci: ship P19-1 bab-gate enforcement job` and `71bdccc` `chore(kilo): checkpoint agent session`). The `bab-gate` job exists in `.github/workflows/main.yml` and gates `kilo` via `needs: bab-gate`. The push was **rejected by GitHub**:
 
 ```
 ! [remote rejected] main -> main (refusing to allow a GitHub App to create or update workflow `.github/workflows/main.yml` without `workflows` permission)
 ```
 
-The repo-scoped `GITHUB_TOKEN` cannot write workflow files (this is by design — see the `permissions` block and the comment at `main.yml:25-26`). **The commit is on `main` locally, 1 ahead of `origin/main`, working tree clean.** To complete P19-1 DoD:
+**Root cause (diagnosed this session):** the repo-scoped `GITHUB_TOKEN` cannot write workflow files by design (`main.yml:25-26`, `permissions` block). The controller's checkpoint stage also strips `.github/workflows/*` from new checkpoint staging (`main.yml:1183-1185`). Repeated bounded push retries already failed (session 93) and will keep failing — do **not** burn the checkpoint budget re-pushing this ref.
 
-1. **Obtain push access to `.github/workflows/main.yml`** — a maintainer with `workflows` write permission must push `de9eeac`, OR the workflow must be amended via the GitHub web UI, OR a PAT/scoped token with `workflows:write` used for this single push. Do **not** work around this by removing the `bab-gate` job or weakening the gate.
-2. **Watch the `bab-gate` CI job on `origin/main`** and confirm GREEN (ruff clean, suite 6215/35/99%, reconcile gate GREEN, 99.5% fail-closed step proven).
-3. **Do not proceed to P19-2 until `bab-gate` is observed GREEN on `origin/main`.**
+**Working tree restored to HEAD this session.** An uncommitted change that removed the `bab-gate` job from `.github/workflows/main.yml` was discarded — that workaround is forbidden (it weakens the gate). Working tree is now clean at `71bdccc`.
 
-If push access cannot be obtained in this session, the work is **fully preserved and verified** — the commit is local, the gates are GREEN, and the next agent's only remaining P19-1 action is the push. Do **not** re-run the gates or re-edit the workflow; they are done.
+To complete P19-1 DoD:
+
+1. **Obtain push access to `.github/workflows/main.yml`** — a maintainer with `workflows` write permission pushes `71bdccc`, OR the workflow is amended via the GitHub web UI, OR a PAT/scoped token with `workflows:write` is used for this single push. Do **not** work around this by removing the `bab-gate` job or weakening the gate. This blocker cannot be removed locally.
+2. **Verify persistence:** only after the push, confirm `git ls-remote origin refs/heads/main` returns `71bdccc` (remote SHA must match local HEAD). Do **not** claim persistence until the remote SHA matches.
+3. **Watch the `bab-gate` CI job on `origin/main`** and confirm GREEN (ruff clean, suite 6215/35/99%, reconcile gate GREEN, 99.5% fail-closed proven).
+4. **Do not proceed to P19-2 until `bab-gate` is observed GREEN on `origin/main`.**
+
+The work is **fully preserved and verified locally**; the next agent's only remaining P19-1 action is the push + CI verification. Do **not** re-run the gates or re-edit the workflow; they are done.
 
 ---
+
 
 P19-1 is locally proven (ruff clean, bab_gate.sh GREEN @99%, bab_reconcile_gate.sh GREEN) but the workflow **lacks the enforcement job**. Ship it now:
 
@@ -94,7 +100,7 @@ Claims needing **independent proof** (do not inherit): `execution.py:1295-1296`,
 - **P18-1 DONE:** `evaluate_reconciliation_gate` in `reconciliation.py`; CLI `--reconcile-tolerance`/`--reconcile-max-mismatch` (exit 2 on breach, `--reconcile` alone unchanged); `tests/test_bab_reconciliation_gate.py` green.
 - **P18-2 DONE:** `LiveExecutionAdapter` requires `allow_live_execution=True` + exact `accept_terms='I_UNDERSTAND_LIVE_TRADING'` for `dry_run=False`; CLI flags wired, dry-run default preserved; `tests/test_bab_live_opt_in.py` green.
 - **P18-3 DONE:** `scripts/bab_reconcile_gate.sh` exists and locally proven (drift rc=2, clean/emit-only rc=0).
-- **P19-1 DONE (committed, push blocked):** `bab-gate` job added to `.github/workflows/main.yml:42-98` (checkout@7.0.1, setup-python@7.1.0, bootstrap, ruff, `bab_gate.sh @98.5%`, 99.5% fail-closed proof step, `bab_reconcile_gate.sh`); `kilo` job gated via `needs: bab-gate`. Committed `de9eeac`. All local gates GREEN (ruff clean, reconcile GREEN, gate 6215/35/99%, gate RED @99.5% fail-closed proven). **Push rejected by GitHub `workflows` permission policy** — commit is local, 1 ahead of `origin/main`; requires maintainer `workflows` write access to push and observe CI GREEN.
+- **P19-1 DONE (committed, push blocked):** `bab-gate` job added to `.github/workflows/main.yml`; `kilo` job gated via `needs: bab-gate`. Commits `de9eeac` + `71bdccc` local, **2 ahead of `origin/main`**; requires maintainer `workflows` write access (or PAT with `workflows:write`) to push and observe CI GREEN. All local gates GREEN (ruff clean, reconcile GREEN, gate 6215/35/99%, gate RED @99.5% fail-closed proven).
 - **Kill switch (R4-B) covered:** `tests/test_bab_drawdown_kill_switch_r4.py` — verify only.
 
 ---
@@ -147,10 +153,12 @@ BAB_GATE_MIN_COVERAGE=98.5 bash scripts/bab_gate.sh   # release floor must hold
 The repo-scoped `GITHUB_TOKEN` cannot write `.github/workflows/*` — GitHub refuses with:
 
 ```
-refusing to allow a GitHub App to create or update workflow `.github/workflows/main.yml` without `workflows` permission
+! [remote rejected] main -> main (refusing to allow a GitHub App to create or update workflow `.github/workflows/main.yml` without `workflows` permission)
 ```
 
-This is by design (see `main.yml:25-26` and the `permissions` block). P19-1's commit `de9eeac` is **local only**; `origin/main` still lacks the `bab-gate` job. To finish P19-1 DoD a maintainer with `workflows` write permission must push `de9eeac`, or amend the workflow via the GitHub web UI, or use a PAT/scoped token with `workflows:write` for this single push. Do **not** weaken the gate or delete the job to work around this.
+**Diagnosed root cause (this session):** this is by design (`main.yml:25-26`, `permissions` block). Additionally, the controller's checkpoint stage strips `.github/workflows/*` from new checkpoint staging (`main.yml:1183-1185`), so the controller itself cannot push a `main` ref that carries a workflow-file change. Both commits `de9eeac` and `71bdccc` modify `.github/workflows/main.yml`, so the entire ref update is rejected; no part of `main` can be pushed until the workflow-file change reaches `origin/main` by another authorized path.
+
+To finish P19-1 DoD a maintainer with `workflows` write permission must push `71bdccc`, or amend the workflow via the GitHub web UI, or use a PAT/scoped token with `workflows:write` for this single push. Do **not** weaken the gate or delete the job to work around this. Until the push is remotely verified (`git ls-remote origin refs/heads/main` == `71bdccc`), persistence is NOT claimed and P19-2 must not start.
 
 ---
 
