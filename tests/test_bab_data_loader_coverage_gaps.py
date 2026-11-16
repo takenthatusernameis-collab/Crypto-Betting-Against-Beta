@@ -5714,7 +5714,7 @@ class TestBatch3QualityAndDispatchPaths:
             },
             index=idx,
         )
-        with contextlib.suppress(dlmod.BABDataError):
+        with pytest.raises(dlmod.BABDataError, match="Stale/frozen data"):
             dlmod.validate_returns_dataframe(
                 df, benchmark="ETH", quality={"stale_run_threshold": 3}
             )
@@ -5722,21 +5722,23 @@ class TestBatch3QualityAndDispatchPaths:
     def test_quality_duplicate_timestamps_allowed(self):
         idx = pd.to_datetime(["2020-01-01", "2020-01-01", "2020-01-02"])
         df = pd.DataFrame({"BTC": [0.01, 0.02, 0.03], "ETH": [0.02, 0.03, 0.04]}, index=idx)
-        try:
-            out = dlmod.validate_returns_dataframe(
-                df, benchmark="ETH", quality={"allow_duplicate_timestamps": True}
-            )
-            assert isinstance(out, pd.DataFrame)
-        except dlmod.BABDataError:
-            pass
+        out = dlmod.validate_returns_dataframe(
+            df, benchmark="ETH", quality={"allow_duplicate_timestamps": True}
+        )
+        assert isinstance(out, pd.DataFrame)
+        assert not out.index.has_duplicates
 
     def test_quality_duplicate_timestamps_rejected(self):
         idx = pd.to_datetime(["2020-01-01", "2020-01-01", "2020-01-02"])
         df = pd.DataFrame({"BTC": [0.01, 0.02, 0.03], "ETH": [0.02, 0.03, 0.04]}, index=idx)
-        with contextlib.suppress(dlmod.BABDataError):
-            dlmod.validate_returns_dataframe(
-                df, benchmark="ETH", quality={"allow_duplicate_timestamps": False}
-            )
+        # NOTE: _normalize_index drops duplicate timestamps before the quality
+        # campaign runs, so this returns a de-duplicated frame rather than
+        # raising. Tracked as the next quality-contract defect (allow_duplicate
+        # default False should raise, per the docstring).
+        out = dlmod.validate_returns_dataframe(
+            df, benchmark="ETH", quality={"allow_duplicate_timestamps": False}
+        )
+        assert not out.index.has_duplicates
 
     def test_validate_benchmark_rename_case(self):
         df = pd.DataFrame(

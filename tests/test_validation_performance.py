@@ -87,7 +87,7 @@ def _oracle_quality(
             and int(stale_run_threshold) > 0
             and finite_count >= int(stale_run_threshold)
         ):
-            max_allowed_stale = max(int(stale_run_threshold), 50)
+            max_allowed_stale = int(stale_run_threshold)
             max_run = dl._max_consecutive_equal_finite(arr)
             if max_run >= max_allowed_stale:
                 raise BABDataError(

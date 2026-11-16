@@ -1620,7 +1620,11 @@ def _run_data_quality_campaign(
                         f"{float(min_finite_fraction):.2%}"
                     )
             if stale_run_threshold is not None and int(stale_run_threshold) > 0:
-                max_allowed_stale = max(int(stale_run_threshold), 50)
+                # Honor the caller's explicit threshold exactly. The previous
+                # ``max(int(stale_run_threshold), 50)`` floor made any explicit
+                # threshold below 50 silently inert, so a caller asking to reject
+                # a 3-run could never do so. Threshold 0 still disables.
+                max_allowed_stale = int(stale_run_threshold)
                 stale = np.flatnonzero(finite_counts >= int(stale_run_threshold))
                 if stale.size:
                     # Vectorized per-column stale-run scan; raise on the lowest
@@ -1658,8 +1662,9 @@ def _run_data_quality_campaign(
                 and int(stale_run_threshold) > 0
                 and finite_count >= int(stale_run_threshold)
             ):
-                # Allow very short runs of identical values (common in some fixtures/tests)
-                max_allowed_stale = max(int(stale_run_threshold), 50)  # be very lenient
+                # Honor the caller's explicit threshold exactly (no 50-run floor);
+                # threshold 0 still disables the check via the guard above.
+                max_allowed_stale = int(stale_run_threshold)
                 max_run = _max_consecutive_equal_finite(arr)
                 if max_run >= max_allowed_stale:
                     raise BABDataError(
@@ -1676,7 +1681,7 @@ def validate_returns_dataframe(
     benchmark: str | None = None,
     min_rows: int = 1,
     *,
-    quality: bool = True,
+    quality: bool | dict = True,
     max_return_abs: float | None = None,
     max_gap_days: float | None = None,
     stale_run_threshold: int | None = None,
@@ -1701,19 +1706,28 @@ def validate_returns_dataframe(
     quality:
         When True (default) run the comprehensive data-quality campaign
         (Campaign 7 Item 4). Set False to skip the extra checks and only
-        perform the structural validation above.
+        perform the structural validation above. May also be a ``dict`` of
+        per-call overrides (``max_return_abs``, ``max_gap_days``,
+        ``stale_run_threshold``, ``min_finite_fraction``,
+        ``allow_duplicate_timestamps``); a dict implies the campaign runs and
+        its keys override the corresponding ``None`` defaults. Explicit
+        function kwargs take precedence over dict keys.
     max_return_abs:
         Reject any return whose absolute value exceeds this threshold.
-        Defaults to 20.0 when ``quality`` is True and ``max_return_abs``
-        is None.
+        Defaults to a lenient ``10000.0`` when ``quality`` is True and
+        ``max_return_abs`` is None. Pass an explicit value (or a
+        ``quality`` dict entry) to tighten, e.g. ``20.0`` for real returns.
     max_gap_days:
         Reject data whose largest inter-timestamp gap exceeds this many
-        days. Defaults to 7.0 when ``quality`` is True and ``max_gap_days``
-        is None. Set to ``math.inf`` to disable.
+        days. Defaults to a lenient ``3650.0`` when ``quality`` is True and
+        ``max_gap_days`` is None. Set to ``math.inf`` to disable, or pass an
+        explicit value (e.g. ``7.0``) to tighten.
     stale_run_threshold:
         Reject columns with a run of ``>=`` this many consecutive equal
-        finite values (stale/frozen data). Defaults to 3 when ``quality``
-        is True and ``stale_run_threshold`` is None.
+        finite values (stale/frozen data). Defaults to a lenient ``50`` when
+        ``quality`` is True and ``stale_run_threshold`` is None. An explicit
+        threshold is honored exactly (e.g. ``3`` rejects a 3-run); ``0``
+        disables the check.
     min_finite_fraction:
         Reject columns whose finite-fraction is below this threshold.
         Defaults to 0.0 when ``quality`` is True (i.e. any finite data
@@ -1846,11 +1860,11 @@ def validate_returns_dataframe(
         raise BABDataError("Returns DataFrame contains infinite values")
 
     # Benchmark-presence check MUST run before the comprehensive data-quality
-    # campaign. The quality campaign rejects any large |r| (a lenient 10000
-    # threshold is fine for real returns, but a *missing benchmark column*
-    # produces a degenerate column of NaN/0 that can still trip it). Without
-    # this ordering the returns path reported a misleading "Implausible return
-    # detected" for a missing benchmark while the prices path reported the
+    # campaign. The quality campaign rejects any large |r| (the implausible-return
+    # guard), so a *missing benchmark column* — which produces a degenerate
+    # column of NaN/0 that can still trip it — must be reported actionably first.
+    # Without this ordering the returns path reported a misleading "Implausible
+    # return detected" for a missing benchmark while the prices path reported the
     # actionable "Benchmark not found" message. Campaign11 reporting parity.
     if benchmark is not None:
         bench_found = None
@@ -1892,7 +1906,28 @@ def validate_returns_dataframe(
 
     # Comprehensive data quality checks (Campaign 7 Item 4). Runs after the
     # benchmark-presence check so a missing benchmark is reported actionably.
-    if quality:
+    #
+    # ``quality`` may be a bool or a dict of per-call overrides. Resolve it into
+    # an enable flag + effective thresholds BEFORE running the campaign so that
+    # explicit thresholds and dict overrides are actually honored instead of
+    # being silently dropped. When ``quality`` is truthy and a threshold is left
+    # ``None``, the campaign's documented lenient defaults apply (see the
+    # parameter docs); explicit function kwargs and dict keys always win.
+    quality_enabled = bool(quality)
+    if isinstance(quality, dict):
+        quality_enabled = True
+        if max_return_abs is None:
+            max_return_abs = quality.get("max_return_abs")
+        if max_gap_days is None:
+            max_gap_days = quality.get("max_gap_days")
+        if stale_run_threshold is None:
+            stale_run_threshold = quality.get("stale_run_threshold")
+        if min_finite_fraction is None:
+            min_finite_fraction = quality.get("min_finite_fraction")
+        if quality.get("allow_duplicate_timestamps") and not allow_duplicate_timestamps:
+            allow_duplicate_timestamps = True
+
+    if quality_enabled:
         cleaned = _run_data_quality_campaign(
             cleaned,
             arr=arr,

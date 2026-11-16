@@ -226,7 +226,9 @@ class TestBatch46:
             out = dlmod._promote_datetime_column(df.copy())
 
     def test_run_quality_stale_outer_except_1345_1346(self, monkeypatch):
-        df = pd.DataFrame({"BTC": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0]})
+        # Varied values so the (now strict) stale-run guard is not tripped; the
+        # test's purpose is to force the numeric/is finite exception fallback.
+        df = pd.DataFrame({"BTC": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]})
         # Make numpy diff or comparison raise to hit 1345-1346
         orig_isfinite = np.isfinite
         n = {"c": 0}
