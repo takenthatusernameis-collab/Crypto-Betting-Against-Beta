@@ -2,14 +2,14 @@
 
 **Canonical durable handoff (single source of truth).** Do not create parallel handoff/session docs; update this file only. `AGENT_HANDOFF.md` is a pure pointer and must not carry a second task message. Any other `*HANDOFF*.md` is stale and must be deleted on sight.
 
-- **Timestamp (UTC):** 2026-11-16T19:46:57Z (this refresh)
+- **Timestamp (UTC):** 2026-11-16T19:48:51Z (this refresh)
 - **Repo identity:** `Crypto-Betting-Against-Beta` — a **crypto market-neutral trading system** (ingest → beta → signals → portfolio → backtest → execution → ops) implementing the Frazzini–Pedersen *Betting Against Beta* strategy. Highest-stakes paths, in order: **(1) what real orders are placed, (2) whether live fills still match the model, (3) whether the real-data ingest accepts only data fit to trade on.**
 - **Git state (at refresh):** HEAD `3a0a789` == `origin/main` `3a0a789` (verified 19:43Z). Working tree expected clean aside from this handoff refresh; commit this handoff update if you make other changes.
 - **Last verified gates (2026-11-16T19:43:52Z):** `python3 -m ruff check .` clean; `bash scripts/bab_reconcile_gate.sh` GREEN; `bash scripts/bab_gate.sh` GREEN → **6244 passed, 35 skipped, TOTAL 99% (86 missed / 6710)**.
 
 ---
 
-## INITIAL TASK MESSAGE (START HERE, 2026-11-16T19:46:57Z) — BINDING
+## INITIAL TASK MESSAGE (START HERE, 2026-11-16T19:48:51Z) — BINDING
 
 **EXECUTE P19-3 NOW. SHIP CODE/TESTS THIS SESSION. NO HANDOFF-ONLY PASS. NO CI WORKFLOW PUSH ATTEMPTS.**
 
@@ -95,7 +95,7 @@ BAB_GATE_MIN_COVERAGE=98.5 bash scripts/bab_gate.sh   # release floor target
 ## Bottleneck removal status (this refresh)
 
 - [DONE] Single durable handoff maintained (`HANDOFF.md` + pointer `AGENT_HANDOFF.md`).
-- [DONE] Binding initial task message refreshed at 2026-11-16T19:46:57Z with explicit execution order and "ship tests now" mandate to prevent avoidance.
+- [DONE] Binding initial task message refreshed at 2026-11-16T19:48:51Z with explicit execution order and "ship tests now" mandate to prevent avoidance.
 - [DONE] P19-1 kept external/non-blocking so it cannot stall P19-3 progress.
 - [DONE] Proof/delete targets called out (`execution.py:1295-1296`, `portfolio.py:180`) to force resolution, not deferral.
 - [UNCHANGED/EXTERNAL] CI `bab-gate` job not in `.github/workflows/main.yml`; maintainer action required.
@@ -115,4 +115,4 @@ BAB_GATE_MIN_COVERAGE=98.5 bash scripts/bab_gate.sh   # release floor target
 | 2026-11-16T19:01:30Z | b81ba35 (= origin/main) | Handoff timestamp refreshed to 19:01:30Z; binding task P19-3 unchanged; gates GREEN. | GREEN local |
 | 2026-11-16T19:02:16Z | b81ba35 (= origin/main) | Handoff refreshed to 19:02:16Z; verified single durable handoff, clean tree, no remediable bottlenecks. Binding task: P19-3. | GREEN local (prior evidence) |
 | 2026-11-16T19:43:52Z | 3a0a789 (= origin/main) | Live-verified gates (ruff/reconcile/gate 6244/35/99%/86). Corrected false README CI claim. Enriched P19-3 evidence. | GREEN local |
-| 2026-11-16T19:46:57Z | 3a0a789 (= origin/main) | Refreshed canonical `HANDOFF.md` as single durable task message for next session: sharpened binding P19-3 execution plan, preserved verified state, kept P19-1 external/non-blocking, no parallel docs. | N/A (handoff refresh; gates last verified 19:43Z GREEN) |
+| 2026-11-16T19:48:51Z | 3a0a789 (= origin/main) | Refreshed canonical `HANDOFF.md` as single durable task message for next session: sharpened binding P19-3 execution plan, preserved verified state, kept P19-1 external/non-blocking, no parallel docs. | N/A (handoff refresh; gates last verified 19:43Z GREEN) |
