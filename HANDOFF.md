@@ -2,13 +2,14 @@
 
 **Canonical durable handoff (single source of truth).** Do not create parallel handoff/session docs; update this file only. `AGENT_HANDOFF.md` is a pure pointer and must not carry a second task message. Any other `*HANDOFF*.md` is stale and must be deleted on sight.
 
-- **Timestamp (UTC):** 2026-11-16T04:55:25Z (this refresh)
+- **Timestamp (UTC):** 2026-11-16T05:57:40Z (this refresh)
 - **Repo identity:** `Crypto-Betting-Against-Beta` — a **crypto market-neutral trading system** (ingest → beta → signals → portfolio → backtest → execution → ops) implementing the Frazzini–Pedersen *Betting Against Beta* strategy. The highest-stakes code is the path that decides **what real orders are placed and whether live fills still match the model**. Data quality is now safe-by-default; execution/reconciliation is the next live risk.
-- **Git HEAD (verified this refresh):** `13c4662` (branch `main`, working tree clean except for this handoff refresh).
-- **Gate evidence (live-verified 2026-11-16T04:54Z at HEAD `8ff2115`):** `bash scripts/bab_gate.sh` → **GREEN**: **6,163 passed, 35 skipped in 123.34s**, TOTAL **99%** (6,645 statements, 88 missed). `python3 -m ruff check .` → clean. Re-run the gate after every change and trust live output over this note.
+- **Git HEAD (verified this refresh):** `7546200` (branch `main`, clean tree before this handoff refresh).
+- **Live probes re-verified 2026-11-16T05:57Z @7546200:** `LiveExecutionAdapter` has no `allow_live_execution`/`accept_terms`; no `evaluate_reconciliation_gate` in reconciliation; CLI has no `--reconcile-tolerance`. P18 gaps remain open (no `tests/test_bab_reconciliation_gate.py` or `tests/test_bab_live_opt_in.py`).
+- **Gate evidence (live-verified 2026-11-16T04:54Z at HEAD `8ff2115`, not re-run this turn):** `bash scripts/bab_gate.sh` → **GREEN**: **6,163 passed, 35 skipped in 123.34s**, TOTAL **99%** (6,645 statements, 88 missed). `python3 -m ruff check .` → clean. Re-run the gate after every change and trust live output over this note.
 - **Toolchain:** `python3 3.12.3`; `ruff 0.17.5`; numpy/pandas/scipy/pytest/hypothesis/coverage/pytest-cov/pytest-xdist/ccxt via `bash scripts/bab_bootstrap.sh` (auto-invoked by quick/gate).
 
-## INITIAL TASK MESSAGE (START HERE, 2026-11-16T04:55:25Z) — BINDING (DO NOT IGNORE)
+## INITIAL TASK MESSAGE (START HERE, 2026-11-16T05:57:40Z) — BINDING (DO NOT IGNORE)
 
 **Campaign P18 — Make live execution and reconciliation SAFE-BY-DEFAULT and ENFORCED. This is the next session's sole focus and the only authorized starting point. Start at P18-1 immediately and do not stop until P18-1's Definition of Done is met, then continue to P18-2 and P18-3.**
 
@@ -146,11 +147,11 @@ BAB_GATE_MIN_COVERAGE=98.5 bash scripts/bab_gate.sh   # P14 release floor must h
 
 ## Bottleneck removal status
 
-- ✅ **Divergent false handoff removed (this refresh):** deleted `AGENT_HANDOFF_2026-11-16.md`, which claimed a `TestStageSafeChangesPatternSync` blocker. Live check at `8ff2115`: `pytest tests/test_controller_progress_accounting.py::TestStageSafeChangesPatternSync` → **5 passed**; there is no such failure. That file would have sent the next agent to "fix" a non-existent bug and to add a nested-workflow case pattern that is intentionally absent. `HANDOFF.md` is now the only durable handoff.
-- ✅ **Stale binding cleared:** P17-1 is complete (see Verified completion state). The old binding task message was replaced by P18; re-running P17-1 probes is explicitly out of scope.
-- ✅ **Red-gate bottleneck (prior refresh):** nested `.github/workflows` paths are protected by the checkpoint's `git restore --source="$base_sha" -- .github/workflows` + `git clean -fd -- .github/workflows`, **not** by a `case` pattern. Do not "fix" a workflow-directory test by adding a nested case pattern unless you also change the force-restore design.
-- ✅ **Parallel-handoff bottleneck removed:** `HANDOFF_TASK.md` was deleted in a prior refresh; its follow-ups are folded into the deferred backlog.
-- ✅ Gate runs parallel by default (`-n $(nproc) --dist loadscope`, coverage core=sysmon) — ~2 min; verified this refresh (123.34s).
+- ✅ **Divergent/parallel handoffs removed:** only `HANDOFF.md` (+ pointer `AGENT_HANDOFF.md`) exist; no stale session handoff files found this refresh.
+- ✅ **Divergent false handoff removed (prior):** deleted `AGENT_HANDOFF_2026-11-16.md` (claimed non-existent `TestStageSafeChangesPatternSync` blocker; 5 passed at `8ff2115`). No nested-workflow case pattern to "fix".
+- ✅ **Stale binding cleared:** P17-1 is complete (see Verified completion state). Old binding replaced by P18.
+- ✅ **Red-gate bottleneck (prior):** nested `.github/workflows` paths protected by checkpoint `git restore --source="$base_sha" -- .github/workflows` + `git clean -fd -- .github/workflows`, not by a `case` pattern.
+- ✅ Gate runs parallel by default (`-n $(nproc) --dist loadscope`, coverage core=sysmon) — ~2 min; last verified 123.34s @8ff2115.
 - ✅ `scripts/bab_bootstrap.sh` auto-installs missing deps — no manual setup.
 - ⚠️ **Open bottleneck (P18 fixes it):** reconciliation drift is measured but not enforced, and live execution has no explicit two-key opt-in. Both are the most dangerous remaining gaps in the repo.
 
@@ -160,6 +161,7 @@ BAB_GATE_MIN_COVERAGE=98.5 bash scripts/bab_gate.sh   # P14 release floor must h
 |---|---|---|---|
 | 2026-11-16T02:41:36Z | 9e15f9a | Handoff refresh: re-stamped binding P17-1; confirmed source tree unchanged since `a845eff`; live-verified `ruff` clean + gate GREEN (6,153 passed / 35 skipped / 122.31s / 99%). No code change. | GREEN @02:37Z |
 | 2026-11-16T04:54:45Z | 8ff2115 | Consolidated to a single durable handoff: deleted divergent false `AGENT_HANDOFF_2026-11-16.md` (its claimed `TestStageSafeChangesPatternSync` blocker does not exist — 5 passed); verified P17-1 complete (defaults 20/7/3, pipeline + `load_prices` wired, 8 safety-contract tests); live-verified `ruff` clean + gate GREEN (**6,163 passed / 35 skipped / 123.34s / 99%**, 88 missed) and `perf_baseline --check` `failures: []`; restamped binding **P18** (reconciliation drift gate + live two-key opt-in). No production code change this turn; P18 is the next session's sole focus. | GREEN @04:54Z |
+| 2026-11-16T05:57:40Z | 7546200 | Handoff refresh: confirmed single durable handoff (no extra `*HANDOFF*.md`), re-verified P18 blockers still open (no gate fn / no CLI reconcile-tolerance / no live opt-in args / no characterization tests), restamped binding timestamp/HEAD. No production code/test change. | not re-run (last GREEN @04:54Z 8ff2115) |
 
 ---
 
