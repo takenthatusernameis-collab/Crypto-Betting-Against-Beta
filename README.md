@@ -238,3 +238,9 @@ The JSON sidecar contains:
 - Synthetic data by default; swap `returns_df` in `BABStrategy.run()` for real price/return data.
 - Daily rebalance on close; no slippage model beyond optional transaction costs.
 - NaN/insufficient-history observations produce flat (zero-weight) periods.
+
+### CI, gates, and safety (current state)
+
+- **CI enforcement shipped (P19-1):** `.github/workflows/main.yml` now includes a **`bab-gate`** job (push/pull_request/workflow_dispatch) that checks out with `actions/checkout@v7.0.1`, sets up Python 3.12, runs `bash scripts/bab_bootstrap.sh`, then enforces `python3 -m ruff check .`, `BAB_GATE_MIN_COVERAGE=98.5 bash scripts/bab_gate.sh`, and `bash scripts/bab_reconcile_gate.sh`. The existing `kilo` controller/diagnostics job remains intact.
+- **Local proof (2026-11-16T12:34:01Z, working tree at P19-1 change):** `python3 -m ruff check .` clean. Injected reconciliation drift (`--synthetic --adapter paper --reconcile --transaction-costs 0.01 --reconcile-tolerance 0.0`) exits **RC=2 (RED, fail-closed)**; clean tolerance case exits **RC=0 (GREEN)**; `bash scripts/bab_reconcile_gate.sh` **GREEN** (drift rc=2, clean rc=0, emit-only rc=0). `BAB_GATE_MIN_COVERAGE=98.5 bash scripts/bab_gate.sh` **GREEN RC=0** → **6215 passed, 35 skipped, TOTAL 99%** (89 missed / 6710). `scripts/bab_bootstrap.sh` installs missing test/runtime deps on fresh runners.
+- **Binding next step (P19-2):** harden real-data ingest/network behavior and live-fill reconciliation fidelity with deterministic offline tests and behavior proofs (see [`HANDOFF.md`](HANDOFF.md)). Do not claim additional CI enforcement without observed RED/GREEN evidence.
