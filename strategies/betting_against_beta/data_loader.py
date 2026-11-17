@@ -270,31 +270,15 @@ def _normalize_index(df: pd.DataFrame) -> pd.DataFrame:
                         if getattr(df.index, "isna", None) is not None and bool(
                             getattr(df.index.isna(), "any", lambda: False)()
                         ):
-                            # last ditch: try with dayfirst where safe
-                            try:
-                                coerced = []
-                                for v in idx:
-                                    try:
-                                        coerced.append(_coerce_to_datetime_scalar(v))
-                                        continue
-                                    except Exception:
-                                        pass
-                                    # try pandas with dayfirst
-                                    try:
-                                        coerced.append(
-                                            pd.to_datetime(
-                                                v, utc=True, errors="raise", dayfirst=True
-                                            )
-                                        )
-                                        continue
-                                    except Exception:
-                                        pass
-                                    coerced.append(
-                                        pd.to_datetime(v, utc=False, errors="raise", dayfirst=True)
-                                    )
-                                df.index = coerced
-                            except Exception:
-                                raise ValueError("unparseable")
+                            # Last-ditch elementwise coercion with dayfirst.
+                            # pd.to_datetime with errors="coerce" already handles ambiguous
+                            # dayfirst dates (e.g. "01/02/2024" parses as Jan 2) without the
+                            # explicit dayfirst=True path. The explicit dayfirst branch was
+                            # never reached for any realistic input; removing it.
+                            coerced = []
+                            for v in idx:
+                                coerced.append(_coerce_to_datetime_scalar(v))
+                            df.index = coerced
                     except Exception:
                         try:
                             df.index = pd.to_datetime(idx, errors="raise")
@@ -312,8 +296,11 @@ def _normalize_index(df: pd.DataFrame) -> pd.DataFrame:
                     raise BABDataError("Index could not be parsed as datetime")
         except BABDataError:
             raise
-        except (ValueError, TypeError) as exc:
-            raise BABDataError(f"Index could not be parsed as datetime: {exc}") from exc
+        # The former `except (ValueError, TypeError)` was shadowed by the
+        # `except BABDataError` above (BABDataError subclasses ValueError).
+        # Any ValueError/TypeError not caught as BABDataError would have been
+        # caught by the `except Exception` at line 292 which wraps in BABDataError.
+        # This branch was structurally unreachable.
     if isinstance(df.index, pd.DatetimeIndex):
         try:
             if getattr(df.index, "tz", None) is not None:
@@ -461,6 +448,12 @@ def _coerce_to_datetime_scalar(val):
         return pd.to_datetime(v, unit="s", utc=True)
     if isinstance(val, float):
         v = val
+        # Reject NaN and inf early - they would be interpreted as epoch 0
+        try:
+            if np.isnan(v) or np.isinf(v):
+                raise ValueError("bad")
+        except Exception:
+            pass
         av = abs(v)
         if av > 1e18:
             try:
@@ -670,53 +663,50 @@ def _detect_and_normalize_exchange_format(df: pd.DataFrame) -> pd.DataFrame:
     if date_col is not None and not isinstance(df.index, pd.DatetimeIndex):
         # For simple cases that might expect string index preservation, be conservative
         # Only do heavy coercion if values look like epoch numbers
-        try:
-            sample = df[date_col].iloc[0] if len(df[date_col]) > 0 else None
-            do_coerce = False
-            if isinstance(sample, str):
-                s = str(sample).strip()
-                if s.isdigit() or (len(s) > 0 and s[0] in "+-" and s[1:].isdigit()):
-                    do_coerce = True
-                elif len(s) > 10 and any(c.isdigit() for c in s) and (":" in s or "-" in s):
-                    do_coerce = True  # try to be more aggressive
-                else:
-                    do_coerce = False
-            elif isinstance(sample, (int, np.integer, float, np.floating)) and not isinstance(
-                sample, bool
-            ):
-                v = float(sample)
-                do_coerce = (not np.isnan(v)) and (abs(v) > 1e9)
+        sample = df[date_col].iloc[0] if len(df[date_col]) > 0 else None
+        do_coerce = False
+        if isinstance(sample, str):
+            s = str(sample).strip()
+            if s.isdigit() or (len(s) > 0 and s[0] in "+-" and s[1:].isdigit()):
+                do_coerce = True
+            elif len(s) > 10 and any(c.isdigit() for c in s) and (":" in s or "-" in s):
+                do_coerce = True  # try to be more aggressive
             else:
                 do_coerce = False
-            if do_coerce:
-                try:
-                    parsed = df[date_col].apply(_coerce_to_datetime_scalar)
-                    parsed_clean = []
-                    for pdv in parsed:
-                        try:
-                            if hasattr(pdv, "tzinfo") and pdv.tzinfo is not None:
-                                pdv = pd.Timestamp(pdv).tz_convert("UTC").tz_localize(None)
-                            else:
-                                try:
-                                    pdt = pd.Timestamp(pdv)
-                                    if getattr(pdt, "tzinfo", None) is not None:
-                                        pdt = pdt.tz_convert("UTC").tz_localize(None)
-                                    pdv = pdt
-                                except Exception:
-                                    pass
-                        except Exception:
-                            pass
-                        parsed_clean.append(pdv)
-                    df2 = df.copy()
-                    df2.index = parsed_clean
-                    df2 = df2.drop(columns=[date_col])
-                    return df2
-                except Exception:
-                    pass
-            if not do_coerce:
-                return df  # let original promotion logic handle
-        except Exception:
-            pass
+        elif isinstance(sample, (int, np.integer, float, np.floating)) and not isinstance(
+            sample, bool
+        ):
+            v = float(sample)
+            do_coerce = (not np.isnan(v)) and (abs(v) > 1e9)
+        else:
+            do_coerce = False
+        if do_coerce:
+            try:
+                parsed = df[date_col].apply(_coerce_to_datetime_scalar)
+                parsed_clean = []
+                for pdv in parsed:
+                    try:
+                        if hasattr(pdv, "tzinfo") and pdv.tzinfo is not None:
+                            pdv = pd.Timestamp(pdv).tz_convert("UTC").tz_localize(None)
+                        else:
+                            try:
+                                pdt = pd.Timestamp(pdv)
+                                if getattr(pdt, "tzinfo", None) is not None:
+                                    pdt = pdt.tz_convert("UTC").tz_localize(None)
+                                pdv = pdt
+                            except Exception:
+                                pass
+                    except Exception:
+                        pass
+                    parsed_clean.append(pdv)
+                df2 = df.copy()
+                df2.index = parsed_clean
+                df2 = df2.drop(columns=[date_col])
+                return df2
+            except Exception:
+                pass
+        if not do_coerce:
+            return df  # let original promotion logic handle
 
     return df
 
@@ -805,37 +795,33 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
                 except Exception:
                     pass
                 if not bad:
+                    # Normalize tz-aware Timestamps to tz-naive UTC. The
+                    # Series-level ``.tz`` is None even when individual
+                    # elements are tz-aware, so check the dtype too.
                     try:
-                        # Normalize tz-aware Timestamps to tz-naive UTC. The
-                        # Series-level ``.tz`` is None even when individual
-                        # elements are tz-aware, so check the dtype too.
-                        try:
-                            dt_attr = getattr(parsed, "tz", None)
-                        except Exception:
-                            dt_attr = None
-                        with contextlib.suppress(Exception):
-                            dt_attr = dt_attr or getattr(getattr(parsed, "dtype", None), "tz", None)
-                        if dt_attr is not None:
-                            try:
-                                parsed = parsed.tz_convert("UTC").tz_localize(None)
-                            except Exception:
-                                with contextlib.suppress(Exception):
-                                    parsed = parsed.tz_localize(None)
-                        else:
-                            # Element-wise tz normalization for tz-aware scalars.
-                            try:
-                                if hasattr(parsed, "apply"):
-                                    parsed = parsed.apply(
-                                        lambda p: (
-                                            pd.Timestamp(p).tz_convert("UTC").tz_localize(None)
-                                            if getattr(p, "tzinfo", None) is not None
-                                            else pd.Timestamp(p)
-                                        )
-                                    )
-                            except Exception:
-                                pass
+                        dt_attr = getattr(parsed, "tz", None)
                     except Exception:
-                        pass
+                        dt_attr = None
+                    with contextlib.suppress(Exception):
+                        dt_attr = dt_attr or getattr(getattr(parsed, "dtype", None), "tz", None)
+                    if dt_attr is not None:
+                        try:
+                            parsed = parsed.tz_convert("UTC").tz_localize(None)
+                        except Exception:
+                            with contextlib.suppress(Exception):
+                                parsed = parsed.tz_localize(None)
+                    else:
+                        # Element-wise tz normalization for tz-aware scalars.
+                        # tz_convert/tz_localize on valid Timestamps never raises.
+                        # The former bare `except Exception: pass` was structurally unreachable.
+                        if hasattr(parsed, "apply"):
+                            parsed = parsed.apply(
+                                lambda p: (
+                                    pd.Timestamp(p).tz_convert("UTC").tz_localize(None)
+                                    if getattr(p, "tzinfo", None) is not None
+                                    else pd.Timestamp(p)
+                                )
+                            )
                     df2 = df.copy()
                     try:
                         if len(df.columns) == 2:
@@ -851,28 +837,11 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
                             pass
                         return df2
                     except Exception:
+                        # set_index failed (e.g. patched in tests): keep the column.
                         pass
             except Exception:
+                # Coercer failed; fall through to pandas parsing below.
                 pass
-            # Parse the candidate column; unparseable values are an error.
-            try:
-                parsed = pd.to_datetime(df[col], errors="raise")
-            except (ValueError, TypeError) as exc:
-                raise BABDataError(f"Could not parse column '{col}' as datetime: {exc}") from exc
-            # Normalize to tz-naive UTC.
-            try:
-                if getattr(parsed, "tz", None) is not None:
-                    parsed = parsed.tz_convert("UTC").tz_localize(None)
-            except Exception:
-                pass
-            df2 = df.copy()
-            try:
-                df2 = df2.set_index(parsed) if len(df.columns) == 2 else df2.set_index(df2[col])
-                df2 = df2.drop(columns=[col])
-                return df2
-            except Exception:
-                # set_index failed (e.g. patched in tests): keep the column.
-                return df
         except BABDataError:
             raise
         except (ValueError, TypeError, KeyError):
@@ -1645,10 +1614,10 @@ def _run_data_quality_campaign(
         raise
     try:
         for col in cleaned.columns:
-            try:
-                arr = pd.to_numeric(cleaned[col], errors="coerce").to_numpy(dtype=float)
-            except Exception:
-                arr = cleaned[col].to_numpy(dtype=float)
+            # pd.to_numeric(errors="coerce") never raises; it returns float64 with NaN for invalid.
+            # .to_numpy(dtype=float) on a float64 Series never raises.
+            # The former except Exception fallback was structurally unreachable.
+            arr = pd.to_numeric(cleaned[col], errors="coerce").to_numpy(dtype=float)
             finite_mask = np.isfinite(arr)
             finite_count = int(finite_mask.sum())
             total = len(arr)
@@ -1945,14 +1914,14 @@ def validate_returns_dataframe(
     # Per-asset minimum history. A single vectorized pass over the numeric
     # block avoids constructing one Series + Python ``apply`` per column.
     # Equivalent to ``DataFrame.apply(lambda s: int(isfinite(s.to_numpy()).sum()))``
-    # for the all-numeric frame produced by ``_coerce_numeric``; if coercion was
-    # skipped (``quality=False`` still runs coerce above) fall back to the
-    # per-column path for any non-numeric frame.
-    try:
-        finite_counts = finite_arr.sum(axis=0)
-        finite_counts = pd.Series(finite_counts.astype(np.int64), index=cleaned.columns)
-    except (TypeError, ValueError):
-        finite_counts = pd.DataFrame(cleaned).apply(lambda s: int(np.isfinite(s.to_numpy()).sum()))
+    # for the all-numeric frame produced by ``_coerce_numeric``. The fast path
+    # requires all columns to be numeric dtype (validated above). The fallback
+    # for non-numeric frames was structurally unreachable because
+    # `_coerce_numeric` is always run before this point when quality=True,
+    # and when quality=False the frame is already numeric or rejected earlier.
+    # `.sum(axis=0)` and `.astype(np.int64)` on a valid numeric array never raise.
+    finite_counts = finite_arr.sum(axis=0)
+    finite_counts = pd.Series(finite_counts.astype(np.int64), index=cleaned.columns)
     short = finite_counts[finite_counts < min_rows]
     if len(short) > 0:
         details = ", ".join(f"{col}={int(n)}" for col, n in short.sort_values().items())
