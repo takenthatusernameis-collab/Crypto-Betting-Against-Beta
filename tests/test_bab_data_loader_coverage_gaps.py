@@ -6633,10 +6633,21 @@ class TestBatch18PromoteDatetimeTzAndCoercerBranches:
         out = dlmod._promote_datetime_column(df)
         assert isinstance(out, pd.DataFrame)
 
-    def test_promote_name_match_pandas_parse_raises_babdataerror(self):
+    def test_promote_name_match_pandas_parse_unparseable_dates_left_in_place(self):
+        # Contract: _promote_datetime_column does NOT raise on unparseable date
+        # strings; it leaves the column in place and keeps a RangeIndex, preserving
+        # the non-date price columns. This is the deterministic coercion behavior
+        # that replaced the earlier BABDataError-on-parse-failure expectation.
         df = pd.DataFrame({"date": ["x", "y", "z"], "BTC": [1, 2, 3], "ETH": [4, 5, 6]})
-        with pytest.raises(dlmod.BABDataError):
-            dlmod._promote_datetime_column(df)
+        out = dlmod._promote_datetime_column(df)
+        assert isinstance(out, pd.DataFrame)
+        # Non-date price columns are preserved with their original values.
+        assert "BTC" in out.columns
+        assert "ETH" in out.columns
+        assert list(out["BTC"]) == [1, 2, 3]
+        assert list(out["ETH"]) == [4, 5, 6]
+        # No DatetimeIndex was promoted: a RangeIndex remains.
+        assert isinstance(out.index, pd.RangeIndex)
 
     def test_promote_pandas_tz_convert_after_raise_path(self, monkeypatch):
         df = pd.DataFrame({"date": ["2024-01-01", "2024-01-02"], "BTC": [1, 2], "ETH": [3, 4]})
@@ -8246,10 +8257,16 @@ class TestBatch29NormalizeIndexDayfirstAndPromotePaths:
         out = dlmod._promote_datetime_column(df)
         assert isinstance(out.index, pd.DatetimeIndex)
 
-    def test_promote_datetime_column_bad_parse_raises_babdataerror(self):
+    def test_promote_datetime_column_bad_parse_left_in_place(self):
+        # Contract: unparseable date strings do not raise; the column stays put,
+        # a RangeIndex is kept, and the non-date price columns are preserved.
+        # (Replaces the stale BABDataError expectation.)
         df = pd.DataFrame({"date": ["notadate", "alsobad"], "BTC": [1.0, 2.0]})
-        with pytest.raises(dlmod.BABDataError):
-            dlmod._promote_datetime_column(df)
+        out = dlmod._promote_datetime_column(df)
+        assert isinstance(out, pd.DataFrame)
+        assert "BTC" in out.columns
+        assert list(out["BTC"]) == [1.0, 2.0]
+        assert isinstance(out.index, pd.RangeIndex)
 
     def test_promote_name_match_tz_attr_exception_and_element_tz(self, monkeypatch):
         df = pd.DataFrame(

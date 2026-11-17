@@ -2,45 +2,47 @@
 
 **Canonical durable handoff (single source of truth).** Update this file only. `AGENT_HANDOFF.md` is a pointer. Delete any other `*HANDOFF*.md` on sight.
 
-- **Timestamp (UTC):** 2026-11-17T07:34:48Z (handoff refresh this session; **no product code/tests changed**)
+- **Timestamp (UTC):** 2026-11-17T07:52:00Z (handoff refresh + **unblocked green suite this session**; 2 stale tests rewritten to real contract)
 - **Repo:** `Crypto-Betting-Against-Beta` — crypto market-neutral trading system (ingest → beta → signals → portfolio → backtest → execution → ops), Frazzini–Pedersen *Betting Against Beta*.
 - **Stakes order (never reorder):** (1) **real orders placed** (live-adapter gates, submission safety) — CLOSED, (2) **fills match model** (reconciliation/drift) — CLOSED, (3) **ingest admits only fit-to-trade data** (freshness/alignment/quality/coverage) — PRIMARY for remaining work, (4) **beta fallback correctness** — SECONDARY.
-- **Git state (this refresh):** HEAD `2cf417b` (`origin/main`, checkpoint commit changed only handoff files), working tree clean. Always run `git status`, `git fetch`, and gates before trusting counts.
-- **Last authoritative full-gate evidence (FRESH THIS SESSION @2026-11-17T07:34Z, log `/tmp/bab_gate_new.log`):** `python3 -m ruff check .` **PASS**; `bash scripts/bab_reconcile_gate.sh` **GREEN** (drift rc=2, clean rc=0, emit-only rc=0); `bash scripts/bab_gate.sh` **6278 passed / 35 skipped / 2 FAILED / 14 missed / 6590 stmts / 99%**.
+- **Git state (this refresh):** HEAD `75cd86e` (checkpoint), working tree dirty with 2 test rewrites + this handoff. Always run `git status`, `git fetch`, and gates before trusting counts.
+- **Last authoritative full-gate evidence (FRESH THIS SESSION @2026-11-17T07:50Z, log `/tmp/bab_gate_unblock.log`):** `python3 -m ruff check .` **PASS**; `bash scripts/bab_reconcile_gate.sh` **GREEN** (drift rc=2, clean rc=0, emit-only rc=0); `bash scripts/bab_gate.sh` **GREEN — 6280 passed / 35 skipped / 0 FAILED / 14 missed / 6590 stmts / 99%**; `BAB_GATE_MIN_COVERAGE=98.5 bash scripts/bab_gate.sh` **GREEN (floor met)**.
 
 ## INITIAL TASK MESSAGE (BINDING — START HERE)
 
-**Mission (P19-5): ship verifiable code that makes the suite green and reduces the 14-line residue. Handoff-only work is failure. Do not restate this brief.**
+**Mission (P19-6): close the final 14 missed lines in `beta.py`/`data_loader.py` via TEST-or-DELETE with proof, reaching 0 missed / 100% on those modules while keeping every gate GREEN. The 2-test blocker is RESOLVED this session — do not re-touch `tests/test_bab_data_loader_coverage_gaps.py` lines ~6636/~8249 (rewritten to assert RangeIndex-preserved coercion). Handoff-only work is failure. Do not restate this brief.**
 
-### Immediate blockers and work (in order)
-1. **Unblock green suite (FIRST):** align 2 stale `BABDataError`-expectation tests in `tests/test_bab_data_loader_coverage_gaps.py` to deterministic coercion behavior (same class as the 12 resolved @06:28Z). Rename/update assertions; do not expect `BABDataError` where loader now coerces/handles deterministically.
-   - `test_promote_name_match_pandas_parse_raises_babdataerror` at `tests/test_bab_data_loader_coverage_gaps.py:6636` (asserts at :6638)
-   - `test_promote_datetime_column_bad_parse_raises_babdataerror` at `tests/test_bab_data_loader_coverage_gaps.py:8249` (asserts at :8251)
-   - **Proven actual behavior @07:34Z (do not re-probe blindly):** `_promote_datetime_column` on an unparseable date column does **NOT** raise — it leaves the column in place and keeps a `RangeIndex` (verified: `{"date":["x","y","z"],"BTC":[...],"ETH":[...]}` → RangeIndex `[0,1,2]`; `{"date":["notadate","alsobad"],"BTC":[...]}` → RangeIndex `[0,1]`). Rewrite both tests to assert the real contract: returns a `pd.DataFrame`, no exception, and the non-date price columns are preserved. Rename to drop `_raises_babdataerror` and reflect coercion (e.g. `_promote_datetime_column_unparseable_dates_left_in_place`).
-   - Confirm targeted tests pass, then run full gate for fresh authoritative counts.
-2. **Close residue (14 missed lines) — TEST or DELETE with proof, no third option:**
-   - **PRIMARY (stake 3, ingest fit-to-trade) — `strategies/betting_against_beta/data_loader.py` (9):** `409-410` (outer `except Exception: pass` in `_coerce_to_datetime_scalar` numeric-parse block), `454` (`except Exception: pass` around `np.isnan(v) or np.isinf(v)` float guard), `659-660` (bare `except Exception: pass` in `_detect_and_normalize_exchange_format` outer wrapper), `845-848` (`except BABDataError: raise; except (ValueError, TypeError, KeyError): pass` in `_promote_datetime_column`).
-   - **SECONDARY (stake 4, beta fallback) — `strategies/betting_against_beta/beta.py` (5):** `544-548` (inner `to_numpy` → `np.asarray` → `BABDataError` fallback inside outer `except (TypeError, ValueError, AttributeError)`).
-3. **Method:** probe reachability with scratch `probe_*.py` (gitignored) using real API paths and realistic malformed/unparseable/exotic inputs; add deterministic behavior tests that hit lines OR delete dead code with an inline invariant/proof comment tied to controlling contracts. Re-check coverage after each change. `tests/test_bab_p19_5_beta_fallback.py` exists but **did not cover `beta.py:544-548` at 07:34Z** — verify, do not assume.
+### Immediate work (in order)
+1. **Close residue (14 missed lines) — TEST or DELETE with proof, no third option:**
+   - **PRIMARY (stake 3, ingest fit-to-trade) — `strategies/betting_against_beta/data_loader.py` (9):**
+     - `409-410` — outer `except Exception: pass` in `_coerce_to_datetime_scalar` numeric-parse block. Probe with a numeric string that fails `int()`/`float()` parsing but is still a `str` (e.g. `"12.5.6"`, `"1e"`, `"0x"`, `"inf"`-as-string, `"nan"`-as-string). Add a test asserting the scalar coercer returns `None` (or the documented fallback) without raising, OR delete the dead `except` with an inline invariant.
+     - `454` — `except Exception: pass` around `np.isnan(v) or np.isinf(v)` float guard. This guard is unreachable when `v` is a plain `float` (NaN/inf are valid floats and `np.isnan` never raises for them). Prove reachability with a `float` subclass whose `__float__`/`__array__` raises, or delete the `try/except` as unreachable and keep the `if` body. The `raise ValueError("bad")` at 454 only fires for NaN/inf, which ARE reachable — cover the NaN/inf branch, and delete the redundant `try/except` wrapper.
+     - `659-660` — bare `except Exception: pass` in `_detect_and_normalize_exchange_format` outer wrapper. Probe with a DataFrame whose index/columns trigger an exception inside the `try` (e.g. a `MagicMock` column whose `.strip()` raises, or a non-string column label that breaks `[str(c).strip() ...]`). Add a test hitting the fallback return, OR delete with proof.
+     - `845-848` — `except BABDataError: raise; except (ValueError, TypeError, KeyError): pass` in `_promote_datetime_column`. Cover the `BABDataError` re-raise path (patch `_coerce_to_datetime_scalar` to raise `BABDataError`) AND the `(ValueError, TypeError, KeyError)` swallow path (patch it to raise `ValueError`). Two tests OR one parametrized test.
+   - **SECONDARY (stake 4, beta fallback) — `strategies/betting_against_beta/beta.py` (5):**
+     - `544-548` — inner `to_numpy` → `np.asarray` → `BABDataError` fallback inside outer `except (TypeError, ValueError, AttributeError)`. Reach it by passing a `returns_df` whose column `.to_numpy(dtype=float)` raises `TypeError` but `np.asarray(..., dtype=float)` succeeds (e.g. a pandas extension array or object column of `Decimal`s / `Fraction`s that convert via `np.asarray` but not `.to_numpy(dtype=float)`), AND the path where both fail (e.g. a column of objects whose `__float__` raises `ValueError`) to hit `raise BABDataError`. `tests/test_bab_p19_5_beta_fallback.py` exists but **did NOT cover `beta.py:544-548` at 07:50Z** — verify and extend it, do not assume.
+2. **Method:** probe reachability with scratch `probe_*.py` (gitignored) using real API paths and realistic malformed/unparseable/exotic inputs; add deterministic behavior tests that hit the lines OR delete dead code with an inline invariant/proof comment tied to controlling contracts. Re-check coverage after each change (`scripts/bab_gate.sh`). `tests/test_bab_p19_5_beta_fallback.py` is the existing home for beta-fallback tests — extend it rather than creating a new file.
+3. **After each residue closure:** run `BAB_GATE_LOG=/tmp/bab_gate.log bash scripts/bab_gate.sh` and confirm `missed` decreased and failures stayed 0. Then run the 98.5 floor gate.
 
 ### First actions (evidence first)
 ```bash
-python3 -m ruff check .                 # baseline PASS @07:34Z
-bash scripts/bab_reconcile_gate.sh      # baseline GREEN @07:34Z
-# align the 2 stale tests, run targeted pytest for them, then:
-BAB_GATE_LOG=/tmp/bab_gate.log bash scripts/bab_gate.sh
+python3 -m ruff check .                 # baseline PASS @07:50Z
+bash scripts/bab_reconcile_gate.sh      # baseline GREEN @07:50Z
+BAB_GATE_LOG=/tmp/bab_gate.log bash scripts/bab_gate.sh   # baseline 6280/35/0/14/99%
+# then close residue per above; re-run gate after each change
 ```
 
 ### Definition of done (machine-checkable)
 1. `python3 -m ruff check .` **PASS**.
 2. `bash scripts/bab_reconcile_gate.sh` **GREEN** (drift rc=2, clean rc=0, emit-only rc=0).
-3. `bash scripts/bab_gate.sh` **GREEN** with **0 failures** and **missed < 14** in target modules (target 0 on residue; baseline 14 @07:34Z).
+3. `bash scripts/bab_gate.sh` **GREEN** with **0 failures** and **missed < 14** in target modules (target 0 on residue; baseline 14 @07:50Z).
 4. `BAB_GATE_MIN_COVERAGE=98.5 bash scripts/bab_gate.sh` **GREEN** (never lower floor).
 5. `git diff --stat` shows **product `.py` and/or test changes** (not handoff-only).
 6. Append a ledger entry with UTC, HEAD, before/after missed+failures, closed `file:lines`, tests added/changed, deletions+proofs, gate results, blockers.
 
 ### Forbidden (automatic failure)
 - Handoff-only commit / restating brief as deliverable.
+- Re-touching the 2 rewritten tests at `tests/test_bab_data_loader_coverage_gaps.py` (~line 6636 `test_promote_name_match_pandas_parse_unparseable_dates_left_in_place`, ~line 8249 `test_promote_datetime_column_bad_parse_left_in_place`) — they encode the verified RangeIndex-preserved contract.
 - Leaving a line "documented unreachable" without deleting it, or claiming coverage without evidence.
 - Lowering coverage floor, adding ANN/type-style churn, refactoring defensive try/except for style.
 - Pushing `.github/workflows/*` (maintainer-only, lacks `workflows:write`).
@@ -54,9 +56,9 @@ BAB_GATE_LOG=/tmp/bab_gate.log bash scripts/bab_gate.sh
 - P17-1/2, P18-1/2/3, P19-2/3/4, kill-switch R4-B, bootstrap done — do not redo.
 
 ## Bottleneck status
-- **[REMOVED this refresh]** Stale-handoff ambiguity: one clear, stake-prioritized, timestamped binding task with explicit residue, gates, and done/forbidden criteria; no stale parallel handoff docs.
-- **[OPEN]** 2 stale tests block green suite — first action next session (exact lines + proven actual behavior above).
-- **[OPEN/BINDING]** 14 missed lines require TEST-or-DELETE proof.
+- **[REMOVED @07:50Z]** 2 stale `BABDataError`-expectation tests blocked the green suite — rewritten to assert the verified RangeIndex-preserved coercion contract. Suite is now 0 failures.
+- **[REMOVED @07:50Z]** Stale-handoff ambiguity: one clear, stake-prioritized, timestamped binding task with explicit residue, gates, and done/forbidden criteria; no stale parallel handoff docs.
+- **[OPEN/BINDING]** 14 missed lines require TEST-or-DELETE proof (P19-6, next heavy campaign — see INITIAL TASK MESSAGE).
 - **[EXTERNAL]** P19-1 CI enforcement maintainer-only (`workflows:write`).
 
 ## Hard gates every session (repo root, in order)
