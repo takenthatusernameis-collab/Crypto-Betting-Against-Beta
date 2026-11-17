@@ -2,14 +2,14 @@
 
 **Canonical durable handoff (single source of truth).** Do not create parallel handoff/session docs; update this file only. `AGENT_HANDOFF.md` is a pure pointer and must not carry a second task message. Any other `*HANDOFF*.md` is stale and must be deleted on sight.
 
-- **Timestamp (UTC):** 2026-11-17T04:28:51Z (binding handoff refresh; all gates live-verified this session; P19-4 code/tests changed in the working tree)
+- **Timestamp (UTC):** 2026-11-17T04:29:56Z (binding handoff refresh; all gates live-verified this session; P19-4 committed in HEAD `b972ac2`; working tree clean)
 - **Repo identity:** `Crypto-Betting-Against-Beta` — a **crypto market-neutral trading system** (ingest → beta → signals → portfolio → backtest → execution → ops) implementing Frazzini–Pedersen *Betting Against Beta*. **Highest-stakes order (never reorder):** (1) **what real orders are placed** (live-adapter gates, order construction, submission safety), (2) **whether live fills still match the model** (reconciliation, drift/tolerances, realized-vs-modeled behavior), (3) **whether real-data ingest admits only data fit to trade** (freshness, alignment, quality, coverage/survivorship decisions).
-- **Git state (at refresh):** HEAD `6121323` == `origin/main`. **P19-4 changes are uncommitted in the working tree** (6 product files + 1 new test file). `git diff`/`git status` must be inspected before trusting any committed baseline. If a fresh checkout is used, re-apply from the working-tree diff or re-derive from the ledger below.
-- **Last verified gates (live this session):** `python3 -m ruff check .` PASS; `bash scripts/bab_reconcile_gate.sh` GREEN (drift rc=2, clean rc=0, emit-only rc=0); `bash scripts/bab_gate.sh` GREEN → **6277 passed, 35 skipped, 29 missed / 6631 statements, TOTAL 99%** @2026-11-17T04:28Z. Re-run before claiming progress.
+- **Git state (at refresh):** HEAD `b972ac2` == `origin/main`. **P19-4 changes are committed** (9 files: 6 product deletions + `tests/test_bab_p19_4_heavy.py`). Working tree clean — no uncommitted changes block the next session. If a fresh checkout is used, checkout `b972ac2` and re-verify gates.
+- **Last verified gates (live this session):** `python3 -m ruff check .` PASS; `bash scripts/bab_reconcile_gate.sh` GREEN (drift rc=2, clean rc=0, emit-only rc=0); `bash scripts/bab_gate.sh` GREEN → **6277 passed, 35 skipped, 29 missed / 6631 statements, TOTAL 99%** @2026-11-17T04:29Z. Re-run before claiming progress.
 
 ---
 
-## INITIAL TASK MESSAGE (START HERE, 2026-11-17T04:28:51Z) — BINDING HEAVY-WORK CAMPAIGN P19-5
+## INITIAL TASK MESSAGE (START HERE, 2026-11-17T04:29:56Z) — BINDING HEAVY-WORK CAMPAIGN P19-5
 
 **YOU ARE REQUIRED TO SHIP SUBSTANTIVE, VERIFIABLE WORK THIS SESSION. A handoff/timestamp-only commit is failure. Do not spend the session restating this brief.**
 
@@ -68,7 +68,7 @@ This is the largest open cluster and the repo's #3 stake (real-data admission). 
 
 ## REMAINING 29-LINE CORRECTNESS GAP (live baseline @2026-11-17T04:28Z)
 
-Live full-gate baseline: **6277 passed / 35 skipped / 29 missed / 6631 statements / 99%**. Treat this as a defect queue, not a cosmetic coverage target.
+Live full-gate baseline @2026-11-17T04:29Z: **6277 passed / 35 skipped / 29 missed / 6631 statements / 99%**. Treat this as a defect queue, not a cosmetic coverage target.
 
 - `beta.py`: 544-548 (5)
 - `data_loader.py`: 280-292, 296-297, 315-316, 422-423, 666-667, 718-719, 837-838, 1650-1651, 1954-1955 (24)
@@ -199,3 +199,4 @@ BAB_GATE_MIN_COVERAGE=98.5 bash scripts/bab_gate.sh   # release floor target
 | 2026-11-17T03:12:40Z | 10849e7 | Handoff refresh (no code/tests): re-timestamped binding INITIAL TASK MESSAGE @03:12:40Z; re-verified ALL THREE gates GREEN this session (ruff clean, reconcile GREEN, bab_gate 6274/35/99%/64 @03:12:40Z); HEAD at 10849e7 == origin/main; binding P19-4 campaign unchanged (orders→fills-vs-model→ingest); no remediable bottlenecks (P19-1 external maintainer-only); single durable handoff maintained, no stale handoff files. | GREEN @03:12:40Z |
 | 2026-11-17T04:09:27Z | f513c0d (= origin/main) | Live-verified ALL THREE gates GREEN this session (ruff clean, reconcile GREEN, bab_gate **6274/35/48/6652, 99%** @04:09Z). **Shrank correctness gap 64→48 lines (−16) via 7 proven-unreachable branch deletions** across `execution.py` (140-141, 182-185, 1295-1296), `cli.py` (657-658, 836-838), `reconciliation.py` (82-83, 309) — each with inline proof tied to the controlling guard/API; fail-closed behavior and argparse rc=2 regression preserved. Refreshed canonical `HANDOFF.md` with new baseline, binding INITIAL TASK MESSAGE @04:09Z, reordered campaign (reconciliation→ingest, since orders/execution safety is now proven closed), and bottleneck removal status; single durable handoff maintained. | GREEN @04:09Z |
 | 2026-11-17T04:28:51Z | 6121323 (= origin/main; P19-4 changes uncommitted in working tree) | Live-verified ALL THREE gates GREEN this session (ruff clean, reconcile GREEN, bab_gate **6277/35/29/6631, 99%** @04:28Z). **Shrank correctness gap 48→29 lines (−19):** deleted 9 proven-unreachable branches (13 missing statements) across `replay.py` (171-172), `beta.py` (181-182, 427-429), `data_sources.py` (480-481, 494-500), `data_loader.py` (1609-1610, 2755-2758), `metrics.py` (93-94), `portfolio.py` (165-166) — each with an inline invariant proof; and added `tests/test_bab_p19_4_heavy.py` (3 real tests) closing `data_loader.py:1656-1658,1672-1677`. `reconciliation.py`, `execution.py`, `cli.py`, `data_sources.py`, `metrics.py`, `portfolio.py`, `replay.py` now 100%. Rewrote canonical `HANDOFF.md` as the binding P19-5 prove-and-delete + test campaign for the remaining 29 hard-residue lines; single durable handoff maintained. | GREEN @04:28Z |
+| 2026-11-17T04:29:56Z | b972ac2 (= origin/main; P19-4 committed; tree clean) | Refreshed canonical `HANDOFF.md` as single durable handoff for P19-5; all three gates re-verified GREEN (ruff clean, reconcile GREEN, bab_gate **6277/35/29/6631, 99%** @04:29Z); P19-4 deletions committed in `b972ac2`; no uncommitted work remains; binding P19-5 prove-and-delete campaign targets `data_loader.py` (24 lines) first, then `beta.py:544-548` (5 lines). Bottleneck removed: handoff-refresh loop converted to binding heavy-work campaign; no remediable bottlenecks (P19-1 external maintainer-only). | GREEN @04:29Z |
