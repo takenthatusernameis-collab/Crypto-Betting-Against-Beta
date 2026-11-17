@@ -344,6 +344,9 @@ def configure_paper_adapter(adapter, strategy):
         try:
             _model, prices, adv = resolver(cfg)
         except Exception:
+            # [P19-7 Site 1, Class A] Resolver failure is non-fatal; we fall back
+            # to config.prices / config.adv_usd below. This intentional contract
+            # ensures configure_paper_adapter never raises from resolver errors.
             prices = adv = None
     if prices is None:
         prices = getattr(cfg, "prices", None)
@@ -373,6 +376,9 @@ def _date_key(date) -> str:
     try:
         return pd.Timestamp(date).isoformat()
     except Exception:
+        # [P19-7 Site 2, Class A] Unparseable input → str(date) fallback.
+        # This intentional contract ensures _date_key never raises; it is used
+        # for deterministic key generation across the execution pipeline.
         return str(date)
 
 
@@ -396,6 +402,9 @@ def _as_timestamp(value):
     try:
         return pd.Timestamp(value)
     except Exception:
+        # [P19-7 Site 3, Class A] Uncoercible input → None fallback.
+        # This intentional contract ensures _as_timestamp never raises; it is
+        # used for safe Timestamp coercion in the paper execution engine.
         return None
 
 
@@ -455,7 +464,11 @@ def order_batches_from_weights(
                     if c in adv_df.columns:
                         sub = adv_df[c].reindex(idx)
                         adv_map[c] = {_date_key(k): v for k, v in sub.to_dict().items()}
-        except Exception:
+        except (TypeError, ValueError, KeyError):
+            # [P19-7 Site 4, Class B] Narrowed from bare Exception: only suppress
+            # expected coercion/index errors during adv_usd alignment. Unexpected
+            # errors (e.g., RuntimeError from a malicious adv_usd object) now
+            # propagate instead of being silently swallowed into adv_map={}.
             adv_map = {}
 
     batches: list[OrderBatch] = []
@@ -465,6 +478,9 @@ def order_batches_from_weights(
         try:
             date_key = pd.Timestamp(date).isoformat()
         except Exception:
+            # [P19-7 Site 5, Class A] Per-row date_key fallback to str(date).
+            # Mirrors _date_key contract: unparseable index values stringify
+            # instead of raising, ensuring deterministic batch keys.
             date_key = str(date)
         row_w = w.iloc[t]
         intents: list[OrderIntent] = []
@@ -828,7 +844,11 @@ class PaperExecutionEngine:
         for f in self.fills:
             try:
                 ts = pd.Timestamp(f.date)
-            except Exception:
+            except (TypeError, ValueError):
+                # [P19-7 Site 6, Class B] Narrowed from bare Exception: only suppress
+                # expected timestamp parsing errors. Unexpected errors (e.g., from
+                # a fill object with a malicious date property) now propagate
+                # instead of silently skipping the fill.
                 continue
             j = bisect.bisect_right(dates, ts)
             if j >= len(dates):
@@ -885,7 +905,11 @@ class PaperExecutionEngine:
             betas = betas_df.sort_index()
             try:
                 betas = betas.reindex(index=idx)
-            except Exception:
+            except (KeyError, ValueError):
+                # [P19-7 Site 7, Class B] Narrowed from bare Exception: only suppress
+                # expected reindex errors (mismatched index). Unexpected errors
+                # (e.g., RuntimeError from a malicious betas_df) now propagate
+                # instead of silently disabling betas diagnostics.
                 betas = None
 
         batches = order_batches_from_weights(w, max_participation=self.max_participation)
@@ -1248,6 +1272,11 @@ class CCXTConnector:
                     metadata={"ccxt_response": response},
                 )
             except Exception as exc:
+                # [P19-7 Site 8, Class A] Live order exception → rejected fill contract.
+                # In non-dry-run mode, any CCXT/network error is caught and returned as
+                # a rejected fill with the exception message. This ensures the adapter
+                # protocol always returns a fill record (never raises), enabling
+                # deterministic error handling upstream.
                 fill = LiveFill(
                     idempotency_key=idem_key,
                     date=order.date,
