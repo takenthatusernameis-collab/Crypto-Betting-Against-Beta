@@ -2,31 +2,45 @@
 
 **Canonical durable handoff (single source of truth).** Update this file only. `AGENT_HANDOFF.md` is a pointer. Delete any other `*HANDOFF*.md` on sight.
 
-- **Timestamp (UTC):** 2026-11-17T13:08:00Z (this refresh). **Last authoritative completed full-gate evidence @2026-11-17T12:42Z:** `bash scripts/bab_gate.sh` **GREEN — 6280 passed / 35 skipped / 0 failed / 5 missed / 6572 stmts / 99%**; `BAB_GATE_MIN_COVERAGE=98.5 bash scripts/bab_gate.sh` **GREEN**. **This session (@13:08Z, HEAD ccf05a3):** added behavior-asserting tests in `tests/test_bab_p19_5_beta_fallback.py` targeting `beta.py:544-548`; `PYTHONPATH=. python3 -m pytest -q tests/test_bab_p19_5_beta_fallback.py` **PASS (5/5)**; targeted `coverage run` on that module/test showed `beta.py` 544-548 exercised (only 229 misses overall in isolated run, missing list excludes 544-548). `python3 -m ruff check .` **PASS**; `bash scripts/bab_reconcile_gate.sh` **GREEN**. `BAB_GATE_LOG=/tmp/bab_gate.log bash scripts/bab_gate.sh` was started but had **not completed** by handoff time (log still in-progress, ~96% marker, no TOTAL summary yet); rerun full gate + 98.5 floor and record results before claiming closure.
+- **Timestamp (UTC):** 2026-11-17T13:43:15Z (this refresh). **Last authoritative completed full-gate evidence @2026-11-17T12:42Z:** `bash scripts/bab_gate.sh` **GREEN — 6280 passed / 35 skipped / 0 failed / 5 missed / 6572 stmts / 99%**; `BAB_GATE_MIN_COVERAGE=98.5 bash scripts/bab_gate.sh` **GREEN**. **This session (@13:43Z, HEAD 3264608):** verified existing `tests/test_bab_p19_5_beta_fallback.py` outer-fallback coverage for `beta.py:544-548` (`PYTHONPATH=. python3 -m pytest -q tests/test_bab_p19_5_beta_fallback.py` **5 passed**); `python3 -m ruff check .` **PASS**; `bash scripts/bab_reconcile_gate.sh` **GREEN** (drift rc=2, clean rc=0, emit-only rc=0). Started `BAB_GATE_LOG=/tmp/bab_gate.log bash scripts/bab_gate.sh` but it was **still in progress** at handoff cutoff (~96% marker, no `TOTAL`/final summary in log yet). **Do not claim closure until full gate + 98.5 floor complete GREEN with `beta.py` missed 0.**
 - **Repo:** `Crypto-Betting-Against-Beta` — crypto market-neutral trading system (ingest → beta → signals → portfolio → backtest → execution → ops), Frazzini–Pedersen *Betting Against Beta*.
-- **Stakes order (never reorder):** (1) **real orders placed** (live-adapter gates, submission safety) — CLOSED, (2) **fills match model** (reconciliation/drift) — CLOSED, (3) **ingest admits only fit-to-trade data** (freshness/alignment/quality/coverage) — **CLOSED** (data_loader.py 100%), (4) **beta fallback correctness** — **PRIMARY** (tests added this session; full-gate proof pending).
-- **Git state (this refresh):** HEAD `ccf05a3` on `main`. Working tree has **substantive test edits** (`tests/test_bab_p19_5_beta_fallback.py`) and this handoff update. Always run `git status`, `git fetch`, and all gates before trusting counts.
+- **Stakes order (never reorder):** (1) **real orders placed** (live-adapter gates, submission safety) — CLOSED, (2) **fills match model** (reconciliation/drift) — CLOSED, (3) **ingest admits only fit-to-trade data** (freshness/alignment/quality/coverage) — **CLOSED** (data_loader.py 100%), (4) **beta fallback correctness** — **PRIMARY** (targeted tests present; authoritative full-gate proof pending).
+- **Git state (this refresh):** HEAD `3264608` on `main`. Working tree **clean** at start of this handoff refresh except this `HANDOFF.md` update. Always run `git status`, `git fetch`, and all gates before trusting counts.
 
-## INITIAL TASK MESSAGE (BINDING — START HERE, 2026-11-17T13:08:00Z)
+## INITIAL TASK MESSAGE (BINDING — START HERE, 2026-11-17T13:43:15Z)
 
-**Mission (P19-6-final/closeout, heavy execution required): prove and finalize closure of `strategies/betting_against_beta/beta.py` lines 544-548 (stake 4) with GREEN gates, or if evidence shows remaining misses/regressions, drive them to 0 by TEST-or-DELETE with proof. Do not stop at analysis.**
+**Mission (P19-6-final/closeout, heavy execution required): obtain authoritative GREEN proof that `strategies/betting_against_beta/beta.py` lines 544-548 (stake 4) are closed (missed 0) under full gates; if proof shows any remaining miss/regression, close it in-session by TEST-or-DELETE with evidence and rerun gates. Do not stop at analysis.**
 
-### Session progress (already done, preserve)
-- **Implemented:** `tests/test_bab_p19_5_beta_fallback.py` now includes 2 outer-fallback cases exercising `beta.py:544-548`:
-  - `test_beta_outer_fallback_asset_to_numpy_fails_but_asarray_succeeds` (vectorized `asset_cols.to_numpy` raises `AttributeError` to hit outer handler, per-asset `to_numpy` fails, `np.asarray` succeeds; asserts benchmark=1, asset betas/finite counts/values).
-  - `test_beta_outer_fallback_asset_conversions_raise_babdataerror` (outer handler + per-asset `to_numpy` and `__array__` both fail; asserts `BABDataError` message contract).
-- **Evidence so far:** targeted `pytest` for that file **5 passed**; isolated `coverage run -m pytest tests/test_bab_p19_5_beta_fallback.py` reported `beta.py` missing list excluding `544-548`. `ruff` and `bab_reconcile_gate.sh` **GREEN** @13:08Z.
-- **Incomplete:** a full `bab_gate.sh` run was started (`/tmp/bab_gate.log`) but not completed in-session (no final TOTAL/summary captured). **Next agent must run full gate(s) and record authoritative results.**
+### Session progress (preserve)
+- **Code/tests already present:** `tests/test_bab_p19_5_beta_fallback.py` contains outer-fallback cases targeting `beta.py:544-548`:
+  - `test_beta_outer_fallback_asset_to_numpy_fails_but_asarray_succeeds`
+  - `test_beta_outer_fallback_asset_conversions_raise_babdataerror`
+- **This session evidence (@13:43Z, HEAD 3264608):** `python3 -m ruff check .` PASS; `bash scripts/bab_reconcile_gate.sh` GREEN (drift rc=2, clean rc=0, emit-only rc=0); `PYTHONPATH=. python3 -m pytest -q tests/test_bab_p19_5_beta_fallback.py` 5 passed.
+- **Incomplete:** `BAB_GATE_LOG=/tmp/bab_gate.log bash scripts/bab_gate.sh` was started and still running at handoff cutoff (~96% progress in log, no final `TOTAL`/summary yet). **No new authoritative full-gate result this session.** Last authoritative baseline remains @12:42Z (6280/35/0/5/99%).
 
 ### Immediate campaign (do in order, do not stop at planning)
-1. **Preflight + gate evidence (required):**
-   - `python3 -m ruff check .`
-   - `bash scripts/bab_reconcile_gate.sh`
-   - `BAB_GATE_LOG=/tmp/bab_gate.log bash scripts/bab_gate.sh`
-   - `BAB_GATE_MIN_COVERAGE=98.5 bash scripts/bab_gate.sh`
-   - Inspect `/tmp/bab_gate.log` for `strategies/betting_against_beta/beta.py` misses and TOTAL; if `beta.py` still shows misses, fix them in this session (TEST-or-DELETE with proof) and rerun gates.
-2. **If any `beta.py` residue remains:** extend/fix tests (prefer `tests/test_bab_p19_5_beta_fallback.py`) to assert observable behavior, or delete provably-dead code with inline invariant tied to controlling contracts. Re-run targeted tests then gates after each closure.
-3. **Finalize:** update this handoff with UTC, HEAD, before/after missed+failures, exact closed `file:lines` (or deletions) with proof, tests added/changed, gate results, and blockers (if any). Keep pointer in `AGENT_HANDOFF.md` unchanged except it must continue to point here.
+1. **Finish/obtain full-gate evidence (required):**
+   - If `/tmp/bab_gate.log` from a prior run exists, wait for completion and inspect: `grep -nE "TOTAL|strategies/betting_against_beta/beta\\.py|failed|passed|skipped|ERROR" /tmp/bab_gate.log | tail -n 60` (do not start a duplicate full gate while one is running).
+   - Otherwise run: `BAB_GATE_LOG=/tmp/bab_gate.log bash scripts/bab_gate.sh`
+   - Then run floor: `BAB_GATE_MIN_COVERAGE=98.5 bash scripts/bab_gate.sh`
+   - Record exact TOTAL, pass/fail/skip, and `beta.py` missed lines from log/output.
+2. **If `beta.py` still has misses (especially 544-548):** drive to 0 by TEST-or-DELETE with proof (prefer extending `tests/test_bab_p19_5_beta_fallback.py` or adding a focused `tests/test_bab_p19_*` case; delete only with inline invariant tied to controlling contracts). Rerun targeted tests and all gates after each change.
+3. **If gates are already GREEN with `beta.py` missed 0:** treat as closure proof — still run/confirm 98.5 floor, then refresh handoff with authoritative evidence and mark P19-6-final closed for beta residue.
+4. **Finalize:** update this handoff with UTC, HEAD, before/after missed+failures, exact closed `file:lines` (or deletions) with proof, tests added/changed, gate results, and blockers. Keep `AGENT_HANDOFF.md` pointing here.
+
+### First actions (evidence first)
+```bash
+cd /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
+git status --short --branch
+python3 -m ruff check .
+bash scripts/bab_reconcile_gate.sh
+if grep -q "^TOTAL" /tmp/bab_gate.log 2>/dev/null; then
+  grep -nE "TOTAL|strategies/betting_against_beta/beta\\.py|failed|passed|skipped|ERROR" /tmp/bab_gate.log | tail -n 60
+else
+  BAB_GATE_LOG=/tmp/bab_gate.log bash scripts/bab_gate.sh
+fi
+BAB_GATE_MIN_COVERAGE=98.5 bash scripts/bab_gate.sh
+```
 
 ### Method (mandatory)
 - Use coverage output (`/tmp/bab_gate.log`, `--cov-report=term-missing`) as ground truth for misses; do not guess.
@@ -71,7 +85,7 @@ BAB_GATE_MIN_COVERAGE=98.5 bash scripts/bab_gate.sh
 - **[REMOVED @07:50Z]** Stale-handoff ambiguity: single durable handoff maintained with one binding, stake-prioritized task.
 - **[REMOVED @12:08Z]** Pre-existing `ruff` SIM108 lint failure in `data_loader.py` fixed; `ruff` and reconcile gate verified GREEN (prevents avoidable preflight churn).
 - **[REMOVED @12:42Z]** `data_loader.py` 100% confirmed; ingest stake 3 CLOSED.
-- **[IN PROGRESS @13:08Z, EVIDENCE PARTIAL]** `beta.py:544-548` targeted by new behavior-asserting tests in `tests/test_bab_p19_5_beta_fallback.py` (targeted pytest PASS 5/5; isolated coverage shows those lines exercised). Full `bab_gate.sh` / 98.5-floor evidence **not yet captured this session** — must run and record to confirm 0 failures and 0 missed in `beta.py`.
+- **[IN PROGRESS @13:43Z, EVIDENCE PARTIAL]** `beta.py:544-548` targeted by existing tests in `tests/test_bab_p19_5_beta_fallback.py` (targeted pytest 5/5 PASS @13:43Z; prior isolated coverage showed lines exercised). `ruff` and reconcile GREEN @13:43Z, but full `bab_gate.sh` started this session was still running at cutoff (log `/tmp/bab_gate.log`, ~96%, no `TOTAL`) — authoritative 0-failures / 0-missed proof for `beta.py` still pending.
 - **[EXTERNAL]** P19-1 CI enforcement maintainer-only (`workflows:write`).
 
 ## Hard gates every session (repo root, in order)
@@ -99,10 +113,14 @@ BAB_GATE_MIN_COVERAGE=98.5 bash scripts/bab_gate.sh
 | 2026-11-17T12:08:10Z | f9dd8ca | Cleared lint preflight bottleneck: fixed pre-existing `SIM108` in `data_loader.py` (behavior-preserving); verified `ruff check .` PASS and `bab_reconcile_gate.sh` GREEN; refreshed single durable handoff with timestamped binding P19-6 heavy-work campaign (stake 3 ingest → stake 4 beta, 14 missed to 0 by TEST-or-DELETE with proof). Full gate not rerun (last authoritative 6280/35/0/14/99% @10:41Z). | ruff PASS; reconcile GREEN @12:08Z |
 | 2026-11-17T12:42:45Z | f9dd8ca | **FRESH full gate @12:42Z: 6280 passed / 35 skipped / 0 FAILED / 5 missed / 6572 stmts / 99%**; `data_loader.py` 100% (ingest stake 3 CLOSED); residue now ONLY `beta.py:544-548` (5 lines, stake 4 PRIMARY); all 4 hard gates GREEN; updated handoff with accurate state and narrowed binding mission. | GREEN @12:42Z |
 | 2026-11-17T13:08:00Z | ccf05a3 | Added 2 behavior-asserting outer-fallback tests in `tests/test_bab_p19_5_beta_fallback.py` targeting `beta.py:544-548` (to_numpy fail→asarray success, and both fail→`BABDataError`); targeted pytest 5/5 PASS; isolated coverage showed 544-548 exercised. | ruff PASS; reconcile GREEN; targeted tests PASS; full bab_gate started but incomplete (no final summary) |
+| 2026-11-17T13:43:15Z | 3264608 | Verified beta fallback tests and preflight gates (`ruff` PASS, `bab_reconcile_gate.sh` GREEN, `tests/test_bab_p19_5_beta_fallback.py` 5/5 PASS); started full `bab_gate.sh` but it was still running at handoff cutoff (~96%, no TOTAL in `/tmp/bab_gate.log`) so no authoritative full-gate closure yet. | ruff PASS; reconcile GREEN @13:43Z; targeted tests PASS; full gate IN PROGRESS (incomplete) |
+
 
 ## Session ledger detail (append-only)
 - 2026-11-17T12:42:45Z | HEAD f9dd8ca | before: handoff claimed 14 missed (9 data_loader + 5 beta), stale baseline @10:41Z | after: ran FRESH full gate (ruff PASS, reconcile GREEN, bab_gate 6280/35/0/5/99%, 98.5 floor GREEN); `data_loader.py` 0 missed (100%), `beta.py` 5 missed (lines 544-548); working tree clean; refreshed handoff with accurate residue, narrowed stakes (ingest CLOSED, beta PRIMARY), binding P19-6-final mission | closed: data_loader.py residue (completed in prior session) | tests: none changed | proof/deletions: none this session | gates: ruff PASS; reconcile GREEN (drift rc=2, clean rc=0, emit-only rc=0); bab_gate 6280/35/0/5/99%; 98.5 floor GREEN | blockers: 5 missed lines in beta.py (P19-6-final, TEST-or-DELETE).
 - 2026-11-17T13:08:00Z | HEAD ccf05a3 | before (authoritative): 6280/35/0/5 missed/6572/99% @12:42Z, `beta.py:544-548` open | after: extended `tests/test_bab_p19_5_beta_fallback.py` with `test_beta_outer_fallback_asset_to_numpy_fails_but_asarray_succeeds` and `test_beta_outer_fallback_asset_conversions_raise_babdataerror` (observable beta/value and `BABDataError` assertions); `PYTHONPATH=. python3 -m pytest -q tests/test_bab_p19_5_beta_fallback.py` **5 passed**; isolated `coverage run -m pytest tests/test_bab_p19_5_beta_fallback.py` missing list for `strategies/betting_against_beta/beta.py` excluded 544-548; `python3 -m ruff check .` PASS; `bash scripts/bab_reconcile_gate.sh` GREEN (drift rc=2, clean rc=0, emit-only rc=0). Started `BAB_GATE_LOG=/tmp/bab_gate.log bash scripts/bab_gate.sh` but did not capture completion/TOTAL in-session (log progressed to ~96% marker). | closed (code-path exercised, pending authoritative gate proof): `strategies/betting_against_beta/beta.py:544-548` targeted by tests | tests added/changed: `tests/test_bab_p19_5_beta_fallback.py` | proof/deletions: no deletions (test-based closure attempted) | blockers: full `bab_gate.sh` and `BAB_GATE_MIN_COVERAGE=98.5 bab_gate.sh` must be completed and recorded to confirm 0 failures / `beta.py` missed 0.
+
+- 2026-11-17T13:43:15Z | HEAD 3264608 | before (authoritative): 6280/35/0/5 missed/6572/99% @12:42Z, `beta.py:544-548` open/pending proof | after: no product/test code changes; verified `python3 -m ruff check .` PASS, `bash scripts/bab_reconcile_gate.sh` GREEN (drift rc=2, clean rc=0, emit-only rc=0), `PYTHONPATH=. python3 -m pytest -q tests/test_bab_p19_5_beta_fallback.py` **5 passed**; started `BAB_GATE_LOG=/tmp/bab_gate.log bash scripts/bab_gate.sh` (still running at cutoff, ~96%, no `TOTAL`/final summary captured). | closed: none proven this session (gate evidence incomplete) | tests added/changed: none | proof/deletions: none | blockers: full `bab_gate.sh` completion/summary and `BAB_GATE_MIN_COVERAGE=98.5 bab_gate.sh` still required to confirm `beta.py` missed 0 / 0 failures.
 
 ---
 **THIS IS THE SINGLE DURABLE HANDOFF. DO NOT CREATE PARALLEL HANDOFF DOCS. UPDATE THIS FILE ONLY.**
