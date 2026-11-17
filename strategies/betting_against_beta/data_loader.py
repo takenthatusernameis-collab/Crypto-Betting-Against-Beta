@@ -1606,8 +1606,9 @@ def _run_data_quality_campaign(
     try:
         if all(pd.api.types.is_numeric_dtype(dt) for dt in cleaned.dtypes):
             arr2 = arr_all if arr_all is not None else cleaned.to_numpy(dtype=float, copy=False)
-            if finite_all is None:
-                finite_all = np.isfinite(arr2)
+            # ``finite_all`` is always populated above (set from finite_mask on the
+            # reuse path or from ``arr_all`` on the fresh path), so the former
+            # lazy ``np.isfinite`` fallback was unreachable.
             finite_counts = finite_all.sum(axis=0)
             total = int(arr2.shape[0])
             if total > 0 and float(min_finite_fraction) > 0:
@@ -2752,10 +2753,10 @@ def validate_freshness(
     last_date = df.index.max()
     if getattr(last_date, "tz", None) is not None:
         last_date = last_date.tz_convert(None)
-    try:
-        staleness = (reference - last_date).days
-    except TypeError:
-        staleness = (pd.Timestamp(reference) - pd.Timestamp(last_date)).days
+    # ``reference`` and ``last_date`` are both ``pd.Timestamp`` here, so the
+    # subtraction always yields a ``Timedelta``; the former TypeError fallback
+    # was unreachable.
+    staleness = (reference - last_date).days
     if staleness > float(max_staleness_days):
         raise BABDataError(
             f"Data is stale: last date {pd.Timestamp(last_date).date()} is "

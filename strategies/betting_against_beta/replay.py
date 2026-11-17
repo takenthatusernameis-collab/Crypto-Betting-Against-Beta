@@ -167,9 +167,10 @@ class ReplayHarness:
             date = idx[t]
             date_key = self._date_key(date)
             row_w = w.iloc[t]
+            # A DataFrame row always has exactly ``len(w.columns)`` entries, and
+            # ``n_cols`` is derived from those same columns, so a width mismatch
+            # is structurally impossible; the former np.resize fallback was dead.
             w_arr = np.asarray(row_w, dtype=float)
-            if w_arr.shape[0] != n_cols:
-                w_arr = np.resize(w_arr, n_cols)
             if not np.all(np.isfinite(w_arr)):
                 w_arr = np.where(np.isfinite(w_arr), w_arr, 0.0)
 

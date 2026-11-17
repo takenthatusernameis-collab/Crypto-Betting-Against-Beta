@@ -477,8 +477,8 @@ def validate_freshness(
             idx = pd.to_datetime(idx)
         except Exception:
             raise BABDataError("Index cannot be parsed as datetime")
-        if not isinstance(idx, pd.DatetimeIndex):
-            raise BABDataError("Index cannot be parsed as datetime")
+        # ``pd.to_datetime`` on an array-like index always returns a DatetimeIndex,
+        # so the former post-conversion isinstance guard was unreachable.
 
     if reference_date is None:
         reference = pd.Timestamp.now(tz="UTC")
@@ -490,14 +490,13 @@ def validate_freshness(
                 f"reference_date cannot be parsed as datetime: {reference_date!r}"
             )
 
-    # Normalize to UTC for a consistent comparison.
-    try:
-        if getattr(reference, "tz", None) is not None:
-            reference = reference.tz_convert("UTC")
-        else:
-            reference = reference.tz_localize("UTC")
-    except Exception:
-        pass
+    # Normalize to UTC for a consistent comparison. ``reference`` is always a
+    # ``pd.Timestamp`` here, so tz conversion cannot raise; the former
+    # ``except Exception: pass`` guard was unreachable.
+    if getattr(reference, "tz", None) is not None:
+        reference = reference.tz_convert("UTC")
+    else:
+        reference = reference.tz_localize("UTC")
 
     try:
         if getattr(idx, "tz", None) is not None:

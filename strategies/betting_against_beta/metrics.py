@@ -90,8 +90,9 @@ def turnover(weights_df):
     w = weights_df.astype("float64").copy()
     weight_changes = w.diff().abs().sum(axis=1)
     turnover_mean = weight_changes.dropna().mean()
-    if pd.isna(turnover_mean):
-        return 0.0
+    # ``weight_changes`` is a per-row all-NaN-skipping sum, so it always yields
+    # finite floats (0.0 for an all-NaN row); a truly empty frame already
+    # returned above. ``turnover_mean`` is therefore never NaN here.
     return float(turnover_mean)
 
 

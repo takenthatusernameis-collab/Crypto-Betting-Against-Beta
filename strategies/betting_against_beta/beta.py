@@ -178,8 +178,8 @@ def calculate_beta_fast(a, b, min_obs=None):
         else:
             a_m = a
             b_m = b
-        if len(a_m) == 0:
-            return np.nan
+        # Reaching here implies ``np.any(mask)`` is True, so ``a_m`` is non-empty;
+        # the former ``len(a_m) == 0`` guard was structurally unreachable.
         if min_obs is not None:
             try:
                 mo = int(min_obs)
@@ -424,9 +424,8 @@ def calculate_rolling_beta(returns_df, benchmark_name, window=90, min_obs=60):
         # undefined-beta poisoning rather than undefined beta -- it silently
         # flattens real signals in windows with plenty of valid observations.
         degenerate = (~np.isfinite(denom_shared)) | (np.abs(denom_shared) < 1e-12)
-        if beta_arr.ndim == 1:
-            bad = degenerate.ravel() | obs_short | ~np.isfinite(beta_arr)
-            return np.where(bad, np.nan, beta_arr)
+        # ``_finalize_betas`` is only invoked with the 2-D ``num / denom_shared``
+        # array below, so the former 1-D branch was unreachable.
         deg = degenerate.reshape(-1)
         bad = deg[:, None] | obs_short[:, None] | ~np.isfinite(beta_arr)
         return np.where(bad, np.nan, beta_arr)

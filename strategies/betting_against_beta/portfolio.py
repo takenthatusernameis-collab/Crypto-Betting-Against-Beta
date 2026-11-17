@@ -162,8 +162,6 @@ def construct_portfolio(
                     neg_scale = np.where(short_sum < -1e-18, -1.0 / short_sum, 1.0)
                 w_arr[both_idx] = pos * pos_scale[:, None] + neg * neg_scale[:, None]
             w_arr[~np.isfinite(w_arr)] = 0.0
-    except BABPortfolioError:
-        raise
     except Exception as exc:
         # A failure here means no usable book could be built (uncoercible
         # dtypes, exotic index/columns, unusable frame).  Returning an
