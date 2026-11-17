@@ -17,14 +17,14 @@ import pandas as pd
 import pytest
 
 from strategies.betting_against_beta.execution import (
-    _date_key,
-    _as_timestamp,
-    order_batches_from_weights,
-    PaperExecutionEngine,
     CCXTConnector,
-    LiveOrder,
     LiveFill,
+    LiveOrder,
+    PaperExecutionEngine,
+    _as_timestamp,
+    _date_key,
     configure_paper_adapter,
+    order_batches_from_weights,
 )
 
 
@@ -160,14 +160,10 @@ def test_order_batches_from_weights_adv_map_failure_surfaces(monkeypatch):
         index=pd.to_datetime(["2024-01-01", "2024-01-02"])
     )
 
-    # adv_usd that causes an unexpected error during iteration (not TypeError/ValueError)
-    class BadAdv:
-        def __getitem__(self, key):
+    # adv_usd that is a dict subclass but raises RuntimeError on get()
+    class BadAdv(dict):
+        def get(self, key, default=None):
             raise RuntimeError("unexpected adv failure")
-        def __contains__(self, key):
-            return True
-        def keys(self):
-            return ["BTC"]
 
     # The broad except is narrowed; unexpected RuntimeError should propagate
     with pytest.raises(RuntimeError, match="unexpected adv failure"):
@@ -205,16 +201,16 @@ def test_order_batches_from_weights_date_key_fallback_contract():
     Uses the same _date_key helper logic; unparseable index values
     stringify instead of raising.
     """
-    # Index with unparseable values
+    # Index with unparseable values that sort in expected order
     weights = pd.DataFrame(
         {"BTC": [0.1, 0.2]},
-        index=pd.Index(["not-a-date", "also-bad"])
+        index=pd.Index(["aaa-not-a-date", "bbb-also-bad"])
     )
 
     batches = order_batches_from_weights(weights)
     assert len(batches) == 2
-    assert batches[0].date == "not-a-date"
-    assert batches[1].date == "also-bad"
+    assert batches[0].date == "aaa-not-a-date"
+    assert batches[1].date == "bbb-also-bad"
 
 
 # ---------------------------------------------------------------------------
@@ -233,26 +229,26 @@ def test_paper_pnl_unparseable_fill_date_surfaces(monkeypatch):
         prices_df=pd.DataFrame(
             {"BTC": [100.0, 101.0]},
             index=pd.to_datetime(["2024-01-01", "2024-01-02"])
-        ),
-        returns_df=pd.DataFrame(
-            {"BTC": [0.01, 0.02]},
-            index=pd.to_datetime(["2024-01-01", "2024-01-02"])
         )
+    )
+    engine.returns_df = pd.DataFrame(
+        {"BTC": [0.01, 0.02]},
+        index=pd.to_datetime(["2024-01-01", "2024-01-02"])
     )
 
     # Manually inject a fill with an unparseable date
-    engine.fills.append(type("Fill", (), {
-        "date": "not-a-date",
-        "asset": "BTC",
-        "weight": 0.1,
-    })())
+    class FakeFill:
+        date = "not-a-date"
+        asset = "BTC"
+        weight = 0.1
+
+    engine.fills.append(FakeFill())
 
     # The narrow except catches (TypeError, ValueError) from pd.Timestamp
     # and continues (skips the fill). This is the constrained behavior.
     # Unexpected errors (e.g., AttributeError) would now propagate.
-    pnl = engine._paper_pnl(engine.fills.__class__.__bases__[0] if False else None)  # type: ignore
-    # Actually test via execute path which calls _paper_pnl internally
-    # We'll test the execute path below
+    pnl = engine._paper_pnl(engine.returns_df)
+    assert pnl == 0.0  # fill skipped, no PnL contribution
 
 
 def test_paper_execution_engine_execute_unparseable_fill_date_surfaces():
@@ -274,8 +270,8 @@ def test_paper_execution_engine_execute_unparseable_fill_date_surfaces():
         index=pd.to_datetime(["2024-01-01", "2024-01-02"])
     )
 
-    engine = PaperExecutionEngine(prices_df=prices, returns_df=returns)
-    report = engine.execute(weights)
+    engine = PaperExecutionEngine(prices_df=prices)
+    report = engine.execute(weights, returns_df=returns)
 
     # Happy path: all fills have valid dates, PnL computed
     assert report.n_fills == 2
@@ -298,20 +294,26 @@ def test_paper_execution_engine_execute_betas_reindex_failure_surfaces(monkeypat
         index=pd.to_datetime(["2024-01-01", "2024-01-02"])
     )
     # betas with an index that causes an unexpected error on reindex
-    class BadBetas(pd.DataFrame):
-        def reindex(self, *args, **kwargs):
-            raise RuntimeError("unexpected reindex failure")
-
-    betas = BadBetas(
+    betas_df = pd.DataFrame(
         {"BTC": [1.0, 1.1]},
         index=pd.to_datetime(["2024-01-01", "2024-01-02"])
     )
+
+    # Monkeypatch reindex on the sorted betas DataFrame to raise RuntimeError
+    original_reindex = betas_df.reindex
+    def bad_reindex(*args, **kwargs):
+        raise RuntimeError("unexpected reindex failure")
+
+    # We need to patch after sort_index is called internally
+    # The execute method does: betas = betas_df.sort_index(); betas.reindex(index=idx)
+    # So we patch the reindex method on the DataFrame class temporarily
+    monkeypatch.setattr(pd.DataFrame, "reindex", bad_reindex)
 
     engine = PaperExecutionEngine()
 
     # Unexpected RuntimeError should propagate
     with pytest.raises(RuntimeError, match="unexpected reindex failure"):
-        engine.execute(weights, betas_df=betas)
+        engine.execute(weights, betas_df=betas_df)
 
 
 def test_paper_execution_engine_execute_betas_reindex_keyerror_suppressed():
@@ -349,8 +351,8 @@ def test_ccxt_connector_submit_order_live_exception_contract():
     always returns a fill record (never raises).
     """
     connector = CCXTConnector(exchange_name="binance", dry_run=False)
-    # Don't actually connect; we'll monkeypatch the internal exchange
-
+    # Don't call connect() - it tries to reach Binance API.
+    # Instead, directly set up a mock exchange and mark as connected.
     class MockExchange:
         def create_order(self, *args, **kwargs):
             raise RuntimeError("exchange error: insufficient balance")
@@ -379,7 +381,7 @@ def test_ccxt_connector_submit_order_live_exception_contract():
 def test_ccxt_connector_submit_order_dry_run_happy_path():
     """Dry-run mode -> simulated fill (no exception handling path)."""
     connector = CCXTConnector(exchange_name="binance", dry_run=True)
-    connector._connected = True
+    connector.connect()  # Sets up _exchange and _connected
 
     order = LiveOrder(
         idempotency_key="test-key-2",

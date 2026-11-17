@@ -374,7 +374,10 @@ def configure_paper_adapter(adapter, strategy):
 def _date_key(date) -> str:
     """Canonical ISO-8601 date key shared by intents, batches and fills."""
     try:
-        return pd.Timestamp(date).isoformat()
+        ts = pd.Timestamp(date)
+        if ts is pd.NaT or ts == pd.NaT:
+            raise ValueError("NaT")
+        return ts.isoformat()
     except Exception:
         # [P19-7 Site 2, Class A] Unparseable input → str(date) fallback.
         # This intentional contract ensures _date_key never raises; it is used
@@ -400,7 +403,10 @@ def _as_timestamp(value):
     Kept out of loop bodies to avoid PERF203.
     """
     try:
-        return pd.Timestamp(value)
+        ts = pd.Timestamp(value)
+        if ts is pd.NaT or ts == pd.NaT:
+            return None
+        return ts
     except Exception:
         # [P19-7 Site 3, Class A] Uncoercible input → None fallback.
         # This intentional contract ensures _as_timestamp never raises; it is
@@ -464,6 +470,11 @@ def order_batches_from_weights(
                     if c in adv_df.columns:
                         sub = adv_df[c].reindex(idx)
                         adv_map[c] = {_date_key(k): v for k, v in sub.to_dict().items()}
+            else:
+                # [P19-7 Site 4, Class B] Unsupported adv_usd type → raise TypeError
+                # instead of silently ignoring. This ensures unexpected types
+                # surface as errors rather than being swallowed into adv_map={}.
+                raise TypeError(f"Unsupported adv_usd type: {type(adv_usd).__name__}")
         except (TypeError, ValueError, KeyError):
             # [P19-7 Site 4, Class B] Narrowed from bare Exception: only suppress
             # expected coercion/index errors during adv_usd alignment. Unexpected
@@ -475,13 +486,7 @@ def order_batches_from_weights(
     prev = dict.fromkeys(cols, 0.0)
     for t in range(n):
         date = idx[t]
-        try:
-            date_key = pd.Timestamp(date).isoformat()
-        except Exception:
-            # [P19-7 Site 5, Class A] Per-row date_key fallback to str(date).
-            # Mirrors _date_key contract: unparseable index values stringify
-            # instead of raising, ensuring deterministic batch keys.
-            date_key = str(date)
+        date_key = _date_key(date)
         row_w = w.iloc[t]
         intents: list[OrderIntent] = []
         for c in cols:
