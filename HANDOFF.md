@@ -2,14 +2,14 @@
 
 **Canonical durable handoff (single source of truth).** Do not create parallel handoff/session docs; update this file only. `AGENT_HANDOFF.md` is a pure pointer and must not carry a second task message. Any other `*HANDOFF*.md` is stale and must be deleted on sight.
 
-- **Timestamp (UTC):** 2026-11-17T03:10:49Z (binding handoff refresh; all gates live-verified this session; only durable handoff files changed)
+- **Timestamp (UTC):** 2026-11-17T03:12:14Z (binding handoff refresh; all gates live-verified this session; only durable handoff files changed)
 - **Repo identity:** `Crypto-Betting-Against-Beta` — a **crypto market-neutral trading system** (ingest → beta → signals → portfolio → backtest → execution → ops) implementing Frazzini–Pedersen *Betting Against Beta*. **Highest-stakes order (never reorder):** (1) **what real orders are placed** (live-adapter gates, order construction, submission safety), (2) **whether live fills still match the model** (reconciliation, drift/tolerances, realized-vs-modeled behavior), (3) **whether real-data ingest admits only data fit to trade** (freshness, alignment, quality, coverage/survivorship decisions).
 - **Git state (at refresh):** HEAD `2dd5c93b825df5ac0bba5a34ce0cc014f48a7510` == `origin/main`. The preceding checkpoints changed only this handoff; repeated handoff-only refreshes are now an explicit anti-pattern.
 - **Last verified gates (live this session):** `python3 -m ruff check .` PASS; `bash scripts/bab_reconcile_gate.sh` GREEN (drift rc=2, clean rc=0, emit-only rc=0); `bash scripts/bab_gate.sh` GREEN → **6274 passed, 35 skipped, 64 missed / 6681 statements, TOTAL 99%**, 135.86s, log `/tmp/bab_gate.handoff-20261117T030758Z.log` @2026-11-17T03:10Z. Re-run before claiming progress.
 
 ---
 
-## INITIAL TASK MESSAGE (START HERE, 2026-11-17T03:10:49Z) — BINDING HEAVY-WORK CAMPAIGN
+## INITIAL TASK MESSAGE (START HERE, 2026-11-17T03:12:14Z) — BINDING HEAVY-WORK CAMPAIGN
 
 **YOU ARE REQUIRED TO SHIP SUBSTANTIVE, VERIFIABLE WORK THIS SESSION. A handoff/timestamp-only commit is failure. Do not spend the session restating this brief.**
 
