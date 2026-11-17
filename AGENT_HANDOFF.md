@@ -7,7 +7,7 @@ This file is a pointer to the canonical durable handoff at `HANDOFF.md`.
 - **Current binding campaign:** **P19-7 Milestone 2 IN PROGRESS** — `strategy.py` DONE (11/11 sites, inline invariants + 12 tests in `test_bab_p19_7_strategy_exceptions.py`, all PASS; 473 stmts/100%); `backtest.py` DONE (7 broad/1 silent, inline invariants + 20 tests in `test_bab_p19_7_backtest_exceptions.py`, all PASS; 144 stmts/100%). Next binding action: `cli.py` (28/1) → `beta.py` (16/1). Milestone 1 (18/18) DONE.
 - **Repo-stakes order (never reorder):** (1) live orders placed — CLOSED, (2) fills vs model — CLOSED, (3) ingest fit-to-trade — CLOSED, (4) beta fallback — CLOSED. Next = Milestone 2 `cli.py`.
 - **Machine-checkable done (per milestone):** `ruff check .` PASS; `bab_reconcile_gate.sh` GREEN; `bab_quick.sh` GREEN; full gate GREEN on HEAD `7960113` (6335/35/0/6562/100%).
-- **Last authoritative full-gate baseline (@2026-11-17T23:35Z, HEAD `7960113`):** 6335 passed / 35 skipped / 0 FAILED / 0 missed / 6562 stmts / 100% (127.08s); ruff PASS; reconcile GREEN; 98.5 floor met by TOTAL 100%. Code unchanged since `019a981` except handoff checkpoint `7960113`.
-- **Read `HANDOFF.md` "INITIAL TASK MESSAGE (BINDING — START HERE, 2026-11-17T23:35:00Z)" first.**
+- **Last authoritative full-gate baseline (@2026-11-17T23:35Z, HEAD `7960113`, applies at HEAD `ccdfff8`):** 6335 passed / 35 skipped / 0 FAILED / 0 missed / 6562 stmts / 100% (127.08s); ruff PASS; reconcile GREEN; 98.5 floor met by TOTAL 100%. Code unchanged since `019a981` except handoff checkpoint `ccdfff8`.
+- **Read `HANDOFF.md` "INITIAL TASK MESSAGE (BINDING — START HERE, 2026-11-17T23:36:29Z)" first.**
 
 (End of file - total 11 lines)
