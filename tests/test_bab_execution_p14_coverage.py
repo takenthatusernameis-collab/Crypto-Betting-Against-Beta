@@ -590,13 +590,14 @@ def test_adv_from_frame_value_timestamp_and_series_branch():
 
 
 def test_order_batches_adv_map_exception_path():
-    # adv_usd DataFrame whose sort_index raises -> adv_map = {} (463-464)
+    # adv_usd DataFrame whose sort_index raises RuntimeError -> propagates
+    # (P19-7 Site 4, Class B: unexpected errors surface instead of silent adv_map={})
     idx = [pd.Timestamp("2024-01-01")]
     w = pd.DataFrame({"BTC": [0.1]}, index=idx)
     df = pd.DataFrame({"BTC": [1e6]}, index=idx)
     df.sort_index = lambda *a, **k: (_ for _ in ()).throw(RuntimeError("nope"))
-    batches = order_batches_from_weights(w, adv_usd=df)
-    assert isinstance(batches, list)
+    with pytest.raises(RuntimeError, match="nope"):
+        order_batches_from_weights(w, adv_usd=df)
 
 
 def test_order_batches_bad_date_key_fallback():

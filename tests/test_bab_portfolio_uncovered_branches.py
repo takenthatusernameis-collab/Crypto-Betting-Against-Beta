@@ -16,6 +16,7 @@ import pandas as pd
 import pytest
 
 from strategies.betting_against_beta.portfolio import (
+    BABPortfolioError,
     _clean_signal_value,
     construct_portfolio,
     enforce_beta_neutrality,
@@ -26,40 +27,28 @@ from strategies.betting_against_beta.portfolio import (
 # 87-88: apply(pd.to_numeric) exception fallback
 # ---------------------------------------------------------------------------
 def test_construct_portfolio_numeric_coercion_fallback_on_type_objects():
-    """A frame whose object columns hold builtin functions/types makes
-    pd.to_numeric raise; the except branch at 87-88 must fall back to a copy
-    so construction still returns a finite, zero-weight frame."""
+    """Uncoercible object columns (builtin functions/types) now surface
+    BABPortfolioError instead of being silently zeroed (P19-7 portfolio.py)."""
     sig = pd.DataFrame({"a": [len, str, int], "b": [1, -1, 0]})
-    w = construct_portfolio(sig, dollar_neutral=True)
-    assert isinstance(w, pd.DataFrame)
-    assert w.shape == sig.shape
-    assert np.isfinite(w.to_numpy()).all()
-    # Column 'a' is non-coercible -> zero; column 'b' is a valid long/short book.
-    assert (w["a"] == 0.0).all()
-    assert w.loc[0, "b"] == 1.0
-    assert w.loc[1, "b"] == -1.0
+    with pytest.raises(BABPortfolioError):
+        construct_portfolio(sig, dollar_neutral=True)
 
 
 def test_construct_portfolio_numeric_coercion_fallback_dollar_neutral_off():
-    """Same fallback path with dollar_neutral=False: must not crash and must
-    still produce finite weights."""
+    """Same coercion failure path with dollar_neutral=False: must surface
+    BABPortfolioError rather than silently producing finite weights."""
     sig = pd.DataFrame({"a": [len, str, int], "b": [1, -1, 0]})
-    w = construct_portfolio(sig, dollar_neutral=False)
-    assert isinstance(w, pd.DataFrame)
-    assert w.shape == sig.shape
-    assert np.isfinite(w.to_numpy()).all()
-    assert (w["a"] == 0.0).all()
+    with pytest.raises(BABPortfolioError):
+        construct_portfolio(sig, dollar_neutral=False)
 
 
 def test_construct_portfolio_numeric_coercion_per_column_fallback_to_zero():
     """When a single column makes pd.to_numeric raise even with errors='coerce'
-    (e.g. builtin function/type objects), the per-column except at 164-169 must
-    set that column to 0.0 and continue with the remaining columns."""
+    (e.g. builtin function/type objects), the exception now surfaces as
+    BABPortfolioError instead of setting that column to 0.0 (P19-7)."""
     sig = pd.DataFrame({"a": [len, str, int], "b": [1, -1, 0]})
-    w = construct_portfolio(sig, dollar_neutral=True)
-    assert (w["a"] == 0.0).all()
-    assert w.loc[0, "b"] == 1.0
-    assert w.loc[1, "b"] == -1.0
+    with pytest.raises(BABPortfolioError):
+        construct_portfolio(sig, dollar_neutral=True)
 
 
 # ---------------------------------------------------------------------------

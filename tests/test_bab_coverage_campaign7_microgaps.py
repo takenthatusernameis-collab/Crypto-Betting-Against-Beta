@@ -19,7 +19,11 @@ import pytest
 from strategies.betting_against_beta.config import BABConfig
 from strategies.betting_against_beta.costs import TransactionCostModel
 from strategies.betting_against_beta.metrics import turnover
-from strategies.betting_against_beta.portfolio import _clean_signal_value, construct_portfolio
+from strategies.betting_against_beta.portfolio import (
+    BABPortfolioError,
+    _clean_signal_value,
+    construct_portfolio,
+)
 from strategies.betting_against_beta.signals import _finite_beta_series, generate_bab_signals
 from strategies.betting_against_beta.sizing import (
     BABSizingError,
@@ -88,7 +92,8 @@ class TestPortfolioMicrogaps:
         assert _clean_signal_value(X(1.0)) == 0
 
     def test_numeric_coercion_outer_except_returns_zero(self, monkeypatch):
-        # portfolio.py:95-96 when arr coercion/copy path fails.
+        # P19-7: coercion failure now surfaces BABPortfolioError instead of
+        # returning an all-zero frame (portfolio.py:114-123).
         sig = pd.DataFrame({"A": [1, 1], "B": [-1, -1]})
         real_is_numeric = pd.api.types.is_numeric_dtype
 
@@ -109,9 +114,8 @@ class TestPortfolioMicrogaps:
             return real_copy(self, *a, **k)
 
         monkeypatch.setattr(pd.DataFrame, "copy", bad_copy)
-        w = construct_portfolio(sig)
-        assert w.shape == sig.shape
-        assert (w.to_numpy() == 0.0).all()
+        with pytest.raises(BABPortfolioError):
+            construct_portfolio(sig)
 
     def test_long_cell_assignment_surfaces_error(self, monkeypatch):
         # A failure while building the long side must surface as

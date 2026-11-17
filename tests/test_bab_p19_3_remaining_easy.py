@@ -120,10 +120,8 @@ class TestDataSourcesFreshnessEdgePaths:
             ds.pd.Timestamp = original_timestamp
 
     def test_validate_freshness_idx_tz_convert_exception(self):
-        """data_sources.py:507-508 (idx tz_convert/tz_localize exception -> fallback).
-
-        Create a DatetimeIndex subclass that raises on tz operations to
-        exercise the defensive except: pass fallback."""
+        # P19-7: idx tz_convert/tz_localize failure now surfaces instead of
+        # silent fallback (data_sources.py:512-515).
         class BadDTI(pd.DatetimeIndex):
             def tz_convert(self, *args, **kwargs):
                 raise ValueError("bad tz_convert")
@@ -133,8 +131,9 @@ class TestDataSourcesFreshnessEdgePaths:
         # Construct the bad index directly
         bad_idx = BadDTI(pd.date_range("2023-01-01", periods=2, tz="UTC"))
         df = pd.DataFrame({"BTC": [0.1, 0.2]}, index=bad_idx)
-        # Should not raise despite idx tz conversion failing; falls back to idx
-        assert validate_freshness(df, reference_date="2023-01-01") is True
+        # The tz conversion failure now propagates instead of being swallowed.
+        with pytest.raises(ValueError, match="bad tz_convert"):
+            validate_freshness(df, reference_date="2023-01-01")
 
 
 if __name__ == "__main__":
