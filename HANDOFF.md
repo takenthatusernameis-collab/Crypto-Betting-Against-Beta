@@ -2,19 +2,20 @@
 
 **Canonical durable handoff (single source of truth).** Update this file only. `AGENT_HANDOFF.md` is a pointer. Delete any other `*HANDOFF*.md` on sight.
 
-- **Timestamp (UTC):** 2026-11-17T07:11:58Z (handoff refresh; no product code changes this pass)
+- **Timestamp (UTC):** 2026-11-17T07:24:40Z (handoff refresh; full `bab_gate.sh` run this pass — fresh authoritative evidence below)
 - **Repo:** `Crypto-Betting-Against-Beta` — crypto market-neutral trading system (ingest → beta → signals → portfolio → backtest → execution → ops), Frazzini–Pedersen *Betting Against Beta*. **Stakes order (never reorder):** (1) **real orders placed** (live-adapter gates, order construction, submission safety), (2) **fills match model** (reconciliation, drift/tolerances), (3) **ingest admits only fit-to-trade data** (freshness, alignment, quality, coverage). Work ingest/beta residue only after (1)-(2) stay closed.
-- **Git state:** HEAD `0d7d976` (`origin/main`, latest checkpoint touched only `HANDOFF.md`/`AGENT_HANDOFF.md`). Working tree may contain local edits from prior sessions; always run `git status`, `git fetch`, and all gates before trusting counts.
-- **Gates verified this refresh:** `python3 -m ruff check .` **PASS**; `bash scripts/bab_reconcile_gate.sh` **GREEN** (drift rc=2, clean rc=0, emit-only rc=0). **`bab_gate.sh` NOT run this refresh** (long). Last recorded full baseline @2026-11-17T06:10Z: 6268 passed / 35 skipped / 12 failed / 14 missed / 6596 stmts / 99% (stale-test expectations have since been updated in working tree per ledger @06:28Z; next session must produce a fresh authoritative full-gate result).
+- **Git state:** HEAD `1059fc6` (`origin/main`, checkpoint touched only `HANDOFF.md`/`AGENT_HANDOFF.md` @07:14:05Z). Working tree clean. Always run `git status`, `git fetch`, and all gates before trusting counts.
+- **Gates verified this refresh:** `python3 -m ruff check .` **PASS**; `bash scripts/bab_reconcile_gate.sh` **GREEN** (drift rc=2, clean rc=0, emit-only rc=0); `bash scripts/bab_gate.sh` **FRESH RUN @07:24Z** — **6278 passed / 35 skipped / 2 FAILED / 14 missed / 6590 stmts / 99%** (log `/tmp/bab_gate.log`). The 2 failures are stale `BABDataError`-expectation tests in `tests/test_bab_data_loader_coverage_gaps.py` that must be behavior-aligned to deterministic coercion (same pattern as the 12 resolved @06:28Z). Missed lines unchanged at 14.
 
 ---
 
-## INITIAL TASK MESSAGE (START HERE) — P19-5 BINDING CAMPAIGN: CLOSE THE REMAINING 14 RESIDUE LINES
+## INITIAL TASK MESSAGE (START HERE) — P19-5 BINDING CAMPAIGN: ALIGN 2 STALE TESTS, THEN CLOSE THE 14 RESIDUE LINES
 
 **Ship substantive, verifiable code. A handoff/timestamp-only commit is failure. Do not restate this brief.**
 
 ### Mission
-Dispose of **all remaining 14 missed source lines** in `strategies/betting_against_beta/beta.py` and `strategies/betting_against_beta/data_loader.py`. For each line: **add a real behavior test that covers it** OR **delete it with an inline invariant/proof comment**. No third option. No "unreachable but kept".
+(0) **Align 2 stale failing tests** in `tests/test_bab_data_loader_coverage_gaps.py` (`test_promote_name_match_pandas_parse_raises_babdataerror` at :6638, `test_promote_datetime_column_bad_parse_raises_babdataerror` at :8251) to deterministic coercion behavior — rename + assert coerced/no-NaT output instead of `BABDataError`, matching the 12 cases already resolved @06:28Z. A green suite is a prerequisite for meaningful coverage evidence.
+(1) Dispose of **all remaining 14 missed source lines** in `strategies/betting_against_beta/beta.py` and `strategies/betting_against_beta/data_loader.py`. For each line: **add a real behavior test that covers it** OR **delete it with an inline invariant/proof comment**. No third option. No "unreachable but kept".
 
 ### Current residue (14)
 - `beta.py:544-548` (5) — inner `to_numpy` → `np.asarray` → `BABDataError` fallback inside outer `except (TypeError, ValueError, AttributeError)`. Test file `tests/test_bab_p19_5_beta_fallback.py` exists but may not yet cover these lines; probe and either make a real test hit them or prove/delete.
@@ -22,6 +23,7 @@ Dispose of **all remaining 14 missed source lines** in `strategies/betting_again
 - `data_loader.py:454` (1) — `except Exception: pass` around `np.isnan(v) or np.isinf(v)` float guard.
 - `data_loader.py:659-660` (2) — bare `except Exception: pass` in `_detect_and_normalize_exchange_format` outer wrapper.
 - `data_loader.py:845-848` (4) — `except BABDataError: raise; except (ValueError, TypeError, KeyError): pass` in `_promote_datetime_column`.
+**Coverage probe @07:24Z confirms all 14 lines still missed despite `tests/test_bab_p19_5_beta_fallback.py` existing — that file's `match=` strings do not reach the inner fallback; do not trust it without a coverage re-check.**
 
 ### Stakes order (never reorder)
 1. **Real orders placed** — CLOSED (100%). Do not touch `execution.py`/CLI order paths.
@@ -30,17 +32,16 @@ Dispose of **all remaining 14 missed source lines** in `strategies/betting_again
 4. **Beta error-conversion fallback** — **SECONDARY:** close `beta.py:544-548`.
 
 ### First actions (evidence first)
-```bash
-python3 -m ruff check .
-bash scripts/bab_reconcile_gate.sh
-BAB_GATE_LOG=/tmp/bab_gate.log bash scripts/bab_gate.sh
-```
-Capture exact pass/fail/missed count and the `Name … Miss … Missing` block before changing code. Use `probe_*.py` (gitignored scratch) to probe reachability before committing a test or deletion.
+Full-gate evidence already captured this refresh @07:24Z (log `/tmp/bab_gate.log`): **6278 passed / 35 skipped / 2 FAILED / 14 missed / 6590 stmts / 99%**.
+1. `python3 -m ruff check .`  (PASS @07:24Z — re-run after any edit)
+2. `bash scripts/bab_reconcile_gate.sh`  (GREEN @07:24Z — re-run after any edit)
+3. **Align the 2 stale failing tests** (`test_promote_name_match_pandas_parse_raises_babdataerror`, `test_promote_datetime_column_bad_parse_raises_babdataerror`) to deterministic coercion; confirm the suite goes green (0 failures).
+4. Use `probe_*.py` (gitignored scratch) to probe reachability of each residue line before committing a test or deletion; re-check coverage after each change.
 
 ### Definition of done (machine-checkable)
 1. `python3 -m ruff check .` **PASS**.
 2. `bash scripts/bab_reconcile_gate.sh` **GREEN** (drift rc=2, clean rc=0, emit-only rc=0).
-3. `BAB_GATE_LOG=/tmp/bab_gate.log bash scripts/bab_gate.sh` **GREEN** with **0 missed** in target modules and **0 failures** (strictly fewer than 14 missed).
+3. `BAB_GATE_LOG=/tmp/bab_gate.log bash scripts/bab_gate.sh` **GREEN** with **0 failures** (2 stale `BABDataError`-expectation tests aligned) and **missed <14** in target modules (target 0 on residue; baseline 14 @07:24Z).
 4. `BAB_GATE_MIN_COVERAGE=98.5 bash scripts/bab_gate.sh` **GREEN** (never lower floor).
 5. `git diff --stat` shows **product `.py` and/or test changes** (not handoff-only).
 6. Ledger entry appended with: UTC, HEAD, before/after missed, closed `file:lines`, tests added/changed, deletions+proofs, gate results, blockers.
@@ -54,9 +55,10 @@ Capture exact pass/fail/missed count and the `Name … Miss … Missing` block b
 - Placeholder/pass-only tests or tests that pass while leaving target lines uncovered. Regressing 100%-closed modules (`execution.py`, `reconciliation.py`, `data_sources.py`, `metrics.py`, `portfolio.py`, `replay.py`, `cli.py`) without restoring coverage.
 
 ### Execution order
-1. **`data_loader.py` clusters (409-410, 454, 659-660, 845-848):** for each, probe with realistic malformed/unparseable/exotic inputs; add deterministic tests asserting safe ingest behavior OR delete with proof the guard is infallible/unreachable under pandas/numpy contracts used.
-2. **`beta.py:544-548`:** make fallback reachable with crafted non-numeric/object data through the real beta API, or delete with proof that outer handler + upstream normalization make it dead.
-3. Re-run full gates and record before/after evidence. If miss count does not fall, session is incomplete.
+1. **Align 2 stale failing tests** to deterministic coercion behavior (suite must go green: 0 failures) — this is the session's first gate and unblocks coverage evidence.
+2. **`data_loader.py` clusters (409-410, 454, 659-660, 845-848) — PRIMARY (ingest fit-to-trade):** for each, probe with realistic malformed/unparseable/exotic inputs; add deterministic tests asserting safe ingest behavior OR delete with proof the guard is infallible/unreachable under pandas/numpy contracts used.
+3. **`beta.py:544-548` — SECONDARY (beta error-conversion fallback):** make fallback reachable with crafted non-numeric/object data through the real beta API, or delete with proof that outer handler + upstream normalization make it dead. Note: `tests/test_bab_p19_5_beta_fallback.py` exists but coverage @07:24Z shows 544-548 still missed — probe reachability before trusting it.
+4. Re-run full gates and record before/after evidence (baseline @07:24Z: 6278/35/2/14/6590/99%). If miss count does not fall and suite is not green, session is incomplete.
 
 ---
 
@@ -160,12 +162,13 @@ BAB_GATE_MIN_COVERAGE=98.5 bash scripts/bab_gate.sh   # release floor target
 
 ---
 
-## Bottleneck removal status (this refresh @2026-11-17T07:11:58Z)
+## Bottleneck removal status (this refresh @2026-11-17T07:24:40Z)
 
-- [DONE] Single durable handoff maintained (`HANDOFF.md` + pointer `AGENT_HANDOFF.md`); no parallel handoff/session docs found.
-- [DONE] Bottleneck removed for next session: handoff rewritten to a concise, timestamped, machine-checkable P19-5 initial task message prioritized by repo stakes (orders/fills closed → ingest fit-to-trade → beta fallback) with explicit first commands, done conditions, and forbidden handoff-only outcomes.
-- [VERIFIED] Quick gates this refresh: `python3 -m ruff check .` PASS; `bash scripts/bab_reconcile_gate.sh` GREEN (drift rc=2, clean rc=0, emit-only rc=0). Full `bab_gate.sh` not rerun.
-- [OPEN/BINDING] P19-5 residue remains: 14 missed lines (`beta.py:544-548`, `data_loader.py:409-410,454,659-660,845-848`). Next session must produce fresh full-gate evidence and reduce misses with TEST-or-DELETE proof.
+- [DONE] Single durable handoff maintained (`HANDOFF.md` + pointer `AGENT_HANDOFF.md`); no parallel handoff/session docs found; no stale `*HANDOFF*.md` files.
+- [DONE] Full `bab_gate.sh` bottleneck removed: fresh authoritative evidence captured @07:24Z — **6278 passed / 35 skipped / 2 FAILED / 14 missed / 6590 stmts / 99%** (log `/tmp/bab_gate.log`). Next session is not flying blind on counts.
+- [DONE] Handoff rewritten to concise, timestamped, machine-checkable P19-5 initial task message prioritized by repo stakes (orders/fills closed → ingest fit-to-trade → beta fallback) with explicit first commands, done conditions, forbidden outcomes, and heavy-work TEST-or-DELETE execution order.
+- [OPEN] 2 stale failing tests (`test_promote_name_match_pandas_parse_raises_babdataerror`, `test_promote_datetime_column_bad_parse_raises_babdataerror`) block a green suite; align them to deterministic coercion FIRST — same pattern as the 12 resolved @06:28Z.
+- [OPEN/BINDING] P19-5 residue remains: 14 missed lines (`beta.py:544-548`, `data_loader.py:409-410,454,659-660,845-848`). Next session must reduce misses with TEST-or-DELETE proof; if miss count does not fall, session is incomplete.
 - [UNCHANGED/EXTERNAL] P19-1 CI enforcement maintainer-only (`workflows:write`); do not block local progress.
 - [WATCH] Repo hygiene debt (`probe_*`/`debug_beta*` tracked/gitignored) remains P20-3, non-blocking.
 
@@ -212,3 +215,4 @@ BAB_GATE_MIN_COVERAGE=98.5 bash scripts/bab_gate.sh   # release floor target
 
 - 2026-11-17T06:28:30Z | HEAD 07f1741 (working tree dirty) | before: 6268 passed / 12 failed / 14 missed / 99% (recorded @06:10Z) | after: ruff PASS, reconcile GREEN, fixed targeted tests PASS; full `bab_gate.sh` NOT rerun (authoritative miss/failure count pending) | closed: stale test-expectation bottleneck (12 named cases updated/renamed to match deterministic ingest behavior) | tests: `tests/test_bab_p19_5_beta_fallback.py`, `tests/test_bab_data_loader_batch172.py`, `tests/test_bab_data_loader_batch43.py`, `tests/test_bab_data_loader_coverage_gaps.py`, `tests/test_bab_data_loader_robust.py`, `tests/test_betting_against_beta.py` | proof/deletions: none (source residue unchanged) | gates: `python3 -m ruff check .` PASS; `bash scripts/bab_reconcile_gate.sh` GREEN; `bab_gate.sh` pending | blockers: full-suite runtime not executed this pass; 14 source lines still missed (`beta.py:544-548`, `data_loader.py:409-410,454,659-660,845-848`) require TEST-or-DELETE with proof.
 - 2026-11-17T07:11:58Z | HEAD 0d7d976 (clean tracked handoff state at refresh start) | before: same residue baseline (14 missed source lines; last full gate recorded @06:10Z) | after: canonical handoff refreshed with clear/stake-prioritized binding P19-5 initial task, explicit evidence-first commands and machine-checkable done/forbidden criteria; no product code/tests changed | closed: planning/ambiguity bottleneck for next session (single actionable campaign) | tests: none | proof/deletions: none | gates: `python3 -m ruff check .` PASS; `bash scripts/bab_reconcile_gate.sh` GREEN; `bab_gate.sh` not run this refresh | blockers: full `bab_gate.sh` pending for fresh authoritative counts; residue still 14 lines in `beta.py`/`data_loader.py` requiring TEST-or-DELETE.
+- 2026-11-17T07:24:40Z | HEAD 1059fc6 (= origin/main) | Ran full `bab_gate.sh` this pass (fresh authoritative evidence): 6278 passed / 35 skipped / 2 FAILED / 14 missed / 6590 stmts / 99%. Ruff PASS; reconcile GREEN (drift rc=2, clean rc=0, emit-only rc=0). Identified 2 stale `BABDataError`-expectation tests in `tests/test_bab_data_loader_coverage_gaps.py` (same class as the 12 resolved @06:28Z) as the immediate blocker to a green suite. Refreshed canonical `HANDOFF.md` with binding P19-5 initial task message: (0) align 2 stale tests to deterministic coercion, then (1) close 14 residue lines via TEST-or-DELETE with proof — `data_loader.py` 9 lines PRIMARY, `beta.py` 5 lines SECONDARY per repo stakes. Removed the "full-gate counts pending" bottleneck; no product code/tests changed. | GREEN local except 2 known stale-test failures (to be aligned this session) |
