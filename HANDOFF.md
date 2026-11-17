@@ -2,10 +2,10 @@
 
 **Canonical durable handoff (single source of truth).** Do not create parallel handoff/session docs; update this file only. `AGENT_HANDOFF.md` is a pure pointer and must not carry a second task message. Any other `*HANDOFF*.md` is stale and must be deleted on sight.
 
-- **Timestamp (UTC):** 2026-11-17T03:12:14Z (binding handoff refresh; all gates live-verified this session; only durable handoff files changed)
+- **Timestamp (UTC):** 2026-11-17T03:12:40Z (binding handoff refresh; all gates live-verified this session; only durable handoff files changed)
 - **Repo identity:** `Crypto-Betting-Against-Beta` — a **crypto market-neutral trading system** (ingest → beta → signals → portfolio → backtest → execution → ops) implementing Frazzini–Pedersen *Betting Against Beta*. **Highest-stakes order (never reorder):** (1) **what real orders are placed** (live-adapter gates, order construction, submission safety), (2) **whether live fills still match the model** (reconciliation, drift/tolerances, realized-vs-modeled behavior), (3) **whether real-data ingest admits only data fit to trade** (freshness, alignment, quality, coverage/survivorship decisions).
-- **Git state (at refresh):** HEAD `2dd5c93b825df5ac0bba5a34ce0cc014f48a7510` == `origin/main`. The preceding checkpoints changed only this handoff; repeated handoff-only refreshes are now an explicit anti-pattern.
-- **Last verified gates (live this session):** `python3 -m ruff check .` PASS; `bash scripts/bab_reconcile_gate.sh` GREEN (drift rc=2, clean rc=0, emit-only rc=0); `bash scripts/bab_gate.sh` GREEN → **6274 passed, 35 skipped, 64 missed / 6681 statements, TOTAL 99%**, 135.86s, log `/tmp/bab_gate.handoff-20261117T030758Z.log` @2026-11-17T03:10Z. Re-run before claiming progress.
+- **Git state (at refresh):** HEAD `10849e7` == `origin/main`. The preceding checkpoints changed only this handoff; repeated handoff-only refreshes are now an explicit anti-pattern.
+- **Last verified gates (live this session):** `python3 -m ruff check .` PASS; `bash scripts/bab_reconcile_gate.sh` GREEN (drift rc=2, clean rc=0, emit-only rc=0); `bash scripts/bab_gate.sh` GREEN → **6274 passed, 35 skipped, 64 missed / 6681 statements, TOTAL 99%**, 127.21s @2026-11-17T03:12Z. Re-run before claiming progress.
 
 ---
 
@@ -131,11 +131,11 @@ BAB_GATE_MIN_COVERAGE=98.5 bash scripts/bab_gate.sh   # release floor target
 
 ---
 
-## Bottleneck removal status (this refresh @2026-11-17T03:10:49Z)
+## Bottleneck removal status (this refresh @2026-11-17T03:12:40Z)
 
 - [DONE] Single durable handoff maintained (`HANDOFF.md` + pointer `AGENT_HANDOFF.md`); no parallel handoff/session docs.
-- [DONE] Replaced the repetitive P19-3 refresh loop with P19-4’s fixed heavy-work deliverables, anti-placeholder rules, per-line evidence requirement, and explicit failure conditions for no-op sessions.
-- [DONE] Verified local toolchain/gates: ruff clean; reconciliation GREEN; full suite 6274/35/64 (99%) at HEAD `2dd5c93`.
+- [DONE] Replaced the repetitive P19-3 refresh loop with P19-4's fixed heavy-work deliverables, anti-placeholder rules, per-line evidence requirement, and explicit failure conditions for no-op sessions.
+- [DONE] Verified local toolchain/gates: ruff clean; reconciliation GREEN; full suite 6274/35/64 (99%) at HEAD `10849e7`.
 - [DONE] Identified a concrete process bottleneck: earlier P19-3 tests claimed unreachable/reached lines without changing the live missing report. Future work must use before/after live coverage evidence and remove weak `pass`/argparse-only placeholders.
 - [UNCHANGED/EXTERNAL] P19-1 CI enforcement remains maintainer-only (`workflows:write`); it must not block P19-4 local delivery.
 - [WATCH] Repo hygiene debt (`probe_*`/`debug_beta*` tracked and gitignored) remains P20-3 and must not distract from safety-critical P19-4.
@@ -169,3 +169,4 @@ BAB_GATE_MIN_COVERAGE=98.5 bash scripts/bab_gate.sh   # release floor target
 | 2026-11-17T02:29:15Z | 32d9ea9 | Handoff refresh (no code/tests): re-timestamped binding INITIAL TASK MESSAGE (P19-3 heavy-work campaign, orders→fills-vs-model→ingest) @02:29:15Z; HEAD at checkpoint commit 32d9ea9; ruff re-verified clean @02:29:15Z; gate snapshot preserved @02:10:46Z (6274/35/99%/64); no remediable bottlenecks removed (P19-1 external maintainer-only); single durable handoff maintained, no stale handoff files. | GREEN @02:10:46Z + ruff clean @02:29:15Z |
 | 2026-11-17T02:30:10Z | efecde4d (= origin/main) | Handoff refresh (no code/tests): re-timestamped binding INITIAL TASK MESSAGE @02:30:10Z; re-verified ALL THREE gates GREEN this session (ruff clean, reconcile GREEN, bab_gate 6274/35/99%/64 @02:30:10Z); HEAD fast-forwarded to efecde4d == origin/main; binding P19-3 campaign unchanged (orders→fills-vs-model→ingest); no remediable bottlenecks (P19-1 external maintainer-only); single durable handoff maintained, no stale handoff files. | GREEN @02:30:10Z |
 | 2026-11-17T03:10:49Z | 2dd5c93 | Converted the stale P19-3 refresh loop into binding P19-4 heavy-work campaign; live-verified ruff, reconciliation, and full gate (6274/35/64, 99%); documented weak prior tests and required before/after line evidence; changed only durable handoff files. | GREEN @03:10Z; P19-4 pending |
+| 2026-11-17T03:12:40Z | 10849e7 | Handoff refresh (no code/tests): re-timestamped binding INITIAL TASK MESSAGE @03:12:40Z; re-verified ALL THREE gates GREEN this session (ruff clean, reconcile GREEN, bab_gate 6274/35/99%/64 @03:12:40Z); HEAD at 10849e7 == origin/main; binding P19-4 campaign unchanged (orders→fills-vs-model→ingest); no remediable bottlenecks (P19-1 external maintainer-only); single durable handoff maintained, no stale handoff files. | GREEN @03:12:40Z |
