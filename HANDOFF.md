@@ -2,7 +2,7 @@
 
 **Canonical durable handoff (single source of truth).** Update this file only. `AGENT_HANDOFF.md` is a pointer. Delete any other `*HANDOFF*.md` on sight. Do not create parallel session/handoff docs.
 
-- **Timestamp (UTC):** 2026-11-17T23:42:54Z (this refresh; verified on live HEAD).
+- **Timestamp (UTC):** 2026-11-17T23:45:10Z (this refresh; verified on live HEAD).
 - **Latest verified checks @2026-11-17T23:38Z, HEAD `cf4c633` (handoff-only checkpoint past `7960113`; NO product/test `.py` changed since the `7960113` full-gate baseline — verified via `git diff --name-only 7960113 cf4c633` → only `AGENT_HANDOFF.md`, `HANDOFF.md`), clean working tree:**
   - `python3 -m ruff check .` → **PASS** (re-run live).
   - `bash scripts/bab_reconcile_gate.sh` → **GREEN** (re-run live; drift rc=2, clean rc=0, emit-only rc=0).
@@ -12,7 +12,7 @@
 - **Repo:** `Crypto-Betting-Against-Beta` — crypto market-neutral trading system (ingest → beta → signals → portfolio → backtest → execution → ops), Frazzini–Pedersen *Betting Against Beta*.
 - **Git state (this refresh):** HEAD `cf4c633` on `main`, clean working tree (handoff-only checkpoints past the last product commit `019a981`).
 
-## INITIAL TASK MESSAGE (BINDING — START HERE, 2026-11-17T23:42:34Z)
+## INITIAL TASK MESSAGE (BINDING — START HERE, 2026-11-17T23:45:10Z)
 
 **MANDATORY MISSION — close BOTH remaining Milestone-2 modules THIS session (`cli.py` 28/1 → `beta.py` 16/1) with committed regression tests. This is heavy work and is not optional.**
 
@@ -182,5 +182,4 @@ BAB_GATE_MIN_COVERAGE=98.5 bash scripts/bab_gate.sh   # only when TOTAL < 100 or
 - 2026-11-17T12:42:45Z | HEAD f9dd8ca | FRESH full gate 6280/35/0/5 missed/99%; `data_loader.py` 100% (ingest CLOSED); residue only `beta.py:544-548`. | GREEN.
 - 2026-11-17T07:52:00Z | HEAD 75cd86e | Rewrote 2 stale tests to RangeIndex-preserved contract; all 3 gates GREEN. | GREEN.
 
----
-**THIS IS THE SINGLE DURABLE HANDOFF. DO NOT CREATE PARALLEL HANDOFF DOCS. UPDATE THIS FILE ONLY.**
+- 2026-11-17T23:45:10Z | HEAD 3923f7b | Handoff refresh: timestamp advanced to 23:45:10Z; binding mission unchanged — close cli.py (28/1) then beta.py (16/1) this session with committed regression tests; anti-loop directive intact (no re-verification / no handoff-only commit); baseline gate GREEN at 7960113 applies. | closed: handoff refresh (no product/test changes) | tests: none | gates: ruff PASS; reconcile GREEN; quick GREEN; bab_gate 6335/35/0/100% @7960113 | blockers: none.
