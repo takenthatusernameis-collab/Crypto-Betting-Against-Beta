@@ -2,14 +2,14 @@
 
 **Canonical durable handoff (single source of truth).** Do not create parallel handoff/session docs; update this file only. `AGENT_HANDOFF.md` is a pure pointer and must not carry a second task message. Any other `*HANDOFF*.md` is stale and must be deleted on sight.
 
-- **Timestamp (UTC):** 2026-11-17T02:22:50Z (handoff refresh; gates last live-verified 2026-11-17T02:10:46Z this session context)
+- **Timestamp (UTC):** 2026-11-17T02:26:33Z (handoff refresh; gates last live-verified 2026-11-17T02:10:46Z this session context; no code change since)
 - **Repo identity:** `Crypto-Betting-Against-Beta` — a **crypto market-neutral trading system** (ingest → beta → signals → portfolio → backtest → execution → ops) implementing Frazzini–Pedersen *Betting Against Beta*. **Highest-stakes order (do not reorder priorities):** (1) **what real orders are placed** (execution/CLI live-adapter paths, opt-in gates, order construction/validation), (2) **whether live fills still match the model** (reconciliation gates/artifacts, tolerances, modeled-vs-executed drift, fills-vs-backtest), (3) **whether real-data ingest accepts only data fit to trade on** (data_loader/data_sources freshness/quality guards, alignment, survivorship/coverage decisions).
 - **Git state (at refresh):** HEAD `3a0a789` == `origin/main` `3a0a789` (verified 19:43Z). Working tree clean except this handoff refresh.
 - **Last verified gates (last recorded live run):** `python3 -m ruff check .` clean; `bash scripts/bab_reconcile_gate.sh` GREEN (drift rc=2, clean rc=0, emit-only rc=0); `bash scripts/bab_gate.sh` GREEN → **6274 passed, 35 skipped, TOTAL 99% (64 missed / 6681)** (recorded 2026-11-17T02:10:46Z). Re-run gates before claiming new progress.
 
 ---
 
-## INITIAL TASK MESSAGE (START HERE, 2026-11-17T02:22:50Z) — BINDING (MOST RELEVANT / HEAVY-WORK FOCUS)
+## INITIAL TASK MESSAGE (START HERE, 2026-11-17T02:26:33Z) — BINDING (MOST RELEVANT / HEAVY-WORK FOCUS)
 
 **YOU MUST DO HEAVY WORK NOW. No handoff-only pass. No CI workflow push attempts (`.github/workflows/*` is maintainer-only; token lacks `workflows:write`).**
 
@@ -90,11 +90,11 @@ BAB_GATE_MIN_COVERAGE=98.5 bash scripts/bab_gate.sh   # release floor target
 
 ---
 
-## Bottleneck removal status (this refresh @02:22:50Z)
+## Bottleneck removal status (this refresh @02:26:33Z)
 
 - [DONE] Single durable handoff maintained (`HANDOFF.md` + pointer `AGENT_HANDOFF.md`); no parallel handoff/session docs.
-- [DONE] Binding initial task message refreshed at 2026-11-17T02:22:50Z with explicit P19-3 execution order prioritized by repo stakes: (1) real orders/execution safety, (2) live fills vs model/reconciliation, (3) ingest fit-to-trade, then remaining reachable clusters.
-- [DONE] Bottlenecks checked: gates last recorded GREEN @2026-11-17T02:10:46Z (ruff/reconcile/bab_gate 6274/35/99%/64); working tree will be clean after this refresh except handoff edits; no stale handoff files to remove; no blocked local prerequisites for P19-3 stated in repo docs.
+- [DONE] Binding initial task message refreshed at 2026-11-17T02:26:33Z with explicit P19-3 execution order prioritized by repo stakes: (1) real orders/execution safety, (2) live fills vs model/reconciliation, (3) ingest fit-to-trade, then remaining reachable clusters.
+- [DONE] Bottlenecks checked: gates last recorded GREEN @2026-11-17T02:10:46Z (ruff/reconcile/bab_gate 6274/35/99%/64); ruff re-verified clean @02:26:33Z; working tree clean; no stale handoff files to remove; no blocked local prerequisites for P19-3 stated in repo docs.
 - [UNCHANGED/EXTERNAL] P19-1 CI enforcement (`bab-gate` in `.github/workflows/main.yml`) remains maintainer-only (`workflows:write`); must not block P19-3 progress.
 - [WATCH] Repo hygiene debt (`probe_*`/`debug_beta*` tracked+gitignored) deferred to P20-3; do not let it distract from P19-3 correctness gap.
 
@@ -123,3 +123,4 @@ BAB_GATE_MIN_COVERAGE=98.5 bash scripts/bab_gate.sh   # release floor target
 | 2026-11-17T02:07:47Z | 3a0a789 (= origin/main) | Handoff refresh: timestamped binding P19-3 initial task message; reconcile gate GREEN; no bottlenecks (external P19-1 remains). Single durable handoff maintained. | GREEN local (reconcile) |
 | 2026-11-17T02:10:46Z | 3a0a789 (= origin/main) | Handoff refresh: live-verified ALL THREE gates GREEN (ruff/reconcile/bab_gate 6274/35/99%/64). Refreshed binding INITIAL TASK MESSAGE @02:10:46Z; single durable handoff maintained; no remediable bottlenecks (P19-1 external). | GREEN local |
 | 2026-11-17T02:22:50Z | 3a0a789 (= origin/main) | Handoff refresh (no code/tests): updated `HANDOFF.md` + pointer `AGENT_HANDOFF.md` with binding INITIAL TASK MESSAGE prioritized by repo stakes (orders→fills-vs-model→ingest), preserved last verified gate snapshot @02:10:46Z, recorded no remediable bottlenecks removed; single durable handoff maintained. | GREEN @02:10:46Z (not re-run) |
+| 2026-11-17T02:26:33Z | 3a0a789 (= origin/main) | Handoff refresh (no code/tests): re-timestamped binding INITIAL TASK MESSAGE @02:26:33Z; ruff re-verified clean @02:26:33Z; gate snapshot preserved @02:10:46Z (no code change since); bottleneck removal confirmed (no remediable bottlenecks; P19-1 external maintainer-only); single durable handoff maintained; no stale handoff files. | GREEN @02:10:46Z + ruff clean @02:26:33Z |
