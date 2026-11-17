@@ -653,9 +653,6 @@ def main(argv=None) -> int:
         except BABDataError as exc:
             print(f"Error validating --fills: {exc}")
             return 1
-    if adapter_name is not None and adapter_name not in ("paper", "mock", "live"):
-        print(f"Error: unknown --adapter {adapter_name!r} (expected 'paper', 'mock', or 'live')")
-        return 1
     if adapter_name == "live":
         exchange = getattr(args, "exchange", None)
         if not exchange:
@@ -830,11 +827,6 @@ def main(argv=None) -> int:
     if args.paper_trading:
         if not args.output:
             print("Error: --paper-trading requires --output")
-            return 1
-        try:
-            out_path = _validate_output_path(args.output)
-        except Exception as exc:
-            print(f"Error validating output path: {exc}")
             return 1
         diag_path = out_path.parent / "diagnostics.jsonl"
         from .execution import PaperExecutionEngine

@@ -69,18 +69,13 @@ def _sanitize(obj):
         return obj.isoformat()
     if isinstance(obj, (pd.Series, pd.Index, np.ndarray)):
         return [_sanitize(v) for v in obj.tolist()]
-    try:
-        import numpy as _np
-
-        if isinstance(obj, _np.integer):
-            return int(obj)
-        if isinstance(obj, _np.floating):
-            f = float(obj)
-            return 0.0 if not math.isfinite(f) else f
-        if isinstance(obj, _np.bool_):
-            return bool(obj)
-    except ImportError:
-        pass
+    if isinstance(obj, np.integer):
+        return int(obj)
+    if isinstance(obj, np.floating):
+        f = float(obj)
+        return 0.0 if not math.isfinite(f) else f
+    if isinstance(obj, np.bool_):
+        return bool(obj)
     return str(obj)
 
 
@@ -305,8 +300,6 @@ def reconcile_fills_to_backtest(
             r_sub = r_sub.reindex(columns=cols)
         else:
             r_sub = pd.DataFrame(0.0, index=idx, columns=cols)
-    else:
-        r_sub = pd.DataFrame(index=idx, columns=cols)
     r_arr = r_sub.to_numpy(dtype=float)
     r_arr = np.where(np.isfinite(r_arr), r_arr, 0.0)
 

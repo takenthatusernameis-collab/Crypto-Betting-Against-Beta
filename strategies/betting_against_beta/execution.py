@@ -135,10 +135,6 @@ class PaperAdapter:
             if date_key in sub.index:
                 v = sub.loc[date_key]
                 return float(v) if pd.notna(v) else None
-            ts = pd.Timestamp(date_key)
-            if ts in sub.index:
-                v = sub.loc[ts]
-                return float(v) if pd.notna(v) else None
         except (TypeError, ValueError, KeyError):
             pass
         return None
@@ -171,15 +167,6 @@ class PaperAdapter:
         try:
             if date_key in sub.index:
                 v = sub.loc[date_key]
-                if isinstance(v, pd.Series):
-                    v = v.iloc[0]
-                return float(v) if v is not None and pd.notna(v) else None
-        except (TypeError, ValueError, KeyError):
-            pass
-        try:
-            ts = pd.Timestamp(date_key)
-            if ts in sub.index:
-                v = sub.loc[ts]
                 if isinstance(v, pd.Series):
                     v = v.iloc[0]
                 return float(v) if v is not None and pd.notna(v) else None
@@ -1288,12 +1275,7 @@ class CCXTConnector:
                 return True
             return False
 
-        try:
-            # In real implementation, would need to map idempotency_key to exchange order ID
-            # For now, return False as we don't track exchange order IDs
-            return False
-        except Exception:
-            return False
+        return False
 
     def get_order_status(self, idempotency_key: str) -> LiveFill | None:
         """Get the status of an order by idempotency key."""
