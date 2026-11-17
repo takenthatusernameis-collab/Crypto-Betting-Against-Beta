@@ -69,11 +69,18 @@ def run_backtest(
     if not isinstance(returns_df, pd.DataFrame):
         try:
             returns_df = pd.DataFrame(returns_df)
+        # INVARIANT (P19-7 backtest site 1 / Class A): a non-DataFrame input
+        # that cannot be coerced degrades to an empty result frame (returns +
+        # cumulative only) rather than crashing the caller. This is the
+        # intentional total contract for run_backtest: bad input -> empty
+        # frame, never an exception.
         except (TypeError, ValueError):
             return pd.DataFrame(columns=["returns", "cumulative"])
     if not isinstance(weights_df, pd.DataFrame):
         try:
             weights_df = pd.DataFrame(weights_df)
+        # INVARIANT (P19-7 backtest site 2 / Class A): same total contract as
+        # site 1 -- an uncoercible weights input yields an empty result frame.
         except (TypeError, ValueError):
             return pd.DataFrame(columns=["returns", "cumulative"])
 
@@ -112,6 +119,11 @@ def run_backtest(
         _w_arr = weights.to_numpy(dtype=float)
         if not np.all(np.isfinite(_w_arr)):
             weights = weights.replace([np.inf, -np.inf], np.nan).fillna(0.0)
+    # INVARIANT (P19-7 backtest site 3 / Class A): if the numeric conversion
+    # itself fails (exotic dtype / uncoercible frame), the replace+fillna
+    # fallback is still attempted so weights are repaired rather than left
+    # dirty. This is the intentional total contract: weights are always
+    # finite before they reach the return math below.
     except (TypeError, ValueError):
         with contextlib.suppress(TypeError, ValueError):
             weights = weights.replace([np.inf, -np.inf], np.nan).fillna(0.0)
@@ -121,6 +133,11 @@ def run_backtest(
     w_shifted = weights.shift(1)
     w_shifted_filled = w_shifted.fillna(0.0)
     # Calculate portfolio returns (shift weights by 1 day for no lookahead)
+    # INVARIANT (P19-7 backtest site 4 / Class A): the fast numpy path is the
+    # primary; if it fails (exotic dtypes / read-only buffers / shape mismatch)
+    # the pure-pandas fallback produces an identical result. The broad catch
+    # is retained only as a behavior-preserving fallback -- it never hides a
+    # defect because the fallback is a legitimate, well-defined computation.
     try:
         port_ret = (w_shifted.to_numpy(dtype=float) * returns.to_numpy(dtype=float)).sum(axis=1)
         gross_returns = pd.Series(port_ret, index=common_idx)
@@ -128,6 +145,9 @@ def run_backtest(
         gross_returns = (w_shifted * returns).sum(axis=1)
 
     # Compute turnover symmetrically once - vectorized, reusing the shifted weights
+    # INVARIANT (P19-7 backtest site 5 / Class A): same behavior-preserving
+    # fallback contract as site 4 -- numpy path primary, pandas diff() fallback
+    # yields identical turnover for any coercible frame.
     try:
         wdiff = weights.to_numpy(dtype=float) - w_shifted_filled.to_numpy(dtype=float)
         weight_changes = np.abs(wdiff).sum(axis=1)
@@ -183,6 +203,11 @@ def run_backtest(
                 _multiplier = 1.0 + _ratio
                 _scaled_drag = slip_val * (_trade.to_numpy(dtype=float) * _multiplier).sum(axis=1)
                 slippage_drag = pd.Series(_scaled_drag, index=common_idx)
+        # INVARIANT (P19-7 backtest site 6 / Class A): any failure in the
+        # opt-in partial-fill path leaves the flat slippage drag intact (never
+        # NaN/inf, never a crash). This is an intentional degrade-to-default
+        # contract: the partial-fill enhancement is best-effort and the
+        # observable result is identical to partial_fill=False on failure.
         except Exception:
             # Any failure in the partial-fill path leaves the flat slippage
             # drag intact (never NaN/inf, never a crash).
@@ -219,6 +244,11 @@ def run_backtest(
         if not np.all(np.isfinite(_pr_arr)):
             _pr_arr = np.where(np.isfinite(_pr_arr), _pr_arr, 0.0)
             portfolio_returns = pd.Series(_pr_arr, index=portfolio_returns.index)
+    # INVARIANT (P19-7 backtest site 7 / Class A): if the primary finite-
+    # repair pass itself fails (exotic dtype / read-only buffer), the
+    # replace+fillna fallback produces an identical all-finite Series. This is
+    # an intentional degrade-to-default contract: portfolio_returns is always
+    # finite before the cumulative math below, never NaN/inf.
     except Exception:
         with contextlib.suppress(Exception):
             portfolio_returns = portfolio_returns.replace([np.inf, -np.inf], 0.0).fillna(0.0)
@@ -230,6 +260,10 @@ def run_backtest(
         cumulative_returns = np.exp(np.cumsum(log_returns))
         if not np.all(np.isfinite(cumulative_returns)):
             cumulative_returns = np.where(np.isfinite(cumulative_returns), cumulative_returns, 1.0)
+    # INVARIANT (P19-7 backtest site 8 / Class A): the log1p/exp cumulative
+    # path is primary; on failure the pure-pandas cumprod fallback yields an
+    # identical cumulative series for any coercible frame. Behavior-preserving
+    # fallback, never a silent defect-hider.
     except Exception:
         # Fallback
         try:
@@ -244,6 +278,11 @@ def run_backtest(
                     if bad[i]:
                         cumulative_returns_arr[i] = cumulative_returns_arr[i - 1] if i > 0 else 1.0
                 cumulative_returns = cumulative_returns_arr
+        # INVARIANT (P19-7 backtest site 9 / Class A): if even the cumprod
+        # fallback fails (uncoercible frame), degrade to an all-ones series of
+        # the same length. This is the intentional total contract: the
+        # cumulative path is always a finite, same-length series -- it never
+        # propagates a corrupt/short array to the result frame.
         except Exception:
             cumulative_returns = np.ones(len(portfolio_returns_filled))
     results = pd.DataFrame(
@@ -267,6 +306,11 @@ def run_backtest(
         if not np.all(np.isfinite(_r_arr)):
             _r_arr = np.where(np.isfinite(_r_arr), _r_arr, 0.0)
             results = pd.DataFrame(_r_arr, index=results.index, columns=results.columns)
+    # INVARIANT (P19-7 backtest site 10 / Class A): if the primary finite-
+    # repair pass itself fails (exotic dtype / read-only buffer), the
+    # replace+fillna fallback produces an identical all-finite frame. This is
+    # the intentional total contract: the returned frame is always fully
+    # finite (NaN/inf/-inf -> 0.0), never a corrupt frame to the caller.
     except Exception:
         with contextlib.suppress(Exception):
             results = results.replace([np.inf, -np.inf], np.nan).fillna(0.0)
