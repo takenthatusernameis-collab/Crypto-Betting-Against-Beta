@@ -312,6 +312,9 @@ class BABStrategy:
             if isinstance(prices, str):
                 try:
                     prices_df = load_prices(prices, benchmark=getattr(cfg, "benchmark", None))
+                # INVARIANT (P19-7 strategy site 1 / Class A): any load_prices
+                # failure surfaces as BABDataError (chained cause); a bad prices
+                # path never silently disables the impact cost term.
                 except Exception as e:
                     raise BABDataError(f"failed to load prices from {prices!r}: {e}") from e
             elif isinstance(prices, pd.DataFrame):
@@ -366,6 +369,9 @@ class BABStrategy:
                 window=cfg.beta_window,
                 min_obs=min(getattr(cfg, "min_observations", cfg.beta_window), cfg.beta_window),
             )
+        # INVARIANT (P19-7 strategy site 2 / Class A): beta calculation failure
+        # always surfaces as BABDataError (chained cause); the pipeline never
+        # proceeds with missing or stale betas.
         except Exception as e:
             raise BABDataError(f"beta calculation failed: {e}") from e
 
@@ -373,6 +379,9 @@ class BABStrategy:
             signals = generate_bab_signals(
                 betas, long_quantile=cfg.long_quantile, short_quantile=cfg.short_quantile
             )
+        # INVARIANT (P19-7 strategy site 3 / Class A): signal generation failure
+        # always surfaces as BABDataError (chained cause); the pipeline never
+        # proceeds with missing or stale signals.
         except Exception as e:
             raise BABDataError(f"signal generation failed: {e}") from e
 
@@ -385,6 +394,9 @@ class BABStrategy:
                 signals = _apply_rebalance(signals, rebalance_freq)
         except BABDataError:
             raise
+        # INVARIANT (P19-7 strategy site 4 / Class A): rebalance-application
+        # failure always surfaces as BABDataError (chained cause); rebalance
+        # errors are never silently swallowed.
         except Exception as e:
             raise BABDataError(f"rebalance application failed: {e}") from e
 
@@ -407,6 +419,9 @@ class BABStrategy:
             )
         except BABDataError:
             raise
+        # INVARIANT (P19-7 strategy site 5 / Class A): portfolio-construction
+        # failure always surfaces as BABDataError (chained cause); the pipeline
+        # never proceeds with corrupt weights.
         except Exception as e:
             raise BABDataError(f"portfolio construction failed: {e}") from e
         # Apply shorting constraints if configured
@@ -513,6 +528,11 @@ class BABStrategy:
                     wa = wa.copy()
                 wa[~_np.isfinite(wa)] = 0.0
                 weights.iloc[:] = wa
+        # INVARIANT (P19-7 strategy sites 6-7 / Class A): the finiteness guard
+        # clamps non-finite weights to 0.0; if cleanup itself fails (exotic
+        # dtype / read-only buffer / overridden replace/fillna) it surfaces a
+        # BABDataError with both exceptions chained -- never a silent corrupt
+        # frame into run_backtest.
         except Exception as exc:
             try:
                 weights = weights.replace([_np.inf, -_np.inf], 0.0).fillna(0.0)
@@ -799,6 +819,10 @@ class BABStrategy:
             )
 
         # Finite guard
+        # INVARIANT (P19-7 strategy sites 8-9 / Class A): the finiteness guard
+        # clamps non-finite weights to 0.0; if cleanup itself fails it surfaces
+        # a BABDataError with both exceptions chained -- never a silent corrupt
+        # frame into the risk summary.
         try:
             wa = weights.to_numpy(dtype=float)
             if not _np.isfinite(wa).all():
@@ -979,6 +1003,9 @@ class BABStrategy:
         sanitized_totals = {k: _safe_metric(v) for k, v in totals.items()}
 
         # Rebalances: count non-all-NaN weight rows defensively.
+        # INVARIANT (P19-7 strategy site 10 / Class A): if counting rebalances
+        # fails on degenerate weights, report() degrades to rebalances=0 and
+        # never crashes the report path.
         try:
             if isinstance(weights, pd.DataFrame) and not weights.empty:
                 rebalances = len(weights.dropna(how="all"))
@@ -992,6 +1019,9 @@ class BABStrategy:
         kill_switch = getattr(res, "kill_switch", None)
         kill_switch_dict = None
         if kill_switch is not None:
+            # INVARIANT (P19-7 strategy site 11 / Class A): if serializing the
+            # kill_switch event fails, report() degrades to kill_switch=None and
+            # never crashes the report path.
             try:
                 kill_switch_dict = kill_switch.to_dict()
             except Exception:
