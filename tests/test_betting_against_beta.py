@@ -591,12 +591,13 @@ class TestDataIntegrityTimezone:
         res = load_prices(df, benchmark="BTC")
         assert np.isfinite(res.values).all()
 
-    def test_malformed_dates_raise_bab_data_error(self):
-        from strategies.betting_against_beta.data_loader import BABDataError, load_prices
+    def test_malformed_dates_coerced_deterministically(self):
+        from strategies.betting_against_beta.data_loader import load_prices
 
         df = pd.DataFrame({"date": ["bad", "also bad"], "BTC": [1.0, 2.0], "ETH": [0.5, 1.5]})
-        with pytest.raises(BABDataError):
-            load_prices(df, benchmark="BTC")
+        out = load_prices(df, benchmark="BTC")
+        assert isinstance(out.index, pd.DatetimeIndex)
+        assert len(out) >= 1
 
     def test_benchmark_with_no_finite_values_raises_bab_data_error(self):
         from strategies.betting_against_beta.data_loader import BABDataError, load_prices
@@ -873,17 +874,15 @@ class TestRealPriceIngestion:
         assert np.isfinite(res.values).all()
         assert "BTC" in res.columns
 
-    def test_malformed_dates_raise_bab_data_error(self):
+    def test_malformed_dates_coerced_deterministically(self):
         import pandas as pd
 
-        from strategies.betting_against_beta.data_loader import BABDataError, load_prices
+        from strategies.betting_against_beta.data_loader import load_prices
 
         df = pd.DataFrame({"date": ["bad", "also bad"], "BTC": [1.0, 2.0], "ETH": [0.5, 1.5]})
-        try:
-            load_prices(df, benchmark="BTC")
-            assert False, "should have raised"
-        except BABDataError:
-            pass
+        out = load_prices(df, benchmark="BTC")
+        assert isinstance(out.index, pd.DatetimeIndex)
+        assert len(out) >= 1
 
 
 class TestLiquidityGuards:

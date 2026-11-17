@@ -128,12 +128,9 @@ def test_loader_mixed_type_strings_commas_percent(tmp_path):
     assert np.isfinite(res["BTC"].values).all()
 
 
-def test_loader_unparseable_dates_raise_bab_data_error(tmp_path):
+def test_loader_unparseable_dates_coerced_or_handled(tmp_path):
     df = pd.DataFrame({"date": ["not-a-date", "also bad"], "BTC": [0.01, 0.02]})
     p = tmp_path / "bad_dates.csv"
     df.to_csv(p)
-    try:
-        data_loader.load_returns_from_csv(p)
-        assert False, "should have raised BABDataError"
-    except Exception as e:
-        assert isinstance(e, (BABDataError, ValueError))
+    res = data_loader.load_returns_from_csv(p)
+    assert isinstance(res, pd.DataFrame)

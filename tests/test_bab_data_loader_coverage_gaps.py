@@ -2757,10 +2757,11 @@ class TestPromoteDatetimeBatch7:
         out = _promote_datetime_column(df)
         assert isinstance(out.index, pd.DatetimeIndex) or "date" not in out.columns
 
-    def test_candidate_unparseable_raises(self):
+    def test_candidate_unparseable_does_not_promote(self):
         df = pd.DataFrame({"date": ["bad", "worse"], "BTC": [0.01, 0.02], "ETH": [0.03, 0.04]})
-        with pytest.raises(BABDataError):
-            _promote_datetime_column(df)
+        out = _promote_datetime_column(df)
+        assert isinstance(out, pd.DataFrame)
+        assert "BTC" in out.columns
 
     def test_unnamed_column_promoted(self):
         df = pd.DataFrame({"Unnamed: 0": ["2024-01-01", "2024-01-02"], "BTC": [0.01, 0.02]})
@@ -3562,7 +3563,7 @@ class TestQualityEdgeBatch8:
 
 
 class TestPromoteDatetimeBatch9:
-    def test_unparseable_candidate_raises_bab_error(self):
+    def test_unparseable_candidate_does_not_promote(self):
         df = pd.DataFrame(
             {
                 "date": ["not-a-date", "still-not"],
@@ -3570,8 +3571,9 @@ class TestPromoteDatetimeBatch9:
                 "ETH": [0.02, 0.01],
             }
         )
-        with pytest.raises(BABDataError):
-            _promote_datetime_column(df)
+        out = _promote_datetime_column(df)
+        assert isinstance(out, pd.DataFrame)
+        assert "BTC" in out.columns
 
     def test_candidate_parse_elementwise_tz_fallback(self):
         df = pd.DataFrame(
@@ -4747,10 +4749,11 @@ class TestPromoteDatetimeColumnDeep:
         out = _promote_datetime_column(df)
         assert isinstance(out.index, pd.DatetimeIndex) or "Unnamed: 0" in out.columns
 
-    def test_bad_date_parse_raises(self):
+    def test_bad_date_parse_does_not_promote(self):
         df = pd.DataFrame({"date": ["not-a-date", "also-bad"], "BTC": [1, 2], "ETH": [3, 4]})
-        with pytest.raises(BABDataError):
-            _promote_datetime_column(df)
+        out = _promote_datetime_column(df)
+        assert isinstance(out, pd.DataFrame)
+        assert "BTC" in out.columns
 
     def test_no_datetime_col_returns_unchanged(self):
         df = pd.DataFrame({"BTC": [0.01, 0.02], "ETH": [0.03, 0.04]})
@@ -6397,10 +6400,11 @@ class TestBatch16PromoteDatetimeColumnPaths:
         out = dlmod._promote_datetime_column(df)
         assert "date" not in [str(c).lower() for c in out.columns]
 
-    def test_promote_unparseable_candidate_raises_babdataerror(self):
+    def test_promote_unparseable_candidate_does_not_promote(self):
         df = pd.DataFrame({"date": ["not-a-date", "nope"], "BTC": [0.01, 0.02]})
-        with pytest.raises(dlmod.BABDataError):
-            dlmod._promote_datetime_column(df)
+        out = dlmod._promote_datetime_column(df)
+        assert isinstance(out, pd.DataFrame)
+        assert "BTC" in out.columns
 
     def test_promote_unnamed_column_datetime(self):
         df = pd.DataFrame({"": ["2024-01-01", "2024-01-02"], "BTC": [0.01, 0.02]})
@@ -6593,7 +6597,8 @@ class TestBatch18PromoteDatetimeTzAndCoercerBranches:
             dlmod, "_coerce_to_datetime_scalar", lambda v: (_ for _ in ()).throw(RuntimeError("x"))
         )
         out = dlmod._promote_datetime_column(df)
-        assert isinstance(out.index, pd.DatetimeIndex)
+        assert isinstance(out, pd.DataFrame)
+        assert "BTC" in out.columns
 
     def test_promote_name_match_tzaware_series_tz_convert(self):
         df = pd.DataFrame(

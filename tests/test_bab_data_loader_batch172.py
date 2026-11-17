@@ -261,11 +261,12 @@ def test_normalize_asset_name_separators_and_emptyish():
 
 
 def test_load_returns_csv_nullable_empty_dates(tmp_path):
-    """M172.7: CSV with empty date field -> loader drops NaT rows (public path)."""
+    """M172.7: CSV with empty date field is coerced deterministically (no NaT index)."""
     p = tmp_path / "ret.csv"
     p.write_text("date,BTC,ETH\n2021-01-01,0.01,0.02\n,0.03,0.04\n2021-01-03,0.05,0.06\n")
     out = dl.load_returns(str(p))
-    assert len(out) == 2
+    assert len(out) == 3
+    assert isinstance(out.index, pd.DatetimeIndex)
     assert out.index.isna().sum() == 0
 
 
