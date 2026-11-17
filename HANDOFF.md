@@ -2,7 +2,7 @@
 
 **Canonical durable handoff (single source of truth).** Update this file only. `AGENT_HANDOFF.md` is a pointer. Delete any other `*HANDOFF*.md` on sight. Do not create parallel session/handoff docs.
 
-- **Timestamp (UTC):** 2026-11-17T23:42:34Z (this refresh; verified on live HEAD).
+- **Timestamp (UTC):** 2026-11-17T23:42:54Z (this refresh; verified on live HEAD).
 - **Latest verified checks @2026-11-17T23:38Z, HEAD `cf4c633` (handoff-only checkpoint past `7960113`; NO product/test `.py` changed since the `7960113` full-gate baseline — verified via `git diff --name-only 7960113 cf4c633` → only `AGENT_HANDOFF.md`, `HANDOFF.md`), clean working tree:**
   - `python3 -m ruff check .` → **PASS** (re-run live).
   - `bash scripts/bab_reconcile_gate.sh` → **GREEN** (re-run live; drift rc=2, clean rc=0, emit-only rc=0).
