@@ -814,10 +814,7 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
                         )
                 df2 = df.copy()
                 try:
-                    if len(df.columns) == 2:
-                        df2 = df2.set_index(parsed)
-                    else:
-                        df2 = df2.set_index(parsed)
+                    df2 = df2.set_index(parsed)
                     df2 = df2.drop(columns=[col])
                     # Ensure tz-naive
                     try:
