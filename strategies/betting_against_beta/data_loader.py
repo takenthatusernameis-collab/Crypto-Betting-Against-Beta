@@ -363,49 +363,46 @@ def _coerce_to_datetime_scalar(val):
         import re as _re
 
         if _re.match(r"^[+-]?(\d+)(\.\d+)?([eE][+-]?\d+)?$", s):
-            try:
-                numf = float(s)
-                av = abs(numf)
-                if av > 1e18:
-                    try:
-                        return pd.to_datetime(int(numf), unit="ns", utc=True)
-                    except Exception:
-                        try:
-                            return pd.to_datetime(int(numf), unit="us", utc=True)
-                        except Exception:
-                            pass
-                if av > 1e17:
+            numf = float(s)
+            av = abs(numf)
+            if av > 1e18:
+                try:
+                    return pd.to_datetime(int(numf), unit="ns", utc=True)
+                except Exception:
                     try:
                         return pd.to_datetime(int(numf), unit="us", utc=True)
                     except Exception:
                         pass
-                if av > 1e15:
-                    try:
-                        return pd.to_datetime(
-                            int(numf) if float(numf).is_integer() else numf, unit="us", utc=True
-                        )
-                    except Exception:
-                        pass
-                if av > 1e12:
-                    try:
-                        if float(numf).is_integer():
-                            return pd.to_datetime(int(numf), unit="ms", utc=True)
-                        return pd.to_datetime(numf, unit="ms", utc=True)
-                    except Exception:
-                        pass
-                if av >= 1e9:
-                    try:
-                        if float(numf).is_integer():
-                            return pd.to_datetime(int(numf), unit="s", utc=True)
-                        return pd.to_datetime(numf, unit="s", utc=True)
-                    except Exception:
-                        pass
+            if av > 1e17:
+                try:
+                    return pd.to_datetime(int(numf), unit="us", utc=True)
+                except Exception:
+                    pass
+            if av > 1e15:
+                try:
+                    return pd.to_datetime(
+                        int(numf) if float(numf).is_integer() else numf, unit="us", utc=True
+                    )
+                except Exception:
+                    pass
+            if av > 1e12:
+                try:
+                    if float(numf).is_integer():
+                        return pd.to_datetime(int(numf), unit="ms", utc=True)
+                    return pd.to_datetime(numf, unit="ms", utc=True)
+                except Exception:
+                    pass
+            if av >= 1e9:
                 try:
                     if float(numf).is_integer():
                         return pd.to_datetime(int(numf), unit="s", utc=True)
                     return pd.to_datetime(numf, unit="s", utc=True)
                 except Exception:
                     pass
+            try:
+                if float(numf).is_integer():
+                    return pd.to_datetime(int(numf), unit="s", utc=True)
+                return pd.to_datetime(numf, unit="s", utc=True)
             except Exception:
                 pass
         # Normal datetime parsing (handles ISO, Z, offsets, dayfirst).
@@ -448,12 +445,9 @@ def _coerce_to_datetime_scalar(val):
         return pd.to_datetime(v, unit="s", utc=True)
     if isinstance(val, float):
         v = val
-        # Reject NaN and inf early - they would be interpreted as epoch 0
-        try:
-            if np.isnan(v) or np.isinf(v):
-                raise ValueError("bad")
-        except Exception:
-            pass
+        # NaN/inf floats are rejected by the first float branch above; this
+        # second float branch only ever sees finite values, so that guard is
+        # unreachable and has been removed.
         av = abs(v)
         if av > 1e18:
             try:
@@ -613,51 +607,48 @@ def _detect_and_normalize_exchange_format(df: pd.DataFrame) -> pd.DataFrame:
             pass
     # OHLCV wide format for single asset (no symbol column) - use Close/Adj Close as price
     if date_col is not None and symbol_col is None:
-        try:
-            # prefer adjusted close, then close
-            price_choice = None
-            for k in ["adj close", "adj_close", "adjusted close", "close", "close price"]:
-                if k in colmap:
-                    price_choice = colmap[k]
-                    break
-            if price_choice is None and price_col is not None:
-                price_choice = price_col
-            if price_choice is not None:
-                try:
-                    tmp = df.copy()
-                    parsed_dates = tmp[date_col].apply(_coerce_to_datetime_scalar)
-                    parsed = []
-                    for pdv in parsed_dates:
-                        try:
-                            if hasattr(pdv, "tzinfo") and pdv.tzinfo is not None:
-                                pdv = pdv.tz_convert("UTC").tz_localize(None)
-                            else:
-                                try:
-                                    pdt = pd.Timestamp(pdv)
-                                    if getattr(pdt, "tzinfo", None) is not None:
-                                        pdt = pdt.tz_convert("UTC").tz_localize(None)
-                                    parsed.append(pdt)
-                                    continue
-                                except Exception:
-                                    pass
-                        except Exception:
-                            pass
-                        try:
-                            pdt = pd.to_datetime(pdv)
-                            if getattr(pdt, "tz", None) is not None:
-                                pdt = pdt.tz_convert("UTC").tz_localize(None)
-                            parsed.append(pdt)
-                        except Exception:
-                            parsed.append(pdv)
-                    tmp_out = tmp[[price_choice]].copy()
-                    tmp_out.index = parsed
-                    tmp_out.index.name = None
-                    tmp_out.columns = [str(c).strip() for c in tmp_out.columns]
-                    return tmp_out
-                except Exception:
-                    pass
-        except Exception:
-            pass
+        # prefer adjusted close, then close
+        price_choice = None
+        for k in ["adj close", "adj_close", "adjusted close", "close", "close price"]:
+            if k in colmap:
+                price_choice = colmap[k]
+                break
+        if price_choice is None and price_col is not None:
+            price_choice = price_col
+        if price_choice is not None:
+            try:
+                tmp = df.copy()
+                parsed_dates = tmp[date_col].apply(_coerce_to_datetime_scalar)
+                parsed = []
+                for pdv in parsed_dates:
+                    try:
+                        if hasattr(pdv, "tzinfo") and pdv.tzinfo is not None:
+                            pdv = pdv.tz_convert("UTC").tz_localize(None)
+                        else:
+                            try:
+                                pdt = pd.Timestamp(pdv)
+                                if getattr(pdt, "tzinfo", None) is not None:
+                                    pdt = pdt.tz_convert("UTC").tz_localize(None)
+                                parsed.append(pdt)
+                                continue
+                            except Exception:
+                                pass
+                    except Exception:
+                        pass
+                    try:
+                        pdt = pd.to_datetime(pdv)
+                        if getattr(pdt, "tz", None) is not None:
+                            pdt = pdt.tz_convert("UTC").tz_localize(None)
+                        parsed.append(pdt)
+                    except Exception:
+                        parsed.append(pdv)
+                tmp_out = tmp[[price_choice]].copy()
+                tmp_out.index = parsed
+                tmp_out.index.name = None
+                tmp_out.columns = [str(c).strip() for c in tmp_out.columns]
+                return tmp_out
+            except Exception:
+                pass
 
     # If we have date column but index not set, promote it with better parsing
     if date_col is not None and not isinstance(df.index, pd.DatetimeIndex):
@@ -780,71 +771,66 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
     lowered = {str(c).strip().lower(): c for c in df.columns}
     name_match = next((lowered[n] for n in candidate_names if n in lowered), None)
     if name_match is not None:
+        col = name_match
+        # Try coercer first for epoch numbers/strings that pandas may misparse
         try:
-            col = name_match
-            # Try coercer first for epoch numbers/strings that pandas may misparse
+            parsed = df[col].apply(_coerce_to_datetime_scalar)
+            # Check if all parsed
+            bad = False
             try:
-                parsed = df[col].apply(_coerce_to_datetime_scalar)
-                # Check if all parsed
-                bad = False
-                try:
-                    for p in parsed:
-                        if pd.isna(p):
-                            bad = True
-                            break
-                except Exception:
-                    pass
-                if not bad:
-                    # Normalize tz-aware Timestamps to tz-naive UTC. The
-                    # Series-level ``.tz`` is None even when individual
-                    # elements are tz-aware, so check the dtype too.
-                    try:
-                        dt_attr = getattr(parsed, "tz", None)
-                    except Exception:
-                        dt_attr = None
-                    with contextlib.suppress(Exception):
-                        dt_attr = dt_attr or getattr(getattr(parsed, "dtype", None), "tz", None)
-                    if dt_attr is not None:
-                        try:
-                            parsed = parsed.tz_convert("UTC").tz_localize(None)
-                        except Exception:
-                            with contextlib.suppress(Exception):
-                                parsed = parsed.tz_localize(None)
-                    else:
-                        # Element-wise tz normalization for tz-aware scalars.
-                        # tz_convert/tz_localize on valid Timestamps never raises.
-                        # The former bare `except Exception: pass` was structurally unreachable.
-                        if hasattr(parsed, "apply"):
-                            parsed = parsed.apply(
-                                lambda p: (
-                                    pd.Timestamp(p).tz_convert("UTC").tz_localize(None)
-                                    if getattr(p, "tzinfo", None) is not None
-                                    else pd.Timestamp(p)
-                                )
-                            )
-                    df2 = df.copy()
-                    try:
-                        if len(df.columns) == 2:
-                            df2 = df2.set_index(parsed)
-                        else:
-                            df2 = df2.set_index(parsed)
-                        df2 = df2.drop(columns=[col])
-                        # Ensure tz-naive
-                        try:
-                            if getattr(df2.index, "tz", None) is not None:
-                                df2.index = df2.index.tz_convert("UTC").tz_localize(None)
-                        except Exception:
-                            pass
-                        return df2
-                    except Exception:
-                        # set_index failed (e.g. patched in tests): keep the column.
-                        pass
+                for p in parsed:
+                    if pd.isna(p):
+                        bad = True
+                        break
             except Exception:
-                # Coercer failed; fall through to pandas parsing below.
                 pass
-        except BABDataError:
-            raise
-        except (ValueError, TypeError, KeyError):
+            if not bad:
+                # Normalize tz-aware Timestamps to tz-naive UTC. The
+                # Series-level ``.tz`` is None even when individual
+                # elements are tz-aware, so check the dtype too.
+                try:
+                    dt_attr = getattr(parsed, "tz", None)
+                except Exception:
+                    dt_attr = None
+                with contextlib.suppress(Exception):
+                    dt_attr = dt_attr or getattr(getattr(parsed, "dtype", None), "tz", None)
+                if dt_attr is not None:
+                    try:
+                        parsed = parsed.tz_convert("UTC").tz_localize(None)
+                    except Exception:
+                        with contextlib.suppress(Exception):
+                            parsed = parsed.tz_localize(None)
+                else:
+                    # Element-wise tz normalization for tz-aware scalars.
+                    # tz_convert/tz_localize on valid Timestamps never raises.
+                    # The former bare `except Exception: pass` was structurally unreachable.
+                    if hasattr(parsed, "apply"):
+                        parsed = parsed.apply(
+                            lambda p: (
+                                pd.Timestamp(p).tz_convert("UTC").tz_localize(None)
+                                if getattr(p, "tzinfo", None) is not None
+                                else pd.Timestamp(p)
+                            )
+                        )
+                df2 = df.copy()
+                try:
+                    if len(df.columns) == 2:
+                        df2 = df2.set_index(parsed)
+                    else:
+                        df2 = df2.set_index(parsed)
+                    df2 = df2.drop(columns=[col])
+                    # Ensure tz-naive
+                    try:
+                        if getattr(df2.index, "tz", None) is not None:
+                            df2.index = df2.index.tz_convert("UTC").tz_localize(None)
+                    except Exception:
+                        pass
+                    return df2
+                except Exception:
+                    # set_index failed (e.g. patched in tests): keep the column.
+                    pass
+        except Exception:
+            # Coercer failed; fall through to pandas parsing below.
             pass
 
     unnamed = [
