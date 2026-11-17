@@ -2,7 +2,7 @@
 
 **Canonical durable handoff (single source of truth).** Update this file only. `AGENT_HANDOFF.md` is a pointer. Delete any other `*HANDOFF*.md` on sight. Do not create parallel session/handoff docs.
 
-- **Timestamp (UTC):** 2026-11-17T14:58:45Z (this refresh).
+- **Timestamp (UTC):** 2026-11-17T15:44:02Z (this refresh).
 - **Authoritative completed full-gate evidence @2026-11-17T14:46:59Z, HEAD `73e4db2` (re-run this session, code unchanged since `5ed651f`):**
   - `BAB_GATE_LOG=/tmp/bab_gate_handoff.log bash scripts/bab_gate.sh` → **GREEN — 6282 passed / 35 skipped / 0 failed / 6572 stmts / 0 missed / 100%** (145.15s, 4 cores, xdist).
   - `python3 -m ruff check .` → **PASS**.
