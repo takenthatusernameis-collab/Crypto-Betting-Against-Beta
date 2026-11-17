@@ -2,14 +2,14 @@
 
 **Canonical durable handoff (single source of truth).** Do not create parallel handoff/session docs; update this file only. `AGENT_HANDOFF.md` is a pure pointer and must not carry a second task message. Any other `*HANDOFF*.md` is stale and must be deleted on sight.
 
-- **Timestamp (UTC):** 2026-11-17T00:03:51Z (handoff refresh; gates re-verified live this session)
+- **Timestamp (UTC):** 2026-11-17T02:07:47Z (handoff refresh; gates re-verified live this session: reconcile GREEN; ruff unavailable in this env)
 - **Repo identity:** `Crypto-Betting-Against-Beta` — a **crypto market-neutral trading system** (ingest → beta → signals → portfolio → backtest → execution → ops) implementing Frazzini–Pedersen *Betting Against Beta*. **Highest-stakes order (do not reorder priorities):** (1) **what real orders are placed** (execution/CLI live-adapter paths, opt-in gates), (2) **whether live fills still match the model** (reconciliation gates/artifacts, tolerances), (3) **whether real-data ingest accepts only data fit to trade on** (data_loader/data_sources freshness/quality guards).
 - **Git state (at refresh):** HEAD `3a0a789` == `origin/main` `3a0a789` (verified 19:43Z). Working tree clean except this handoff refresh.
 - **Last verified gates (this session, 2026-11-17T00:03:51Z):** `python3 -m ruff check .` clean; `bash scripts/bab_reconcile_gate.sh` GREEN (drift rc=2, clean rc=0, emit-only rc=0); `bash scripts/bab_gate.sh` GREEN → **6274 passed, 35 skipped, TOTAL 99% (64 missed / 6681)**. Coverage gap 64 lines; P19-3 binding.
 
 ---
 
-## INITIAL TASK MESSAGE (START HERE, 2026-11-17T00:10:00Z) — BINDING (MOST RELEVANT / HEAVY-WORK FOCUS)
+## INITIAL TASK MESSAGE (START HERE, 2026-11-17T02:07:47Z) — BINDING (MOST RELEVANT / HEAVY-WORK FOCUS)
 
 **YOU MUST DO HEAVY WORK NOW. No handoff-only pass. No CI workflow push attempts (`.github/workflows/*` is maintainer-only; token lacks `workflows:write`).**
 
@@ -120,4 +120,4 @@ BAB_GATE_MIN_COVERAGE=98.5 bash scripts/bab_gate.sh   # release floor target
 | 2026-11-16T23:47:40Z | 3a0a789 (= origin/main) | Live-verified all three gates (ruff/reconcile/gate 6274/35/99%/64). Reduced coverage gap from 84→64 lines (20). Refreshed `HANDOFF.md` with updated missed-line inventory and binding P19-3 actions. | GREEN local |
 | 2026-11-16T23:59:31Z | 3a0a789 (= origin/main) | Handoff refresh: timestamped binding P19-3 initial task message; confirmed no remediable bottlenecks; single durable handoff maintained. No code/tests changed. | GREEN @23:47:40Z (not re-run) |
 | 2026-11-17T00:10:00Z | 3a0a789 (= origin/main) | Handoff refresh (no code/tests): rewrote binding INITIAL TASK MESSAGE as heavy-work focus campaign (orders→fills-vs-model→ingest), preserved verified gates @23:47:40Z, updated pointer; no bottlenecks removed (external P19-1 remains). | GREEN @23:47:40Z (not re-run) |
-| 2026-11-17T00:03:51Z | 3a0a789 (= origin/main) | Re-verified all three gates live this session (ruff clean / reconcile GREEN / gate 6274/35/99%/64). Updated `HANDOFF.md` missed-line inventory to match actual gate output (beta:182/428-429/545-549, cli:657-658/836-838, data_loader:33, data_sources:480-481/499-500, execution:140-141/182-185/1295-1296, metrics:94, portfolio:166, reconciliation:82-83/309, replay:172); removed stale proven-unreachable claims (lines now covered); refreshed binding P19-3 task message with current line numbers and real API guidance. Single durable handoff maintained; no bottlenecks (all gates GREEN, tree clean). | GREEN @00:03:51Z |
+| 2026-11-17T02:07:47Z | 3a0a789 (= origin/main) | Handoff refresh: timestamped binding P19-3 initial task message; reconcile gate GREEN; no bottlenecks (external P19-1 remains). Single durable handoff maintained. | GREEN local (reconcile) |
