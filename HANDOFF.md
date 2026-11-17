@@ -2,14 +2,14 @@
 
 **Canonical durable handoff (single source of truth).** Do not create parallel handoff/session docs; update this file only. `AGENT_HANDOFF.md` is a pure pointer and must not carry a second task message. Any other `*HANDOFF*.md` is stale and must be deleted on sight.
 
-- **Timestamp (UTC):** 2026-11-17T02:26:33Z (handoff refresh; gates last live-verified 2026-11-17T02:10:46Z this session context; no code change since)
+- **Timestamp (UTC):** 2026-11-17T02:27:51Z (handoff refresh; gates last live-verified 2026-11-17T02:10:46Z this session context; no code change since)
 - **Repo identity:** `Crypto-Betting-Against-Beta` — a **crypto market-neutral trading system** (ingest → beta → signals → portfolio → backtest → execution → ops) implementing Frazzini–Pedersen *Betting Against Beta*. **Highest-stakes order (do not reorder priorities):** (1) **what real orders are placed** (execution/CLI live-adapter paths, opt-in gates, order construction/validation), (2) **whether live fills still match the model** (reconciliation gates/artifacts, tolerances, modeled-vs-executed drift, fills-vs-backtest), (3) **whether real-data ingest accepts only data fit to trade on** (data_loader/data_sources freshness/quality guards, alignment, survivorship/coverage decisions).
 - **Git state (at refresh):** HEAD `3a0a789` == `origin/main` `3a0a789` (verified 19:43Z). Working tree clean except this handoff refresh.
 - **Last verified gates (last recorded live run):** `python3 -m ruff check .` clean; `bash scripts/bab_reconcile_gate.sh` GREEN (drift rc=2, clean rc=0, emit-only rc=0); `bash scripts/bab_gate.sh` GREEN → **6274 passed, 35 skipped, TOTAL 99% (64 missed / 6681)** (recorded 2026-11-17T02:10:46Z). Re-run gates before claiming new progress.
 
 ---
 
-## INITIAL TASK MESSAGE (START HERE, 2026-11-17T02:26:33Z) — BINDING (MOST RELEVANT / HEAVY-WORK FOCUS)
+## INITIAL TASK MESSAGE (START HERE, 2026-11-17T02:27:51Z) — BINDING (MOST RELEVANT / HEAVY-WORK FOCUS)
 
 **YOU MUST DO HEAVY WORK NOW. No handoff-only pass. No CI workflow push attempts (`.github/workflows/*` is maintainer-only; token lacks `workflows:write`).**
 
