@@ -2,7 +2,7 @@
 
 **Canonical durable handoff (single source of truth).** Update this file only. `AGENT_HANDOFF.md` is a pointer. Delete any other `*HANDOFF*.md` on sight. Do not create parallel session/handoff docs.
 
-- **Timestamp (UTC):** 2026-11-17T23:40:07Z (this refresh; verified on live HEAD).
+- **Timestamp (UTC):** 2026-11-17T23:40:51Z (this refresh; verified on live HEAD).
 - **Latest verified checks @2026-11-17T23:38Z, HEAD `cf4c633` (handoff-only checkpoint past `7960113`; NO product/test `.py` changed since the `7960113` full-gate baseline — verified via `git diff --name-only 7960113 cf4c633` → only `AGENT_HANDOFF.md`, `HANDOFF.md`), clean working tree:**
   - `python3 -m ruff check .` → **PASS** (re-run live).
   - `bash scripts/bab_reconcile_gate.sh` → **GREEN** (re-run live; drift rc=2, clean rc=0, emit-only rc=0).
@@ -12,7 +12,7 @@
 - **Repo:** `Crypto-Betting-Against-Beta` — crypto market-neutral trading system (ingest → beta → signals → portfolio → backtest → execution → ops), Frazzini–Pedersen *Betting Against Beta*.
 - **Git state (this refresh):** HEAD `cf4c633` on `main`, clean working tree (handoff-only checkpoints past the last product commit `019a981`).
 
-## INITIAL TASK MESSAGE (BINDING — START HERE, 2026-11-17T23:40:07Z)
+## INITIAL TASK MESSAGE (BINDING — START HERE, 2026-11-17T23:40:51Z)
 
 **MANDATORY MISSION — close BOTH remaining Milestone-2 modules THIS session (`cli.py` 28/1 → `beta.py` 16/1) with committed regression tests. This is heavy work and is not optional.**
 
@@ -147,6 +147,7 @@ BAB_GATE_MIN_COVERAGE=98.5 bash scripts/bab_gate.sh   # only when TOTAL < 100 or
 ## Session ledger (append-only, concise)
 | Session (UTC) | HEAD | Did | Gate |
 |---|---|---|---|
+| 2026-11-17T23:40:51Z | cf4c633 | Retimestamped INITIAL TASK MESSAGE and re-bound next action to `cli.py` (28 broad/1 silent) → `beta.py` (16 broad/1 silent) with committed regression tests; confirmed code unchanged since full-gate baseline `7960113` (`git diff --name-only 7960113 cf4c633` → handoff files only); re-affirmed anti-loop directive (no full-gate re-verification, no handoff-refresh-only commit, go straight to cli.py site 1); bottlenecks removed (re-verification loop, stale backtest.py/unstarted bindings). | closed: handoff refresh + re-bind (no product/test changes) | tests added/changed: none | gates: ruff PASS; reconcile GREEN; quick GREEN; bab_gate 6335/35/0/0 missed/100% @7960113 (applies at cf4c633) | blockers: none — Milestone 2 unblocked at cli.py; P19-1 CI enforcement external (maintainer-only). |
 | 2026-11-17T23:38Z | cf4c633 | P19-7 Milestone 2 handoff refresh @23:38:00Z: re-verified ground truth live on HEAD `cf4c633` (handoff-only checkpoint past `7960113`, no `.py` change since baseline) — ruff PASS; reconcile GREEN; quick GREEN (104 targeted + 195 smoke); `bab_except_inventory.py` confirmed cli.py 28 broad/1 silent + beta.py 16 broad/1 silent; strategy.py (11 sites) + backtest.py (7/1) DONE with 32 tests PASS; confirmed NO `test_bab_p19_7_cli*`/`beta*` files exist (both unstarted). Rewrote INITIAL TASK MESSAGE to bind BOTH `cli.py` → `beta.py` this session with committed tests; added anti-loop directive (no re-verification / handoff-refresh-only; go straight to cli.py site 1) as automatic-failure; removed re-verification/handoff-refresh loop bottleneck. | closed: handoff refresh + bottleneck removal (no product/test changes) | tests added/changed: none | gates: ruff PASS; reconcile GREEN; quick GREEN; bab_gate 6335/35/0/0 missed/100% @7960113 (applies at cf4c633) | blockers: none — Milestone 2 unblocked at cli.py; P19-1 CI enforcement external (maintainer-only). |
 | 2026-11-17T23:36Z | ccdfff8 | P19-7 Milestone 2 handoff refresh @23:36:29Z: re-verified ground truth on HEAD ccdfff8 (handoff-only checkpoint past 7960113, no product/test change) — ruff PASS; reconcile GREEN; quick GREEN (104 targeted + 195 smoke); full-gate evidence at 7960113 GREEN 6335/35/0/6562/100% still applies; `bab_except_inventory.py` confirmed cli.py 28 broad/1 silent, beta.py 16 broad/1 silent; retimestamped INITIAL TASK MESSAGE to 23:36:29Z; rebound binding action firmly to `cli.py` → `beta.py`; removed stale "backtest.py unstarted" bottleneck (backtest.py landed in-tree); AGENT_HANDOFF.md pointer updated. | closed: handoff refresh + HEAD-advance reconciliation (no product/test changes) | tests added/changed: none | gates: ruff PASS; reconcile GREEN; quick GREEN; bab_gate 6335/35/0/0 missed/100% @7960113 (applies at ccdfff8) | blockers: none — Milestone 2 unblocked at cli.py; P19-1 CI enforcement external (maintainer-only).
 | 2026-11-17T22:35Z | 019a981 | P19-7 Milestone 2: backtest.py (7 broad/1 silent) hardened with 20 regression tests in `test_bab_p19_7_backtest_exceptions.py`; full gate GREEN 6335/35/0/6562/100%. | GREEN |
