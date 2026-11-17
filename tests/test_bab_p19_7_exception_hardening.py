@@ -14,8 +14,7 @@ from zoneinfo import ZoneInfoNotFoundError
 import pandas as pd
 import pytest
 
-from strategies.betting_against_beta.data_sources import validate_freshness
-from strategies.betting_against_beta.exceptions import BABDataError
+from strategies.betting_against_beta.data_sources import BABDataError, validate_freshness
 
 
 def _fresh_df(index):
@@ -30,25 +29,33 @@ def _fresh_df(index):
 def test_ticker_fetch_failure_surfaces_babdataerror(monkeypatch):
     # The fetch_ticker try/except re-raises as BABDataError chained from the
     # original exception; the original message is preserved in the surfaced
-    # error. Prove the chain + message via the public RealtimeFeed.fetch_latest
+    # error. Prove the chain + message via the public CCXTFeed.fetch_latest
     # path with a stubbed exchange.
-    from strategies.betting_against_beta.data_sources import RealtimeFeed
+    from strategies.betting_against_beta.data_sources import CCXTFeed
 
     class StubExchange:
         def fetch_ticker(self, symbol):
             raise RuntimeError("exchange down")
 
-    class StubFeed(RealtimeFeed):
+    class StubFeed(CCXTFeed):
         def __init__(self):
             self._exchange = StubExchange()
             self._error = None
+            self.symbols = ["BTC"]
+            self.dry_run = False
+            self.max_staleness_seconds = 30.0
+            self.max_gap_seconds = 60.0
+            self._connected = True
+            self._markets_loaded = True
+            self._last_tick_data = {}
+            self._last_tick_time = {}
 
         def _to_ccxt_symbol(self, symbol):
             return f"{symbol}/USDT"
 
     feed = StubFeed()
     with pytest.raises(BABDataError) as exc_info:
-        feed.fetch_latest(["BTC"])
+        feed.fetch_latest()
     assert "exchange down" in str(exc_info.value)
     assert isinstance(exc_info.value.__cause__, RuntimeError)
     assert feed._error == "exchange down"
