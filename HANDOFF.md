@@ -2,10 +2,10 @@
 
 **Canonical durable handoff (single source of truth).** Update this file only. `AGENT_HANDOFF.md` is a pointer. Delete any other `*HANDOFF*.md` on sight.
 
-- **Timestamp (UTC):** 2026-11-17T10:46:23Z (fresh gate run: 6280 passed / 35 skipped / 0 failed / 14 missed / 6590 stmts / 99%)
+- **Timestamp (UTC):** 2026-11-17T11:12:27Z (fresh gate run: 6280 passed / 35 skipped / 0 failed / 14 missed / 6590 stmts / 99%)
 - **Repo:** `Crypto-Betting-Against-Beta` — crypto market-neutral trading system (ingest → beta → signals → portfolio → backtest → execution → ops), Frazzini–Pedersen *Betting Against Beta*.
 - **Stakes order (never reorder):** (1) **real orders placed** (live-adapter gates, submission safety) — CLOSED, (2) **fills match model** (reconciliation/drift) — CLOSED, (3) **ingest admits only fit-to-trade data** (freshness/alignment/quality/coverage) — PRIMARY for remaining work, (4) **beta fallback correctness** — SECONDARY.
-- **Git state (this refresh):** HEAD `2f8fe7a` (checkpoint), working tree clean. Always run `git status`, `git fetch`, and gates before trusting counts.
+- **Git state (this refresh):** HEAD `41ae1e6` (checkpoint), working tree clean. Always run `git status`, `git fetch`, and gates before trusting counts.
 - **Last authoritative full-gate evidence (FRESH THIS SESSION @2026-11-17T10:46Z):** `python3 -m ruff check .` **PASS**; `bash scripts/bab_reconcile_gate.sh` **GREEN** (drift rc=2, clean rc=0, emit-only rc=0); `bash scripts/bab_gate.sh` **GREEN — 6280 passed / 35 skipped / 0 FAILED / 14 missed / 6590 stmts / 99%**; `BAB_GATE_MIN_COVERAGE=98.5 bash scripts/bab_gate.sh` **GREEN (floor met)**.
 
 ## INITIAL TASK MESSAGE (BINDING — START HERE)

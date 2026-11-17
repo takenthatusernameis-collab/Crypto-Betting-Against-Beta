@@ -8,4 +8,4 @@ This file is a pointer to the canonical durable handoff at `HANDOFF.md`.
 - **Repo-stakes order (never reorder):** (1) live orders placed (closed), (2) fills vs model (closed), (3) ingest fit-to-trade (PRIMARY), (4) beta fallback (SECONDARY).
 - **Machine-checkable done:** `ruff check .` PASS; `bab_reconcile_gate.sh` GREEN; `bab_gate.sh` GREEN with 0 failures and missed <14 (target 0); `BAB_GATE_MIN_COVERAGE=98.5 bab_gate.sh` GREEN; diff includes product `.py`/tests.
 - **Last authoritative baseline (2026-11-17T10:41Z, fresh gate run):** 6280 passed / 35 skipped / 0 FAILED / 14 missed / 6590 stmts / 99%; ruff PASS; reconcile GREEN; 98.5 floor GREEN.
-- **HEAD at this refresh:** `75cd86e` (origin/main). Read `HANDOFF.md` "INITIAL TASK MESSAGE" first.
+- **HEAD at this refresh:** `41ae1e6` (origin/main). Read `HANDOFF.md` "INITIAL TASK MESSAGE" first.
