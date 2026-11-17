@@ -2,7 +2,7 @@
 
 **Canonical durable handoff (single source of truth).** Update this file only. `AGENT_HANDOFF.md` is a pointer. Delete any other `*HANDOFF*.md` on sight. Do not create parallel session/handoff docs.
 
-- **Timestamp (UTC):** 2026-11-17T15:45:00Z (this refresh).
+- **Timestamp (UTC):** 2026-11-17T15:52:09Z (this refresh).
 - **Authoritative completed full-gate evidence @2026-11-17T14:46:59Z, HEAD `73e4db2` (re-run this session, code unchanged since `5ed651f`):**
   - `BAB_GATE_LOG=/tmp/bab_gate_handoff.log bash scripts/bab_gate.sh` → **GREEN — 6282 passed / 35 skipped / 0 failed / 6572 stmts / 0 missed / 100%** (145.15s, 4 cores, xdist).
   - `python3 -m ruff check .` → **PASS**.
@@ -11,7 +11,7 @@
 - **Repo:** `Crypto-Betting-Against-Beta` — crypto market-neutral trading system (ingest → beta → signals → portfolio → backtest → execution → ops), Frazzini–Pedersen *Betting Against Beta*.
 - **Git state (this refresh):** HEAD `73e4db2` on `main`, clean tree. Only `HANDOFF.md` and `tests/test_bab_p19_7_exception_hardening.py` changed since the last GREEN baseline `5ed651f` — **data_sources.py sites (10-12) already DONE with tests**; 100% coverage baseline carries forward. Always confirm with `git status --short --branch` and re-run gates after any edit.
 
-## INITIAL TASK MESSAGE (BINDING — START HERE, 2026-11-17T15:45:00Z)
+## INITIAL TASK MESSAGE (BINDING — START HERE, 2026-11-17T15:52:09Z)
 
 **Mission (P19-7 Milestone 1, heavy execution required — do NOT stop at analysis; do NOT hand off without closing the sites with tests):** Harden silent/broad exception handling in the BAB product modules. Every targeted `except Exception` site must become either **(A) an intentional contract** locked by an inline invariant + a regression test, or **(B) narrowed/surfaced** with a regression test proving identical happy-path behavior and that the failure now surfaces. Behavior-preserving only.
 
@@ -129,7 +129,7 @@ BAB_GATE_MIN_COVERAGE=98.5 bash scripts/bab_gate.sh   # only when TOTAL < 100 or
 | 2026-11-17T15:45Z | 73e4db2 | **Verified 10/18 Milestone-1 sites DONE** (recon 1, data_sources 3, portfolio 6 — all with inline invariants + regression tests passing). Fixed `test_bab_p19_7_exception_hardening.py` import + test logic; all 5 tests PASS. Quick gate GREEN. **Remaining: 8 sites in `execution.py` only.** | GREEN |
 
 ## Session ledger detail (append-only)
-- 2026-11-17T15:45:00Z | HEAD 73e4db2 | before: P19-7 Milestone 1 binding @14:47Z, 18 sites unstarted | after: audited all 18 sites; 10 DONE with inline invariants + tests (recon.py:131 Class A, data_sources.py:376/478/506 Class A/A/B, portfolio.py:30/107-118/165 Class A/B/B/B/B/A); fixed `test_bab_p19_7_exception_hardening.py` (import from data_sources, fetch_latest() signature); all 5 tests PASS; quick gate GREEN (ruff + 104 targeted + 195 smoke). **Remaining work: 8 sites in `execution.py` only.** | closed: 10 sites (recon 1, sources 3, portfolio 6) | tests added/changed: `test_bab_p19_7_exception_hardening.py` (5 tests fixed) | gates: ruff PASS; reconcile GREEN; bab_quick PASS | blockers: none — execution.py 8 sites unblocked and ready.
+- 2026-11-17T15:52:09Z | HEAD 73e4db2 | before: P19-7 Milestone 1 binding @14:47Z, 18 sites unstarted | after: audited all 18 sites; 10 DONE with inline invariants + tests (recon.py:131 Class A, data_sources.py:376/478/506 Class A/A/B, portfolio.py:30/107-118/165 Class A/B/B/B/B/A); fixed `test_bab_p19_7_exception_hardening.py` (import from data_sources, fetch_latest() signature); all 5 tests PASS; quick gate GREEN (ruff + 104 targeted + 195 smoke). **Remaining work: 8 sites in `execution.py` only.** | closed: 10 sites (recon 1, sources 3, portfolio 6) | tests added/changed: `test_bab_p19_7_exception_hardening.py` (5 tests fixed) | gates: ruff PASS; reconcile GREEN; bab_quick PASS | blockers: none — execution.py 8 sites unblocked and ready.
 - 2026-11-17T14:47:00Z | HEAD 73e4db2 | before: P19-7 Milestone 1 binding @14:03Z, tree clean, code unchanged since 5ed651f | after: re-ran full gate to completion `BAB_GATE_LOG=/tmp/bab_gate_handoff.log bash scripts/bab_gate.sh` → 6282 passed / 35 skipped / 0 failed / 6572 stmts / 0 missed / 100% (145.15s); `python3 -m ruff check .` PASS; `bash scripts/bab_reconcile_gate.sh` GREEN; ground-truthed Milestone 1 = 18 broad `Exception` sites (`execution.py` 8: 346,375,398,458,467,831,888,1250; `reconciliation.py` 1: 131; `data_sources.py` 3: 376,478,506; `portfolio.py` 6: 30,107,110,115,118,165), 0 silent; rewrote handoff with binding 18-row ledger + anti-avoidance contract + fast-loop; compressed bloated ledger | closed: none (P19-7 Milestone 1 not yet started) | tests added/changed: none | gates: ruff PASS; reconcile GREEN; bab_gate 6282/35/0/0 missed/100%; 98.5 floor met by TOTAL 100% | blockers: none — Milestone 1 unblocked and ready; P19-1 CI enforcement external (maintainer-only).
 - 2026-11-17T14:03:04Z | HEAD 5ed651f | after: full gate GREEN (149.18s); AST-grounded 18 Milestone-1 sites; no product/test changes. | gates: ruff PASS; reconcile GREEN; 100%.
 - 2026-11-17T13:55:12Z | HEAD b97f1e0 | after: ran full gate to completion (bottleneck removed) 6282/35/0/0 missed/100%; `beta.py` 100%; installed P19-7. | gates: all 4 GREEN.
