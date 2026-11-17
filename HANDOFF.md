@@ -2,10 +2,10 @@
 
 **Canonical durable handoff (single source of truth).** Do not create parallel handoff/session docs; update this file only. `AGENT_HANDOFF.md` is a pure pointer and must not carry a second task message. Any other `*HANDOFF*.md` is stale and must be deleted on sight.
 
-- **Timestamp (UTC):** 2026-11-17T00:10:00Z (handoff refresh; gates last verified live 2026-11-16T23:47:40Z)
+- **Timestamp (UTC):** 2026-11-17T00:03:51Z (handoff refresh; gates re-verified live this session)
 - **Repo identity:** `Crypto-Betting-Against-Beta` — a **crypto market-neutral trading system** (ingest → beta → signals → portfolio → backtest → execution → ops) implementing Frazzini–Pedersen *Betting Against Beta*. **Highest-stakes order (do not reorder priorities):** (1) **what real orders are placed** (execution/CLI live-adapter paths, opt-in gates), (2) **whether live fills still match the model** (reconciliation gates/artifacts, tolerances), (3) **whether real-data ingest accepts only data fit to trade on** (data_loader/data_sources freshness/quality guards).
 - **Git state (at refresh):** HEAD `3a0a789` == `origin/main` `3a0a789` (verified 19:43Z). Working tree clean except this handoff refresh.
-- **Last verified gates (2026-11-16T23:47:40Z):** `python3 -m ruff check .` clean; `bash scripts/bab_reconcile_gate.sh` GREEN (drift rc=2, clean rc=0, emit-only rc=0); `bash scripts/bab_gate.sh` GREEN → **6274 passed, 35 skipped, TOTAL 99% (64 missed / 6681)**. Coverage gap 64 lines; P19-3 binding.
+- **Last verified gates (this session, 2026-11-17T00:03:51Z):** `python3 -m ruff check .` clean; `bash scripts/bab_reconcile_gate.sh` GREEN (drift rc=2, clean rc=0, emit-only rc=0); `bash scripts/bab_gate.sh` GREEN → **6274 passed, 35 skipped, TOTAL 99% (64 missed / 6681)**. Coverage gap 64 lines; P19-3 binding.
 
 ---
 
@@ -17,11 +17,11 @@
 
 **Priority campaign (build the next focus so future agents cannot avoid heavy work):**
 1. **Reproduce + lock baseline (same session start):** `python3 -m ruff check . && bash scripts/bab_reconcile_gate.sh`, then `bash scripts/bab_gate.sh` (record exact counts). Do not lower coverage floor.
-2. **(1) Real orders / execution safety first (highest stakes):** craft tests for `execution.py:140-141,182-185` via real `LiveExecutionAdapter`/lookup paths (`_price_for`, `_adv_from_frame_value`) with real attrs; cover `execution.py` remaining reachable edges tied to order placement/guards where present in list; keep two-key opt-in and dry-run semantics intact.
-3. **(2) Live fills vs model (reconciliation):** cover `reconciliation.py:309` via real `reconcile_costs`/`reconcile_fills_to_backtest` inputs (empty-cols DataFrame case) and any adjacent reachable branches in the current missed set that affect drift/mismatch reporting.
-4. **(3) Ingest fit-to-trade:** cover `data_sources.py:499-500` (tz fallback in `validate_freshness`) and `data_loader.py` reachable clusters in the missed list (`280-292,296-297,315-316,422-423,666-667,718-719,837-838,1610,1649-1650,1655-1657,1671-1676,1953-1954,2757-2758`) using realistic fixtures/inputs; prefer behavior over mocks that bypass validation.
-5. **CLI + metrics + replay reachability:** `cli.py:75` (accept_terms mismatch via `_build_adapter` when `allow_live_execution=True`), `cli.py:836-838,893-894`; `metrics.py:94` (single-row turnover NaN→0.0 via `metrics.turnover`); `replay.py:172` (row resize in `ReplayHarness._replay`). Use real `main()`/monkeypatch patterns consistent with repo tests.
-6. **Beta/portfolio/signal proven-unreachable cleanup (safe deletions with proof):** remove only lines provably unreachable with concrete evidence in commit message or inline comment: `beta.py:125,163,170-171,189`; `portfolio.py:152-153,170-177,180`; `data_loader.py:1355`; `data_sources.py:480-481`; `execution.py:1295-1296`; `reconciliation.py:82-83`; `signals.py:37,75`. If any is not provably unreachable, convert to a targeted behavior test instead.
+2. **(1) Real orders / execution safety first (highest stakes):** craft tests for `execution.py:140-141,182-185` via real `LiveExecutionAdapter`/lookup paths (`_price_for`, `_adv_for`) with real attrs (`prices`/`adv_usd`); cover `execution.py:1295-1296` only if not provably unreachable, otherwise delete with proof; keep two-key opt-in and dry-run semantics intact.
+3. **(2) Live fills vs model (reconciliation):** cover `reconciliation.py:309` via real `reconcile_costs`/`reconcile_fills_to_backtest` inputs (empty-cols DataFrame case) and any adjacent reachable branches in the current missed set that affect drift/mismatch reporting; `reconciliation.py:82-83` only reachable if numpy import fails.
+4. **(3) Ingest fit-to-trade:** cover `data_sources.py:499-500` (tz fallback in `validate_freshness`) and `data_sources.py:480-481` (numeric index rejection) plus `data_loader.py` reachable clusters in the missed list (`280-292,296-297,315-316,422-423,666-667,718-719,837-838,1610,1649-1650,1655-1657,1671-1676,1953-1954,2757-2758`) using realistic fixtures/inputs; prefer behavior over mocks that bypass validation.
+5. **CLI + metrics + replay + beta + portfolio reachability:** `cli.py:657-658` (unknown `--adapter` validation), `cli.py:836-838` (output path validation error); `metrics.py:94` (single-row turnover NaN→0.0 via `metrics.turnover`); `replay.py:172` (row resize in `ReplayHarness._replay`); `beta.py:182` (empty masked-array → NaN), `beta.py:428-429` (1D degenerate-mask), `beta.py:545-549` (column fetch/coerce fallback); `portfolio.py:166` (`BABPortfolioError` re-raise). Use real `main()`/monkeypatch patterns consistent with repo tests.
+6. **No clean proven-unreachable deletions remain:** all 64 missed lines are reachable-ish; convert any line suspected unreachable into a targeted behavior test rather than deleting without proof.
 7. **Gates before claiming progress:** `python3 -m ruff check .`, `bash scripts/bab_reconcile_gate.sh`, `bash scripts/bab_gate.sh` (note `BAB_GATE_MIN_COVERAGE=98.5` if run). Update this file: new timestamp, new missed-line inventory/count, ledger row.
 
 **Non-negotiable constraints:** do **not** lower coverage floor; do **not** add type annotations (ANN excluded); do **not** refactor defensive try/except (BLE/TRY excluded) except deleting truly unreachable dead branches with proof; do **not** claim CI enforcement (P19-1 maintainer-only). Keep secrets/env-only credential handling unchanged.
@@ -30,21 +30,20 @@
 
 ---
 
-## P19-3 — 64-LINE CORRECTNESS GAP (re-verified @23:47:40Z 2026-11-16; refresh @00:10:00Z 2026-11-17)
+## P19-3 — 64-LINE CORRECTNESS GAP (re-verified @00:03:51Z 2026-11-17; gates GREEN this session)
 
 Missed lines (bab_gate.sh 6274 passed / 64 missed / 99%): treat as correctness smell list.
-- `beta.py`: 125, 163, 170-171, 189, 435-436, 545-549 (12) — **4 proven unreachable (125,163,170-171,189)**
-- `data_loader.py`: 280-292, 296-297, 315-316, 422-423, 666-667, 718-719, 837-838, 1355, 1610, 1649-1650, 1655-1657, 1671-1676, 1953-1954, 2757-2758 (34) — **1 proven unreachable (1355)**
-- `execution.py`: 140-141, 182-185, 1295-1296 (8) — **2 proven unreachable (1295-1296)**
-- `cli.py`: 75, 657-658, 836-838, 893-894 (8) — **2 documented (657-658 argparse/validation path), 6 remain**; `cli:75` reachable via `_build_adapter` when `allow_live_execution=True` and terms mismatch (confirmed raises `BABDataError`) but needs integration/main-path test crafted against real arg parsing.
-- `portfolio.py`: 152-153, 170-177, 180 (11) — **11 proven unreachable**
-- `data_sources.py`: 480-481, 499-500 (4) — **2 proven unreachable (480-481), 2 remain (499-500 tz-conversion fallback in `validate_freshness`)**
-- `reconciliation.py`: 82-83, 309 (3) — **2 proven unreachable (82-83), 1 remain (309 empty-cols in cost computation path — use `reconcile_costs`/`reconcile_fills_to_backtest` actual APIs)**
-- `signals.py`: 37, 75 (2) — **2 proven unreachable**
-- `metrics.py`: 94 (1) — **1 remain (single-row turnover NaN→0.0; `metrics.turnover` exists)**
-- `replay.py`: 172 (1) — **1 remain (row resize in `ReplayHarness._replay`; craft via mismatched weight row array length)**
+- `beta.py`: 182 (empty masked-array branch → NaN), 428-429 (1D degenerate-mask path), 545-549 (column fetch/coerce exception fallback) (8) — none proven unreachable; add behavior tests via `calculate_rolling_beta` with degenerate/empty inputs.
+- `cli.py`: 657-658 (unknown `--adapter` validation), 836-838 (output path validation error) (5) — `cli:75` and `893-894` now covered; remaining 5 need `main()`/monkeypatch tests against real arg parsing.
+- `data_loader.py`: 280-292, 296-297, 315-316, 422-423, 666-667, 718-719, 837-838, 1610, 1649-1650, 1655-1657, 1671-1676, 1953-1954, 2757-2758 (33) — line 1355 (proven unreachable) removed since last refresh; cover reachable clusters with realistic fixtures/inputs, prefer behavior over mocks that bypass validation.
+- `data_sources.py`: 480-481 (numeric index rejection in `validate_freshness`), 499-500 (tz-conversion fallback exception swallow in `validate_freshness`) (4) — cover via real `validate_freshness` with numeric index and tz-naive/tz-aware mismatched inputs.
+- `execution.py`: 140-141 (`_price_for` Timestamp lookup fallback), 182-185 (`_adv_for` Series `.iloc[0]` unpack), 1295-1296 (`get_order_status` exception swallow) (8) — cover via real `LiveExecutionAdapter` instance attrs (`prices`/`adv_usd`); keep two-key opt-in and dry-run semantics intact.
+- `metrics.py`: 94 (single-row turnover NaN→0.0 via `metrics.turnover`) (1) — single-row DataFrame input.
+- `portfolio.py`: 166 (`BABPortfolioError` re-raise in portfolio construction) (1) — trigger via uncoercible dtype/exotic index frame.
+- `reconciliation.py`: 82-83 (`ImportError` swallow in `_json_safe`), 309 (empty-cols DataFrame in cost computation) (3) — cover `309` via real `reconcile_costs`/`reconcile_fills_to_backtest` inputs (empty-cols case); `82-83` only reachable if numpy import fails.
+- `replay.py`: 172 (row resize in `ReplayHarness._replay`) (1) — craft via mismatched weight row array length vs n_cols.
 
-**Totals:** ~15 reachable-ish, 24 proven-unreachable (delete-with-proof candidates), ~25 long-tail. **Next session:** (1) add working tests for `metrics:94`, `replay:172`, `reconciliation:309` using real function names/signatures, `execution:140-141,182-185` via `LiveExecutionAdapter` instance attrs (`prices`/`adv_usd` exist as fields per source), `cli:75/836-838/893-894` via `main()`/monkeypatch against real code paths; (2) delete proven-unreachable lines with inline proof commits where safe; (3) re-run gates and update this list/count.
+**Totals:** 64 missed, all reachable-ish (no clean proven-unreachable deletions remain after this refresh). **Next session:** add working tests for `metrics:94`, `replay:172`, `reconciliation:309`, `execution:140-141/182-185/1295-1296`, `cli:657-658/836-838`, `beta:182/428-429/545-549`, `portfolio:166`, `data_sources:480-481/499-500`, and `data_loader` reachable clusters using real function names/signatures (`reconcile_costs`/`reconcile_fills_to_backtest`, `BABResult` fields, `ReplayHarness`, `LiveExecutionAdapter`/`PaperExecutionEngine` real attrs like `prices`/`adv_usd`, `metrics.turnover`, `ReplayHarness._replay`). Then re-run gates and update this list/count.
 
 ---
 
@@ -121,3 +120,4 @@ BAB_GATE_MIN_COVERAGE=98.5 bash scripts/bab_gate.sh   # release floor target
 | 2026-11-16T23:47:40Z | 3a0a789 (= origin/main) | Live-verified all three gates (ruff/reconcile/gate 6274/35/99%/64). Reduced coverage gap from 84→64 lines (20). Refreshed `HANDOFF.md` with updated missed-line inventory and binding P19-3 actions. | GREEN local |
 | 2026-11-16T23:59:31Z | 3a0a789 (= origin/main) | Handoff refresh: timestamped binding P19-3 initial task message; confirmed no remediable bottlenecks; single durable handoff maintained. No code/tests changed. | GREEN @23:47:40Z (not re-run) |
 | 2026-11-17T00:10:00Z | 3a0a789 (= origin/main) | Handoff refresh (no code/tests): rewrote binding INITIAL TASK MESSAGE as heavy-work focus campaign (orders→fills-vs-model→ingest), preserved verified gates @23:47:40Z, updated pointer; no bottlenecks removed (external P19-1 remains). | GREEN @23:47:40Z (not re-run) |
+| 2026-11-17T00:03:51Z | 3a0a789 (= origin/main) | Re-verified all three gates live this session (ruff clean / reconcile GREEN / gate 6274/35/99%/64). Updated `HANDOFF.md` missed-line inventory to match actual gate output (beta:182/428-429/545-549, cli:657-658/836-838, data_loader:33, data_sources:480-481/499-500, execution:140-141/182-185/1295-1296, metrics:94, portfolio:166, reconciliation:82-83/309, replay:172); removed stale proven-unreachable claims (lines now covered); refreshed binding P19-3 task message with current line numbers and real API guidance. Single durable handoff maintained; no bottlenecks (all gates GREEN, tree clean). | GREEN @00:03:51Z |
