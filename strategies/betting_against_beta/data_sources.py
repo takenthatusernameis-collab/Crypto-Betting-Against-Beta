@@ -364,6 +364,10 @@ class CCXTFeed(RealtimeFeed):
                     "ask": price * 1.001,
                 }
             else:
+                # INVARIANT (A, locked by test_ticker_fetch_failure_surfaces_babdataerror):
+                # any failure in fetch_ticker is surfaced as BABDataError chained from
+                # the original exception (cause preserved), with the original message
+                # embedded. This is a surfacing contract, not a silent fallback.
                 try:
                     ticker = self._exchange.fetch_ticker(ccxt_symbol)
                     result[symbol] = {
@@ -498,13 +502,17 @@ def validate_freshness(
     else:
         reference = reference.tz_localize("UTC")
 
-    try:
-        if getattr(idx, "tz", None) is not None:
-            idx_utc = idx.tz_convert("UTC")
-        else:
-            idx_utc = idx.tz_localize("UTC")
-    except Exception:
-        idx_utc = idx
+    # Convert the observation index to UTC. The index is guaranteed to be a
+    # ``DatetimeIndex`` here (see the isinstance branch above), so tz_convert
+    # on a tz-aware index or tz_localize("UTC") on a naive index cannot raise:
+    # UTC has no DST and a valid tz name is required by construction. The former
+    # ``except Exception: idx_utc = idx`` silent fallback is therefore removed
+    # (Class B — surfacing): any unexpected tz failure now propagates as the
+    # underlying error instead of being swallowed into a non-UTC index.
+    if getattr(idx, "tz", None) is not None:
+        idx_utc = idx.tz_convert("UTC")
+    else:
+        idx_utc = idx.tz_localize("UTC")
 
     # Check staleness (time since last observation relative to reference).
     last_date = idx_utc[-1]

@@ -126,6 +126,12 @@ def _fill_cost(fill: dict, transaction_costs: float, slippage: float) -> float:
 
 
 def _date_key(date) -> str:
+    # INVARIANT (A, locked by test_date_key_fallback_contract):
+    # _date_key(date) == pd.Timestamp(date).isoformat() for every input that
+    # pd.Timestamp can convert (including None/NaN -> NaT.isoformat()); for any
+    # input that raises (DateParseError, OutOfBoundsDatetime, TypeError, etc.)
+    # it falls back to str(date) so the caller never sees an exception. This is
+    # an intentional total function: the fallback is the contract, not a defect.
     try:
         return pd.Timestamp(date).isoformat()
     except Exception:

@@ -13,7 +13,15 @@ class BABPortfolioError(BABDataError):
 
 
 def _clean_signal_value(val):
-    """Return 1, -1, or 0 for a signal value, never raising."""
+    # INVARIANT (A, locked by test_clean_signal_value_total_contract):
+    # _clean_signal_value is a total function over every input class:
+    #   - None / NaN -> 0
+    #   - string "1" / "-1" / "0" / "1.0" / "-1.0" -> 1 / -1 / 0
+    #   - finite int/float truncating to 1 or -1 -> 1 / -1
+    #   - everything else (unparseable strings, inf, non-numeric objects,
+    #     nested containers, out-of-int-range floats) -> 0
+    # It never raises; the inner float()/int() failures and the outer
+    # TypeError/ValueError are both part of the intended total contract.
     try:
         if val is None or (isinstance(val, float) and np.isnan(val)):
             return 0
@@ -95,28 +103,24 @@ def construct_portfolio(
         index = signals_df.index
         columns = signals_df.columns
 
-        # Clean signals elementwise
+        # Clean signals elementwise. ``pd.to_numeric(..., errors="coerce")``
+        # never raises on any Series dtype (verified across object/category/
+        # datetime/period/timedelta/nullable/empty inputs), so the former
+        # double-retry + per-column-0.0-fallback + outer all-zero-frame return
+        # were all unreachable silent fallbacks (Class B). They are removed:
+        # a real coercion failure now surfaces as BABPortfolioError with the
+        # original exception chained, instead of being swallowed into an
+        # all-zero "no positions" book that hides the defect.
         try:
             if all(pd.api.types.is_numeric_dtype(s) for s in signals_df.dtypes):
-                # to_numpy(dtype=float) already materializes a converted copy;
-                # the extra signals_df.copy() was redundant.
                 arr = signals_df.to_numpy(dtype=float)
             else:
-                try:
-                    numeric = signals_df.apply(pd.to_numeric, errors="coerce")
-                except Exception:
-                    try:
-                        numeric = signals_df.apply(pd.to_numeric, errors="coerce")
-                    except Exception:
-                        numeric = signals_df.copy()
-                        for col in numeric.columns:
-                            try:
-                                numeric[col] = pd.to_numeric(numeric[col], errors="coerce")
-                            except Exception:
-                                numeric[col] = 0.0
+                numeric = signals_df.apply(pd.to_numeric, errors="coerce")
                 arr = numeric.to_numpy(dtype=float)
-        except Exception:
-            return _pd.DataFrame(0.0, index=index, columns=columns)
+        except Exception as exc:
+            raise BABPortfolioError(
+                f"portfolio construction failed: {exc}"
+            ) from exc
         iv = np.trunc(arr)
         # trunc(1.5)=1 -> long, trunc(-1.5)=-1 -> short, everything else -> 0,
         # matching _clean_signal_value / the row-wise oracle exactly.
