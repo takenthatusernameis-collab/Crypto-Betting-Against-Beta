@@ -9,7 +9,7 @@
 
 ---
 
-## INITIAL TASK MESSAGE (START HERE, 2026-11-17T06:28:30Z) — BINDING HEAVY-WORK CAMPAIGN P19-5 (CONTINUED)
+## INITIAL TASK MESSAGE (START HERE, 2026-11-17T06:31:37Z) — BINDING HEAVY-WORK CAMPAIGN P19-5 (CONTINUED)
 
 **YOU ARE REQUIRED TO SHIP SUBSTANTIVE, VERIFIABLE CODE THIS SESSION. A handoff/timestamp-only commit is failure and will be rejected. Your first action is to run the three gates, fix the lint/test failures, and start closing the remaining 14 residue lines — do not spend the session restating this brief or re-planning.**
 
