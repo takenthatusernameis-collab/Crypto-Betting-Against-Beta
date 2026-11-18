@@ -207,6 +207,7 @@ class BABStrategy:
                 "adv_usd",
                 "partial_fill",
                 "max_participation",
+                "weighting",
             ]:
                 if k in kwargs:
                     cfg_kwargs[k] = kwargs[k]
@@ -410,6 +411,8 @@ class BABStrategy:
             weights = construct_portfolio(
                 signals,
                 dollar_neutral=cfg.dollar_neutral,
+                betas=betas,
+                weighting=cfg.weighting,
                 max_position_size=getattr(cfg, "max_position_size", None),
                 max_turnover=_max_turnover,
                 enforce_risk_checks=_enforce_risk,
@@ -483,10 +486,14 @@ class BABStrategy:
         except (TypeError, ValueError, AttributeError) as e:
             raise BABDataError(f"regime_filter failed: {e}") from e
 
-        # Beta-neutral enforcement / drift detection (multi-file, no lookahead)
-        beta_neutral_enabled = bool(getattr(cfg, "beta_neutral", False)) or bool(
-            getattr(cfg, "beta_neutral_enforcement", False)
-        )
+        # Beta-neutral enforcement / drift detection (multi-file, no lookahead).
+        # Rank books are beta-neutral by construction: skip the min-norm
+        # correction (it can flip long/short signs on a tilted book) and rely
+        # on the rank construction itself.
+        beta_neutral_enabled = (
+            bool(getattr(cfg, "beta_neutral", False))
+            or bool(getattr(cfg, "beta_neutral_enforcement", False))
+        ) and getattr(cfg, "weighting", "equal") != "rank"
         if beta_neutral_enabled:
             from . import portfolio as _portfolio
 
@@ -517,6 +524,15 @@ class BABStrategy:
             )
             if rebalance_freq != "daily" and len(weights) > 0:
                 weights = _apply_rebalance(weights, rebalance_freq)
+        # Rank weights are computed per day (betas drift inside a window), so
+        # freeze the book inside weekly/monthly windows just like WP1's hold.
+        # This is a no-op for daily and for equal-weight books (held above).
+        if (
+            getattr(cfg, "weighting", "equal") == "rank"
+            and rebalance_freq != "daily"
+            and len(weights) > 0
+        ):
+            weights = _apply_rebalance(weights, rebalance_freq)
 
         # Explicit finiteness guard (single pass; construct_portfolio already
         # returns finite weights, this is a defensive final clamp).  One
@@ -734,6 +750,8 @@ class BABStrategy:
         weights = construct_portfolio(
             signals,
             dollar_neutral=cfg.dollar_neutral,
+            betas=betas,
+            weighting=cfg.weighting,
             max_position_size=getattr(cfg, "max_position_size", None),
             max_turnover=_max_turnover,
             enforce_risk_checks=_enforce_risk,
@@ -788,10 +806,12 @@ class BABStrategy:
                 aligned = scale.reindex(index=weights.index).fillna(1.0)
                 weights = weights.mul(aligned, axis=0)
 
-        # Beta-neutral enforcement
-        beta_neutral_enabled = bool(getattr(cfg, "beta_neutral", False)) or bool(
-            getattr(cfg, "beta_neutral_enforcement", False)
-        )
+        # Beta-neutral enforcement. Rank books are beta-neutral by construction:
+        # skip the min-norm correction (it can flip long/short signs).
+        beta_neutral_enabled = (
+            bool(getattr(cfg, "beta_neutral", False))
+            or bool(getattr(cfg, "beta_neutral_enforcement", False))
+        ) and getattr(cfg, "weighting", "equal") != "rank"
         if beta_neutral_enabled:
             from . import portfolio as _portfolio
 
@@ -821,6 +841,14 @@ class BABStrategy:
             )
             if rebalance_freq != "daily" and len(weights) > 0:
                 weights = _apply_rebalance(weights, rebalance_freq)
+        # Rank weights are computed per day (betas drift inside a window), so
+        # freeze the book inside weekly/monthly windows just like WP1's hold.
+        if (
+            getattr(cfg, "weighting", "equal") == "rank"
+            and rebalance_freq != "daily"
+            and len(weights) > 0
+        ):
+            weights = _apply_rebalance(weights, rebalance_freq)
 
         # Finite guard
         # INVARIANT (P19-7 strategy sites 8-9 / Class A): the finiteness guard

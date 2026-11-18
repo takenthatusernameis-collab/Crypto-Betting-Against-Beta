@@ -61,6 +61,8 @@ def construct_portfolio(
     max_turnover=None,
     weights_df_prev=None,
     rebalance_mask=None,
+    betas=None,
+    weighting="equal",
     **kwargs,
 ):
     """Construct portfolio weights from signals.
@@ -68,6 +70,10 @@ def construct_portfolio(
     Vectorized: signal cleaning is applied elementwise across the whole frame
     and the long/short equal-weight assignment uses boolean masking instead of
     per-cell ``.at`` assignments. The public contract is unchanged.
+
+    When ``weighting="rank"`` (opt-in, Frazzini-Pedersen rank weighting) the
+    equal-weight branch is bypassed entirely and :func:`construct_rank_weights`
+    is used; ``weighting="equal"`` takes the existing branch byte-identically.
     """
     import pandas as _pd
 
@@ -75,6 +81,12 @@ def construct_portfolio(
         return _pd.DataFrame()
     if not isinstance(signals_df, _pd.DataFrame) or signals_df.empty:
         return _pd.DataFrame()
+
+    weighting = str(weighting).lower() if weighting is not None else "equal"
+    if weighting not in ("equal", "rank"):
+        raise BABDataError(f"weighting must be 'equal' or 'rank', got {weighting!r}")
+    if weighting == "rank":
+        return construct_rank_weights(signals_df, betas)
 
     try:
         # Accept aliases for turnover/position limits
@@ -245,6 +257,99 @@ def construct_portfolio(
 
     return weights
 
+
+def construct_rank_weights(signals_df, betas):
+    """Frazzini-Pedersen rank weighting (opt-in, beta-neutral legs).
+
+    Public (no leading underscore) so callers can invoke it directly.
+
+    Per row ``t``:
+
+    1. Eligible assets = selected by signal (``+1`` long / ``-1`` short) and
+       ``beta`` finite and ``> 0``.
+    2. Fewer than 1 eligible long **or** fewer than 1 eligible short -> all-zero
+       row (documented flat contract).
+    3. Rank eligible betas ascending with ``pandas.rank(method="average")``;
+       ``m = mean(rank)`` over all eligible assets (longs and shorts together).
+    4. Score: long ``a_i = m - rank_i``; short ``a_j = rank_j - m`` (both
+       ``>= 0`` when longs are the lowest ranks; an asset at the mean gets 0).
+    5. Dollar-normalize each leg: ``d_i = a_i / sum_L a``,
+       ``e_j = a_j / sum_H a``. Degenerate zero-sum leg -> flat row.
+    6. Leg betas ``beta_L = sum_L d_i b_i``, ``beta_H = sum_H e_j b_j``. If
+       either is non-finite or ``<= 0`` -> flat row.
+    7. Return ``w_i = d_i / beta_L`` (long), ``w_j = -e_j / beta_H`` (short).
+       No beta correction afterwards: the book is beta-neutral by construction.
+
+    Signal cleaning is identical to the equal-weight branch (trunc semantics).
+    """
+    import numpy as np
+
+    import pandas as _pd
+
+    if signals_df is None or betas is None:
+        return _pd.DataFrame()
+    if not isinstance(signals_df, _pd.DataFrame) or signals_df.empty:
+        return _pd.DataFrame()
+    if not isinstance(betas, _pd.DataFrame) or betas.empty:
+        return _pd.DataFrame()
+
+    index = signals_df.index
+    columns = signals_df.columns
+
+    # Clean signals elementwise, identical trunc semantics to construct_portfolio.
+    if all(_pd.api.types.is_numeric_dtype(s) for s in signals_df.dtypes):
+        arr = signals_df.to_numpy(dtype=float)
+    else:
+        arr = signals_df.apply(_pd.to_numeric, errors="coerce").to_numpy(dtype=float)
+
+    iv = np.trunc(arr)
+    clean_arr = (iv == 1.0).astype(np.int8) - (iv == -1.0).astype(np.int8)
+    long_mask = clean_arr == 1
+    short_mask = (clean_arr == -1) & ~long_mask
+
+    # Align betas to the signals frame; missing/non-finite betas are ineligible.
+    b = betas.reindex(index=index, columns=columns).to_numpy(dtype=float)
+
+    w_arr = np.zeros((len(index), len(columns)), dtype=float)
+
+    for i in range(len(index)):
+        ba = b[i]
+        le = long_mask[i] & np.isfinite(ba) & (ba > 0.0)
+        se = short_mask[i] & np.isfinite(ba) & (ba > 0.0)
+        if int(le.sum()) < 1 or int(se.sum()) < 1:
+            continue  # flat row: not enough eligible assets on either leg
+
+        # Rank all eligible betas (longs and shorts) ascending together.
+        elig = np.nonzero(le | se)[0]
+        ranks = _pd.Series(b[i, elig], index=elig).rank(method="average", ascending=True)
+        m = float(ranks.mean())
+        rank_map = {int(pos): float(r) for pos, r in ranks.items()}
+
+        long_cols = np.nonzero(le)[0]
+        short_cols = np.nonzero(se)[0]
+        a_long = np.array([m - rank_map[int(c)] for c in long_cols], dtype=float)
+        a_short = np.array([rank_map[int(c)] - m for c in short_cols], dtype=float)
+
+        sum_a = float(a_long.sum())
+        sum_e = float(a_short.sum())
+        if not np.isfinite(sum_a) or sum_a <= 0.0:
+            continue  # flat row: degenerate long leg
+        if not np.isfinite(sum_e) or sum_e <= 0.0:
+            continue  # flat row: degenerate short leg
+
+        d = a_long / sum_a
+        e = a_short / sum_e
+
+        # beta_L / beta_H are > 0 by construction (eligible betas > 0, leg
+        # dollar-weights are non-negative and sum to one); no correction is
+        # applied afterwards: the book is beta-neutral by construction.
+        beta_L = float(np.dot(d, ba[long_cols]))
+        beta_H = float(np.dot(e, ba[short_cols]))
+
+        w_arr[i, long_cols] = d / beta_L
+        w_arr[i, short_cols] = -e / beta_H
+
+    return _pd.DataFrame(w_arr, index=index, columns=columns)
 
 def enforce_beta_neutrality(
     weights,

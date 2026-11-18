@@ -149,9 +149,11 @@ construction flaw.
 * No evidence of real profitability: the fixture is synthetic (§ provenance).
 * No out-of-sample validity: nothing here is a walk-forward test. WP3 exists to
   build that harness, and a null or negative OOS result is a valid outcome.
-* No claim that equal-weight construction is faithful to Frazzini–Pedersen
-  rank weighting and leg beta scaling — that is WP2, and promotion of rank
-  weighting to the default requires OOS evidence.
+* No claim that equal-weight construction is the only faithful construction:
+  WP2 landed an opt-in ``weighting="rank"`` path (Frazzini-Pedersen rank
+  weighting with per-leg beta scaling, see §9), while ``weighting="equal"``
+  remains the shipped default. Rank is not promoted to the default without WP3
+  out-of-sample evidence.
 * No claim about live execution, capacity, or cost realism (P21).
 
 ## 8. Reproduce
@@ -177,4 +179,53 @@ for q in (0.2, 0.3):
               round(float(metrics.sharpe_ratio(rets)), 3),
               round(float(metrics.strategy_beta(rets, r["BTC"])), 3))
 EOF
+```
+
+## 9. Rank weighting (opt-in, WP2)
+
+WP2 adds a faithful Frazzini-Pedersen rank weighting construction as an opt-in
+``weighting="rank"`` path. The default remains ``weighting="equal"``; rank is
+not promoted to the default (promotion requires WP3 out-of-sample evidence).
+
+### Construction
+
+For each row ``t``:
+
+1. Eligible assets = selected by signal (``+1`` long / ``-1`` short) and beta
+   finite and ``> 0``.
+2. Fewer than 1 eligible long or fewer than 1 eligible short -> all-zero row.
+3. Rank eligible betas ascending (``pandas.rank(method="average")``); ``m`` =
+   mean(rank) over all eligible assets (longs and shorts together).
+4. Long score ``a_i = m - rank_i``; short score ``a_j = rank_j - m``.
+5. Dollar-normalize each leg: ``d_i = a_i / sum_L a``,
+   ``e_j = a_j / sum_H a``. Degenerate zero-sum leg -> flat row.
+6. Leg betas ``beta_L = sum_L d_i b_i``, ``beta_H = sum_H e_j b_j``; non-finite
+   or ``<= 0`` -> flat row.
+7. ``w_i = d_i / beta_L`` (long), ``w_j = -e_j / beta_H`` (short). No beta
+   correction afterwards: the book is beta-neutral by construction.
+
+### Hand-computed 4-asset example
+
+Signals ``A,B = +1`` (long), ``C,D = -1`` (short); betas ``A=0.5, B=0.8,
+C=1.2, D=1.6``. Ranks ``[1, 2, 3, 4]``, ``m = 2.5``.
+
+| asset | weight (exact) | decimal |
+|---|---|---|
+| A | 30/23 | 1.3043478260869565 |
+| B | 10/23 | 0.4347826086956522 |
+| C | -1/6 | -0.16666666666666666 |
+| D | -1/2 | -0.5 |
+
+Leg betas: long ``+1``, short ``-1``, total model beta ``0`` (on the row where
+weights are formed). Net dollar exposure ``74/69 ≈ 1.07246`` (= ``1/beta_L -
+1/beta_H``), not zero: FP's factor is beta-neutral, not dollar-neutral, and the
+net is funded by cash/borrow.
+
+### Contract
+
+* ``weighting="equal"`` is byte-identical to the post-WP1 default.
+* Rank weights skip ``enforce_beta_neutrality`` (the min-norm correction can
+  flip long/short signs); rank is beta-neutral by construction.
+* Weekly/monthly books are frozen inside rebalance windows (WP1 hold).
+* Rank is opt-in and is NOT the default; promotion requires WP3 OOS evidence.
 ```
