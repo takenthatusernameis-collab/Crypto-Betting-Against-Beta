@@ -3,7 +3,7 @@
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
 - **Timestamp (UTC):** 2026-11-18T22:36:59Z
-- **Git state:** `main`. Parent HEAD was `5299dbb`; this session's commit lands WP5. Certify with `git log --oneline -3 && git status --short`.
+- **Git state:** `main`. Parent HEAD was `4ad98ee`; this session's commits land WP5 (`613a4da` + a bracket-invariant test). Certify with `git log --oneline -3 && git status --short`.
 - **P20 WP0 is COMPLETE AND CERTIFIED** (script + `research_state/bab_p20/sweep.json` + `sweep.md` + 10-test acceptance file). 80 rows, equal-weight only, runtime 0.78 s, full gate green.
 - **P20 WP3 is COMPLETE AND CERTIFIED** (script + `walk_forward.json` + `walk_forward.md` + 10-test acceptance file). 5 folds × 40 OOS rows, train-only selection, anti-lookahead guards, byte-identical reruns.
 - **P20 WP5 is COMPLETE AND CERTIFIED** (script + `breakeven.json` + `breakeven.md` + 15-test acceptance file). 10 equal-weight beta-neutral rows, fixed 6-iteration bisection over `tc ∈ [0, 0.01]`, runtime 1.2 s, byte-identical reruns, json sha `6016abdb…`.
@@ -158,7 +158,7 @@ The WP0 sweep publishes all 80 rows and selects **no winner**. Model beta and bo
 - Console scripts land in `~/.local/bin` → always `python3 -m pytest` / `python3 -m ruff`.
 - `rg` not installed → use `grep -rn` or editor search.
 - `bash scripts/bab_quick.sh` ≈ 20 s (ruff + 104 + 195). Full gate ≈ **134 s** with `BAB_GATE_MIN_COVERAGE=100`.
-- Full-gate baseline at HEAD: **6524 passed / 35 skipped / TOTAL 100% (6644/6644)**, 139.79 s. It may only grow.
+- Full-gate baseline at HEAD: **6525 passed / 35 skipped / TOTAL 100% (6644/6644)**, 136.64 s. It may only grow.
 - `pytest --cov` in ad-hoc invocations can raise `ImportError: cannot load module more than once per process`; certify coverage with `scripts/bab_gate.sh`, never hand-rolled `--cov`.
 - `research_state/bab_p20/` holds the committed WP0, WP3 and WP5 artifacts (`sweep.{json,md}`, `walk_forward.{json,md}`, `breakeven.{json,md}`). `scripts` is an importable package (`scripts/__init__.py`) — tests import `from scripts import bab_research_sweep, bab_walk_forward, bab_breakeven`.
 
@@ -188,7 +188,7 @@ Full specification is in the binding initial task message above (sections A–D)
 3. Rank path is **numerically bounded**: leg-beta floor + gross cap flatten pathological rows, hand example unchanged, wide-universe proof, fixture-flat documented. **DONE (WP2b).**
 4. `scripts/bab_research_sweep.py` exists and is deterministic (hash-equal reruns), JSON artifact committed under `research_state/bab_p20/`. **DONE (WP0).** Walk-forward **DONE (WP3)**; cost/break-even harness **DONE (WP5)** — 10 rows, 6 fixed bisection iterations, hash-equal reruns.
 5. `docs/BAB_RESEARCH_REPORT.md` exists; **100%** of published numbers machine-checked against committed JSON; no rank performance claim. **WP4 — the only open item.**
-6. All `tests/test_bab_p20_*.py` pass; no existing test deleted/skipped/`xfail`-ed/weakened; coverage **100%** (6524/35 may only grow). **Every WP re-certifies.**
+6. All `tests/test_bab_p20_*.py` pass; no existing test deleted/skipped/`xfail`-ed/weakened; coverage **100%** (6525/35 may only grow). **Every WP re-certifies.**
 7. Full gate green: ruff PASS, reconcile GREEN, `bab_gate.sh` `BAB_GATE_MIN_COVERAGE=100` GREEN, 0 missed. **Every WP re-certifies.**
 8. README no longer claims "dollar-neutral by default" as if that were BAB; it cites the fidelity doc and states rank is not empirically evaluable on the fixture. **DONE (WP1/WP2/WP2b).**
 
@@ -266,7 +266,7 @@ Inner loop: `bash scripts/bab_quick.sh` + `python3 -m pytest -q tests/test_bab_p
 
 | Session (UTC) | HEAD | Did | Gate |
 |---|---|---|---|
-| 2026-11-18T22:36:59Z | `5299dbb` + working tree | **WP5 landed (heavy work, not a refresh).** Added `scripts/bab_breakeven.py` (pure `build_breakeven`, `bisect_break_even` with a 6-step trace, `render_markdown`, `write_artifacts`, `main`), wrote `breakeven.json` (10 rows, sha `6016abdb…`) and `breakeven.md`, added `tests/test_bab_p20_breakeven.py` (15 tests). Measured and removed two impossible spec criteria (cross-row monotonicity; censored range ceiling). Re-routed to **WP4, the only open row**. | ruff PASS; quick GREEN (104+195); reconcile GREEN; full gate **GREEN 6524 passed / 35 skipped / 100% (6644/6644)** (139.79 s) |
+| 2026-11-18T22:36:59Z | `4ad98ee` + working tree | **WP5 landed (heavy work, not a refresh).** Added `scripts/bab_breakeven.py` (pure `build_breakeven`, `bisect_break_even` with a 6-step trace, `render_markdown`, `write_artifacts`, `main`), wrote `breakeven.json` (10 rows, sha `6016abdb…`) and `breakeven.md`, added `tests/test_bab_p20_breakeven.py` (16 tests, including a bracket-halving invariant). Measured and removed two impossible spec criteria (cross-row monotonicity; censored range ceiling). Re-routed to **WP4, the only open row**. | ruff PASS; quick GREEN (104+195); reconcile GREEN; full gate **GREEN 6525 passed / 35 skipped / 100% (6644/6644)** (136.64 s) |
 | 2026-11-18T22:30:27Z | `5299dbb` | **Handoff review + binding initial task message refresh.** Confirmed this is the single durable handoff; updated timestamp to 22:30:27Z; reinforced the binding initial task message for WP5 with explicit prioritization basis (repo name → crypto BAB system → P20 campaign → WP5 as critical path). All bottlenecks removed; next agent must land WP5 (script + artifact + test) in one commit. No code changes in this turn. | ruff PASS; quick GREEN (104+195); reconcile GREEN; full gate **GREEN 6509 passed / 35 skipped / 100% (6644/6644)** (138.92 s) |
 | 2026-11-18T22:27:00Z | `5299dbb` | **WP5 session starts.** This handoff refresh also lands the binding initial task message for WP5. No code changes in this turn — the session must now build `scripts/bab_breakeven.py`, artifacts, and test, then commit all four files plus this HANDOFF.md update in one commit. | ruff PASS; quick GREEN (104+195); reconcile GREEN; full gate **GREEN 6509 passed / 35 skipped / 100% (6644/6644)** (138.92 s) |
 | 2026-11-18T22:17:00Z | `7e83a95` + working tree | **WP3 landed (heavy work, not a refresh).** Added `scripts/bab_walk_forward.py` (pure `build_walk_forward`, `render_markdown`, `write_artifacts`, `main`, plus `assert_train_before_test` and `select_on_train` guards), 5×40 expanding walk-forward with train-only selection, wrote `walk_forward.json` and `walk_forward.md`, added `tests/test_bab_p20_walk_forward.py` (10 tests). Re-routed to **WP5 as solo default**; WP4 blocked by design. | ruff PASS; quick GREEN; reconcile GREEN; full gate **GREEN 6509 passed / 35 skipped / 100% (6644/6644)** (138.92 s) |

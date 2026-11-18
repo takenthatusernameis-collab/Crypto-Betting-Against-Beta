@@ -175,6 +175,16 @@ def test_bisection_runs_exactly_six_evaluations() -> None:
     assert result["tc"] == pytest.approx(be.TC_HI / 2.0 ** 7)
 
 
+def test_bisection_trace_halves_the_bracket_every_iteration() -> None:
+    result = be.bisect_break_even(lambda tc: 0.5 - 60.0 * tc)
+    width = be.TC_HI - be.TC_LO
+    for step in result["trace"]:
+        assert step["mid"] == pytest.approx((step["lo"] + step["hi"]) / 2.0)
+        assert step["hi"] - step["lo"] == pytest.approx(width)
+        width /= 2.0
+    assert result["tc"] == pytest.approx((result["lo"] + result["hi"]) / 2.0)
+
+
 def test_bisection_converges_within_the_documented_resolution() -> None:
     root = 0.5 / 60.0
     result = be.bisect_break_even(lambda tc: 0.5 - 60.0 * tc)
