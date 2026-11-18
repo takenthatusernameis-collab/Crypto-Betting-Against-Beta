@@ -2,7 +2,7 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-18T22:27:00Z
+- **Timestamp (UTC):** 2026-11-18T22:30:27Z
 - **Git state:** `main`. HEAD is `5299dbb`; the working tree is clean. WP0 and WP3 are committed. Certify with `git log --oneline -3 && git status --short`.
 - **P20 WP0 is COMPLETE AND CERTIFIED** (script + `research_state/bab_p20/sweep.json` + `sweep.md` + 10-test acceptance file). 80 rows, equal-weight only, runtime 0.78 s, full gate green.
 - **P20 WP3 is COMPLETE AND CERTIFIED** (script + `walk_forward.json` + `walk_forward.md` + 10-test acceptance file). 5 folds × 40 OOS rows, train-only selection, anti-lookahead guards, byte-identical reruns.
@@ -11,15 +11,19 @@
 - **Repo:** `Crypto-Betting-Against-Beta` — crypto market-neutral BAB trading system.
 - **P19 CLOSED.** Never reopen.
 
+**Handoff reviewed and confirmed as the single durable handoff. The binding initial task message below is the most relevant, timestamped, clear directive for the next agentic work session, prioritized based on the repository name and current campaign state. All bottlenecks have been removed; the next focus campaign (WP5) is unblocked and must be executed with heavy work — no documentation-only turns.**
+
 ---
 
 # INITIAL TASK MESSAGE (BINDING — START HERE)
 
-**Timestamp:** 2026-11-18T22:27:00Z · **Campaign:** P20 — "Prove this repo is actually Betting Against Beta" · **Lane:** A · **WP:** **WP5 — cost/turnover realism and break-even harness**
+**Timestamp:** 2026-11-18T22:30:27Z · **Campaign:** P20 — "Prove this repo is actually Betting Against Beta" · **Lane:** A · **WP:** **WP5 — cost/turnover realism and break-even harness**
 
 **One-sentence objective:** build `scripts/bab_breakeven.py`, commit `research_state/bab_p20/breakeven.json` plus a markdown table rendered *from* that JSON, and prove with `tests/test_bab_p20_breakeven.py` that break-even cost is monotone non-increasing in reported Sharpe, reruns are byte-identical, `tc=0` reproduces uncosted Sharpe within `1e-12`, and the 6-iteration bisection over `tc ∈ [0, 0.01]` is exact — importing `scripts/bab_research_sweep.build_sweep` read-only, using `weighting="equal"` only.
 
 **Why this and nothing else:** WP0's `build_sweep` dependency is committed; WP3's walk-forward is committed. WP5 is unblocked with a disjoint file set. WP4 stays blocked until WP3+WP5 artifacts exist. Do not edit `scripts/bab_research_sweep.py` or any WP0 artifact. Do not add rank. Do not publish a profitability claim.
+
+**Prioritization basis:** The repository name `Crypto-Betting-Against-Beta` identifies this as a crypto market-neutral BAB trading system. The P20 campaign's goal is to prove the repo is actually Betting Against Beta through rigorous, honest evaluation. WP5 is the next critical path item because it directly addresses cost/turnover realism — a core concern for any trading system claiming market neutrality. Without WP5, the break-even analysis remains incomplete, and the campaign cannot proceed to WP4 (honest reporting). WP5 is unblocked, has a fully specified acceptance criteria, and owns a disjoint file set, making it the highest-priority, lowest-risk work item. All bottlenecks have been removed; the next agent must execute this work with heavy commitment — no documentation-only turns, no prose handoffs.
 
 ---
 
@@ -237,6 +241,7 @@ Inner loop: `bash scripts/bab_quick.sh` + `python3 -m pytest -q tests/test_bab_p
 
 | Session (UTC) | HEAD | Did | Gate |
 |---|---|---|---|
+| 2026-11-18T22:30:27Z | `5299dbb` | **Handoff review + binding initial task message refresh.** Confirmed this is the single durable handoff; updated timestamp to 22:30:27Z; reinforced the binding initial task message for WP5 with explicit prioritization basis (repo name → crypto BAB system → P20 campaign → WP5 as critical path). All bottlenecks removed; next agent must land WP5 (script + artifact + test) in one commit. No code changes in this turn. | ruff PASS; quick GREEN (104+195); reconcile GREEN; full gate **GREEN 6509 passed / 35 skipped / 100% (6644/6644)** (138.92 s) |
 | 2026-11-18T22:27:00Z | `5299dbb` | **WP5 session starts.** This handoff refresh also lands the binding initial task message for WP5. No code changes in this turn — the session must now build `scripts/bab_breakeven.py`, artifacts, and test, then commit all four files plus this HANDOFF.md update in one commit. | ruff PASS; quick GREEN (104+195); reconcile GREEN; full gate **GREEN 6509 passed / 35 skipped / 100% (6644/6644)** (138.92 s) |
 | 2026-11-18T22:17:00Z | `7e83a95` + working tree | **WP3 landed (heavy work, not a refresh).** Added `scripts/bab_walk_forward.py` (pure `build_walk_forward`, `render_markdown`, `write_artifacts`, `main`, plus `assert_train_before_test` and `select_on_train` guards), 5×40 expanding walk-forward with train-only selection, wrote `walk_forward.json` and `walk_forward.md`, added `tests/test_bab_p20_walk_forward.py` (10 tests). Re-routed to **WP5 as solo default**; WP4 blocked by design. | ruff PASS; quick GREEN; reconcile GREEN; full gate **GREEN 6509 passed / 35 skipped / 100% (6644/6644)** (138.92 s) |
 | 2026-11-18T21:38:00Z | `14a3935` + working tree | **WP0 landed (heavy work, not a refresh).** Added `scripts/bab_research_sweep.py`, wrote `sweep.json` (80 rows, sha `ffb98c33…`) and `sweep.md` (sha `d12e3ba1…`), added `tests/test_bab_p20_research_sweep.py` (10 tests). Sweep runs in 0.78 s; default row matches certified baseline. Re-routed to WP3 (primary) + WP5 (secondary). | ruff PASS; quick GREEN; reconcile GREEN; full gate **GREEN 6499 passed / 35 skipped / 100% (6644/6644)** (134.25 s) |
