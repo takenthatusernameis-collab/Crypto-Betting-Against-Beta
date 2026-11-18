@@ -329,6 +329,8 @@ def _normalize_index(df: pd.DataFrame) -> pd.DataFrame:
                         with contextlib.suppress(Exception):
                             df.index = df.index.tz_localize(None)
         except Exception:
+            # P19-7: Class A (total contract) — DatetimeIndex tz normalization is
+            # best-effort in _normalize_index; keep index as-is and continue.
             pass
     df = df.sort_index()
     if not isinstance(df.index, pd.DatetimeIndex):
@@ -340,6 +342,8 @@ def _normalize_index(df: pd.DataFrame) -> pd.DataFrame:
             if hasattr(mask, "all") and not bool(mask.all()):
                 df = df[mask]
     except Exception:
+        # P19-7: Class A (total contract) — NaT detection/drop is best-effort;
+        # preserve frame if mask computation or selection fails unexpectedly.
         pass
     if getattr(df.index, "has_duplicates", False):
         df = df[~df.index.duplicated(keep="first")]
@@ -368,6 +372,8 @@ def _coerce_to_datetime_scalar(val):
         except ValueError:
             raise
         except Exception:
+            # P19-7: Class A (total contract) — NaN/inf probe may raise for exotic
+            # float-like values; do not reject here and continue coercion.
             pass
     if isinstance(val, str):
         s = val.strip()
@@ -385,9 +391,13 @@ def _coerce_to_datetime_scalar(val):
                 try:
                     return pd.to_datetime(int(numf), unit="ns", utc=True)
                 except Exception:
+                    # P19-7: Class A (total contract) — ns-epoch parse is best-effort;
+                    # fall through to us-epoch attempt.
                     try:
                         return pd.to_datetime(int(numf), unit="us", utc=True)
                     except Exception:
+                        # P19-7: Class A (total contract) — us fallback after ns failure
+                        # is best-effort; continue magnitude-based probing.
                         pass
             if av > 1e17:
                 try:
@@ -442,19 +452,27 @@ def _coerce_to_datetime_scalar(val):
             try:
                 return pd.to_datetime(v, unit="ns", utc=True)
             except Exception:
+                # P19-7: Class A (total contract) — ns-epoch int parse best-effort;
+                # fall through to us-epoch attempt.
                 try:
                     return pd.to_datetime(v, unit="us", utc=True)
                 except Exception:
+                    # P19-7: Class A (total contract) — us fallback best-effort;
+                    # continue magnitude-based probing.
                     pass
         if av > 1e17:
             try:
                 return pd.to_datetime(v, unit="us", utc=True)
             except Exception:
+                # P19-7: Class A (total contract) — us-epoch int parse best-effort;
+                # continue magnitude-based probing.
                 pass
         if av > 1e15:
             try:
                 return pd.to_datetime(v, unit="us", utc=True)
             except Exception:
+                # P19-7: Class A (total contract) — us-epoch int parse best-effort;
+                # continue magnitude-based probing.
                 pass
         if av > 1e12:
             return pd.to_datetime(v, unit="ms", utc=True)
@@ -469,28 +487,40 @@ def _coerce_to_datetime_scalar(val):
             try:
                 return pd.to_datetime(int(v), unit="ns", utc=True)
             except Exception:
+                # P19-7: Class A (total contract) — ns-epoch float parse best-effort;
+                # fall through to us-epoch attempt.
                 try:
                     return pd.to_datetime(int(v), unit="us", utc=True)
                 except Exception:
+                    # P19-7: Class A (total contract) — us fallback best-effort;
+                    # continue magnitude-based probing.
                     pass
         if av > 1e17:
             try:
                 return pd.to_datetime(int(v) if float(v).is_integer() else v, unit="us", utc=True)
             except Exception:
+                # P19-7: Class A (total contract) — us-epoch float parse best-effort;
+                # continue magnitude-based probing.
                 pass
         if av > 1e15:
             try:
                 return pd.to_datetime(int(v) if float(v).is_integer() else v, unit="us", utc=True)
             except Exception:
+                # P19-7: Class A (total contract) — us-epoch float parse best-effort;
+                # continue magnitude-based probing.
                 pass
         if av > 1e12:
             try:
                 return pd.to_datetime(int(v) if float(v).is_integer() else v, unit="ms", utc=True)
             except Exception:
+                # P19-7: Class A (total contract) — ms-epoch float parse best-effort;
+                # continue magnitude-based probing.
                 pass
         try:
             return pd.to_datetime(v, unit="s", utc=True)
         except Exception:
+            # P19-7: Class A (total contract) — s-epoch float parse best-effort;
+            # continue to Timestamp/generic parsing fallbacks.
             pass
     # pandas Timestamp / datetime
     try:
@@ -499,16 +529,24 @@ def _coerce_to_datetime_scalar(val):
             try:
                 return ts.tz_convert("UTC")
             except Exception:
+                # P19-7: Class A (total contract) — tz_convert best-effort; try
+                # tz_localize(None) before returning original Timestamp.
                 try:
                     return ts.tz_localize(None)
                 except Exception:
+                    # P19-7: Class A (total contract) — tz normalization failed;
+                    # return Timestamp as-is rather than crashing coercion.
                     return ts
         return ts
     except Exception:
+        # P19-7: Class A (total contract) — Timestamp coercion best-effort;
+        # fall through to generic pd.to_datetime parsing.
         pass
     try:
         return pd.to_datetime(val, utc=True, errors="raise")
     except Exception:
+        # P19-7: Class A (total contract) — generic UTC parse best-effort;
+        # try naive parse before surfacing ValueError("bad").
         try:
             return pd.to_datetime(val, utc=False, errors="raise")
         except Exception:
@@ -648,8 +686,12 @@ def _detect_and_normalize_exchange_format(df: pd.DataFrame) -> pd.DataFrame:
                                 parsed.append(pdt)
                                 continue
                             except Exception:
+                                # P19-7: Class A (total contract) — per-element Timestamp tz
+                                # normalization best-effort; fall through to generic parse.
                                 pass
                     except Exception:
+                        # P19-7: Class A (total contract) — per-element tz-aware handling
+                        # best-effort; continue to generic parse/passthrough.
                         pass
                     try:
                         pdt = pd.to_datetime(pdv)
@@ -657,6 +699,8 @@ def _detect_and_normalize_exchange_format(df: pd.DataFrame) -> pd.DataFrame:
                             pdt = pdt.tz_convert("UTC").tz_localize(None)
                         parsed.append(pdt)
                     except Exception:
+                        # P19-7: Class A (total contract) — generic parse fallback;
+                        # preserve original value when parsing fails.
                         parsed.append(pdv)
                 tmp_out = tmp[[price_choice]].copy()
                 tmp_out.index = parsed
@@ -664,6 +708,8 @@ def _detect_and_normalize_exchange_format(df: pd.DataFrame) -> pd.DataFrame:
                 tmp_out.columns = [str(c).strip() for c in tmp_out.columns]
                 return tmp_out
             except Exception:
+                # P19-7: Class A (total contract) — OHLCV-wide normalization is
+                # best-effort; fall through to date-column promotion path on failure.
                 pass
 
     # If we have date column but index not set, promote it with better parsing
@@ -702,8 +748,12 @@ def _detect_and_normalize_exchange_format(df: pd.DataFrame) -> pd.DataFrame:
                                     pdt = pdt.tz_convert("UTC").tz_localize(None)
                                 pdv = pdt
                             except Exception:
+                                # P19-7: Class A (total contract) — per-element Timestamp tz
+                                # normalization best-effort; keep current value.
                                 pass
                     except Exception:
+                        # P19-7: Class A (total contract) — per-element tz-aware handling
+                        # best-effort; keep current value.
                         pass
                     parsed_clean.append(pdv)
                 df2 = df.copy()
@@ -711,6 +761,8 @@ def _detect_and_normalize_exchange_format(df: pd.DataFrame) -> pd.DataFrame:
                 df2 = df2.drop(columns=[date_col])
                 return df2
             except Exception:
+                # P19-7: Class A (total contract) — aggressive date-column coercion
+                # is best-effort; let original promotion logic handle on failure.
                 pass
         if not do_coerce:
             return df  # let original promotion logic handle
@@ -840,10 +892,12 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
                         pass
                     return df2
                 except Exception:
-                    # set_index failed (e.g. patched in tests): keep the column.
+                    # P19-7: Class A (total contract) — set_index failure (e.g. test
+                    # patch) is tolerated; keep original column and fall through.
                     pass
         except Exception:
-            # Coercer failed; fall through to pandas parsing below.
+            # P19-7: Class A (total contract) — named-column coercion failed;
+            # fall through to pandas parsing / other promotion strategies.
             pass
 
     unnamed = [
@@ -869,12 +923,18 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
                                         pdt = pdt.tz_convert("UTC").tz_localize(None)
                                     pdv = pdt
                                 except Exception:
+                                    # P19-7: Class A (total contract) — per-element Timestamp
+                                    # tz normalization best-effort; keep current value.
                                     pass
                         except Exception:
+                            # P19-7: Class A (total contract) — per-element tz-aware
+                            # handling best-effort; keep current value.
                             pass
                         coerced_clean.append(pdv)
                     coerced = coerced_clean
                 except Exception:
+                    # P19-7: Class A (total contract) — element-wise tz cleanup for
+                    # unnamed column best-effort; keep coerced values as-is.
                     pass
                 if coerced is not None and _series_has_any_finite(coerced):
                     df2 = df.copy()
@@ -882,6 +942,8 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
                     df2 = df2.drop(columns=[col])
                     return df2
             except Exception:
+                # P19-7: Class A (total contract) — unnamed-column scalar coercion
+                # best-effort; fall through to pandas parsing attempt.
                 pass
             try:
                 parsed = pd.to_datetime(df[col], errors="raise")
@@ -890,6 +952,8 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
             except (ValueError, TypeError):
                 pass
         except Exception:
+            # P19-7: Class A (total contract) — unnamed-column promotion is
+            # best-effort; fall through to generic column promotion.
             pass
 
     # Last resort: promote any remaining object/string column that parses as datetime
@@ -916,6 +980,8 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
                         if getattr(parsed, "tz", None) is not None:
                             parsed = parsed.tz_convert("UTC").tz_localize(None)
                     except Exception:
+                        # P19-7: Class A (total contract) — tz normalization of parsed
+                        # datetime column best-effort; use parsed values as-is.
                         pass
                     df2.index = parsed
                     df2 = df2.drop(columns=[col])
@@ -926,11 +992,15 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
                         if isinstance(result.index, pd.DatetimeIndex):
                             return result
                     except Exception:
+                        # P19-7: Class A (total contract) — identity set_index probe is
+                        # best-effort; return promoted frame as-is.
                         pass
                     return df2
             except (ValueError, TypeError, BABDataError):
                 continue
             except Exception:
+                # P19-7: Class A (total contract) — per-column last-resort datetime
+                # promotion is best-effort; skip column and continue scanning.
                 continue
 
     return df
@@ -1005,6 +1075,8 @@ def _normalize_asset_name(name: str) -> str:
         # Otherwise return as-is uppercased
         return su
     except Exception:
+        # P19-7: Class A (total contract) — asset-name normalization must not
+        # raise; fall back to simple uppercase string form.
         return str(name).strip().upper()
 
 

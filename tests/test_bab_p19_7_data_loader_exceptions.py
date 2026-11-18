@@ -30,8 +30,12 @@ import strategies.betting_against_beta.data_loader as dl
 from strategies.betting_against_beta.data_loader import (
     BABDataError,
     _coerce_series_to_datetime_index,
+    _coerce_to_datetime_scalar,
+    _detect_and_normalize_exchange_format,
+    _normalize_asset_name,
     _normalize_index,
     _not_null,
+    _promote_datetime_column,
     _series_has_any_finite,
 )
 
@@ -272,3 +276,223 @@ def test_normalize_index_all_nat_raises():
     df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=idx)
     with pytest.raises(BABDataError, match="entirely NaT"):
         _normalize_index(df)
+
+
+# ---------------------------------------------------------------------------
+# Batch 2 (P19-7, 331+) — coherent cluster: normalize/coerce/promotion contracts
+# Classifications recorded in commit/ledger; sites below are Class A unless noted.
+# ---------------------------------------------------------------------------
+
+
+# Site 331 (silent, Class A) — _normalize_index: DatetimeIndex tz-normalization
+# outer block failure must be swallowed; index/sort/validation proceeds.
+
+
+def test_site331_normalize_index_tz_normalization_failure_swallowed(monkeypatch):
+    idx = pd.DatetimeIndex(["2023-01-02", "2023-01-01"], tz="UTC")
+    df = pd.DataFrame({"BTC": [0.02, 0.01]}, index=idx)
+
+    def boom_tz_convert(*a, **k):
+        raise RuntimeError("tz boom")
+
+    monkeypatch.setattr(pd.DatetimeIndex, "tz_convert", boom_tz_convert)
+    out = _normalize_index(df)
+    assert isinstance(out.index, pd.DatetimeIndex)
+    assert len(out) == 2
+    assert out.index.is_monotonic_increasing
+
+
+# Site 342 (silent, Class A) — _normalize_index: NaT mask/drop block failure
+# must be swallowed; frame preserved and later invariants still apply.
+
+
+def test_site342_normalize_index_nat_drop_failure_preserves_frame(monkeypatch):
+    idx = pd.to_datetime(["2023-01-01", "2023-01-02"])
+    df = pd.DataFrame({"BTC": [0.01, 0.02]}, index=idx)
+
+    orig_isna = pd.DatetimeIndex.isna
+
+    def boom_isna(self):
+        raise RuntimeError("isna boom")
+
+    monkeypatch.setattr(pd.DatetimeIndex, "isna", boom_isna)
+    out = _normalize_index(df)
+    assert isinstance(out.index, pd.DatetimeIndex)
+    assert len(out) == 2
+
+
+# Site 370 (silent, Class A) — _coerce_to_datetime_scalar: NaN/inf probe failure
+# must not reject the value; coercion continues (finite float path).
+
+
+def test_site370_scalar_float_nan_probe_failure_falls_through(monkeypatch):
+    """If np.isnan/np.isinf probing raises for a finite float-like value, the
+    ValueError('bad') rejection is skipped and coercion proceeds (Class A)."""
+    real_isnan = np.isnan
+
+    class _FloatSentinel(float):
+        pass
+
+    sentinel = _FloatSentinel(1704067200.0)
+
+    def boom_nan(v):
+        if v is sentinel:
+            raise RuntimeError("nan probe boom")
+        return real_isnan(v)
+
+    monkeypatch.setattr(np, "isnan", boom_nan)
+    ts = pd.Timestamp(_coerce_to_datetime_scalar(sentinel))
+    if ts.tzinfo is not None:
+        ts = ts.tz_convert("UTC").tz_localize(None)
+    assert ts == pd.Timestamp("2024-01-01T00:00:00Z").tz_localize(None)
+
+
+# Sites 427/430/433/436 (Class A) — string datetime parsing cascade must try all
+# variants and end in ValueError('bad') for unparseable strings (contract).
+
+
+def test_site427_436_scalar_string_parse_cascade_unparseable_raises_bad():
+    with pytest.raises(ValueError, match="^bad$"):
+        _coerce_to_datetime_scalar("not-a-date-at-all")
+
+
+def test_site427_436_scalar_string_parse_cascade_dayfirst_fallback():
+    # 13/01/2024 is unambiguous dayfirst; cascade should resolve it.
+    import warnings
+
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", message="Parsing dates", category=UserWarning)
+        ts = _coerce_to_datetime_scalar("13/01/2024")
+    assert pd.Timestamp(ts).year == 2024
+    assert pd.Timestamp(ts).month == 1
+    assert pd.Timestamp(ts).day == 13
+
+
+# Sites 507/511/514 (Class A) — generic/Timestamp fallbacks; uncoercible object
+# ends in ValueError('bad') rather than leaking arbitrary exceptions.
+
+
+class _TotallyWeird:
+    def __str__(self):
+        return "<weird>"
+
+    __repr__ = __str__
+
+
+def test_site507_511_514_scalar_uncoercible_object_raises_bad():
+    with pytest.raises(ValueError, match="^bad$"):
+        _coerce_to_datetime_scalar(_TotallyWeird())
+
+
+# Site 1007 (Class A) — _normalize_asset_name must never raise; fallback to
+# uppercased string form on unexpected internal failure.
+
+
+def test_site1007_normalize_asset_name_failure_falls_back(monkeypatch):
+    import re as _re
+
+    real_sub = _re.sub
+
+    def boom_sub(pattern, repl, string, count=0, flags=0):
+        if pattern == r"\([^)]*\)":
+            raise RuntimeError("regex boom")
+        return real_sub(pattern, repl, string, count=count, flags=flags)
+
+    monkeypatch.setattr(_re, "sub", boom_sub)
+    assert _normalize_asset_name("btc (usd)") == "BTC (USD)"
+
+
+def test_site1007_normalize_asset_name_happy_path():
+    assert _normalize_asset_name("BTC (USD)") == "BTC"
+    assert _normalize_asset_name("eth/usdt") == "ETH"
+    assert _normalize_asset_name("bitcoin") == "BTC"
+
+
+# Site 933 (Class A) — last-resort per-column promotion loop must continue on
+# unexpected exception (skip bad column, do not crash _promote_datetime_column).
+
+
+def test_site933_promote_datetime_column_last_resort_skips_bad_column(monkeypatch):
+    df = pd.DataFrame({"val": [1, 2], "weird": ["x", "y"]})
+
+    real_to_datetime = pd.to_datetime
+
+    def boom_to_datetime(arg, *a, **k):
+        # Raise unexpected Exception (not ValueError/TypeError/BABDataError)
+        # when called on the weird column values during last-resort scan.
+        try:
+            if list(arg) == ["x", "y"]:
+                raise RuntimeError("unexpected boom")
+        except Exception:
+            if getattr(arg, "tolist", None) and arg.tolist() == ["x", "y"]:
+                raise RuntimeError("unexpected boom")
+            raise
+        return real_to_datetime(arg, *a, **k)
+
+    monkeypatch.setattr(pd, "to_datetime", boom_to_datetime)
+    out = _promote_datetime_column(df.copy())
+    # No promotion possible; original columns preserved semantically, function must not raise.
+    # _promote_datetime_column may normalize column names via exchange-format path.
+    assert sorted(str(c).lower() for c in out.columns) == ["val", "weird"]
+    assert len(out) == 2
+
+
+# Site 622 (silent, Class A) — _detect_and_normalize_exchange_format long-format
+# pivot failure must be swallowed; function returns original-like frame (no raise).
+
+
+def test_site622_detect_exchange_long_format_pivot_failure_falls_through(monkeypatch):
+    df = pd.DataFrame(
+        {
+            "symbol": ["BTC", "BTC"],
+            "date": ["2023-01-01", "2023-01-02"],
+            "close": [100.0, 101.0],
+        }
+    )
+
+    def boom_pivot(*a, **k):
+        raise RuntimeError("pivot boom")
+
+    monkeypatch.setattr(pd.DataFrame, "pivot_table", boom_pivot)
+    out = _detect_and_normalize_exchange_format(df.copy())
+    assert isinstance(out, pd.DataFrame)
+    # pivot failed -> handler swallowed; no exception propagated
+    assert len(out) == 2
+
+
+# Sites 755/845 (silent, Class A) — _promote_datetime_column outer exchange and
+# named-column coercion failures must be swallowed (best-effort promotion).
+
+
+def test_site755_promote_datetime_column_exchange_normalization_failure(monkeypatch):
+    df = pd.DataFrame({"date": ["2023-01-01", "2023-01-02"], "v": [1, 2]})
+
+    def boom_detect(*a, **k):
+        raise RuntimeError("detect boom")
+
+    monkeypatch.setattr(dl, "_detect_and_normalize_exchange_format", boom_detect)
+    out = _promote_datetime_column(df.copy())
+    # exchange detect failed but named-column promotion path should still work
+    assert isinstance(out.index, pd.DatetimeIndex) or "date" in out.columns
+
+
+# Site 713 (silent, Class A) — aggressive date-column coercion failure in
+# _detect_and_normalize_exchange_format must fall through (no raise), returning
+# original frame so generic promotion logic can handle it.
+
+
+def test_site713_detect_exchange_aggressive_coerce_failure_returns_original(monkeypatch):
+    df = pd.DataFrame({"date": ["1704067200", "1704153600"], "close": [1.0, 2.0]})
+
+    real_coerce = dl._coerce_to_datetime_scalar
+
+    def boom_coerce(val):
+        s = str(val).strip()
+        if s in {"1704067200", "1704153600"}:
+            raise RuntimeError("coerce boom")
+        return real_coerce(val)
+
+    monkeypatch.setattr(dl, "_coerce_to_datetime_scalar", boom_coerce)
+    out = _detect_and_normalize_exchange_format(df.copy())
+    assert isinstance(out, pd.DataFrame)
+    assert len(out) == 2
