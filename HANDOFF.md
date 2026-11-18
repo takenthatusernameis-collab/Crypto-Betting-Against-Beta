@@ -2,7 +2,7 @@
 
 **Canonical durable handoff (single source of truth).** Update this file only. `AGENT_HANDOFF.md` is a pointer. Delete any other `*HANDOFF*.md` on sight. Do not create parallel session/handoff docs.
 
-- **Timestamp (UTC):** 2026-11-18T05:23:32Z (this refresh; reconciled to live HEAD `a951a98`).
+- **Timestamp (UTC):** 2026-11-18T05:53:58Z (this refresh; reconciled to live HEAD `a951a98`).
 - **Latest verified checks @2026-11-18T05:23:32Z (run live this refresh on HEAD `a951a98`):**
   - `bash scripts/bab_quick.sh` → **GREEN** (ruff PASS + targeted trio 104 passed + smoke 195 passed).
   - `python3 -m pytest -q tests/test_bab_p19_7_data_loader_exceptions.py` → **27 passed**.
@@ -14,7 +14,7 @@
 - **Repo:** `Crypto-Betting-Against-Beta` — crypto market-neutral trading system (ingest → beta → signals → portfolio → backtest → execution → ops), Frazzini–Pedersen *Betting Against Beta*.
 - **Git state (this refresh):** HEAD `a951a98` on `main`; working tree clean at handoff time.
 
-## INITIAL TASK MESSAGE (BINDING — START HERE, 2026-11-18T05:23:32Z @ `a951a98`)
+## INITIAL TASK MESSAGE (BINDING — START HERE, 2026-11-18T05:53:58Z @ `a951a98`)
 
 **MANDATORY HEAVY-WORK MISSION (non-optional, this session): land substantive Milestone 3 progress in `strategies/betting_against_beta/data_loader.py` by hardening the next unannotated exception-handler clusters with **committed product + regression-test diffs**. Do NOT redo already-hardened/P19-7-annotated sites or re-litigate Milestones 1–2. Closing **zero** NEW unannotated `data_loader.py` sites with committed A/B evidence + tests, inventory-only analysis, pre-coding full-gate runs, or handoff-only commits = **FAILED session**.**
 
