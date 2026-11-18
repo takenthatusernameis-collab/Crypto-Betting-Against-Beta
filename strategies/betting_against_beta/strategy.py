@@ -834,6 +834,9 @@ class BABStrategy:
             try:
                 weights = weights.replace([_np.inf, -_np.inf], 0.0).fillna(0.0)
             except Exception as exc2:
+                # P19-7: Class B (surfacing) — if final finiteness cleanup also fails,
+                # raise BABDataError chained with both exceptions; never pass corrupt
+                # weights into the risk summary/backtest.
                 raise BABDataError(
                     f"weight finiteness cleanup failed: {exc2} (outer: {exc})"
                 ) from exc2

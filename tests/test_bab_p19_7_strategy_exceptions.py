@@ -212,3 +212,35 @@ def test_strategy_default_run_happy_path_unaffected():
     assert len(cumulative) > 0
     assert np.isfinite(cumulative.iloc[-1])
     assert result.execution is None
+
+# ---------------------------------------------------------------------------
+# P19-7 site (strategy.py:836, Class B): nested finiteness-cleanup failure
+# ---------------------------------------------------------------------------
+
+def test_site836_weight_cleanup_failure_surfaces_babdataerror(monkeypatch):
+    """If final weight finiteness cleanup fails, raise chained BABDataError."""
+    strat = _default_strategy()
+    base_construct = _portfolio_mod.construct_portfolio
+
+    class BadWeightsDF(pd.DataFrame):
+        @property
+        def _constructor(self):
+            return BadWeightsDF
+
+        def to_numpy(self, *args, **kwargs):
+            # Force outer guard try to fail -> triggers fallback replace/fillna.
+            raise RuntimeError("to_numpy boom")
+
+        def replace(self, *args, **kwargs):
+            raise RuntimeError("replace boom")
+
+        def fillna(self, *args, **kwargs):
+            raise RuntimeError("fillna boom")
+
+    def bad_weights(signals, **kwargs):
+        w = base_construct(signals, **kwargs)
+        return BadWeightsDF(w)
+
+    monkeypatch.setattr(_strategy_mod, "construct_portfolio", bad_weights)
+    with pytest.raises(BABDataError, match="weight finiteness cleanup failed"):
+        strat.run()

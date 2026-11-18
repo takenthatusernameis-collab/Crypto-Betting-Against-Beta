@@ -849,6 +849,8 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
                 try:
                     df.index = df.index.tz_convert("UTC").tz_localize(None)
                 except Exception:
+                    # P19-7: Class A (total contract) — inner tz_convert fallback
+                    # best-effort; suppress any failure and keep current index.
                     with contextlib.suppress(Exception):
                         df.index = df.index.tz_convert(None)
         except Exception:

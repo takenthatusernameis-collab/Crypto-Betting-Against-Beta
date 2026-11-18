@@ -766,3 +766,36 @@ def test_cluster_b_scalar_coercion_happy_paths_preserved():
     assert _coerce_to_datetime_scalar("2023-01-01").year == 2023
     assert isinstance(_coerce_to_datetime_scalar(1704067200), pd.Timestamp)
     assert isinstance(_coerce_to_datetime_scalar(1704067200000), pd.Timestamp)
+
+# ---------------------------------------------------------------------------
+# P19-7 site 851 (data_loader.py, Class A): inner tz-normalization fallback
+# ---------------------------------------------------------------------------
+
+
+def test_site851_promote_datetime_column_inner_tz_fallback_best_effort():
+    """Inner tz_convert fallback failure is swallowed; DatetimeIndex returned."""
+    idx = pd.DatetimeIndex([pd.Timestamp("2024-01-01", tz="UTC")])
+    df = pd.DataFrame({"A": [1.0]}, index=idx)
+
+    real_tz_convert = pd.DatetimeIndex.tz_convert
+    calls = {"n": 0}
+
+    def flaky_tz_convert(self, tz=None):
+        calls["n"] += 1
+        # Fail the inner fallback call (tz_convert(None) inside suppress/except path)
+        if calls["n"] >= 2 and tz is None:
+            raise RuntimeError("tz_convert fallback boom")
+        return real_tz_convert(self, tz)
+
+    try:
+        pd.DatetimeIndex.tz_convert = flaky_tz_convert
+        out = dl._promote_datetime_column(df.copy())
+    finally:
+        pd.DatetimeIndex.tz_convert = real_tz_convert
+
+    assert isinstance(out.index, pd.DatetimeIndex)
+    # Happy path unaffected: naive/UTC normalization still works normally.
+    out2 = dl._promote_datetime_column(
+        pd.DataFrame({"A": [1.0]}, index=pd.to_datetime(["2024-01-01"], utc=True))
+    )
+    assert isinstance(out2.index, pd.DatetimeIndex)

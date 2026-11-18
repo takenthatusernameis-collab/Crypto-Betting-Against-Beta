@@ -378,6 +378,8 @@ class CCXTFeed(RealtimeFeed):
                         "ask": ticker.get("ask"),
                     }
                 except Exception as exc:
+                    # P19-7: Class B (surfacing) — ticker fetch failure is surfaced as
+                    # BABDataError with chained cause; never a silent empty/missing tick.
                     self._error = str(exc)
                     raise BABDataError(f"Failed to fetch ticker for {symbol}: {exc}") from exc
 
@@ -479,8 +481,10 @@ def validate_freshness(
             raise BABDataError("Index cannot be parsed as datetime")
         try:
             idx = pd.to_datetime(idx)
-        except Exception:
-            raise BABDataError("Index cannot be parsed as datetime")
+        except Exception as exc:
+            # P19-7: Class B (surfacing) — invalid datetime index must fail closed as
+            # BABDataError; never coerce to an ambiguous/epoch index.
+            raise BABDataError("Index cannot be parsed as datetime") from exc
         # ``pd.to_datetime`` on an array-like index always returns a DatetimeIndex,
         # so the former post-conversion isinstance guard was unreachable.
 

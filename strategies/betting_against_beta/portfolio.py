@@ -36,6 +36,8 @@ def _clean_signal_value(val):
                     return -1
                 return 0
             except Exception:
+                # P19-7: Class A (total contract) — unparseable string signal value
+                # degrades to neutral 0; never raises for any input.
                 return 0
         if isinstance(val, (int, float, np.integer, np.floating)) and np.isfinite(float(val)):
             iv = int(float(val))
@@ -118,6 +120,8 @@ def construct_portfolio(
                 numeric = signals_df.apply(pd.to_numeric, errors="coerce")
                 arr = numeric.to_numpy(dtype=float)
         except Exception as exc:
+            # P19-7: Class B (surfacing) — signal coercion/construction failure
+            # must not degrade to an all-zero book; raise chained BABPortfolioError.
             raise BABPortfolioError(
                 f"portfolio construction failed: {exc}"
             ) from exc
@@ -167,6 +171,8 @@ def construct_portfolio(
                 w_arr[both_idx] = pos * pos_scale[:, None] + neg * neg_scale[:, None]
             w_arr[~np.isfinite(w_arr)] = 0.0
     except Exception as exc:
+        # P19-7: Class B (surfacing) — unusable frame/dtypes/index means no safe
+        # book can be built; never report "no positions", raise chained error.
         # A failure here means no usable book could be built (uncoercible
         # dtypes, exotic index/columns, unusable frame).  Returning an
         # all-zero frame would report "no positions" instead of a defect, so
