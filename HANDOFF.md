@@ -2,14 +2,14 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-18T21:27:04Z
-- **Git state:** `main`, HEAD `7637fba`. The working tree carries exactly **one** uncommitted change: this HANDOFF revision. Commit it **with** your WP diff (every prior WP commit did the same), never as a standalone docs commit. Certify with `git log --oneline -4 && git status --short`.
+- **Timestamp (UTC):** 2026-11-18T21:28:21Z
+- **Git state:** `main`, HEAD `0452bd1`, clean tree. This HANDOFF revision (21:27:04Z) is committed at `0452bd1`; the tree is byte-identical to `7637fba` apart from this doc. Certify with `git log --oneline -4 && git status --short`.
 - **P20 WP1 is LANDED at `33b84e2`** (beta-neutral default + frozen-per-window hold + acceptance file + `docs/BAB_FIDELITY.md` + README correction + CLI `--no-beta-neutral`).
 - **P20 WP2 algebra is LANDED at `01eb301`** (opt-in `weighting="rank"`, exact 4-asset hand weights, no-lookahead, equal path byte-identical).
 - **P20 WP2b is LANDED at `7637fba`.** Rank mode has a leg-beta floor and a gross cap: a violating row is flat, never rescaled. `config.py` fields + validation, `portfolio.py` `_validate_rank_bounds` / guard in `construct_rank_weights`, forwarded from `run()` and `dry_run()`, `tests/test_bab_p20_rank_weighting.py`, `docs/BAB_FIDELITY.md` §9.1.
 - **Measured effect of WP2b:** on the committed 9-asset fixture (`beta_window=90`, `q=0.3`, `tc=10bps`) rank mode goes from 25 active rows / gross up to **51.09** / worst day **−196.8%** / wealth `~1.5e-24` to **0 active rows / gross 0.0 / all-zero returns / cumulative 1.0**. The 4-asset hand example is unchanged to `1e-12`. Rank is *bounded but not empirically evaluable* on this fixture.
 - **Baseline locks at HEAD (do not re-measure):** `beta_neutral: bool = True` (`config.py:106`); `weighting: str = "equal"` (`config.py:54`); `rank_min_leg_beta: float = 0.20` / `rank_max_gross: float = 4.0` (`config.py:57-58`); `construct_rank_weights(signals_df, betas, min_leg_beta=0.20, max_gross=4.0)`; equal path `0.7057` wealth / `−0.725` Sharpe / `+0.059` realized beta. **WP1, WP2 and WP2b are closed — never re-derive or re-open them.**
-- **Certified at `7637fba` by this handoff revision:** `ruff` PASS · `scripts/bab_quick.sh` GREEN (104 + 195) · full gate **6489 passed / 35 skipped / TOTAL 100% (6644/6644)** in 129.38 s · baseline probe prints `0.7057 -0.725 0.059`.
+- **Certified at `0452bd1` by this handoff revision** (tree unchanged since `7637fba` except this doc): `ruff` PASS · `scripts/bab_quick.sh` GREEN (104 + 195) · full gate **6489 passed / 35 skipped / TOTAL 100% (6644/6644)** in 129.38 s · baseline probe prints `0.7057 -0.725 0.059`.
 - **P20 remaining (all evidence infrastructure, zero product changes):** **WP0**, **WP3**, **WP5**, **WP4**. Pick yours with the routing table below — do not ask, do not idle.
 - **Repo:** `Crypto-Betting-Against-Beta` — crypto market-neutral BAB trading system (ingest → beta → signals → portfolio → backtest → execution → ops).
 - **P19 CLOSED.** Coverage complete, handlers annotated, scratch scripts removed. Never reopen.
@@ -18,7 +18,7 @@
 
 # INITIAL TASK MESSAGE (BINDING — START HERE)
 
-**Timestamp:** 2026-11-18T21:27:04Z · **Campaign:** P20 — "Prove this repo is actually Betting Against Beta" · **Lane:** A · **WP:** **WP0 — deterministic evidence harness**
+**Timestamp:** 2026-11-18T21:28:21Z · **Campaign:** P20 — "Prove this repo is actually Betting Against Beta" · **Lane:** A · **WP:** **WP0 — deterministic evidence harness**
 
 **One-sentence objective:** build `scripts/bab_research_sweep.py`, commit `research_state/bab_p20/sweep.json` plus a markdown table rendered *from* that JSON, and prove with `tests/test_bab_p20_research_sweep.py` that reruns are byte-identical, every row carries the required metrics, the markdown contains no hand-typed digits, and the whole sweep runs in under 10 seconds — using `weighting="equal"` only.
 
@@ -283,6 +283,7 @@ Inner loop: `bash scripts/bab_quick.sh` + `python3 -m pytest -q tests/test_bab_p
 | Session (UTC) | HEAD | Did | Gate |
 |---|---|---|---|
 | 2026-11-18T21:18:00Z | 7637fba | **Handoff refresh (documentation only; no code touched).** Re-certified HEAD and gates; corrected fixture row count; replaced prose WP choice with artifact-based routing; de-collided WP5 into `scripts/bab_breakeven.py`; added stable JSON schemas for WP4; added work-quantum minimums. Opened **WP0 / WP3** as concurrently startable. This handoff revision is uncommitted and must ride with the next WP commit. | ruff PASS; quick GREEN (104+195); full gate **GREEN 6489 passed / 35 skipped / 100% (6644/6644)** (129.4 s); baseline `0.7057 -0.725 0.059` |
+| 2026-11-18T21:28:21Z | 0452bd1 | **Handoff re-certification (documentation only; no code touched).** Corrected stale git-state: HEAD is `0452bd1` with clean tree; the 21:27:04Z HANDOFF revision is committed (not uncommitted). Re-anchored the initial task message to the repo name (`Crypto-Betting-Against-Beta` must prove it bets against beta with committed evidence, not ad-hoc probes). Routing table stands: `scripts/bab_research_sweep.py` is missing, so **WP0 is owned by the next session**; WP3/WP5/WP4 follow in order. No bottleneck remains — gate green, file sets disjoint, no-idle ladder intact. | ruff PASS; quick GREEN (104+195); baseline `0.7057 -0.725 0.059` |
 | 2026-11-18T20:30:00Z | c565844 +1 | **WP2b landed.** Added `rank_min_leg_beta` / `rank_max_gross` config validation; floored/flattened rank rows in `construct_rank_weights`; forwarded from `run()` + `dry_run()`; re-pointed the two rank invariants to a 40-asset synthetic panel; added floor/cap/validation/fixture-flat tests; updated §9.1 + README. Rank on fixture: 25 active / gross 51.09 → 0 active / gross 0.0, cumulative 1.0. Opened WP0. | ruff PASS; quick GREEN; full gate **GREEN 6489 passed / 35 skipped / 100% (6644/6644)** (129.8 s) |
 | 2026-11-18T20:24:09Z | c565844 | **WP2 verified landed; red gate repaired; WP2b opened.** Corrected the stale hand table, fixed the mock-config failure, proved the duplicate leg-sum guard dead, added 3 coverage tests, measured/wrote the 51x rank pathology. | GREEN 6473/35/100% (6623/6623) |
 | 2026-11-18T19:21:09Z | 33b84e2 | **WP1 verified landed; coverage regression repaired; WP2 de-risked.** Retracted the infeasible "zero-dollar + unit-beta legs" gate; specified the FP rank construction and a feasible WP3 5×40 split. | GREEN 6462/35/100% (6566/6566) |
