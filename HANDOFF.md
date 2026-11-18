@@ -2,8 +2,8 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-18T21:38:00Z
-- **Git state:** `main`. HEAD (the last checkpoint) is `14a3935`; the **WP0 payload and this revision are in the working tree**. Certify with `git log --oneline -3 && git status --short`. **If WP0 is present but uncommitted, commit it first as one WP0 commit** (`scripts/bab_research_sweep.py` + `research_state/bab_p20/**` + `tests/test_bab_p20_research_sweep.py` + this file) and continue on top; never rebuild it.
+- **Timestamp (UTC):** 2026-11-18T21:40:00Z
+- **Git state:** `main`. HEAD (the last checkpoint) is `cf18b20`; the working tree is clean and WP0 (`scripts/bab_research_sweep.py` + `research_state/bab_p20/sweep.json` + `sweep.md` + `tests/test_bab_p20_research_sweep.py`) is committed. Certify with `git log --oneline -3 && git status --short`. **If WP0 is present but uncommitted, commit it first as one WP0 commit** and continue on top; never rebuild it.
 - **P20 WP0 is COMPLETE AND CERTIFIED in the working tree** (script + `research_state/bab_p20/sweep.json` + `sweep.md` + 10-test acceptance file). 80 rows, equal-weight only, runtime **0.78 s**, full gate green on this exact tree.
 - **P20 WP1 is LANDED at `33b84e2`** (beta-neutral default + frozen-per-window hold + acceptance file + `docs/BAB_FIDELITY.md` + README correction + CLI `--no-beta-neutral`).
 - **P20 WP2 algebra is LANDED at `01eb301`** (opt-in `weighting="rank"`, exact 4-asset hand weights, no-lookahead, equal path byte-identical).
@@ -20,7 +20,7 @@
 
 # INITIAL TASK MESSAGE (BINDING — START HERE)
 
-**Timestamp:** 2026-11-18T21:38:00Z · **Campaign:** P20 — "Prove this repo is actually Betting Against Beta" · **Lane:** A · **WP:** **WP3 — walk-forward / out-of-sample harness**
+**Timestamp:** 2026-11-18T21:40:00Z · **Campaign:** P20 — "Prove this repo is actually Betting Against Beta" · **Lane:** A · **WP:** **WP3 — walk-forward / out-of-sample harness**
 
 **One-sentence objective:** build `scripts/bab_walk_forward.py`, commit `research_state/bab_p20/walk_forward.json` plus a markdown table rendered *from* that JSON, and prove with `tests/test_bab_p20_walk_forward.py` that every fold trains strictly before it tests, a planted lookahead trap is rejected, non-selected test slices cannot change the selection, reruns are byte-identical, and every fold has ≥40 untouched test rows — using `weighting="equal"` only.
 
