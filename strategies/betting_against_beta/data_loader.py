@@ -606,6 +606,8 @@ def _coerce_to_datetime_scalar(val):
         try:
             return pd.to_datetime(val, utc=False, errors="raise")
         except Exception:
+            # P19-7: Class A (total contract) — naive parse failed;
+            # terminal contract: raise ValueError("bad") for uncoercible input.
             raise ValueError("bad")
 
 
@@ -686,8 +688,12 @@ def _detect_and_normalize_exchange_format(df: pd.DataFrame) -> pd.DataFrame:
                                 parsed.append(pdt)
                                 continue
                             except Exception:
+                                # P19-7: Class A (total contract) — per-element Timestamp
+                                # creation fallback; fall through to generic parse.
                                 pass
                     except Exception:
+                        # P19-7: Class A (total contract) — per-element tz-aware
+                        # handling best-effort; continue to generic parse/passthrough.
                         pass
                     try:
                         pdt = pd.to_datetime(pdv)
@@ -695,15 +701,21 @@ def _detect_and_normalize_exchange_format(df: pd.DataFrame) -> pd.DataFrame:
                             pdt = pdt.tz_convert("UTC").tz_localize(None)
                         parsed.append(pdt)
                     except Exception:
+                        # P19-7: Class A (total contract) — generic parse fallback;
+                        # preserve original value when parsing fails.
                         parsed.append(pdv)
                 tmp = df.copy()
                 tmp["_dt"] = parsed
             except Exception:
+                # P19-7: Class A (total contract) — date normalization block
+                # best-effort; fall through to vectorized coerce path.
                 tmp = df.copy()
                 tmp["_dt"] = pd.to_datetime(tmp[date_col], errors="coerce", utc=True)
                 try:
                     tmp["_dt"] = tmp["_dt"].dt.tz_convert("UTC").dt.tz_localize(None)
                 except Exception:
+                    # P19-7: Class A (total contract) — Series tz normalization
+                    # best-effort; suppress and try tz_localize(None).
                     with contextlib.suppress(Exception):
                         tmp["_dt"] = tmp["_dt"].dt.tz_localize(None)
             # get symbol values (normalize case)
@@ -714,6 +726,8 @@ def _detect_and_normalize_exchange_format(df: pd.DataFrame) -> pd.DataFrame:
             pivoted.columns = [str(c).strip() for c in pivoted.columns]
             return pivoted
         except Exception:
+            # P19-7: Class A (total contract) — long-format pivot normalization
+            # is best-effort; fall through to other format handlers.
             pass
     # OHLCV wide format for single asset (no symbol column) - use Close/Adj Close as price
     if date_col is not None and symbol_col is None:
@@ -838,6 +852,8 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
                     with contextlib.suppress(Exception):
                         df.index = df.index.tz_convert(None)
         except Exception:
+            # P19-7: Class A (total contract) — DatetimeIndex tz normalization
+            # is best-effort; return frame as-is on any failure.
             pass
         return df
 
@@ -856,11 +872,15 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
                         with contextlib.suppress(Exception):
                             df2.index = df2.index.tz_convert("UTC").tz_localize(None)
                 except Exception:
+                    # P19-7: Class A (total contract) — exchange-normalized index
+                    # tz normalization best-effort; return df2 as-is.
                     pass
                 return df2
             if len(df2.columns) >= len(original_columns):
                 df = df2
     except Exception:
+        # P19-7: Class A (total contract) — exchange format detection is
+        # best-effort; fall through to name-based promotion on any failure.
         pass
 
     candidate_names = {
@@ -907,6 +927,8 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
                         bad = True
                         break
             except Exception:
+                # P19-7: Class A (total contract) — NaN check iteration
+                # best-effort; assume not bad on iteration failure.
                 pass
             if not bad:
                 # Normalize tz-aware Timestamps to tz-naive UTC. The
@@ -915,6 +937,8 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
                 try:
                     dt_attr = getattr(parsed, "tz", None)
                 except Exception:
+                    # P19-7: Class A (total contract) — Series tz attribute
+                    # access best-effort; treat as tz-naive on failure.
                     dt_attr = None
                 with contextlib.suppress(Exception):
                     dt_attr = dt_attr or getattr(getattr(parsed, "dtype", None), "tz", None)
@@ -945,6 +969,8 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
                         if getattr(df2.index, "tz", None) is not None:
                             df2.index = df2.index.tz_convert("UTC").tz_localize(None)
                     except Exception:
+                        # P19-7: Class A (total contract) — promoted index tz
+                        # normalization best-effort; return frame as-is.
                         pass
                     return df2
                 except Exception:
@@ -1263,6 +1289,8 @@ def _normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
         if to_drop and len(to_drop) < len(df.columns):
             df = df.drop(columns=to_drop)
     except Exception:
+        # P19-7: Class A (total contract) — unnamed column cleanup is
+        # best-effort; return frame as-is on any failure.
         pass
     return df
 
@@ -1452,10 +1480,14 @@ def _series_is_parseable(series: pd.Series) -> bool:
                 if parseable >= threshold:
                     return True
             except Exception:
+                # P19-7: Class A (total contract) — per-element numeric parse
+                # best-effort; continue scanning on failure.
                 continue
 
         return parseable >= threshold
     except Exception:
+        # P19-7: Class A (total contract) — numeric detection is best-effort;
+        # return False on any unexpected failure.
         return False
 
 
@@ -1468,10 +1500,12 @@ def _coerce_numeric(df: pd.DataFrame) -> pd.DataFrame:
                 raise TypeError(f"Expected DataFrame, got {type(df).__name__}")
             df = df.astype("float64")
             return df
-        except BABDataError:
-            raise
-        except (ValueError, TypeError):
-            pass
+except BABDataError:
+        raise
+    except Exception:
+        # P19-7: Class A (total contract) — fast-path numeric drop is
+        # best-effort; fall through to per-column slow path on any failure.
+        pass
         # Second pass: coerce with to_numeric to catch things like commas, units, etc
         if not isinstance(df, pd.DataFrame):
             raise BABDataError(f"Expected DataFrame, got {type(df).__name__}")
@@ -1602,6 +1636,8 @@ def _run_data_quality_campaign(
         try:
             cleaned.index = pd.to_datetime(cleaned.index, errors="raise")
         except Exception as exc:
+            # P19-7: Class B (hides defect) — index datetime coercion failure
+            # is surfaced as BABDataError with context rather than swallowed.
             raise BABDataError(
                 f"Index must be datetime-like for data quality checks: {exc}"
             ) from exc
@@ -1672,6 +1708,8 @@ def _run_data_quality_campaign(
     except BABDataError:
         raise
     except Exception:
+        # P19-7: Class A (total contract) — implausible return check is
+        # best-effort; skip guard on numeric conversion failure.
         pass
 
     if (
@@ -1849,9 +1887,11 @@ def validate_returns_dataframe(
     cleaned = _normalize_columns(cleaned)
     try:
         cleaned = _normalize_index(cleaned)
-    except BABDataError:
+except BABDataError:
         raise
-    except (ValueError, TypeError) as exc:
+    except Exception as exc:
+        # P19-7: Class B (hides defect) — validation failure is surfaced
+        # as BABDataError rather than leaking arbitrary exception.
         raise BABDataError(str(exc)) from exc
     # If we ended up with a DatetimeIndex that looks like a default integer range
     # coerced to epoch, only reject when the original index was a default RangeIndex
@@ -1896,6 +1936,8 @@ def validate_returns_dataframe(
                     idx_vals = list(orig.index)
                     is_trivial_sequence = all(idx_vals[i] == i for i in range(len(idx_vals)))
                 except Exception:
+                    # P19-7: Class A (total contract) — trivial sequence check
+                    # best-effort; assume non-trivial on failure.
                     is_trivial_sequence = False
                 if is_trivial_sequence:
                     years = [t.year for t in cleaned.index[:3]]
@@ -1904,6 +1946,8 @@ def validate_returns_dataframe(
     except BABDataError:
         raise
     except Exception:
+        # P19-7: Class A (total contract) — date/index validation is
+        # best-effort; proceed with cleaned frame on unexpected failure.
         pass
 
     if len(cleaned) < min_rows:
@@ -1926,6 +1970,8 @@ def validate_returns_dataframe(
         if cols_to_drop:
             cleaned = cleaned.drop(columns=cols_to_drop)
     except Exception:
+        # P19-7: Class A (total contract) — metadata column drop is
+        # best-effort; proceed with uncleaned frame on failure.
         pass
 
     try:
@@ -1944,6 +1990,8 @@ def validate_returns_dataframe(
                 cleaned = cleaned.drop(columns=cols_to_drop)
             cleaned = _coerce_numeric(cleaned)
         except Exception:
+            # P19-7: Class B (hides defect) — retry coercion failure is
+            # surfaced rather than swallowed; propagate original BABDataError.
             raise
     cleaned = _drop_all_nan_columns(cleaned)
     if cleaned.empty:
@@ -2090,6 +2138,8 @@ def load_returns_from_csv(
     except BABDataError:
         raise
     except Exception:
+        # P19-7: Class A (total contract) — empty DataFrame check is
+        # best-effort; proceed to validation on unexpected failure.
         pass
 
     return validate_returns_dataframe(df, benchmark=benchmark, min_rows=min_rows, quality=quality)
@@ -2111,6 +2161,8 @@ def load_returns_from_parquet(
     except BABDataError:
         raise
     except Exception as exc:
+        # P19-7: Class B (hides defect) — parquet read failure is
+        # surfaced as BABDataError with install hint rather than leaked.
         raise BABDataError(
             f"Failed to read Parquet {pq_path}: {exc}. "
             "Install 'pyarrow' or 'fastparquet' to enable parquet support."
@@ -2145,6 +2197,8 @@ def load_returns_from_hdf5(
     except BABDataError:
         raise
     except Exception as exc:
+        # P19-7: Class B (hides defect) — hdf5 read failure is
+        # surfaced as BABDataError with install hint rather than leaked.
         raise BABDataError(
             f"Failed to read HDF5 {h5_path}: {exc}. Install 'tables' to enable hdf5 support."
         ) from exc
@@ -2155,6 +2209,8 @@ def load_returns_from_hdf5(
     except BABDataError:
         raise
     except Exception as exc:
+        # P19-7: Class B (hides defect) — validation failure is surfaced
+        # as BABDataError rather than leaking arbitrary exception.
         raise BABDataError(str(exc)) from exc
 
 
@@ -2178,6 +2234,8 @@ def load_returns_from_pickle(
             try:
                 df = pd.DataFrame(obj)
             except Exception as exc:
+                # P19-7: Class B (hides defect) — dict-to-DataFrame conversion
+                # failure is surfaced as BABDataError rather than leaked.
                 raise BABDataError(f"Failed to read pickle {pkl_path}: {exc}") from exc
         elif isinstance(obj, (list, tuple)):
             # Reject flat scalar lists such as [1, 2, 3]: they produce a single
@@ -2190,6 +2248,8 @@ def load_returns_from_pickle(
             try:
                 df = pd.DataFrame(obj)
             except Exception as exc:
+                # P19-7: Class B (hides defect) — list/tuple-to-DataFrame
+                # conversion failure is surfaced as BABDataError rather than leaked.
                 raise BABDataError(f"Failed to read pickle {pkl_path}: {exc}") from exc
         else:
             raise BABDataError(f"Unsupported pickle object type: {type(obj).__name__}")
@@ -2232,6 +2292,8 @@ def load_returns_from_json(
                     try:
                         records.append(json.loads(line))
                     except json.JSONDecodeError as exc:
+                        # P19-7: Class B (hides defect) — JSONL line decode failure
+                        # is surfaced as BABDataError rather than leaked.
                         raise BABDataError(f"Failed to read JSONL {json_path}: {exc}") from exc
             if not records:
                 raise BABDataError(f"Empty JSONL file: {json_path}")
