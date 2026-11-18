@@ -2,7 +2,7 @@
 
 **Canonical durable handoff (single source of truth).** Update this file only. `AGENT_HANDOFF.md` is a pointer. Delete any other `*HANDOFF*.md` on sight. Do not create parallel session/handoff docs.
 
-- **Timestamp (UTC):** 2026-11-18T06:52:00Z (Milestone 3 Batch 2 landed; reconciled to HEAD post-commit).
+- **Timestamp (UTC):** 2026-11-18T07:03:12Z (handoff rebind to live HEAD `0b15715`; binding Batch 3 mission intact, bottlenecks cleared).
 - **Latest verified checks @2026-11-18T06:52:00Z (Milestone 3 Batch 2, this session):**
   - `python3 -m ruff check .` → **PASS**.
   - `bash scripts/bab_quick.sh` → **GREEN** (ruff PASS + targeted trio 104 passed + smoke 195 passed).
