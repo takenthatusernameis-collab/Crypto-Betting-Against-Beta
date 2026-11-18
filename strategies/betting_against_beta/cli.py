@@ -96,7 +96,7 @@ def _write_json_artifact(path, payload):
     safe = _json_safe(payload)
     try:
         path.write_text(json.dumps(safe, indent=2, default=_json_default, allow_nan=False))
-    except Exception as exc:
+    except Exception as exc:  # P19-7: Class A — write failure returns False
         print(f"Error writing artifact {path}: {exc}")
         return False
     return True
@@ -206,8 +206,8 @@ def _validate_output_path(path_str: str) -> Path:
                 raise BABDataError(f"--output path is not writable: {out_path}")
         except BABDataError:
             raise
-        except Exception:
-            pass  # access() may not be reliable on all filesystems; defer to write
+        except Exception:  # P19-7: total contract (Class A) — os.access unreliable, defer to write
+            pass
     return out_path
 
 
@@ -285,7 +285,7 @@ def _build_output_summary(result, config, cum_out):
                     continue
                 try:
                     safe_universe.append(str(u))
-                except Exception:
+                except Exception:  # P19-7: Class A — str() failure -> repr()
                     safe_universe.append(repr(u))
         except TypeError:
             safe_universe = []
@@ -325,19 +325,19 @@ def _json_default(obj):
     if isinstance(obj, (_pd.Timestamp,)):
         try:
             return obj.isoformat()
-        except Exception:
+        except Exception:  # P19-7: total contract (Class A) — isoformat failure -> stringify
             return str(obj)
     if hasattr(obj, "isoformat"):
         try:
             return obj.isoformat()
-        except Exception:
+        except Exception:  # P19-7: total contract (Class A) — isoformat failure -> stringify
             return str(obj)
     if isinstance(obj, (set, frozenset)):
         return [_json_default(v) for v in obj]
     if isinstance(obj, bytes):
         try:
             return obj.decode("utf-8", errors="replace")
-        except Exception:
+        except Exception:  # P19-7: total contract (Class A) — bytes decode failure -> repr
             return repr(obj)
     # Coerce non-finite floats to 0.0 for JSON safety
     if isinstance(obj, float):
@@ -556,7 +556,7 @@ def main(argv=None) -> int:
             raise
         # Other argparse errors (unknown flags, etc.) use exit code 2
         return exc.code
-    except Exception as exc:
+    except Exception as exc:  # P19-7: surface (Class B) — unexpected parsing error -> rc=1
         print(f"Error parsing arguments: {exc}")
         return 1
 
@@ -629,14 +629,14 @@ def main(argv=None) -> int:
     except BABDataError as exc:
         print(f"Error creating config: {exc}")
         return 1
-    except Exception as exc:
+    except Exception as exc:  # P19-7: surface (Class B) — config creation error -> rc=1
         print(f"Error creating config: {exc}")
         return 1
 
     # Validate rebalance_freq (not validated in BABConfig)
     try:
         _validate_rebalance_freq(args.rebalance_freq)
-    except Exception as exc:
+    except Exception as exc:  # P19-7: surface (Class B) — validation error -> rc=1
         print(f"Error validating rebalance_freq: {exc}")
         return 1
 
@@ -681,12 +681,12 @@ def main(argv=None) -> int:
         if args.output:
             try:
                 _validate_output_path(args.output)
-            except Exception as exc:
+            except Exception as exc:  # P19-7: surface (Class B) — output path validation -> rc=1
                 print(f"Error validating output path: {exc}")
                 return 1
         try:
             _print_resolved_config(config)
-        except Exception as exc:
+        except Exception as exc:  # P19-7: surface (Class B) — config printing error -> rc=1
             print(f"Error printing config: {exc}")
             return 1
         if args.data is not None:
@@ -728,13 +728,13 @@ def main(argv=None) -> int:
                 except BABDataError as exc:
                     print(f"data:             {args.data} (INVALID: {exc})")
                     return 1
-                except Exception as exc:
+                except Exception as exc:  # P19-7: surface (Class B) — data loading error -> rc=1
                     print(f"data:             {args.data} (INVALID: {exc})")
                     return 1
             except BABDataError as exc:
                 print(f"data:             {args.data} (INVALID: {exc})")
                 return 1
-            except Exception as exc:
+            except Exception as exc:  # P19-7: surface (Class B) — data loading outer error -> rc=1
                 print(f"data:             {args.data} (INVALID: {exc})")
                 return 1
         else:
@@ -747,7 +747,7 @@ def main(argv=None) -> int:
     if args.output:
         try:
             out_path = _validate_output_path(args.output)
-        except Exception as exc:
+        except Exception as exc:  # P19-7: surface (Class B) — output path validation -> rc=1
             print(f"Error validating output path: {exc}")
             return 1
 
@@ -803,7 +803,7 @@ def main(argv=None) -> int:
                     )
             except BABDataError:
                 raise
-            except Exception as exc:
+            except Exception as exc:  # P19-7: Class B — data loading -> BABDataError
                 raise BABDataError(str(exc)) from exc
             if not _apply_freshness_guard(
                 returns_df, args.max_staleness_days, args.max_gap_days
@@ -813,12 +813,12 @@ def main(argv=None) -> int:
                 result = strategy.run(returns_df=returns_df)
             except BABDataError:
                 raise
-            except Exception as exc:
+            except Exception as exc:  # P19-7: Class B — strategy.run -> BABDataError
                 raise BABDataError(str(exc)) from exc
     except BABDataError as exc:
         print(f"Error running strategy: {exc}")
         return 1
-    except Exception as exc:
+    except Exception as exc:  # P19-7: surface (Class B) — unexpected error -> rc=1
         print(f"Error running strategy: {exc}")
         return 1
 
@@ -838,7 +838,7 @@ def main(argv=None) -> int:
             if "cumulative" in cols and len(bt) > 0:
                 try:
                     backtest_pnl = float(bt["cumulative"].iloc[-1]) - 1.0
-                except Exception:
+                except Exception:  # P19-7: Class A — PnL extraction -> None
                     backtest_pnl = None
 
         engine = PaperExecutionEngine(log_path=out_path, diagnostics_path=diag_path)
@@ -868,12 +868,12 @@ def main(argv=None) -> int:
     # Extract cumulative return; surface extraction failures instead of fabricating 1.0.
     try:
         cum_out = _coerce_finite_scalar(_extract_cumulative(result), default=1.0)
-    except Exception as exc:
+    except Exception as exc:  # P19-7: surface (Class B) — cumulative extraction failure -> rc=1
         print(f"Error extracting cumulative return: {exc}")
         return 1
     try:
         print(f"Final cumulative return: {cum_out:.6f}")
-    except Exception as exc:
+    except Exception as exc:  # P19-7: surface (Class B) — print failure -> rc=1
         with contextlib.suppress(Exception):
             print(f"Error printing cumulative return: {exc}")
         return 1
@@ -886,7 +886,7 @@ def main(argv=None) -> int:
         periods = 0
     try:
         print(f"Periods: {periods}")
-    except Exception as exc:
+    except Exception as exc:  # P19-7: surface (Class B) — print failure -> rc=1
         with contextlib.suppress(Exception):
             print(f"Error printing periods: {exc}")
         return 1
@@ -900,7 +900,7 @@ def main(argv=None) -> int:
             out_path.write_text(
                 json.dumps(payload, indent=2, default=_json_default, allow_nan=False)
             )
-        except Exception as exc:
+        except Exception as exc:  # P19-7: surface (Class B) — output write failure -> rc=1
             print(f"Error writing output: {exc}")
             return 1
 
@@ -921,7 +921,7 @@ def main(argv=None) -> int:
                 if args.output:
                     exec_path = out_path.with_suffix(out_path.suffix + ".execution.json")
                     exec_path.write_text(exec_json)
-            except Exception as exc:
+            except Exception as exc:  # P19-7: Class B — exec artifact write -> rc=1
                 print(f"Error writing execution artifact: {exc}")
                 return 1
 
@@ -958,7 +958,7 @@ def main(argv=None) -> int:
                     if args.output:
                         rec_path = out_path.with_suffix(out_path.suffix + ".reconciliation.json")
                         rec_path.write_text(rec_json)
-                except Exception as exc:
+                except Exception as exc:  # P19-7: Class B — recon artifact write -> rc=1
                     print(f"Error writing reconciliation artifact: {exc}")
                     return 1
 
@@ -975,7 +975,7 @@ def _extract_cumulative(result):
     """
     try:
         backtest = getattr(result, "backtest", None)
-    except Exception:
+    except Exception:  # P19-7: total contract (Class A) — getattr failure -> None
         return None
     if backtest is None:
         return None
@@ -990,7 +990,7 @@ def _extract_cumulative(result):
             if "cum" in str(col).lower():
                 try:
                     return backtest[col].iloc[-1]
-                except Exception:
+                except Exception:  # P19-7: Class A — col access -> continue
                     continue
         # No recognized cumulative column; fall through to generic handlers.
     # Series with a name containing 'cum'
@@ -1040,7 +1040,7 @@ def _json_safe(obj):
     if isinstance(obj, (_pd.Timestamp,)):
         try:
             return obj.isoformat()
-        except Exception:
+        except Exception:  # P19-7: total contract (Class A) — isoformat failure -> stringify
             return str(obj)
     if isinstance(obj, bool):
         return bool(obj)
@@ -1056,7 +1056,7 @@ def _json_safe(obj):
     if hasattr(obj, "isoformat"):
         try:
             return obj.isoformat()
-        except Exception:
+        except Exception:  # P19-7: total contract (Class A) — isoformat failure -> stringify
             return str(obj)
     return obj
 

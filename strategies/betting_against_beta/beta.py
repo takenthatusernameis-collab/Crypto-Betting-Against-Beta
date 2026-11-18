@@ -37,25 +37,25 @@ def rolling_beta(a, b, window=90, min_periods=None, min_obs=None):
     # try generic
     try:
         return _calc_rolling_beta_series(b, a, window, min_obs)
-    except Exception:
+    except Exception:  # P19-7: Class B — fast path failed -> try numpy array fallback
         try:
             return _calc_rolling_beta_series(np.asarray(b), np.asarray(a), window, min_obs)
-        except Exception:
+        except Exception:  # P19-7: Class B — numpy array path failed -> length detection
             # Return empty/NaN series-like array if possible
             n = 0
             for cand in (a, b):
                 try:
                     n = len(cand)
                     break
-                except Exception:
+                except Exception:  # P19-7: Class A — len() failed -> continue
                     continue
             if n == 0:
                 try:
                     n = len(np.asarray(a))
-                except Exception:
+                except Exception:  # P19-7: Class A — np.asarray len failed -> try b
                     try:
                         n = len(np.asarray(b))
-                    except Exception:
+                    except Exception:  # P19-7: Class A — np.asarray len failed -> n=0
                         n = 0
             try:
                 if n == 0:
@@ -64,7 +64,7 @@ def rolling_beta(a, b, window=90, min_periods=None, min_obs=None):
                 res = np.empty(n)
                 res[:] = np.nan
                 return res
-            except Exception:
+            except Exception:  # P19-7: Class A — array creation failed -> return [nan]
                 return np.array([np.nan])
 
 
@@ -126,7 +126,7 @@ def calculate_beta(asset_returns, benchmark_returns, min_obs=None):
                 mo = int(min_obs)
                 if mo > 0 and len(y) < mo:
                     return np.nan
-            except Exception:
+            except Exception:  # P19-7: Class A — min_obs conversion failed -> ignore
                 pass
         # Guard against constant/degenerate benchmark
         x_std = np.std(x)
@@ -185,7 +185,7 @@ def calculate_beta_fast(a, b, min_obs=None):
                 mo = int(min_obs)
                 if mo > 0 and len(a_m) < mo:
                     return np.nan
-            except Exception:
+            except Exception:  # P19-7: Class A — min_obs conversion failed -> return nan
                 return np.nan
         # Guard against constant/degenerate benchmark.  A zero-variance
         # benchmark carries no information, so beta is undefined.  Return NaN
@@ -391,10 +391,10 @@ def calculate_rolling_beta(returns_df, benchmark_name, window=90, min_obs=60):
     benchmark_returns = returns_df[benchmark_name]
     try:
         bench_vals = benchmark_returns.to_numpy(dtype=float)
-    except Exception:
+    except Exception:  # P19-7: Class B — to_numpy failed -> try np.asarray
         try:
             bench_vals = np.asarray(benchmark_returns, dtype=float)
-        except Exception as e:
+        except Exception as e:  # P19-7: Class B — np.asarray failed -> raise BABDataError
             raise BABDataError(str(e))
     if not np.isfinite(bench_vals).any():
         raise BABDataError(
@@ -476,10 +476,10 @@ def calculate_rolling_beta(returns_df, benchmark_name, window=90, min_obs=60):
             for c in asset_cols:
                 try:
                     a_arr = returns_df[c].to_numpy(dtype=float, copy=False)
-                except Exception:
+                except Exception:  # P19-7: Class B — to_numpy failed -> try np.asarray
                     try:
                         a_arr = np.asarray(returns_df[c], dtype=float)
-                    except Exception:
+                    except Exception:  # P19-7: Class B — np.asarray failed -> bad_cols
                         bad_cols.append(c)
                         continue
                 (finite_cols if np.all(np.isfinite(a_arr)) else bad_cols).append(c)
@@ -515,10 +515,10 @@ def calculate_rolling_beta(returns_df, benchmark_name, window=90, min_obs=60):
         for c in bad_cols:
             try:
                 a_arr = returns_df[c].to_numpy(dtype=float, copy=False)
-            except Exception:
+            except Exception:  # P19-7: Class B — to_numpy failed -> try np.asarray
                 try:
                     a_arr = np.asarray(returns_df[c], dtype=float)
-                except Exception as e:
+                except Exception as e:  # P19-7: Class B — np.asarray failed -> raise BABDataError
                     raise BABDataError(str(e))
             asset_betas[c] = _calc_rolling_beta_series(bench_arr, a_arr, window, min_obs)
 
@@ -541,10 +541,10 @@ def calculate_rolling_beta(returns_df, benchmark_name, window=90, min_obs=60):
                 continue
             try:
                 a_arr = returns_df[asset].to_numpy(dtype=float, copy=False)
-            except Exception:
+            except Exception:  # P19-7: Class B — to_numpy failed -> try np.asarray
                 try:
                     a_arr = np.asarray(returns_df[asset], dtype=float)
-                except Exception as e:
+                except Exception as e:  # P19-7: Class B — np.asarray failed -> raise BABDataError
                     raise BABDataError(str(e))
             betas_dict[asset] = _calc_rolling_beta_series(bench_arr, a_arr, window, min_obs)
         return pd.DataFrame(betas_dict, index=returns_df.index)
