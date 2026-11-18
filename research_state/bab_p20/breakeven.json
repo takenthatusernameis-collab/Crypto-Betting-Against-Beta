@@ -1,0 +1,174 @@
+{
+  "provenance": {
+    "beta_neutral": true,
+    "bisection": {
+      "hi": 0.01,
+      "iterations": 6,
+      "lo": 0.0,
+      "rule": "mid=(lo+hi)/2; sharpe(mid)>0 makes lo=mid, otherwise hi=mid; break_even_tc=(lo+hi)/2 after exactly 6 evaluations"
+    },
+    "date_first": "2021-01-04",
+    "date_last": "2022-07-15",
+    "fixture_path": "tests/fixtures/real_market_prices.csv",
+    "fixture_sha256": "bcf47693858108319c38ccbc02e9ebdb8ade7d4613acb031306d9d6827bd35e2",
+    "known_gap": "2021-09-17",
+    "method": "6-iteration bisection over tc in [0, 0.01] on the equal-weight beta-neutral grid",
+    "metric_definitions": {
+      "break_even_tc": "transaction cost in [0, 0.01] at which the backtest Sharpe crosses zero, located by 6 fixed bisection iterations",
+      "gross_at_break_even": "max over rows of sum_i |w_i| at break_even_tc",
+      "sharpe_at_break_even": "backtest Sharpe evaluated at the reported break_even_tc",
+      "turnover_at_break_even": "mean one-way turnover of the book at break_even_tc",
+      "uncosted_sharpe": "sweep Sharpe at transaction_costs=0.0 for the same configuration"
+    },
+    "nan_columns": [
+      "DEL"
+    ],
+    "null_field_reasons": {
+      "180|0.2": {
+        "fields": [
+          "break_even_tc",
+          "sharpe_at_break_even",
+          "turnover_at_break_even",
+          "gross_at_break_even"
+        ],
+        "reason": "costed Sharpe stays positive through the upper search bound, so the zero crossing lies beyond the tested cost range"
+      },
+      "30|0.3": {
+        "fields": [
+          "break_even_tc",
+          "sharpe_at_break_even",
+          "turnover_at_break_even",
+          "gross_at_break_even"
+        ],
+        "reason": "uncosted Sharpe is non-positive: the strategy loses money before costs, so no positive cost tolerance exists"
+      },
+      "60|0.3": {
+        "fields": [
+          "break_even_tc",
+          "sharpe_at_break_even",
+          "turnover_at_break_even",
+          "gross_at_break_even"
+        ],
+        "reason": "uncosted Sharpe is non-positive: the strategy loses money before costs, so no positive cost tolerance exists"
+      },
+      "90|0.3": {
+        "fields": [
+          "break_even_tc",
+          "sharpe_at_break_even",
+          "turnover_at_break_even",
+          "gross_at_break_even"
+        ],
+        "reason": "uncosted Sharpe is non-positive: the strategy loses money before costs, so no positive cost tolerance exists"
+      }
+    },
+    "price_rows": 399,
+    "return_rows": 398,
+    "seed": 20261028,
+    "synthetic": true,
+    "synthetic_fixture": "This fixture is a deterministic synthetic random walk generated with a fixed seed; it is not real market data and its returns are not evidence of real-world profitability.",
+    "weighting": "equal"
+  },
+  "rows": [
+    {
+      "beta_window": 30,
+      "break_even_tc": 0.001016,
+      "gross_at_break_even": 2.732046,
+      "long_quantile": 0.2,
+      "sharpe_at_break_even": 0.005617,
+      "short_quantile": 0.2,
+      "turnover_at_break_even": 0.624799,
+      "uncosted_sharpe": 0.435796
+    },
+    {
+      "beta_window": 30,
+      "break_even_tc": null,
+      "gross_at_break_even": null,
+      "long_quantile": 0.3,
+      "sharpe_at_break_even": null,
+      "short_quantile": 0.3,
+      "turnover_at_break_even": null,
+      "uncosted_sharpe": -0.124867
+    },
+    {
+      "beta_window": 60,
+      "break_even_tc": 0.004609,
+      "gross_at_break_even": 2.442164,
+      "long_quantile": 0.2,
+      "sharpe_at_break_even": -0.012656,
+      "short_quantile": 0.2,
+      "turnover_at_break_even": 0.275765,
+      "uncosted_sharpe": 0.834694
+    },
+    {
+      "beta_window": 60,
+      "break_even_tc": null,
+      "gross_at_break_even": null,
+      "long_quantile": 0.3,
+      "sharpe_at_break_even": null,
+      "short_quantile": 0.3,
+      "turnover_at_break_even": null,
+      "uncosted_sharpe": -1.555531
+    },
+    {
+      "beta_window": 90,
+      "break_even_tc": 0.005078,
+      "gross_at_break_even": 2.222731,
+      "long_quantile": 0.2,
+      "sharpe_at_break_even": -0.008667,
+      "short_quantile": 0.2,
+      "turnover_at_break_even": 0.233905,
+      "uncosted_sharpe": 0.810267
+    },
+    {
+      "beta_window": 90,
+      "break_even_tc": null,
+      "gross_at_break_even": null,
+      "long_quantile": 0.3,
+      "sharpe_at_break_even": null,
+      "short_quantile": 0.3,
+      "turnover_at_break_even": null,
+      "uncosted_sharpe": -0.467052
+    },
+    {
+      "beta_window": 120,
+      "break_even_tc": 0.006172,
+      "gross_at_break_even": 2.07313,
+      "long_quantile": 0.2,
+      "sharpe_at_break_even": -0.007735,
+      "short_quantile": 0.2,
+      "turnover_at_break_even": 0.205068,
+      "uncosted_sharpe": 0.878289
+    },
+    {
+      "beta_window": 120,
+      "break_even_tc": 0.003516,
+      "gross_at_break_even": 1.613669,
+      "long_quantile": 0.3,
+      "sharpe_at_break_even": -0.007858,
+      "short_quantile": 0.3,
+      "turnover_at_break_even": 0.164883,
+      "uncosted_sharpe": 0.546804
+    },
+    {
+      "beta_window": 180,
+      "break_even_tc": null,
+      "gross_at_break_even": null,
+      "long_quantile": 0.2,
+      "sharpe_at_break_even": null,
+      "short_quantile": 0.2,
+      "turnover_at_break_even": null,
+      "uncosted_sharpe": 1.21678
+    },
+    {
+      "beta_window": 180,
+      "break_even_tc": 0.001328,
+      "gross_at_break_even": 1.623082,
+      "long_quantile": 0.3,
+      "sharpe_at_break_even": 0.001227,
+      "short_quantile": 0.3,
+      "turnover_at_break_even": 0.123168,
+      "uncosted_sharpe": 0.146479
+    }
+  ],
+  "schema": "bab_p20.breakeven/1"
+}
