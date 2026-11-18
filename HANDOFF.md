@@ -3,7 +3,7 @@
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
 - **Timestamp (UTC):** 2026-11-18T18:22:06Z
-- **Git state:** HEAD `624d81b` on `main`, clean tree. That commit changed **only** this handoff, `.gitignore`, and removed/untracked non-code artifacts — **product code is unchanged from `e376564`**, so every number below still describes the code you will edit. Certify with `git log --oneline -3 && git status --short`.
+- **Git state:** `main` is clean. Every commit on top of `e376564` (this refresh included) touches **only** this handoff, `.gitignore`, and removed/untracked non-code artifacts — **product code is identical to `e376564`**, so every number below still describes the code you will edit. Certify with `git log --oneline -3 && git status --short`.
 - **Baseline locks at HEAD:** `beta_neutral: bool = False` in `config.py:99`; no `docs/BAB_FIDELITY.md`; no `tests/test_bab_p20_*.py`; no `research_state/bab_p20/`. **All of P20 is unlanded.**
 - **Repo:** `Crypto-Betting-Against-Beta` — crypto market-neutral BAB trading system (ingest → beta → signals → portfolio → backtest → execution → ops).
 - **P19 CLOSED.** Coverage complete, handlers annotated, scratch scripts removed. Never reopen.
