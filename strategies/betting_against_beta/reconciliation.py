@@ -134,7 +134,7 @@ def _date_key(date) -> str:
     # an intentional total function: the fallback is the contract, not a defect.
     try:
         return pd.Timestamp(date).isoformat()
-    except Exception:
+    except Exception:  # P19-7: Class A (total contract) — unparseable date -> str fallback
         return str(date)
 
 

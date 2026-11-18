@@ -216,7 +216,7 @@ class ReplayHarness:
         try:
             ts = pd.Timestamp(date)
             return ts.isoformat()
-        except Exception:
+        except Exception:  # P19-7: Class A (total contract) — unparseable date -> str fallback
             return str(date)
 
     @staticmethod
