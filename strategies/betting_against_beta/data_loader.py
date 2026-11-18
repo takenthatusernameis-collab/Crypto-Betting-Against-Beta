@@ -94,6 +94,8 @@ def _not_null(v) -> bool:
         if pd.isna(v):
             return False
     except Exception:
+        # P19-7: Class A (total contract) — pd.isna() may raise for exotic
+        # sentinels; treat as not-null rather than crashing callers.
         pass
     return True
 
@@ -112,6 +114,8 @@ def _series_has_any_finite(series) -> bool:
             return False
         return _not_null(series)
     except Exception:
+        # P19-7: Class A (total contract) — finiteness probe must never raise;
+        # degrade to False so callers take the "no finite values" path.
         return False
 
 
@@ -135,18 +139,26 @@ def _coerce_series_to_datetime_index(df: pd.DataFrame, col, coerced) -> bool:
                                 pdt = pdt.tz_convert("UTC").tz_localize(None)
                             pdv = pdt
                         except Exception:
+                            # P19-7: Class A (total contract) — per-element inner
+                            # tz conversion is best-effort; leave value as-is.
                             pass
                 except Exception:
+                    # P19-7: Class A (total contract) — per-element outer tz
+                    # handling is best-effort; leave value as-is.
                     pass
                 clean.append(pdv)
             idx = pd.Series(clean, index=df.index)
         except Exception:
+            # P19-7: Class A (total contract) — whole tz-normalization block is
+            # best-effort; keep original idx and continue promotion.
             pass
         df2 = df.copy()
         df2.index = idx
         df2 = df2.drop(columns=[col])
         return True
     except Exception:
+        # P19-7: Class A (total contract) — promotion is best-effort; return
+        # False so callers keep the original frame.
         return False
 
 
@@ -159,6 +171,8 @@ def _normalize_index(df: pd.DataFrame) -> pd.DataFrame:
         try:
             input_all_nat = bool(getattr(orig_idx, "isna", lambda: pd.Series(dtype=bool))().all())
         except Exception:
+            # P19-7: Class A (total contract) — all-NaT detection is best-effort;
+            # default to False so recoverable indexes are not spuriously rejected.
             input_all_nat = False
     if not isinstance(df.index, pd.DatetimeIndex):
         try:
@@ -177,6 +191,8 @@ def _normalize_index(df: pd.DataFrame) -> pd.DataFrame:
                         sv = float(sample)
                         av = abs(sv)
                     except Exception:
+                        # P19-7: Class A (total contract) — sample magnitude probe
+                        # is best-effort; fall through to elementwise coercion paths.
                         sv = None
                         av = None
                     # Try by magnitude - prefer most common units
