@@ -2,7 +2,7 @@
 
 **Canonical durable handoff (single source of truth).** Update this file only. `AGENT_HANDOFF.md` is a pointer. Delete any other `*HANDOFF*.md` on sight. Do not create parallel session/handoff docs.
 
-- **Timestamp (UTC):** 2026-11-18T02:02:19Z (this refresh; verified on live HEAD).
+- **Timestamp (UTC):** 2026-11-18T02:50:18Z (this refresh; verified on live HEAD).
 - **Latest verified checks @2026-11-18T02:02Z, HEAD `ce1034f` (checkpoint past `94954b8`; `git diff --name-only 94954b8 ce1034f` → `HANDOFF.md`, `AGENT_HANDOFF.md` ONLY — zero product/test change), clean working tree:**
   - `python3 -m ruff check .` → **PASS** (re-run live).
   - `bash scripts/bab_reconcile_gate.sh` → **GREEN** (re-run live; drift rc=2, clean rc=0, emit-only rc=0).
@@ -12,7 +12,7 @@
 - **Repo:** `Crypto-Betting-Against-Beta` — crypto market-neutral trading system (ingest → beta → signals → portfolio → backtest → execution → ops), Frazzini–Pedersen *Betting Against Beta*.
 - **Git state (this refresh):** HEAD `ce1034f` on `main`, clean working tree (checkpoint past green baseline; only handoff files differ from `94954b8`).
 
-## INITIAL TASK MESSAGE (BINDING — START HERE, 2026-11-18T02:02:19Z)
+## INITIAL TASK MESSAGE (BINDING — START HERE, 2026-11-18T02:50:18Z)
 
 **MANDATORY MISSION — close Milestone 3 module `data_loader.py` (137 broad / 64 silent) THIS session with committed regression tests. This is heavy work and is not optional.**
 
@@ -142,6 +142,7 @@ BAB_GATE_MIN_COVERAGE=98.5 bash scripts/bab_gate.sh   # only when TOTAL < 100 or
 ## Session ledger (append-only, concise)
 | Session (UTC) | HEAD | Did | Gate |
 |---|---|---|---|
+| 2026-11-18T02:50:18Z | ce1034f | **Handoff refresh (timestamp rebind).** Re-timestamped durable handoff to current UTC; binding mission unchanged: close Milestone 3 `data_loader.py` (137 broad / 64 silent) this session with committed regression tests. Bottlenecks already removed (Milestones 1-2 complete, baseline GREEN at 94954b8, code unchanged). Anti-loop + anti-avoidance directives intact. | ruff PASS; reconcile GREEN; quick GREEN; full-gate GREEN @94954b8 applies (6379/35/0/6562/100%) |
 | 2026-11-18T02:02:19Z | ce1034f | **Handoff refresh + anti-avoidance rebind to `data_loader.py`.** Verified live on HEAD `ce1034f`: ruff PASS, reconcile GREEN, quick GREEN (104 targeted + 195 smoke); `bab_except_inventory.py` = 223 broad / 68 silent (data_loader.py 137/64); confirmed `git diff --name-only 94954b8 ce1034f` = handoff files only (no product/test change). Rewrote INITIAL TASK MESSAGE to bind Milestone 3 `data_loader.py` (137/64) this session with committed regression tests; added explicit anti-avoidance contract (zero-site close = FAILED) and removed "which milestone unstarted" ambiguity. | ruff PASS; reconcile GREEN; quick GREEN; full-gate GREEN @94954b8 applies (6379/35/0/6562/100%) |
 | 2026-11-18T01:53:34Z | 94954b8 | **Milestone 2 COMPLETE:** `cli.py` (28 broad/1 silent) hardened with 26 regression tests in `test_bab_p19_7_cli_exceptions.py`; `beta.py` (16 broad/1 silent) hardened with 18 regression tests in `test_bab_p19_7_beta_exceptions.py`. All 44 new tests PASS; inline invariants at all sites. Full gate GREEN 6379/35/0/6562/100% (134.21s). Milestone 3 (`data_loader.py` 137/64) now binding. | GREEN |
 | 2026-11-18T00:32:52Z | cf4c633 | Retimestamped handoff; re-affirmed binding mission (close both cli.py 28/1 and beta.py 16/1 this session with committed regression tests); anti-loop directive intact; baseline gate GREEN at 7960113 applies. | ruff PASS; reconcile GREEN; quick GREEN; bab_gate 6335/35/0/100% @7960113 |
