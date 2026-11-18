@@ -283,7 +283,6 @@ def construct_rank_weights(signals_df, betas):
     Signal cleaning is identical to the equal-weight branch (trunc semantics).
     """
     import numpy as np
-
     import pandas as _pd
 
     if signals_df is None or betas is None:
