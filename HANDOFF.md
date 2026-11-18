@@ -1,113 +1,130 @@
 # HANDOFF — Crypto-Betting-Against-Beta
 
-**Canonical durable handoff (single source of truth).** Update this file only. `AGENT_HANDOFF.md` is a pointer. Delete any other `*HANDOFF*.md` on sight. Do not create parallel session/handoff docs.
+**Canonical durable handoff (single source of truth).** Update this file only. There is no pointer file; `AGENT_HANDOFF.md` was deleted 2026-11-18T14:19:40Z. Delete any other `*HANDOFF*.md` on sight. Do not create parallel session/handoff docs.
 
-- **Timestamp (UTC):** 2026-11-18T12:26:31Z
-- **Git state:** HEAD `1272f25` on `main`; **working tree DIRTY** (intentional in-progress product/test fixes below — NOT yet committed). `ruff` GREEN, `bab_quick.sh` GREEN (104 + 195), `bab_reconcile_gate.sh` GREEN. Full gate **not run this session** (see boundary step).
-- **Repo:** `Crypto-Betting-Against-Beta` — crypto market-neutral trading system (ingest → beta → signals → portfolio → backtest → execution → ops), Frazzini–Pedersen *Betting Against Beta*.
+- **Timestamp (UTC):** 2026-11-18T14:19:40Z
+- **Git state:** HEAD `f98eaa1` on `main`; working tree dirty with **handoff-only doc changes** from this session (`HANDOFF.md` rewrite, `README.md` stale-step fix, deletion of `AGENT_HANDOFF.md`). **Commit this as step 0** — it is documentation, not product code.
+- **Repo:** `Crypto-Betting-Against-Beta` — crypto market-neutral BAB trading system (ingest → beta → signals → portfolio → backtest → execution → ops).
+- **P19 is CLOSED.** All 7 remaining broad-`except` handlers annotated, 13 root scratch scripts removed, gate green. Do not reopen P19 for any reason; there is no P19 work left.
 
-# INITIAL TASK MESSAGE (BINDING — START HERE, 2026-11-18T12:26:31Z)
+# INITIAL TASK MESSAGE (BINDING — START HERE)
 
-**MANDATORY HEAVY-WORK MISSION (non-optional): finish P19-7 by annotating the 7 genuinely-unannotated broad `except Exception` handlers and land them as committed product + regression-test diffs.** The prior handoff's "8 Milestone-4 sites in `signals.py`/`attribution.py`/`risk.py`/`costs.py`/`reconciliation.py`/`regime.py`/`replay.py`" was **STALE AND FALSE** — every one of those 8 sites is **already P19-7-annotated** in product code (verified by AST scan @`1272f25`). Do **not** re-touch them. Do **not** re-litigate Milestones 1–4 or re-verify counts. Closing **zero** NEW unannotated sites with committed A/B evidence + tests, inventory-only analysis, or handoff-only commits = **FAILED session**.
+## Campaign P20 — "Make the repo actually Betting Against Beta": beta-neutral construction + faithful FP weighting + walk-forward OOS evaluation
 
-**READ THIS FIRST — the #1 bottleneck, now REMOVED:** ~15 consecutive sessions only re-timestamped this handoff / re-ran gates / committed handoff-only checkpoints. Root cause is now fixed: (1) the false "8 Milestone-4 sites" target is deleted, (2) the hard gate was **RED** (`ruff` 9 errors from the prior session's own P19-7 comment lines being >100 chars) and is **now GREEN** — see `## Bottleneck removal` below. A session that only re-timestamps, re-runs gates, or only re-verifies counts is an **automatic FAILED session**. The only acceptable deliverable is **committed product-code + regression-test diffs that close ≥1 (target: all 7) genuinely-unannotated handler(s)**, each with inline A/B evidence and a passing test.
+**Why this campaign (inferred from the repo name and from measured defects):** the project is named *Betting Against Beta*, but the shipped default book is **dollar-neutral only and carries a large negative market beta**. Measured at HEAD `f98eaa1` on the committed fixture: default config produces **book beta ≈ −0.57** (q=0.2: **−0.91**) and a **−68.6%** total loss while BTC buy-and-hold makes **+109.7%**. That is not a market-neutral BAB factor; it is a leveraged short-crypto book wearing a BAB label. On top of that, there is **no out-of-sample / walk-forward harness anywhere in the repo** (`grep -rniE "walk.?forward|out.?of.?sample|holdout"` → 0 hits), and the portfolio is **equal-weight ±1.0**, not the Frazzini–Pedersen rank-weighted, beta-scaled construction. Every prior phase hardened *defensive* code; **zero** effort has measured whether the strategy is what its name claims. This is the highest-value remaining work in this repository.
 
-**Why highest-value (repo-inferred):** `Crypto-Betting-Against-Beta` = Frazzini–Pedersen *Betting Against Beta* for crypto. The remaining unannotated handlers sit in **portfolio construction, data-source fetching, strategy reporting, and data-loader tz-normalization** — exactly the paths where a silently-swallowed failure corrupts positions, prices, or reported metrics. This is the last real correctness debt in the repo.
+**This campaign is heavy work by construction.** Each session must land committed **product/test diffs plus a reproducible research artifact**. Handoff-only, README-only, gate-only, count-only, or "analysis-only" commits are **automatic FAILED sessions**.
 
-## Ground truth @`1272f25` (verified this session, do NOT re-derive by guessing)
+## Ground truth @`f98eaa1` (measured this session — do not re-derive by guessing)
 
-- **True unannotated set = 7 handlers** (AST scan: broad/bare `except` with no `P19-7` marker in the handler body or the 12 lines preceding it). All others (215 of 222) are annotated.
-- **The 8 old "Milestone-4 sites" are DONE.** Verified annotated: `signals.py` 131/135/160, `attribution.py` 85, `risk.py` 583/599, `costs.py` 240, `reconciliation.py` 137, `regime.py` 151, `replay.py` 219. Do not touch.
-- **`data_loader.py` is ~99% annotated** (135/136). Do not reopen for annotation-hunt.
+Reproduce exactly:
 
-## The 7 target sites (live @`1272f25`) — classify A/B, add inline invariant + regression test each
+```bash
+python3 - <<'EOF'
+from strategies.betting_against_beta.data_loader import load_prices
+from strategies.betting_against_beta import BABStrategy, metrics
+r = load_prices("tests/fixtures/real_market_prices.csv", benchmark="BTC")
+for bn in (False, True):
+    o = BABStrategy(benchmark="BTC", beta_window=90, min_observations=60,
+                    long_quantile=0.3, short_quantile=0.3,
+                    transaction_costs=0.001, beta_neutral=bn).run(returns_df=r)
+    rets = o.backtest["returns"]
+    print(bn, "wealth", round(float(o.backtest["cumulative"].iloc[-1]), 4),
+          "sharpe", round(float(metrics.sharpe_ratio(rets)), 3),
+          "beta", round(float(metrics.strategy_beta(rets, r["BTC"])), 3))
+EOF
+```
 
-| # | Site | Current contract (read before editing) | Likely class |
-|---|---|---|---|
-| 1 | `portfolio.py:38` | `_coerce_int`-style sign helper; `except Exception: return 0` | **A** (total fallback → 0) |
-| 2 | `portfolio.py:120` | `except Exception as exc: raise BABPortfolioError(...)` | **B** (already surfaces; add A/B marker + test) |
-| 3 | `portfolio.py:169` | `except Exception as exc: raise BABPortfolioError(f"portfolio construction failed: {exc}")` — deliberate defect-surfacing (see comment) | **B** (surfaces; lock with test) |
-| 4 | `data_sources.py:380` | `except Exception as exc: self._error=...; raise BABDataError(...)` | **B** (surfaces) |
-| 5 | `data_sources.py:482` | `except Exception: raise BABDataError("Index cannot be parsed as datetime")` | **B** (surfaces) |
-| 6 | `strategy.py:836` | nested `except Exception as exc2: raise BABDataError(f"weight finiteness cleanup failed: {exc2} ...")` | **B** (surfaces) |
-| 7 | `data_loader.py:851` | inner `except Exception:` wrapping `tz_convert` best-effort normalization (outer 854 already annotated Class A) | **A** (best-effort tz; keep tolerant) |
+| Config (fixture, 398 rows, 2021-01-05 → 2022-07-15, costs 10 bps) | Wealth index | Sharpe | Ann. vol | Max DD | **Book beta** | Turnover | Gross |
+|---|---|---|---|---|---|---|---|
+| **DEFAULT** w90 min60 q0.3, `beta_neutral=False` | 0.3136 (−68.6%) | **−1.418** | 0.446 | −0.758 | **−0.572** | 0.201 | 1.704 |
+| same + `beta_neutral=True` | 0.7057 (−29.4%) | −0.725 | 0.258 | −0.413 | **+0.059** | 0.264 | 1.144 |
+| w90 q0.2, `beta_neutral=False` | 0.4214 (−57.9%) | −0.680 | 0.567 | −0.634 | **−0.908** | 0.126 | 1.704 |
+| w90 q0.2, `beta_neutral=True` | 1.3093 (+30.9%) | +0.649 | 0.366 | −0.227 | +0.006 | 0.234 | 1.429 |
+| BTC buy-and-hold | 2.0975 (+109.7%) | +1.756 | 0.291 | — | 1.000 | — | — |
 
-Re-derive exact line numbers with the inventory script before editing (they shift as you edit). Classify **A** (intentional tolerant contract → keep behavior, add concise inline `P19-7: Class A ...` invariant + test locking it) or **B** (already re-raises `BABDataError`/`BABPortfolioError` → keep surfacing, add `P19-7: Class B ...` marker + test proving the failure surfaces and happy-path unchanged).
+Also verified at HEAD: `python3 -m ruff check .` PASS; `bash scripts/bab_quick.sh` GREEN (104 + 195); `bash scripts/bab_reconcile_gate.sh` GREEN; full gate `bab_gate.sh` **GREEN — 6445 passed / 35 skipped / 0 failed, TOTAL 6562 stmts, 0 missed, 100%**.
 
-## Execute immediately (no baseline re-verification, no full gate before coding)
+**Honesty constraints baked into the ground truth:**
+1. `tests/fixtures/real_market_prices.csv` is **NOT real market data**. `scripts/generate_real_market_fixture.py` says: "The prices are deterministic random walks (fixed seed) so the fixture is reproducible." It also carries a deliberate date gap (2021-09-17) and a fully-NaN `DEL` column. **Never** describe results on it as evidence of real-world profitability.
+2. The q=0.2 / `beta_neutral=True` row above is **in-sample and not evidence of edge**. Do not select parameters by in-sample Sharpe and report it as a result. That is precisely what WP3 exists to prevent.
+3. `backtest["cumulative"]` is a **wealth index** (1.0 = start), not a return. `final_cumulative − 1` is the total return. Past summaries that printed it as "cum" without subtracting 1 were ambiguous.
 
-1. **Commit the already-applied RED→GREEN gate fix FIRST** (working tree is dirty with it). Diff = 5 files: wrapped 7 over-length `P19-7` comments in `costs.py`, `regime.py`, `risk.py` (×3), `signals.py` (×2) + ruff-autofix of `tests/test_bab_p19_7_attribution_exceptions.py`. Message: `fix(p19-7): wrap over-length invariant comments to restore ruff GREEN`. This alone clears the hard-gate blocker. Verify: `python3 -m ruff check .` PASS, `bash scripts/bab_quick.sh` GREEN.
+## Work packages — execute in order, one WP per commit minimum
 
-2. **Live inventory (first analysis command):** `python3 scripts/bab_except_inventory.py --json` + per-file `--file portfolio.py --json` etc. Confirm the 7 sites above; re-derive current line numbers. If the set differs, trust the live AST scan over this table and update this table.
+### WP0 — Evidence harness (no product change; ~1 session)
+- Create `scripts/bab_research_sweep.py`: deterministic sweep over `beta_window ∈ {30,60,90,120,180}`, `q ∈ {0.2,0.3}`, `tc ∈ {0,0.001,0.0025,0.005}`, `beta_neutral ∈ {False,True}`; emit `research_state/bab_p20/sweep.json` **and** a markdown table rendered from that JSON.
+- Requirements: no network; fixed fixture; sorted key order; floats rounded to 6 dp; output byte-identical across runs (add a hash assertion in the test).
+- **Acceptance:** `tests/test_bab_p20_research_sweep.py` proves (a) the script runs in <10 s, (b) two runs produce identical SHA-256, (c) the JSON schema has every row's `wealth/sharpe/beta/gross/turnover`, (d) the markdown table's numbers are generated from the JSON (no hand-typed digits).
 
-3. **For EVERY touched handler:** classify A/B, add inline invariant (A) or `P19-7: Class B` marker (B) + a committed regression test (extend `tests/test_bab_p19_7_strategy_exceptions.py` for strategy; create `tests/test_bab_p19_7_portfolio_exceptions.py` and `tests/test_bab_p19_7_data_sources_exceptions.py` if absent; extend `tests/test_bab_p19_7_data_loader_exceptions.py` for site 7). Cover happy-path preservation and the failure/fallback contract.
+### WP1 — Kill the beta-blind default (correctness; highest priority)
+- Default `BABConfig` (`config.py:99`) sets `beta_neutral = False`. The default book must not be a −0.57-beta short-crypto proxy.
+- Change the default so a default-configured run yields a beta-neutral book **when betas are available**, preserving all existing contracts (dollar-neutrality, flat rows, gross limits, missing-beta behavior). Prefer a single canonical switch in `BABConfig` plus the existing `enforce_beta_neutrality` path; do **not** special-case the fixture or silently zero out exposure.
+- **Acceptance:** new `tests/test_bab_p20_beta_neutral_default.py` asserts, on the committed fixture and on a synthetic frame, that `|metrics.strategy_beta(rets, benchmark)| ≤ 0.06` for the default config at q∈{0.2,0.3} and w∈{60,90,120}; asserts dollar-neutrality `|sum(weights)| ≤ 1e-9` is preserved; and asserts an explicit opt-out still reproduces today's exact numbers (byte-for-byte on returns) so the change is auditable.
+- **Acceptance (docs):** `docs/BAB_FIDELITY.md` states before/after beta, Sharpe, wealth, and the exact config diff. Update the README "Approach" bullet that currently claims "dollar-neutral by default" as if that were BAB.
+- **Do not** "fix" this by only editing docs. The code default must change.
 
-4. **Inner loop (fast, after each sub-batch):** `bash scripts/bab_quick.sh` + targeted `python3 -m pytest -q tests/test_bab_p19_7_*.py`. Fix regressions immediately. No full gate per edit.
+### WP2 — Faithful Frazzini–Pedersen weighting (opt-in first)
+- Add `weighting: "equal" | "rank"` to config (default `"equal"` in WP2; WP3/WP4 may promote it only with OOS evidence). Implement rank-weighted construction: rank assets by beta each period, weight ∝ |rank − mean(rank)|, long leg scaled by `1/β_L` and short leg by `1/β_H` so each leg has unit beta before neutralization, then apply the dollar- and beta-neutral constraints.
+- **Acceptance:** `tests/test_bab_p20_rank_weighting.py` contains a hand-computed 4-asset example (betas 0.5/0.8/1.2/1.6) whose expected weights match to `1e-12`; a test that rank weights sum to zero dollars and unit-beta legs within `1e-9`; a test that non-finite/insufficient betas degrade to the documented flat-row contract; a no-lookahead test proving weights at `t` depend only on betas computed from data `< t`.
+- **Acceptance:** equal-weight path remains byte-identical to HEAD for a fixed seed/config (regression guard).
 
-5. **Boundary (once, before final commit/handoff):** `python3 -m ruff check .` && `bash scripts/bab_reconcile_gate.sh` && `BAB_GATE_LOG=/tmp/bab_gate_handoff.log bash scripts/bab_gate.sh` → **GREEN** (0 failures, TOTAL 100%, 0 missed). Do not hand off an in-progress gate.
+### WP3 — Walk-forward / OOS harness (the anti-cherry-pick gate)
+- Create `scripts/bab_walk_forward.py`: rolling-origin splits over the fixture (≥5 folds), parameter selection **only** on each train window, evaluation **only** on the untouched test window; emit `research_state/bab_p20/walk_forward.json` (per-fold selected params, OOS Sharpe/vol/mdd/turnover/beta, aggregate mean/median and fraction of folds with positive Sharpe) and a rendered markdown table.
+- **Acceptance:** `tests/test_bab_p20_walk_forward.py` proves (a) no leakage — for every fold `max(train_index) < min(test_index)`; (b) a planted lookahead trap (a signal that peeks at `t+1`) is detected and rejected by the harness; (c) deterministic rerun hash equality; (d) each fold has ≥40 test observations.
+- **Acceptance:** `docs/BAB_RESEARCH_REPORT.md` publishes the OOS table **including the case where the edge is absent**. A negative/null OOS result is a valid, successful campaign outcome; a fabricated positive is a failed session.
 
-6. **Commit (mandatory):** commit product + tests with A/B evidence per site. Update this handoff: timestamp/HEAD, sites closed (file:line+class), tests added/passing, gate results. Handoff-only commit = failure unless all 7 sites are already closed.
+### WP4 — Honest reporting + provenance (do not skip)
+- `docs/BAB_RESEARCH_REPORT.md` must state: fixture provenance (deterministic random walk, fixed seed, deliberate gap and NaN column), in-sample vs OOS distinction, cost assumptions, and the explicit conclusion. Add a "What this does NOT prove" section.
+- **Acceptance:** `tests/test_bab_p20_report_consistency.py` parses the markdown tables and asserts every published number equals the corresponding JSON field (no hand-typed drift); asserts the provenance sentence is present.
+- Rename-or-relabel only via docs/headers; **do not** rename fixture files (many tests reference the path).
 
-7. **Then Milestone 5 (hygiene, after gate GREEN):** `git rm` the 13 committed root scratch scripts — `ast_probe.py`, `debug_beta.py`, `debug_beta2.py`, `probe_105.py`, `probe_92_93.py`, `probe_beta_94.py`, `probe_beta_94_v2.py`…`probe_beta_94_v7.py`, `probe_dayfirst.py` — verified **no code references** (only `.gitignore` pattern). Run `bash scripts/bab_quick.sh` and commit cleanup separately.
+### WP5 — Cost / turnover realism and break-even
+- Extend the sweep to report the **cost level at which OOS Sharpe crosses zero** (bisection over tc ∈ [0, 0.01], 6 iterations, deterministic), plus turnover per rebalance and gross exposure. Add `research_state/bab_p20/breakeven.json`.
+- **Acceptance:** test asserts break-even cost is monotone non-increasing in reported Sharpe, is deterministic, and that `tc=0` reproduces the uncosted Sharpe within `1e-12`.
 
-**Machine-checkable done:** AST scan shows **0 unannotated** broad/bare handlers repo-wide; `ruff` PASS; `bab_reconcile_gate.sh` GREEN; `bab_quick.sh` GREEN; boundary full gate GREEN; committed product + regression-test diffs with A/B evidence; ledger updated.
+## Machine-checkable campaign done (all must hold)
+1. Default-config book beta `|β| ≤ 0.06` on the fixture at q∈{0.2,0.3}, w∈{60,90,120}, with a committed test — **and** the explicit opt-out still reproduces old numbers exactly.
+2. `scripts/bab_research_sweep.py`, `scripts/bab_walk_forward.py` exist, are deterministic (hash-equal reruns), and their JSON artifacts are committed under `research_state/bab_p20/`.
+3. `docs/BAB_FIDELITY.md`, `docs/BAB_RESEARCH_REPORT.md` exist; every number in them is machine-checked against the JSON.
+4. `tests/test_bab_p20_*.py` all pass; **no existing test is deleted, skipped, or weakened** to make the campaign pass (baseline: 6445 passed / 35 skipped — this count may only grow).
+5. Full gate green: ruff PASS, reconcile GREEN, `bab_gate.sh` TOTAL 100% with 0 missed.
 
-## Bottleneck removal (this session — concrete progress, not just a refresh)
-
-- **[REMOVED] RED hard gate.** Prior session's P19-7 comments exceeded the 100-char line limit → `ruff` 9 errors (7× E501 in `costs.py`/`regime.py`/`risk.py`×3/`signals.py`×2, + I001/W292 in `tests/test_bab_p19_7_attribution_exceptions.py`). Fixed by wrapping each over-length comment onto its own line above the `except` (marker preserved) and `ruff --fix` on the test file. `ruff` now PASS; `bab_quick.sh` GREEN (104+195). **This fix is in the dirty working tree — commit it as step 1.**
-- **[REMOVED] False "8 Milestone-4 sites" mission.** Verified all 8 are already annotated; the stale target is deleted and replaced with the true 7-site set. This false target was a primary driver of the handoff-refresh loop.
-- **[REMOVED] Stale `data_loader.py` "Batch-3 from 608" / "136 unannotated" drift.** Live: `data_loader.py` ~99% annotated (only `:851` remains). Superseded by live AST scan.
-- **[ACTIVE — execution] 7 real sites remain.** Next session must close them with committed A/B product+test diffs.
-- **[ACTIVE — verification] Full-gate re-baseline pending.** Quick+reconcile GREEN @`1272f25`; run full gate once at the 7-site boundary.
-- **[ACTIVE — hygiene] 13 scratch scripts** to `git rm` after boundary (step 7).
-- **[EXTERNAL]** P19-1 CI enforcement maintainer-only (`workflows:write`). `.github/workflows/main.yml` does not invoke ruff/gate scripts. Do not re-attempt.
-- **[LOW]** `README.md:246` may reference a stale binding step — fix only if touching README anyway.
-
-## Bottleneck status (durable)
-
-- **Handoff-refresh loop — CLOSED.** Root cause (false target + red gate) fixed this session. Recurrence is an automatic-FAILED-session condition: re-timestamp-only / gate-only / count-only sessions fail.
-- **Execution bottleneck — OPEN:** 7 unannotated handlers must land as committed product+tests.
+## Bottlenecks removed this session (do not re-create)
+- **[REMOVED] Duplicate handoff state.** `AGENT_HANDOFF.md` carried its own competing status block ("P19-7 COMPLETE") and instructions. Deleted. `HANDOFF.md` is now the only durable handoff.
+- **[REMOVED] Stale README binding step pointing back to closed P19-3/P19-1 coverage work** and stale gate numbers (6244 / 99%). README now points at P20 and states the verified 6445 / 100% baseline.
+- **[REMOVED] Idle-session trap.** P19 was complete, so previous sessions could only re-timestamp and re-run gates. There is now a five-WP campaign with measurable deliverables and an explicit anti-idle failure rule.
+- **[PERMANENTLY EXTERNAL] P19-1 CI enforcement.** Agent tokens lack `workflows:write`; `.github/workflows/main.yml` does not invoke ruff/gates. Maintainer-only. **Never re-attempt, never list as a session task.**
+- **[VERIFIED, NOT A BLOCKER] Gate speed.** Full gate ≈ 207 s on 4 cores; strategy pipeline ≈ 3 ms on the fixture (`research_state/perf_baseline_real_fixture.json`). Performance is not the bottleneck — feedback is fast, so there is no excuse for skipping verification.
 
 ## Hard gates every session (repo root, in order)
 
 ```bash
 python3 -m ruff check .
+bash scripts/bab_quick.sh
 bash scripts/bab_reconcile_gate.sh
 BAB_GATE_LOG=/tmp/bab_gate_handoff.log bash scripts/bab_gate.sh
-BAB_GATE_MIN_COVERAGE=98.5 bash scripts/bab_gate.sh   # only when TOTAL < 100 or floor proof needed
 ```
 
-## Efficiency: fast inner loop (do not run full gate after every edit)
-
-- **Inner loop:** `bash scripts/bab_quick.sh` (ruff + targeted trio + smoke, ~seconds).
-- **Targeted P19-7:** `python3 -m pytest -q tests/test_bab_p19_7_*.py`.
-- **Full gate:** `BAB_GATE_LOG=/tmp/bab_gate_handoff.log bash scripts/bab_gate.sh` **once per module boundary**. ~134s on 4 cores — run in a single foreground call with generous timeout; **never hand off an in-progress gate.** Use `grep -nE "^TOTAL|failed|passed|skipped" /tmp/bab_gate_handoff.log` as ground truth.
-
-## Method (mandatory)
-
-- Behavior-preserving only: no broad refactors, no style-only rewrites, no type-annotation (ANN) churn.
-- Each touched site → inline invariant (A) or `P19-7: Class B` marker (B) **plus** a regression test that (A) locks the intended behavior, or (B) proves identical happy-path output and that the failure surfaces.
-- Keep changes minimal; run the full gate + 98.5 floor after the module and record evidence. Never lower the coverage floor. Never commit probe/debug scratch.
+Inner loop for product edits: `bash scripts/bab_quick.sh` + `python3 -m pytest -q tests/test_bab_p20_*.py`. Run the **full gate once per WP boundary**, never hand off an in-progress gate. Never lower the coverage floor.
 
 ## Forbidden (automatic failure)
-
-- Handoff-only commit / restating this brief as deliverable / stopping after analysis without closing sites with tests.
-- Lowering the coverage floor or adding ANN/type-style churn.
-- Re-touching the 8 already-annotated old "Milestone-4" sites (`signals.py`, `attribution.py`, `risk.py` 583/599, `costs.py`, `reconciliation.py`, `regime.py`, `replay.py`) or the 135 already-annotated `data_loader.py` handlers.
-- Touching 100%-closed safety paths (`execution.py`, `reconciliation.py`, `data_sources.py` [except sites 380/482], `portfolio.py` [except 38/120/169], `replay.py`, `cli.py`, `metrics.py`) **without** a regression test + gate-green proof that observable behavior is unchanged.
-- Mass-refactoring all sites in one pass; module-by-module only.
-- Editing/pushing `.github/workflows/*` (maintainer-only).
-- Creating parallel handoff/session docs or committing probe/debug scratch scripts.
-
-## Proven-closed (do not re-test)
-
-- All four stakes CLOSED; `strategies/betting_against_beta` at 100% line coverage (0 missed) @2026-11-17T14:46:59Z, HEAD `73e4db2`. Full gate 6282 passed / 35 skipped / 0 failed; ruff PASS; reconcile GREEN.
-- P17-1/2, P18-1/2/3, P19-2/3/4, P19-7 Milestones 1–3 (incl. `data_loader.py` 136-site campaign + 41 locking tests), kill-switch R4-B, bootstrap — done.
-- Milestone 1/2 sites (reconciliation, data_sources, portfolio, execution, strategy, backtest, cli, beta) annotated + tested.
+- Handoff-only / docs-only / gate-only / analysis-only commits (WP0 and WP4 artefacts count only **with** their consistency tests).
+- Selecting parameters on the evaluation window, then reporting the result as an OOS finding.
+- Describing the synthetic fixture as real market data, or publishing a Sharpe without the synthetic provenance caveat.
+- Deleting, skipping, `xfail`-ing, or loosening existing tests to make P20 pass; special-casing fixture filenames in product code.
+- Reopening P19 annotation/coverage work, re-attempting CI workflow edits, or adding new `P19-7` markers.
+- Type-annotation/style churn, broad refactors, network data fetching, committing probe/debug scratch scripts, or creating parallel handoff docs.
 
 ## Session ledger (append-only, concise)
 
 | Session (UTC) | HEAD | Did | Gate |
 |---|---|---|---|
-| 2026-11-18T12:26:31Z | 1272f25 (tree dirty) | **Bottleneck removal + handoff correction.** AST-verified the old "8 Milestone-4 sites" are all already P19-7-annotated (stale/false target). Found hard gate **RED**: `ruff` 9 errors (7× E501 on prior session's own over-length P19-7 comments in `costs.py`/`regime.py`/`risk.py`×3/`signals.py`×2, + I001/W292 in `test_bab_p19_7_attribution_exceptions.py`). Fixed by wrapping comments + `ruff --fix` (dirty tree, uncommitted). Re-derived **true unannotated set = 7** (`portfolio.py` 38/120/169, `data_sources.py` 380/482, `strategy.py` 836, `data_loader.py` 851). Rewrote handoff to bind next session to those 7. | ruff PASS; quick GREEN (104+195); reconcile GREEN; full gate pending at 7-site boundary |
-| 2026-11-18T11:18:22Z | 6bc3c4b | (prior) Handoff refreshed; flagged refresh-loop bottleneck. | ruff PASS*; quick GREEN; reconcile GREEN |
+| 2026-11-18T14:19:40Z | f98eaa1 | **Opened P20.** Certified baseline (6445/35/100%, reconcile GREEN, ruff PASS). Measured default-book beta −0.572 (q0.3) / −0.908 (q0.2) vs "market-neutral" claim; confirmed no walk-forward/OOS harness exists; confirmed equal-weight ±1.0 construction; flagged synthetic-fixture provenance. Deleted duplicate `AGENT_HANDOFF.md`, fixed stale README binding step, replaced idle P19 handoff with a 5-WP campaign + anti-idle rules. | ruff PASS; quick GREEN (104+195); reconcile GREEN; full gate GREEN 6445 passed / 35 skipped / TOTAL 100% |
+| 2026-11-18T13:20:00Z | f55e570 | P19-7 finished: 7 handlers annotated with A/B evidence + tests; 13 scratch scripts removed (Milestone 5). | full gate GREEN (6445 / 35 / 100%) |
+| 2026-11-18T12:26:31Z | 1272f25 | Corrected stale "8 Milestone-4 sites" target; fixed RED ruff gate. | ruff PASS; quick GREEN; reconcile GREEN |
+| ≤2026-11-17T14:46:59Z | 73e4db2 | All four original stakes closed; `strategies/betting_against_beta` 100% line coverage. | 6282 passed / 35 skipped |
+
+## Proven closed (do not re-test, do not reopen)
+- P19-7 (all broad/bare `except` handlers annotated repo-wide: 222 handlers, 0 unannotated), P19-2/3/4, P17-1/2, P18-1/2/3, kill-switch R4-B, bootstrap, reconciliation R5-B/R5-C, live-adapter two-key safety, 100% line coverage of `strategies/betting_against_beta` (6562/6562 statements).
+- Milestone 1–5 hygiene. `scripts/bab_except_inventory.py` is retained as a read-only audit tool; running it is not a deliverable.
