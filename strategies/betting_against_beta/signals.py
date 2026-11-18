@@ -128,10 +128,12 @@ def generate_bab_signals(betas_df, long_quantile=0.3, short_quantile=0.3):
             beta_arr = betas_df.to_numpy(dtype=float)
         else:
             beta_arr = betas_df.apply(pd.to_numeric, errors="coerce").to_numpy(dtype=float)
-    except Exception:
+    except Exception:  # P19-7: Class A (total contract) — numeric dtype fast
+        # path failed; fall back to coercive conversion
         try:
             beta_arr = betas_df.apply(pd.to_numeric, errors="coerce").to_numpy(dtype=float)
-        except Exception:
+        except Exception:  # P19-7: Class A (total contract) — coercive conversion
+            # failed; return zero-signal frame
             return pd.DataFrame(0, index=betas_df.index, columns=betas_df.columns, dtype="int64")
     finite = np.isfinite(beta_arr)
     counts = finite.sum(axis=1)
@@ -155,7 +157,8 @@ def generate_bab_signals(betas_df, long_quantile=0.3, short_quantile=0.3):
     # finiteness guards) keep the stage faster without changing selection.
     try:
         rank = np.argsort(np.argsort(beta_arr, axis=1, kind="stable"), axis=1, kind="stable")
-    except Exception:
+    except Exception:  # P19-7: Class A (total contract) — argsort failed
+        # on non-finite; map inf and retry
         rank = np.argsort(np.argsort(np.where(finite, beta_arr, np.inf), axis=1), axis=1)
 
     cnt_valid = counts[valid]

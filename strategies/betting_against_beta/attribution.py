@@ -82,7 +82,8 @@ def _finite_sum(values) -> float:
         if not np.all(np.isfinite(arr)):
             arr = np.where(np.isfinite(arr), arr, 0.0)
         return float(arr.sum())
-    except Exception:
+    except Exception:  # P19-7: Class A (total contract) — fast-path finite
+        # repair failed; fall back to replace+fillna semantics
         # Defensive fallback: preserve the original replace+fillna semantics if
         # the numeric conversion or fast-path repair fails for any reason.
         return float(
