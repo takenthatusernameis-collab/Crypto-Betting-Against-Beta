@@ -237,7 +237,8 @@ def apply_costs(returns, weights=None, transaction_costs=None, **kwargs):
     if tc is None and weights is not None and isinstance(weights, pd.DataFrame):
         try:
             tc = compute_transaction_costs(weights)
-        except Exception:  # P19-7: Class A (total contract) — cost model failure -> zero-cost fallback
+        # P19-7: Class A (total contract) — cost model failure -> zero-cost fallback
+        except Exception:
             tc = pd.Series(0.0, index=weights.index)
     if tc is None:
         idx = returns.index if hasattr(returns, "index") else None

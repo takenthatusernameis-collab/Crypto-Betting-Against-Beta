@@ -52,7 +52,8 @@ def compute_running_drawdown(cumulative: pd.Series) -> pd.Series:
         return pd.Series(dtype="float64")
     try:
         c = pd.Series(cumulative, dtype="float64").copy()
-    except (TypeError, ValueError):  # P19-7: Class A (total contract) — non-coercible input -> empty series
+    # P19-7: Class A (total contract) — non-coercible input -> empty series
+    except (TypeError, ValueError):
         return pd.Series(dtype="float64")
     if len(c) == 0:
         return pd.Series(dtype="float64", index=c.index)
@@ -222,7 +223,8 @@ def _finite(value, default=0.0):
     """Coerce value to finite float."""
     try:
         v = float(value)
-    except (TypeError, ValueError):  # P19-7: Class A (total contract) — non-coercible value -> default
+    # P19-7: Class A (total contract) — non-coercible value -> default
+    except (TypeError, ValueError):
         return default
     return v if math.isfinite(v) else default
 
@@ -580,7 +582,8 @@ class RiskManager:
                 for asset, price in latest.items():
                     if pd.notna(price):
                         self._last_prices[asset] = float(price)
-            except Exception:  # P19-7: Class A (total contract) — malformed price row -> keep prior prices
+            # P19-7: Class A (total contract) — malformed price row -> keep prior prices
+            except Exception:
                 pass
 
     def get_position_value(self, positions: pd.Series) -> float:

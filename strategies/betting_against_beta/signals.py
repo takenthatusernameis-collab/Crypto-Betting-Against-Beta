@@ -102,11 +102,13 @@ def generate_bab_signals(betas_df, long_quantile=0.3, short_quantile=0.3):
     # Clamp quantiles safely
     try:
         lq = float(long_quantile)
-    except (TypeError, ValueError):  # P19-7: Class A (total contract) — uncoercible quantile -> default 0.3
+    # P19-7: Class A (total contract) — uncoercible quantile -> default 0.3
+    except (TypeError, ValueError):
         lq = 0.3
     try:
         sq = float(short_quantile)
-    except (TypeError, ValueError):  # P19-7: Class A (total contract) — uncoercible quantile -> default 0.3
+    # P19-7: Class A (total contract) — uncoercible quantile -> default 0.3
+    except (TypeError, ValueError):
         sq = 0.3
     if not np.isfinite(lq):
         lq = 0.3

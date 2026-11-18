@@ -148,7 +148,8 @@ def apply_regime_scaling(
                 if col in vol_regimes.columns:
                     scaled.loc[vol_regimes[col] == 2, col] *= scale_high_vol  # high vol
                     scaled.loc[vol_regimes[col] == 0, col] *= scale_low_vol  # low vol
-        except Exception as exc:  # P19-7: Class B — regime computation failed -> surface as BABDataError
+        # P19-7: Class B — regime computation failed -> surface as BABDataError
+        except Exception as exc:
             raise BABDataError(f"regime scaling failed: {exc}") from exc
     return scaled
 

@@ -16,7 +16,6 @@ import pytest
 
 from strategies.betting_against_beta.attribution import _finite_sum
 
-
 # ---------------------------------------------------------------------------
 # Site 85 (Class A) -- fast-path finite repair failed -> replace+fillna fallback
 # ---------------------------------------------------------------------------
