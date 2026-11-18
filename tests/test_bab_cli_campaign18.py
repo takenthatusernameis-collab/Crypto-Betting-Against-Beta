@@ -106,6 +106,7 @@ class TestReportMetricsFiniteness:
             long_quantile=0.3,
             short_quantile=0.3,
             transaction_costs=0.001,
+            beta_neutral=False,
         )
         res = strat.run(returns_df=rets)
         rep = strat.report(res)

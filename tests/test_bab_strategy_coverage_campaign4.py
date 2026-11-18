@@ -179,6 +179,7 @@ def test_run_finiteness_fallback_double_failure_surfaces(monkeypatch):
         min_observations=10,
         long_quantile=0.3,
         short_quantile=0.3,
+        beta_neutral=False,
     )
     real_construct = strategy_mod.construct_portfolio
 

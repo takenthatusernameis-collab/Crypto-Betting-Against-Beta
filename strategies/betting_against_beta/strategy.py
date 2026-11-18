@@ -515,6 +515,8 @@ class BABStrategy:
                 enable_tracking_error_monitoring=enable_te,
                 correction=correction,
             )
+            if rebalance_freq != "daily" and len(weights) > 0:
+                weights = _apply_rebalance(weights, rebalance_freq)
 
         # Explicit finiteness guard (single pass; construct_portfolio already
         # returns finite weights, this is a defensive final clamp).  One
@@ -817,6 +819,8 @@ class BABStrategy:
                 enable_tracking_error_monitoring=enable_te,
                 correction=correction,
             )
+            if rebalance_freq != "daily" and len(weights) > 0:
+                weights = _apply_rebalance(weights, rebalance_freq)
 
         # Finite guard
         # INVARIANT (P19-7 strategy sites 8-9 / Class A): the finiteness guard

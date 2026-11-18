@@ -66,6 +66,7 @@ def test_double_finiteness_failure_surfaces_babdataerror(monkeypatch):
         min_observations=10,
         long_quantile=0.3,
         short_quantile=0.3,
+        beta_neutral=False,
     )
     real_construct = strategy_mod.construct_portfolio
 
@@ -90,6 +91,7 @@ def test_single_finiteness_failure_still_falls_back(monkeypatch):
         min_observations=10,
         long_quantile=0.3,
         short_quantile=0.3,
+        beta_neutral=False,
     )
 
     class _ExplodingOuterOnly(pd.DataFrame):

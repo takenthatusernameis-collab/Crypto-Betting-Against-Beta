@@ -59,6 +59,11 @@ def main() -> int:
     )
     parser.add_argument("--version", action="store_true", help="Print version and exit")
     parser.add_argument("--output", type=str, help="Output JSON file for results summary")
+    parser.add_argument(
+        "--no-beta-neutral",
+        action="store_true",
+        help="Use the legacy dollar-neutral-only book (beta_neutral=False)",
+    )
     args = parser.parse_args()
 
     if args.version:
@@ -89,6 +94,7 @@ def main() -> int:
         long_quantile=args.quantile,
         short_quantile=args.quantile,
         transaction_costs=args.transaction_cost,
+        beta_neutral=not args.no_beta_neutral,
     )
     result = strat.run(returns_df=returns_df)
     # Extract the final cumulative defensively: a degenerate backtest frame

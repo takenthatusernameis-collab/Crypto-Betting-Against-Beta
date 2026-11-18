@@ -11,7 +11,7 @@ A market-neutral strategy that goes long low-beta crypto assets and short high-b
 2. **Benchmark**: configurable (default BTC); beta of benchmark vs itself is 1.0.
 3. **Beta estimation**: rolling OLS window (default 90 days, min 60 observations) of daily returns vs benchmark.
 4. **Signal**: each period, rank assets by rolling beta; go long the lowest-beta quantile (default 30%) and short the highest-beta quantile (default 30%).
-5. **Portfolio**: equal-weight long/short, dollar-neutral by default (weights sum to zero).
+5. **Portfolio**: equal-weight long/short, **beta-neutral by default** — weights sum to zero *and* `Σ wᵢβᵢ ≈ 0` against the benchmark, with the corrected book frozen inside weekly/monthly rebalance windows. Measurements, before/after numbers, and the honesty caveats are in [`docs/BAB_FIDELITY.md`](docs/BAB_FIDELITY.md).
 6. **Backtest**: one-day lagged weights (no lookahead), optional transaction costs.
 
 ### Module layout
@@ -21,7 +21,7 @@ strategies/betting_against_beta/
   data.py        # synthetic return generator (for tests / smoke runs)
   beta.py        # calculate_beta, calculate_rolling_beta
   signals.py     # generate_bab_signals (rank -> long/short)
-  portfolio.py   # construct_portfolio (equal-weight, dollar-neutral)
+  portfolio.py   # construct_portfolio (equal-weight dollar-neutral legs)
   backtest.py    # run_backtest (lagged weights, costs, cumulative)
   strategy.py    # BABStrategy: end-to-end entrypoint (run pipeline)
 ```

@@ -96,7 +96,7 @@ class BABConfig:
     regime_scale_high: float = 0.5  # scale applied in high-risk regime
     regime_scale_low: float = 1.0  # scale applied in low-risk regime
     # Beta-neutral enforcement parameters
-    beta_neutral: bool = False
+    beta_neutral: bool = True
     beta_neutral_enforcement: bool = False
     beta_target: float = 0.0
     beta_tolerance: float = 1e-4

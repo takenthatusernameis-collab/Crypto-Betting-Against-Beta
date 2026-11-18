@@ -219,7 +219,7 @@ def test_strategy_default_run_happy_path_unaffected():
 
 def test_site836_weight_cleanup_failure_surfaces_babdataerror(monkeypatch):
     """If final weight finiteness cleanup fails, raise chained BABDataError."""
-    strat = _default_strategy()
+    strat = BABStrategy(beta_neutral=False)
     base_construct = _portfolio_mod.construct_portfolio
 
     class BadWeightsDF(pd.DataFrame):

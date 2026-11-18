@@ -38,7 +38,13 @@ EXPECTED_KEYS = {"final_cumulative", "periods", "benchmark", "universe"}
 def _run_bab_example(argv):
     env = {**__import__("os").environ, "PYTHONPATH": str(REPO)}
     return subprocess.run(
-        [sys.executable, "-m", "scripts.load_real_bab_example", *argv],
+        [
+            sys.executable,
+            "-m",
+            "scripts.load_real_bab_example",
+            *argv,
+            "--no-beta-neutral",
+        ],
         capture_output=True,
         text=True,
         timeout=180,
@@ -197,6 +203,7 @@ class TestConsoleScriptInProcessParity:
             long_quantile=0.3,
             short_quantile=0.3,
             transaction_costs=0.001,
+            beta_neutral=False,
         )
         res = strat.run(returns_df=rets)
         bt = getattr(res, "backtest", None)
