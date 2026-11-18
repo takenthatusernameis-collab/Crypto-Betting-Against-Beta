@@ -12,7 +12,7 @@
 - **Default row in the sweep reproduces the certified baseline exactly:** w90 q0.3 tc10bps `beta_neutral=True` → wealth `0.705655`, Sharpe `−0.725483`, realized β `0.058754`, model β `0.000151`, gross `1.618354`, turnover `0.264446`. This is the cross-check that the harness measures the shipped book.
 - **Certified on this tree:** `ruff` PASS · `scripts/bab_quick.sh` GREEN (104 + 195) · `scripts/bab_reconcile_gate.sh` GREEN · full gate **6499 passed / 35 skipped / TOTAL 100% (6644/6644)** in 134.25 s · baseline probe prints `0.7057 -0.725 0.059`.
 - **Baseline locks (do not re-measure):** `beta_neutral: bool = True` (`config.py:106`); `weighting: str = "equal"` (`config.py:54`); `rank_min_leg_beta: float = 0.20` / `rank_max_gross: float = 4.0` (`config.py:57-58`); `construct_rank_weights(signals_df, betas, min_leg_beta=0.20, max_gross=4.0)`; equal path `0.7057` wealth / `−0.725` Sharpe / `+0.059` realized beta.
-- **P20 remaining (all evidence infrastructure, zero product changes):** **WP3**, **WP5**, then **WP4**. Pick yours with the routing table below — do not ask, do not idle.
+- **P20 remaining (all evidence infrastructure, zero product changes):** **WP5**, then **WP4**. Pick yours with the routing table below — do not ask, do not idle.
 - **Repo:** `Crypto-Betting-Against-Beta` — crypto market-neutral BAB trading system (ingest → beta → signals → portfolio → backtest → execution → ops).
 - **P19 CLOSED.** Coverage complete, handlers annotated, scratch scripts removed. Never reopen.
 
@@ -20,11 +20,11 @@
 
 # INITIAL TASK MESSAGE (BINDING — START HERE)
 
-**Timestamp:** 2026-11-18T21:40:00Z · **Campaign:** P20 — "Prove this repo is actually Betting Against Beta" · **Lane:** A · **WP:** **WP3 — walk-forward / out-of-sample harness**
+**Timestamp:** 2026-11-18T22:17:00Z · **Campaign:** P20 — "Prove this repo is actually Betting Against Beta" · **Lane:** A · **WP:** **WP5 — cost/turnover realism and break-even harness**
 
-**One-sentence objective:** build `scripts/bab_walk_forward.py`, commit `research_state/bab_p20/walk_forward.json` plus a markdown table rendered *from* that JSON, and prove with `tests/test_bab_p20_walk_forward.py` that every fold trains strictly before it tests, a planted lookahead trap is rejected, non-selected test slices cannot change the selection, reruns are byte-identical, and every fold has ≥40 untouched test rows — using `weighting="equal"` only.
+**One-sentence objective:** build `scripts/bab_breakeven.py`, commit `research_state/bab_p20/breakeven.json` plus a markdown table rendered *from* that JSON, and prove with `tests/test_bab_p20_breakeven.py` that break-even cost is monotone non-increasing in reported Sharpe, reruns are byte-identical, `tc=0` reproduces uncosted Sharpe within `1e-12`, and the 6-iteration bisection over `tc ∈ [0, 0.01]` is exact — importing `scripts/bab_research_sweep.build_sweep` read-only, using `weighting="equal"` only.
 
-**Why this and nothing else:** the repository is named for a claim. WP1/WP2/WP2b fixed *construction*; WP0 just proved the *measurement is reproducible*. The repo still has **no out-of-sample evidence**: nothing yet prevents a future report from quoting the best in-sample grid row as if it were a result. WP3 is the anti-cherry-pick gate — the only artifact that can turn "we swept 80 configs" into "here is what survived when parameters were chosen without seeing the test data". **Do not reopen product code. Do not add rank. Do not publish a profitability claim.**
+**Why this and nothing else:** WP3 (`scripts/bab_walk_forward.py` + `research_state/bab_p20/walk_forward.json` + `walk_forward.md` + `tests/test_bab_p20_walk_forward.py`) lands in this same commit, so the walk-forward evidence gate is now present: every fold trains strictly before it tests, a planted lookahead trap is rejected, test-slice corruption changes no selection, reruns are byte-identical, and every fold has ≥40 untouched test rows — `weighting="equal"` only. WP0's `build_sweep` dependency is satisfied and committed, so WP5 is unblocked and owns a disjoint file set. WP4 stays blocked until WP3+WP5 artifacts exist. **Do not edit `scripts/bab_research_sweep.py` or any WP0 artifact. Do not add rank. Do not publish a profitability claim.**
 
 ---
 
@@ -39,14 +39,14 @@ git ls-files scripts/bab_research_sweep.py scripts/bab_walk_forward.py scripts/b
 | First file missing from that list | Your WP | You own (create + commit) |
 |---|---|---|
 | ~~`scripts/bab_research_sweep.py`~~ | ~~WP0~~ | **DONE in the working tree — commit it if uncommitted, never rebuild, never re-measure; verify hashes only** |
-| `scripts/bab_walk_forward.py` | **WP3** | `scripts/bab_walk_forward.py`, `research_state/bab_p20/walk_forward.json`, `research_state/bab_p20/walk_forward.md`, `tests/test_bab_p20_walk_forward.py` |
+| ~~`scripts/bab_walk_forward.py`~~ | ~~WP3~~ | **DONE — landed with this commit (script + `walk_forward.json` + `walk_forward.md` + `tests/test_bab_p20_walk_forward.py` + this HANDOFF.md, one commit, full gate green)** |
 | `scripts/bab_breakeven.py` | **WP5** | `scripts/bab_breakeven.py`, `research_state/bab_p20/breakeven.json`, `research_state/bab_p20/breakeven.md`, `tests/test_bab_p20_breakeven.py` |
 | `docs/BAB_RESEARCH_REPORT.md` | **WP4** | `docs/BAB_RESEARCH_REPORT.md`, `tests/test_bab_p20_report_consistency.py` |
 
 Rules that make this work:
 
 1. **Never take a WP whose deliverable script already exists** (`git ls-files`, or on disk and passing its test). Commit an uncommitted WP0 payload first, verify it instead, then take the next missing one. Re-verifying a landed WP is not a session.
-2. **Three concurrent sessions:** primary takes `bab_walk_forward.py` (WP3), secondary takes `bab_breakeven.py` (WP5 — **now unblocked**: it imports WP0's `build_sweep` read-only), tertiary takes nothing yet (WP4 needs WP3+WP5 artifacts). File sets are disjoint.
+2. **Three concurrent sessions:** primary takes `bab_breakeven.py` (WP5 — **unblocked**: WP0's `build_sweep` is committed and WP3's fold geometry/selection/tie-break/anti-lookahead tests are landed), secondary takes nothing yet (WP4 needs WP3+WP5 artifacts). File sets are disjoint.
 3. **A partially finished WP is not a locked WP.** If its files exist only in the working tree (not `git ls-files`) or its gate is red, you own finishing it: `git status --short` is the tiebreak.
 4. **Everything is blocked?** Repair the red gate first (`bash scripts/bab_quick.sh`), then take the first missing row. There is no state in which no rung exists.
 5. **Never end a session with prose.** A landed WP = script + artifact + consistency test in **one** commit + green full gate. If you can only land a slice, it must still contain its test, and the ledger row must name the exact remainder.
@@ -169,11 +169,11 @@ One session owns exactly one WP for its turn. Two sessions must never take the s
 
 | Lane | WPs in order | Owned files | Status |
 |---|---|---|---|
-| **A — Research/evaluation** | **WP0** ✅ → **WP3** → **WP5** | `scripts/bab_research_sweep.py`, `scripts/bab_walk_forward.py`, `scripts/bab_breakeven.py`, `research_state/bab_p20/**`, `tests/test_bab_p20_research_sweep.py`, `tests/test_bab_p20_walk_forward.py`, `tests/test_bab_p20_breakeven.py` | WP0 landed; **WP3 + WP5 both startable now** |
+| **A — Research/evaluation** | **WP0** ✅ → **WP3** ✅ → **WP5** | `scripts/bab_research_sweep.py`, `scripts/bab_walk_forward.py`, `scripts/bab_breakeven.py`, `research_state/bab_p20/**`, `tests/test_bab_p20_research_sweep.py`, `tests/test_bab_p20_walk_forward.py`, `tests/test_bab_p20_breakeven.py` | WP0 + WP3 landed; **WP5 startable now** |
 | **C — Reporting/consistency** | WP4 after WP0+WP3+WP5 | `docs/BAB_RESEARCH_REPORT.md`, `tests/test_bab_p20_report_consistency.py` | blocked by A (by design) |
 | **B — Strategy fidelity** | WP1 ✅, WP2 ✅, WP2b ✅ | `config.py`, `portfolio.py`, `strategy.py`, `docs/BAB_FIDELITY.md`, `tests/test_bab_p20_rank_weighting.py` | **closed** |
 
-Rules: Lane A never edits product code; Lane B never edits research scripts or `research_state/`. **Solo default: WP3. Two sessions: WP3 + WP5 — the file sets are disjoint and WP5's `build_sweep` dependency now exists.** Both must use `weighting="equal"` only.
+Rules: Lane A never edits product code; Lane B never edits research scripts or `research_state/`. **Solo default: WP5.** Both sessions must use `weighting="equal"` only.
 
 ### WP5 — Cost/turnover realism and break-even
 `scripts/bab_breakeven.py`: **owns its own file and must not edit `scripts/bab_research_sweep.py`.** Import `build_sweep` read-only (or load the committed `sweep.json`) and compute the cost level at which OOS Sharpe crosses zero by **6-iteration bisection over `tc ∈ [0, 0.01]`** (deterministic), plus turnover per rebalance and gross exposure → `research_state/bab_p20/breakeven.json` (stable keys `schema: "bab_p20.breakeven/1"`, `provenance`, `rows`) + rendered markdown. **Acceptance:** `tests/test_bab_p20_breakeven.py` proves break-even cost is monotone non-increasing in reported Sharpe, reruns are byte-identical, and `tc=0` reproduces uncosted Sharpe within `1e-12`.
@@ -188,7 +188,7 @@ Rules: Lane A never edits product code; Lane B never edits research scripts or `
 1. Default-config book: `max|Σ wᵢβᵢ| ≤ 1e-3` (daily, 6 grid points), `|realized β| ≤ 0.15` grid-wide (`≤0.07` at `w∈{90,120}`), committed test, weekly/monthly invariance, explicit opt-out byte-identical. **DONE (WP1).**
 2. `weighting="rank"` exists, is opt-in, matches the hand weights to `1e-12`, unit-beta legs, zero total beta on rebalance rows, equal path byte-identical, no-lookahead proof. **DONE (WP2).**
 3. Rank path is **numerically bounded**: leg-beta floor + gross cap flatten pathological rows, hand example unchanged, wide-universe proof, fixture-flat documented. **DONE (WP2b).**
-4. `scripts/bab_research_sweep.py` exists and is deterministic (hash-equal reruns), JSON artifact committed under `research_state/bab_p20/`. **DONE (WP0).** `scripts/bab_walk_forward.py` + `scripts/bab_breakeven.py` still owed by **WP3/WP5**.
+4. `scripts/bab_research_sweep.py` exists and is deterministic (hash-equal reruns), JSON artifact committed under `research_state/bab_p20/`. **DONE (WP0).** `scripts/bab_walk_forward.py` owed by WP3 **DONE (this commit)**; `scripts/bab_breakeven.py` still owed by **WP5**.
 5. `docs/BAB_RESEARCH_REPORT.md` exists; every published number machine-checked against JSON; no rank performance claim. **WP4.**
 6. All `tests/test_bab_p20_*.py` pass; no existing test deleted/skipped/`xfail`-ed/weakened; coverage **100%** (6499/35 may only grow). **Every WP re-certifies.**
 7. Full gate green: ruff PASS, reconcile GREEN, `bab_gate.sh` `BAB_GATE_MIN_COVERAGE=100` GREEN, 0 missed. **Every WP re-certifies.**
@@ -292,6 +292,7 @@ Inner loop: `bash scripts/bab_quick.sh` + `python3 -m pytest -q tests/test_bab_p
 
 | Session (UTC) | HEAD | Did | Gate |
 |---|---|---|---|
+| 2026-11-18T22:17:00Z | `7e83a95` + working tree | **WP3 landed (heavy work, not a refresh).** Added `scripts/bab_walk_forward.py` (`build_walk_forward` pure, `render_markdown`, `write_artifacts`, `main`, plus `select_on_train` and `assert_train_before_test` guards), a 5×40 expanding walk-forward on the fixture with train-only selection (`beta_window` ∈ {30, 60, 90, 120} × `quantile` ∈ {0.2, 0.3}, `beta_neutral=True`, `transaction_costs=0.001`, `weighting="equal"`), wrote `research_state/bab_p20/walk_forward.json` and `walk_forward.md` (rendered in memory from the JSON), and added `tests/test_bab_p20_walk_forward.py` (10 tests: fold separation/geometry with last test index 379, lookahead-guard rejection on misordered and overlapping index sets, train-only selection invariance under corrupted test slices at unit level and end-to-end via a corrupted fixture CSV, byte-identical reruns plus identical CLI file hashes, honesty/schema/provenance/no-rank/6-dp-markdown integrity, <20 s runtime). Re-routed the handoff to **WP5 as the solo default**; WP0's `build_sweep` dependency is committed so WP5 is unblocked with a disjoint file set; WP4 remains blocked by design. | ruff PASS; quick GREEN (104+195); reconcile GREEN; full gate **GREEN 6509 passed / 35 skipped / 100% (6644/6644)** (138.92 s) |
 | 2026-11-18T21:38:00Z | `14a3935` + working tree | **WP0 landed (heavy work, not a refresh).** Added `scripts/bab_research_sweep.py` (`build_sweep` pure + `render_markdown` + `write_artifacts` + `main`), wrote `research_state/bab_p20/sweep.json` (80 rows, sha `ffb98c33…`) and `sweep.md` (sha `d12e3ba1…`), and added `tests/test_bab_p20_research_sweep.py` (10 tests: <10 s runtime, byte-identical reruns, 80-row completeness, provenance truth, markdown-traces-to-JSON, no-rank-leakage, idempotent write, default-row baseline). Sweep runs in 0.78 s; default row `0.705655 / −0.725483 / 0.058754` matches the certified baseline. Re-routed the handoff to **WP3 (primary) + WP5 (secondary)**, pinned WP3's fold geometry/selection/tie-break/anti-lookahead tests, and banned docs-only sessions. | ruff PASS; quick GREEN (104+195); reconcile GREEN; full gate **GREEN 6499 passed / 35 skipped / 100% (6644/6644)** (134.25 s) |
 | 2026-11-18T21:28:21Z | 0452bd1 | **Handoff re-certification (documentation only).** Corrected stale git-state to `0452bd1`; re-anchored the initial task message to the repo name. Routing table stood; no bottleneck remained. | ruff PASS; quick GREEN; baseline `0.7057 -0.725 0.059` |
 | 2026-11-18T21:18:00Z | 7637fba | Handoff refresh (documentation only). Added artifact-based routing, de-collided WP5, added JSON schemas for WP4, work-quantum minimums. | ruff PASS; quick GREEN; full gate 6489/35/100% (129.4 s) |
