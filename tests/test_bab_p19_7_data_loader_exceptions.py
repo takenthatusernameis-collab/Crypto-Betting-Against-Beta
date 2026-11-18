@@ -496,3 +496,273 @@ def test_site713_detect_exchange_aggressive_coerce_failure_returns_original(monk
     out = _detect_and_normalize_exchange_format(df.copy())
     assert isinstance(out, pd.DataFrame)
     assert len(out) == 2
+
+
+
+
+# ---------------------------------------------------------------------------
+# Milestone 3 Batch 2 (Cluster A, _normalize_index numeric/string fallbacks)
+# Class A: intentional best-effort coercion contracts in index normalization.
+# ---------------------------------------------------------------------------
+
+
+def _df_with_index(idx):
+    return pd.DataFrame({"x": list(range(len(idx)))}, index=pd.Index(idx))
+
+
+def test_cluster_a_site205_ns_epoch_vector_failure_falls_back_to_us():
+    """Site 205: ns-epoch vector parse failure -> us-epoch fallback still normalizes."""
+    real_to_datetime = pd.to_datetime
+
+    def fake_to_datetime(arg, *a, **k):
+        if k.get("unit") == "ns" and k.get("utc") is True and isinstance(arg, pd.Index):
+            raise RuntimeError("ns vector boom")
+        return real_to_datetime(arg, *a, **k)
+
+    try:
+        pd.to_datetime = fake_to_datetime
+        out = _normalize_index(_df_with_index([10**18 + 1, 10**18 + 2]))
+    finally:
+        pd.to_datetime = real_to_datetime
+    assert isinstance(out.index, pd.DatetimeIndex)
+    assert len(out) == 2
+
+
+def test_cluster_a_site210_us_fallback_to_elementwise_when_vector_parses_fail():
+    """Site 210: ns+us vector failures -> elementwise scalar coercion fallback."""
+    real_to_datetime = pd.to_datetime
+
+    def fake_to_datetime(arg, *a, **k):
+        if k.get("unit") in {"ns", "us"} and k.get("utc") is True and isinstance(arg, pd.Index):
+            raise RuntimeError("vector boom")
+        return real_to_datetime(arg, *a, **k)
+
+    try:
+        pd.to_datetime = fake_to_datetime
+        out = _normalize_index(_df_with_index([10**18 + 1, 10**18 + 2]))
+    finally:
+        pd.to_datetime = real_to_datetime
+    assert isinstance(out.index, pd.DatetimeIndex)
+    assert len(out) == 2
+
+
+def test_cluster_a_site218_us_boundary_vector_failure_falls_back_to_elementwise():
+    """Site 218: us-boundary magnitude vector parse failure -> elementwise fallback."""
+    real_to_datetime = pd.to_datetime
+
+    def fake_to_datetime(arg, *a, **k):
+        if k.get("unit") == "us" and k.get("utc") is True and isinstance(arg, pd.Index):
+            raise RuntimeError("us boom")
+        return real_to_datetime(arg, *a, **k)
+
+    try:
+        pd.to_datetime = fake_to_datetime
+        out = _normalize_index(_df_with_index([10**16, 10**16 + 5000]))
+    finally:
+        pd.to_datetime = real_to_datetime
+    assert isinstance(out.index, pd.DatetimeIndex)
+    assert len(out) == 2
+
+
+def test_cluster_a_site226_ms_vector_failure_falls_back_to_elementwise():
+    """Site 226: ms vector parse failure -> elementwise fallback."""
+    real_to_datetime = pd.to_datetime
+
+    def fake_to_datetime(arg, *a, **k):
+        if k.get("unit") == "ms" and k.get("utc") is True and isinstance(arg, pd.Index):
+            raise RuntimeError("ms boom")
+        return real_to_datetime(arg, *a, **k)
+
+    try:
+        pd.to_datetime = fake_to_datetime
+        out = _normalize_index(_df_with_index([10**13, 10**13 + 1000]))
+    finally:
+        pd.to_datetime = real_to_datetime
+    assert isinstance(out.index, pd.DatetimeIndex)
+    assert len(out) == 2
+
+
+def test_cluster_a_site234_s_vector_failure_falls_back_to_elementwise():
+    """Site 234: s-epoch vector parse failure -> elementwise fallback."""
+    real_to_datetime = pd.to_datetime
+
+    def fake_to_datetime(arg, *a, **k):
+        if k.get("unit") == "s" and k.get("utc") is True and isinstance(arg, pd.Index):
+            raise RuntimeError("s boom")
+        return real_to_datetime(arg, *a, **k)
+
+    try:
+        pd.to_datetime = fake_to_datetime
+        out = _normalize_index(_df_with_index([10**9 + 1, 10**9 + 86400]))
+    finally:
+        pd.to_datetime = real_to_datetime
+    assert isinstance(out.index, pd.DatetimeIndex)
+    assert len(out) == 2
+
+
+def test_cluster_a_site242_small_positive_s_vector_failure_falls_back():
+    """Sites 242/248: small-magnitude (av>0) s-epoch vector failure -> tolerant fallback."""
+    real_to_datetime = pd.to_datetime
+
+    def fake_to_datetime(arg, *a, **k):
+        if k.get("unit") == "s" and k.get("utc") is True and isinstance(arg, pd.Index):
+            raise RuntimeError("s boom")
+        return real_to_datetime(arg, *a, **k)
+
+    try:
+        pd.to_datetime = fake_to_datetime
+        out = _normalize_index(_df_with_index([100, 200]))
+    finally:
+        pd.to_datetime = real_to_datetime
+    assert isinstance(out.index, pd.DatetimeIndex)
+    assert len(out) == 2
+
+
+def test_cluster_a_site289_298_string_index_coerce_failures_fall_through():
+    """Sites 289/298: utc/naive vector-coerce failures fall through to tolerant normalization."""
+    real_to_datetime = pd.to_datetime
+    state = {"n": 0}
+
+    def fake_to_datetime(arg, *a, **k):
+        if isinstance(arg, pd.Index) and k.get("errors") == "coerce":
+            if state["n"] == 0 and k.get("utc") is True:
+                state["n"] += 1
+                raise RuntimeError("utc coerce boom")
+            if state["n"] == 1 and k.get("utc") is False:
+                state["n"] += 1
+                raise RuntimeError("naive coerce boom")
+        return real_to_datetime(arg, *a, **k)
+
+    try:
+        pd.to_datetime = fake_to_datetime
+        out = _normalize_index(pd.DataFrame({"x": [1, 2]}, index=["2023-01-01", "2023-01-02"]))
+    finally:
+        pd.to_datetime = real_to_datetime
+    assert isinstance(out.index, pd.DatetimeIndex)
+    assert len(out) == 2
+
+
+def test_cluster_a_site322_327_mixed_string_block_failure_elementwise_fallback():
+    """Sites 322/327: mixed-string block/vector-strict failures -> elementwise coercion."""
+    real_to_datetime = pd.to_datetime
+    broke = {"coerce": 0}
+
+    def fake_to_datetime(arg, *a, **k):
+        if isinstance(arg, pd.Index):
+            if k.get("errors") == "coerce":
+                broke["coerce"] += 1
+                raise RuntimeError("coerce boom")
+            if k.get("errors") == "raise" and broke["coerce"] >= 1:
+                raise RuntimeError("strict boom")
+        return real_to_datetime(arg, *a, **k)
+
+    try:
+        pd.to_datetime = fake_to_datetime
+        out = _normalize_index(pd.DataFrame({"x": [1, 2]}, index=["2023-01-01", "2023-01-02"]))
+    finally:
+        pd.to_datetime = real_to_datetime
+    assert isinstance(out.index, pd.DatetimeIndex)
+
+
+def test_cluster_a_site357_360_datetimeindex_tz_normalization_best_effort(monkeypatch):
+    """Sites 357/360/363: tz_convert/tz_localize failures suppressed, index remains usable."""
+    idx = pd.DatetimeIndex(["2023-01-01", "2023-01-02"], tz="UTC")
+    df = pd.DataFrame({"x": [1, 2]}, index=idx)
+
+    def boom_convert(self, *a, **k):
+        raise RuntimeError("tz_convert boom")
+
+    def boom_localize(self, *a, **k):
+        raise RuntimeError("tz_localize boom")
+
+    monkeypatch.setattr(pd.DatetimeIndex, "tz_convert", boom_convert)
+    monkeypatch.setattr(pd.DatetimeIndex, "tz_localize", boom_localize)
+    out = _normalize_index(df)
+    assert isinstance(out.index, pd.DatetimeIndex)
+    assert len(out) == 2
+
+
+def test_cluster_a_normalize_index_happy_path_preserved():
+    df = pd.DataFrame({"x": [1, 2]}, index=pd.to_datetime(["2023-01-01", "2023-01-02"]))
+    out = _normalize_index(df.copy())
+    assert isinstance(out.index, pd.DatetimeIndex)
+    assert list(out["x"]) == [1, 2]
+
+
+# ---------------------------------------------------------------------------
+# Milestone 3 Batch 2 (Cluster B, _coerce_to_datetime_scalar fallbacks)
+# Class A: best-effort magnitude/generic parse probing; terminal contract intact.
+# ---------------------------------------------------------------------------
+
+
+def test_cluster_b_site437_444_451_458_numeric_string_epoch_parse_failures_fall_through():
+    """Sites 437/444/451/458: numeric-string epoch parse failures fall through."""
+    real_to_datetime = pd.to_datetime
+    seen: dict = {}
+
+    def fake_to_datetime(arg, *a, **k):
+        # break first epoch-unit parse per (value,unit) so the handler is exercised;
+        # allow subsequent attempts so contract-preserving fallback can succeed.
+        if isinstance(arg, int) and k.get("unit") in {"ms", "s"} and k.get("utc") is True:
+            key = (arg, k.get("unit"))
+            seen[key] = seen.get(key, 0) + 1
+            if seen[key] == 1:
+                raise RuntimeError("epoch unit boom")
+        return real_to_datetime(arg, *a, **k)
+
+    try:
+        pd.to_datetime = fake_to_datetime
+        # av>=1e9 numeric string -> exercises s-epoch attempts at 458/464 region
+        ts = _coerce_to_datetime_scalar("1704067200")
+        assert isinstance(ts, pd.Timestamp)
+        # av>1e12 numeric string -> exercises ms attempt at 451 region
+        ts2 = _coerce_to_datetime_scalar("1704067200000")
+        assert isinstance(ts2, pd.Timestamp)
+    finally:
+        pd.to_datetime = real_to_datetime
+
+
+def test_cluster_b_site478_483_486_489_492_generic_parse_chain_fallbacks():
+    """Sites 478/483/486/489/492: successive generic parse failures follow contract chain."""
+    real_to_datetime = pd.to_datetime
+
+    def fake_to_datetime(arg, *a, **k):
+        if arg == "2023-01-02" and k.get("errors") == "raise":
+            # fail first three attempts, allow final naive-dayfirst attempt
+            if k.get("utc") is True and k.get("dayfirst") is not True:
+                raise RuntimeError("utc strict boom")
+            if k.get("utc") is True and k.get("dayfirst") is True:
+                raise RuntimeError("utc dayfirst boom")
+            if k.get("utc") is False and k.get("dayfirst") is not True:
+                raise RuntimeError("naive strict boom")
+        return real_to_datetime(arg, *a, **k)
+
+    try:
+        pd.to_datetime = fake_to_datetime
+        ts = _coerce_to_datetime_scalar("2023-01-02")
+    finally:
+        pd.to_datetime = real_to_datetime
+    assert isinstance(ts, pd.Timestamp)
+
+
+def test_cluster_b_site492_terminal_bad_preserved_when_all_generic_parses_fail():
+    """Site 492: terminal ValueError('bad') preserved when no parse path succeeds."""
+    real_to_datetime = pd.to_datetime
+
+    def fake_to_datetime(arg, *a, **k):
+        if arg == "definitely-not-a-date" and k.get("errors") == "raise":
+            raise RuntimeError("boom")
+        return real_to_datetime(arg, *a, **k)
+
+    try:
+        pd.to_datetime = fake_to_datetime
+        with pytest.raises(ValueError, match="^bad$"):
+            _coerce_to_datetime_scalar("definitely-not-a-date")
+    finally:
+        pd.to_datetime = real_to_datetime
+
+
+def test_cluster_b_scalar_coercion_happy_paths_preserved():
+    assert _coerce_to_datetime_scalar("2023-01-01").year == 2023
+    assert isinstance(_coerce_to_datetime_scalar(1704067200), pd.Timestamp)
+    assert isinstance(_coerce_to_datetime_scalar(1704067200000), pd.Timestamp)

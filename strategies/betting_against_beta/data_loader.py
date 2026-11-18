@@ -203,43 +203,59 @@ def _normalize_index(df: pd.DataFrame) -> pd.DataFrame:
                             try:
                                 df.index = pd.to_datetime(idx, unit="ns", utc=True)
                             except Exception:
+                                # P19-7: Class A (total contract) — ns-epoch index parse
+                                # is best-effort; fall through to us-epoch attempt.
                                 try:
                                     df.index = pd.to_datetime(idx, unit="us", utc=True)
                                 except Exception:
+                                    # P19-7: Class A (total contract) — us-epoch fallback
+                                    # is best-effort; degrade to elementwise scalar coercion.
                                     coerced = [_coerce_to_datetime_scalar(v) for v in idx]
                                     df.index = coerced
                         elif av > 1e17 or av > 1e15:  # nanoseconds/us boundary
                             try:
                                 df.index = pd.to_datetime(idx, unit="us", utc=True)
                             except Exception:
+                                # P19-7: Class A (total contract) — us-epoch index parse
+                                # is best-effort; degrade to elementwise scalar coercion.
                                 coerced = [_coerce_to_datetime_scalar(v) for v in idx]
                                 df.index = coerced
                         elif av > 1e12:  # milliseconds
                             try:
                                 df.index = pd.to_datetime(idx, unit="ms", utc=True)
                             except Exception:
+                                # P19-7: Class A (total contract) — ms-epoch index parse
+                                # is best-effort; degrade to elementwise scalar coercion.
                                 coerced = [_coerce_to_datetime_scalar(v) for v in idx]
                                 df.index = coerced
                         elif av >= 1e9:  # seconds
                             try:
                                 df.index = pd.to_datetime(idx, unit="s", utc=True)
                             except Exception:
+                                # P19-7: Class A (total contract) — s-epoch index parse
+                                # is best-effort; degrade to elementwise scalar coercion.
                                 coerced = [_coerce_to_datetime_scalar(v) for v in idx]
                                 df.index = coerced
                         elif av > 0:  # small numbers, try seconds
                             try:
                                 df.index = pd.to_datetime(idx, unit="s", utc=True)
                             except Exception:
+                                # P19-7: Class A (total contract) — small-magnitude s-epoch
+                                # index parse is best-effort; try elementwise coercion.
                                 try:
                                     coerced = [_coerce_to_datetime_scalar(v) for v in idx]
                                     df.index = coerced
                                 except Exception:
+                                    # P19-7: Class A (total contract) — elementwise fallback
+                                    # failed; re-attempt strict vector parse before raising.
                                     df.index = pd.to_datetime(idx, errors="raise")
                         else:
                             df.index = pd.to_datetime(idx, errors="raise")
                     except BABDataError:
                         raise
                     except Exception:
+                        # P19-7: Class A (total contract) — magnitude-based numeric parse
+                        # failed; try elementwise scalar coercion of the full index.
                         try:
                             coerced = []
                             for v in idx:
@@ -248,6 +264,8 @@ def _normalize_index(df: pd.DataFrame) -> pd.DataFrame:
                         except BABDataError:
                             raise
                         except Exception:
+                            # P19-7: Class A (total contract) — first elementwise attempt
+                            # failed; retry elementwise coercion as final tolerant pass.
                             try:
                                 coerced = []
                                 for v in idx:
@@ -256,9 +274,13 @@ def _normalize_index(df: pd.DataFrame) -> pd.DataFrame:
                             except BABDataError:
                                 raise
                             except Exception:
+                                # P19-7: Class A (total contract) — tolerant coercion
+                                # exhausted; require strict parse or surface BABDataError.
                                 try:
                                     df.index = pd.to_datetime(idx, errors="raise")
                                 except Exception:
+                                    # P19-7: Class A (total contract) — strict re-parse after
+                                    # tolerant coercion failed; surface canonical BABDataError.
                                     raise BABDataError("Index could not be parsed as datetime")
                 else:
                     # Try to be robust with mixed timezones/strings
@@ -267,6 +289,8 @@ def _normalize_index(df: pd.DataFrame) -> pd.DataFrame:
                         try:
                             df.index = pd.to_datetime(idx, utc=True, errors="coerce")
                         except Exception:
+                            # P19-7: Class A (total contract) — utc-aware coerce failed;
+                            # retry with naive coercion.
                             df.index = pd.to_datetime(idx, errors="coerce")
                         if getattr(df.index, "isna", None) is not None and bool(
                             getattr(df.index.isna(), "any", lambda: False)()
@@ -274,6 +298,8 @@ def _normalize_index(df: pd.DataFrame) -> pd.DataFrame:
                             try:
                                 df.index = pd.to_datetime(idx, errors="coerce", utc=False)
                             except Exception:
+                                # P19-7: Class A (total contract) — naive coerce retry
+                                # failed; keep prior coerced index for elementwise fixup.
                                 df.index = pd.to_datetime(idx, errors="coerce")
                         if getattr(df.index, "isna", None) is not None and bool(
                             getattr(df.index.isna(), "any", lambda: False)()
@@ -296,9 +322,13 @@ def _normalize_index(df: pd.DataFrame) -> pd.DataFrame:
                                 coerced.append(_coerce_to_datetime_scalar(v))
                             df.index = coerced
                     except Exception:
+                        # P19-7: Class A (total contract) — mixed/string normalization
+                        # block failed; attempt strict parse then elementwise fallback.
                         try:
                             df.index = pd.to_datetime(idx, errors="raise")
                         except Exception:
+                            # P19-7: Class A (total contract) — strict parse failed;
+                            # elementwise scalar coercion is the final tolerant path.
                             coerced = []
                             for v in idx:
                                 coerced.append(_coerce_to_datetime_scalar(v))
@@ -306,9 +336,13 @@ def _normalize_index(df: pd.DataFrame) -> pd.DataFrame:
             except BABDataError:
                 raise
             except Exception:
+                # P19-7: Class A (total contract) — dtype-dispatch numeric/string
+                # normalization failed; attempt strict parse before surfacing error.
                 try:
                     df.index = pd.to_datetime(idx, errors="raise")
                 except Exception:
+                    # P19-7: Class A (total contract) — index is not coercible to
+                    # datetimes via tolerant or strict paths; surface BABDataError.
                     raise BABDataError("Index could not be parsed as datetime")
         except BABDataError:
             raise
@@ -323,9 +357,13 @@ def _normalize_index(df: pd.DataFrame) -> pd.DataFrame:
                 try:
                     df.index = df.index.tz_convert("UTC").tz_localize(None)
                 except Exception:
+                    # P19-7: Class A (total contract) — UTC conversion/localize
+                    # failed; fall back to dropping tz metadata directly.
                     try:
                         df.index = df.index.tz_convert(None)
                     except Exception:
+                        # P19-7: Class A (total contract) — tz drop fallback is
+                        # best-effort; suppress and keep partially-normalized index.
                         with contextlib.suppress(Exception):
                             df.index = df.index.tz_localize(None)
         except Exception:
@@ -403,6 +441,8 @@ def _coerce_to_datetime_scalar(val):
                 try:
                     return pd.to_datetime(int(numf), unit="us", utc=True)
                 except Exception:
+                    # P19-7: Class A (total contract) — us-epoch string parse best-effort;
+                    # continue magnitude-based probing.
                     pass
             if av > 1e15:
                 try:
@@ -410,6 +450,8 @@ def _coerce_to_datetime_scalar(val):
                         int(numf) if float(numf).is_integer() else numf, unit="us", utc=True
                     )
                 except Exception:
+                    # P19-7: Class A (total contract) — us-epoch (fractional boundary)
+                    # string parse best-effort; continue magnitude-based probing.
                     pass
             if av > 1e12:
                 try:
@@ -417,6 +459,8 @@ def _coerce_to_datetime_scalar(val):
                         return pd.to_datetime(int(numf), unit="ms", utc=True)
                     return pd.to_datetime(numf, unit="ms", utc=True)
                 except Exception:
+                    # P19-7: Class A (total contract) — ms-epoch string parse best-effort;
+                    # continue magnitude-based probing.
                     pass
             if av >= 1e9:
                 try:
@@ -424,26 +468,38 @@ def _coerce_to_datetime_scalar(val):
                         return pd.to_datetime(int(numf), unit="s", utc=True)
                     return pd.to_datetime(numf, unit="s", utc=True)
                 except Exception:
+                    # P19-7: Class A (total contract) — s-epoch string parse best-effort;
+                    # continue to generic numeric/datetime fallbacks.
                     pass
             try:
                 if float(numf).is_integer():
                     return pd.to_datetime(int(numf), unit="s", utc=True)
                 return pd.to_datetime(numf, unit="s", utc=True)
             except Exception:
+                # P19-7: Class A (total contract) — final numeric-string s-epoch parse
+                # best-effort; fall through to generic datetime parsing.
                 pass
         # Normal datetime parsing (handles ISO, Z, offsets, dayfirst).
         try:
             return pd.to_datetime(s, utc=True, errors="raise")
         except Exception:
+            # P19-7: Class A (total contract) — UTC strict parse failed; try UTC
+            # dayfirst before falling back to naive parsing.
             try:
                 return pd.to_datetime(s, utc=True, errors="raise", dayfirst=True)
             except Exception:
+                # P19-7: Class A (total contract) — UTC dayfirst parse failed; try
+                # naive strict parse.
                 try:
                     return pd.to_datetime(s, utc=False, errors="raise")
                 except Exception:
+                    # P19-7: Class A (total contract) — naive strict parse failed;
+                    # try naive dayfirst as last tolerant parse attempt.
                     try:
                         return pd.to_datetime(s, utc=False, errors="raise", dayfirst=True)
                     except Exception:
+                        # P19-7: Class A (total contract) — string is not coercible to
+                        # datetime by any supported format; surface ValueError("bad").
                         raise ValueError("bad")
     if isinstance(val, (int, np.integer)):
         v = int(val)
