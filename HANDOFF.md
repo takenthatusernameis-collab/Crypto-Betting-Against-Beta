@@ -2,7 +2,7 @@
 
 **Canonical durable handoff (single source of truth).** Update this file only. `AGENT_HANDOFF.md` is a pointer. Delete any other `*HANDOFF*.md` on sight. Do not create parallel session/handoff docs.
 
-- **Timestamp (UTC):** 2026-11-18T03:02:27Z (this refresh; verified on live HEAD).
+- **Timestamp (UTC):** 2026-11-18T03:03:58Z (this refresh; verified on live HEAD).
 - **Latest verified checks @2026-11-18T02:56Z, HEAD `d542663` (handoff-only checkpoint chain; `git diff --name-only 94954b8 HEAD` → `HANDOFF.md`, `AGENT_HANDOFF.md` ONLY — zero product/test change since green baseline), clean working tree:**
   - `bash scripts/bab_quick.sh` → **GREEN** (live: ruff PASS + targeted trio 104 passed + smoke 195 passed).
   - `bash scripts/bab_reconcile_gate.sh` → **GREEN** (live: drift-fail-closed rc=2, clean-passes rc=0, emit-only rc=0).
@@ -12,7 +12,7 @@
 - **Repo:** `Crypto-Betting-Against-Beta` — crypto market-neutral trading system (ingest → beta → signals → portfolio → backtest → execution → ops), Frazzini–Pedersen *Betting Against Beta*.
 - **Git state (this refresh):** HEAD `d542663` on `main`, clean working tree (handoff-only commits after green baseline; `94954b8` remains the authoritative product/test baseline).
 
-## INITIAL TASK MESSAGE (BINDING — START HERE, 2026-11-18T03:02:27Z @ `d542663`)
+## INITIAL TASK MESSAGE (BINDING — START HERE, 2026-11-18T03:03:58Z @ `d542663`)
 
 **MANDATORY MISSION (heavy work, non-optional): close Milestone 3 `data_loader.py` (137 broad / 64 silent) in `strategies/betting_against_beta/data_loader.py` THIS session with committed product + regression-test diffs.** A session that closes **zero** sites with committed tests, or that produces a handoff-only commit, is a **FAILED session**.
 
