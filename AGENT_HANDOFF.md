@@ -9,6 +9,6 @@ This file is a pointer to the canonical durable handoff at `HANDOFF.md`.
 - **ANTI-LOOP (primary directive):** baseline full gate is already GREEN at `7960113` and code is UNCHANGED since (`git diff --name-only 7960113 cf4c633` → handoff files only). **Do NOT re-run the full gate or re-verify the baseline before starting; do NOT produce a handoff-refresh-only commit — that is an automatic failure.** Go straight to `cli.py` site 1. Use `bash scripts/bab_quick.sh` inner loop; reserve `bab_gate.sh` for module boundaries/end.
 - **Machine-checkable done (per milestone):** `ruff check .` PASS; `bab_reconcile_gate.sh` GREEN; `bab_quick.sh` GREEN; `bab_gate.sh` GREEN (0 failures, TOTAL 100%, 0 missed); `BAB_GATE_MIN_COVERAGE=98.5` met (never lower floor); substantive product `.py` + test diffs; every site classified A/B with a locking/surfacing regression test.
 - **Last authoritative full-gate baseline (@2026-11-17T23:35Z, HEAD `7960113`, applies at HEAD `cf4c633`):** 6335 passed / 35 skipped / 0 FAILED / 0 missed / 6562 stmts / 100% (127.08s); ruff PASS; reconcile GREEN; 98.5 floor met by TOTAL 100%. Code unchanged since `019a981` except handoff-only checkpoints.
-- **Read `HANDOFF.md` "INITIAL TASK MESSAGE (BINDING — START HERE, 2026-11-17T23:38:00Z)" first.**
+- **Read `HANDOFF.md` "INITIAL TASK MESSAGE (BINDING — START HERE, 2026-11-18T00:32:52Z)" first.**
 
 (End of file - total 13 lines)
