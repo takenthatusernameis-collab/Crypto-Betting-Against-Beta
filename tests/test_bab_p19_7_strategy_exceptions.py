@@ -110,7 +110,10 @@ def test_site5_portfolio_construction_failure_surfaces_babdataerror(monkeypatch)
 
 def test_sites6_7_finiteness_guard_clamps_nonfinite(monkeypatch):
     """Non-finite weights are clamped to 0.0, never passed corrupt to run_backtest."""
-    strat = _default_strategy()
+    # Subject is the finiteness guard, not the default book: use the legacy
+    # dollar-neutral path so beta-neutral correction cannot sanitize the
+    # planted inf/NaN before the guard runs (P20 WP1 pin, class B).
+    strat = BABStrategy(beta_neutral=False)
     base_construct = _portfolio_mod.construct_portfolio
 
     def bad_weights(signals, **kwargs):
@@ -138,7 +141,8 @@ def test_sites6_7_finiteness_guard_happy_path_unchanged():
 
 def test_sites8_9_dry_run_finiteness_guard_degrades(monkeypatch):
     """dry_run never raises on degenerate weights; reported metrics stay finite."""
-    strat = _default_strategy()
+    # Same class-B pin as sites 6-7: keep the guard reachable.
+    strat = BABStrategy(beta_neutral=False)
     base_construct = _portfolio_mod.construct_portfolio
 
     def bad_weights(signals, **kwargs):
