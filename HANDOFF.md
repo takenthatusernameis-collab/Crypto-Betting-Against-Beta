@@ -2,7 +2,7 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-18T21:18:00Z
+- **Timestamp (UTC):** 2026-11-18T21:27:04Z
 - **Git state:** `main`, HEAD `7637fba`. The working tree carries exactly **one** uncommitted change: this HANDOFF revision. Commit it **with** your WP diff (every prior WP commit did the same), never as a standalone docs commit. Certify with `git log --oneline -4 && git status --short`.
 - **P20 WP1 is LANDED at `33b84e2`** (beta-neutral default + frozen-per-window hold + acceptance file + `docs/BAB_FIDELITY.md` + README correction + CLI `--no-beta-neutral`).
 - **P20 WP2 algebra is LANDED at `01eb301`** (opt-in `weighting="rank"`, exact 4-asset hand weights, no-lookahead, equal path byte-identical).
@@ -18,7 +18,7 @@
 
 # INITIAL TASK MESSAGE (BINDING — START HERE)
 
-**Timestamp:** 2026-11-18T21:18:00Z · **Campaign:** P20 — "Prove this repo is actually Betting Against Beta" · **Lane:** A · **WP:** **WP0 — deterministic evidence harness**
+**Timestamp:** 2026-11-18T21:27:04Z · **Campaign:** P20 — "Prove this repo is actually Betting Against Beta" · **Lane:** A · **WP:** **WP0 — deterministic evidence harness**
 
 **One-sentence objective:** build `scripts/bab_research_sweep.py`, commit `research_state/bab_p20/sweep.json` plus a markdown table rendered *from* that JSON, and prove with `tests/test_bab_p20_research_sweep.py` that reruns are byte-identical, every row carries the required metrics, the markdown contains no hand-typed digits, and the whole sweep runs in under 10 seconds — using `weighting="equal"` only.
 
