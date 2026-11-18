@@ -26,3 +26,7 @@ diag*.py
 _recon_cov.py
 debug_beta*.py
 probe*.py
+
+# Generated build metadata and unbounded CI diagnostics dumps
+*.egg-info/
+research_state/workflow_run_diagnostics.jsonl
