@@ -2,7 +2,7 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-18T19:21:09Z
+- **Timestamp (UTC):** 2026-11-18T19:22:31Z
 - **Git state:** `main`. WP1 of P20 is **LANDED** at `33b84e2` (config flip + frozen-per-window hold + `tests/test_bab_p20_beta_neutral_default.py` + `docs/BAB_FIDELITY.md` + README correction + CLI `--no-beta-neutral`). This refresh adds **only** two class-B coverage pins in `tests/test_bab_p19_7_strategy_exceptions.py` (restoring 100% coverage) and this file — **product code is byte-identical to `33b84e2`**. Certify with `git log --oneline -3 && git status --short`.
 - **Baseline locks at HEAD:** `beta_neutral: bool = True` (`config.py:99`); `_apply_rebalance(weights, rebalance_freq)` hold present at **both** correction sites (`strategy.py:518-519`, `822-823`); `docs/BAB_FIDELITY.md` and `tests/test_bab_p20_beta_neutral_default.py` exist. **WP1 is closed — never redo it.**
 - **P20 remaining:** **WP2 (next)**, WP0, WP3, WP4, WP5. No `weighting` field exists yet (`grep -n "weighting" strategies/betting_against_beta/config.py` → no hits). No `scripts/bab_research_sweep.py`, `scripts/bab_walk_forward.py`, or `research_state/bab_p20/` exists.
@@ -13,7 +13,7 @@
 
 # INITIAL TASK MESSAGE (BINDING — START HERE)
 
-**Timestamp:** 2026-11-18T19:21:09Z · **Campaign:** P20 — "Make the repo actually Betting Against Beta" · **Lane:** B (solo default) · **WP:** **WP2**
+**Timestamp:** 2026-11-18T19:22:31Z · **Campaign:** P20 — "Make the repo actually Betting Against Beta" · **Lane:** B (solo default) · **WP:** **WP2**
 
 **One-sentence objective:** add faithful Frazzini–Pedersen **rank weighting** as an opt-in `weighting="rank"` path (default stays `"equal"`), landing `config.py` + `portfolio.py` + `strategy.py` + `tests/test_bab_p20_rank_weighting.py` + `docs/BAB_FIDELITY.md` §9 in **one** commit, with the hand-computed 4-asset weights below matching to `1e-12`.
 
