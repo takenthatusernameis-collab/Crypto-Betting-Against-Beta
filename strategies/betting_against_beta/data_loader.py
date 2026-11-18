@@ -940,12 +940,15 @@ def _promote_datetime_column(df: pd.DataFrame) -> pd.DataFrame:
                     # P19-7: Class A (total contract) — Series tz attribute
                     # access best-effort; treat as tz-naive on failure.
                     dt_attr = None
+                # P19-7: Class A (total contract) — Series dtype tz probe is best-effort.
                 with contextlib.suppress(Exception):
                     dt_attr = dt_attr or getattr(getattr(parsed, "dtype", None), "tz", None)
                 if dt_attr is not None:
                     try:
                         parsed = parsed.tz_convert("UTC").tz_localize(None)
                     except Exception:
+                        # P19-7: Class A (total contract) — Series tz_convert/localize
+                        # failure falls back to tz_localize(None) best-effort.
                         with contextlib.suppress(Exception):
                             parsed = parsed.tz_localize(None)
                 else:
@@ -1264,9 +1267,13 @@ def _normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
             # Asset/symbol column: strip units/suffixes but preserve casing.
             new_cols.append(_normalize_asset_name(nc_stripped) if nc_stripped else nc_stripped)
         except Exception:
+            # P19-7: Class A (total contract) — per-column header normalization
+            # failure falls back to str(c).strip().
             try:
                 new_cols.append(str(c).strip())
             except Exception:
+                # P19-7: Class A (total contract) — if str(c) also fails, keep
+                # original column object c unchanged.
                 new_cols.append(c)
     df.columns = new_cols
     # Detect duplicate columns after normalization (regression guard).
@@ -1328,10 +1335,14 @@ def _drop_all_nan_columns(df: pd.DataFrame) -> pd.DataFrame:
             try:
                 return df[keep]
             except Exception:
+                # P19-7: Class A (total contract) — vectorized column subset
+                # selection failure falls back to returning unfiltered df.
                 return df
     except BABDataError:
         raise
     except Exception:
+        # P19-7: Class A (total contract) — fast-path numeric NaN classification
+        # failure falls through to defensive per-column slow path.
         pass
     keep = []
     for col in df.columns:
@@ -1349,10 +1360,14 @@ def _drop_all_nan_columns(df: pd.DataFrame) -> pd.DataFrame:
                     keep.append(col)
                     continue
             except Exception:
+                # P19-7: Class A (total contract) — per-column isna().all() probe
+                # failure conservatively drops column in slow path.
                 pass
             # All-NaN column: drop.
             continue
         except Exception:
+            # P19-7: Class A (total contract) — per-column coercion failure
+            # conservatively keeps column to avoid silent data loss.
             keep.append(col)
             continue
     if not keep:
@@ -1381,6 +1396,8 @@ def _strip_units_and_parse(x):
         try:
             return float(x)
         except Exception:
+            # P19-7: Class B (surfacing) — non-string float conversion failure
+            # surfaces as canonical ValueError with value context.
             raise ValueError(f"non-numeric value: {x!r}")
     cleaned = x.strip()
     lower = cleaned.lower()
@@ -1500,12 +1517,13 @@ def _coerce_numeric(df: pd.DataFrame) -> pd.DataFrame:
                 raise TypeError(f"Expected DataFrame, got {type(df).__name__}")
             df = df.astype("float64")
             return df
-except BABDataError:
-        raise
-    except Exception:
-        # P19-7: Class A (total contract) — fast-path numeric drop is
-        # best-effort; fall through to per-column slow path on any failure.
-        pass
+        except BABDataError:
+            # P19-7: Class A (total contract) — re-raise BABDataError directly.
+            raise
+        except (ValueError, TypeError):
+            # P19-7: Class A (total contract) — fast-path numeric drop is
+            # best-effort; fall through to per-column slow path on any failure.
+            pass
         # Second pass: coerce with to_numeric to catch things like commas, units, etc
         if not isinstance(df, pd.DataFrame):
             raise BABDataError(f"Expected DataFrame, got {type(df).__name__}")
@@ -1518,6 +1536,8 @@ except BABDataError:
                     converted = series.apply(_strip_units_and_parse)
                     df_clean[col] = pd.to_numeric(converted, errors="raise").astype("float64")
                 except Exception as exc:
+                    # P19-7: Class B (surfacing) — object/string column coercion
+                    # failure surfaces as BABDataError with chained cause.
                     raise BABDataError(
                         f"Non-numeric values present in returns data: {exc}"
                     ) from exc
@@ -1525,6 +1545,8 @@ except BABDataError:
                 try:
                     df_clean[col] = pd.to_numeric(series, errors="raise").astype("float64")
                 except Exception as exc:
+                    # P19-7: Class B (surfacing) — direct numeric column coercion
+                    # failure surfaces as BABDataError with chained cause.
                     raise BABDataError(
                         f"Non-numeric values present in returns data: {exc}"
                     ) from exc
@@ -1645,6 +1667,8 @@ def _run_data_quality_campaign(
         if getattr(cleaned.index, "tz", None) is not None:
             cleaned.index = cleaned.index.tz_convert("UTC").tz_localize(None)
     except Exception:
+        # P19-7: Class A (total contract) — quality-campaign index UTC tz
+        # normalization failure falls back to tz_localize(None) best-effort.
         with contextlib.suppress(Exception):
             cleaned.index = cleaned.index.tz_localize(None)
     cleaned = cleaned.sort_index()
@@ -1887,9 +1911,10 @@ def validate_returns_dataframe(
     cleaned = _normalize_columns(cleaned)
     try:
         cleaned = _normalize_index(cleaned)
-except BABDataError:
+    except BABDataError:
+        # P19-7: Class A (total contract) — re-raise BABDataError directly.
         raise
-    except Exception as exc:
+    except (ValueError, TypeError) as exc:
         # P19-7: Class B (hides defect) — validation failure is surfaced
         # as BABDataError rather than leaking arbitrary exception.
         raise BABDataError(str(exc)) from exc
@@ -2032,6 +2057,8 @@ except BABDataError:
                 cleaned = cleaned.rename(columns={bench_found: benchmark})
                 bench_found = benchmark
             except Exception:
+                # P19-7: Class A (total contract) — first-pass benchmark column
+                # rename is best-effort; fall through to bench_map rename fallback.
                 pass
         if benchmark not in cleaned.columns:
             bench_map = {str(c).strip().lower(): c for c in cleaned.columns}
@@ -2174,6 +2201,8 @@ def load_returns_from_parquet(
     except BABDataError:
         raise
     except Exception as exc:
+        # P19-7: Class B (surfacing) — post-read Parquet validation failure
+        # surfaces as BABDataError with chained cause.
         raise BABDataError(str(exc)) from exc
 
 
@@ -2209,8 +2238,8 @@ def load_returns_from_hdf5(
     except BABDataError:
         raise
     except Exception as exc:
-        # P19-7: Class B (hides defect) — validation failure is surfaced
-        # as BABDataError rather than leaking arbitrary exception.
+        # P19-7: Class B (surfacing) — post-read HDF5 validation failure
+        # surfaces as BABDataError with chained cause.
         raise BABDataError(str(exc)) from exc
 
 
@@ -2315,6 +2344,8 @@ def load_returns_from_json(
         df = pd.DataFrame(data)
         df = _promote_datetime_column(df)
         df = _normalize_columns(df)
+        # P19-7: Class A (total contract) — records-orient index normalization
+        # is best-effort prior to strict validation.
         with contextlib.suppress(Exception):
             df = _normalize_index(df)
         return validate_returns_dataframe(
@@ -2345,6 +2376,8 @@ def load_returns_from_json(
             if not isinstance(df.index, pd.DatetimeIndex):
                 df = _promote_datetime_column(df)
         except Exception:
+            # P19-7: Class A (total contract) — lenient datetime-column promotion
+            # in JSON loader is best-effort; proceed to strict validation.
             pass
 
     try:
@@ -2366,6 +2399,8 @@ def load_returns_from_json(
                         df2, benchmark=benchmark, min_rows=min_rows, quality=quality
                     )
             except Exception:
+                # P19-7: Class A (total contract) — fallback synthetic date-range
+                # retry in JSON loader is best-effort; re-raise original error.
                 pass
         raise
 
@@ -2393,6 +2428,8 @@ def load_returns_from_dataframe(
                     df2, benchmark=benchmark, min_rows=min_rows, **kwargs
                 )
             except Exception:
+                # P19-7: Class A (total contract) — fallback synthetic date-range
+                # retry in load_returns_from_dataframe is best-effort; re-raise original.
                 pass
         raise
 
@@ -2422,6 +2459,8 @@ def load_returns(
             if det == "prices":
                 return load_prices(df, benchmark=benchmark, min_rows=min_rows)
         except Exception:
+            # P19-7: Class A (total contract) — DataFrame auto-detect/prices
+            # short-circuit is best-effort; fall through to load_returns_from_dataframe.
             pass
         return load_returns_from_dataframe(df, benchmark=benchmark, min_rows=min_rows, **kwargs)
 
@@ -2437,6 +2476,8 @@ def load_returns(
         if det == "prices":
             return load_prices(path, benchmark=benchmark, min_rows=min_rows)
     except Exception:
+        # P19-7: Class A (total contract) — file-path auto-detect/prices short-circuit
+        # is best-effort; fall through to suffix-based loader dispatch.
         pass
     if suffix == ".csv":
         return load_returns_from_csv(path, benchmark=benchmark, min_rows=min_rows, **kwargs)
@@ -2505,6 +2546,8 @@ def _drop_metadata_columns(df: pd.DataFrame) -> pd.DataFrame:
                                 cols_to_drop.append(col)
                                 continue
                         except Exception:
+                            # P19-7: Class A (total contract) — secondary integer-sequence
+                            # probe failure falls through to zero-min check.
                             pass
                         if minv < 0.0:
                             continue  # could be negative prices? unlikely, but be conservative
@@ -2515,6 +2558,8 @@ def _drop_metadata_columns(df: pd.DataFrame) -> pd.DataFrame:
                     # trend, might be junk
                     # But be conservative - only drop if clearly not price-like
         except Exception:
+            # P19-7: Class A (total contract) — per-column metadata numeric probe
+            # failure conservatively keeps column and continues scanning.
             continue
     if cols_to_drop:
         df = df.drop(columns=cols_to_drop)
@@ -2619,6 +2664,8 @@ def _is_likely_returns(df: pd.DataFrame) -> bool:
         # Also check if values look like pct changes (-0.5 to 0.5 typical)
         return bool(absmax < 10)  # likely returns
     except Exception:
+        # P19-7: Class A (total contract) — numeric extraction failure in
+        # returns heuristic returns False (treated as prices/unknown).
         return False
 
 
@@ -2638,6 +2685,8 @@ def detect_price_or_returns(
                 read_kwargs.setdefault("low_memory", False)
                 df = pd.read_csv(path, **read_kwargs)
             except Exception:
+                # P19-7: Class A (total contract) — CSV read failure in
+                # detect_price_or_returns returns "unknown".
                 return "unknown"
         elif suffix in (".json", ".jsonl"):
             try:
@@ -2650,7 +2699,9 @@ def detect_price_or_returns(
                                 continue
                             try:
                                 records.append(json.loads(line))
-                            except Exception:
+                            except (json.JSONDecodeError, ValueError, TypeError):
+                                # P19-7: Class A (total contract) — skip malformed
+                                # JSONL line during heuristic detection.
                                 continue
                     df = pd.DataFrame(records) if records else pd.DataFrame()
                 else:
@@ -2666,16 +2717,22 @@ def detect_price_or_returns(
                     else:
                         df = pd.DataFrame()
             except Exception:
+                # P19-7: Class A (total contract) — JSON read/parse failure in
+                # detect_price_or_returns returns "unknown".
                 return "unknown"
         elif suffix in (".parquet", ".pq"):
             try:
                 df = pd.read_parquet(path, **kwargs)
             except Exception:
+                # P19-7: Class A (total contract) — Parquet read failure in
+                # detect_price_or_returns returns "unknown".
                 return "unknown"
         elif suffix in (".h5", ".hdf5", ".hdf"):
             try:
                 df = pd.read_hdf(path, **kwargs)
             except Exception:
+                # P19-7: Class A (total contract) — HDF5 read failure in
+                # detect_price_or_returns returns "unknown".
                 return "unknown"
         elif suffix in (".pkl", ".pickle"):
             try:
@@ -2688,6 +2745,8 @@ def detect_price_or_returns(
                 else:
                     df = pd.DataFrame()
             except Exception:
+                # P19-7: Class A (total contract) — Pickle read failure in
+                # detect_price_or_returns returns "unknown".
                 return "unknown"
         else:
             return "unknown"
@@ -2738,6 +2797,8 @@ def normalize_schema(
                 for col in cleaned.columns
             ]
     except Exception:
+        # P19-7: Class A (total contract) — MultiIndex column flattening is
+        # best-effort; preserve original columns on failure.
         pass
     # Try to detect if headers are in first row (common in some exports)
     try:
@@ -2777,10 +2838,15 @@ def normalize_schema(
                 ):
                     cleaned = cleaned.iloc[1:].copy()
             except Exception:
+                # P19-7: Class A (total contract) — duplicate-header row strip
+                # probe is best-effort; preserve rows on failure.
                 pass
     except Exception:
+        # P19-7: Class A (total contract) — first-row header detection block is
+        # best-effort; proceed with schema normalization.
         pass
     # Try exchange format normalization first
+    # P19-7: Class A (total contract) — exchange format normalization is best-effort.
     with contextlib.suppress(Exception):
         cleaned = _detect_and_normalize_exchange_format(cleaned)
     cleaned = _promote_datetime_column(cleaned)
@@ -2788,6 +2854,8 @@ def normalize_schema(
     try:
         cleaned = _normalize_index(cleaned)
     except Exception:
+        # P19-7: Class B (surfacing) — index normalization failure in
+        # normalize_schema surfaces to caller.
         raise
     # Drop obvious junk columns before coercion if they're all strings/metadata
     try:
@@ -2811,11 +2879,15 @@ def normalize_schema(
                     cols_to_drop.append(col)
                     continue
             except Exception:
+                # P19-7: Class A (total contract) — per-column numeric parseability
+                # probe failure marks column for metadata drop and continues.
                 cols_to_drop.append(col)
                 continue
         if cols_to_drop and len(cols_to_drop) < len(cleaned.columns):
             cleaned = cleaned.drop(columns=cols_to_drop)
     except Exception:
+        # P19-7: Class A (total contract) — junk-column drop block is best-effort;
+        # proceed to numeric coercion on failure.
         pass
     cleaned = _coerce_numeric(cleaned)
     cleaned = _drop_all_nan_columns(cleaned)
@@ -2862,6 +2934,8 @@ def validate_prices(df: pd.DataFrame) -> pd.DataFrame | None:
     try:
         cleaned = clean_data(df)
     except Exception:
+        # P19-7: Class A (total contract) — clean_data failure in validate_prices
+        # returns None (invalid price series contract).
         return None
     if cleaned.empty:
         return None
@@ -2871,6 +2945,8 @@ def validate_prices(df: pd.DataFrame) -> pd.DataFrame | None:
         if finite.size > 0 and float(np.max(finite)) > 0.0:
             return cleaned
     except Exception:
+        # P19-7: Class A (total contract) — positive-price finite check failure
+        # in validate_prices returns None.
         pass
     return None
 

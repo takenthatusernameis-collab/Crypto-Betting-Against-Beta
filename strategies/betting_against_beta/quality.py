@@ -47,6 +47,8 @@ def data_quality_report(df: pd.DataFrame) -> dict[str, Any]:
             numeric = pd.to_numeric(col_data, errors="coerce")
             arr = numeric.to_numpy(dtype=float)
         except Exception:
+            # P19-7: Class A (total contract) — per-column numeric conversion
+            # failure in data_quality_report degrades to all-NaN array.
             arr = np.array([np.nan] * len(col_data))
 
         finite_mask = np.isfinite(arr)
@@ -208,6 +210,8 @@ def detect_outliers(
             else:
                 results[col] = {"outliers": [], "count": 0}
         except Exception:
+            # P19-7: Class A (total contract) — outlier scan failure for a
+            # column returns empty outlier record.
             results[col] = {"outliers": [], "count": 0}
     return results
 
@@ -238,6 +242,8 @@ def detect_stale_data(df: pd.DataFrame, threshold: int = 3) -> dict[str, Any]:
             stale_runs = _stale_runs_single(arr, threshold)
             results[col] = {"stale_runs": stale_runs, "count": len(stale_runs)}
         except Exception:
+            # P19-7: Class A (total contract) — stale-run scan failure for a
+            # column returns empty stale-run record.
             results[col] = {"stale_runs": [], "count": 0}
     return results
 
@@ -274,6 +280,8 @@ def detect_volume_anomalies(
                 "ratio_threshold": threshold,
             }
         except Exception:
+            # P19-7: Class A (total contract) — volume anomaly scan failure for
+            # a column returns empty anomaly record.
             results[col] = {"anomalies": [], "count": 0}
     return results
 

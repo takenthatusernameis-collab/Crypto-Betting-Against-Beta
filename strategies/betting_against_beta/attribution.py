@@ -33,6 +33,8 @@ def _finite_series(values, index) -> pd.Series:
             arr = np.where(np.isfinite(arr), arr, 0.0)
         return pd.Series(arr, index=index)
     except Exception:
+        # P19-7: Class A (total contract) — fast-path finite repair failure
+        # degrades to pandas replace+fillna(0.0) fallback contract.
         # Defensive fallback: preserve the original replace+fillna semantics if
         # the numeric conversion or fast-path repair fails for any reason.
         return (
