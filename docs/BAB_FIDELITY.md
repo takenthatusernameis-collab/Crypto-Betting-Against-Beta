@@ -228,4 +228,48 @@ net is funded by cash/borrow.
   flip long/short signs); rank is beta-neutral by construction.
 * Weekly/monthly books are frozen inside rebalance windows (WP1 hold).
 * Rank is opt-in and is NOT the default; promotion requires WP3 OOS evidence.
-```
+
+## 9.1 Rank-mode leverage bound and scope (WP2b)
+
+The construction in §9 is algebraically exact, but leg-level ``1/beta_leg``
+scaling is unbounded as a leg beta approaches zero. On the committed 9-asset
+synthetic fixture that is not a corner case — it is the normal case:
+
+| Measurement (``beta_window=90``, ``q=0.3``, ``tc=10bps``) | Value |
+|---|---|
+| rows with at least one eligible long **and** short leg | **25 / 398** |
+| long-leg beta ``beta_L`` on those rows | **0.0197 … 0.1138** |
+| short-leg beta ``beta_H`` on those rows | **1.0** (the benchmark itself) |
+| resulting gross exposure | **9.79 … 51.67** |
+| worst row (2021-05-03) | ``ADA +50.09``, ``BTC −1.00``, gross ``51.09`` |
+| next-day return / wealth | **−196.8 %** / ``~1.5e-24`` |
+
+Cause: the low-beta quantile frequently contains negative-beta assets, which
+are ineligible under the documented ``beta > 0`` rule. The surviving eligible
+long leg is then a single near-zero-beta asset, and inverting it levers the
+book by 10–50x. This is a property of a 9-asset universe, not of the FP
+construction.
+
+WP2b therefore adds two safety valves (rank mode only):
+
+* ``rank_min_leg_beta`` (default ``0.20``) — a row whose ``beta_L`` or
+  ``beta_H`` is below the floor is **flat** (all zeros);
+* ``rank_max_gross`` (default ``4.0``) — a row whose ``sum |w|`` exceeds the cap
+  is **flat**.
+
+A violating row is *flattened*, never rescaled: rescaling would move the leg
+betas away from ``±1`` and silently break the §9 gate. The 4-asset hand example
+(``beta_L = 23/40``, ``beta_H = 3/2``, gross ``≈ 2.4058``) is unaffected.
+
+**Scope statement.** The committed fixture **cannot evaluate rank mode**: under
+the guard all 398 rows are flat, so rank produces a zero book and no Sharpe,
+volatility, or wealth figure from it has any meaning. Rank remains opt-in and
+unpromoted; it may be validated algebraically (hand example), invariantly (unit
+leg betas, no lookahead), and functionally on a wide synthetic cross-section
+(hundreds of assets with genuine beta dispersion). No rank performance claim may
+be published from this repository's fixture.
+
+The repaired WP2 gate also covers ``weighting="equal"``: that path remains
+byte-identical to the post-WP1 default, and its fixture numbers
+(``0.7057`` wealth, ``−0.725`` Sharpe, ``+0.059`` realized beta) are unchanged.
+

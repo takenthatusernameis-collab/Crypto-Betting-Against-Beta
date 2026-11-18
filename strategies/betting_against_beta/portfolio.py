@@ -331,10 +331,12 @@ def construct_rank_weights(signals_df, betas):
 
         sum_a = float(a_long.sum())
         sum_e = float(a_short.sum())
+        # The two leg sums are identically equal: sum(m - r_long) equals
+        # sum(r_short - m) because all eligible ranks sum to n * m. A single
+        # guard therefore covers both legs; a zero sum means a leg sits
+        # entirely at the mean rank and the row is flat.
         if not np.isfinite(sum_a) or sum_a <= 0.0:
-            continue  # flat row: degenerate long leg
-        if not np.isfinite(sum_e) or sum_e <= 0.0:
-            continue  # flat row: degenerate short leg
+            continue  # flat row: degenerate leg (no rank dispersion)
 
         d = a_long / sum_a
         e = a_short / sum_e

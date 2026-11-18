@@ -239,6 +239,59 @@ def test_invalid_weighting_surfaces():
         construct_portfolio(sig, weighting="bogus", betas=bet)
 
 
+def test_construct_rank_weights_input_guards():
+    """None / non-DataFrame / empty inputs return an empty frame, never raise."""
+    idx = pd.date_range("2023-01-01", periods=1)
+    sig = pd.DataFrame({"A": [1], "B": [-1]}, index=idx)
+    bet = pd.DataFrame({"A": [0.5], "B": [1.5]}, index=idx)
+    assert construct_rank_weights(None, bet).empty
+    assert construct_rank_weights(sig, None).empty
+    assert construct_rank_weights([1, -1], bet).empty
+    assert construct_rank_weights(sig, [0.5, 1.5]).empty
+    assert construct_rank_weights(pd.DataFrame(), bet).empty
+    assert construct_rank_weights(sig, pd.DataFrame()).empty
+
+
+def test_construct_rank_weights_non_numeric_signals_and_degenerate_rows():
+    idx = pd.date_range("2023-01-01", periods=2)
+    # Row 0: string signals exercise the non-numeric coercion path.
+    # Row 1: a leg whose ranks average to the mean -> zero summed score -> flat.
+    signals = pd.DataFrame(
+        {"A": ["1", 1], "B": ["-1", -1], "C": ["1", 1]},
+        index=idx,
+        columns=["A", "B", "C"],
+    )
+    betas = pd.DataFrame(
+        {"A": [0.5, 0.5], "B": [1.6, 0.9], "C": [0.8, 1.6]},
+        index=idx,
+        columns=["A", "B", "C"],
+    )
+    weights = construct_rank_weights(signals, betas)
+    assert weights.shape == (2, 3)
+    # Row 0: strings coerced to +1/+1/-1 -> non-trivial rank book.
+    assert weights.iloc[0].abs().sum() > 0.0
+    # Row 1: longs at ranks 1 and 3 average to the mean (m = 2), so the
+    # long-leg score sums to zero and the documented contract is a flat row.
+    assert (weights.iloc[1] == 0.0).all()
+
+
+def test_dry_run_rank_book_freezes_in_rebalance_windows(prices):
+    strat = BABStrategy(
+        benchmark="BTC",
+        beta_window=90,
+        min_observations=60,
+        long_quantile=0.3,
+        short_quantile=0.3,
+        transaction_costs=0.001,
+        weighting="rank",
+        rebalance_freq="weekly",
+    )
+    summary = strat.dry_run(returns_df=prices)
+    assert "portfolio_risk" in summary
+    assert summary["config"]["rebalance_freq"] == "weekly"
+    assert np.isfinite(summary["portfolio_risk"]["gross_exposure"]["mean"])
+
+
 @pytest.fixture(scope="module")
 def prices():
     return load_prices(REAL, benchmark="BTC")

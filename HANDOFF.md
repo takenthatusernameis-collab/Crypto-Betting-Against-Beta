@@ -2,10 +2,12 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-18T20:16:33Z
-- **Git state:** `main`. WP1 of P20 is **LANDED** at `33b84e2` (config flip + frozen-per-window hold + `tests/test_bab_p20_beta_neutral_default.py` + `docs/BAB_FIDELITY.md` + README correction + CLI `--no-beta-neutral`). This refresh adds **only** two class-B coverage pins in `tests/test_bab_p19_7_strategy_exceptions.py` (restoring 100% coverage) and this file — **product code is byte-identical to `33b84e2`**. Certify with `git log --oneline -3 && git status --short`.
-- **Baseline locks at HEAD:** `beta_neutral: bool = True` (`config.py:99`); `_apply_rebalance(weights, rebalance_freq)` hold present at **both** correction sites (`strategy.py:518-519`, `822-823`); `docs/BAB_FIDELITY.md` and `tests/test_bab_p20_beta_neutral_default.py` exist. **WP1 is closed — never redo it.**
-- **P20 remaining:** **WP2 (next)**, WP0, WP3, WP4, WP5. No `weighting` field exists yet (`grep -n "weighting" strategies/betting_against_beta/config.py` → no hits). No `scripts/bab_research_sweep.py`, `scripts/bab_walk_forward.py`, or `research_state/bab_p20/` exists.
+- **Timestamp (UTC):** 2026-11-18T20:24:09Z
+- **Git state:** `main`, clean tree. Head is the commit that carries this file; its parent is `a32a91d`. Certify with `git log --oneline -4 && git status --short`. **P20 WP1 is LANDED at `33b84e2`** (beta-neutral default + frozen-per-window hold + `tests/test_bab_p20_beta_neutral_default.py` + `docs/BAB_FIDELITY.md` + README correction + CLI `--no-beta-neutral`). **P20 WP2 is LANDED at `01eb301`** (opt-in `weighting="rank"` in `config.py` + `portfolio.py` + `strategy.py`, 8 tests, `docs/BAB_FIDELITY.md` §9, README clause).
+- **This session repaired WP2's red gate and re-scoped it.** WP2 landed with (a) one failing test — `TestFreezeFallback` builds `MagicMock(spec=BABConfig)` and never set the new `weighting` field, so a mock object reached `construct_portfolio` — and (b) 6 uncovered statements. Repaired: pinned `cfg.weighting = "equal"` in that mock; proved the two rank leg-sum guards are **identically equal** (`Σ_L(m−r) == Σ_H(r−m)` because eligible ranks sum to `n·m`) and collapsed them to one live guard (dead code removed, `portfolio.py` 6625 → 6623 statements); added 3 tests for rank input guards, non-numeric signal coercion, the degenerate-leg flat row, and `dry_run` rank freeze. Full gate is GREEN again at **6473 passed / 35 skipped / TOTAL 100% (6623/6623)**.
+- **WP2 is algebraically correct but numerically unusable on the committed fixture** — this is the next task, not a re-open of the algebra. Measured at `beta_window=90, q=0.3, tc=10bps`: only **25 of 398 rows** have both an eligible long and an eligible short leg; on all 25, `β_L ∈ [0.0197, 0.1138]` and `β_H = 1.0`, so leg-level `1/β` scaling produces **gross 9.79 → 51.67**; the 2021-05-03 row is `ADA +50.09 / BTC −1.00` (gross 51.09) and the next day's return is **−1.968**, collapsing wealth to ~`1.5e-24`. Rank Sharpe/wealth on this fixture is meaningless. Default `weighting="equal"` is untouched and still `0.7057 / −0.725 / realized β +0.059`.
+- **Baseline locks at HEAD (do not re-measure):** `beta_neutral: bool = True` (`config.py:99`); `weighting: str = "equal"` (`config.py:54`) with validation at `config.py:381-382`; `_apply_rebalance(weights, rebalance_freq)` hold at both correction sites and both rank-freeze sites (`strategy.py:518-519`, `822-823`, `847-851`); `construct_rank_weights` public at `portfolio.py:260`; `docs/BAB_FIDELITY.md` §9 and `tests/test_bab_p20_rank_weighting.py` exist. **WP1 is closed. WP2's algebra is closed — never re-derive it.**
+- **P20 remaining:** **WP2b (next, lane B)**, then WP0, WP3, WP5 (lane A), then WP4 (lane C).
 - **Repo:** `Crypto-Betting-Against-Beta` — crypto market-neutral BAB trading system (ingest → beta → signals → portfolio → backtest → execution → ops).
 - **P19 CLOSED.** Coverage complete, handlers annotated, scratch scripts removed. Never reopen.
 
@@ -13,139 +15,113 @@
 
 # INITIAL TASK MESSAGE (BINDING — START HERE)
 
-**Timestamp:** 2026-11-18T20:16:33Z · **Campaign:** P20 — "Make the repo actually Betting Against Beta" · **Lane:** B (solo default) · **WP:** **WP2**
+**Timestamp:** 2026-11-18T20:24:09Z · **Campaign:** P20 — "Make the repo actually Betting Against Beta" · **Lane:** B · **WP:** **WP2b — rank-book leverage bound + honest scope**
 
-**One-sentence objective:** add faithful Frazzini–Pedersen **rank weighting** as an opt-in `weighting="rank"` path (default stays `"equal"`), landing `config.py` + `portfolio.py` + `strategy.py` + `tests/test_bab_p20_rank_weighting.py` + `docs/BAB_FIDELITY.md` §9 in **one** commit, with the hand-computed 4-asset weights below matching to `1e-12`.
+**One-sentence objective:** make the opt-in rank path numerically safe by flattening rows whose leg beta is below a floor or whose gross exceeds a cap (never rescaling — that breaks unit leg betas), prove the 4-asset algebra is unchanged, prove rank works on a wide synthetic cross-section, and document with the measured numbers that the 9-asset committed fixture **cannot evaluate rank mode**.
 
-**Why this and nothing else:** WP1 made the default book beta-neutral, but construction is still equal-weight ±1.0 per leg. That is **not** the Frazzini–Pedersen BAB construction: FP ranks assets by beta, gives larger weights to the extreme ranks, and scales each leg by `1/β_leg` so the long leg has beta `+1` and the short leg has beta `−1`. The repo name claims BAB; WP2 is the last fidelity gap before any OOS claim (WP3) can mean anything. Do **not** promote rank weighting to the default — promotion requires OOS evidence that does not exist yet.
+**Why this and nothing else:** WP2 shipped `w = d/β_L` with no lower bound on `β_leg`. On the committed 9-asset universe the low-beta quantile is routinely negative-beta, those assets are ineligible under the documented `beta > 0` rule, and the remaining eligible long leg is a single near-zero-beta asset (`β_L` as low as `0.0197`). Inverting that gives a **51x gross** book and a −196.8% day. A repo named `Crypto-Betting-Against-Beta` must not ship a BAB construction that silently 51x-levers. Fixing this is the only blocker between P20 and honest OOS work; WP0/WP3/WP4 are meaningless if the fidelity path can detonate.
 
-**The design is fully specified and hand-verified below. You are NOT being asked to invent it or re-derive the algebra.** Implement it, run the gates, update the doc.
+**The design is specified and the numbers are measured below. You are NOT being asked to invent the construction or relax the algebra.**
 
 ---
 
-## MANDATORY FIRST ACTIONS (in order, ~3 minutes)
+## MANDATORY FIRST ACTIONS (in order, ~4 minutes)
 
-1. `git log --oneline -3 && git status --short` — locate yourself. Do not re-derive what this file certifies.
-2. `grep -n "weighting" strategies/betting_against_beta/config.py` — if it prints a `weighting` field, WP2 has landed: take **WP0** (lane A spec below) instead. Never spend a session only reading.
-3. `bash scripts/bab_quick.sh` (≈20 s, must be GREEN). **It also bootstraps numpy/pandas/scipy/pytest/ruff from PyPI** — on a fresh runner raw `python3` snippets fail with `ModuleNotFoundError: numpy` *until* this has run once. Console scripts land in `~/.local/bin`, which is not on `PATH`; use `python3 -m pytest` / `python3 -m ruff`, never bare `pytest`/`ruff`.
-4. Confirm the gap in one command:
+1. `git log --oneline -4 && git status --short` — locate yourself. Do not re-derive what this file certifies.
+2. `bash scripts/bab_quick.sh` (≈20 s, must be GREEN). It also bootstraps numpy/pandas/scipy/pytest/ruff from PyPI; on a fresh runner raw `python3` snippets fail with `ModuleNotFoundError: numpy` until this has run once. Console scripts land in `~/.local/bin` (not on `PATH`) — always `python3 -m pytest`, `python3 -m ruff`.
+3. Confirm the pathology yourself before changing anything (≈2 s):
    ```bash
-   grep -n "weighting" strategies/betting_against_beta/config.py strategies/betting_against_beta/portfolio.py   # must print nothing
+   python3 - <<'EOF'
+   import numpy as np
+   from strategies.betting_against_beta.data_loader import load_prices
+   from strategies.betting_against_beta import BABStrategy
+   r = load_prices("tests/fixtures/real_market_prices.csv", benchmark="BTC")
+   o = BABStrategy(benchmark="BTC", beta_window=90, min_observations=60,
+                   long_quantile=0.3, short_quantile=0.3,
+                   transaction_costs=0.001, weighting="rank").run(returns_df=r)
+   W = o.weights
+   print("active rows:", int((W.abs().sum(axis=1) > 0).sum()), "/", len(W))
+   print("max gross:", float(W.abs().sum(axis=1).max()))
+   print("min daily return:", float(o.backtest["returns"].min()))
+   EOF
    ```
+   Expected: `25 / 398`, `~51.09`, `~ -1.968`. If those numbers differ by more than rounding, STOP and re-measure before applying the guard.
+4. Read `docs/BAB_FIDELITY.md` §9 (construction + hand example) and §9.1 (this finding). Do not edit §9's formulas.
 
 ---
 
-## WP2 — Faithful Frazzini–Pedersen rank weighting (verified plan, apply it)
+## WP2b — design (apply exactly)
 
-### 0. Corrected acceptance gate (read this before coding)
-
-The old WP2 line "rank weights sum to zero dollars **and** unit-beta legs" is **mathematically infeasible** and is retracted. With leg-level inverse-beta scaling, the book is
-
-```
-w_L = d_L / β_L ,  w_H = -d_H / β_H ,  Σd_L = Σd_H = 1
-```
-
-so total beta is exactly `1 - 1 = 0`, while the net dollar exposure is
-
-```
-Σw = 1/β_L - 1/β_H
-```
-
-Dollar neutrality would require `β_L = β_H`, which does not hold in general (hand example below: `β_L = 16/29`, `β_H = 96/65`). **FP's factor is beta-neutral, not dollar-neutral; the net dollar exposure is funded by cash/borrow.** Therefore WP2 gates are:
-
-- each leg's beta is exactly `±1` (`Σ_L w β = +1`, `Σ_H w β = −1`) within `1e-12`;
-- total model beta is exactly `0` within `1e-12` **on the row where weights are formed** (i.e. rebalance rows when holding);
-- the documented net dollar exposure is `1/β_L − 1/β_H`, **not** zero — pin it in the test rather than pretending otherwise;
-- default `weighting="equal"` remains unchanged; rank mode is opt-in.
-
-Do **not** route rank weights through `enforce_beta_neutrality`: that min-norm correction can flip long/short signs on a strongly tilted book (verified: on the hand example it produces `A = −0.0033`, `D = +0.2177`, residual beta `0.163`). Rank construction is already beta-neutral by construction; correction must be **skipped** in rank mode.
-
-### 1. Product change — three files
-
-**A. `config.py`** — add next to `rebalance_freq` (line ~51):
+### A. `config.py`
+Add next to `weighting` (line ~54):
 
 ```python
-    # Portfolio construction: "equal" (shipped default) or "rank"
-    # (Frazzini-Pedersen rank weighting; beta-neutral legs, opt-in only).
-    weighting: str = "equal"
+    # Rank-mode safety valves (no effect on the "equal" default):
+    # flat-row when a leg beta is too small to invert, or when gross > cap.
+    rank_min_leg_beta: float = 0.20
+    rank_max_gross: float = 4.0
 ```
 
-Validation (in `_validate_ranges`, alongside `rebalance_freq`): `weighting` must be a string in `{"equal", "rank"}`; otherwise append an error so construction raises loudly. Do not silently coerce.
+Validation in `_validate_ranges`, next to the `weighting` check:
+- `rank_min_leg_beta` must be a real number with `0 < value <= 1`;
+- `rank_max_gross` must be a real number with `1 <= value <= 100`;
+- else append to `errors` so construction raises `BABConfigError`. No silent coercion, no clamping.
 
-**B. `portfolio.py`** — add `construct_rank_weights(signals_df, betas)` plus optional args `betas=None, weighting="equal"` on `construct_portfolio`. `weighting="equal"` must take the existing branch **byte-identically**. For `"rank"`:
+### B. `portfolio.py`
+Extend the signature: `construct_rank_weights(signals_df, betas, min_leg_beta=0.20, max_gross=4.0)`.
+After computing `beta_L`, `beta_H` and the candidate row (`w_i = d_i/β_L`, `w_j = −e_j/β_H`):
 
-For each row `t`:
-1. Eligible assets = selected by signal (`±1`) **and** `beta` finite and `> 0`.
-2. If fewer than 1 eligible long **or** fewer than 1 eligible short → **all-zero row** (documented flat contract).
-3. Rank eligible betas ascending with `pandas.rank(method="average")`; `m = mean(rank)`.
-4. Score: long `a_i = m − rank_i`; short `a_j = rank_j − m` (both `>= 0`; an asset at the mean gets 0).
-5. Dollar-normalize each leg: `d_i = a_i / Σ_L a`, `e_j = a_j / Σ_H a`. Degenerate zero-sum leg → flat row.
-6. Leg betas `β_L = Σ_L d_i b_i`, `β_H = Σ_H e_j b_j`. If either is non-finite or `<= 0` → flat row.
-7. Return `w_i = d_i / β_L` (long), `w_j = −e_j / β_H` (short). No beta correction afterwards.
+1. if `beta_L < min_leg_beta` **or** `beta_H < min_leg_beta` → **flat row** (all zeros), continue;
+2. else if `Σ|w| > max_gross` → **flat row**, continue;
+3. else keep the row unchanged.
 
-Expose it publicly (no leading underscore) so the hand-computed test can call it directly. Keep signal cleaning identical to the equal branch (`trunc` semantics).
+Rules: never raise on a pathological row, never rescale a row to the cap (rescaling changes leg betas away from `±1` and silently breaks the documented gate), never add beta correction, never change the equal branch. Extend `construct_portfolio(..., weighting="rank", ...)` to forward `rank_min_leg_beta` / `rank_max_gross` (read via kwargs or explicit params, but `weighting="equal"` must stay byte-identical and must ignore them). Invalid values passed directly to `construct_portfolio` still raise `BABDataError` (consistent with `weighting`).
 
-**C. `strategy.py`** — pass `weighting` and `betas` into `construct_portfolio` in `run()` (and `dry_run()` if it constructs weights). When `weighting == "rank"`:
-- **skip** the `enforce_beta_neutrality` block entirely;
-- still freeze the book inside weekly/monthly windows with `_apply_rebalance(weights, rebalance_freq)` (same hold WP1 added — rank weights are computed per day and would otherwise drift);
-- do **not** change costs/turnover ordering or `_apply_rebalance`.
+### C. `strategy.py`
+Pass `cfg.rank_min_leg_beta` / `cfg.rank_max_gross` into both `construct_portfolio` calls (`run()` ~line 415, `dry_run()` ~line 754). Leave both rank freeze blocks (`~531`, `~847`) and the equal-path `enforce_beta_neutrality` block untouched. `getattr(cfg, ..., default)` so duck-typed/mock configs without the new fields keep the defaults.
 
-### 2. Hand-computed 4-asset example (exact, put these in the test)
+**Explicitly out of scope:** widening eligibility to negative betas, changing rank scores, changing quantiles, promoting rank to default.
 
-Signals `A,B = +1` (long), `C,D = −1` (short); betas `A=0.5, B=0.8, C=1.2, D=1.6`.
+### D. Feasibility facts you may rely on (measured, do not re-derive)
+- Hand example: `β_L = 23/40 = 0.575`, `β_H = 3/2 = 1.5`; long dollars `30/23 + 10/23 = 40/23 ≈ 1.7391`, short dollars `1/6 + 1/2 = 2/3 ≈ 0.6667`, gross **≈ 2.4058**. With `min_leg_beta=0.20` and `max_gross=4.0` the hand row is **not** flattened and all four exact fractions must stay unchanged to `1e-12`.
+- Committed fixture: every one of the 25 fixture-active rows has `β_L < 0.20`, so under the guard **all 398 rows are flat**. The two fixture-based invariant tests must therefore move to a wide synthetic frame.
+- Wide synthetic frame for the functional proof: 40 assets, betas spread over `0.35 … 1.9` (e.g. `0.35 + 1.55*i/39`), 60 daily rows, deterministic signals (`+1` for the lowest 30%, `-1` for the highest 30%). With such a cross-section `β_L ≈ 0.45`, `β_H ≈ 1.75`, gross ≈ `3.0` → active, under the cap.
 
-- ranks `[0, 1, 2, 3]`, `m = 1.5`, scores `[1.5, 0.5, 0.5, 1.5]`
-- dollar-normalized legs: `d = [24/29, 5/29]`, `e = [4/13, 9/13]`
-- `β_L = 16/29 ≈ 0.5517241379310345`, `β_H = 96/65 ≈ 1.476923076923077`
-- final weights:
+### E. Tests — `tests/test_bab_p20_rank_weighting.py` (extend; baseline is 11 tests in this file)
+1. **Keep** `test_hand_computed_four_asset_rank_weights` asserting `30/23, 10/23, −1/6, −1/2`, legs `±1`, total β `0`, net dollars `74/69` to `1e-12` — the floor/cap must not bind.
+2. **Add** `test_rank_flat_when_leg_beta_below_floor`: single long asset with `β=0.05`, valid short leg → all-zero row; same frame with `min_leg_beta=0.01` → non-zero, legs `±1`.
+3. **Add** `test_rank_flat_when_gross_exceeds_cap`: construct a case whose natural gross is ~9–10 (e.g. long leg `β_L=0.10`, short `β_H=2.0`) → zero row at `max_gross=4.0`; identical frame with `max_gross=12.0` → non-zero, legs `±1`, gross ≤ 12.
+4. **Re-point** `test_rank_book_is_beta_neutral_on_rebalance_rows` and `test_rank_beats_equal_on_leg_beta_scaling` to the wide synthetic universe (weekly + monthly). They must keep the same assertions: model β `≤1e-12` on rebalance rows, exact frozen-hold identity off them, rank legs `±1` on active rebalance rows, equal legs not `±1`. Document in the docstring that the committed fixture cannot support rank (see §9.1) so the invariant is proved on a cross-section with rank dispersion. This is **authorized re-pointing, not loosening** — no assertion may be weakened or deleted.
+5. **Add** `test_fixture_rank_is_flat_under_guard`: rank `run()` on the committed fixture, daily/weekly/monthly → `weights.abs().to_numpy().sum() == 0.0`, `cumulative.iloc[-1] == 1.0`, returns all zero (or NaN Sharpe), never raises.
+6. **Add** `test_rank_guard_config_validation`: `BABConfig(rank_min_leg_beta=0)` / `1.5` / `"x"` and `BABConfig(rank_max_gross=0.5)` / `1000` raise `BABConfigError`; a direct `construct_portfolio(weighting="rank", rank_min_leg_beta=0, ...)` raises `BABDataError`.
+7. **No** existing test deleted, skipped, `xfail`-ed, or weakened. Baseline **6473 passed / 35 skipped / TOTAL 100% (6623/6623)** may only grow.
 
-| asset | exact | decimal |
-|---|---|---|
-| A | `3/2` | `1.5` |
-| B | `5/16` | `0.3125` |
-| C | `−5/24` | `−0.20833333333333331` |
-| D | `−15/32` | `−0.46875` |
+### F. Docs
+- `docs/BAB_FIDELITY.md`: keep §9 formulas; append **§9.1 Rank-mode leverage bound and scope (WP2b)** with: the measured 25/398 active-row count, `β_L ∈ [0.0197, 0.1138]`, `β_H = 1.0`, gross `9.79 → 51.67`, the 2021-05-03 `ADA +50.09 / BTC −1.00` row and the −196.8% next-day return; the two safety valves and the flat-row contract; the statement that the 9-asset synthetic fixture **cannot evaluate rank mode** and no rank Sharpe/wealth may be published; and that rank remains opt-in and unpromoted.
+- `README.md`: one clause that rank weighting requires a wide beta cross-section and is not empirically evaluable on the committed 9-asset fixture. No profitability claim, no "default" claim.
 
-- leg betas `+1.0` / `−1.0`; total beta `0.0` (to floating noise)
-- net dollar exposure `109/96 ≈ 1.1354166666666667` (= `1/β_L − 1/β_H`); long dollars `1.8125`, short dollars `−0.6770833333333333`
-
-### 3. Test file — `tests/test_bab_p20_rank_weighting.py` (minimum set)
-
-1. **`test_hand_computed_four_asset_rank_weights`** — call `construct_rank_weights` directly; assert the four exact fractions to `1e-12`, leg betas `±1` to `1e-12`, total beta `0` to `1e-12`, net dollars `109/96` to `1e-12`.
-2. **`test_rank_book_is_beta_neutral_on_rebalance_rows`** — `BABStrategy(weighting="rank", rebalance_freq="weekly"|"monthly")` on the committed fixture; with `mask = strategy_mod._rebalance_mask(weights.index, freq)`, assert `max|Σ w β| ≤ 1e-12` on `mask` rows and the frozen-hold identity `weights.loc[~mask] == weights.where(mask).ffill().fillna(0).loc[~mask]` exactly. Held-row drift is expected and must **not** be asserted to zero.
-3. **`test_rank_beats_equal_on_leg_beta_scaling`** — on the same fixture, rank mode's long/short leg betas are `±1` at each rebalance date (within `1e-12`); equal mode's are not.
-4. **`test_equal_weight_path_byte_identical`** — explicit `weighting="equal"` reproduces the post-WP1 default exactly (weights frame identical; final wealth identical to `1e-12`). This is the no-regression gate.
-5. **`test_rank_degenerate_rows_are_flat`** — non-finite betas, a leg with all `beta <= 0`, an empty long/short leg, and an empty signals frame all yield all-zero rows and never raise.
-6. **`test_rank_no_lookahead`** — compute weights on the full frame and on a frame truncated at `t`; the weight row at `t` must be identical. Rank/leg scaling may use only betas at `t`.
-7. **`test_invalid_weighting_surfaces`** — `BABConfig(weighting="bogus")` and a bad direct `construct_portfolio(weighting=...)` raise (`BABDataError`/config error); no silent fallback.
-8. **No existing test deleted, skipped, `xfail`-ed, or loosened.** Baseline **6462 passed / 35 skipped** may only grow.
-
-### 4. Docs acceptance
-
-Append **§9 Rank weighting (opt-in, WP2)** to `docs/BAB_FIDELITY.md`: the construction formulas, the hand example table, the honest statement that FP legs are beta-neutral but **not** dollar-neutral (cash/borrow funds the net), that `weighting="equal"` remains the shipped default, and that rank is **not** promoted without OOS evidence from WP3. Update the §7 bullet that currently says rank weighting is "that is WP2" so the doc no longer describes landed work as future work. README stays truthful: it describes the default (equal-weight, beta-neutral); optionally add one clause that `weighting="rank"` is available as an opt-in research path — do not claim it is the default.
-
-### 5. Commit rule
-
-**One commit:** `config.py` + `portfolio.py` + `strategy.py` + `tests/test_bab_p20_rank_weighting.py` + `docs/BAB_FIDELITY.md` (+ optional one-line README). A docs-only / test-only / gate-only commit is an automatic failed session. Never leave the tree red; if the doc is unfinished, commit the green product+test slice and record the exact doc remainder in the ledger.
+### G. Commit rule
+**One commit:** `config.py` + `portfolio.py` + `strategy.py` + `tests/test_bab_p20_rank_weighting.py` + `docs/BAB_FIDELITY.md` (+ optional one-line README). A docs-only / test-only / gate-only commit is an automatic failed session. Never hand off mid-gate and never leave the tree red.
 
 ---
 
-## Ground truth @`33b84e2` (certified 2026-11-18T19:21Z; do not re-measure)
+## Ground truth @ HEAD (certified; fixture is a deterministic synthetic random walk)
 
-Fixture `tests/fixtures/real_market_prices.csv`: 398 rows, 2021-01-05 → 2022-07-15, deterministic **synthetic** random walk, costs 10 bps, `beta_window=90`, `min_observations=60`.
+`tests/fixtures/real_market_prices.csv`: 398 rows, 2021-01-05 → 2022-07-15, costs 10 bps, `beta_window=90`, `min_observations=60`, 9 assets (BTC benchmark). **Not real market data.**
 
-| Config | Wealth | Sharpe | Ann. vol | Max DD | Realized β | Model β (max) | Turnover |
-|---|---|---|---|---|---|---|---|
-| **DEFAULT** w90 q0.3, post-WP1 (`beta_neutral=True`) | 0.7057 (−29.4%) | −0.725 | 0.258 | −0.413 | +0.059 | 1.5e-04 | 0.264 |
-| w90 q0.2, post-WP1 | 1.3093 (+30.9%) | +0.649 | 0.366 | −0.227 | +0.006 | 2.1e-04 | 0.234 |
-| w90 q0.3, opt-out (`beta_neutral=False`) | 0.3136 (−68.6%) | −1.418 | 0.446 | −0.758 | −0.572 | 1.11 | 0.201 |
-| w90 q0.2, opt-out | 0.4214 (−57.9%) | −0.680 | 0.567 | −0.634 | −0.908 | 1.48 | 0.126 |
-| BTC buy-and-hold | 2.0975 (+109.7%) | +1.756 | 0.291 | — | 1.000 | — | — |
+| Config | Wealth | Sharpe | Realized β | Max model β | Notes |
+|---|---|---|---|---|---|
+| **DEFAULT** w90 q0.3 (`beta_neutral=True`, daily) | 0.7057 (−29.4%) | −0.725 | +0.059 | 1.5e-04 | shipped default |
+| w90 q0.2, post-WP1 | 1.3093 (+30.9%) | +0.649 | +0.006 | 2.1e-04 | in-sample only |
+| w90 q0.3 weekly, equal | 0.8049 | −0.447 | +0.049 | 9.4e-02 | held-row drift |
+| w90 q0.3 monthly, equal | 1.1492 | +0.496 | +0.083 | 1.2e-01 | held-row drift |
+| w90 q0.3, opt-out (`beta_neutral=False`) | 0.3136 (−68.6%) | −1.418 | −0.572 | 1.11 | pre-WP1 behaviour |
+| BTC buy-and-hold | 2.0975 (+109.7%) | +1.756 | 1.000 | — | benchmark |
+| **rank** w90 q0.3, daily | ~1.5e-24 | not meaningful | +0.157 | 1.1e-16 | 25 active rows, gross ≤ 51.67 |
+| **rank** w90 q0.3, weekly | ~0 | not meaningful | +0.064 | 2.02 | frozen 51x book |
+| **rank** w90 q0.3, monthly | ~0 | not meaningful | +0.459 | 4.54 | frozen 51x book |
 
-- Full gate at current HEAD: **6462 passed / 35 skipped / 0 failed**, **TOTAL 100%** (6566/6566), `BAB_GATE_MIN_COVERAGE=100` GREEN. This refresh restored the last 8 statements (the two class-B finiteness-guard tests had to be pinned to `beta_neutral=False`, because the new default sanitizes planted `inf`/`NaN` before the guard).
-- WP1 invariants are locked by `tests/test_bab_p20_beta_neutral_default.py` (17 tests): daily model β `≤1e-3` on the `w∈{60,90,120} × q∈{0.2,0.3}` grid; realized β `≤0.15` grid-wide and `≤0.07` at `w∈{90,120}`; `|Σw| ≤ 1e-9`; weekly/monthly frozen-hold + β-neutral on rebalance rows only; opt-out byte-identical.
-
-Reproduce the core measurement (≈3 ms **after** `bash scripts/bab_quick.sh`):
+Reproduce the equal-weight core (≈3 ms **after** `bash scripts/bab_quick.sh`):
 ```bash
 python3 - <<'EOF'
 from strategies.betting_against_beta.data_loader import load_prices
@@ -163,74 +139,75 @@ for q in (0.2, 0.3):
 EOF
 ```
 
-Model beta and book weights live on `BABResult.weights` / `BABResult.betas` (NOT in `result.backtest`). Model beta = `(W * betas.reindex(columns=W.columns).fillna(0.0)).sum(axis=1)`.
+Model beta and book weights live on `BABResult.weights` / `BABResult.betas` (NOT in `result.backtest`). Model beta = `(W * betas.reindex(columns=W.columns).fillna(0.0)).sum(axis=1)`. `backtest["cumulative"]` is a **wealth index** (1.0 = start); `final − 1` is total return. `backtest` keys: `cost_drag, cumulative, gross_return, returns, slippage_drag`.
 
 **Honesty constraints (non-negotiable):**
-1. The fixture is **not real market data**. `scripts/generate_real_market_fixture.py` builds deterministic random walks with a fixed seed, plus a deliberate 2021-09-17 gap and an all-NaN `DEL` column. Never present results on it as evidence of real profitability.
-2. The q0.2 / `beta_neutral=True` row is **in-sample, not evidence of edge**. Never select parameters in-sample and report as OOS — that is what WP3 exists to prevent.
-3. `backtest["cumulative"]` is a **wealth index** (1.0 = start), not a return. `final − 1` is total return.
-4. **A null/negative OOS result is a valid, successful campaign outcome.** A fabricated positive is a failed session.
+1. Never present fixture results as real profitability. It is a fixed-seed random walk with a deliberate 2021-09-17 gap and an all-NaN `DEL` column.
+2. The q0.2 row is **in-sample**. Never report in-sample selection as OOS — WP3 exists to prevent that.
+3. **Rank-mode wealth/Sharpe on this fixture is evidence of a leverage pathology, nothing else.** Never quote it as performance.
+4. A null/negative OOS result is a valid, successful outcome. A fabricated positive is a failed session.
 
 ---
 
 ## Environment constraints (do not rediscover)
 
-- **PyPI is reachable; the exchange API is not.** `bash scripts/bab_quick.sh` bootstraps `requirements.txt` + `ruff` automatically. `https://api.exchange.coinbase.com` → **HTTP 403**: real-data ingestion is permanently external until a maintainer supplies a licensed CSV. Never put network calls in tests.
-- Console scripts land in `~/.local/bin` (not on `PATH`) → always invoke `python3 -m pytest` / `python3 -m ruff`.
-- `rg` not installed → use `grep -rn` or the editor search tools.
-- `bash scripts/bab_quick.sh` ≈ 20 s (ruff + 104 + 195). Full gate ≈ 2–4 min (measured 130.8 s with `BAB_GATE_MIN_COVERAGE=100`). Fixture pipeline ≈ 3 ms. Verification is never the bottleneck.
-- `pytest --cov` can hit `ImportError: cannot load module more than once per process` in ad-hoc invocations; use the gate script (`scripts/bab_gate.sh`) for coverage certification instead of hand-rolled `--cov`.
+- **PyPI is reachable; the exchange API is not.** `bash scripts/bab_quick.sh` bootstraps `requirements.txt` + `ruff`. `https://api.exchange.coinbase.com` → **HTTP 403**; real-data ingestion is permanently external until a maintainer supplies a licensed CSV. Never put network calls in tests.
+- Console scripts land in `~/.local/bin` → always `python3 -m pytest` / `python3 -m ruff`.
+- `rg` not installed → use `grep -rn` or editor search.
+- `bash scripts/bab_quick.sh` ≈ 20 s (ruff + 104 + 195). Full gate ≈ 130 s with `BAB_GATE_MIN_COVERAGE=100`. Fixture pipeline ≈ 3 ms. Verification is never the bottleneck.
+- `pytest --cov` in ad-hoc invocations can raise `ImportError: cannot load module more than once per process`; certify coverage with `scripts/bab_gate.sh`, never hand-rolled `--cov`.
 
 ---
 
-## Campaign P20 map — lanes and file ownership
+## Campaign P20 map — lanes, status, file ownership
 
 One session owns exactly one lane for its whole turn. Two sessions must never take the same WP; **the committed deliverable files are the claim**.
 
-| Lane | WPs in order | Owned files |
-|---|---|---|
-| **A — Research/evaluation** | WP0 → WP3 → WP5 | `scripts/bab_research_sweep.py`, `scripts/bab_walk_forward.py`, `research_state/bab_p20/**`, `tests/test_bab_p20_research_sweep.py`, `tests/test_bab_p20_walk_forward.py`, `tests/test_bab_p20_breakeven.py` |
-| **B — Strategy fidelity** | **WP2 (now)** | `strategies/betting_against_beta/{config,portfolio,strategy}.py`, `docs/BAB_FIDELITY.md`, `tests/test_bab_p20_rank_weighting.py` |
-| **C — Reporting/consistency** | WP4 only, after WP3 + WP2 are committed | `docs/BAB_RESEARCH_REPORT.md`, `tests/test_bab_p20_report_consistency.py` |
+| Lane | WPs in order | Owned files | Status |
+|---|---|---|---|
+| **B — Strategy fidelity** | **WP2b (now)** | `config.py`, `portfolio.py`, `strategy.py`, `docs/BAB_FIDELITY.md`, `tests/test_bab_p20_rank_weighting.py` | WP1 ✅, WP2 algebra ✅, WP2b ⬅ |
+| **A — Research/evaluation** | WP0 → WP3 → WP5 | `scripts/bab_research_sweep.py`, `scripts/bab_walk_forward.py`, `research_state/bab_p20/**`, `tests/test_bab_p20_research_sweep.py`, `tests/test_bab_p20_walk_forward.py`, `tests/test_bab_p20_breakeven.py` | not started |
+| **C — Reporting/consistency** | WP4 after WP0+WP3+WP2b | `docs/BAB_RESEARCH_REPORT.md`, `tests/test_bab_p20_report_consistency.py` | not started |
 
-Rules: Lane A never edits product code; Lane B never edits research scripts or `research_state/`. WP4 must publish **both** fidelity and OOS numbers and machine-check them. **Solo-session default: WP2. If two sessions run concurrently: one takes WP2 (lane B), one takes WP0 (lane A).**
+Rules: Lane A never edits product code; Lane B never edits research scripts or `research_state/`. **Solo default: WP2b. If two sessions run concurrently: one takes WP2b (lane B), one takes WP0 (lane A).**
 
 ### WP0 — Evidence harness (lane A, can run concurrently)
-`scripts/bab_research_sweep.py`: deterministic sweep over `beta_window ∈ {30,60,90,120,180}`, `q ∈ {0.2,0.3}`, `tc ∈ {0,0.001,0.0025,0.005}`, `beta_neutral ∈ {False,True}` → `research_state/bab_p20/sweep.json` + a markdown table rendered **from** that JSON. Sorted keys, floats at 6 dp, byte-identical reruns, no network. **Acceptance:** `tests/test_bab_p20_research_sweep.py` proves runtime <10 s, identical SHA-256 across runs, every row carries `wealth/sharpe/beta/gross/turnover`, and no hand-typed digits in the markdown. Include a `model_beta` and `realized_beta` column per row — that is the evidence for the estimation-error finding. `beta_window=180` in WP0 is descriptive/in-sample only.
+`scripts/bab_research_sweep.py`: deterministic sweep over `beta_window ∈ {30,60,90,120,180}`, `q ∈ {0.2,0.3}`, `tc ∈ {0,0.001,0.0025,0.005}`, `beta_neutral ∈ {False,True}` → `research_state/bab_p20/sweep.json` + a markdown table rendered **from** that JSON. Sorted keys, floats at 6 dp, byte-identical reruns, no network. **Use `weighting="equal"` only — do not add rank to the sweep (it is flat on this fixture; see §9.1).** **Acceptance:** `tests/test_bab_p20_research_sweep.py` proves runtime <10 s, identical SHA-256 across runs, every row carries `wealth/sharpe/model_beta/realized_beta/gross/turnover`, and no hand-typed digits in the markdown. `beta_window=180` is descriptive/in-sample only.
 
 ### WP3 — Walk-forward / OOS harness (the anti-cherry-pick gate)
-`scripts/bab_walk_forward.py`: rolling-origin splits, **5 folds**, parameter selection **only** on train, evaluation **only** on untouched test → `research_state/bab_p20/walk_forward.json` (per-fold selected params, OOS Sharpe/vol/mdd/turnover/beta; aggregate mean/median and fraction of folds with positive Sharpe) + rendered markdown. Feasible split on the 398-row fixture: `train=180` rows, then `5 × 40` test rows (ends at row 380), `beta_window ∈ {30,60,90,120}`, `min_observations=60`. **Do not use `beta_window=180` in WP3** — it cannot satisfy 5×40 out-of-sample rows with a 180+60 warmup on this fixture. **Acceptance:** `tests/test_bab_p20_walk_forward.py` proves `max(train_index) < min(test_index)` for every fold; a planted `t+1` lookahead trap is detected and rejected; deterministic rerun hash equality; ≥40 test observations per fold.
-
-### WP4 — Honest reporting + provenance (merge point)
-`docs/BAB_RESEARCH_REPORT.md` states fixture provenance (deterministic random walk, fixed seed, deliberate gap, NaN column), in-sample vs OOS distinction, cost assumptions, explicit conclusion, and a "What this does NOT prove" section. **Acceptance:** `tests/test_bab_p20_report_consistency.py` parses the markdown tables and asserts every published number equals its JSON field; asserts the provenance sentence is present. Do **not** rename fixture files (many tests reference the path).
+`scripts/bab_walk_forward.py`: rolling-origin splits, **5 folds**, parameter selection **only** on train, evaluation **only** on untouched test → `research_state/bab_p20/walk_forward.json` (per-fold selected params, OOS Sharpe/vol/mdd/turnover/beta; aggregate mean/median and fraction of folds with positive Sharpe) + rendered markdown. Feasible split on the 398-row fixture: `train=180` rows, then `5 × 40` test rows (ends at row 380), `beta_window ∈ {30,60,90,120}`, `min_observations=60`, `weighting="equal"`. **Do not use `beta_window=180` in WP3.** **Acceptance:** `tests/test_bab_p20_walk_forward.py` proves `max(train_index) < min(test_index)` for every fold; a planted `t+1` lookahead trap is detected and rejected; deterministic rerun hash equality; ≥40 test observations per fold.
 
 ### WP5 — Cost/turnover realism and break-even
 Extend the sweep with the cost level at which OOS Sharpe crosses zero (bisection over `tc ∈ [0, 0.01]`, 6 iterations, deterministic), turnover per rebalance, gross exposure → `research_state/bab_p20/breakeven.json`. **Acceptance:** break-even cost monotone non-increasing in reported Sharpe, deterministic, and `tc=0` reproduces uncosted Sharpe within `1e-12`.
 
+### WP4 — Honest reporting + provenance (merge point)
+`docs/BAB_RESEARCH_REPORT.md` states fixture provenance (deterministic random walk, fixed seed, deliberate gap, NaN column), in-sample vs OOS distinction, cost assumptions, explicit conclusion, a "What this does NOT prove" section, and the §9.1 statement that rank mode is **not empirically evaluable** on this universe (no rank performance numbers may appear as results). **Acceptance:** `tests/test_bab_p20_report_consistency.py` parses the markdown tables and asserts every published number equals its JSON field; asserts the provenance sentence is present. Do **not** rename fixture files.
+
 ---
 
-## Campaign P20 done-check (all six must hold)
+## Campaign P20 done-check (all must hold)
 
-1. Default-config book: `max|Σ wᵢβᵢ| ≤ 1e-3` (daily, all 6 grid points) and `|realized β| ≤ 0.15` grid-wide (`≤0.07` at `w∈{90,120}`), committed test, weekly/monthly invariance preserved, explicit opt-out byte-identical to pre-WP1. **DONE.**
-2. `weighting="rank"` exists, is opt-in, matches the hand-computed weights to `1e-12`, gives unit-beta legs and zero total beta on rebalance rows, keeps `weighting="equal"` byte-identical, and has a no-lookahead proof. **WP2.**
-3. `scripts/bab_research_sweep.py` + `scripts/bab_walk_forward.py` exist, deterministic (hash-equal reruns), JSON artifacts committed under `research_state/bab_p20/`. **WP0/WP3.**
-4. `docs/BAB_RESEARCH_REPORT.md` exists; every published number machine-checked against JSON. **WP4.**
-5. All `tests/test_bab_p20_*.py` pass; no existing test deleted, skipped, `xfail`-ed, or weakened; coverage stays **100%** (baseline 6462/35 may only grow).
-6. Full gate green: ruff PASS, reconcile GREEN, `bab_gate.sh` with `BAB_GATE_MIN_COVERAGE=100` GREEN, 0 missed.
-7. README no longer claims "dollar-neutral by default" as if that were BAB; it cites the fidelity doc. **DONE.**
+1. Default-config book: `max|Σ wᵢβᵢ| ≤ 1e-3` (daily, 6 grid points), `|realized β| ≤ 0.15` grid-wide (`≤0.07` at `w∈{90,120}`), committed test, weekly/monthly invariance, explicit opt-out byte-identical. **DONE (WP1).**
+2. `weighting="rank"` exists, is opt-in, matches the hand weights to `1e-12`, unit-beta legs, zero total beta on rebalance rows, equal path byte-identical, no-lookahead proof. **DONE (WP2 algebra).**
+3. Rank path is **numerically bounded**: leg-beta floor + gross cap flatten pathological rows, hand example unchanged, wide-universe proof, fixture-flat documented. **WP2b.**
+4. `scripts/bab_research_sweep.py` + `scripts/bab_walk_forward.py` exist, deterministic (hash-equal reruns), JSON artifacts committed under `research_state/bab_p20/`. **WP0/WP3.**
+5. `docs/BAB_RESEARCH_REPORT.md` exists; every published number machine-checked against JSON; no rank performance claim. **WP4.**
+6. All `tests/test_bab_p20_*.py` pass; no existing test deleted/skipped/`xfail`-ed/weakened; coverage **100%** (6473/35 may only grow). **WP2b re-certifies.**
+7. Full gate green: ruff PASS, reconcile GREEN, `bab_gate.sh` `BAB_GATE_MIN_COVERAGE=100` GREEN, 0 missed. **WP2b re-certifies.**
+8. README no longer claims "dollar-neutral by default" as if that were BAB; it cites the fidelity doc. **DONE (WP1/WP2).**
 
 ## P21 preview (deferred — activate only after all P20 checks pass)
-Do not start P21 while P20 is open. **P21 — "Execution-grade BAB":** (1) real-data adapter for a maintainer-supplied licensed CSV, no network in-session, `research_state/p21/real_data_provenance.json`, rerun WP3/WP5 unchanged — if no CSV exists, deliver a validated import contract + clearly-labelled synthetic fallback, never a profitability claim; (2) capacity/liquidity model — per-asset ADV participation caps + square-root impact wired into `cost_model`, tests proving size scaling and rejection above caps; (3) execution realism — deterministic paper-trading soak over ≥250 rebalances with replay, reconciliation, restart/resume, modeled-vs-executed drift within tolerance; (4) robustness matrix — regime × cost × rebalance-frequency × weighting sweep, OOS-only conclusions, machine-checked report. Acceptance criteria are intentionally unwritten; derive them from the P20 pattern (deterministic script + committed artifact + consistency test + honest report).
+**P21 — "Execution-grade BAB":** (1) real-data adapter for a maintainer-supplied licensed CSV, no network in-session, `research_state/p21/real_data_provenance.json`, rerun WP3/WP5 unchanged — if no CSV exists, deliver a validated import contract + clearly-labelled synthetic fallback, never a profitability claim; (2) capacity/liquidity model — per-asset ADV participation caps + square-root impact wired into `cost_model`, tests proving size scaling and rejection above caps; (3) execution realism — deterministic paper-trading soak over ≥250 rebalances with replay, reconciliation, restart/resume, modeled-vs-executed drift within tolerance; (4) robustness matrix — regime × cost × rebalance-frequency × weighting sweep, OOS-only conclusions, machine-checked report. Derive acceptance criteria from the P20 pattern (deterministic script + committed artifact + consistency test + honest report).
 
 ---
 
-## No-idle ladder (if an assigned WP is blocked, do the next rung — never end a session empty-handed)
+## No-idle ladder (if the assigned WP is blocked, do the next rung — never end a session empty-handed)
 
-1. Blocked on WP2 semantics? You are not — the algebra, the corrected gate, and the exact hand weights are above. Implement `construct_rank_weights`, add the 7 tests, run them.
-2. Blocked on the 4-asset exactness? Use the fractions in §2 verbatim (`3/2`, `5/16`, `−5/24`, `−15/32`); assert against `fractions.Fraction`, not decimals.
-3. Blocked on WP2 integration? Take **WP0** (lane A) — a deterministic sweep + hash test is always landable and needs no product code.
-4. Blocked on data/network? Nothing needs network. Reread "Environment constraints" — the answer is no.
-5. Blocked on everything? Add the missing `weighting` config validation + its two-line regression test. Something landable always exists.
+1. Blocked on the meaning of the floor/cap? You are not — the exact semantics are in WP2b §B, and the numbers for both the hand example and the fixture are measured above.
+2. Blocked on which tests to re-point? Only the two named fixture-based invariant tests; every assertion stays. Everything else is additive.
+3. Blocked on the wide synthetic frame? Use the exact recipe in WP2b §D (40 assets, betas `0.35 … 1.9`, 60 rows, 30% legs).
+4. Blocked on WP2b for any other reason? Take **WP0** (lane A) — a deterministic sweep + hash test is always landable and needs no product code.
+5. Blocked on everything? Add the `rank_min_leg_beta` / `rank_max_gross` config validation plus its regression test. Something landable always exists.
 
 Every session must end with a committed **code/test/artifact** diff and a ledger row. If a WP is only partially done, commit the slice and write the exact remainder in its ledger row.
 
@@ -251,29 +228,36 @@ Inner loop: `bash scripts/bab_quick.sh` + `python3 -m pytest -q tests/test_bab_p
 - Handoff-only / docs-only / gate-only / count-only / analysis-only commits (WP0/WP4 artifacts count only **with** their consistency tests).
 - Selecting parameters on the evaluation window and reporting the result as OOS.
 - Describing the synthetic fixture as real market data, or publishing a Sharpe without the provenance caveat.
+- Quoting rank-mode wealth/Sharpe from the 9-asset fixture as performance, or adding rank to the WP0/WP3 sweeps.
+- Satisfying the gross cap by rescaling a rank row (breaks unit leg betas) or by silently widening eligibility to negative betas inside WP2b.
 - Deleting, skipping, `xfail`-ing, or loosening existing tests; special-casing fixture filenames in product code.
-- "Fixing" rebalance-invariance failures by turning off beta-neutral correction in tests instead of making the product rebalance-aware.
-- Reintroducing the retracted WP2 gate "zero dollars **and** unit-beta legs": impossible in general (see §0); rank mode is beta-neutral with documented net cash exposure.
-- Running `enforce_beta_neutrality` on a rank book (it flips signs); rank construction is beta-neutral by construction.
+- "Fixing" rebalance-invariance failures by turning off beta correction in tests instead of making the product rebalance-aware.
+- Reintroducing the retracted WP2 gate "zero dollars **and** unit-beta legs" (impossible in general; see WP2 §0 legacy rationale in the ledger row of 2026-11-18T19:21:09Z).
+- Running `enforce_beta_neutrality` on a rank book (it flips signs).
 - Promoting `weighting="rank"` to the default without WP3 OOS evidence.
-- Updating the CLI golden numbers, or chasing the retracted `|realized β| ≤ 0.06` / `≤ 0.10` grid-wide gates — both are measurement artefacts, documented above.
+- Updating the CLI golden numbers, or chasing the retracted `|realized β| ≤ 0.06` / `≤ 0.10` grid-wide gates — both are measurement artefacts.
 - Reopening P19 annotation/coverage work, re-attempting CI workflow edits, adding new `P19-7` markers, type-annotation/style churn, broad refactors, network fetching, committing probe/debug scratch scripts, or creating parallel handoff docs.
 
 ---
 
 ## Bottlenecks removed (do not re-create)
 
-- **[REMOVED 2026-11-18T19:21:09Z] Stale handoff claimed WP1 was unlanded.** HEAD `33b84e2` already contains the full WP1 product + test + doc + README change. The next session would have re-applied it or reverted it. Re-certified from the committed tree and rewrote the initial task to WP2.
-- **[REMOVED 2026-11-18T19:21:09Z] WP1 landed with a coverage regression (TOTAL 99%, 8 missed statements).** Two class-B tests (`test_sites6_7_finiteness_guard_clamps_nonfinite`, `test_sites8_9_dry_run_finiteness_guard_degrades`) still used the new default, whose beta correction sanitizes the planted `inf`/`NaN` before the finiteness guard can execute. Pinned both to `beta_neutral=False`; full gate restored to **100% (6566/6566)** with `BAB_GATE_MIN_COVERAGE=100` GREEN.
-- **[REMOVED 2026-11-18T19:21:09Z] WP2 acceptance gate was infeasible.** "Zero dollars + unit-beta legs" cannot both hold under leg-level inverse-beta scaling unless `β_L = β_H`; proof and corrected gates in WP2 §0. Also corrected the WP3 split so 5×40 OOS rows fit the 398-row fixture (`beta_window ≤ 120`, `train=180`).
-- **[REMOVED earlier] WP1 hidden test explosion.** Blast radius classified exactly (6 goldens / 4 exception mocks / 2 invariance) and re-measured with the real fix (10 total).
-- **[REMOVED earlier] Daily correction vs rebalance windows.** Resolved by Hunk B and landed.
-- **[REMOVED earlier] Lane collisions.** Lanes A/B/C with disjoint file ownership.
-- **[REMOVED earlier] Real-data rabbit hole.** Coinbase API is 403 here; real data is external, deferred to P21.
-- **[REMOVED earlier] Duplicate durable task docs.** `NEXT_SESSION_TASK.md` / `AGENT_HANDOFF.md` deleted; this file is the single source of truth.
-- **[REMOVED earlier] Bot diagnostics artefact untracked + ignored.** `research_state/workflow_run_diagnostics.jsonl` is gitignored; `*.egg-info/` ignored.
-- **[REMOVED earlier] Fresh-runner dependency trap documented.** Raw `python3` snippets fail until `scripts/bab_quick.sh` bootstraps PyPI deps once; console scripts land outside `PATH`.
-- **[PERMANENTLY EXTERNAL] P19-1 CI enforcement.** Agent tokens lack `workflows:write`; `.github/workflows/main.yml` does not invoke ruff/gates. Maintainer-only — never re-attempt, never list as a task.
+- **[REMOVED 2026-11-18T20:24:09Z] The handoff still declared WP2 "next" after WP2 had landed.** `weighting` exists, `construct_rank_weights` is committed at `portfolio.py:260`, `tests/test_bab_p20_rank_weighting.py` has 8 passing tests and `docs/BAB_FIDELITY.md` §9 documents the construction. A next session would have re-implemented or reverted it. Initial task rewritten to WP2b.
+- **[REMOVED 2026-11-18T20:24:09Z] The previous handoff's WP2 hand table was arithmetically wrong.** It claimed `d = [24/29, 5/29]`, `β_L = 16/29`, `A = 3/2`, net `109/96`; the correct values from scores `[1.5, 0.5, 0.5, 1.5]` are `d = [3/4, 1/4]`, `e = [1/4, 3/4]`, `β_L = 23/40`, `β_H = 3/2`, weights `30/23, 10/23, −1/6, −1/2`, net `74/69`. The landed test and §9 already carry the correct values; the stale table is gone from this file. Never re-assert `16/29` or `109/96`.
+- **[REMOVED 2026-11-18T20:24:09Z] WP2 landed RED.** One failing test (`TestFreezeFallback` mock config had no `weighting`, so a `MagicMock` reached `construct_portfolio` and failed validation) and 6 uncovered statements. Pinned `cfg.weighting = "equal"`; added rank input-guard / non-numeric / degenerate-row / `dry_run` coverage tests. Gate restored to **GREEN 6473/35/100% (6623 stmts)**.
+- **[REMOVED 2026-11-18T20:24:09Z] Rank leg-sum guards were provably duplicate dead code.** `Σ_L(m−r) == Σ_H(r−m)` because eligible ranks sum to `n·m`, so the second guard could never fire independently (and blocked 100% coverage). Collapsed to one live guard with the identity documented.
+- **[REMOVED 2026-11-18T20:24:09Z] Rank mode 51x-levered and detonated the book.** Measured: 25/398 active rows, `β_L ≤ 0.1138`, gross 9.79–51.67, −196.8% day on 2021-05-04, wealth ~1e-24. Converted into the binding WP2b (leg-beta floor + gross cap + wide-universe proof + fixture-flat documentation) so it cannot be published as a BAB result.
+- **[REMOVED 2026-11-18T20:24:09Z] Unclosed markdown fence at the end of `docs/BAB_FIDELITY.md` §9** (9 fences). Closed while adding §9.1.
+- **[REMOVED earlier] Stale handoff claimed WP1 was unlanded.** Re-certified from the committed tree at `33b84e2`.
+- **[REMOVED earlier] WP1 coverage regression** (TOTAL 99%, 8 missed statements) — two class-B finiteness-guard tests pinned to `beta_neutral=False`; restored to 100%.
+- **[REMOVED earlier] WP2 acceptance gate was infeasible** — "zero dollars + unit-beta legs" cannot both hold under leg-level inverse-beta scaling unless `β_L = β_H`; corrected gate is unit-beta legs + zero model beta, with net cash exposure documented.
+- **[REMOVED earlier] WP1 hidden test explosion** — blast radius measured (10 tests), fix landed.
+- **[REMOVED earlier] Daily correction vs rebalance windows** — resolved by the frozen-window hold.
+- **[REMOVED earlier] Lane collisions** — lanes A/B/C with disjoint file ownership.
+- **[REMOVED earlier] Real-data rabbit hole** — Coinbase API is 403 here; deferred to P21.
+- **[REMOVED earlier] Duplicate durable task docs** — deleted; this file is the single source of truth.
+- **[REMOVED earlier] Fresh-runner dependency trap** — documented above.
+- **[PERMANENTLY EXTERNAL] P19-1 CI enforcement.** Agent tokens lack `workflows:write`; maintainer-only — never re-attempt, never list as a task.
 
 ---
 
@@ -281,15 +265,15 @@ Inner loop: `bash scripts/bab_quick.sh` + `python3 -m pytest -q tests/test_bab_p
 
 | Session (UTC) | HEAD | Did | Gate |
 |---|---|---|---|
-| 2026-11-18T19:21:09Z | 33b84e2 | **WP1 verified landed; coverage regression repaired; WP2 de-risked.** Found WP1 already committed at HEAD (config flip, frozen-window hold at both sites, 17-test P20 acceptance file, `BAB_FIDELITY.md`, README corrections, CLI opt-out). Re-certified invariants. Found WP1's pin list missed two class-B finiteness-guard tests, leaving 8 statements uncovered (TOTAL 99%); pinned both to `beta_neutral=False` → 100%. Retracted the infeasible WP2 "zero-dollar + unit-beta legs" gate with proof; specified the exact FP rank construction, the 4-asset hand weights (`3/2, 5/16, −5/24, −15/32`), the degenerate contracts, the no-lookahead test, and a feasible WP3 5×40 split. Product code unchanged. | ruff PASS; quick GREEN (104+195); full gate **GREEN 6462 passed / 35 skipped / 100% (6566/6566)** with `BAB_GATE_MIN_COVERAGE=100` (130.8 s) |
-| 2026-11-18T18:33:27Z | 33b84e2 | **WP1 landed.** Flipped `beta_neutral` default to `True`; added frozen-per-window hold at both correction sites; added `tests/test_bab_p20_beta_neutral_default.py` (17 tests) + `docs/BAB_FIDELITY.md`; corrected README lines 14/24; added `--no-beta-neutral` to the example script; applied 4 class-B pins. Left two guard tests unpinned → 8 uncovered statements. | 6462 passed / 35 skipped; TOTAL 99% (8 missed) — repaired at 19:21Z |
-| 2026-11-18T18:22:06Z | e376564 | **WP1 de-risked + handoff refreshed.** Prototyped the full WP1 fix on a scratch copy, measured the 6-point `w×q` grid, verified class-C invariance green and exactly 10 remaining failures, verified all four pins and byte-identical goldens/opt-out numbers, then reverted. Corrected two infeasible acceptance gates. Deleted duplicate `NEXT_SESSION_TASK.md`; untracked+ignored 768 KB bot diagnostics and `egg-info/`. | ruff PASS; quick GREEN; full gate GREEN 6445 passed / 35 skipped / 100% at `e376564` |
-| 2026-11-18T14:47:47Z | 3393f8d | **Handoff consolidation + bottleneck removal.** Folded duplicate task doc into this file; measured the full beta-neutral grid; retracted the infeasible 0.06-as-written gate; pinned the rebalance-aware fix to exact insertion points. | ruff PASS; quick GREEN; reconcile baseline unchanged (6445/35/100%) |
-| 2026-11-18T14:43:40Z | 1a70054 | Campaign refresh: re-verified ground truth, measured WP1 blast radius (12F/6433P/35S), added lanes + file ownership, network-403 note, P21 preview. | ruff PASS; quick GREEN; reconcile GREEN; full gate GREEN 6445/35/100% |
-| 2026-11-18T14:19:40Z | f98eaa1 | **Opened P20.** Certified baseline; measured default-book beta −0.572 / −0.908; confirmed no walk-forward harness; confirmed equal-weight ±1.0. | ruff PASS; quick GREEN; reconcile GREEN; full gate GREEN 6445/35/100% |
-| 2026-11-18T13:20:00Z | f55e570 | P19-7 finished: 7 handlers annotated with A/B evidence + tests; 13 scratch scripts removed. | full gate GREEN (6445/35/100%) |
-| 2026-11-18T12:26:31Z | 1272f25 | Corrected stale "8 Milestone-4 sites" target; fixed RED ruff gate. | ruff PASS; quick GREEN; reconcile GREEN |
-| ≤2026-11-17T14:46:59Z | 73e4db2 | All four original stakes closed; `strategies/betting_against_beta` 100% line coverage. | 6282 passed / 35 skipped |
+| 2026-11-18T20:24:09Z | a32a91d +1 | **WP2 verified landed; red gate repaired; WP2b opened.** Found WP2 committed at `01eb301` while the handoff still said "WP2 next". Verified the algebra against the correct 4-asset fractions (`30/23, 10/23, −1/6, −1/2`, net `74/69`) and recorded that the prior handoff's table (`16/29`, `109/96`) was wrong. Fixed the one failing test (mock config missing `weighting`), proved the duplicate leg-sum guard dead, added 3 coverage tests (input guards, non-numeric coercion, degenerate row, `dry_run` rank freeze). Measured the rank pathology: 25/398 active rows, `β_L ≤ 0.1138`, gross 9.79–51.67, −196.8% day, wealth ~1e-24; wrote it into `docs/BAB_FIDELITY.md` §9.1 and specified WP2b (floor 0.20 / cap 4.0, flat-row contract, wide-universe proof). | ruff PASS; quick GREEN; full gate **GREEN 6473 passed / 35 skipped / 100% (6623/6623)** with `BAB_GATE_MIN_COVERAGE=100` (129.2 s) |
+| 2026-11-18T19:21:09Z | 33b84e2 | **WP1 verified landed; coverage regression repaired; WP2 de-risked.** Retracted the infeasible "zero-dollar + unit-beta legs" gate; specified the FP rank construction and a feasible WP3 5×40 split. | GREEN 6462/35/100% (6566/6566) |
+| 2026-11-18T18:33:27Z | 33b84e2 | **WP1 landed.** Beta-neutral default, frozen-per-window hold, 17-test acceptance file, fidelity doc, README corrections, `--no-beta-neutral`. | 6462/35/100% after repair |
+| ≤2026-11-18T18:22:06Z | e376564 | WP1 de-risked on a scratch copy; duplicate task doc deleted; bot diagnostics ignored. | GREEN 6445/35/100% |
+| ≤2026-11-18T14:47:47Z | 3393f8d | Handoff consolidation; grid measured; rebalance-aware fix pinned. | GREEN 6445/35/100% |
+| ≤2026-11-18T14:43:40Z | 1a70054 | Campaign refresh; lanes + file ownership; network-403 note; P21 preview. | GREEN 6445/35/100% |
+| ≤2026-11-18T14:19:40Z | f98eaa1 | **Opened P20.** Certified baseline; measured default-book beta −0.572 / −0.908. | GREEN 6445/35/100% |
+| 2026-11-18T13:20:00Z | f55e570 | P19-7 finished: 7 handlers annotated; 13 scratch scripts removed. | GREEN 6445/35/100% |
+| ≤2026-11-17T14:46:59Z | 73e4db2 | Original stakes closed; `strategies/betting_against_beta` 100% coverage. | 6282/35 |
 
 ## Proven closed (do not re-test, do not reopen)
-P19-7 (222 broad/bare `except` handlers annotated, 0 unannotated), P19-2/3/4, P17-1/2, P18-1/2/3, kill-switch R4-B, bootstrap, reconciliation R5-B/R5-C, live-adapter two-key safety, 100% line coverage of `strategies/betting_against_beta`, Milestones 1–5 hygiene, **P20 WP1 (beta-neutral default + frozen rebalance windows + fidelity doc + README correction)**. `scripts/bab_except_inventory.py` is retained as a read-only audit tool; running it is not a deliverable.
+P19-7 (222 broad/bare `except` handlers annotated, 0 unannotated), P19-2/3/4, P17-1/2, P18-1/2/3, kill-switch R4-B, bootstrap, reconciliation R5-B/R5-C, live-adapter two-key safety, 100% line coverage of `strategies/betting_against_beta`, Milestones 1–5 hygiene, **P20 WP1 (beta-neutral default + frozen rebalance windows + fidelity doc + README correction)**, **P20 WP2 algebra (rank construction, exact 4-asset hand example, no-lookahead, equal-path byte-identity)**. `scripts/bab_except_inventory.py` is retained as a read-only audit tool; running it is not a deliverable.

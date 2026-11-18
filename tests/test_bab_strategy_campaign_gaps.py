@@ -131,6 +131,7 @@ class TestFreezeFallback:
         cfg.regime_filter = False
         cfg.beta_neutral = False
         cfg.beta_neutral_enforcement = False
+        cfg.weighting = "equal"
         cfg.resolved_universe.return_value = ["BTC", "ETH", "SOL"]
 
         real_object = object
