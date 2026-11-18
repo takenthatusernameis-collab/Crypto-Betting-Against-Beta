@@ -52,6 +52,10 @@ class BABConfig:
     # Portfolio construction: "equal" (shipped default) or "rank"
     # (Frazzini-Pedersen rank weighting; beta-neutral legs, opt-in only).
     weighting: str = "equal"
+    # Rank-mode safety valves (no effect on the "equal" default):
+    # flat-row when a leg beta is too small to invert, or when gross > cap.
+    rank_min_leg_beta: float = 0.20
+    rank_max_gross: float = 4.0
     long_quantile: float = 0.3  # go long bottom beta quantile
     short_quantile: float = 0.3  # go short top beta quantile
     dollar_neutral: bool = True
@@ -380,6 +384,30 @@ class BABConfig:
 
         if self.weighting not in ("equal", "rank"):
             errors.append(f"weighting must be one of 'equal' or 'rank', got {self.weighting!r}")
+
+        # WP2b: rank-mode safety valves. Reject rather than coerce or clamp.
+        _min_leg_beta = self.rank_min_leg_beta
+        if (
+            not isinstance(_min_leg_beta, (int, float))
+            or isinstance(_min_leg_beta, bool)
+            or not math.isfinite(float(_min_leg_beta))
+            or not 0.0 < float(_min_leg_beta) <= 1.0
+        ):
+            errors.append(
+                "rank_min_leg_beta must be a finite number in (0, 1], "
+                f"got {_min_leg_beta!r}"
+            )
+
+        _max_gross = self.rank_max_gross
+        if (
+            not isinstance(_max_gross, (int, float))
+            or isinstance(_max_gross, bool)
+            or not math.isfinite(float(_max_gross))
+            or not 1.0 <= float(_max_gross) <= 100.0
+        ):
+            errors.append(
+                f"rank_max_gross must be a finite number in [1, 100], got {_max_gross!r}"
+            )
 
         if (
             self.benchmark is None

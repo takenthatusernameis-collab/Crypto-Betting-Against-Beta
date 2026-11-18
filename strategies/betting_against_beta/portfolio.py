@@ -50,6 +50,29 @@ def _clean_signal_value(val):
         return 0
 
 
+def _validate_rank_bounds(min_leg_beta, max_gross):
+    """Validate the WP2b rank-mode safety valves, raising BABDataError."""
+    if (
+        isinstance(min_leg_beta, bool)
+        or not isinstance(min_leg_beta, (int, float))
+        or not np.isfinite(min_leg_beta)
+        or not 0.0 < float(min_leg_beta) <= 1.0
+    ):
+        raise BABDataError(
+            "rank_min_leg_beta must be a finite number in (0, 1], "
+            f"got {min_leg_beta!r}"
+        )
+    if (
+        isinstance(max_gross, bool)
+        or not isinstance(max_gross, (int, float))
+        or not np.isfinite(max_gross)
+        or not 1.0 <= float(max_gross) <= 100.0
+    ):
+        raise BABDataError(
+            f"rank_max_gross must be a finite number in [1, 100], got {max_gross!r}"
+        )
+
+
 def construct_portfolio(
     signals_df,
     dollar_neutral=True,
@@ -63,6 +86,8 @@ def construct_portfolio(
     rebalance_mask=None,
     betas=None,
     weighting="equal",
+    rank_min_leg_beta=0.20,
+    rank_max_gross=4.0,
     **kwargs,
 ):
     """Construct portfolio weights from signals.
@@ -73,7 +98,8 @@ def construct_portfolio(
 
     When ``weighting="rank"`` (opt-in, Frazzini-Pedersen rank weighting) the
     equal-weight branch is bypassed entirely and :func:`construct_rank_weights`
-    is used; ``weighting="equal"`` takes the existing branch byte-identically.
+    is used; ``weighting="equal"`` takes the existing branch byte-identically
+    and ignores ``rank_min_leg_beta`` / ``rank_max_gross``.
     """
     import pandas as _pd
 
@@ -86,7 +112,12 @@ def construct_portfolio(
     if weighting not in ("equal", "rank"):
         raise BABDataError(f"weighting must be 'equal' or 'rank', got {weighting!r}")
     if weighting == "rank":
-        return construct_rank_weights(signals_df, betas)
+        return construct_rank_weights(
+            signals_df,
+            betas,
+            min_leg_beta=rank_min_leg_beta,
+            max_gross=rank_max_gross,
+        )
 
     try:
         # Accept aliases for turnover/position limits
@@ -258,7 +289,7 @@ def construct_portfolio(
     return weights
 
 
-def construct_rank_weights(signals_df, betas):
+def construct_rank_weights(signals_df, betas, min_leg_beta=0.20, max_gross=4.0):
     """Frazzini-Pedersen rank weighting (opt-in, beta-neutral legs).
 
     Public (no leading underscore) so callers can invoke it directly.
@@ -276,13 +307,15 @@ def construct_rank_weights(signals_df, betas):
     5. Dollar-normalize each leg: ``d_i = a_i / sum_L a``,
        ``e_j = a_j / sum_H a``. Degenerate zero-sum leg -> flat row.
     6. Leg betas ``beta_L = sum_L d_i b_i``, ``beta_H = sum_H e_j b_j``. If
-       either is non-finite or ``<= 0`` -> flat row.
+       either is non-finite or below ``min_leg_beta`` -> flat row.
     7. Return ``w_i = d_i / beta_L`` (long), ``w_j = -e_j / beta_H`` (short).
        No beta correction afterwards: the book is beta-neutral by construction.
+    8. If the resulting gross ``sum |w|`` exceeds ``max_gross`` -> flat row.
+       Violating rows are flattened, never rescaled: rescaling would move the
+       leg betas away from ``±1`` and break the §9 fidelity gate.
 
     Signal cleaning is identical to the equal-weight branch (trunc semantics).
     """
-    import numpy as np
     import pandas as _pd
 
     if signals_df is None or betas is None:
@@ -291,6 +324,10 @@ def construct_rank_weights(signals_df, betas):
         return _pd.DataFrame()
     if not isinstance(betas, _pd.DataFrame) or betas.empty:
         return _pd.DataFrame()
+
+    _validate_rank_bounds(min_leg_beta, max_gross)
+    min_leg_beta = float(min_leg_beta)
+    max_gross = float(max_gross)
 
     index = signals_df.index
     columns = signals_df.columns
@@ -342,13 +379,25 @@ def construct_rank_weights(signals_df, betas):
         e = a_short / sum_e
 
         # beta_L / beta_H are > 0 by construction (eligible betas > 0, leg
-        # dollar-weights are non-negative and sum to one); no correction is
-        # applied afterwards: the book is beta-neutral by construction.
+        # dollar-weights are non-negative and sum to one). A leg below the
+        # floor is too weak to invert safely: flatten, never rescale.
         beta_L = float(np.dot(d, ba[long_cols]))
         beta_H = float(np.dot(e, ba[short_cols]))
+        if (
+            not np.isfinite(beta_L)
+            or not np.isfinite(beta_H)
+            or beta_L < min_leg_beta
+            or beta_H < min_leg_beta
+        ):
+            continue  # flat row: leg beta below the invertibility floor
 
-        w_arr[i, long_cols] = d / beta_L
-        w_arr[i, short_cols] = -e / beta_H
+        row_w = np.zeros(len(columns), dtype=float)
+        row_w[long_cols] = d / beta_L
+        row_w[short_cols] = -e / beta_H
+        if float(np.abs(row_w).sum()) > max_gross:
+            continue  # flat row: gross exceeds the rank-mode cap
+
+        w_arr[i] = row_w
 
     return _pd.DataFrame(w_arr, index=index, columns=columns)
 

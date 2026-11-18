@@ -56,6 +56,12 @@ EXPECTED_WEIGHTS = {
 }
 EXPECTED_NET_DOLLARS = float(Fraction(74, 69))  # 1/beta_L - 1/beta_H = 40/23 - 2/3
 
+# Wide synthetic cross-section: the committed 9-asset fixture is rank-flat
+# under the WP2b guards (see docs/BAB_FIDELITY.md §9.1), so the rank
+# invariants are proved on a universe with genuine beta dispersion.
+WIDE_ASSETS = 40
+WIDE_UNIVERSE = [f"A{i:02d}" for i in range(WIDE_ASSETS)]
+
 
 def _model_beta(result):
     weights = result.weights
@@ -121,9 +127,43 @@ def test_hand_computed_four_asset_rank_weights():
     assert float(weights.sum(axis=1).iloc[0]) == pytest.approx(EXPECTED_NET_DOLLARS, abs=1e-12)
 
 
+def test_rank_flat_when_leg_beta_below_floor():
+    """A leg too weak to invert is flattened, never rescaled."""
+    idx = pd.date_range("2023-01-01", periods=1)
+    signals = pd.DataFrame({"L": [1], "H": [-1]}, index=idx)
+    betas = pd.DataFrame({"L": [0.05], "H": [1.5]}, index=idx)
+    flat = construct_rank_weights(signals, betas)
+    assert (flat.iloc[0] == 0.0).all()
+    active = construct_rank_weights(signals, betas, min_leg_beta=0.01, max_gross=100.0)
+    row = active.iloc[0]
+    assert float(row["L"]) == pytest.approx(1.0 / 0.05, abs=1e-12)
+    assert float(row["H"]) == pytest.approx(-1.0 / 1.5, abs=1e-12)
+    assert float(row["L"] * 0.05) == pytest.approx(1.0, abs=1e-12)
+    assert float(row["H"] * 1.5) == pytest.approx(-1.0, abs=1e-12)
+
+
+def test_rank_flat_when_gross_exceeds_cap():
+    """A row over the gross cap is flattened at the cap, never rescaled."""
+    idx = pd.date_range("2023-01-01", periods=1)
+    signals = pd.DataFrame({"L": [1], "H": [-1]}, index=idx)
+    betas = pd.DataFrame({"L": [0.10], "H": [2.0]}, index=idx)
+    capped = construct_rank_weights(signals, betas, min_leg_beta=0.05, max_gross=4.0)
+    assert (capped.iloc[0] == 0.0).all()
+    active = construct_rank_weights(signals, betas, min_leg_beta=0.05, max_gross=12.0)
+    row = active.iloc[0]
+    assert float(row["L"]) == pytest.approx(10.0, abs=1e-12)
+    assert float(row["H"]) == pytest.approx(-0.5, abs=1e-12)
+    assert float(row.abs().sum()) <= 12.0
+    assert float(row["L"] * 0.10) == pytest.approx(1.0, abs=1e-12)
+    assert float(row["H"] * 2.0) == pytest.approx(-1.0, abs=1e-12)
+
+
 @pytest.mark.parametrize("freq", ["weekly", "monthly"])
-def test_rank_book_is_beta_neutral_on_rebalance_rows(prices, freq):
-    _, result = _run_rank(prices, rebalance_freq=freq)
+def test_rank_book_is_beta_neutral_on_rebalance_rows(wide_returns, freq):
+    """Rank invariant proved on a wide cross-section (fixture is rank-flat)."""
+    _, result = _run_rank(
+        wide_returns, rebalance_freq=freq, universe=WIDE_UNIVERSE
+    )
     weights = result.weights
     mask = strategy_mod._rebalance_mask(weights.index, freq)
     assert int(mask.sum()) > 1
@@ -135,9 +175,14 @@ def test_rank_book_is_beta_neutral_on_rebalance_rows(prices, freq):
     pd.testing.assert_frame_equal(weights.loc[~mask], held.loc[~mask], check_exact=True)
 
 
-def test_rank_beats_equal_on_leg_beta_scaling(prices):
-    _, rank_result = _run_rank(prices, rebalance_freq="weekly")
-    _, equal_result = _run_equal(prices, rebalance_freq="weekly")
+def test_rank_beats_equal_on_leg_beta_scaling(wide_returns):
+    """Rank legs are ±1 on a wide universe; equal legs are not."""
+    _, rank_result = _run_rank(
+        wide_returns, rebalance_freq="weekly", universe=WIDE_UNIVERSE
+    )
+    _, equal_result = _run_equal(
+        wide_returns, rebalance_freq="weekly", universe=WIDE_UNIVERSE
+    )
     mask = strategy_mod._rebalance_mask(rank_result.weights.index, "weekly")
     rank_long, rank_short = _leg_betas(rank_result)
     # Only rebalance rows with a non-flat book have defined leg betas (warmup
@@ -152,6 +197,46 @@ def test_rank_beats_equal_on_leg_beta_scaling(prices):
     assert int(eq_active.sum()) > 0
     # Equal-weight legs are not beta-scaled: leg beta deviates from +1.
     assert float((eq_long[eq_active] - 1.0).abs().max()) > 1e-6
+
+
+@pytest.mark.parametrize("freq", ["daily", "weekly", "monthly"])
+def test_fixture_rank_is_flat_under_guard(prices, freq):
+    """The 9-asset fixture cannot evaluate rank; the guard flattens every row."""
+    _, result = _run_rank(prices, rebalance_freq=freq)
+    assert float(result.weights.abs().to_numpy().sum()) == 0.0
+    assert float(result.backtest["cumulative"].iloc[-1]) == pytest.approx(1.0, abs=1e-12)
+    assert float(result.backtest["returns"].abs().max()) == 0.0
+
+
+@pytest.mark.parametrize("value", [0, 1.5, "x", True, float("nan")])
+def test_rank_min_leg_beta_config_validation(value):
+    with pytest.raises(BABConfigError):
+        BABConfig(rank_min_leg_beta=value)
+
+
+@pytest.mark.parametrize("value", [0.5, 1000, "x", True, float("nan")])
+def test_rank_max_gross_config_validation(value):
+    with pytest.raises(BABConfigError):
+        BABConfig(rank_max_gross=value)
+
+
+def test_rank_guard_direct_validation_and_equal_ignores_them():
+    idx = pd.date_range("2023-01-01", periods=1)
+    sig = pd.DataFrame({"A": [1], "B": [-1]}, index=idx)
+    bet = pd.DataFrame({"A": [0.5], "B": [1.5]}, index=idx)
+    with pytest.raises(BABDataError):
+        construct_portfolio(sig, weighting="rank", betas=bet, rank_min_leg_beta=0)
+    with pytest.raises(BABDataError):
+        construct_portfolio(sig, weighting="rank", betas=bet, rank_max_gross=0.5)
+    # The equal branch must remain byte-identical and ignore rank-only valves.
+    equal = construct_portfolio(
+        sig,
+        weighting="equal",
+        betas=bet,
+        rank_min_leg_beta=0,
+        rank_max_gross=0.5,
+    )
+    assert not equal.empty
 
 
 def test_equal_weight_path_byte_identical(prices):
@@ -295,3 +380,18 @@ def test_dry_run_rank_book_freezes_in_rebalance_windows(prices):
 @pytest.fixture(scope="module")
 def prices():
     return load_prices(REAL, benchmark="BTC")
+
+
+@pytest.fixture(scope="module")
+def wide_returns():
+    """Deterministic 40-asset return panel with true betas 0.35 ... 1.90."""
+    rng = np.random.default_rng(7)
+    n_days = 220
+    index = pd.date_range("2024-01-01", periods=n_days, freq="B")
+    benchmark = rng.normal(0.0, 0.01, n_days)
+    data = {}
+    for i in range(WIDE_ASSETS):
+        true_beta = 0.35 + 1.55 * i / (WIDE_ASSETS - 1)
+        data[f"A{i:02d}"] = true_beta * benchmark + rng.normal(0.0, 0.004, n_days)
+    data["BTC"] = benchmark
+    return pd.DataFrame(data, index=index)

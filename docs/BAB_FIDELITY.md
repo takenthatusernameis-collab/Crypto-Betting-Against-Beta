@@ -250,7 +250,8 @@ long leg is then a single near-zero-beta asset, and inverting it levers the
 book by 10–50x. This is a property of a 9-asset universe, not of the FP
 construction.
 
-WP2b therefore adds two safety valves (rank mode only):
+WP2b therefore adds two safety valves (rank mode only), implemented in
+``construct_rank_weights`` and forwarded from both ``run()`` and ``dry_run()``:
 
 * ``rank_min_leg_beta`` (default ``0.20``) — a row whose ``beta_L`` or
   ``beta_H`` is below the floor is **flat** (all zeros);
@@ -266,8 +267,9 @@ the guard all 398 rows are flat, so rank produces a zero book and no Sharpe,
 volatility, or wealth figure from it has any meaning. Rank remains opt-in and
 unpromoted; it may be validated algebraically (hand example), invariantly (unit
 leg betas, no lookahead), and functionally on a wide synthetic cross-section
-(hundreds of assets with genuine beta dispersion). No rank performance claim may
-be published from this repository's fixture.
+(``tests/test_bab_p20_rank_weighting.py`` uses 40 assets with betas
+``0.35 … 1.90``). No rank performance claim may be published from this
+repository's fixture.
 
 The repaired WP2 gate also covers ``weighting="equal"``: that path remains
 byte-identical to the post-WP1 default, and its fixture numbers
