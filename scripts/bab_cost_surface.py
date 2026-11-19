@@ -327,21 +327,23 @@ def render_markdown(payload: dict) -> str:
     ]
     for book in payload["books"]:
         lines.extend(
-            "| {variant} | {weighting} | {active_rows} | {gross_sharpe} | "
-            "{gross_turnover_mean} | {short_notional_mean} | "
-            "{gross_final_cumulative} | {censored} | {censor_reason} |".format(
-                **{
-                    "variant": book["variant"],
-                    "weighting": book["weighting"],
-                    "active_rows": book["active_rows"],
-                    "gross_sharpe": book["gross_sharpe"],
-                    "gross_turnover_mean": book["gross_turnover_mean"],
-                    "short_notional_mean": book["short_notional_mean"],
-                    "gross_final_cumulative": book["gross_final_cumulative"],
-                    "censored": book["censored"],
-                    "censor_reason": book["censor_reason"],
-                }
-            )
+            [
+                "| {variant} | {weighting} | {active_rows} | {gross_sharpe} | "
+                "{gross_turnover_mean} | {short_notional_mean} | "
+                "{gross_final_cumulative} | {censored} | {censor_reason} |".format(
+                    **{
+                        "variant": book["variant"],
+                        "weighting": book["weighting"],
+                        "active_rows": book["active_rows"],
+                        "gross_sharpe": book["gross_sharpe"],
+                        "gross_turnover_mean": book["gross_turnover_mean"],
+                        "short_notional_mean": book["short_notional_mean"],
+                        "gross_final_cumulative": book["gross_final_cumulative"],
+                        "censored": book["censored"],
+                        "censor_reason": book["censor_reason"],
+                    }
+                )
+            ]
         )
     lines += [
         "",
