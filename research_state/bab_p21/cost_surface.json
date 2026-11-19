@@ -1,0 +1,771 @@
+{
+  "books": [
+    {
+      "active_rows": 541,
+      "censor_reason": null,
+      "censored": false,
+      "gross_final_cumulative": 1.167118,
+      "gross_sharpe": 7.034781,
+      "gross_turnover_max": 0.815189,
+      "gross_turnover_mean": 0.009797,
+      "monotonicity": {
+        "borrow_funding": true,
+        "linear_transaction_cost": true,
+        "notional_slippage": true
+      },
+      "period_wise_non_increasing": {
+        "borrow_funding": true,
+        "linear_transaction_cost": true,
+        "notional_slippage": true
+      },
+      "short_notional_mean": 0.367046,
+      "surfaces": {
+        "borrow_funding": [
+          {
+            "cost_drag_mean": 0.0,
+            "costed_sharpe": 7.034781,
+            "final_cumulative": 1.167118,
+            "level": 0.0,
+            "total_cost": 0.0
+          },
+          {
+            "cost_drag_mean": 7e-06,
+            "costed_sharpe": 6.840165,
+            "final_cumulative": 1.16203,
+            "level": 0.005,
+            "total_cost": 0.00437
+          },
+          {
+            "cost_drag_mean": 1.5e-05,
+            "costed_sharpe": 6.645201,
+            "final_cumulative": 1.156965,
+            "level": 0.01,
+            "total_cost": 0.008739
+          },
+          {
+            "cost_drag_mean": 2.9e-05,
+            "costed_sharpe": 6.254267,
+            "final_cumulative": 1.146901,
+            "level": 0.02,
+            "total_cost": 0.017478
+          },
+          {
+            "cost_drag_mean": 7.3e-05,
+            "costed_sharpe": 5.074075,
+            "final_cumulative": 1.117229,
+            "level": 0.05,
+            "total_cost": 0.043696
+          },
+          {
+            "cost_drag_mean": 0.000146,
+            "costed_sharpe": 3.087078,
+            "final_cumulative": 1.06947,
+            "level": 0.1,
+            "total_cost": 0.087392
+          },
+          {
+            "cost_drag_mean": 0.000291,
+            "costed_sharpe": -0.925486,
+            "final_cumulative": 0.979978,
+            "level": 0.2,
+            "total_cost": 0.174784
+          }
+        ],
+        "linear_transaction_cost": [
+          {
+            "cost_drag_mean": 0.0,
+            "costed_sharpe": 7.034781,
+            "final_cumulative": 1.167118,
+            "level": 0.0,
+            "total_cost": 0.0
+          },
+          {
+            "cost_drag_mean": 2e-06,
+            "costed_sharpe": 6.965451,
+            "final_cumulative": 1.165404,
+            "level": 0.00025,
+            "total_cost": 0.00147
+          },
+          {
+            "cost_drag_mean": 5e-06,
+            "costed_sharpe": 6.894337,
+            "final_cumulative": 1.163693,
+            "level": 0.0005,
+            "total_cost": 0.002939
+          },
+          {
+            "cost_drag_mean": 1e-05,
+            "costed_sharpe": 6.747015,
+            "final_cumulative": 1.160278,
+            "level": 0.001,
+            "total_cost": 0.005878
+          },
+          {
+            "cost_drag_mean": 2e-05,
+            "costed_sharpe": 6.43399,
+            "final_cumulative": 1.153477,
+            "level": 0.002,
+            "total_cost": 0.011757
+          },
+          {
+            "cost_drag_mean": 4.9e-05,
+            "costed_sharpe": 5.394763,
+            "final_cumulative": 1.133307,
+            "level": 0.005,
+            "total_cost": 0.029392
+          },
+          {
+            "cost_drag_mean": 9.8e-05,
+            "costed_sharpe": 3.628799,
+            "final_cumulative": 1.100451,
+            "level": 0.01,
+            "total_cost": 0.058784
+          }
+        ],
+        "notional_slippage": [
+          {
+            "cost_drag_mean": 0.0,
+            "costed_sharpe": 7.034781,
+            "final_cumulative": 1.167118,
+            "level": 0.0,
+            "total_cost": 0.0
+          },
+          {
+            "cost_drag_mean": 0.0,
+            "costed_sharpe": 7.021061,
+            "final_cumulative": 1.166775,
+            "level": 5e-05,
+            "total_cost": 0.000294
+          },
+          {
+            "cost_drag_mean": 1e-06,
+            "costed_sharpe": 7.007267,
+            "final_cumulative": 1.166432,
+            "level": 0.0001,
+            "total_cost": 0.000588
+          },
+          {
+            "cost_drag_mean": 2e-06,
+            "costed_sharpe": 6.965451,
+            "final_cumulative": 1.165404,
+            "level": 0.00025,
+            "total_cost": 0.00147
+          },
+          {
+            "cost_drag_mean": 5e-06,
+            "costed_sharpe": 6.894337,
+            "final_cumulative": 1.163693,
+            "level": 0.0005,
+            "total_cost": 0.002939
+          },
+          {
+            "cost_drag_mean": 1e-05,
+            "costed_sharpe": 6.747015,
+            "final_cumulative": 1.160278,
+            "level": 0.001,
+            "total_cost": 0.005878
+          },
+          {
+            "cost_drag_mean": 2e-05,
+            "costed_sharpe": 6.43399,
+            "final_cumulative": 1.153477,
+            "level": 0.002,
+            "total_cost": 0.011757
+          }
+        ]
+      },
+      "total_rows": 600,
+      "variant": "planted",
+      "weighting": "equal"
+    },
+    {
+      "active_rows": 541,
+      "censor_reason": null,
+      "censored": false,
+      "gross_final_cumulative": 11401.093638,
+      "gross_sharpe": 44.378201,
+      "gross_turnover_max": 2.360633,
+      "gross_turnover_mean": 0.007204,
+      "monotonicity": {
+        "borrow_funding": true,
+        "linear_transaction_cost": true,
+        "notional_slippage": true
+      },
+      "period_wise_non_increasing": {
+        "borrow_funding": true,
+        "linear_transaction_cost": true,
+        "notional_slippage": true
+      },
+      "short_notional_mean": 0.362007,
+      "surfaces": {
+        "borrow_funding": [
+          {
+            "cost_drag_mean": 0.0,
+            "costed_sharpe": 44.378201,
+            "final_cumulative": 11401.093638,
+            "level": 0.0,
+            "total_cost": 0.0
+          },
+          {
+            "cost_drag_mean": 7e-06,
+            "costed_sharpe": 44.375231,
+            "final_cumulative": 11352.902366,
+            "level": 0.005,
+            "total_cost": 0.00431
+          },
+          {
+            "cost_drag_mean": 1.4e-05,
+            "costed_sharpe": 44.372258,
+            "final_cumulative": 11304.91442,
+            "level": 0.01,
+            "total_cost": 0.008619
+          },
+          {
+            "cost_drag_mean": 2.9e-05,
+            "costed_sharpe": 44.3663,
+            "final_cumulative": 11209.545079,
+            "level": 0.02,
+            "total_cost": 0.017238
+          },
+          {
+            "cost_drag_mean": 7.2e-05,
+            "costed_sharpe": 44.348344,
+            "final_cumulative": 10928.228534,
+            "level": 0.05,
+            "total_cost": 0.043096
+          },
+          {
+            "cost_drag_mean": 0.000144,
+            "costed_sharpe": 44.318134,
+            "final_cumulative": 10474.940961,
+            "level": 0.1,
+            "total_cost": 0.086192
+          },
+          {
+            "cost_drag_mean": 0.000287,
+            "costed_sharpe": 44.256634,
+            "final_cumulative": 9623.895351,
+            "level": 0.2,
+            "total_cost": 0.172384
+          }
+        ],
+        "linear_transaction_cost": [
+          {
+            "cost_drag_mean": 0.0,
+            "costed_sharpe": 44.378201,
+            "final_cumulative": 11401.093638,
+            "level": 0.0,
+            "total_cost": 0.0
+          },
+          {
+            "cost_drag_mean": 2e-06,
+            "costed_sharpe": 44.35277,
+            "final_cumulative": 11388.873182,
+            "level": 0.00025,
+            "total_cost": 0.001081
+          },
+          {
+            "cost_drag_mean": 4e-06,
+            "costed_sharpe": 44.326556,
+            "final_cumulative": 11376.661837,
+            "level": 0.0005,
+            "total_cost": 0.002161
+          },
+          {
+            "cost_drag_mean": 7e-06,
+            "costed_sharpe": 44.271796,
+            "final_cumulative": 11352.266456,
+            "level": 0.001,
+            "total_cost": 0.004322
+          },
+          {
+            "cost_drag_mean": 1.4e-05,
+            "costed_sharpe": 44.15306,
+            "final_cumulative": 11303.584765,
+            "level": 0.002,
+            "total_cost": 0.008645
+          },
+          {
+            "cost_drag_mean": 3.6e-05,
+            "costed_sharpe": 43.72569,
+            "final_cumulative": 11158.408882,
+            "level": 0.005,
+            "total_cost": 0.021612
+          },
+          {
+            "cost_drag_mean": 7.2e-05,
+            "costed_sharpe": 42.796701,
+            "final_cumulative": 10919.323952,
+            "level": 0.01,
+            "total_cost": 0.043224
+          }
+        ],
+        "notional_slippage": [
+          {
+            "cost_drag_mean": 0.0,
+            "costed_sharpe": 44.378201,
+            "final_cumulative": 11401.093638,
+            "level": 0.0,
+            "total_cost": 0.0
+          },
+          {
+            "cost_drag_mean": 0.0,
+            "costed_sharpe": 44.373178,
+            "final_cumulative": 11398.648818,
+            "level": 5e-05,
+            "total_cost": 0.000216
+          },
+          {
+            "cost_drag_mean": 1e-06,
+            "costed_sharpe": 44.368123,
+            "final_cumulative": 11396.204362,
+            "level": 0.0001,
+            "total_cost": 0.000432
+          },
+          {
+            "cost_drag_mean": 2e-06,
+            "costed_sharpe": 44.35277,
+            "final_cumulative": 11388.873182,
+            "level": 0.00025,
+            "total_cost": 0.001081
+          },
+          {
+            "cost_drag_mean": 4e-06,
+            "costed_sharpe": 44.326556,
+            "final_cumulative": 11376.661837,
+            "level": 0.0005,
+            "total_cost": 0.002161
+          },
+          {
+            "cost_drag_mean": 7e-06,
+            "costed_sharpe": 44.271796,
+            "final_cumulative": 11352.266456,
+            "level": 0.001,
+            "total_cost": 0.004322
+          },
+          {
+            "cost_drag_mean": 1.4e-05,
+            "costed_sharpe": 44.15306,
+            "final_cumulative": 11303.584765,
+            "level": 0.002,
+            "total_cost": 0.008645
+          }
+        ]
+      },
+      "total_rows": 600,
+      "variant": "planted",
+      "weighting": "rank"
+    },
+    {
+      "active_rows": 541,
+      "censor_reason": null,
+      "censored": false,
+      "gross_final_cumulative": 1.013905,
+      "gross_sharpe": 0.639801,
+      "gross_turnover_max": 0.815189,
+      "gross_turnover_mean": 0.009797,
+      "monotonicity": {
+        "borrow_funding": true,
+        "linear_transaction_cost": true,
+        "notional_slippage": true
+      },
+      "period_wise_non_increasing": {
+        "borrow_funding": true,
+        "linear_transaction_cost": true,
+        "notional_slippage": true
+      },
+      "short_notional_mean": 0.367046,
+      "surfaces": {
+        "borrow_funding": [
+          {
+            "cost_drag_mean": 0.0,
+            "costed_sharpe": 0.639801,
+            "final_cumulative": 1.013905,
+            "level": 0.0,
+            "total_cost": 0.0
+          },
+          {
+            "cost_drag_mean": 7e-06,
+            "costed_sharpe": 0.438821,
+            "final_cumulative": 1.009485,
+            "level": 0.005,
+            "total_cost": 0.00437
+          },
+          {
+            "cost_drag_mean": 1.5e-05,
+            "costed_sharpe": 0.237817,
+            "final_cumulative": 1.005083,
+            "level": 0.01,
+            "total_cost": 0.008739
+          },
+          {
+            "cost_drag_mean": 2.9e-05,
+            "costed_sharpe": -0.164217,
+            "final_cumulative": 0.996338,
+            "level": 0.02,
+            "total_cost": 0.017478
+          },
+          {
+            "cost_drag_mean": 7.3e-05,
+            "costed_sharpe": -1.369783,
+            "final_cumulative": 0.970555,
+            "level": 0.05,
+            "total_cost": 0.043696
+          },
+          {
+            "cost_drag_mean": 0.000146,
+            "costed_sharpe": -3.37221,
+            "final_cumulative": 0.929055,
+            "level": 0.1,
+            "total_cost": 0.087392
+          },
+          {
+            "cost_drag_mean": 0.000291,
+            "costed_sharpe": -7.314578,
+            "final_cumulative": 0.851294,
+            "level": 0.2,
+            "total_cost": 0.174784
+          }
+        ],
+        "linear_transaction_cost": [
+          {
+            "cost_drag_mean": 0.0,
+            "costed_sharpe": 0.639801,
+            "final_cumulative": 1.013905,
+            "level": 0.0,
+            "total_cost": 0.0
+          },
+          {
+            "cost_drag_mean": 2e-06,
+            "costed_sharpe": 0.572112,
+            "final_cumulative": 1.012416,
+            "level": 0.00025,
+            "total_cost": 0.00147
+          },
+          {
+            "cost_drag_mean": 5e-06,
+            "costed_sharpe": 0.504307,
+            "final_cumulative": 1.01093,
+            "level": 0.0005,
+            "total_cost": 0.002939
+          },
+          {
+            "cost_drag_mean": 1e-05,
+            "costed_sharpe": 0.36857,
+            "final_cumulative": 1.007962,
+            "level": 0.001,
+            "total_cost": 0.005878
+          },
+          {
+            "cost_drag_mean": 2e-05,
+            "costed_sharpe": 0.098125,
+            "final_cumulative": 1.002053,
+            "level": 0.002,
+            "total_cost": 0.011757
+          },
+          {
+            "cost_drag_mean": 4.9e-05,
+            "costed_sharpe": -0.67613,
+            "final_cumulative": 0.984528,
+            "level": 0.005,
+            "total_cost": 0.029392
+          },
+          {
+            "cost_drag_mean": 9.8e-05,
+            "costed_sharpe": -1.721845,
+            "final_cumulative": 0.955979,
+            "level": 0.01,
+            "total_cost": 0.058784
+          }
+        ],
+        "notional_slippage": [
+          {
+            "cost_drag_mean": 0.0,
+            "costed_sharpe": 0.639801,
+            "final_cumulative": 1.013905,
+            "level": 0.0,
+            "total_cost": 0.0
+          },
+          {
+            "cost_drag_mean": 0.0,
+            "costed_sharpe": 0.626275,
+            "final_cumulative": 1.013607,
+            "level": 5e-05,
+            "total_cost": 0.000294
+          },
+          {
+            "cost_drag_mean": 1e-06,
+            "costed_sharpe": 0.612743,
+            "final_cumulative": 1.013309,
+            "level": 0.0001,
+            "total_cost": 0.000588
+          },
+          {
+            "cost_drag_mean": 2e-06,
+            "costed_sharpe": 0.572112,
+            "final_cumulative": 1.012416,
+            "level": 0.00025,
+            "total_cost": 0.00147
+          },
+          {
+            "cost_drag_mean": 5e-06,
+            "costed_sharpe": 0.504307,
+            "final_cumulative": 1.01093,
+            "level": 0.0005,
+            "total_cost": 0.002939
+          },
+          {
+            "cost_drag_mean": 1e-05,
+            "costed_sharpe": 0.36857,
+            "final_cumulative": 1.007962,
+            "level": 0.001,
+            "total_cost": 0.005878
+          },
+          {
+            "cost_drag_mean": 2e-05,
+            "costed_sharpe": 0.098125,
+            "final_cumulative": 1.002053,
+            "level": 0.002,
+            "total_cost": 0.011757
+          }
+        ]
+      },
+      "total_rows": 600,
+      "variant": "null",
+      "weighting": "equal"
+    },
+    {
+      "active_rows": 541,
+      "censor_reason": null,
+      "censored": false,
+      "gross_final_cumulative": 1.049395,
+      "gross_sharpe": 0.649924,
+      "gross_turnover_max": 2.360633,
+      "gross_turnover_mean": 0.007204,
+      "monotonicity": {
+        "borrow_funding": true,
+        "linear_transaction_cost": true,
+        "notional_slippage": true
+      },
+      "period_wise_non_increasing": {
+        "borrow_funding": true,
+        "linear_transaction_cost": true,
+        "notional_slippage": true
+      },
+      "short_notional_mean": 0.362007,
+      "surfaces": {
+        "borrow_funding": [
+          {
+            "cost_drag_mean": 0.0,
+            "costed_sharpe": 0.649924,
+            "final_cumulative": 1.049395,
+            "level": 0.0,
+            "total_cost": 0.0
+          },
+          {
+            "cost_drag_mean": 7e-06,
+            "costed_sharpe": 0.593267,
+            "final_cumulative": 1.044883,
+            "level": 0.005,
+            "total_cost": 0.00431
+          },
+          {
+            "cost_drag_mean": 1.4e-05,
+            "costed_sharpe": 0.536608,
+            "final_cumulative": 1.04039,
+            "level": 0.01,
+            "total_cost": 0.008619
+          },
+          {
+            "cost_drag_mean": 2.9e-05,
+            "costed_sharpe": 0.423283,
+            "final_cumulative": 1.031462,
+            "level": 0.02,
+            "total_cost": 0.017238
+          },
+          {
+            "cost_drag_mean": 7.2e-05,
+            "costed_sharpe": 0.083274,
+            "final_cumulative": 1.005133,
+            "level": 0.05,
+            "total_cost": 0.043096
+          },
+          {
+            "cost_drag_mean": 0.000144,
+            "costed_sharpe": -0.483412,
+            "final_cumulative": 0.962735,
+            "level": 0.1,
+            "total_cost": 0.086192
+          },
+          {
+            "cost_drag_mean": 0.000287,
+            "costed_sharpe": -1.615943,
+            "final_cumulative": 0.883219,
+            "level": 0.2,
+            "total_cost": 0.172384
+          }
+        ],
+        "linear_transaction_cost": [
+          {
+            "cost_drag_mean": 0.0,
+            "costed_sharpe": 0.649924,
+            "final_cumulative": 1.049395,
+            "level": 0.0,
+            "total_cost": 0.0
+          },
+          {
+            "cost_drag_mean": 2e-06,
+            "costed_sharpe": 0.635638,
+            "final_cumulative": 1.048262,
+            "level": 0.00025,
+            "total_cost": 0.001081
+          },
+          {
+            "cost_drag_mean": 4e-06,
+            "costed_sharpe": 0.621266,
+            "final_cumulative": 1.047129,
+            "level": 0.0005,
+            "total_cost": 0.002161
+          },
+          {
+            "cost_drag_mean": 7e-06,
+            "costed_sharpe": 0.592291,
+            "final_cumulative": 1.044866,
+            "level": 0.001,
+            "total_cost": 0.004322
+          },
+          {
+            "cost_drag_mean": 1.4e-05,
+            "costed_sharpe": 0.533596,
+            "final_cumulative": 1.040351,
+            "level": 0.002,
+            "total_cost": 0.008645
+          },
+          {
+            "cost_drag_mean": 3.6e-05,
+            "costed_sharpe": 0.355345,
+            "final_cumulative": 1.026886,
+            "level": 0.005,
+            "total_cost": 0.021612
+          },
+          {
+            "cost_drag_mean": 7.2e-05,
+            "costed_sharpe": 0.073453,
+            "final_cumulative": 1.004715,
+            "level": 0.01,
+            "total_cost": 0.043224
+          }
+        ],
+        "notional_slippage": [
+          {
+            "cost_drag_mean": 0.0,
+            "costed_sharpe": 0.649924,
+            "final_cumulative": 1.049395,
+            "level": 0.0,
+            "total_cost": 0.0
+          },
+          {
+            "cost_drag_mean": 0.0,
+            "costed_sharpe": 0.647074,
+            "final_cumulative": 1.049169,
+            "level": 5e-05,
+            "total_cost": 0.000216
+          },
+          {
+            "cost_drag_mean": 1e-06,
+            "costed_sharpe": 0.64422,
+            "final_cumulative": 1.048942,
+            "level": 0.0001,
+            "total_cost": 0.000432
+          },
+          {
+            "cost_drag_mean": 2e-06,
+            "costed_sharpe": 0.635638,
+            "final_cumulative": 1.048262,
+            "level": 0.00025,
+            "total_cost": 0.001081
+          },
+          {
+            "cost_drag_mean": 4e-06,
+            "costed_sharpe": 0.621266,
+            "final_cumulative": 1.047129,
+            "level": 0.0005,
+            "total_cost": 0.002161
+          },
+          {
+            "cost_drag_mean": 7e-06,
+            "costed_sharpe": 0.592291,
+            "final_cumulative": 1.044866,
+            "level": 0.001,
+            "total_cost": 0.004322
+          },
+          {
+            "cost_drag_mean": 1.4e-05,
+            "costed_sharpe": 0.533596,
+            "final_cumulative": 1.040351,
+            "level": 0.002,
+            "total_cost": 0.008645
+          }
+        ]
+      },
+      "total_rows": 600,
+      "variant": "null",
+      "weighting": "rank"
+    }
+  ],
+  "provenance": {
+    "caveat": "Recovery on a planted synthetic universe proves the estimator works; it is never market alpha. A null-universe positive result is a bug, not a finding. Censored books report a documented reason, never a zero tolerance.",
+    "component_grids": {
+      "borrow_funding": [
+        0.0,
+        0.005,
+        0.01,
+        0.02,
+        0.05,
+        0.1,
+        0.2
+      ],
+      "linear_transaction_cost": [
+        0.0,
+        0.00025,
+        0.0005,
+        0.001,
+        0.002,
+        0.005,
+        0.01
+      ],
+      "notional_slippage": [
+        0.0,
+        5e-05,
+        0.0001,
+        0.00025,
+        0.0005,
+        0.001,
+        0.002
+      ]
+    },
+    "config": {
+      "benchmark": "BTC",
+      "beta_neutral": true,
+      "beta_window": 90,
+      "long_quantile": 0.3,
+      "min_observations": 60,
+      "rank_max_gross": 4.0,
+      "rank_min_leg_beta": 0.2,
+      "short_quantile": 0.3,
+      "slippage": 0.0,
+      "transaction_costs": 0.0
+    },
+    "generator": "scripts/bab_cost_surface.py",
+    "method": "run BABStrategy at zero cost per (variant, weighting) to recover gross returns and weights; per-row costed returns = gross - component_level * exposure, with exposure = turnover for linear_transaction_cost and notional_slippage and short_notional / trading_days for borrow_funding; costed Sharpe asserted non-increasing in each component level.",
+    "note": "Controlled synthetic stimulus with known ground truth: not real market data and not market profitability evidence.",
+    "panel_sha256": {
+      "null": "b7732c152564c87606a6a47eac39a543344cbcd4b8e974f4780be35671953b1b",
+      "planted": "aae2a70ebcf81b3a9e2dd5f314933c439194fef8a7be1da34930e2c271a93fda"
+    },
+    "synthetic": true,
+    "trading_days": 252,
+    "universe_seed": 20261118
+  },
+  "schema": "bab_p21.cost_surface/1"
+}

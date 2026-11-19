@@ -131,7 +131,6 @@ def _book_surface(variant: str, weighting: str, universe_payload: dict) -> dict:
     weights = result.weights.reindex(columns=[CONFIG["benchmark"], *assets]).fillna(0.0)
     w_arr = weights.to_numpy(dtype=float)
     gross = result.backtest["returns"].to_numpy(dtype=float)
-    index = result.backtest.index
     total_rows = len(gross)
 
     turnover, short_notional = _exposure_series(w_arr)
@@ -204,11 +203,6 @@ def _book_surface(variant: str, weighting: str, universe_payload: dict) -> dict:
                 if prev_sharpe is not None and sharpe_clean > prev_sharpe + 1e-12:
                     monotonic = False
                 prev_sharpe = sharpe_clean
-            # Per-period law: raising a non-negative cost rate on a non-negative
-            # exposure can never raise any single period's costed return.
-            if float(level) > 0.0:
-                prev_rows = rows[-2] if len(rows) >= 2 else None
-            # Period-wise check is done against the previous grid level below.
         # Period-wise: every adjacent level pair must satisfy
         # costed_t(level2) <= costed_t(level1) for all t when level2 >= level1.
         for i in range(1, len(rows)):
@@ -332,7 +326,7 @@ def render_markdown(payload: dict) -> str:
         "|---|---|---|---|---|---|---|---|---|",
     ]
     for book in payload["books"]:
-        lines.append(
+        lines.extend(
             "| {variant} | {weighting} | {active_rows} | {gross_sharpe} | "
             "{gross_turnover_mean} | {short_notional_mean} | "
             "{gross_final_cumulative} | {censored} | {censor_reason} |".format(
@@ -359,21 +353,21 @@ def render_markdown(payload: dict) -> str:
         if book["censored"] or book["surfaces"] is None:
             continue
         for component in sorted(book["surfaces"].keys()):
-            for row in book["surfaces"][component]:
-                lines.append(
-                    "| {variant} | {weighting} | {component} | {level} | "
-                    "{costed_sharpe} | {cost_drag_mean} | {total_cost} | "
-                    "{final_cumulative} |".format(
-                        variant=book["variant"],
-                        weighting=book["weighting"],
-                        component=component,
-                        level=row["level"],
-                        costed_sharpe=row["costed_sharpe"],
-                        cost_drag_mean=row["cost_drag_mean"],
-                        total_cost=row["total_cost"],
-                        final_cumulative=row["final_cumulative"],
-                    )
+            lines.extend(
+                "| {variant} | {weighting} | {component} | {level} | "
+                "{costed_sharpe} | {cost_drag_mean} | {total_cost} | "
+                "{final_cumulative} |".format(
+                    variant=book["variant"],
+                    weighting=book["weighting"],
+                    component=component,
+                    level=row["level"],
+                    costed_sharpe=row["costed_sharpe"],
+                    cost_drag_mean=row["cost_drag_mean"],
+                    total_cost=row["total_cost"],
+                    final_cumulative=row["final_cumulative"],
                 )
+                for row in book["surfaces"][component]
+            )
     lines += [
         "",
         "| variant | weighting | component | monotonic_sharpe | period_wise_non_increasing |",
@@ -382,16 +376,16 @@ def render_markdown(payload: dict) -> str:
     for book in payload["books"]:
         if book["censored"]:
             continue
-        for component in sorted(book["monotonicity"].keys()):
-            lines.append(
-                "| {variant} | {weighting} | {component} | {mono} | {pw} |".format(
-                    variant=book["variant"],
-                    weighting=book["weighting"],
-                    component=component,
-                    mono=book["monotonicity"][component],
-                    pw=book["period_wise_non_increasing"][component],
-                )
+        lines.extend(
+            "| {variant} | {weighting} | {component} | {mono} | {pw} |".format(
+                variant=book["variant"],
+                weighting=book["weighting"],
+                component=component,
+                mono=book["monotonicity"][component],
+                pw=book["period_wise_non_increasing"][component],
             )
+            for component in sorted(book["monotonicity"].keys())
+        )
     lines += [
         "",
         "Per-book costed Sharpe is non-increasing in every cost-component level "
