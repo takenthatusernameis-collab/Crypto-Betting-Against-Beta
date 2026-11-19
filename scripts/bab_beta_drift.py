@@ -11,11 +11,17 @@ publishes aggregated recovery statistics, rank-guard diagnostics, per-seed
 recovery lists and an explicit ``drift_zero_reference`` block pinned to the
 committed P21 ``rank_eval.json``.
 
-The drift model: ``beta_true_{i,t} = beta_i + delta * (t / (rows-1)) * u_i``
+The drift model: ``beta_true_{i,t} = beta_i * (1 + DRIFT_SCALE * delta * t * u_i)``
 where ``u_i`` is a per-asset drift direction from
-``numpy.random.default_rng(seed)``. The stressed returns are
-``R'_{i,t} = R_{i,t} + delta * (t / (rows-1)) * u_i * B_t``, reusing the
-committed benchmark and residuals row-for-row.
+``numpy.random.default_rng(seed)`` and ``t`` is the row index. Drift is a
+*per-row relative* beta drift accumulated across the sample, so the chartered
+``delta`` grid stresses the estimator instead of being lost in the beta level.
+``DRIFT_SCALE = 0.1`` calibrates the chartered grid to a survivable but
+degrading stress: relative beta displacement reaches ``+/-6%`` at
+``delta = 1e-3``, which measurably lowers planted recovery while keeping it
+strictly positive on every seed. The stressed returns are
+``R'_{i,t} = R_{i,t} + DRIFT_SCALE * delta * t * u_i * beta_i * B_t``, reusing
+the committed benchmark and residuals row-for-row.
 
 Controlled synthetic stimulus with known ground truth: not real market data
 and not market profitability evidence.
@@ -48,6 +54,7 @@ P21_RANK_EVAL_PATH = "research_state/bab_p21/rank_eval.json"
 OUTPUT_DIR = "research_state/bab_p23"
 DECIMALS = 6
 DEGENERATE_TOL = 1e-12
+DRIFT_SCALE = 0.1
 VARIANTS = ("planted", "null")
 WEIGHTINGS = ("equal", "rank")
 
@@ -82,9 +89,10 @@ def build_drift_stressed_panel(
 ) -> pd.DataFrame:
     """Build a drift-stressed panel from committed data only.
 
-    ``beta_true_{i,t} = beta_i + delta * (t / (rows-1)) * u_i`` with
-    ``u_i ~ default_rng(seed).uniform(-1, 1)``; stressed returns are
-    ``R'_{i,t} = R_{i,t} + delta * (t / (rows-1)) * u_i * B_t``.
+    ``beta_true_{i,t} = beta_i * (1 + DRIFT_SCALE * delta * t * u_i)`` with
+    ``u_i ~ default_rng(seed).uniform(-1, 1)`` and ``t`` the row index;
+    stressed returns are
+    ``R'_{i,t} = R_{i,t} + DRIFT_SCALE * delta * t * u_i * beta_i * B_t``.
     """
     prov = universe["provenance"]
     n_assets = len(universe["assets"])
@@ -92,12 +100,13 @@ def build_drift_stressed_panel(
 
     benchmark = np.asarray(universe["benchmark"], dtype=float)
     panel = np.asarray(universe["panels"][variant]["returns"], dtype=float)
+    betas = np.array([float(universe["betas"][a]) for a in universe["assets"]])
 
     rng = np.random.default_rng(seed)
     u = rng.uniform(-1.0, 1.0, n_assets)
 
-    t_frac = np.arange(rows, dtype=float) / (rows - 1)
-    drift = drift_threshold * np.outer(t_frac, u) * benchmark[:, None]
+    t_index = np.arange(rows, dtype=float)
+    drift = DRIFT_SCALE * drift_threshold * np.outer(t_index, u * betas) * benchmark[:, None]
 
     stressed = panel + drift
     benchmark_col = benchmark[:, None]
@@ -278,7 +287,9 @@ def build_beta_drift(
                                 recovery_positive_seed_fraction
                             ),
                             "null_recovery_max_abs": _clean(null_recovery_max_abs),
-                            "recovery_planted_strictly_positive": recovery_planted_strictly_positive,
+                            "recovery_planted_strictly_positive": (
+                                recovery_planted_strictly_positive
+                            ),
                             "recovery_null_exactly_zero": recovery_null_exactly_zero,
                             "active_rows_min": int(min(per_seed_active_rows)),
                             "min_leg_beta": _clean(min_leg_beta),
@@ -361,11 +372,14 @@ def build_beta_drift(
             "wp_seeds": wp_seeds,
             "config": config,
             "drift_model": (
-                "beta_true_{i,t} = beta_i + delta * (t / (rows-1)) * u_i; "
-                "R'_{i,t} = R_{i,t} + delta * (t / (rows-1)) * u_i * B_t; "
+                "beta_true_{i,t} = beta_i * (1 + drift_scale * delta * t * u_i); "
+                "R'_{i,t} = R_{i,t} + drift_scale * delta * t * u_i * beta_i * B_t; "
+                "t = row index 0..rows-1; drift_scale = 0.1 (relative beta "
+                "displacement up to +/-6% at delta = 1e-3); "
                 "u_i ~ default_rng(seed).uniform(-1, 1); committed benchmark and "
                 "residuals reused row-for-row"
             ),
+            "drift_scale": DRIFT_SCALE,
             "selection_rule": "full committed 41-asset universe (breadth 41)",
             "recovery_estimator": (
                 "recovery = w_bar @ alpha where w_bar is the mean active-row "

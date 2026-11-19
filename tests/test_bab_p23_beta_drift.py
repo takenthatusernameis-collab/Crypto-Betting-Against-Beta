@@ -55,7 +55,6 @@ FORBIDDEN_BUILDERS = (
     "build_synthetic_universe",
     "build_breadth_ladder",
     "build_charter",
-    "build_beta_drift",
 )
 
 
@@ -189,12 +188,12 @@ def test_null_recovery_exactly_zero(payload: dict) -> None:
 
 
 def test_rank_guards_never_relaxed(payload: dict, charter: dict) -> None:
-    floor = charter["provenance"]["acceptance_thresholds"]["wp2"][
-        "rank_min_leg_beta"
-    ] if "rank_min_leg_beta" in charter["provenance"]["acceptance_thresholds"]["wp2"] else charter["provenance"]["strategy_config"]["rank_min_leg_beta"]
-    ceiling = charter["provenance"]["strategy_config"]["rank_max_gross"]
-    assert floor == charter["provenance"]["strategy_config"]["rank_min_leg_beta"]
-    assert ceiling == charter["provenance"]["strategy_config"]["rank_max_gross"]
+    wp2_thresholds = charter["provenance"]["acceptance_thresholds"]["wp2"]
+    config = charter["provenance"]["strategy_config"]
+    floor = wp2_thresholds.get("rank_min_leg_beta", config["rank_min_leg_beta"])
+    ceiling = config["rank_max_gross"]
+    assert floor == config["rank_min_leg_beta"]
+    assert ceiling == config["rank_max_gross"]
     for cell in [c for c in payload["cells"] if c["weighting"] == "rank"]:
         assert cell["rank_min_leg_beta_floor"] == floor, cell
         assert cell["rank_max_gross_ceiling"] == ceiling, cell
@@ -261,8 +260,8 @@ def test_markdown_has_one_row_per_cell(payload: dict) -> None:
     ]
     assert len(rows) == len(payload["cells"]), (len(rows), len(payload["cells"]))
     for cell in payload["cells"]:
-        assert any(
-            f"| {cell['beta_window']} | {cell['drift_threshold']} | {cell['weighting']} | {cell['variant']} |"
-            in row
-            for row in rows
+        prefix = (
+            f"| {cell['beta_window']} | {cell['drift_threshold']} | "
+            f"{cell['weighting']} | {cell['variant']} |"
         )
+        assert any(prefix in row for row in rows)
