@@ -2,8 +2,8 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-19T03:32:05Z
-- **Git state:** `main` at `ffb50fc` (clean tree); last substantive commit `8591247` landed P21 WP3. WP0, WP1, WP2, WP3 all committed with passing acceptance suites. Certify with `git log --oneline -4 && git status --short`.
+- **Timestamp (UTC):** 2026-11-19T03:33:39Z
+- **Git state:** `main` at `16b82cf` (clean tree, two `chore(kilo): checkpoint agent session` checkpoints on top of `ffb50fc`); last substantive commit `8591247` landed P21 WP3. WP0, WP1, WP2, WP3 all committed with passing acceptance suites. Certify with `git log --oneline -4 && git status --short`.
 - **P21 WP3 IS LANDED WITH 18 NEW PASSING TESTS.** `scripts/bab_cost_surface.py`, `research_state/bab_p21/cost_surface.{json,md}`, `tests/test_bab_p21_cost_surface.py`. Three cost components (linear transaction cost, borrow/funding, notional slippage), zero-cost baseline, per-book **and** per-period non-increasing costed Sharpe for all four books, total-cost linearity, documented censoring (`surfaces=None`, never a zero tolerance), byte-identical reruns. The renderer bug that emitted one character per line is fixed and pinned by `test_committed_markdown_matches_renderer`.
 - **P21 WP2 IS LANDED WITH 12 NEW PASSING TESTS.** `scripts/bab_significance.py`, `research_state/bab_p21/significance.{json,md}`, `tests/test_bab_p21_significance.py`. Null calibrated (`p_value` 0.1635/0.2680 >= 0.05, not significant), planted detected (`p_value` 0.0000, CI excludes zero), deflated Sharpe computed for the 40-candidate P20 grid (hand-computed DSR unit case pinned: 0.948765).
 - **P21 WP1 IS LANDED WITH 12 NEW PASSING TESTS.** `scripts/bab_rank_eval.py`, `research_state/bab_p21/rank_eval.{json,md}`, `tests/test_bab_p21_rank_eval.py`. Do not reopen WP1.
@@ -18,7 +18,7 @@
 
 # INITIAL TASK MESSAGE (BINDING — START HERE)
 
-**Timestamp:** 2026-11-19T03:32:05Z · **Campaign:** P21 "Signal or noise" · **Lane:** E · **WP:** **P21 WP4 — honest verdict report**
+**Timestamp:** 2026-11-19T03:33:39Z · **Campaign:** P21 "Signal or noise" · **Lane:** E · **WP:** **P21 WP4 — honest verdict report**
 
 **One-sentence objective:** write `docs/BAB_SIGNAL_OR_NOISE.md` and `tests/test_bab_p21_report_consistency.py` that publish an explicit signal-vs-noise verdict for the calibrated P21 estimator, machine-check **100%** of every table number against the committed P21 JSON at 6 dp with zero unmatched cells, render every table from JSON only, state explicitly that planted-universe recovery is a **controlled synthetic** result and not market evidence, and never re-run any harness.
 
