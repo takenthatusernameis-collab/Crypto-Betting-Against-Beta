@@ -2,8 +2,8 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-19T19:01:23Z
-- **Git state:** base `08392a7`; this session lands **P23 WP1** in one commit. P21, P22, and P23 WP0 are CLOSED (artifacts frozen, gate green). Certify with `git log --oneline -4 && git status --short`.
+- **Timestamp (UTC):** 2026-11-19T19:05:08Z
+- **Git state:** base `dad1fc2`; P23 WP1 landed (`feat(p23): land WP1 breadth ladder with acceptance tests`). P21, P22, P23 WP0, P23 WP1 CLOSED (artifacts frozen, gate green). Certify with `git log --oneline -4 && git status --short`.
 - **P23 WP1 IS LANDED AND ARTIFACT-GATED** — `scripts/bab_breadth_ladder.py`, `research_state/bab_p23/breadth_ladder.{json,md}`, `tests/test_bab_p23_breadth_ladder.py` (16 tests). It reads the committed P21 universe and P23 charter **read-only**, never regenerates a panel, and measures all four certified books across the chartered breadth ladder `[9, 17, 25, 33, 41]` using evenly spaced subsets over the beta-ordered asset list (endpoints included) so the full beta span survives concentration. All 10 planted books have strictly positive recovery (`+0.000852` at b=9 → `+0.000261` at b=41 equal; `+0.019102` → `+0.017360` rank); all 10 null books are exactly `0.0`; every rung has 541 active rows; rank guards hold everywhere (`min_leg_beta ≥ 0.4667`, `gross_max ≤ 2.6273`); breadth-41 cells match the committed P21 `rank_eval.json` at 6 dp. Committed JSON == fresh build, markdown == renderer, second build byte-identical, inputs sha-unchanged. Binding row advances to **P23 WP2 — beta-window/drift grid**.
 - **Bottleneck removed this session:** the previous session committed `bab_breadth_ladder.py` + artifacts but **no acceptance test**, and its "first b assets" sub-universes produced **negative** planted recovery at breadths 9 and 17 (violating the charter's `recovery_planted_strictly_positive` threshold). That made WP1 unfalsifiable and silently blocked WP2–WP4. WP1 is now re-derived, corrected to positive at every rung, and pinned by 16 acceptance tests.
 - **P22 IS CLOSED** — WP0 charter, WP1 null battery, WP2 nonlinear impact, WP3 capacity, WP4 decision report all landed. Explicit verdict: **NO-GO for market deployment**, SIGNAL on planted, NOISE on null.
@@ -16,7 +16,7 @@
 
 # INITIAL TASK MESSAGE (BINDING — START HERE)
 
-**Timestamp:** 2026-11-19T19:01:23Z · **Campaign:** P23 "Breadth and instability stress" · **Lane:** B · **WP:** **P23 WP2 — beta-window/drift grid**
+**Timestamp:** 2026-11-19T19:05:08Z · **Campaign:** P23 "Breadth and instability stress" · **Lane:** B · **WP:** **P23 WP2 — beta-window/drift grid**
 
 **One-sentence objective:** write `scripts/bab_beta_drift.py` plus `research_state/bab_p23/beta_drift.{json,md}` and `tests/test_bab_p23_beta_drift.py`, measuring the four certified books over the chartered **beta-window grid `[60, 90, 120, 180]` × drift-threshold grid `[1e-4, 5e-4, 1e-3]`** on 20 seeded drift-stressed universes derived **read-only** from the committed P21 universe, proving planted recovery stays strictly positive and null recovery is exactly `0.0` in **every** cell, with `beta_window=90` preserved as the default cell and committed JSON == fresh build.
 
