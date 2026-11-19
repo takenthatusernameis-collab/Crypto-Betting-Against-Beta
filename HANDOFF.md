@@ -2,21 +2,21 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-19T00:29:44Z
-- **Git state:** `main`. This session lands P21 WP1 (rank vs equal evaluation on the planted universe). Certify with `git log --oneline -3 && git status --short`.
+- **Timestamp (UTC):** 2026-11-19T00:39:31Z
+- **Git state:** `main` at `c2c1fa3`. P21 WP1 (rank vs equal on planted universe) is landed and committed. Certify with `git log --oneline -3 && git status --short`.
 - **P21 WP1 IS LANDED WITH 12 NEW PASSING TESTS.** `scripts/bab_rank_eval.py`, `research_state/bab_p21/rank_eval.{json,md}`, `tests/test_bab_p21_rank_eval.py`.
 - **P20 IS COMPLETE AND CERTIFIED. Do not reopen it.** `research_state/bab_p20/**` and `docs/BAB_RESEARCH_REPORT.md` are frozen: the WP4 test re-renders those tables from JSON and fails on any drift.
 - **P21 WP0 IS LANDED AND FROZEN.** `scripts/bab_synthetic_universe.py`, `research_state/bab_p21/universe.{json,md}`, `tests/test_bab_p21_synthetic_universe.py`. Do not edit or regenerate `universe.*`.
 - **Full gate at this HEAD + working tree: 6563 passed / 35 skipped / 100% (6644/6644).**
 - **Repo:** `Crypto-Betting-Against-Beta` — crypto market-neutral BAB trading system.
 
-**Handoff reviewed and confirmed as the single durable handoff. The binding initial task message below is the most relevant, timestamped, clear directive for the next agentic work session, prioritized from the repository name (`Crypto-Betting-Against-Beta`) and the measured state at HEAD. P20 proved the construction. P21 WP0 supplies a controlled universe with known ground truth. P21 WP1 has now measured rank vs equal on that universe: both books active on planted (541 rows each), rank guards respected (`min_leg_beta >= 0.20`, `gross <= 4.0`), planted recovery positive for both books (`+2.6e-4` equal, `+1.7e-2` rank), null recovery exactly zero for both. P21 must now proceed to WP2 (significance + deflation) to decide whether the planted effect is statistically detectable and whether the null-universe false positive (`Sharpe ≈ 0.64`) is within documented slack. Two bottlenecks that would otherwise stall or mislead the next session are removed below.**
+**Handoff reviewed and confirmed as the single durable handoff. The binding initial task message below is the most relevant, timestamped, clear directive for the next agentic work session, prioritized from the repository name (`Crypto-Betting-Against-Beta`) and the measured state at HEAD `c2c1fa3`. P20 proved the construction. P21 WP0 supplies a controlled universe with known ground truth. P21 WP1 has now measured rank vs equal on that universe: both books active on planted (541 rows each), rank guards respected (`min_leg_beta >= 0.20`, `gross <= 4.0`), planted recovery positive for both books (`+2.6e-4` equal, `+1.7e-2` rank), null recovery exactly zero for both. P21 must now proceed to WP2 (significance + deflation) to decide whether the planted effect is statistically detectable and whether the null-universe false positive (`Sharpe ≈ 0.64`) is within documented slack. Two bottlenecks that would otherwise stall or mislead the next session are removed below.**
 
 ---
 
 # INITIAL TASK MESSAGE (BINDING — START HERE)
 
-**Timestamp:** 2026-11-19T00:29:44Z · **Campaign:** P21 "Signal or noise" · **Lane:** C · **WP:** **P21 WP2 — significance + deflation on the planted universe**
+**Timestamp:** 2026-11-19T00:39:31Z · **Campaign:** P21 "Signal or noise" · **Lane:** C · **WP:** **P21 WP2 — significance + deflation on the planted universe**
 
 **One-sentence objective:** write `scripts/bab_significance.py` that loads the committed `research_state/bab_p21/universe.json` read-only and the committed `research_state/bab_p21/rank_eval.json` read-only, runs a fixed-seed moving-block bootstrap (≥ 2000 resamples) of the OOS Sharpe on both `planted` and `null` variants for both `equal` and `rank` weightings, applies a deflated Sharpe correction for the 40-candidate P20 grid, and proves **null calibration**: the false-positive rate on `null` is ≤ the documented nominal slack, and the `planted` effect is detected — then commit `research_state/bab_p21/significance.{json,md}` and `tests/test_bab_p21_significance.py`.
 
