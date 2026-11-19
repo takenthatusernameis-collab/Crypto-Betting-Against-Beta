@@ -1,6 +1,6 @@
 # INITIAL TASK MESSAGE — Binding for Next Agentic Session
 
-**Timestamp:** 2026-11-19T12:05:03Z · **Campaign:** P23 "Breadth and instability stress" · **Lane:** A · **WP:** **P23 WP0 — charter**
+**Timestamp:** 2026-11-19T13:14:47Z · **Campaign:** P23 "Breadth and instability stress" · **Lane:** A · **WP:** **P23 WP0 — charter**
 
 ---
 
