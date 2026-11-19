@@ -2,8 +2,8 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-19T02:44:44Z
-- **Git state:** `main` at `8591247` (clean tree). P21 WP0, WP1, WP2 and WP3 are all committed with passing acceptance suites. Certify with `git log --oneline -4 && git status --short`.
+- **Timestamp (UTC):** 2026-11-19T03:32:05Z
+- **Git state:** `main` at `ffb50fc` (clean tree); last substantive commit `8591247` landed P21 WP3. WP0, WP1, WP2, WP3 all committed with passing acceptance suites. Certify with `git log --oneline -4 && git status --short`.
 - **P21 WP3 IS LANDED WITH 18 NEW PASSING TESTS.** `scripts/bab_cost_surface.py`, `research_state/bab_p21/cost_surface.{json,md}`, `tests/test_bab_p21_cost_surface.py`. Three cost components (linear transaction cost, borrow/funding, notional slippage), zero-cost baseline, per-book **and** per-period non-increasing costed Sharpe for all four books, total-cost linearity, documented censoring (`surfaces=None`, never a zero tolerance), byte-identical reruns. The renderer bug that emitted one character per line is fixed and pinned by `test_committed_markdown_matches_renderer`.
 - **P21 WP2 IS LANDED WITH 12 NEW PASSING TESTS.** `scripts/bab_significance.py`, `research_state/bab_p21/significance.{json,md}`, `tests/test_bab_p21_significance.py`. Null calibrated (`p_value` 0.1635/0.2680 >= 0.05, not significant), planted detected (`p_value` 0.0000, CI excludes zero), deflated Sharpe computed for the 40-candidate P20 grid (hand-computed DSR unit case pinned: 0.948765).
 - **P21 WP1 IS LANDED WITH 12 NEW PASSING TESTS.** `scripts/bab_rank_eval.py`, `research_state/bab_p21/rank_eval.{json,md}`, `tests/test_bab_p21_rank_eval.py`. Do not reopen WP1.
@@ -12,13 +12,13 @@
 - **Full gate at this HEAD: 6593 passed / 35 skipped / 100% (6644/6644).**
 - **Repo:** `Crypto-Betting-Against-Beta` — crypto market-neutral BAB trading system.
 
-**Handoff reviewed and confirmed as the single durable handoff. The binding initial task message below is the most relevant, timestamped, clear directive for the next agentic work session, prioritized from the repository name (`Crypto-Betting-Against-Beta`) and the measured state at HEAD `8591247`. P20 proved the construction. P21 WP0 supplies a controlled universe with known ground truth. WP1 measured rank vs equal. WP2 calibrated significance. WP3 added execution realism and showed costed performance is non-increasing in every component with honest censoring. Only WP4 remains before the campaign verdict, so WP4 is the binding row. Four bottlenecks that would otherwise stall or mis-route the next session are removed below, and Campaign P22 is pre-declared so a session never idles after P21 closes.**
+**Handoff reviewed and confirmed as the single durable handoff. The binding initial task message below is the most relevant, timestamped, clear directive for the next agentic work session, prioritized from the repository name (`Crypto-Betting-Against-Beta`) and the measured state at HEAD `ffb50fc` / last substantive `8591247`. P20 proved the construction. P21 WP0 supplies a controlled universe with known ground truth. WP1 measured rank vs equal. WP2 calibrated significance. WP3 added execution realism and showed costed performance is non-increasing in every component with honest censoring. Only WP4 remains before the campaign verdict, so WP4 is the binding row. Four bottlenecks that would otherwise stall or mis-route the next session are removed below, and Campaign P22 is pre-declared so a session never idles after P21 closes.**
 
 ---
 
 # INITIAL TASK MESSAGE (BINDING — START HERE)
 
-**Timestamp:** 2026-11-19T02:44:44Z · **Campaign:** P21 "Signal or noise" · **Lane:** E · **WP:** **P21 WP4 — honest verdict report**
+**Timestamp:** 2026-11-19T03:32:05Z · **Campaign:** P21 "Signal or noise" · **Lane:** E · **WP:** **P21 WP4 — honest verdict report**
 
 **One-sentence objective:** write `docs/BAB_SIGNAL_OR_NOISE.md` and `tests/test_bab_p21_report_consistency.py` that publish an explicit signal-vs-noise verdict for the calibrated P21 estimator, machine-check **100%** of every table number against the committed P21 JSON at 6 dp with zero unmatched cells, render every table from JSON only, state explicitly that planted-universe recovery is a **controlled synthetic** result and not market evidence, and never re-run any harness.
 
