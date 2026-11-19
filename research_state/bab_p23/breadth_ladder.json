@@ -1,0 +1,290 @@
+{
+  "ladder": [
+    {
+      "books": [
+        {
+          "active_rows": 541,
+          "breadth": 9,
+          "gross_max": 1.026387,
+          "gross_sharpe": -13.868956,
+          "min_leg_beta": 0.437401,
+          "recovery_frac_positive": 0.0,
+          "recovery_mean": -0.001017,
+          "variant": "planted",
+          "wealth": 0.593058,
+          "weighting": "equal"
+        },
+        {
+          "active_rows": 38,
+          "breadth": 9,
+          "gross_max": 3.996593,
+          "gross_sharpe": 3.851557,
+          "min_leg_beta": 0.333333,
+          "recovery_frac_positive": 1.0,
+          "recovery_mean": 0.019022,
+          "variant": "planted",
+          "wealth": 1.988014,
+          "weighting": "rank"
+        },
+        {
+          "active_rows": 541,
+          "breadth": 9,
+          "gross_max": 1.026387,
+          "gross_sharpe": 0.759922,
+          "min_leg_beta": 0.437401,
+          "recovery_frac_positive": 0.0,
+          "recovery_mean": 0.0,
+          "variant": "null",
+          "wealth": 1.027474,
+          "weighting": "equal"
+        },
+        {
+          "active_rows": 38,
+          "breadth": 9,
+          "gross_max": 3.996593,
+          "gross_sharpe": -0.440288,
+          "min_leg_beta": 0.333333,
+          "recovery_frac_positive": 0.0,
+          "recovery_mean": 0.0,
+          "variant": "null",
+          "wealth": 0.970948,
+          "weighting": "rank"
+        }
+      ],
+      "breadth": 9
+    },
+    {
+      "books": [
+        {
+          "active_rows": 541,
+          "breadth": 17,
+          "gross_max": 0.966059,
+          "gross_sharpe": -3.572505,
+          "min_leg_beta": 0.721415,
+          "recovery_frac_positive": 0.2939,
+          "recovery_mean": -0.000249,
+          "variant": "planted",
+          "wealth": 0.877419,
+          "weighting": "equal"
+        },
+        {
+          "active_rows": 541,
+          "breadth": 17,
+          "gross_max": 3.708669,
+          "gross_sharpe": 36.414581,
+          "min_leg_beta": 0.372,
+          "recovery_frac_positive": 1.0,
+          "recovery_mean": 0.016653,
+          "variant": "planted",
+          "wealth": 8134.833445,
+          "weighting": "rank"
+        },
+        {
+          "active_rows": 541,
+          "breadth": 17,
+          "gross_max": 0.966059,
+          "gross_sharpe": 0.13432,
+          "min_leg_beta": 0.721415,
+          "recovery_frac_positive": 0.0,
+          "recovery_mean": 0.0,
+          "variant": "null",
+          "wealth": 1.003676,
+          "weighting": "equal"
+        },
+        {
+          "active_rows": 541,
+          "breadth": 17,
+          "gross_max": 3.708669,
+          "gross_sharpe": 0.580673,
+          "min_leg_beta": 0.372,
+          "recovery_frac_positive": 0.0,
+          "recovery_mean": 0.0,
+          "variant": "null",
+          "wealth": 1.090917,
+          "weighting": "rank"
+        }
+      ],
+      "breadth": 17
+    },
+    {
+      "books": [
+        {
+          "active_rows": 541,
+          "breadth": 25,
+          "gross_max": 0.833906,
+          "gross_sharpe": 1.067472,
+          "min_leg_beta": 0.990025,
+          "recovery_frac_positive": 0.898336,
+          "recovery_mean": 1.8e-05,
+          "variant": "planted",
+          "wealth": 1.025503,
+          "weighting": "equal"
+        },
+        {
+          "active_rows": 541,
+          "breadth": 25,
+          "gross_max": 3.160539,
+          "gross_sharpe": 40.681862,
+          "min_leg_beta": 0.411429,
+          "recovery_frac_positive": 1.0,
+          "recovery_mean": 0.017432,
+          "variant": "planted",
+          "wealth": 12425.10482,
+          "weighting": "rank"
+        },
+        {
+          "active_rows": 541,
+          "breadth": 25,
+          "gross_max": 0.833906,
+          "gross_sharpe": 0.66373,
+          "min_leg_beta": 0.990025,
+          "recovery_frac_positive": 0.0,
+          "recovery_mean": 0.0,
+          "variant": "null",
+          "wealth": 1.015733,
+          "weighting": "equal"
+        },
+        {
+          "active_rows": 541,
+          "breadth": 25,
+          "gross_max": 3.160539,
+          "gross_sharpe": 0.834634,
+          "min_leg_beta": 0.411429,
+          "recovery_frac_positive": 0.0,
+          "recovery_mean": 0.0,
+          "variant": "null",
+          "wealth": 1.10201,
+          "weighting": "rank"
+        }
+      ],
+      "breadth": 25
+    },
+    {
+      "books": [
+        {
+          "active_rows": 541,
+          "breadth": 33,
+          "gross_max": 0.789892,
+          "gross_sharpe": 4.032911,
+          "min_leg_beta": 1.224441,
+          "recovery_frac_positive": 1.0,
+          "recovery_mean": 0.000204,
+          "variant": "planted",
+          "wealth": 1.092382,
+          "weighting": "equal"
+        },
+        {
+          "active_rows": 541,
+          "breadth": 33,
+          "gross_max": 2.686893,
+          "gross_sharpe": 42.833376,
+          "min_leg_beta": 0.471,
+          "recovery_frac_positive": 1.0,
+          "recovery_mean": 0.016934,
+          "variant": "planted",
+          "wealth": 9062.476685,
+          "weighting": "rank"
+        },
+        {
+          "active_rows": 541,
+          "breadth": 33,
+          "gross_max": 0.789892,
+          "gross_sharpe": -0.984481,
+          "min_leg_beta": 1.224441,
+          "recovery_frac_positive": 0.0,
+          "recovery_mean": 0.0,
+          "variant": "null",
+          "wealth": 0.97862,
+          "weighting": "equal"
+        },
+        {
+          "active_rows": 541,
+          "breadth": 33,
+          "gross_max": 2.686893,
+          "gross_sharpe": 0.501359,
+          "min_leg_beta": 0.471,
+          "recovery_frac_positive": 0.0,
+          "recovery_mean": 0.0,
+          "variant": "null",
+          "wealth": 1.045696,
+          "weighting": "rank"
+        }
+      ],
+      "breadth": 33
+    },
+    {
+      "books": [
+        {
+          "active_rows": 541,
+          "breadth": 41,
+          "gross_max": 0.837141,
+          "gross_sharpe": 7.034781,
+          "min_leg_beta": 1.447792,
+          "recovery_frac_positive": 0.996303,
+          "recovery_mean": 0.000261,
+          "variant": "planted",
+          "wealth": 1.167118,
+          "weighting": "equal"
+        },
+        {
+          "active_rows": 541,
+          "breadth": 41,
+          "gross_max": 2.414949,
+          "gross_sharpe": 44.378201,
+          "min_leg_beta": 0.507692,
+          "recovery_frac_positive": 1.0,
+          "recovery_mean": 0.01736,
+          "variant": "planted",
+          "wealth": 11401.093638,
+          "weighting": "rank"
+        },
+        {
+          "active_rows": 541,
+          "breadth": 41,
+          "gross_max": 0.837141,
+          "gross_sharpe": 0.639801,
+          "min_leg_beta": 1.447792,
+          "recovery_frac_positive": 0.0,
+          "recovery_mean": 0.0,
+          "variant": "null",
+          "wealth": 1.013905,
+          "weighting": "equal"
+        },
+        {
+          "active_rows": 541,
+          "breadth": 41,
+          "gross_max": 2.414949,
+          "gross_sharpe": 0.649924,
+          "min_leg_beta": 0.507692,
+          "recovery_frac_positive": 0.0,
+          "recovery_mean": 0.0,
+          "variant": "null",
+          "wealth": 1.049395,
+          "weighting": "rank"
+        }
+      ],
+      "breadth": 41
+    }
+  ],
+  "provenance": {
+    "charter_schema": "bab_p23.charter/1",
+    "config": {
+      "benchmark": "BTC",
+      "beta_neutral": true,
+      "beta_window": 90,
+      "long_quantile": 0.3,
+      "min_observations": 60,
+      "rank_max_gross": 4.0,
+      "rank_min_leg_beta": 0.2,
+      "short_quantile": 0.3
+    },
+    "generator": "scripts/bab_breadth_ladder.py",
+    "panel_sha256": {
+      "null": "b7732c152564c87606a6a47eac39a543344cbcd4b8e974f4780be35671953b1b",
+      "planted": "aae2a70ebcf81b3a9e2dd5f314933c439194fef8a7be1da34930e2c271a93fda"
+    },
+    "synthetic": true,
+    "universe_seed": 20261118
+  },
+  "schema": "bab_p23.breadth_ladder/1"
+}
