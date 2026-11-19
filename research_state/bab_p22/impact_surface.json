@@ -1,0 +1,324 @@
+{
+  "books": [
+    {
+      "active_rows": 541,
+      "censor_reason": null,
+      "censored": false,
+      "gross_final_cumulative": 1.167118,
+      "gross_sharpe": 7.034781,
+      "gross_turnover_mean": 0.009797,
+      "impact_exposure_mean": 0.002701,
+      "monotonicity": {
+        "market_impact": true
+      },
+      "period_wise_non_increasing": {
+        "market_impact": true
+      },
+      "surfaces": {
+        "market_impact": [
+          {
+            "cost_drag_mean": 0.0,
+            "costed_sharpe": 7.034781,
+            "final_cumulative": 1.167118,
+            "level": 0.0,
+            "total_cost": 0.0
+          },
+          {
+            "cost_drag_mean": 5.4e-05,
+            "costed_sharpe": 3.763395,
+            "final_cumulative": 1.129761,
+            "level": 0.02,
+            "total_cost": 0.032418
+          },
+          {
+            "cost_drag_mean": 0.000135,
+            "costed_sharpe": 1.167251,
+            "final_cumulative": 1.075471,
+            "level": 0.05,
+            "total_cost": 0.081044
+          },
+          {
+            "cost_drag_mean": 0.00027,
+            "costed_sharpe": -0.062016,
+            "final_cumulative": 0.989475,
+            "level": 0.1,
+            "total_cost": 0.162088
+          },
+          {
+            "cost_drag_mean": 0.00054,
+            "costed_sharpe": -0.717923,
+            "final_cumulative": 0.833239,
+            "level": 0.2,
+            "total_cost": 0.324177
+          },
+          {
+            "cost_drag_mean": 0.001351,
+            "costed_sharpe": -1.116263,
+            "final_cumulative": 0.471526,
+            "level": 0.5,
+            "total_cost": 0.810441
+          },
+          {
+            "cost_drag_mean": 0.002701,
+            "costed_sharpe": -1.249026,
+            "final_cumulative": 0.124562,
+            "level": 1.0,
+            "total_cost": 1.620883
+          }
+        ]
+      },
+      "total_rows": 600,
+      "variant": "planted",
+      "weighting": "equal"
+    },
+    {
+      "active_rows": 541,
+      "censor_reason": null,
+      "censored": false,
+      "gross_final_cumulative": 11401.093638,
+      "gross_sharpe": 44.378201,
+      "gross_turnover_mean": 0.007204,
+      "impact_exposure_mean": 0.006392,
+      "monotonicity": {
+        "market_impact": true
+      },
+      "period_wise_non_increasing": {
+        "market_impact": true
+      },
+      "surfaces": {
+        "market_impact": [
+          {
+            "cost_drag_mean": 0.0,
+            "costed_sharpe": 44.378201,
+            "final_cumulative": 11401.093638,
+            "level": 0.0,
+            "total_cost": 0.0
+          },
+          {
+            "cost_drag_mean": 0.000128,
+            "costed_sharpe": 37.232543,
+            "final_cumulative": 10530.799945,
+            "level": 0.02,
+            "total_cost": 0.07671
+          },
+          {
+            "cost_drag_mean": 0.00032,
+            "costed_sharpe": 24.951852,
+            "final_cumulative": 9238.335098,
+            "level": 0.05,
+            "total_cost": 0.191775
+          },
+          {
+            "cost_drag_mean": 0.000639,
+            "costed_sharpe": 14.564397,
+            "final_cumulative": 7118.487825,
+            "level": 0.1,
+            "total_cost": 0.383549
+          },
+          {
+            "cost_drag_mean": 0.001278,
+            "costed_sharpe": 7.445557,
+            "final_cumulative": 3004.998876,
+            "level": 0.2,
+            "total_cost": 0.767098
+          },
+          {
+            "cost_drag_mean": 0.003196,
+            "costed_sharpe": 2.652254,
+            "final_cumulative": -8369.885186,
+            "level": 0.5,
+            "total_cost": 1.917745
+          },
+          {
+            "cost_drag_mean": 0.006392,
+            "costed_sharpe": 0.993625,
+            "final_cumulative": -24385.695661,
+            "level": 1.0,
+            "total_cost": 3.83549
+          }
+        ]
+      },
+      "total_rows": 600,
+      "variant": "planted",
+      "weighting": "rank"
+    },
+    {
+      "active_rows": 541,
+      "censor_reason": null,
+      "censored": false,
+      "gross_final_cumulative": 1.013905,
+      "gross_sharpe": 0.639801,
+      "gross_turnover_mean": 0.009797,
+      "impact_exposure_mean": 0.002701,
+      "monotonicity": {
+        "market_impact": true
+      },
+      "period_wise_non_increasing": {
+        "market_impact": true
+      },
+      "surfaces": {
+        "market_impact": [
+          {
+            "cost_drag_mean": 0.0,
+            "costed_sharpe": 0.639801,
+            "final_cumulative": 1.013905,
+            "level": 0.0,
+            "total_cost": 0.0
+          },
+          {
+            "cost_drag_mean": 5.4e-05,
+            "costed_sharpe": -0.578003,
+            "final_cumulative": 0.981449,
+            "level": 0.02,
+            "total_cost": 0.032418
+          },
+          {
+            "cost_drag_mean": 0.000135,
+            "costed_sharpe": -1.072364,
+            "final_cumulative": 0.934281,
+            "level": 0.05,
+            "total_cost": 0.081044
+          },
+          {
+            "cost_drag_mean": 0.00027,
+            "costed_sharpe": -1.241371,
+            "final_cumulative": 0.859567,
+            "level": 0.1,
+            "total_cost": 0.162088
+          },
+          {
+            "cost_drag_mean": 0.00054,
+            "costed_sharpe": -1.316368,
+            "final_cumulative": 0.723829,
+            "level": 0.2,
+            "total_cost": 0.324177
+          },
+          {
+            "cost_drag_mean": 0.001351,
+            "costed_sharpe": -1.356794,
+            "final_cumulative": 0.409589,
+            "level": 0.5,
+            "total_cost": 0.810441
+          },
+          {
+            "cost_drag_mean": 0.002701,
+            "costed_sharpe": -1.3694,
+            "final_cumulative": 0.10819,
+            "level": 1.0,
+            "total_cost": 1.620883
+          }
+        ]
+      },
+      "total_rows": 600,
+      "variant": "null",
+      "weighting": "equal"
+    },
+    {
+      "active_rows": 541,
+      "censor_reason": null,
+      "censored": false,
+      "gross_final_cumulative": 1.049395,
+      "gross_sharpe": 0.649924,
+      "gross_turnover_mean": 0.007204,
+      "impact_exposure_mean": 0.006392,
+      "monotonicity": {
+        "market_impact": true
+      },
+      "period_wise_non_increasing": {
+        "market_impact": true
+      },
+      "surfaces": {
+        "market_impact": [
+          {
+            "cost_drag_mean": 0.0,
+            "costed_sharpe": 0.649924,
+            "final_cumulative": 1.049395,
+            "level": 0.0,
+            "total_cost": 0.0
+          },
+          {
+            "cost_drag_mean": 0.000128,
+            "costed_sharpe": -0.201427,
+            "final_cumulative": 0.969222,
+            "level": 0.02,
+            "total_cost": 0.07671
+          },
+          {
+            "cost_drag_mean": 0.00032,
+            "costed_sharpe": -0.490675,
+            "final_cumulative": 0.850177,
+            "level": 0.05,
+            "total_cost": 0.191775
+          },
+          {
+            "cost_drag_mean": 0.000639,
+            "costed_sharpe": -0.591459,
+            "final_cumulative": 0.654977,
+            "level": 0.1,
+            "total_cost": 0.383549
+          },
+          {
+            "cost_drag_mean": 0.001278,
+            "costed_sharpe": -0.639653,
+            "final_cumulative": 0.276393,
+            "level": 0.2,
+            "total_cost": 0.767098
+          },
+          {
+            "cost_drag_mean": 0.003196,
+            "costed_sharpe": -0.667427,
+            "final_cumulative": -0.769021,
+            "level": 0.5,
+            "total_cost": 1.917745
+          },
+          {
+            "cost_drag_mean": 0.006392,
+            "costed_sharpe": -0.676461,
+            "final_cumulative": -2.236534,
+            "level": 1.0,
+            "total_cost": 3.83549
+          }
+        ]
+      },
+      "total_rows": 600,
+      "variant": "null",
+      "weighting": "rank"
+    }
+  ],
+  "provenance": {
+    "caveat": "Recovery on a planted synthetic universe proves the estimator works; it is never market alpha. A null-universe positive result is a bug, not a finding. Censored books report a documented reason, never a zero tolerance.",
+    "config": {
+      "benchmark": "BTC",
+      "beta_neutral": true,
+      "beta_window": 90,
+      "long_quantile": 0.3,
+      "min_observations": 60,
+      "rank_max_gross": 4.0,
+      "rank_min_leg_beta": 0.2,
+      "short_quantile": 0.3,
+      "slippage": 0.0,
+      "transaction_costs": 0.0
+    },
+    "generator": "scripts/bab_impact_surface.py",
+    "impact_coefficient_grid": [
+      0.0,
+      0.02,
+      0.05,
+      0.1,
+      0.2,
+      0.5,
+      1.0
+    ],
+    "impact_component": "market_impact",
+    "method": "run BABStrategy at zero cost per (variant, weighting) to recover gross returns and weights; per-period turnover is raised to the 3/2 power to obtain the square-root market-impact exposure; costed returns = gross - coefficient * turnover**1.5; costed Sharpe asserted non-increasing in the impact coefficient; coefficient == 0 reproduces the gross baseline exactly.",
+    "note": "Controlled synthetic stimulus with known ground truth: not real market data and not market profitability evidence.",
+    "panel_sha256": {
+      "null": "b7732c152564c87606a6a47eac39a543344cbcd4b8e974f4780be35671953b1b",
+      "planted": "aae2a70ebcf81b3a9e2dd5f314933c439194fef8a7be1da34930e2c271a93fda"
+    },
+    "synthetic": true,
+    "trading_days": 252,
+    "universe_seed": 20261118
+  },
+  "schema": "bab_p22.impact_surface/1"
+}
