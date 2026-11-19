@@ -2,7 +2,7 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-19T00:39:31Z
+- **Timestamp (UTC):** 2026-11-19T00:42:07Z
 - **Git state:** `main` at `c2c1fa3`. P21 WP1 (rank vs equal on planted universe) is landed and committed. Certify with `git log --oneline -3 && git status --short`.
 - **P21 WP1 IS LANDED WITH 12 NEW PASSING TESTS.** `scripts/bab_rank_eval.py`, `research_state/bab_p21/rank_eval.{json,md}`, `tests/test_bab_p21_rank_eval.py`.
 - **P20 IS COMPLETE AND CERTIFIED. Do not reopen it.** `research_state/bab_p20/**` and `docs/BAB_RESEARCH_REPORT.md` are frozen: the WP4 test re-renders those tables from JSON and fails on any drift.
@@ -16,7 +16,7 @@
 
 # INITIAL TASK MESSAGE (BINDING — START HERE)
 
-**Timestamp:** 2026-11-19T00:39:31Z · **Campaign:** P21 "Signal or noise" · **Lane:** C · **WP:** **P21 WP2 — significance + deflation on the planted universe**
+**Timestamp:** 2026-11-19T00:42:07Z · **Campaign:** P21 "Signal or noise" · **Lane:** C · **WP:** **P21 WP2 — significance + deflation on the planted universe**
 
 **One-sentence objective:** write `scripts/bab_significance.py` that loads the committed `research_state/bab_p21/universe.json` read-only and the committed `research_state/bab_p21/rank_eval.json` read-only, runs a fixed-seed moving-block bootstrap (≥ 2000 resamples) of the OOS Sharpe on both `planted` and `null` variants for both `equal` and `rank` weightings, applies a deflated Sharpe correction for the 40-candidate P20 grid, and proves **null calibration**: the false-positive rate on `null` is ≤ the documented nominal slack, and the `planted` effect is detected — then commit `research_state/bab_p21/significance.{json,md}` and `tests/test_bab_p21_significance.py`.
 
