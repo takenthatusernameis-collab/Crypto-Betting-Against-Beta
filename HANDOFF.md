@@ -2,7 +2,7 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-19T13:24:24Z
+- **Timestamp (UTC):** 2026-11-19T16:53:13Z
 - **Git state:** previous HEAD `5335504` clean; **this commit lands P23 WP0** (charter). P23 WP0–WP0 landed; P21 WP0–WP4 and P22 WP0–WP4 all committed. Certify with `git log --oneline -4 && git status --short` and the routing command below.
 - **P23 WP0 IS LANDED WITH 13 NEW PASSING TESTS — the P23 charter exists and is artifact-gated.** `scripts/bab_p23_charter.py`, `research_state/bab_p23/charter.{json,md}`, `docs/BAB_P23_KICKOFF.md`, `tests/test_bab_p23_charter.py`. The charter restates the closed P22 verdict from the committed P22 JSON only (NO-GO for market; signal on planted; noise on null; impact monotone; capacity break-evens with documented censoring), pins the breadth ladder `[9, 17, 25, 33, 41]`, the beta-window grid `[60, 90, 120, 180]` × drift grid `[1e-4, 5e-4, 1e-3]`, the borrow-haircut ladder `[0.0, 0.10, 0.25, 0.50, 0.75]`, 20 independent seeds per work package (WP1 `20261201..20261220`, WP2 `20261221..20261240`, WP3 `20261241..20261260`, disjoint from the P22 seeds), nominal slack `0.05`, and the exact WP1–WP4 acceptance thresholds. Committed JSON == fresh build; markdown == renderer; kickoff == markdown; all four P22 JSON artifacts sha256-unchanged across the suite; no harness is imported or re-run. Binding row advances to **P23 WP1 — breadth ladder**.
 - **`NEXT_SESSION_TASK.md` has been DELETED.** It was a second handoff document that this file forbids, and it drifted independently on every refresh. This file is now the only durable handoff: do not recreate it.
@@ -25,35 +25,29 @@
 
 # INITIAL TASK MESSAGE (BINDING — START HERE)
 
-**Timestamp:** 2026-11-19T13:14:47Z · **Campaign:** P23 "Breadth and instability stress" · **Lane:** A · **WP:** **P23 WP0 — charter**
+**Timestamp:** 2026-11-19T16:53:13Z · **Campaign:** P23 "Breadth and instability stress" · **Lane:** A · **WP:** **P23 WP1 — breadth ladder**
 
-**One-sentence objective:** write `scripts/bab_p23_charter.py` plus `research_state/bab_p23/charter.{json,md}`, `docs/BAB_P23_KICKOFF.md` and `tests/test_bab_p23_charter.py`, producing a machine-readable charter that (a) restates the closed P22 decision (NO-GO for market) from the committed P22 JSON only — no hand-typed numbers, (b) pins the P23 breadth ladder, beta-window/drift grid, short-availability haircut ladder, per-work-package seeds and the exact acceptance thresholds consumed by WP1–WP4, and (c) proves committed JSON == fresh build and markdown derived from JSON only.
+**One-sentence objective:** write `scripts/bab_breadth_ladder.py` plus `research_state/bab_p23/breadth_ladder.{json,md}` and `tests/test_bab_p23_breadth_ladder.py`, measuring the four certified books (planted/null × equal/rank) across the chartered breadth ladder `[9, 17, 25, 33, 41]` assets on the committed P21 universe, proving recovery remains strictly positive on planted and exactly zero on null at every rung, with byte-identical committed JSON == fresh build and markdown derived from JSON only.
 
-**Why this and nothing else:** P21 and P22 are closed and frozen; the repository name names a market-neutral strategy, and the open question after P22 is whether the measured result survives breadth and instability, not whether the estimator is calibrated. P23 is offline and heavy by construction: every WP is artifact-gated, so prose-only sessions fail the routing table. WP0 is the only missing row and every later P23 WP consumes its pinned constants.
+**Why this and nothing else:** P23 WP0 is landed and artifact-gated; WP1 is the first missing row in the routing table and every later P23 WP consumes its breadth surface. The open question after P22 is whether the measured result survives breadth concentration, and WP1 answers it before beta-drift or borrow-stress can be run.
 
-**Prioritization basis:** P22 closed with a NO-GO that rests on a controlled synthetic stimulus. The next failure mode for a betting-against-beta book is instability: breadth concentration, beta-estimation drift, and short-side scarcity in crypto. P23 measures exactly those, and WP0 must pin the grids and thresholds before any of them can be run.
+**Prioritization basis:** P22 closed NO-GO on a controlled synthetic stimulus; the next failure mode is breadth concentration. WP1 measures breadth first because drift and borrow stress presuppose a breadth surface to stress.
 
 **Deliverable files are the claim.** Run:
 
 ```bash
-git ls-files scripts/bab_p23_charter.py tests/test_bab_p23_charter.py docs/BAB_P23_KICKOFF.md research_state/bab_p23/charter.json scripts/bab_breadth_ladder.py research_state/bab_p23/breadth_ladder.json scripts/bab_beta_drift.py research_state/bab_p23/beta_drift.json scripts/bab_borrow_stress.py research_state/bab_p23/borrow_stress.json docs/BAB_P23_DECISION.md
+git ls-files scripts/bab_breadth_ladder.py research_state/bab_p23/breadth_ladder.json tests/test_bab_p23_breadth_ladder.py
 ```
 
-| First file missing from that list | Your WP | You own (create + commit) |
-|---|---|---|
-| `scripts/bab_p23_charter.py` | **P23 WP0** | `scripts/bab_p23_charter.py`, `research_state/bab_p23/charter.{json,md}`, `docs/BAB_P23_KICKOFF.md`, `tests/test_bab_p23_charter.py` |
-| `scripts/bab_breadth_ladder.py` | **P23 WP1** | `scripts/bab_breadth_ladder.py`, `research_state/bab_p23/breadth_ladder.{json,md}`, `tests/test_bab_p23_breadth_ladder.py` |
-| `scripts/bab_beta_drift.py` | **P23 WP2** | `scripts/bab_beta_drift.py`, `research_state/bab_p23/beta_drift.{json,md}`, `tests/test_bab_p23_beta_drift.py` |
-| `scripts/bab_borrow_stress.py` | **P23 WP3** | `scripts/bab_borrow_stress.py`, `research_state/bab_p23/borrow_stress.{json,md}`, `tests/test_bab_p23_borrow_stress.py` |
-| `docs/BAB_P23_DECISION.md` | **P23 WP4** | `docs/BAB_P23_DECISION.md`, `tests/test_bab_p23_decision_consistency.py` |
+The first missing row is **P23 WP1 — breadth ladder**; you own `scripts/bab_breadth_ladder.py`, `research_state/bab_p23/breadth_ladder.{json,md}`, `tests/test_bab_p23_breadth_ladder.py`.
 
 Rules:
-1. Never take a WP whose deliverable script already exists (`git ls-files`, or on disk and passing its test). Commit an uncommitted WP first, verify it, then take the next missing one.
-2. Solo default: **P23 WP0**. It reads the committed P21/P22 JSON read-only and must not regenerate, re-run or edit any P21/P22 harness or artifact.
-3. A partially finished WP is not locked. If files exist only in the working tree (not `git ls-files`) or the gate is red, you own finishing it.
+1. Never take a WP whose deliverable script already exists. Commit an uncommitted WP first, verify it, then take the next missing one.
+2. Solo default: **P23 WP1**. It reads the committed P21/P22/P23-charter JSON read-only and must not regenerate, re-run or edit any harness or artifact.
+3. A partially finished WP is not locked.
 4. Everything blocked? Repair the red gate first (`bash scripts/bab_quick.sh`), then take the first missing row.
 5. Never end a session with prose. A landed WP = deliverable + artifact + acceptance test in **one** commit + green full gate.
-6. **A documentation-only session is a failed session.** A handoff refresh must also land the next missing WP (or a tested slice) in the same turn — then update this file with what landed.
+6. **A documentation-only session is a failed session.**
 
 ---
 
@@ -61,7 +55,7 @@ Rules:
 
 Deliverable files are the claim. Run the `git ls-files` command above; the first missing row is yours. P22 is CLOSED (WP0 charter, WP1 null battery, WP2 nonlinear impact, WP3 capacity, WP4 decision all landed). P23 is the only open campaign and its rows are artifact-gated in the order shown.
 
-Rules are identical to the numbered list immediately above. Solo default: **P23 WP0**.
+Rules are identical to the numbered list immediately above. Solo default: **P23 WP1**.
 
 ## MANDATORY FIRST ACTIONS (in order, ~4 minutes)
 
