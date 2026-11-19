@@ -2,7 +2,7 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-19T09:51:53Z
+- **Timestamp (UTC):** 2026-11-19T10:52:18Z
 - **Git state:** `main` at `430dbf1` (clean tree; last landed WP commit `430dbf1`). P22 WP0, WP1, WP2, and WP3 all landed and committed. P21 WP0–WP4 all committed with passing acceptance suites. Certify with `git log --oneline -4 && git status --short`.
 - **P21 WP4 IS LANDED WITH 13 NEW PASSING TESTS.** `docs/BAB_SIGNAL_OR_NOISE.md` + `tests/test_bab_p21_report_consistency.py`. Explicit verdict: SIGNAL on planted (recovery +2.6e-4 equal / +1.7e-2 rank, p=0.0000 both), NOISE on null (p 0.1635/0.2680 >= 0.05, not significant), costed Sharpe non-increasing in all three components for all four books, every table number machine-checked against committed P21 JSON at 6 dp with zero unmatched cells, planted recovery labelled controlled synthetic and not market evidence, NO-GO for market deployment. P21 is CLOSED — do not reopen WP0–WP4.
 - **P22 WP3 IS LANDED WITH 21 NEW PASSING TESTS.** `scripts/bab_capacity.py`, `research_state/bab_p22/capacity.{json,md}`, `tests/test_bab_p22_capacity.py`. Per-book participation-rate break-even via fixed-iteration bisection (50 iterations) on the committed WP2 impact surface; planted/equal break-even at 0.097478, null/equal at 0.010507, null/rank at 0.015268; planted/rank censored (no negative Sharpe at max coefficient); each bracket provably halves every iteration; censored books report documented reason (never a midpoint); per-row zero-crossing sign test pinned for all four books; byte-identical reruns; committed JSON == fresh build; markdown derived from JSON only; never imports or re-runs any P21/P22 WP0-WP2 harness. P22 WP3 is CLOSED — do not reopen. Binding row advances to **P22 WP4 — decision report**.
@@ -23,7 +23,7 @@
 
 # INITIAL TASK MESSAGE (BINDING — START HERE)
 
-**Timestamp:** 2026-11-19T09:51:53Z · **Campaign:** P22 "Decision-grade validation" · **Lane:** F · **WP:** **P22 WP4 — decision report**
+**Timestamp:** 2026-11-19T10:52:18Z · **Campaign:** P22 "Decision-grade validation" · **Lane:** F · **WP:** **P22 WP4 — decision report**
 
 **One-sentence objective:** write `docs/BAB_P22_DECISION.md` and `tests/test_bab_p22_decision_consistency.py` that render an explicit GO/NO-GO verdict (NO-GO on synthetic-only evidence required) with 100% of published numbers machine-matched to P22 JSON at 6 dp (zero unmatched), tables rendered from JSON only, no harness re-run, no P21/P22 artifact edited, consuming `research_state/bab_p22/capacity.json` read-only for the break-even criterion.
 
