@@ -23,7 +23,7 @@
 
 # INITIAL TASK MESSAGE (BINDING — START HERE)
 
-**Timestamp:** 2026-11-19T10:52:18Z · **Campaign:** P22 "Decision-grade validation" · **Lane:** F · **WP:** **P22 WP4 — decision report**
+**Timestamp:** 2026-11-19T10:52:38Z · **Campaign:** P22 "Decision-grade validation" · **Lane:** F · **WP:** **P22 WP4 — decision report**
 
 **One-sentence objective:** write `docs/BAB_P22_DECISION.md` and `tests/test_bab_p22_decision_consistency.py` that render an explicit GO/NO-GO verdict (NO-GO on synthetic-only evidence required) with 100% of published numbers machine-matched to P22 JSON at 6 dp (zero unmatched), tables rendered from JSON only, no harness re-run, no P21/P22 artifact edited, consuming `research_state/bab_p22/capacity.json` read-only for the break-even criterion.
 
