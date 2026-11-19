@@ -1,0 +1,277 @@
+{
+  "charter": {
+    "answered_by_p22": "Does the BAB estimator survive repeated null universes, nonlinear market impact and capacity constraints? Yes on controlled synthetic evidence, and the market verdict stays NO-GO.",
+    "artifact_gated": true,
+    "beta_window_grid": [
+      60,
+      90,
+      120,
+      180
+    ],
+    "binding_row": "P23 WP0",
+    "borrow_haircut_ladder": [
+      0.0,
+      0.1,
+      0.25,
+      0.5,
+      0.75
+    ],
+    "breadth_ladder": [
+      9,
+      17,
+      25,
+      33,
+      41
+    ],
+    "campaign": "P23",
+    "drift_threshold_grid": [
+      0.0001,
+      0.0005,
+      0.001
+    ],
+    "licensed_data_required": true,
+    "not_market_evidence": true,
+    "question": "Does the BAB estimator survive breadth concentration, beta-estimation drift and crypto short-availability scarcity?",
+    "title": "Breadth and instability stress",
+    "wp_seed_counts": {
+      "wp1": 20,
+      "wp2": 20,
+      "wp3": 20
+    },
+    "wp_seeds": {
+      "wp1": [
+        20261201,
+        20261202,
+        20261203,
+        20261204,
+        20261205,
+        20261206,
+        20261207,
+        20261208,
+        20261209,
+        20261210,
+        20261211,
+        20261212,
+        20261213,
+        20261214,
+        20261215,
+        20261216,
+        20261217,
+        20261218,
+        20261219,
+        20261220
+      ],
+      "wp2": [
+        20261221,
+        20261222,
+        20261223,
+        20261224,
+        20261225,
+        20261226,
+        20261227,
+        20261228,
+        20261229,
+        20261230,
+        20261231,
+        20261232,
+        20261233,
+        20261234,
+        20261235,
+        20261236,
+        20261237,
+        20261238,
+        20261239,
+        20261240
+      ],
+      "wp3": [
+        20261241,
+        20261242,
+        20261243,
+        20261244,
+        20261245,
+        20261246,
+        20261247,
+        20261248,
+        20261249,
+        20261250,
+        20261251,
+        20261252,
+        20261253,
+        20261254,
+        20261255,
+        20261256,
+        20261257,
+        20261258,
+        20261259,
+        20261260
+      ]
+    },
+    "wps_in_order": [
+      "P23 WP0 \u2014 charter",
+      "P23 WP1 \u2014 breadth ladder",
+      "P23 WP2 \u2014 beta-window/drift grid",
+      "P23 WP3 \u2014 short-availability haircut ladder",
+      "P23 WP4 \u2014 decision report (must keep NO-GO in force)"
+    ]
+  },
+  "provenance": {
+    "acceptance_thresholds": {
+      "nominal_slack": 0.05,
+      "wp1": {
+        "ladder_min_rungs": 3,
+        "min_active_rows": 1,
+        "rank_guards_never_relaxed": true,
+        "rank_max_gross": 4.0,
+        "rank_min_leg_beta": 0.2,
+        "recovery_null_exactly_zero": 0.0,
+        "recovery_planted_strictly_positive": true
+      },
+      "wp2": {
+        "beta_window_default_preserved": 90,
+        "every_cell_reported": true,
+        "min_beta_windows": 3,
+        "min_drift_thresholds": 3,
+        "recovery_null_exactly_zero": 0.0,
+        "recovery_planted_strictly_positive": true
+      },
+      "wp3": {
+        "censored_reports_document_reason_never_zero_tolerance": true,
+        "costed_sharpe_non_increasing_in_haircut": true,
+        "haircut_zero_baseline_required": true,
+        "min_haircut_levels": 3,
+        "recovery_null_exactly_zero": 0.0
+      },
+      "wp4": {
+        "explicit_signal_noise_verdict": true,
+        "no_go_for_market": true,
+        "no_harness_re_run": true,
+        "numbers_matched_min": 100,
+        "planted_recovery_labelled_controlled_synthetic": true,
+        "zero_unmatched_cells": 0
+      }
+    },
+    "caveat": "P23 stress results on a controlled synthetic universe prove instability handling of the estimator; they are never market alpha. A null-universe positive result is a bug, not a finding. NO-GO for market deployment remains in force until a maintainer supplies a licensed price series.",
+    "generator": "scripts/bab_p23_charter.py",
+    "method": "reads the committed P22 JSON artifacts (charter, null_battery, impact_surface, capacity) read-only; restates the P22 NO-GO verdict from committed fields; declares the P23 breadth ladder, beta-window/drift grid, borrow-haircut ladder, per-WP seed lists and WP1-WP4 acceptance thresholds as charter constants; never imports or re-runs any P21/P22 build_* harness.",
+    "nominal_slack": 0.05,
+    "note": "Controlled synthetic stimulus with known ground truth: not real market data and not market profitability evidence.",
+    "p22_source_schema": "bab_p22.charter/1",
+    "p22_verdict": {
+      "capacity": {
+        "null_equal": {
+          "bracket_halving_verified": true,
+          "break_even_coefficient": 0.010507,
+          "censor_reason": null,
+          "censored": false,
+          "gross_sharpe": 0.639801,
+          "variant": "null",
+          "weighting": "equal"
+        },
+        "null_rank": {
+          "bracket_halving_verified": true,
+          "break_even_coefficient": 0.015268,
+          "censor_reason": null,
+          "censored": false,
+          "gross_sharpe": 0.649924,
+          "variant": "null",
+          "weighting": "rank"
+        },
+        "planted_equal": {
+          "bracket_halving_verified": true,
+          "break_even_coefficient": 0.097478,
+          "censor_reason": null,
+          "censored": false,
+          "gross_sharpe": 7.034781,
+          "variant": "planted",
+          "weighting": "equal"
+        },
+        "planted_rank": {
+          "bracket_halving_verified": false,
+          "break_even_coefficient": null,
+          "censor_reason": "no_negative_sharpe_at_max_coefficient",
+          "censored": true,
+          "gross_sharpe": 44.378201,
+          "variant": "planted",
+          "weighting": "rank"
+        }
+      },
+      "impact": {
+        "null_equal": {
+          "gross_sharpe": 0.639801,
+          "monotone": true,
+          "period_wise_non_increasing": true,
+          "variant": "null",
+          "weighting": "equal"
+        },
+        "null_rank": {
+          "gross_sharpe": 0.649924,
+          "monotone": true,
+          "period_wise_non_increasing": true,
+          "variant": "null",
+          "weighting": "rank"
+        },
+        "planted_equal": {
+          "gross_sharpe": 7.034781,
+          "monotone": true,
+          "period_wise_non_increasing": true,
+          "variant": "planted",
+          "weighting": "equal"
+        },
+        "planted_rank": {
+          "gross_sharpe": 44.378201,
+          "monotone": true,
+          "period_wise_non_increasing": true,
+          "variant": "planted",
+          "weighting": "rank"
+        }
+      },
+      "no_go_for_market": true,
+      "noise_on_null": true,
+      "nominal_slack": 0.05,
+      "null_battery": {
+        "fpr_count": 2,
+        "fpr_denominator": 40,
+        "fpr_max_count_declared": 4,
+        "fpr_rate": 0.05,
+        "fpr_within_declared_bound": true,
+        "n_null_books": 40,
+        "n_planted_books": 40,
+        "n_seeds": 20,
+        "null_recovery_exactly_zero_every_seed": true,
+        "null_recovery_max_abs": 0.0,
+        "null_recovery_zero_books": 40,
+        "null_sharpe_max": 1.28897,
+        "planted_recovery_exceeds_null_max": true,
+        "planted_recovery_min": {
+          "equal": 0.000206,
+          "rank": 0.017227
+        },
+        "planted_recovery_positive_fraction": {
+          "equal": 1.0,
+          "rank": 1.0
+        },
+        "planted_sharpe_min": 5.552134
+      },
+      "p22_charter_verdict": "SIGNAL on the planted controlled-synthetic universe; NOISE on the null universe; NO-GO for market deployment.",
+      "signal_on_planted": true,
+      "verdict": "NO-GO for market deployment"
+    },
+    "panel_sha256": {
+      "null": "b7732c152564c87606a6a47eac39a543344cbcd4b8e974f4780be35671953b1b",
+      "planted": "aae2a70ebcf81b3a9e2dd5f314933c439194fef8a7be1da34930e2c271a93fda"
+    },
+    "strategy_config": {
+      "benchmark": "BTC",
+      "beta_neutral": true,
+      "beta_window": 90,
+      "long_quantile": 0.3,
+      "min_observations": 60,
+      "rank_max_gross": 4.0,
+      "rank_min_leg_beta": 0.2,
+      "short_quantile": 0.3
+    },
+    "synthetic": true,
+    "universe_seed": 20261118
+  },
+  "schema": "bab_p23.charter/1"
+}
