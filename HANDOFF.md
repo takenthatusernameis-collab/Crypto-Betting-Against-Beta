@@ -2,7 +2,7 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-19T05:34:13Z
+- **Timestamp (UTC):** 2026-11-19T07:50:41Z
 - **Git state:** `main` at `575601d` (clean tree); `d9175e3..575601d` landed P22 WP0 (`scripts/bab_p22_charter.py`, `tests/test_bab_p22_charter.py`, `research_state/bab_p22/charter.{json,md}`, `docs/BAB_P22_KICKOFF.md`, 10 tests). P21 WP0–WP4 all committed with passing acceptance suites. Certify with `git log --oneline -4 && git status --short`.
 - **P21 WP4 IS LANDED WITH 13 NEW PASSING TESTS.** `docs/BAB_SIGNAL_OR_NOISE.md` + `tests/test_bab_p21_report_consistency.py`. Explicit verdict: SIGNAL on planted (recovery +2.6e-4 equal / +1.7e-2 rank, p=0.0000 both), NOISE on null (p 0.1635/0.2680 >= 0.05, not significant), costed Sharpe non-increasing in all three components for all four books, every table number machine-checked against committed P21 JSON at 6 dp with zero unmatched cells, planted recovery labelled controlled synthetic and not market evidence, NO-GO for market deployment. P21 is CLOSED — do not reopen WP0–WP4.
 - **P21 WP3 IS LANDED WITH 18 NEW PASSING TESTS.** `scripts/bab_cost_surface.py`, `research_state/bab_p21/cost_surface.{json,md}`, `tests/test_bab_p21_cost_surface.py`. Three cost components (linear transaction cost, borrow/funding, notional slippage), zero-cost baseline, per-book **and** per-period non-increasing costed Sharpe for all four books, total-cost linearity, documented censoring (`surfaces=None`, never a zero tolerance), byte-identical reruns. The renderer bug that emitted one character per line is fixed and pinned by `test_committed_markdown_matches_renderer`.
@@ -19,9 +19,9 @@
 
 # INITIAL TASK MESSAGE (BINDING — START HERE)
 
-**Timestamp:** 2026-11-19T04:36:34Z · **Campaign:** P22 "Decision-grade validation" · **Lane:** F · **WP:** **P22 WP0 — machine-readable charter**
+**Timestamp:** 2026-11-19T07:50:41Z · **Campaign:** P22 "Decision-grade validation" · **Lane:** F · **WP:** **P22 WP1 — null battery (>=20 seeds)**
 
-**One-sentence objective:** write `scripts/bab_p22_charter.py`, `research_state/bab_p22/charter.json`, `docs/BAB_P22_KICKOFF.md` and `tests/test_bab_p22_charter.py` that publish a machine-readable P22 charter which **restates the P21 verdict from the committed P21 JSON only (no hand-typed numbers)**, pins the P22 null-battery seed list (**≥20 seeds**), the nominal slack, and the exact acceptance thresholds consumed by P21 WP1–WP4; every number in the JSON and markdown must already be a committed P21 JSON field or a charter-declared constant; committed JSON must equal a fresh build (`build_charter()` == `charter.json`); markdown is derived from JSON only; the test suite enforces all of it; never re-run any P21 harness.
+**One-sentence objective:** write `scripts/bab_null_battery.py`, `research_state/bab_p22/null_battery.{json,md}` and `tests/test_bab_p22_null_battery.py` that run the P22 null battery over the 20 chartered seeds (20261120..20261139), consume the P21 committed artifacts and charter constants read-only, restate per-seed null outcomes and aggregate null calibration, assert committed JSON equals a fresh build, derive markdown from JSON only, and never re-run or edit any P21 harness.
 
 **Why this and nothing else:** P21 WP0–WP4 are landed, committed and frozen. The repository name names a strategy, not a dataset, and P21 deliberately cannot answer "would this survive repeated null universes, nonlinear impact, or capacity?" — that is Campaign P22. P22 is deliberately offline and heavy; every WP is artifact-gated, so a session that only writes prose fails the routing table. WP0 is the only P22 row that may be taken now (P21 WP4 has landed, unblocking P22). Until the charter lands, P22 cannot start and no future session can reproduce the P21 verdict basis or run the ≥20-seed null battery.
 
