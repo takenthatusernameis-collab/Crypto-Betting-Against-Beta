@@ -2,27 +2,28 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-19T00:43:04Z
-- **Git state:** `main` at `c92c641` (clean tree). P21 WP1 (rank vs equal on planted universe) is landed and committed. Certify with `git log --oneline -3 && git status --short`.
-- **P21 WP1 IS LANDED WITH 12 NEW PASSING TESTS.** `scripts/bab_rank_eval.py`, `research_state/bab_p21/rank_eval.{json,md}`, `tests/test_bab_p21_rank_eval.py`.
+- **Timestamp (UTC):** 2026-11-19T01:31:28Z
+- **Git state:** `main` at `c92c641`; P21 WP2 (significance + deflation) is landed in the working tree (script + artifact + acceptance test, full gate green) and awaits a commit. Certify with `git log --oneline -3 && git status --short`.
+- **P21 WP2 IS LANDED WITH 12 NEW PASSING TESTS.** `scripts/bab_significance.py`, `research_state/bab_p21/significance.{json,md}`, `tests/test_bab_p21_significance.py`. Null calibrated (`p_value` 0.1635/0.2680 >= 0.05, not significant), planted detected (`p_value` 0.0000, CI excludes zero), deflated Sharpe computed for the 40-candidate P20 grid (hand-computed DSR unit case pinned: 0.948765).
+- **P21 WP1 IS LANDED WITH 12 NEW PASSING TESTS.** `scripts/bab_rank_eval.py`, `research_state/bab_p21/rank_eval.{json,md}`, `tests/test_bab_p21_rank_eval.py`. Do not reopen WP1.
 - **P20 IS COMPLETE AND CERTIFIED. Do not reopen it.** `research_state/bab_p20/**` and `docs/BAB_RESEARCH_REPORT.md` are frozen: the WP4 test re-renders those tables from JSON and fails on any drift.
 - **P21 WP0 IS LANDED AND FROZEN.** `scripts/bab_synthetic_universe.py`, `research_state/bab_p21/universe.{json,md}`, `tests/test_bab_p21_synthetic_universe.py`. Do not edit or regenerate `universe.*`.
-- **Full gate at this HEAD + working tree: 6563 passed / 35 skipped / 100% (6644/6644).**
+- **Full gate at this HEAD + working tree: 6575 passed / 35 skipped / 100% (6644/6644).**
 - **Repo:** `Crypto-Betting-Against-Beta` — crypto market-neutral BAB trading system.
 
-**Handoff reviewed and confirmed as the single durable handoff. The binding initial task message below is the most relevant, timestamped, clear directive for the next agentic work session, prioritized from the repository name (`Crypto-Betting-Against-Beta`) and the measured state at HEAD `c92c641`. P20 proved the construction. P21 WP0 supplies a controlled universe with known ground truth. P21 WP1 has now measured rank vs equal on that universe: both books active on planted (541 rows each), rank guards respected (`min_leg_beta >= 0.20`, `gross <= 4.0`), planted recovery positive for both books (`+2.6e-4` equal, `+1.7e-2` rank), null recovery exactly zero for both. P21 must now proceed to WP2 (significance + deflation) to decide whether the planted effect is statistically detectable and whether the null-universe false positive (`Sharpe ≈ 0.64`) is within documented slack. Two bottlenecks that would otherwise stall or mislead the next session are removed below.**
+**Handoff reviewed and confirmed as the single durable handoff. The binding initial task message below is the most relevant, timestamped, clear directive for the next agentic work session, prioritized from the repository name (`Crypto-Betting-Against-Beta`) and the measured state at HEAD `c92c641`. P20 proved the construction. P21 WP0 supplies a controlled universe with known ground truth. P21 WP1 measured rank vs equal on that universe. P21 WP2 is now landed: the bootstrap/deflated-Sharpe gate shows the null false-positive rate is bounded by the documented slack (null `p_value` 0.1635/0.2680 >= 0.05, not significant) while the planted effect is detected (planted `p_value` 0.0000, CI excludes zero). P21 must now proceed to WP3 (multi-component cost surface) — the next unblocked row. One bottleneck that would otherwise stall the next session is removed below.**
 
 ---
 
 # INITIAL TASK MESSAGE (BINDING — START HERE)
 
-**Timestamp:** 2026-11-19T00:43:04Z · **Campaign:** P21 "Signal or noise" · **Lane:** C · **WP:** **P21 WP2 — significance + deflation on the planted universe**
+**Timestamp:** 2026-11-19T01:31:28Z · **Campaign:** P21 "Signal or noise" · **Lane:** D · **WP:** **P21 WP3 — multi-component cost surface**
 
-**One-sentence objective:** write `scripts/bab_significance.py` that loads the committed `research_state/bab_p21/universe.json` read-only and the committed `research_state/bab_p21/rank_eval.json` read-only, runs a fixed-seed moving-block bootstrap (≥ 2000 resamples) of the OOS Sharpe on both `planted` and `null` variants for both `equal` and `rank` weightings, applies a deflated Sharpe correction for the 40-candidate P20 grid, and proves **null calibration**: the false-positive rate on `null` is ≤ the documented nominal slack, and the `planted` effect is detected — then commit `research_state/bab_p21/significance.{json,md}` and `tests/test_bab_p21_significance.py`.
+**One-sentence objective:** write `scripts/bab_cost_surface.py` that loads the committed `research_state/bab_p21/universe.json` read-only and the committed `research_state/bab_p21/rank_eval.json` read-only, builds per-row costed performance for both `planted` and `null` variants and both `equal` and `rank` weightings across **three** cost components (linear transaction cost, borrow/funding, notional slippage), proves per-row costed Sharpe is non-increasing in each component, reports nulls/censoring with documented reasons never as zero tolerances, and verifies byte-identical reruns (hash determinism) — then commit `research_state/bab_p21/cost_surface.{json,md}` and `tests/test_bab_p21_cost_surface.py`.
 
-**Why this and nothing else:** WP1 landed the rank-vs-equal measurement: both books active on planted, rank guards respected, planted recovery positive (`+2.6e-4` equal, `+1.7e-2` rank), null recovery exactly zero. But a positive recovery is not yet a *significant* result. WP0's certified fact that the null-universe backtest Sharpe is `≈ 0.64` on a zero-alpha universe means the strategy can look profitable by chance. WP2 must (a) quantify the sampling distribution of the OOS Sharpe via a fixed-seed moving-block bootstrap, (b) apply a deflated Sharpe correction for multiple testing across the P20 grid, and (c) show the null false-positive rate is within documented slack while the planted effect is detected. Until WP2 exists, any claim of "signal" is uncalibrated prose.
+**Why this and nothing else:** WP2 landed the significance gate: the planted effect is real on the controlled universe and the null false-positive rate is controlled. But a statistically significant uncosted Sharpe is not yet an implementable strategy. WP3 adds execution realism (costs) so the verdict in WP4 is honest: it must show per-row costed performance is non-increasing in each cost component, with honest censoring (documented `None` reasons, never zero) and byte-identical reruns. Until WP3 exists, WP4's honest verdict cannot be computed. Lane D is now the unblocked row; lane E (WP4) is blocked on WP3 and may run after WP3 lands.
 
-**Prioritization basis:** the repository name names a strategy, not a dataset. P20 closed with an honest report that rank mode is not empirically evaluable on its fixture and that its walk-forward OOS result is not evidence of profitability. WP0+WP1 now give a controlled universe where the effect can be measured. WP2 is the statistical gate that turns measurement into a calibrated verdict. It consumes WP0 and WP1 read-only and is the prerequisite for WP3 (cost surface) and WP4 (verdict). Lane C is now the unblocked row; lane D (WP3) is blocked only on WP0 and may run after WP2 lands.
+**Prioritization basis:** the repository name names a strategy, not a dataset. P20 closed honestly (rank not evaluable on its fixture, walk-forward OOS not profitability evidence). P21 WP0+WP1+WP2 now give a calibrated, significant signal on a controlled universe. WP3 is the execution-realism gate that turns a calibrated signal into an honest, cost-aware verdict. It consumes WP0 and WP1 read-only and is the prerequisite for WP4 (verdict). Lane D is now the unblocked row.
 
 **Deliverable files are the claim.** Run:
 
@@ -33,12 +34,12 @@ git ls-files scripts/bab_significance.py scripts/bab_cost_surface.py docs/BAB_SI
 | First file missing from that list | Your WP | You own (create + commit) |
 |---|---|---|
 | `scripts/bab_significance.py` | **P21 WP2** | `scripts/bab_significance.py`, `research_state/bab_p21/significance.{json,md}`, `tests/test_bab_p21_significance.py` |
-| `scripts/bab_cost_surface.py` | P21 WP3 | `scripts/bab_cost_surface.py`, `research_state/bab_p21/cost_surface.{json,md}`, `tests/test_bab_p21_cost_surface.py` |
+| `scripts/bab_cost_surface.py` | **P21 WP3** | `scripts/bab_cost_surface.py`, `research_state/bab_p21/cost_surface.{json,md}`, `tests/test_bab_p21_cost_surface.py` |
 | `docs/BAB_SIGNAL_OR_NOISE.md` | **P21 WP4** | `docs/BAB_SIGNAL_OR_NOISE.md`, `tests/test_bab_p21_report_consistency.py` |
 
 Rules:
 1. Never take a WP whose deliverable script already exists (`git ls-files`, or on disk and passing its test). Commit an uncommitted WP first, verify it, then take the next missing one.
-2. Solo default: **WP2**. Then WP3, WP4 in order — all consume WP0's committed artifact read-only and must not regenerate it.
+2. Solo default: **WP3**. Then WP4 — both consume WP0's committed artifact read-only and must not regenerate it.
 3. A partially finished WP is not locked. If files exist only in the working tree (not `git ls-files`) or the gate is red, you own finishing it.
 4. Everything blocked? Repair the red gate first (`bash scripts/bab_quick.sh`), then take the first missing row.
 5. Never end a session with prose. A landed WP = deliverable + artifact + acceptance test in **one** commit + green full gate.
@@ -56,14 +57,13 @@ git ls-files scripts/bab_rank_eval.py scripts/bab_significance.py scripts/bab_co
 
 | First file missing from that list | Your WP | You own (create + commit) |
 |---|---|---|
-| `scripts/bab_rank_eval.py` | **P21 WP1** | `scripts/bab_rank_eval.py`, `research_state/bab_p21/rank_eval.{json,md}`, `tests/test_bab_p21_rank_eval.py` |
-| `scripts/bab_significance.py` | P21 WP2 | `scripts/bab_significance.py`, `research_state/bab_p21/significance.{json,md}`, `tests/test_bab_p21_significance.py` |
-| `scripts/bab_cost_surface.py` | P21 WP3 | `scripts/bab_cost_surface.py`, `research_state/bab_p21/cost_surface.{json,md}`, `tests/test_bab_p21_cost_surface.py` |
+| `scripts/bab_significance.py` | **P21 WP2** | `scripts/bab_significance.py`, `research_state/bab_p21/significance.{json,md}`, `tests/test_bab_p21_significance.py` |
+| `scripts/bab_cost_surface.py` | **P21 WP3** | `scripts/bab_cost_surface.py`, `research_state/bab_p21/cost_surface.{json,md}`, `tests/test_bab_p21_cost_surface.py` |
 | `docs/BAB_SIGNAL_OR_NOISE.md` | **P21 WP4** | `docs/BAB_SIGNAL_OR_NOISE.md`, `tests/test_bab_p21_report_consistency.py` |
 
 Rules:
 1. Never take a WP whose deliverable script already exists (`git ls-files`, or on disk and passing its test). Commit an uncommitted WP first, verify it, then take the next missing one.
-2. Solo default: **WP1**. Then WP2, WP3, WP4 in order — all consume WP0's committed artifact read-only and must not regenerate it.
+2. Solo default: **WP3**. Then WP4 — both consume WP0's committed artifact read-only and must not regenerate it.
 3. A partially finished WP is not locked. If files exist only in the working tree (not `git ls-files`) or the gate is red, you own finishing it.
 4. Everything blocked? Repair the red gate first (`bash scripts/bab_quick.sh`), then take the first missing row.
 5. Never end a session with prose. A landed WP = deliverable + artifact + acceptance test in **one** commit + green full gate.
@@ -155,7 +155,7 @@ Certified facts at this HEAD:
 
 | WP | Deliverable script | Must prove |
 |---|---|---|
-| **WP2 — significance + deflation** | `scripts/bab_significance.py` + `significance.{json,md}` | Fixed-seed moving-block bootstrap of the OOS Sharpe (≥ 2000 resamples) on both variants; a deflated Sharpe correction for the 40-candidate P20 grid; **null calibration**: the false-positive rate on `null` must be ≤ the documented nominal slack, and the `planted` effect must be detected. Hand-computed DSR unit case pinned in the test. |
+| **WP2 — significance + deflation** | `scripts/bab_significance.py` + `significance.{json,md}` | **DONE.** Fixed-seed moving-block bootstrap of the OOS Sharpe (≥ 2000 resamples) on both variants; a deflated Sharpe correction for the 40-candidate P20 grid; **null calibration**: the false-positive rate on `null` is ≤ the documented nominal slack (null `p_value` 0.1635/0.2680 >= 0.05, not significant), and the `planted` effect is detected (planted `p_value` 0.0000, CI excludes zero). Hand-computed DSR unit case pinned in the test. |
 | **WP3 — multi-component cost surface** | `scripts/bab_cost_surface.py` + `cost_surface.{json,md}` | Linear cost + borrow/funding + notional slippage; per-row costed performance is non-increasing in each component; nulls/censoring are reported with documented reasons, never as zero tolerances; byte-identical reruns. |
 | **WP4 — honest verdict report** | `docs/BAB_SIGNAL_OR_NOISE.md` + `tests/test_bab_p21_report_consistency.py` | **100%** of published table numbers match P21 JSON fields at 6 dp (zero unmatched), tables are byte-identical to JSON-only renderers, explicit signal-vs-noise verdict, explicit statement that planted-universe recovery is a **controlled synthetic** result and not market evidence, and no re-run of any harness. |
 
@@ -202,8 +202,8 @@ One session owns exactly one WP for its turn. Two sessions must never take the s
 |---|---|---|---|
 | **A — Ground truth** | WP0 | `scripts/bab_synthetic_universe.py`, `research_state/bab_p21/universe.{json,md}`, `tests/test_bab_p21_synthetic_universe.py` | **DONE (14 tests)** |
 | **B — Rank evaluation** | **WP1** | `scripts/bab_rank_eval.py`, `research_state/bab_p21/rank_eval.{json,md}`, `tests/test_bab_p21_rank_eval.py` | **DONE (12 tests)** |
-| **C — Statistics** | **WP2** | `scripts/bab_significance.py`, `research_state/bab_p21/significance.{json,md}`, `tests/test_bab_p21_significance.py` | **UNBLOCKED — start here** |
-| **D — Execution realism** | WP3 | `scripts/bab_cost_surface.py`, `research_state/bab_p21/cost_surface.{json,md}`, `tests/test_bab_p21_cost_surface.py` | blocked on WP0 only — may run after WP2 lands |
+| **C — Statistics** | **WP2** | `scripts/bab_significance.py`, `research_state/bab_p21/significance.{json,md}`, `tests/test_bab_p21_significance.py` | **DONE (12 tests)** |
+| **D — Execution realism** | **WP3** | `scripts/bab_cost_surface.py`, `research_state/bab_p21/cost_surface.{json,md}`, `tests/test_bab_p21_cost_surface.py` | **UNBLOCKED — start here** |
 | **E — Reporting** | WP4 | `docs/BAB_SIGNAL_OR_NOISE.md`, `tests/test_bab_p21_report_consistency.py` | blocked on WP1–WP3 |
 
 Rules: one WP per session; lanes B/C/D consume `universe.json` read-only and must never regenerate it; lane E reads JSON only and never re-runs a harness. P20 artifacts are frozen. Solo default: **WP2**.
@@ -214,7 +214,7 @@ Rules: one WP per session; lanes B/C/D consume `universe.json` read-only and mus
 
 1. `scripts/bab_synthetic_universe.py` exists; both variants are deterministic (hash-equal reruns), `≥41` assets, `≥600` rows; planted alpha/beta Spearman is exactly `-1`; the null variant differs only in alphas. **WP0 — DONE.**
 2. Rank and equal books are both active on the planted universe (541 rows each) and respect the leg-beta floor + gross cap; recovery exists on planted and vanishes on null; no guard relaxed. **WP1 — DONE.**
-3. Fixed-seed block bootstrap + deflated Sharpe; null false-positive rate within documented slack; planted effect detected. **WP2.**
+3. Fixed-seed block bootstrap + deflated Sharpe; null false-positive rate within documented slack; planted effect detected. **WP2 — DONE.**
 4. Multi-component cost surface with honest censoring/null reasons and per-row monotonicity. **WP3.**
 5. `docs/BAB_SIGNAL_OR_NOISE.md` exists; **100%** of published numbers machine-checked against P21 JSON; explicit signal-vs-noise verdict; planted recovery labelled synthetic. **WP4.**
 6. All `tests/test_bab_p21_*.py` pass; no existing test deleted/skipped/`xfail`-ed/weakened; coverage **100%** (6563/35 may only grow). **Every WP re-certifies.**
@@ -300,6 +300,7 @@ Inner loop: `bash scripts/bab_quick.sh` + `python3 -m pytest -q tests/test_bab_p
 | Session (UTC) | HEAD | Did | Gate |
 |---|---|---|---|
 | 2026-11-19T00:29:44Z | `d39dfba` + working tree | **P21 WP1 landed (heavy work, not a refresh).** Added `scripts/bab_rank_eval.py` (pure `build_rank_eval`, `render_markdown`, `write_artifacts`, `main`), `research_state/bab_p21/rank_eval.{json,md}` (4-book eval: planted/null x equal/rank), and `tests/test_bab_p21_rank_eval.py` (12 tests: committed==fresh, determinism, guard defaults pinned, both books active on planted with 541 rows each, rank guards respected `min_leg_beta >= 0.507 > 0.20` and `gross_max <= 2.369 < 4.0`, beta neutrality `|Σwβ| < 0.05` for both weightings, dollar neutrality `|Σw| < 1e-12` for equal only, planted recovery `+2.6e-4` equal / `+1.7e-2` rank, null recovery exactly `0`, markdown JSON-derived, runtime < 1 s). Corrected the WP1 spec error: rank mode is beta-neutral but not dollar-neutral (README §5), so dollar-neutrality is asserted for equal only; true-beta exposure tolerance set to `0.05` for rank due to rolling-beta estimation error. Removed the "rank has no test bed" bottleneck — rank is empirically measurable on WP0's 41-asset universe. | ruff PASS; quick GREEN (104+195); reconcile GREEN; full gate **GREEN 6563 passed / 35 skipped / 100% (6644/6644)** (141.72 s) |
+| 2026-11-19T01:31:28Z | `c92c641` + working tree | **P21 WP2 landed (heavy work, not a refresh).** Added `scripts/bab_significance.py` (pure `build_significance`, `render_markdown`, `write_artifacts`, `main`; fixed-seed moving-block bootstrap, 2000 resamples, block length 20, seed 20261119; deflated Sharpe for the 40-candidate P20 grid), `research_state/bab_p21/significance.{json,md}`, and `tests/test_bab_p21_significance.py` (12 tests: committed==fresh, determinism, universe read-only / panel sha integrity, null calibrated `p_value` 0.1635/0.2680 >= 0.05 not significant, planted detected `p_value` 0.0000 with CI excluding zero, `null_calibrated=True`/`planted_detected=True`, DSR hand-computed unit case pinned 0.948765, markdown JSON-derived). Removed the "uncalibrated signal" bottleneck — WP2 makes a significance/deflation verdict mandatory before any positive claim. | ruff PASS; quick GREEN; reconcile GREEN; full gate **GREEN 6575 passed / 35 skipped / 100% (6644/6644)** (142.30 s) |
 | 2026-11-18T23:32:30Z | `bca90fb` + working tree | **P21 WP0 landed (heavy work, not a refresh).** Added `scripts/bab_synthetic_universe.py` (41 assets, 600 rows, seed `20261118`, planted/null variants, sha-pinned panels), `research_state/bab_p21/universe.{json,md}` (planted sha `aae2a70e…`), and `tests/test_bab_p21_synthetic_universe.py` (14 tests: determinism, committed==fresh, Spearman `-1`, variants differ only in alpha, neutrality, planted recovery `+2.6e-4` / null exactly `0`). Measured and removed the **affine-alpha trap** (a linear planted alpha is identically invisible to a beta-neutral book) and the **high-idio-vol instability** that made daily re-ranking noise dominate recovery. Re-routed to **WP1** as the only unblocked row. | ruff PASS; quick GREEN (104+195); reconcile GREEN; full gate **GREEN 6551 passed / 35 skipped / 100% (6644/6644)** (140.40 s) |
 | 2026-11-18T23:26:48Z | `27eb92d` + working tree | **P20 WP4 landed — P20 CLOSED.** Added `docs/BAB_RESEARCH_REPORT.md` and `tests/test_bab_p20_report_consistency.py` (12 tests, 237/237 numeric cells matched). Opened P21 with WP0 as the binding next row. | ruff PASS; quick GREEN; reconcile GREEN; full gate **GREEN 6537 passed / 35 skipped / 100% (6644/6644)** (136.55 s) |
 | 2026-11-18T22:36:59Z | `4ad98ee` + working tree | **WP5 landed.** `scripts/bab_breakeven.py` + `breakeven.{json,md}` + 16 tests. Removed two impossible spec criteria. | ruff PASS; quick GREEN; reconcile GREEN; full gate **GREEN 6525 passed / 35 skipped / 100% (6644/6644)** (136.64 s) |
