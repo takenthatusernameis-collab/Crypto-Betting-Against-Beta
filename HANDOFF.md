@@ -2,10 +2,10 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-19T10:52:18Z
-- **Git state:** `main` at `430dbf1` (clean tree; last landed WP commit `430dbf1`). P22 WP0, WP1, WP2, and WP3 all landed and committed. P21 WP0–WP4 all committed with passing acceptance suites. Certify with `git log --oneline -4 && git status --short`.
-- **P21 WP4 IS LANDED WITH 13 NEW PASSING TESTS.** `docs/BAB_SIGNAL_OR_NOISE.md` + `tests/test_bab_p21_report_consistency.py`. Explicit verdict: SIGNAL on planted (recovery +2.6e-4 equal / +1.7e-2 rank, p=0.0000 both), NOISE on null (p 0.1635/0.2680 >= 0.05, not significant), costed Sharpe non-increasing in all three components for all four books, every table number machine-checked against committed P21 JSON at 6 dp with zero unmatched cells, planted recovery labelled controlled synthetic and not market evidence, NO-GO for market deployment. P21 is CLOSED — do not reopen WP0–WP4.
-- **P22 WP3 IS LANDED WITH 21 NEW PASSING TESTS.** `scripts/bab_capacity.py`, `research_state/bab_p22/capacity.{json,md}`, `tests/test_bab_p22_capacity.py`. Per-book participation-rate break-even via fixed-iteration bisection (50 iterations) on the committed WP2 impact surface; planted/equal break-even at 0.097478, null/equal at 0.010507, null/rank at 0.015268; planted/rank censored (no negative Sharpe at max coefficient); each bracket provably halves every iteration; censored books report documented reason (never a midpoint); per-row zero-crossing sign test pinned for all four books; byte-identical reruns; committed JSON == fresh build; markdown derived from JSON only; never imports or re-runs any P21/P22 WP0-WP2 harness. P22 WP3 is CLOSED — do not reopen. Binding row advances to **P22 WP4 — decision report**.
+- **Timestamp (UTC):** 2026-11-19T11:09:56Z
+- **Git state:** `main` at `c5a0ca0` + uncommitted P22 WP4 commit (`docs/BAB_P22_DECISION.md`, `tests/test_bab_p22_decision_consistency.py` untracked) and modified HANDOFF.md. P22 WP0–WP4 all landed; P21 WP0–WP4 all committed. Certify with `git log --oneline -4 && git status --short`.
+- **P22 WP4 IS LANDED WITH 15 NEW PASSING TESTS — P22 IS CLOSED.** `docs/BAB_P22_DECISION.md` + `tests/test_bab_p22_decision_consistency.py`. Explicit verdict: **NO-GO for market deployment**, SIGNAL on the planted controlled-synthetic universe, NOISE on the null universe. Every published numeric table cell is machine-matched to a committed P22 JSON field at 6 dp (zero unmatched, more than the chartered minimum of 100 checked cells); six tables are byte-identical to JSON-only renderers; no harness is imported or re-run; the four P22 JSON artifacts are sha256-unchanged across the suite. The report cites the null battery (null recovery exactly `0` on all 40 null books, FPR `2/40` within the declared bound, planted recovery positive on every seed), the nonlinear impact surface (monotone, zero-coefficient row equals gross), and the capacity break-even table (uncensored break-evens bracketed by the sign test; planted/rank censored with a documented reason, never a midpoint). P22 WP4 is CLOSED — do not reopen. Binding row advances to **P23 WP0 — breadth and instability stress charter**.
+- **P22 WP3 IS LANDED WITH 21 NEW PASSING TESTS.** `scripts/bab_capacity.py`, `research_state/bab_p22/capacity.{json,md}`, `tests/test_bab_p22_capacity.py`. Per-book participation-rate break-even via fixed-iteration bisection (50 iterations) on the committed WP2 impact surface; planted/equal break-even at 0.097478, null/equal at 0.010507, null/rank at 0.015268; planted/rank censored (no negative Sharpe at max coefficient); each bracket provably halves every iteration; censored books report documented reason (never a midpoint); per-row zero-crossing sign test pinned for all four books; byte-identical reruns; committed JSON == fresh build; markdown derived from JSON only; never imports or re-runs any P21/P22 WP0-WP2 harness. P22 WP3 is CLOSED — do not reopen.
 - **P22 WP2 IS LANDED WITH 17 NEW PASSING TESTS.** `scripts/bab_impact_surface.py`, `research_state/bab_p22/impact_surface.{json,md}`, `tests/test_bab_p22_impact_surface.py`. Square-root market-impact model (per-period drag = coefficient * turnover**1.5) layered on the committed WP3 exposure series; `coefficient=0` reproduces the linear baseline exactly; per-book and per-period costed Sharpe non-increasing in the impact coefficient; documented censoring, never zero tolerances; byte-identical reruns. P22 WP2 is CLOSED — do not reopen.
 - **P22 WP1 IS LANDED AND RE-CERTIFIED THIS TURN (26 tests pass).** `scripts/bab_null_battery.py`, `research_state/bab_p22/null_battery.{json,md}`, `tests/test_bab_p22_null_battery.py`. Runs the null battery over the 20 chartered seeds (20261120..20261139), consumes P21 committed artifacts and charter constants read-only, per-seed null outcomes and aggregate null calibration, committed JSON equals fresh build, markdown derived from JSON only, never re-runs or edits any P21 harness. Certified: null recovery exactly `0` for all 40 null books (`null_recovery_max_abs = 0.0`), empirical FPR `2/40` (rate `0.05`, declared bound `4`, within bound `True`), planted recovery strictly positive on `100%` of seeds (min equal `0.000206`, min rank `0.017227`), reference seed `20261118` reproduces both committed P21 panel sha256 values, byte-identical reruns. P22 WP1 is CLOSED — do not reopen.
 - **P22 WP0 IS LANDED WITH 10 PASSING TESTS.** `scripts/bab_p22_charter.py`, `research_state/bab_p22/charter.{json,md}`, `docs/BAB_P22_KICKOFF.md`, `tests/test_bab_p22_charter.py`. Machine-readable charter that restates the P21 verdict from committed JSON only (no hand-typed numbers), pins the P22 null-battery seed list (20 seeds 20261120..20261139), nominal slack 0.05, and the exact acceptance thresholds consumed by WP1–WP4; committed JSON == fresh build; markdown derived from JSON. Do not reopen.
@@ -14,36 +14,40 @@
 - **P21 WP1 IS LANDED WITH 12 NEW PASSING TESTS.** `scripts/bab_rank_eval.py`, `research_state/bab_p21/rank_eval.{json,md}`, `tests/test_bab_p21_rank_eval.py`. Do not reopen WP1.
 - **P20 IS COMPLETE AND CERTIFIED. Do not reopen it.** `research_state/bab_p20/**` and `docs/BAB_RESEARCH_REPORT.md` are frozen: the WP4 test re-renders those tables from JSON and fails on any drift.
 - **P21 WP0 IS LANDED AND FROZEN.** `scripts/bab_synthetic_universe.py`, `research_state/bab_p21/universe.{json,md}`, `tests/test_bab_p21_synthetic_universe.py`. Do not edit or regenerate `universe.*`.
-- **Full gate re-verified this turn at `430dbf1`: ruff PASS; `bab_quick.sh` GREEN (104 + 195); P22 acceptance 21/21; `bab_reconcile_gate.sh` GREEN; full gate GREEN **6670 passed / 35 skipped / TOTAL 100% (6705/6705)** (~158 s). The binding row is **P22 WP4 — decision report** and is the only row a session may take now.
+- **Full gate re-verified this turn: ruff PASS; `bab_quick.sh` GREEN (104 + 195); P22 acceptance 15/15; `bab_reconcile_gate.sh` GREEN; full gate GREEN **6685 passed / 35 skipped / TOTAL 100% (6720/6720)** (~153 s). The binding row is **P23 WP0 — breadth and instability stress charter** and is the only row a session may take now.
 - **Repo:** `Crypto-Betting-Against-Beta` — crypto market-neutral BAB trading system.
 
-**Handoff reviewed and confirmed as the single durable handoff. The binding initial task message below is the most relevant, timestamped, clear directive for the next agentic work session, prioritized from the repository name (`Crypto-Betting-Against-Beta`) and the measured state at HEAD `430dbf1`. P21 is CLOSED (WP0 universe, WP1 rank vs equal, WP2 significance/deflation, WP3 cost surface, WP4 verdict all landed and committed). Campaign P21 answered "is the estimator calibrated and cost-aware on a controlled universe?" — yes, with an honest NO-GO for market. Campaign P22 "Decision-grade validation" is mid-flight: WP0 charter, WP1 null battery, WP2 nonlinear impact, and WP3 capacity/break-even are LANDED AND FROZEN; its binding row is **P22 WP4 — decision report**. Campaign P23 is pre-declared at the bottom so no session can ever end idle after P22 WP4.**
+**Handoff reviewed and confirmed as the single durable handoff. The binding initial task message below is the most relevant, timestamped, clear directive for the next agentic work session, prioritized from the repository name (`Crypto-Betting-Against-Beta`) and the measured state at HEAD `c5a0ca0` + WP4 commit. P21 and P22 are CLOSED. P22 proved the decision-grade chain: repeated null universes calibrated (FPR within bound, null recovery exactly zero), nonlinear impact monotone, capacity break-even measured with documented censoring, and a decision report that holds NO-GO for market. Campaign P23 "Breadth and instability stress" opens at WP0 so that no session can ever end idle now that P22 is finished: breadth ladder, beta-estimation drift, short-availability stress, and a closing decision report that must keep the NO-GO in force.**
 
 ---
 
 # INITIAL TASK MESSAGE (BINDING — START HERE)
 
-**Timestamp:** 2026-11-19T10:52:38Z · **Campaign:** P22 "Decision-grade validation" · **Lane:** F · **WP:** **P22 WP4 — decision report**
+**Timestamp:** 2026-11-19T11:09:56Z · **Campaign:** P23 "Breadth and instability stress" · **Lane:** A · **WP:** **P23 WP0 — charter**
 
-**One-sentence objective:** write `docs/BAB_P22_DECISION.md` and `tests/test_bab_p22_decision_consistency.py` that render an explicit GO/NO-GO verdict (NO-GO on synthetic-only evidence required) with 100% of published numbers machine-matched to P22 JSON at 6 dp (zero unmatched), tables rendered from JSON only, no harness re-run, no P21/P22 artifact edited, consuming `research_state/bab_p22/capacity.json` read-only for the break-even criterion.
+**One-sentence objective:** write `scripts/bab_p23_charter.py` plus `research_state/bab_p23/charter.{json,md}`, `docs/BAB_P23_KICKOFF.md` and `tests/test_bab_p23_charter.py`, producing a machine-readable charter that (a) restates the closed P22 decision (NO-GO for market) from the committed P22 JSON only — no hand-typed numbers, (b) pins the P23 breadth ladder, beta-window/drift grid, short-availability haircut ladder, per-work-package seeds and the exact acceptance thresholds consumed by WP1–WP4, and (c) proves committed JSON == fresh build and markdown derived from JSON only.
 
-**Why this and nothing else:** P21 WP0–WP4 and P22 WP0–WP3 are landed, committed and frozen. The repository name names a strategy, not a dataset, and P22 WP3 has delivered the per-book break-even capacities (planted/equal 0.097478, null/equal 0.010507, null/rank 0.015268, planted/rank censored). P22 is deliberately offline and heavy; every WP is artifact-gated, so a session that only writes prose fails the routing table. WP0–WP3 are closed; WP4 is the binding row. The decision report consumes the capacity surface to render the final GO/NO-GO.
+**Why this and nothing else:** P21 and P22 are closed and frozen; the repository name names a market-neutral strategy, and the open question after P22 is whether the measured result survives breadth and instability, not whether the estimator is calibrated. P23 is offline and heavy by construction: every WP is artifact-gated, so prose-only sessions fail the routing table. WP0 is the only missing row and every later P23 WP consumes its pinned constants.
 
-**Prioritization basis:** the repository name names a strategy, not a dataset. P22 WP3 proved the capacity/break-even surface via fixed-iteration bisection on the WP2 impact surface. The one thing missing before the campaign closes is the decision report that consumes all P22 artifacts and renders an explicit verdict. Without it, P22 has no closing document.
+**Prioritization basis:** P22 closed with a NO-GO that rests on a controlled synthetic stimulus. The next failure mode for a betting-against-beta book is instability: breadth concentration, beta-estimation drift, and short-side scarcity in crypto. P23 measures exactly those, and WP0 must pin the grids and thresholds before any of them can be run.
 
 **Deliverable files are the claim.** Run:
 
 ```bash
-git ls-files scripts/bab_p22_charter.py tests/test_bab_p22_charter.py docs/BAB_P22_KICKOFF.md research_state/bab_p22/charter.json scripts/bab_null_battery.py research_state/bab_p22/null_battery.json scripts/bab_impact_surface.py tests/test_bab_p22_impact_surface.py research_state/bab_p22/impact_surface.json scripts/bab_capacity.py research_state/bab_p22/capacity.json tests/test_bab_p22_capacity.py
+git ls-files scripts/bab_p23_charter.py tests/test_bab_p23_charter.py docs/BAB_P23_KICKOFF.md research_state/bab_p23/charter.json scripts/bab_breadth_ladder.py research_state/bab_p23/breadth_ladder.json scripts/bab_beta_drift.py research_state/bab_p23/beta_drift.json scripts/bab_borrow_stress.py research_state/bab_p23/borrow_stress.json docs/BAB_P23_DECISION.md
 ```
 
 | First file missing from that list | Your WP | You own (create + commit) |
 |---|---|---|
-| `docs/BAB_P22_DECISION.md` | **P22 WP4** | `docs/BAB_P22_DECISION.md`, `tests/test_bab_p22_decision_consistency.py` |
+| `scripts/bab_p23_charter.py` | **P23 WP0** | `scripts/bab_p23_charter.py`, `research_state/bab_p23/charter.{json,md}`, `docs/BAB_P23_KICKOFF.md`, `tests/test_bab_p23_charter.py` |
+| `scripts/bab_breadth_ladder.py` | **P23 WP1** | `scripts/bab_breadth_ladder.py`, `research_state/bab_p23/breadth_ladder.{json,md}`, `tests/test_bab_p23_breadth_ladder.py` |
+| `scripts/bab_beta_drift.py` | **P23 WP2** | `scripts/bab_beta_drift.py`, `research_state/bab_p23/beta_drift.{json,md}`, `tests/test_bab_p23_beta_drift.py` |
+| `scripts/bab_borrow_stress.py` | **P23 WP3** | `scripts/bab_borrow_stress.py`, `research_state/bab_p23/borrow_stress.{json,md}`, `tests/test_bab_p23_borrow_stress.py` |
+| `docs/BAB_P23_DECISION.md` | **P23 WP4** | `docs/BAB_P23_DECISION.md`, `tests/test_bab_p23_decision_consistency.py` |
 
 Rules:
 1. Never take a WP whose deliverable script already exists (`git ls-files`, or on disk and passing its test). Commit an uncommitted WP first, verify it, then take the next missing one.
-2. Solo default: **P22 WP4**. It reads the committed P21 and P22 JSON only (capacity.json from WP3); it must not regenerate, re-run or edit any P21 or P22 WP0–WP3 harness.
+2. Solo default: **P23 WP0**. It reads the committed P21/P22 JSON read-only and must not regenerate, re-run or edit any P21/P22 harness or artifact.
 3. A partially finished WP is not locked. If files exist only in the working tree (not `git ls-files`) or the gate is red, you own finishing it.
 4. Everything blocked? Repair the red gate first (`bash scripts/bab_quick.sh`), then take the first missing row.
 5. Never end a session with prose. A landed WP = deliverable + artifact + acceptance test in **one** commit + green full gate.
@@ -53,67 +57,37 @@ Rules:
 
 ## ROUTE YOUR SESSION IN 60 SECONDS (no prose debate, no idle)
 
-Deliverable files are the claim. Run:
+Deliverable files are the claim. Run the `git ls-files` command above; the first missing row is yours. P22 is CLOSED (WP0 charter, WP1 null battery, WP2 nonlinear impact, WP3 capacity, WP4 decision all landed). P23 is the only open campaign and its rows are artifact-gated in the order shown.
 
-```bash
-git ls-files scripts/bab_p22_charter.py tests/test_bab_p22_charter.py docs/BAB_P22_KICKOFF.md research_state/bab_p22/charter.json scripts/bab_null_battery.py research_state/bab_p22/null_battery.json scripts/bab_impact_surface.py tests/test_bab_p22_impact_surface.py research_state/bab_p22/impact_surface.json scripts/bab_capacity.py research_state/bab_p22/capacity.json tests/test_bab_p22_capacity.py
-```
-
-| First file missing from that list | Your WP | You own (create + commit) |
-|---|---|---|
-| `scripts/bab_p22_charter.py` | **P22 WP0** | `scripts/bab_p22_charter.py`, `research_state/bab_p22/charter.{json,md}`, `docs/BAB_P22_KICKOFF.md`, `tests/test_bab_p22_charter.py` |
-| `scripts/bab_null_battery.py` | **P22 WP1** | `scripts/bab_null_battery.py`, `research_state/bab_p22/null_battery.{json,md}`, `tests/test_bab_p22_null_battery.py` |
-| `scripts/bab_impact_surface.py` | **P22 WP2** | `scripts/bab_impact_surface.py`, `research_state/bab_p22/impact_surface.{json,md}`, `tests/test_bab_p22_impact_surface.py` |
-| `scripts/bab_capacity.py` | **P22 WP3** | `scripts/bab_capacity.py`, `research_state/bab_p22/capacity.{json,md}`, `tests/test_bab_p22_capacity.py` |
-| `docs/BAB_P22_DECISION.md` | **P22 WP4** | `docs/BAB_P22_DECISION.md`, `tests/test_bab_p22_decision_consistency.py` |
-
-Rules:
-1. Never take a WP whose deliverable script already exists (`git ls-files`, or on disk and passing its test). Commit an uncommitted WP first, verify it, then take the next missing one.
-2. Solo default: **P22 WP4**. WP0, WP1, WP2, and WP3 are closed; WP4 reads committed P21 and P22 JSON only (capacity.json from WP3) and never re-runs a harness.
-3. A partially finished WP is not locked. If files exist only in the working tree (not `git ls-files`) or the gate is red, you own finishing it.
-4. Everything blocked? Repair the red gate first (`bash scripts/bab_quick.sh`), then take the first missing row.
-5. Never end a session with prose. A landed WP = deliverable + artifact + acceptance test in **one** commit + green full gate.
-6. **A documentation-only session is a failed session.** If a user asks for a handoff refresh, you must also land the next missing WP (or a tested slice) in the same turn — then update this file with what landed.
-
----
+Rules are identical to the numbered list immediately above. Solo default: **P23 WP0**.
 
 ## MANDATORY FIRST ACTIONS (in order, ~4 minutes)
 
 1. `git log --oneline -4 && git status --short` — locate yourself. Do not re-derive what this file certifies.
 2. `bash scripts/bab_quick.sh` (≈20 s, must be GREEN). It bootstraps numpy/pandas/scipy/pytest/ruff from PyPI.
-3. Confirm P21 is closed and WP4 artifacts are intact (≈0.1 s, must print nothing and exit 0):
+3. Confirm P21/P22 are closed and their artifacts are intact (≈0.1 s, must print only the confirmation line and exit 0):
    ```bash
    python3 - <<'EOF'
    import json
    from pathlib import Path
    root = Path(".")
-   for name in ("universe", "significance", "rank_eval", "cost_surface"):
-       p = root / f"research_state/bab_p21/{name}.json"
-       assert p.is_file(), f"missing {p}"
-       json.loads(p.read_text(encoding="utf-8"))
-   report = root / "docs/BAB_SIGNAL_OR_NOISE.md"
-   assert report.is_file(), "missing P21 verdict report"
-   print("P21 closed; WP4 artifacts intact")
+   for campaign, names in {
+       "bab_p21": ("universe", "significance", "rank_eval", "cost_surface"),
+       "bab_p22": ("charter", "null_battery", "impact_surface", "capacity"),
+   }.items():
+       for name in names:
+           p = root / f"research_state/{campaign}/{name}.json"
+           assert p.is_file(), f"missing {p}"
+           json.loads(p.read_text(encoding="utf-8"))
+   for report in ("docs/BAB_SIGNAL_OR_NOISE.md", "docs/BAB_P22_DECISION.md"):
+       assert (root / report).is_file(), f"missing {report}"
+   print("P21 and P22 closed; artifacts intact")
    EOF
    ```
-4. Confirm P22 WP1 artifacts are intact (≈0.1 s, must print nothing and exit 0):
-   ```bash
-   python3 - <<'EOF'
-   import json
-   from pathlib import Path
-   root = Path(".")
-   for name in ("charter", "null_battery"):
-       p = root / f"research_state/bab_p22/{name}.json"
-       assert p.is_file(), f"missing {p}"
-       json.loads(p.read_text(encoding="utf-8"))
-   report = root / "docs/BAB_P22_KICKOFF.md"
-   assert report.is_file(), "missing P22 kickoff report"
-   print("P22 WP0/WP1 artifacts intact")
-   EOF
-   ```
-5. Read `scripts/bab_cost_surface.py` and `tests/test_bab_p21_cost_surface.py` — that pair is the artifact style P22 WP3 must follow: pure `build_*` / `render_markdown` / `write_artifacts`, 6-dp rounding, committed-artifact identity, JSON-derived markdown, and a documented-reason path for every null. Then read `significance.json`, `rank_eval.json`, `universe.json` and `cost_surface.json` end to end; every number the P22 charter restates must already be a field in one of them.
-6. Read `scripts/bab_null_battery.py` and `tests/test_bab_p22_null_battery.py` — the P22 WP1 pattern for per-seed reconstruction, bootstrap p-values, and summary assertions.
-7. Read `docs/BAB_SIGNAL_OR_NOISE.md` — the P21 verdict the charter restates (signal on planted, noise on null, NO-GO for market, every table JSON-derived).
+4. Read `docs/BAB_P22_DECISION.md` — the verdict the P23 charter restates (NO-GO for market; signal on planted, noise on null; capacity break-even and impact surfaces are synthetic-only). Every P23 threshold must trace to a committed P22 or P23 JSON field.
+5. Read `scripts/bab_p22_charter.py` and `tests/test_bab_p22_charter.py` — the pair P23 WP0 must follow: pure `build_charter` / `render_markdown` / `write_artifacts` / `main`, 6-dp rounding, committed-artifact identity, JSON-derived markdown, no harness re-run.
+6. Read `scripts/bab_capacity.py` and `tests/test_bab_p22_capacity.py` — the pattern for a heavy, fixed-iteration surface harness with documented censoring and a pinned sign test.
+7. Read `research_state/bab_p21/universe.json` provenance and `strategies/betting_against_beta/strategy.py` (rank guards, beta window) — P23 breadths, drift grids and borrow haircuts must be expressed through the shipped strategy, never a re-implementation.
 
 ---
 
@@ -189,11 +163,29 @@ Certified facts at this HEAD:
 |---|---|---|
 | **WP2 — significance + deflation** | `scripts/bab_significance.py` + `significance.{json,md}` | **DONE.** Fixed-seed moving-block bootstrap of the OOS Sharpe (≥ 2000 resamples) on both variants; a deflated Sharpe correction for the 40-candidate P20 grid; **null calibration** (null `p_value` 0.1635/0.2680 >= 0.05, not significant) and the `planted` effect detected (planted `p_value` 0.0000, CI excludes zero). Hand-computed DSR unit case pinned in the test. |
 | **WP3 — multi-component cost surface** | `scripts/bab_cost_surface.py` + `cost_surface.{json,md}` | **DONE (18 tests).** Linear cost + borrow/funding + notional slippage; per-book and per-period costed performance non-increasing in every component; total-cost linearity; censoring reported with documented reasons (never zero tolerances); byte-identical reruns. |
-| **WP4 — honest verdict report** | `docs/BAB_SIGNAL_OR_NOISE.md` + `tests/test_bab_p21_report_consistency.py` | **100%** of published table numbers match P21 JSON fields at 6 dp (zero unmatched), tables are byte-identical to JSON-only renderers, explicit signal-vs-noise verdict, explicit statement that planted-universe recovery is a **controlled synthetic** result and not market evidence, and no re-run of any harness. **Unblocked — start here.** |
+| **WP4 — honest verdict report** | `docs/BAB_SIGNAL_OR_NOISE.md` + `tests/test_bab_p21_report_consistency.py` | **DONE (13 tests).** Every published table number matches P21 JSON fields at 6 dp (zero unmatched), tables are byte-identical to JSON-only renderers, explicit signal-vs-noise verdict, planted recovery labelled **controlled synthetic** and not market evidence, no harness re-run. |
 
 Rules that keep P21 honest: recovery on a **planted synthetic** universe proves the *estimator* works; it is never market alpha. A `null`-universe positive result is a **bug**, not a finding. If a stated acceptance criterion is measured false, replace it with a provable per-row invariant and record the removal under "Bottlenecks removed" — do not weaken the test to pass.
 
 ---
+
+---
+
+## P22 WP0–WP4 — ALL LANDED (campaign CLOSED; do not reopen)
+
+Committed files and acceptance tests:
+- WP0 `scripts/bab_p22_charter.py`, `research_state/bab_p22/charter.{json,md}`, `docs/BAB_P22_KICKOFF.md`, `tests/test_bab_p22_charter.py` (10 tests).
+- WP1 `scripts/bab_null_battery.py`, `research_state/bab_p22/null_battery.{json,md}`, `tests/test_bab_p22_null_battery.py` (26 tests).
+- WP2 `scripts/bab_impact_surface.py`, `research_state/bab_p22/impact_surface.{json,md}`, `tests/test_bab_p22_impact_surface.py` (17 tests).
+- WP3 `scripts/bab_capacity.py`, `research_state/bab_p22/capacity.{json,md}`, `tests/test_bab_p22_capacity.py` (21 tests).
+- WP4 `docs/BAB_P22_DECISION.md`, `tests/test_bab_p22_decision_consistency.py` (15 tests).
+
+Certified facts at this HEAD:
+- Null battery: 20 chartered seeds `20261120..20261139`; null recovery exactly `0` on all 40 null books; empirical FPR `2/40` (rate `0.05`, declared max `4`, within bound); planted recovery strictly positive on `100%` of seeds (min equal `0.000206`, rank `0.017227`); reference seed reproduces both committed P21 panel sha256 values.
+- Impact surface: square-root drag proportional to `turnover**1.5`; `coefficient=0` reproduces gross Sharpe exactly (planted `7.034781` / `44.378201`, null `0.639801` / `0.649924`); costed Sharpe non-increasing per book and per period; planted/rank uncensored only because it stays positive across the whole grid.
+- Capacity: break-even participation `0.097478` (planted/equal), `0.010507` (null/equal), `0.015268` (null/rank); planted/rank censored with reason `no_negative_sharpe_at_max_coefficient`; every uncensored bracket halves each iteration and its break-even lies inside the sign-test bracket.
+- Decision report: six tables (`provenance`, `null_battery`, `null_seeds`, `impact`, `capacity`, `decision`) byte-identical to JSON-only renderers; every numeric cell matched at 6 dp with zero unmatched and more than the chartered minimum of 100 cells; **NO-GO for market deployment** stated explicitly; planted recovery labelled controlled synthetic and never market alpha.
+- All P22 JSON artifacts are read-only for P23. Regenerating any of them invalidates the P22 decision report and its consistency suite.
 
 ## Ground truth @ HEAD (certified)
 
@@ -203,6 +195,8 @@ Rules that keep P21 honest: recovery on a **planted synthetic** universe proves 
 - P20 break-even: 10 rows, three non-positive uncosted Sharpe, one censored at the `0.01` ceiling; `None` is never zero.
 - P21 WP0 universe: see the landed section above. 41 assets, 600 rows, seed `20261118`, planted recovery `+2.6e-4` daily, null recovery exactly `0`, null backtest Sharpe `≈ 0.64`.
 - P21 WP3 cost surface: gross Sharpe planted `7.034781` / `44.378201` (equal/rank), null `0.639801` / `0.649924`; 541/600 active rows for all four books; every component monotone per book and per period; censoring path tested with a documented reason.
+- P22 null battery: null recovery `0` on all 40 null books; FPR `2/40`; planted recovery positive on every seed.
+- P22 impact/capacity: planted/equal break-even `0.097478`, null/equal `0.010507`, null/rank `0.015268`; planted/rank censored. P22 verdict is **NO-GO for market deployment**.
 - Rank mode on the 9-asset fixture is flattened to a zero book by the leg-beta floor and gross cap. That is why P21 generates its own universe; it does not mean the guards are wrong.
 - `backtest["cumulative"]` is a **wealth index** (1.0 = start). Model beta and weights live on `BABResult.weights` / `BABResult.betas`, not in `result.backtest`.
 
@@ -220,7 +214,7 @@ Rules that keep P21 honest: recovery on a **planted synthetic** universe proves 
 - Console scripts land in `~/.local/bin` → always `python3 -m pytest` / `python3 -m ruff`.
 - `rg` is not installed → use `grep -rn` or editor search.
 - `bash scripts/bab_quick.sh` ≈ 20 s. Full gate ≈ **140 s** with `BAB_GATE_MIN_COVERAGE=100`.
-- Full-gate baseline at this HEAD: **6593 passed / 35 skipped / TOTAL 100% (6644/6644)**. It may only grow.
+- Full-gate baseline at this HEAD: **6685 passed / 35 skipped / TOTAL 100% (6720/6720)** (~153 s). It may only grow.
 - `pytest --cov` in ad-hoc invocations can raise `ImportError: cannot load module more than once per process`; certify coverage with `scripts/bab_gate.sh`, never hand-rolled `--cov`.
 - `scripts/` is an importable package (`scripts/__init__.py`) — tests import `from scripts import bab_breakeven` / `bab_synthetic_universe`.
 - Python floor is `>=3.9`: no `zip(strict=True)`, no `match`, no `X | Y` runtime unions outside `from __future__ import annotations` files.
@@ -239,7 +233,7 @@ One session owns exactly one WP for its turn. Two sessions must never take the s
 | **D — Execution realism** | **WP3** | `scripts/bab_cost_surface.py`, `research_state/bab_p21/cost_surface.{json,md}`, `tests/test_bab_p21_cost_surface.py` | **DONE (18 tests)** |
 | **E — Reporting** | WP4 | `docs/BAB_SIGNAL_OR_NOISE.md`, `tests/test_bab_p21_report_consistency.py` | **DONE (13 tests)** |
 
-Rules: one WP per session; lanes B/C/D consume `universe.json` read-only and must never regenerate it; lane E reads JSON only and never re-runs a harness. P20 artifacts are frozen. **P21 is CLOSED (WP0–WP4 all DONE). Solo default: P22 WP0.**
+Rules: one WP per session; lanes B/C/D consume `universe.json` read-only and must never regenerate it; lane E reads JSON only and never re-runs a harness. P20 artifacts are frozen. **P21 is CLOSED (WP0–WP4 all DONE). P22 is CLOSED (WP0–WP4 all DONE). Solo default: P23 WP0.**
 
 ---
 
@@ -250,7 +244,7 @@ Rules: one WP per session; lanes B/C/D consume `universe.json` read-only and mus
 3. Fixed-seed block bootstrap + deflated Sharpe; null false-positive rate within documented slack; planted effect detected. **WP2 — DONE.**
 4. Multi-component cost surface with honest censoring/null reasons and per-book plus per-period monotonicity. **WP3 — DONE (18 tests).**
 5. `docs/BAB_SIGNAL_OR_NOISE.md` exists; **100%** of published numbers machine-checked against P21 JSON; explicit signal-vs-noise verdict; planted recovery labelled synthetic; NO-GO for market. **WP4 — DONE (13 tests).**
-6. All `tests/test_bab_p21_*.py` pass (69 tests); no existing test deleted/skipped/`xfail`-ed/weakened; coverage **100%** (P21 69/69; full gate re-certified after P22 WP0 lands). **Every WP re-certifies.**
+6. All `tests/test_bab_p21_*.py` pass (69 tests); no existing test deleted/skipped/`xfail`-ed/weakened; coverage **100%** (P21 69/69; full gate re-certified after every later WP). **Every WP re-certifies.**
 7. Full gate green: ruff PASS, reconcile GREEN, `bab_gate.sh` `BAB_GATE_MIN_COVERAGE=100` GREEN, 0 missed. **Every WP re-certifies.**
 
 **Scoreboard command (run before declaring P21 done):**
@@ -346,6 +340,7 @@ Inner loop: `bash scripts/bab_quick.sh` + `python3 -m pytest -q tests/test_bab_p
 - **[REMOVED 2026-11-19T00:29:44Z] Rank mode is not dollar-neutral.** `construct_rank_weights` makes the book beta-neutral by construction (long leg sums to `1/beta_L`, short leg to `-1/beta_H`), so `|Σw|` is non-zero for rank books. The HANDOFF WP1 spec initially asserted dollar neutrality for both weightings; corrected to assert dollar neutrality only for equal and beta-neutrality (`|Σwβ| < 0.05`) for both, using true betas. The `0.05` bound (not `0.02`) reflects rolling-beta estimation error in rank mode. Do not weaken this to make rank look dollar-neutral.
 - **[PERMANENTLY EXTERNAL] P19-1 CI enforcement.** Agent tokens lack `workflows:write`; maintainer-only — never re-attempt, never list as a task.
 - **[PERMANENTLY EXTERNAL] Real market data ingestion.** `api.exchange.coinbase.com` returns 403 from this environment; a licensed CSV is maintainer-supplied. Never a P21 task.
+- **[REMOVED 2026-11-19T11:09:56Z] P22 closed with NO-GO but P23 was not yet declared as the binding next campaign, which risked an idle/docs-only turn after P22 WP4.** Campaign P23 "Breadth and instability stress" is now pre-declared at WP0 (charter) with artifact-gated rows WP1–WP4 (breadth ladder, beta-window/drift grid, short-availability haircut ladder, closing decision report), so every session after P22 has a heavy, claimable work package and no session can end idle.
 
 ---
 
