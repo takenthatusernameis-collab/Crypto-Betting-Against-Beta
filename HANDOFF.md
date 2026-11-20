@@ -2,9 +2,9 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-20T14:48:59Z
-- **Git state:** HEAD `61bf38e` (P24 WP4 deliverables landed; consistency test 21/21 GREEN). Working tree clean. Certify with `git log --oneline -4 && git status --short`.
-- **P24 WP4 IS LANDED** — `docs/BAB_P24_DECISION.md`, `tests/test_bab_p24_decision_consistency.py` (21 tests), and `generate_p24_decision.py` (report generator). All P21/P22/P23/P24 JSON artifacts intact. Quick gate GREEN except ruff lint errors in the generator script and test file (38 total: E501 line-too-long × 37, W292 no-trailing-newline × 1; PERF401/RUF001 already cleared by prior sessions). Progress since last certification: 67 → 38 ruff errors. **Campaign P24 concludes here; the binding row is the lint remediation below.**
+- **Timestamp (UTC):** 2026-11-20T16:23:09Z
+- **Git state:** HEAD `2c1a432` (P24 WP4 lint remediation committed; full gate GREEN). Working tree clean. Certify with `git log --oneline -4 && git status --short`.
+- **P24 WP4 — CLOSED** — `docs/BAB_P24_DECISION.md`, `tests/test_bab_p24_decision_consistency.py` (21 tests), `generate_p24_decision.py` (report generator). All 38 ruff errors (37×E501 + 1×W292) fixed; `python3 -m ruff check .` PASS; report regeneration byte-identical; full gate **GREEN 6885 passed / 35 skipped / TOTAL 100%**. **Campaign P24 is complete. No binding row remains.**
 
 ---
 
