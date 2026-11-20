@@ -1,0 +1,210 @@
+{
+  "cells": [
+    {
+      "active_fraction": 0.355,
+      "active_rows": 213,
+      "beta_exposure": 0.037119,
+      "gross_max": 0.0,
+      "min_leg_beta": 0.0,
+      "rank_max_gross_ceiling": 0.0,
+      "rank_min_leg_beta_floor": 0.0,
+      "recovery": 0.000262,
+      "recovery_null_exactly_zero": true,
+      "recovery_planted_strictly_positive": true,
+      "regime": "calm",
+      "sharpe": 4.553331,
+      "total_rows": 600,
+      "variant": "planted",
+      "weighting": "equal"
+    },
+    {
+      "active_fraction": 0.355,
+      "active_rows": 213,
+      "beta_exposure": 0.012578,
+      "gross_max": 2.414949,
+      "min_leg_beta": 0.510833,
+      "rank_max_gross_ceiling": 4.0,
+      "rank_min_leg_beta_floor": 0.2,
+      "recovery": 0.017356,
+      "recovery_null_exactly_zero": true,
+      "recovery_planted_strictly_positive": true,
+      "regime": "calm",
+      "sharpe": 11.59948,
+      "total_rows": 600,
+      "variant": "planted",
+      "weighting": "rank"
+    },
+    {
+      "active_fraction": 0.298333,
+      "active_rows": 179,
+      "beta_exposure": 0.037776,
+      "gross_max": 0.0,
+      "min_leg_beta": 0.0,
+      "rank_max_gross_ceiling": 0.0,
+      "rank_min_leg_beta_floor": 0.0,
+      "recovery": 0.000251,
+      "recovery_null_exactly_zero": true,
+      "recovery_planted_strictly_positive": true,
+      "regime": "stress",
+      "sharpe": 3.480383,
+      "total_rows": 600,
+      "variant": "planted",
+      "weighting": "equal"
+    },
+    {
+      "active_fraction": 0.298333,
+      "active_rows": 179,
+      "beta_exposure": 0.011091,
+      "gross_max": 2.403391,
+      "min_leg_beta": 0.507692,
+      "rank_max_gross_ceiling": 4.0,
+      "rank_min_leg_beta_floor": 0.2,
+      "recovery": 0.017311,
+      "recovery_null_exactly_zero": true,
+      "recovery_planted_strictly_positive": true,
+      "regime": "stress",
+      "sharpe": 10.221435,
+      "total_rows": 600,
+      "variant": "planted",
+      "weighting": "rank"
+    },
+    {
+      "active_fraction": 0.355,
+      "active_rows": 213,
+      "beta_exposure": 0.037119,
+      "gross_max": 0.0,
+      "min_leg_beta": 0.0,
+      "rank_max_gross_ceiling": 0.0,
+      "rank_min_leg_beta_floor": 0.0,
+      "recovery": 0.0,
+      "recovery_null_exactly_zero": true,
+      "recovery_planted_strictly_positive": true,
+      "regime": "calm",
+      "sharpe": 0.76551,
+      "total_rows": 600,
+      "variant": "null",
+      "weighting": "equal"
+    },
+    {
+      "active_fraction": 0.355,
+      "active_rows": 213,
+      "beta_exposure": 0.012578,
+      "gross_max": 2.414949,
+      "min_leg_beta": 0.510833,
+      "rank_max_gross_ceiling": 4.0,
+      "rank_min_leg_beta_floor": 0.2,
+      "recovery": 0.0,
+      "recovery_null_exactly_zero": true,
+      "recovery_planted_strictly_positive": true,
+      "regime": "calm",
+      "sharpe": 1.304143,
+      "total_rows": 600,
+      "variant": "null",
+      "weighting": "rank"
+    },
+    {
+      "active_fraction": 0.298333,
+      "active_rows": 179,
+      "beta_exposure": 0.037776,
+      "gross_max": 0.0,
+      "min_leg_beta": 0.0,
+      "rank_max_gross_ceiling": 0.0,
+      "rank_min_leg_beta_floor": 0.0,
+      "recovery": 0.0,
+      "recovery_null_exactly_zero": true,
+      "recovery_planted_strictly_positive": true,
+      "regime": "stress",
+      "sharpe": 0.234073,
+      "total_rows": 600,
+      "variant": "null",
+      "weighting": "equal"
+    },
+    {
+      "active_fraction": 0.298333,
+      "active_rows": 179,
+      "beta_exposure": 0.011091,
+      "gross_max": 2.403391,
+      "min_leg_beta": 0.507692,
+      "rank_max_gross_ceiling": 4.0,
+      "rank_min_leg_beta_floor": 0.2,
+      "recovery": 0.0,
+      "recovery_null_exactly_zero": true,
+      "recovery_planted_strictly_positive": true,
+      "regime": "stress",
+      "sharpe": -0.366438,
+      "total_rows": 600,
+      "variant": "null",
+      "weighting": "rank"
+    }
+  ],
+  "provenance": {
+    "acceptance_thresholds": {
+      "calm_and_stress_disjoint": true,
+      "null_recovery_exactly_zero_everywhere": true,
+      "planted_recovery_strictly_positive_in_at_least_one_regime": true,
+      "regime_zero_matches_p21_at_6dp": true
+    },
+    "charter_path": "research_state/bab_p24/charter.json",
+    "charter_schema": "bab_p24.charter/1",
+    "config": {
+      "benchmark": "BTC",
+      "beta_neutral": true,
+      "beta_window": 90,
+      "long_quantile": 0.3,
+      "min_observations": 60,
+      "rank_max_gross": 4.0,
+      "rank_min_leg_beta": 0.2,
+      "short_quantile": 0.3
+    },
+    "derived": {
+      "n_cells": 8,
+      "n_regimes": 2,
+      "n_variants": 2,
+      "n_weightings": 2
+    },
+    "generator": "scripts/bab_regime_split.py",
+    "note": "Controlled synthetic stimulus with known ground truth: not real market data and not market profitability evidence.",
+    "panel_sha256": {
+      "null": "b7732c152564c87606a6a47eac39a543344cbcd4b8e974f4780be35671953b1b",
+      "planted": "aae2a70ebcf81b3a9e2dd5f314933c439194fef8a7be1da34930e2c271a93fda"
+    },
+    "regime_grid": [
+      "calm",
+      "stress"
+    ],
+    "regime_rule": "benchmark rolling vol (window=20) percentile split; calm <= 0.333 quantile, stress >= 0.667 quantile; middle excluded; causal (no lookahead)",
+    "regime_zero_reference": {
+      "checks": {
+        "null_equal": {
+          "committed_p21_recovery": 0.0,
+          "matches_at_6dp": true,
+          "regime_zero_recovery": 0.0
+        },
+        "null_rank": {
+          "committed_p21_recovery": 0.0,
+          "matches_at_6dp": true,
+          "regime_zero_recovery": 0.0
+        },
+        "planted_equal": {
+          "committed_p21_recovery": 0.000261,
+          "matches_at_6dp": true,
+          "regime_zero_recovery": 0.000261
+        },
+        "planted_rank": {
+          "committed_p21_recovery": 0.01736,
+          "matches_at_6dp": true,
+          "regime_zero_recovery": 0.01736
+        }
+      }
+    },
+    "synthetic": true,
+    "universe_path": "research_state/bab_p21/universe.json",
+    "universe_seed": 20261118,
+    "vol_percentiles": [
+      0.3333333333333333,
+      0.6666666666666666
+    ],
+    "vol_window": 20
+  },
+  "schema": "bab_p24.regime_split/1"
+}
