@@ -2,8 +2,8 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-20T08:39:32Z
-- **Git state:** HEAD `446a43d` (P24 WP3 landed; quick gate GREEN). Working tree clean. Certify with `git log --oneline -4 && git status --short`. Binding row is **P24 WP4 — closing decision**.
+- **Timestamp (UTC):** 2026-11-20T09:39:29Z
+- **Git state:** HEAD `cf56fa2` (P24 WP4 landed; consistency test 21/21 GREEN). Working tree clean. Certify with `git log --oneline -4 && git status --short`. Campaign P24 concludes here; no binding next row declared.
 - **P24 WP3 IS LANDED, ARTIFACT-GATED AND GREEN** — `scripts/bab_licensed_adapter.py`, `research_state/bab_p24/adapter_dryrun.{json,md}`, `tests/test_bab_p24_adapter.py` (27 tests). Reads only committed P21/P22/P23/P24 JSON artifacts read-only and the licensed CSV fixture; never regenerates them. Validates the fixture against P21 universe contract (43 columns, 5 rows, no missing cells, strictly increasing dates, all prices > 0). Artifact's numeric block resolves to committed P21/P23/P24 JSON leaves. Dry run never touches network; `network_used=false`, `dry_run=true`, `synthetic=true`. Malformed fixture rejected (`valid=False` with machine-readable errors). Committed JSON equals fresh build; markdown equals renderer output; second build byte-identical. Verdict strings: `signal`, `noise`, `no-go for market`, `controlled synthetic`, `not market evidence`. NO-GO restated from P23/P24 charters.
 - **P21, P22, P23 WP0–WP4 and P24 WP0, WP1, WP2, WP3 are CLOSED.** P24 WP4 — closing decision is the binding row.
 - **Repo:** `Crypto-Betting-Against-Beta` — crypto market-neutral BAB trading system.

@@ -2,7 +2,6 @@
 """Generate BAB_P24_DECISION.md from committed JSON artifacts."""
 
 import json
-import re
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent
@@ -13,6 +12,7 @@ RESEARCH_P21_DIR = REPO_ROOT / "research_state/bab_p21"
 REPORT_PATH = REPO_ROOT / "docs/BAB_P24_DECISION.md"
 
 DECIMALS = 6
+
 
 def _load(name: str) -> dict:
     if name in ("charter.json", "adapter_dryrun.json", "hysteresis.json", "regime_split.json"):
@@ -25,6 +25,7 @@ def _load(name: str) -> dict:
         return json.loads((RESEARCH_P21_DIR / name).read_text(encoding="utf-8"))
     raise ValueError(f"unknown source: {name}")
 
+
 def _cell(value) -> str:
     if value is None:
         return "None"
@@ -36,12 +37,14 @@ def _cell(value) -> str:
         return str(value)
     return f"{float(value):.{DECIMALS}f}"
 
+
 def _render(columns, rows) -> str:
     lines = ["| " + " | ".join(columns) + " |"]
     lines.append("|" + "|".join("---" for _ in columns) + "|")
     for row in rows:
         lines.append("| " + " | ".join(_cell(row[column]) for column in columns) + " |")
     return "\n".join(lines)
+
 
 # Load all artifacts
 charter = _load("charter.json")
@@ -88,7 +91,10 @@ provenance_rows = [
     {"Fact": "Adapter network used", "Value": ad_prov["network_used"]},
     {"Fact": "Adapter dry run", "Value": ad_prov["dry_run"]},
     {"Fact": "Adapter synthetic", "Value": ad_prov["synthetic"]},
-    {"Fact": "Hysteresis zero reference matches P21", "Value": hy_prov["hysteresis_zero_reference"]["checks"]["planted_equal"]["matches_at_6dp"]},
+    {
+        "Fact": "Hysteresis zero reference matches P21",
+        "Value": hy_prov["hysteresis_zero_reference"]["checks"]["planted_equal"]["matches_at_6dp"],
+    },
     {"Fact": "Hysteresis turnover monotone non-increasing", "Value": True},
     {"Fact": "Regime grid min met", "Value": rs_prov["derived"]["regime_grid_min_met"]},
     {"Fact": "Stress regime planted negative", "Value": True},
@@ -96,219 +102,341 @@ provenance_rows = [
     {"Fact": "Beta drift cells", "Value": bd_prov["derived"]["n_cells"]},
     {"Fact": "Beta drift scale", "Value": bd_prov["drift_scale"]},
     {"Fact": "Short haircut book runs", "Value": sh_prov["derived"]["n_book_runs"]},
-    {"Fact": "Short haircut censored cells", "Value": len([c for c in short_haircut["cells"] if c["censored"]])},
+    {
+        "Fact": "Short haircut censored cells",
+        "Value": len([c for c in short_haircut["cells"] if c["censored"]]),
+    },
     {"Fact": "Null battery FPR rate", "Value": nb_prov["summary"]["fpr_rate"]},
     {"Fact": "Null battery max abs recovery", "Value": nb_prov["summary"]["null_recovery_max_abs"]},
 ]
 provenance_table = _render(["Fact", "Value"], provenance_rows)
 
 # Adapter table
-adapter_rows = [{
-    "fixture_path": adapter_dryrun["provenance"]["fixture_path"],
-    "fixture_sha256": "`" + adapter_dryrun["provenance"]["fixture_sha256"] + "`",
-    "rows": adapter_dryrun["row_count"],
-    "columns": adapter_dryrun["provenance"]["validation"]["columns_actual"],
-    "date_start": adapter_dryrun["provenance"]["validation"]["date_start"],
-    "valid": adapter_dryrun["valid"],
-    "dry_run": adapter_dryrun["provenance"]["dry_run"],
-    "network_used": adapter_dryrun["provenance"]["network_used"],
-    "synthetic": adapter_dryrun["provenance"]["synthetic"],
-    "no_go_for_market": adapter_dryrun["provenance"]["no_go_for_market"],
-    "not_market_evidence": adapter_dryrun["provenance"]["not_market_evidence"],
-}]
-adapter_table = _render([
-    "fixture_path", "fixture_sha256", "rows", "columns", "date_start",
-    "valid", "dry_run", "network_used", "synthetic", "no_go_for_market", "not_market_evidence"
-], adapter_rows)
+adapter_rows = [
+    {
+        "fixture_path": adapter_dryrun["provenance"]["fixture_path"],
+        "fixture_sha256": "`" + adapter_dryrun["provenance"]["fixture_sha256"] + "`",
+        "rows": adapter_dryrun["row_count"],
+        "columns": adapter_dryrun["provenance"]["validation"]["columns_actual"],
+        "date_start": adapter_dryrun["provenance"]["validation"]["date_start"],
+        "valid": adapter_dryrun["valid"],
+        "dry_run": adapter_dryrun["provenance"]["dry_run"],
+        "network_used": adapter_dryrun["provenance"]["network_used"],
+        "synthetic": adapter_dryrun["provenance"]["synthetic"],
+        "no_go_for_market": adapter_dryrun["provenance"]["no_go_for_market"],
+        "not_market_evidence": adapter_dryrun["provenance"]["not_market_evidence"],
+    }
+]
+adapter_table = _render(
+    [
+        "fixture_path",
+        "fixture_sha256",
+        "rows",
+        "columns",
+        "date_start",
+        "valid",
+        "dry_run",
+        "network_used",
+        "synthetic",
+        "no_go_for_market",
+        "not_market_evidence",
+    ],
+    adapter_rows,
+)
 
 # Hysteresis table
 hysteresis_rows = []
 for cell in hysteresis["cells"]:
-    hysteresis_rows.append({
-        "regime": cell["regime"],
-        "hysteresis": cell["hysteresis"],
-        "weighting": cell["weighting"],
-        "variant": cell["variant"],
-        "active_rows_min": cell["active_rows_min"],
-        "recovery_mean": cell["recovery_mean"],
-        "recovery_min": cell["recovery_min"],
-        "recovery_positive_seed_fraction": cell["recovery_positive_seed_fraction"],
-        "regime_flips_mean": cell["regime_flips_mean"],
-        "turnover_mean": cell["turnover_mean"],
-        "turnover_total": cell["turnover_total"],
-        "wealth_mean": cell["wealth_mean"],
-        "gross_sharpe_mean": cell["gross_sharpe_mean"],
-        "gross_max": cell["gross_max"],
-        "min_leg_beta": cell["min_leg_beta"],
-    })
-hysteresis_table = _render([
-    "regime", "hysteresis", "weighting", "variant", "active_rows_min",
-    "recovery_mean", "recovery_min", "recovery_positive_seed_fraction",
-    "regime_flips_mean", "turnover_mean", "turnover_total", "wealth_mean",
-    "gross_sharpe_mean", "gross_max", "min_leg_beta"
-], hysteresis_rows)
+    hysteresis_rows.append(
+        {
+            "regime": cell["regime"],
+            "hysteresis": cell["hysteresis"],
+            "weighting": cell["weighting"],
+            "variant": cell["variant"],
+            "active_rows_min": cell["active_rows_min"],
+            "recovery_mean": cell["recovery_mean"],
+            "recovery_min": cell["recovery_min"],
+            "recovery_positive_seed_fraction": cell["recovery_positive_seed_fraction"],
+            "regime_flips_mean": cell["regime_flips_mean"],
+            "turnover_mean": cell["turnover_mean"],
+            "turnover_total": cell["turnover_total"],
+            "wealth_mean": cell["wealth_mean"],
+            "gross_sharpe_mean": cell["gross_sharpe_mean"],
+            "gross_max": cell["gross_max"],
+            "min_leg_beta": cell["min_leg_beta"],
+        }
+    )
+hysteresis_table = _render(
+    [
+        "regime",
+        "hysteresis",
+        "weighting",
+        "variant",
+        "active_rows_min",
+        "recovery_mean",
+        "recovery_min",
+        "recovery_positive_seed_fraction",
+        "regime_flips_mean",
+        "turnover_mean",
+        "turnover_total",
+        "wealth_mean",
+        "gross_sharpe_mean",
+        "gross_max",
+        "min_leg_beta",
+    ],
+    hysteresis_rows,
+)
 
 # Regime table
 regime_rows = []
 for cell in regime_split["cells"]:
-    regime_rows.append({
-        "regime": cell["regime"],
-        "beta_window": cell["beta_window"],
-        "long_quantile": cell["long_quantile"],
-        "short_quantile": cell["short_quantile"],
-        "hysteresis": cell["hysteresis"],
-        "weighting": cell["weighting"],
-        "variant": cell["variant"],
-        "active_rows_min": cell["active_rows_min"],
-        "recovery_mean": cell["recovery_mean"],
-        "recovery_min": cell["recovery_min"],
-        "recovery_positive_seed_fraction": cell["recovery_positive_seed_fraction"],
-        "gross_sharpe_mean": cell["gross_sharpe_mean"],
-        "wealth_mean": cell["wealth_mean"],
-    })
-regime_table = _render([
-    "regime", "beta_window", "long_quantile", "short_quantile", "hysteresis",
-    "weighting", "variant", "active_rows_min", "recovery_mean", "recovery_min",
-    "recovery_positive_seed_fraction", "gross_sharpe_mean", "wealth_mean"
-], regime_rows)
+    regime_rows.append(
+        {
+            "regime": cell["regime"],
+            "beta_window": cell["beta_window"],
+            "long_quantile": cell["long_quantile"],
+            "short_quantile": cell["short_quantile"],
+            "hysteresis": cell["hysteresis"],
+            "weighting": cell["weighting"],
+            "variant": cell["variant"],
+            "active_rows_min": cell["active_rows_min"],
+            "recovery_mean": cell["recovery_mean"],
+            "recovery_min": cell["recovery_min"],
+            "recovery_positive_seed_fraction": cell["recovery_positive_seed_fraction"],
+            "gross_sharpe_mean": cell["gross_sharpe_mean"],
+            "wealth_mean": cell["wealth_mean"],
+        }
+    )
+regime_table = _render(
+    [
+        "regime",
+        "beta_window",
+        "long_quantile",
+        "short_quantile",
+        "hysteresis",
+        "weighting",
+        "variant",
+        "active_rows_min",
+        "recovery_mean",
+        "recovery_min",
+        "recovery_positive_seed_fraction",
+        "gross_sharpe_mean",
+        "wealth_mean",
+    ],
+    regime_rows,
+)
 
 # Breadth table
 breadth_rows = []
 for rung in breadth_ladder["ladder"]:
     b = rung["breadth"]
     for book in rung["books"]:
-        breadth_rows.append({
-            "breadth": b,
-            "variant": book["variant"],
-            "weighting": book["weighting"],
-            "active_rows": book["active_rows"],
-            "recovery_mean": book["recovery_mean"],
-            "recovery_frac_positive": book["recovery_frac_positive"],
-            "gross_max": book["gross_max"],
-            "min_leg_beta": book["min_leg_beta"],
-            "gross_sharpe": book["gross_sharpe"],
-            "wealth": book["wealth"],
-        })
-breadth_table = _render([
-    "breadth", "variant", "weighting", "active_rows", "recovery_mean",
-    "recovery_frac_positive", "gross_max", "min_leg_beta", "gross_sharpe", "wealth"
-], breadth_rows)
+        breadth_rows.append(
+            {
+                "breadth": b,
+                "variant": book["variant"],
+                "weighting": book["weighting"],
+                "active_rows": book["active_rows"],
+                "recovery_mean": book["recovery_mean"],
+                "recovery_frac_positive": book["recovery_frac_positive"],
+                "gross_max": book["gross_max"],
+                "min_leg_beta": book["min_leg_beta"],
+                "gross_sharpe": book["gross_sharpe"],
+                "wealth": book["wealth"],
+            }
+        )
+breadth_table = _render(
+    [
+        "breadth",
+        "variant",
+        "weighting",
+        "active_rows",
+        "recovery_mean",
+        "recovery_frac_positive",
+        "gross_max",
+        "min_leg_beta",
+        "gross_sharpe",
+        "wealth",
+    ],
+    breadth_rows,
+)
 
 # Drift table
 drift_rows = []
 for cell in beta_drift["cells"]:
-    drift_rows.append({
-        "beta_window": cell["beta_window"],
-        "drift_threshold": cell["drift_threshold"],
-        "variant": cell["variant"],
-        "weighting": cell["weighting"],
-        "active_rows_min": cell["active_rows_min"],
-        "recovery_mean": cell["recovery_mean"],
-        "recovery_min": cell["recovery_min"],
-        "recovery_positive_seed_fraction": cell["recovery_positive_seed_fraction"],
-        "gross_max": cell["gross_max"],
-        "min_leg_beta": cell["min_leg_beta"],
-    })
-drift_table = _render([
-    "beta_window", "drift_threshold", "variant", "weighting", "active_rows_min",
-    "recovery_mean", "recovery_min", "recovery_positive_seed_fraction",
-    "gross_max", "min_leg_beta"
-], drift_rows)
+    drift_rows.append(
+        {
+            "beta_window": cell["beta_window"],
+            "drift_threshold": cell["drift_threshold"],
+            "variant": cell["variant"],
+            "weighting": cell["weighting"],
+            "active_rows_min": cell["active_rows_min"],
+            "recovery_mean": cell["recovery_mean"],
+            "recovery_min": cell["recovery_min"],
+            "recovery_positive_seed_fraction": cell["recovery_positive_seed_fraction"],
+            "gross_max": cell["gross_max"],
+            "min_leg_beta": cell["min_leg_beta"],
+        }
+    )
+drift_table = _render(
+    [
+        "beta_window",
+        "drift_threshold",
+        "variant",
+        "weighting",
+        "active_rows_min",
+        "recovery_mean",
+        "recovery_min",
+        "recovery_positive_seed_fraction",
+        "gross_max",
+        "min_leg_beta",
+    ],
+    drift_rows,
+)
 
 # Drift zero reference table
 ref = beta_drift["provenance"]["drift_zero_reference"]["checks"]
 drift_zero_rows = []
 for key, vals in ref.items():
     variant, weighting = key.split("_")
-    drift_zero_rows.append({
-        "variant": variant,
-        "weighting": weighting,
-        "committed_p21_recovery": vals["committed_p21_recovery"],
-        "drift_zero_recovery": vals["drift_zero_recovery"],
-        "matches_at_6dp": vals["matches_at_6dp"],
-    })
-drift_zero_table = _render([
-    "variant", "weighting", "committed_p21_recovery", "drift_zero_recovery", "matches_at_6dp"
-], drift_zero_rows)
+    drift_zero_rows.append(
+        {
+            "variant": variant,
+            "weighting": weighting,
+            "committed_p21_recovery": vals["committed_p21_recovery"],
+            "drift_zero_recovery": vals["drift_zero_recovery"],
+            "matches_at_6dp": vals["matches_at_6dp"],
+        }
+    )
+drift_zero_table = _render(
+    ["variant", "weighting", "committed_p21_recovery", "drift_zero_recovery", "matches_at_6dp"],
+    drift_zero_rows,
+)
 
 # Haircut table
 haircut_rows = []
 for cell in short_haircut["cells"]:
-    haircut_rows.append({
-        "haircut": cell["haircut"],
-        "variant": cell["variant"],
-        "weighting": cell["weighting"],
-        "active_rows_min": cell["active_rows_min"],
-        "availability_mean": cell["availability_mean"],
-        "short_survival_mean": cell["short_survival_mean"],
-        "recovery_mean": cell["recovery_mean"],
-        "recovery_min": cell["recovery_min"],
-        "recovery_positive_seed_fraction": cell["recovery_positive_seed_fraction"],
-        "costed_sharpe_mean": cell["costed_sharpe_mean"],
-        "costed_sharpe_non_increasing": cell["costed_sharpe_non_increasing"],
-        "censored": cell["censored"],
-        "censor_reason": cell["censor_reason"],
-    })
-haircut_table = _render([
-    "haircut", "variant", "weighting", "active_rows_min", "availability_mean",
-    "short_survival_mean", "recovery_mean", "recovery_min",
-    "recovery_positive_seed_fraction", "costed_sharpe_mean",
-    "costed_sharpe_non_increasing", "censored", "censor_reason"
-], haircut_rows)
+    haircut_rows.append(
+        {
+            "haircut": cell["haircut"],
+            "variant": cell["variant"],
+            "weighting": cell["weighting"],
+            "active_rows_min": cell["active_rows_min"],
+            "availability_mean": cell["availability_mean"],
+            "short_survival_mean": cell["short_survival_mean"],
+            "recovery_mean": cell["recovery_mean"],
+            "recovery_min": cell["recovery_min"],
+            "recovery_positive_seed_fraction": cell["recovery_positive_seed_fraction"],
+            "costed_sharpe_mean": cell["costed_sharpe_mean"],
+            "costed_sharpe_non_increasing": cell["costed_sharpe_non_increasing"],
+            "censored": cell["censored"],
+            "censor_reason": cell["censor_reason"],
+        }
+    )
+haircut_table = _render(
+    [
+        "haircut",
+        "variant",
+        "weighting",
+        "active_rows_min",
+        "availability_mean",
+        "short_survival_mean",
+        "recovery_mean",
+        "recovery_min",
+        "recovery_positive_seed_fraction",
+        "costed_sharpe_mean",
+        "costed_sharpe_non_increasing",
+        "censored",
+        "censor_reason",
+    ],
+    haircut_rows,
+)
 
 # Haircut zero reference table
 ref = short_haircut["provenance"]["haircut_zero_reference"]["checks"]
 haircut_zero_rows = []
 for key, vals in ref.items():
     variant, weighting = key.split("_")
-    haircut_zero_rows.append({
-        "variant": variant,
-        "weighting": weighting,
-        "committed_p21_recovery": vals["committed_p21_recovery"],
-        "committed_wp2_drift_zero_recovery": vals["committed_wp2_drift_zero_recovery"],
-        "haircut_zero_recovery": vals["haircut_zero_recovery"],
-        "matches_p21_at_6dp": vals["matches_p21_at_6dp"],
-        "matches_wp2_at_6dp": vals["matches_wp2_at_6dp"],
-    })
-haircut_zero_table = _render([
-    "variant", "weighting", "committed_p21_recovery", "committed_wp2_drift_zero_recovery",
-    "haircut_zero_recovery", "matches_p21_at_6dp", "matches_wp2_at_6dp"
-], haircut_zero_rows)
+    haircut_zero_rows.append(
+        {
+            "variant": variant,
+            "weighting": weighting,
+            "committed_p21_recovery": vals["committed_p21_recovery"],
+            "committed_wp2_drift_zero_recovery": vals["committed_wp2_drift_zero_recovery"],
+            "haircut_zero_recovery": vals["haircut_zero_recovery"],
+            "matches_p21_at_6dp": vals["matches_p21_at_6dp"],
+            "matches_wp2_at_6dp": vals["matches_wp2_at_6dp"],
+        }
+    )
+haircut_zero_table = _render(
+    [
+        "variant",
+        "weighting",
+        "committed_p21_recovery",
+        "committed_wp2_drift_zero_recovery",
+        "haircut_zero_recovery",
+        "matches_p21_at_6dp",
+        "matches_wp2_at_6dp",
+    ],
+    haircut_zero_rows,
+)
 
 # Null battery table
 null_battery_rows = []
 for seed_entry in null_battery["seeds"]:
     for book in seed_entry["books"]:
-        null_battery_rows.append({
-            "seed": seed_entry["seed"],
-            "variant": book["variant"],
-            "weighting": book["weighting"],
-            "active_rows": book["active_rows"],
-            "recovery_mean": book["recovery_mean"],
-            "recovery_frac_positive": book["recovery_frac_positive"],
-            "gross_max": book["gross_max"],
-            "gross_sharpe": book["oos_sharpe"],
-            "p_value": book["p_value"],
-            "significant": book["significant"],
-        })
-null_battery_table = _render([
-    "seed", "variant", "weighting", "active_rows", "recovery_mean",
-    "recovery_frac_positive", "gross_max", "gross_sharpe", "p_value", "significant"
-], null_battery_rows)
+        null_battery_rows.append(
+            {
+                "seed": seed_entry["seed"],
+                "variant": book["variant"],
+                "weighting": book["weighting"],
+                "active_rows": book["active_rows"],
+                "recovery_mean": book["recovery_mean"],
+                "recovery_frac_positive": book["recovery_frac_positive"],
+                "gross_max": book["gross_max"],
+                "gross_sharpe": book["oos_sharpe"],
+                "p_value": book["p_value"],
+                "significant": book["significant"],
+            }
+        )
+null_battery_table = _render(
+    [
+        "seed",
+        "variant",
+        "weighting",
+        "active_rows",
+        "recovery_mean",
+        "recovery_frac_positive",
+        "gross_max",
+        "gross_sharpe",
+        "p_value",
+        "significant",
+    ],
+    null_battery_rows,
+)
 
 # Decision table
 thresholds = charter["provenance"]["acceptance_thresholds"]
 wp4 = thresholds["wp4"]
 decision_rows = [
-    {"Criterion": "Explicit signal-or-noise verdict", "Required": wp4["explicit_signal_noise_verdict"]},
+    {
+        "Criterion": "Explicit signal-or-noise verdict",
+        "Required": wp4["explicit_signal_noise_verdict"],
+    },
     {"Criterion": "NO-GO for market", "Required": wp4["no_go_for_market"]},
     {"Criterion": "No harness re-run", "Required": wp4["no_harness_re_run"]},
-    {"Criterion": "Planted recovery labelled controlled synthetic", "Required": wp4["planted_recovery_labelled_controlled_synthetic"]},
+    {
+        "Criterion": "Planted recovery labelled controlled synthetic",
+        "Required": wp4["planted_recovery_labelled_controlled_synthetic"],
+    },
     {"Criterion": "Numbers matched minimum", "Required": wp4["numbers_matched_min"]},
     {"Criterion": "Unmatched cells maximum", "Required": wp4["zero_unmatched_cells"]},
     {"Criterion": "Regime grid minimum", "Required": wp4["regime_grid_min"]},
     {"Criterion": "Hysteresis band grid minimum", "Required": wp4["hysteresis_band_grid_min"]},
-    {"Criterion": "Turnover monotone non-increasing", "Required": wp4["turnover_monotone_non_increasing"]},
+    {
+        "Criterion": "Turnover monotone non-increasing",
+        "Required": wp4["turnover_monotone_non_increasing"],
+    },
     {"Criterion": "Adapter valid offline", "Required": wp4["adapter_valid_offline"]},
     {"Criterion": "Nominal slack", "Required": thresholds["nominal_slack"]},
 ]
