@@ -2,8 +2,8 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-20T08:30:19Z
-- **Git state:** HEAD `ae9af3b` (P24 WP3 landed; quick gate GREEN). Working tree clean. Certify with `git log --oneline -4 && git status --short`. Binding row is **P24 WP4 — closing decision**.
+- **Timestamp (UTC):** 2026-11-20T08:39:32Z
+- **Git state:** HEAD `446a43d` (P24 WP3 landed; quick gate GREEN). Working tree clean. Certify with `git log --oneline -4 && git status --short`. Binding row is **P24 WP4 — closing decision**.
 - **P24 WP3 IS LANDED, ARTIFACT-GATED AND GREEN** — `scripts/bab_licensed_adapter.py`, `research_state/bab_p24/adapter_dryrun.{json,md}`, `tests/test_bab_p24_adapter.py` (27 tests). Reads only committed P21/P22/P23/P24 JSON artifacts read-only and the licensed CSV fixture; never regenerates them. Validates the fixture against P21 universe contract (43 columns, 5 rows, no missing cells, strictly increasing dates, all prices > 0). Artifact's numeric block resolves to committed P21/P23/P24 JSON leaves. Dry run never touches network; `network_used=false`, `dry_run=true`, `synthetic=true`. Malformed fixture rejected (`valid=False` with machine-readable errors). Committed JSON equals fresh build; markdown equals renderer output; second build byte-identical. Verdict strings: `signal`, `noise`, `no-go for market`, `controlled synthetic`, `not market evidence`. NO-GO restated from P23/P24 charters.
 - **P21, P22, P23 WP0–WP4 and P24 WP0, WP1, WP2, WP3 are CLOSED.** P24 WP4 — closing decision is the binding row.
 - **Repo:** `Crypto-Betting-Against-Beta` — crypto market-neutral BAB trading system.
@@ -12,7 +12,7 @@
 
 # INITIAL TASK MESSAGE (BINDING — START HERE)
 
-​**Timestamp:** 2026-11-20T08:30:19Z · **Campaign:** P24 "Regime-conditional BAB and holdout discipline" · **Lane:** E · **WP:** **P24 WP4 — closing decision**
+​**Timestamp:** 2026-11-20T08:39:32Z · **Campaign:** P24 "Regime-conditional BAB and holdout discipline" · **Lane:** E · **WP:** **P24 WP4 — closing decision**
 
 **One-sentence objective:** produce `docs/BAB_P24_DECISION.md` and `tests/test_bab_p24_decision_consistency.py` that publish the regime-conditional BAB closing decision with every number traced to committed P21/P22/P23/P24 JSON artifacts, an explicit signal/noise verdict, a NO-GO for market, and zero unmatched cells.
 
@@ -38,7 +38,7 @@ Rules:
 
 ## ROUTE YOUR SESSION IN 60 SECONDS (no prose debate, no idle)
 
-Deliverable files are the claim. Run the `git ls-files` command above; the two missing deliverables are yours. P21, P22, P23 WP0–WP4 and P24 WP0, WP1, WP2, WP3 are CLOSED. P24 WP4 — closing decision is the binding row; Campaign P24 concludes here.
+Deliverable files are the claim. Run the `git ls-files` command above; the two missing deliverables are yours. P21, P22, P23 WP0–WP4 and P24 WP0/WP1/WP2/WP3 are CLOSED. P24 WP4 — closing decision is the binding row; Campaign P24 concludes here.
 
 Rules are identical to the numbered list immediately above. Solo default: **P24 WP4 — closing decision**.
 
@@ -229,6 +229,7 @@ Inner loop: `bash scripts/bab_quick.sh` + `python3 -m pytest -q tests/test_bab_p
 
 | Session (UTC) | HEAD | Did | Gate |
 |---|---|---|---|
+| 2026-11-20T08:39:32Z | `446a43d` | **Handoff refreshed for P24 WP4 binding row.** Updated HANDOFF.md timestamp and HEAD certification to `446a43d`; P24 WP3 landed (script + `adapter_dryrun.{json,md}` + 27-test gate GREEN); P24 WP4 — closing decision is the binding row. Deliverables: `docs/BAB_P24_DECISION.md`, `tests/test_bab_p24_decision_consistency.py`. All P21/P22/P23/P24 artifacts intact; quick gate GREEN (104+195). | ruff PASS; quick GREEN (104+195) |
 | 2026-11-19T21:24:00Z | `5bc9d9a` | **P23 WP3 landed (heavy work) + handoff re-certification.** Added `scripts/bab_short_haircut.py`, `research_state/bab_p23/short_haircut.{json,md}` and `tests/test_bab_p23_short_haircut.py` (18 tests): 20 cells, 400 book runs, per-seed recovery/availability/costed-Sharpe, zero-reference matched to P21 and WP2 at 6 dp. Measured and rejected the chartered "re-lever survivors to baseline short gross" rule (it flipped planted seeds negative); replaced with drop-only availability so every non-censored planted seed stays positive. Published the real degenerate draw (seed `20261245`, rank `h=0.75`, whole short book unavailable) as a visible censored cell with a machine-readable reason. Re-routed binding row to **P23 WP4 — closing decision report**. | ruff PASS; quick GREEN (104+195); reconcile GREEN; full gate **GREEN 6748 passed / 35 skipped / TOTAL 100%** |
 | 2026-11-19T20:12:30Z | `d3f1ecc` | **P23 WP2 remediation + handoff re-certification.** Fixed the red self-referential AST test and re-derived the drift model to relative per-row beta drift (`DRIFT_SCALE = 0.1`, ±6% at δ=1e-3) after proving the additive tilt left all seeds identical; regenerated artifacts; 16/16 tests green. Re-routed binding row to P23 WP3 and pre-declared WP4 + Campaign P24. | ruff PASS; quick GREEN; reconcile GREEN; full gate **GREEN 6730 passed / 35 skipped / TOTAL 100%** |
 | 2026-11-19T19:11:27Z | `d3f1ecc` | **P23 WP2 landed (as checkpoint)** — script + artifacts + 16 tests, 48 cells / 960 book runs. Shipped with a self-referential red AST test and an inert drift model; both fixed by the next session. | verification deferred (red test at HEAD) |
