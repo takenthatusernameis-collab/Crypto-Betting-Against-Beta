@@ -2,33 +2,33 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-20T07:32:13Z
-- **Git state:** HEAD `c43f7ef` (P24 WP2 landed; quick gate GREEN). Working tree clean. Certify with `git log --oneline -4 && git status --short`. Binding row is **P24 WP3 — licensed-data adapter dry run**.
-- **P24 WP2 IS LANDED, ARTIFACT-GATED AND GREEN** — `scripts/bab_hysteresis_ladder.py`, `research_state/bab_p24/hysteresis.{json,md}`, `tests/test_bab_p24_hysteresis.py` (24 tests). Reads only committed P21/P22/P23/P24 JSON artifacts read-only; never regenerates them. Calm regime (beta_window=120, q=0.25) planted recovery strictly positive (+0.00019/+0.000191/+0.000192 at h=0.05/0.1/0.15); stress regime (beta_window=60, q=0.35) planted recovery negative (−0.00016/−0.000161) — the stress is real and measured; null recovery exactly 0.0 on every cell; rank guards (min_leg_beta ≥ 0.2, gross_max ≤ 4.0) never relaxed; **turnover ladder measured: tighter hysteresis bands produce more regime flips and more turnover** (52→48→46 flips; 0.047→0.044→0.042 turnover_mean); hysteresis_zero_reference pinned to P21 rank_eval.json at 6 dp; byte-identical rebuild proven.
-- **P21, P22, P23 WP0–WP4 and P24 WP0, WP1, WP2 are CLOSED.** P24 WP3 — licensed-data adapter dry run is the binding row.
+- **Timestamp (UTC):** 2026-11-20T08:30:19Z
+- **Git state:** HEAD `ae9af3b` (P24 WP3 landed; quick gate GREEN). Working tree clean. Certify with `git log --oneline -4 && git status --short`. Binding row is **P24 WP4 — closing decision**.
+- **P24 WP3 IS LANDED, ARTIFACT-GATED AND GREEN** — `scripts/bab_licensed_adapter.py`, `research_state/bab_p24/adapter_dryrun.{json,md}`, `tests/test_bab_p24_adapter.py` (27 tests). Reads only committed P21/P22/P23/P24 JSON artifacts read-only and the licensed CSV fixture; never regenerates them. Validates the fixture against P21 universe contract (43 columns, 5 rows, no missing cells, strictly increasing dates, all prices > 0). Artifact's numeric block resolves to committed P21/P23/P24 JSON leaves. Dry run never touches network; `network_used=false`, `dry_run=true`, `synthetic=true`. Malformed fixture rejected (`valid=False` with machine-readable errors). Committed JSON equals fresh build; markdown equals renderer output; second build byte-identical. Verdict strings: `signal`, `noise`, `no-go for market`, `controlled synthetic`, `not market evidence`. NO-GO restated from P23/P24 charters.
+- **P21, P22, P23 WP0–WP4 and P24 WP0, WP1, WP2, WP3 are CLOSED.** P24 WP4 — closing decision is the binding row.
 - **Repo:** `Crypto-Betting-Against-Beta` — crypto market-neutral BAB trading system.
 
 ---
 
 # INITIAL TASK MESSAGE (BINDING — START HERE)
 
-​**Timestamp:** 2026-11-20T07:32:13Z · **Campaign:** P24 "Regime-conditional BAB and holdout discipline" · **Lane:** E · **WP:** **P24 WP4 — closing decision**
+​**Timestamp:** 2026-11-20T08:30:19Z · **Campaign:** P24 "Regime-conditional BAB and holdout discipline" · **Lane:** E · **WP:** **P24 WP4 — closing decision**
 
-**One-sentence objective:** implement `scripts/bab_licensed_adapter.py` that consumes the fixture `tests/fixtures/licensed_price_schema.csv` (offline-only, never network), produces `research_state/bab_p24/adapter_dryrun.{json,md}`, and creates `tests/test_bab_p24_adapter.py` acceptance test (AST no-harness scan, schema validation, provenance chain to P24 charter, verdict strings).
+**One-sentence objective:** produce `docs/BAB_P24_DECISION.md` and `tests/test_bab_p24_decision_consistency.py` that publish the regime-conditional BAB closing decision with every number traced to committed P21/P22/P23/P24 JSON artifacts, an explicit signal/noise verdict, a NO-GO for market, and zero unmatched cells.
 
-**Why this and nothing else:** P24 WP2 measured turnover under hysteresis bands; the charter declares `licensed_data_required = true` and `licensed_price_csv_schema` as a fixture path. P24 WP3 must demonstrate the adapter reads the fixture schema, validates columns, and produces a dry-run artifact without ever fetching live data (Coinbase returns 403 here). This is the holdout discipline gate before P24 WP4 closing decision.
+**Why this and nothing else:** P23 proved estimator instability; P24 WP1 proved regime dependence; P24 WP2 measured turnover under hysteresis bands; P24 WP3 proved the licensed-data adapter works offline against a schema fixture. The final axis is the **closing decision**: a decision-grade report that restates the NO-GO, labels all planted recovery as controlled synthetic, and proves every published number exists in committed JSON. The charter declares `artifact_gated = true`, `no_go_for_market = true`, `not_market_evidence = true`, and the WP4 acceptance thresholds in `provenance.acceptance_thresholds.wp4`.
 
-**Prioritization basis:** the repository name is *betting against beta*. P23 proved estimator instability; P24 WP1 proved regime dependence; P24 WP2 measured turnover/hysteresis; P24 WP3 must now prove the licensed-data adapter works offline against a schema fixture — the final empirical step before the closing decision. No session may idle on a landed WP.
+**Prioritization basis:** the repository name is *betting against beta*. P24 WP0–WP3 are landed; the campaign map declares WP4 as the final WP. No session may idle on a landed WP.
 
 **Deliverable files are the claim.** Run:
 ```bash
-git ls-files scripts/bab_licensed_adapter.py research_state/bab_p24/adapter_dryrun.json tests/test_bab_p24_adapter.py
+git ls-files docs/BAB_P24_DECISION.md tests/test_bab_p24_decision_consistency.py
 ```
-The three missing deliverables are yours. The binding row is **P24 WP3 — licensed-data adapter dry run**; you own the script, artifact, and acceptance test. **Never network** — the fixture is maintainer-supplied; the adapter must read it, validate it, and publish a dry-run artifact.
+The two missing deliverables are yours. The binding row is **P24 WP4 — closing decision**; you own the decision report and its acceptance test. **Never network** — all data is from committed JSON artifacts and the offline licensed fixture.
 
 Rules:
 1. Never take a WP whose deliverable already exists. If a deliverable exists but its acceptance test is insufficient (stub), fixing that test **is** the session's work — do not start a new row on a stub gate.
-2. Solo default: **P24 WP3 — licensed-data adapter dry run**. It reads only committed JSON artifacts read-only and the licensed CSV fixture; it must not regenerate, re-run or edit any P21/P22/P23/P24 artifact or harness.
+2. Solo default: **P24 WP4 — closing decision**. It reads only committed P21/P22/P23/P24 JSON artifacts read-only and the licensed CSV fixture; it must not regenerate, re-run or edit any P21/P22/P23/P24 artifact or harness.
 3. A partially finished WP is not locked.
 4. Everything blocked? Repair the red gate first (`bash scripts/bab_quick.sh`), then take the first missing row.
 5. Never end a session with prose. A landed WP = deliverable + consistency test in **one** commit + green full gate.
@@ -38,15 +38,15 @@ Rules:
 
 ## ROUTE YOUR SESSION IN 60 SECONDS (no prose debate, no idle)
 
-Deliverable files are the claim. Run the `git ls-files` command above; the three missing deliverables are yours. P21, P22, P23 WP0–WP4 and P24 WP0, WP1, WP2 are CLOSED. P24 WP3 — licensed-data adapter dry run is the binding row; Campaign P24 continues.
+Deliverable files are the claim. Run the `git ls-files` command above; the two missing deliverables are yours. P21, P22, P23 WP0–WP4 and P24 WP0, WP1, WP2, WP3 are CLOSED. P24 WP4 — closing decision is the binding row; Campaign P24 concludes here.
 
-Rules are identical to the numbered list immediately above. Solo default: **P24 WP3 — licensed-data adapter dry run**.
+Rules are identical to the numbered list immediately above. Solo default: **P24 WP4 — closing decision**.
 
 ## MANDATORY FIRST ACTIONS (in order, ~4 minutes)
 
 1. `git log --oneline -4 && git status --short` — locate yourself. Do not re-derive what this file certifies.
 2. `bash scripts/bab_quick.sh` (≈20 s, must be GREEN). It bootstraps numpy/pandas/scipy/pytest/ruff from PyPI.
-3. Confirm P21/P22/P23-WP0/WP1/WP2/WP3/WP4 and P24 WP0/WP1/WP2 are closed and their artifacts are intact (≈0.1 s, must print only the confirmation line and exit 0):
+3. Confirm P21/P22/P23-WP0/WP1/WP2/WP3/WP4 and P24 WP0/WP1/WP2/WP3 are closed and their artifacts are intact (≈0.1 s, must print only the confirmation line and exit 0):
    ```bash
    python3 - <<'EOF'
    import json
@@ -56,7 +56,7 @@ Rules are identical to the numbered list immediately above. Solo default: **P24 
        "bab_p21": ("universe", "significance", "rank_eval", "cost_surface"),
        "bab_p22": ("charter", "null_battery", "impact_surface", "capacity"),
        "bab_p23": ("charter", "breadth_ladder", "beta_drift", "short_haircut"),
-       "bab_p24": ("charter", "regime_split", "hysteresis"),
+       "bab_p24": ("charter", "regime_split", "hysteresis", "adapter_dryrun"),
    }.items():
        for name in names:
            p = root / f"research_state/{campaign}/{name}.json"
@@ -65,50 +65,54 @@ Rules are identical to the numbered list immediately above. Solo default: **P24 
    for report in ("docs/BAB_SIGNAL_OR_NOISE.md", "docs/BAB_P22_DECISION.md", "docs/BAB_P23_DECISION.md", "docs/BAB_P24_KICKOFF.md"):
        assert (root / report).is_file(), f"missing {report}"
    assert (root / "tests/fixtures/licensed_price_schema.csv").is_file()
-   print("P21, P22, P23-WP0/WP1/WP2/WP3/WP4, P24 WP0/WP1/WP2 closed; artifacts intact")
+   print("P21, P22, P23-WP0/WP1/WP2/WP3/WP4, P24 WP0/WP1/WP2/WP3 closed; artifacts intact")
    EOF
    ```
-4. Read `research_state/bab_p24/charter.json` — the charter constants to implement: `regime_grid`, `holdout_before_tuning`, `hysteresis_band_grid`, `licensed_price_csv_schema`, `no_go_for_market`, `not_market_evidence`, `artifact_gated`.
-5. Read `tests/test_bab_p24_hysteresis.py` — the landed P24 WP2 acceptance-test pattern to mirror for P24 WP3 (AST no-harness scan, numeric leaf mapping from committed P21/P22/P23/P24 JSON, verdict strings, byte-identical artifact verification).
-6. Read `research_state/bab_p24/hysteresis.json` — the hysteresis ladder provenance including `regime_model`, `turnover_estimator`, `hysteresis_zero_reference`, and `breadth_41_cross_check`.
-7. Read `tests/fixtures/licensed_price_schema.csv` — the schema fixture (columns: date, BTC, A001..A041; 43 columns; 5 rows) that the adapter must consume.
+4. Read `research_state/bab_p24/charter.json` — the charter constants and WP4 acceptance thresholds: `regime_grid`, `holdout_before_tuning`, `hysteresis_band_grid`, `licensed_price_csv_schema`, `no_go_for_market`, `not_market_evidence`, `artifact_gated`, `provenance.acceptance_thresholds.wp4` (explicit_signal_noise_verdict, no_go_for_market, no_harness_re_run, planted_recovery_labelled_controlled_synthetic, numbers_matched_min, zero_unmatched_cells, regime_grid_min, hysteresis_band_grid_min, turnover_monotone_non_increasing, adapter_valid_offline, nominal_slack).
+5. Read `tests/test_bab_p23_decision_consistency.py` — the landed P23 WP4 acceptance-test pattern to mirror for P24 WP4 (AST no-harness scan, numeric leaf mapping from committed P21/P22/P23/P24 JSON, verdict strings, byte-identical artifact verification, table anchors).
+6. Read `research_state/bab_p24/adapter_dryrun.json` — the licensed-data adapter provenance including `verdict`, `no_go_for_market`, `p23_no_go_for_market`, `numeric_contract`, `charter_chain`.
+7. Read `research_state/bab_p24/hysteresis.json` — the hysteresis ladder provenance including `regime_model`, `turnover_estimator`, `turnover_monotone_non_increasing`, `hysteresis_zero_reference`, and `breadth_41_cross_check`.
+8. Read `research_state/bab_p24/regime_split.json` — the regime-split provenance including `regime_grid`, `planted_recovery_by_regime`, `stress_regime_planted_negative`.
+9. Read `research_state/bab_p23/short_haircut.json` — the short haircut ladder provenance including censored cell at rank h=0.75 with `censor_reason = "no_active_rows_after_short_availability_restriction"`.
+10. Read `research_state/bab_p23/beta_drift.json` — the beta drift grid provenance including `drift_zero_reference` matching P21 at 6 dp.
+11. Read `research_state/bab_p23/breadth_ladder.json` — the breadth ladder provenance including 5 rungs, 41 assets, strictly positive planted recovery at every rung.
+12. Read `research_state/bab_p22/null_battery.json` — the null battery provenance including `fpr_at_alpha` and `null_max_abs_recovery`.
+13. Read `research_state/bab_p21/rank_eval.json` — the P21 rank evaluation provenance including `panel_sha256`, `recovery_mean`, `recovery_frac_positive`.
 
 ---
 
-## P24 WP2 SPEC — rebalance hysteresis / turnover ladder (landed, quick gate GREEN — reference only)
+## P24 WP3 SPEC — licensed-data adapter dry run (landed, quick gate GREEN — reference only)
 
-**Deliverables:** `scripts/bab_hysteresis_ladder.py`, `research_state/bab_p24/hysteresis.{json,md}`, `tests/test_bab_p24_hysteresis.py` (24 tests). No script harness re-run.
+**Deliverables:** `scripts/bab_licensed_adapter.py`, `research_state/bab_p24/adapter_dryrun.{json,md}`, `tests/test_bab_p24_adapter.py` (27 tests). No script harness re-run.
 
 **Hard contract (all of it is testable):**
-- Reads **only** committed JSON: `bab_p21/universe.json`, `bab_p23/charter.json`, `bab_p24/charter.json`, `bab_p21/rank_eval.json`, `bab_p23/breadth_ladder.json`. AST scan of the test proves no P21/P22/P23/P24 `build_*` harness is imported or called (`no_harness_re_run`).
-- Every chartered regime (`calm`, `stress`) present with all hysteresis bands ([0.05, 0.1, 0.15]), both weightings (`equal`, `rank`) and both variants (`planted`, `null`): 24 cells.
-- Planted recovery strictly positive for `calm` regime; stress regime planted recovery negative (regime stress is real and measured).
-- Null recovery exactly `0.0` on every cell for both regimes.
-- Rank-leg guards (`min_leg_beta >= 0.2`, `gross_max <= 4.0`) hold on every active rank row and are never relaxed.
-- Every cell has at least one active row (541).
+- Reads **only** committed JSON: `bab_p21/universe.json`, `bab_p23/charter.json`, `bab_p24/charter.json`. AST scan of the test proves no P21/P22/P23/P24 `build_*` harness is imported or called (`no_harness_re_run`).
+- Fixture is a well-formed 5-row x 43-column licensed schema (`date`, `BTC`, `A001`..`A041`) with no missing cells.
+- Column contract derived from committed P21 JSON (`assets`/`benchmark`), never hand-typed.
+- Artifact's numeric block resolves to committed P21/P23/P24 JSON leaves.
+- Dry run never touches network; `network_used=false`, `dry_run=true`, `synthetic=true`.
+- Malformed fixture rejected (`valid=False` with machine-readable `nan_columns`, `non_numeric_columns`, `non_positive_columns`, `dates_strictly_increasing`, `min_rows_met`, `column_names_match`).
 - Committed JSON equals a fresh build; markdown equals the renderer output; second build is byte-identical; inputs byte-identical before/after `main()`.
-- **Turnover ladder:** tighter hysteresis bands produce more regime flips and more turnover (monotone non-increasing with hysteresis band).
-- Hysteresis-zero reference (no regime filter) matches committed P21 `rank_eval.json` at 6 dp.
-- Every numeric field resolves to a committed JSON leaf or a declared charter constant.
-- Verdict strings: synthetic, not market evidence, NO-GO for market, signal on planted / noise on null.
-- Forbidden in WP2: re-running any harness, hand-typing a number with no JSON field behind it, weakening rank guards, describing synthetic evidence as market profitability.
+- Verdict strings: `signal`, `noise`, `no-go for market`, `controlled synthetic`, `not market evidence`.
+- NO-GO restated from P23/P24 charters: `no_go_for_market = True`.
+- Forbidden in WP3: re-running any harness, hand-typing a number with no JSON field behind it, network fetching (Coinbase returns 403 here), silently accepting a malformed fixture.
 - Full gate: `python3 -m ruff check .` PASS; `bash scripts/bab_quick.sh` GREEN; `BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh` GREEN.
 
 ---
 
-## Pre-declared Campaign P24 — "Regime-conditional BAB and holdout discipline" (binding now — P24 WP2 landed)
+## Pre-declared Campaign P24 — "Regime-conditional BAB and holdout discipline" (binding now — P24 WP3 landed)
 
-P23 closes the instability axis; P24 WP1 closes the regime axis; P24 WP2 closes the turnover/hysteresis axis; the next unmeasured axis is **licensed-data adapter dry run**. Declared now so no session after WP2 can idle:
+P23 closes the instability axis; P24 WP1 closes the regime axis; P24 WP2 closes the turnover/hysteresis axis; P24 WP3 closes the licensed-data adapter axis; the final axis is the **closing decision**.
 
 | Lane | WP | Deliverable files | Status |
 |---|---|---|---|
 | A | **WP0 — charter** | `tests/test_bab_p24_charter.py` (22 tests), `tests/fixtures/licensed_price_schema.csv` | **CLOSED** |
 | B | **WP1 — regime-split stress** | `scripts/bab_regime_split.py`, `research_state/bab_p24/regime_split.{json,md}`, `tests/test_bab_p24_regime_split.py` (22 tests) | **CLOSED** (gate GREEN) |
 | C | **WP2 — rebalance hysteresis / turnover ladder** | `scripts/bab_hysteresis_ladder.py`, `research_state/bab_p24/hysteresis.{json,md}`, `tests/test_bab_p24_hysteresis.py` (24 tests) | **CLOSED** (quick gate GREEN) |
-| D | **WP3 — licensed-data adapter dry run** | `scripts/bab_licensed_adapter.py`, `research_state/bab_p24/adapter_dryrun.{json,md}`, `tests/test_bab_p24_adapter.py` | **BINDING** |
-| E | WP4 — closing decision | `docs/BAB_P24_DECISION.md`, `tests/test_bab_p24_decision_consistency.py` | QUEUED |
+| D | **WP3 — licensed-data adapter dry run** | `scripts/bab_licensed_adapter.py`, `research_state/bab_p24/adapter_dryrun.{json,md}`, `tests/test_bab_p24_adapter.py` (27 tests) | **CLOSED** (quick gate GREEN) |
+| E | **WP4 — closing decision** | `docs/BAB_P24_DECISION.md`, `tests/test_bab_p24_decision_consistency.py` | **BINDING** |
 
-P24 must keep P21–P23 artifacts frozen and restate the NO-GO verdict. P24 WP3 consumes committed P24 charter (`licensed_price_csv_schema`) and P23/P22/P21 artifacts read-only.
+P24 must keep P21–P23 artifacts frozen and restate the NO-GO verdict. P24 WP4 consumes committed P24 charter (`provenance.acceptance_thresholds.wp4`), P24 adapter_dryrun, hysteresis, regime_split, and P23/P22/P21 artifacts read-only.
 
 ---
 
@@ -119,10 +123,10 @@ P24 must keep P21–P23 artifacts frozen and restate the NO-GO verdict. P24 WP3 
 | **A — Charter** | WP0 | `tests/test_bab_p24_charter.py` (22 tests), `tests/fixtures/licensed_price_schema.csv` | **CLOSED** |
 | **B — Regime** | WP1 | `scripts/bab_regime_split.py`, `research_state/bab_p24/regime_split.{json,md}`, `tests/test_bab_p24_regime_split.py` (22 tests) | **CLOSED** |
 | **C — Hysteresis** | WP2 | `scripts/bab_hysteresis_ladder.py`, `research_state/bab_p24/hysteresis.{json,md}`, `tests/test_bab_p24_hysteresis.py` (24 tests) | **CLOSED** |
-| **D — Adapter** | **WP3** | `scripts/bab_licensed_adapter.py`, `research_state/bab_p24/adapter_dryrun.{json,md}`, `tests/test_bab_p24_adapter.py` | **BINDING** |
-| **E — Decision** | WP4 | `docs/BAB_P24_DECISION.md`, `tests/test_bab_p24_decision_consistency.py` | QUEUED |
+| **D — Adapter** | WP3 | `scripts/bab_licensed_adapter.py`, `research_state/bab_p24/adapter_dryrun.{json,md}`, `tests/test_bab_p24_adapter.py` (27 tests) | **CLOSED** |
+| **E — Decision** | **WP4** | `docs/BAB_P24_DECISION.md`, `tests/test_bab_p24_decision_consistency.py` | **BINDING** |
 
-Rules: one WP per session; lanes consume earlier P24 artifacts read-only and must never regenerate them. **P24 WP0, WP1, WP2 CLOSED. P24 WP3 — licensed-data adapter dry run is the binding row.**
+Rules: one WP per session; lanes consume earlier P24 artifacts read-only and must never regenerate them. **P24 WP0, WP1, WP2, WP3 CLOSED. P24 WP4 — closing decision is the binding row.**
 
 ---
 
@@ -130,20 +134,26 @@ Rules: one WP per session; lanes consume earlier P24 artifacts read-only and mus
 
 A session is **not** complete unless **all** of the following landed in one commit:
 
-1. One complete WP from the routing table (P24 WP3 — licensed-data adapter dry run).
+1. One complete WP from the routing table (P24 WP4 — closing decision).
 2. Its **script + committed artifact + acceptance test**.
-3. A machine-checked number mapping, not a "looks consistent" claim; every charter threshold (`licensed_price_csv_schema`) must resolve to a committed JSON field and every numeric cell constant must trace to committed JSON or a declared charter constant — never a hand-typed number.
+3. A machine-checked number mapping, not a "looks consistent" claim; every charter threshold (`provenance.acceptance_thresholds.wp4`) must resolve to a committed JSON field and every numeric cell constant must trace to committed JSON or a declared charter constant — never a hand-typed number.
 4. `python3 -m ruff check .` PASS and `bash scripts/bab_quick.sh` GREEN; full gate once per WP boundary.
 5. A ledger row below with UTC timestamp, HEAD, what landed, and the gate line.
 6. **No documentation-only turn.** A handoff refresh must also land the next missing WP or a tested slice of it.
 
-**Hard minimums that make P24 WP3 impossible to fake:**
-- Enhanced test reads only committed P21/P22/P23/P24 JSON artifacts read-only and the licensed CSV fixture; never regenerates or edits them.
+**Hard minimums that make P24 WP4 impossible to fake:**
+- Enhanced test reads only committed P21/P22/P23/P24 JSON artifacts read-only; never regenerates or edits them.
 - AST scan verifies no `build_*` harness is imported or called in the test file.
 - Numeric field mapping from charter JSON to committed P21/P22/P23/P24 artifacts (like P23 WP4 test).
-- Explicit `no_go_for_market = True` restated from the P23 charter verdict.
+- Explicit `no_go_for_market = True` restated from the P23/P24 charter verdicts.
 - Verdict strings verified: `signal`, `noise`, `no-go for market`, `controlled synthetic`, `not market evidence`.
-- **Never fetches network data** — the fixture is offline-only; Coinbase returns 403 here.
+- **Zero unmatched cells** — every published numeric table cell resolves to a committed JSON leaf at 6 dp.
+- **Numbers matched minimum** — at least 100 machine-checked numeric cells in the report.
+- **Regime grid minimum** — both `calm` and `stress` regimes present with evidence from hysteresis and regime_split artifacts.
+- **Hysteresis band grid minimum** — all three bands (0.05, 0.10, 0.15) present with turnover monotonicity.
+- **Adapter valid offline** — the licensed-data adapter dry run artifact validates the fixture without network.
+- **Turnover monotone non-increasing** — tighter hysteresis bands produce more regime flips and more turnover (from hysteresis artifact).
+- **Byte-identical rebuild** — committed markdown equals renderer output; second build byte-identical; inputs byte-identical before/after test run.
 
 ---
 
@@ -152,7 +162,7 @@ A session is **not** complete unless **all** of the following landed in one comm
 1. Test enhancement feels large? Land the AST no-harness scan first (copied from P23 WP4 test), committed with a partial test, then extend numeric mapping in the same commit.
 2. Blocked because a threshold you want to validate is not in committed JSON? Do not type it. Either quote only existing fields, or land a new upstream WP in the same commit that adds the field to the harness **plus** its acceptance test — never a hand-typed number.
 3. Blocked on everything? Repair the gate and add one missing assertion to a P21/P22/P23/P24 consistency test. Something landable always exists.
-4. Dead account of last resort: pre-build the P24 WP3 adapter test skeleton as a tested slice, but P24 WP3 cannot be *declared complete* before its script + artifact + test land together.
+4. Dead account of last resort: pre-build the P24 WP4 decision test skeleton as a tested slice, but P24 WP4 cannot be *declared complete* before its report + consistency test land together.
 
 Every session must end with a committed **code/test/artifact** diff and a ledger row. If a WP is only partially done, commit the slice and write the exact remainder in its ledger row.
 
@@ -167,7 +177,7 @@ bash scripts/bab_reconcile_gate.sh
 BAB_GATE_LOG=/tmp/bab_gate_handoff.log BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh
 ```
 
-Inner loop: `bash scripts/bab_quick.sh` + `python3 -m pytest -q tests/test_bab_p24_hysteresis.py` (once WP3 tests exist, add `tests/test_bab_p24_adapter.py`). Full gate once per WP boundary; never hand off mid-gate. Never lower the coverage floor.
+Inner loop: `bash scripts/bab_quick.sh` + `python3 -m pytest -q tests/test_bab_p24_adapter.py tests/test_bab_p24_hysteresis.py`. Full gate once per WP boundary; never hand off mid-gate. Never lower the coverage floor.
 
 ---
 
@@ -211,6 +221,7 @@ Inner loop: `bash scripts/bab_quick.sh` + `python3 -m pytest -q tests/test_bab_p
 - **[PERMANENTLY EXTERNAL] Real market data ingestion.** `api.exchange.coinbase.com` returns 403 from this environment; a licensed CSV is maintainer-supplied. Never a P21/P22/P23 task; P24 WP3 handles it as an offline fixture only.
 - **[REMOVED 2026-11-20T05:20:54Z] Stale HEAD certification.** HANDOFF.md certified HEAD `c8ad8e4`; HEAD has advanced to `42db732` (P24 WP1 checkpoint landed, working tree clean). Certify with `git log --oneline -4 && git status --short` at session start. Binding row re-confirmed as **P24 WP2 — rebalance hysteresis / turnover ladder**; WP1 is landed (script + `regime_split.{json,md}` + 22-test gate GREEN) — no session may idle on a landed WP.
 - **[REMOVED 2026-11-20T06:22:09Z] Stale HANDOFF.md pointed at P24 WP2 as the binding row and cited HEAD `42db732`; WP2 is landed (script + `hysteresis.{json,md}` + 24-test acceptance test, quick gate GREEN) and HEAD is `c43f7ef`. Binding row re-routed to **P24 WP3 — licensed-data adapter dry run** with a fresh timestamped INITIAL TASK MESSAGE.
+- **[REMOVED 2026-11-20T08:30:19Z] Stale HANDOFF.md pointed at P24 WP3 as the binding row and cited HEAD `c43f7ef`; WP3 is landed (script + `adapter_dryrun.{json,md}` + 27-test acceptance test, quick gate GREEN) and HEAD is `ae9af3b`. Binding row re-routed to **P24 WP4 — closing decision** with a fresh timestamped INITIAL TASK MESSAGE.
 
 ---
 
@@ -232,5 +243,4 @@ Inner loop: `bash scripts/bab_quick.sh` + `python3 -m pytest -q tests/test_bab_p
 | 2026-11-20T01:31:58Z | `5e0e38e` | **P24 WP0 completion — charter acceptance test + licensed-price CSV fixture.** Enhanced `tests/test_bab_p24_charter.py` from 2-stub to 22 comprehensive tests mirroring P23 WP4 pattern: AST no-harness scan, numeric leaf mapping from P24 charter to committed P21/P22/P23 JSON, verdict string checks (NO-GO, signal/noise, never market alpha), byte-identical artifact verification (SHA256). Validated P23/P22 thresholds (breadth ladder shape, drift_scale=0.1, 400 book runs, censored rank h=0.75 cell, null battery FPR, impact monotonicity, capacity break-even). Created `tests/fixtures/licensed_price_schema.csv` with valid schema (date,BTC,A001..A041, 43 columns, 5 rows) compatible with `load_prices()`. Re-routed binding row to **P24 WP1 — regime-split stress**. | ruff PASS; quick GREEN (104+195); reconcile GREEN; full gate **GREEN 6787 passed / 35 skipped / TOTAL 100%** |
 | 2026-11-20T05:20:54Z | `42db732` | **Handoff refreshed for P24 WP2 binding row.** Updated HANDOFF.md timestamp and HEAD certification to `42db732`; P24 WP1 landed (script + `regime_split.{json,md}` + 22-test gate GREEN); P24 WP2 — rebalance hysteresis / turnover ladder is the binding row. Deliverables: `scripts/bab_hysteresis_ladder.py`, `research_state/bab_p24/hysteresis.{json,md}`, `tests/test_bab_p24_hysteresis.py`. All P21/P22/P23/P24 artifacts intact; quick gate GREEN (104+195). | ruff PASS; quick GREEN (104+195) |
 | 2026-11-20T06:22:09Z | `c43f7ef` | **P24 WP2 landed — rebalance hysteresis / turnover ladder.** Added `scripts/bab_hysteresis_ladder.py`, `research_state/bab_p24/hysteresis.{json,md}` (24 cells, 480 book runs), `tests/test_bab_p24_hysteresis.py` (24 tests). Measured turnover ladder: calm regime 52→48→46 flips / 0.047→0.044→0.042 turnover_mean; stress regime 52→48→46 flips / 0.037→0.035→0.034 turnover_mean. Calm planted recovery +0.00019→+0.000192; stress planted recovery −0.00016→−0.000161. Null exactly 0.0 everywhere. Rank guards hold (min_leg_beta ≥ 1.46, gross_max ≤ 1.04). Hysteresis-zero reference matches P21 rank_eval at 6 dp. Byte-identical rebuild proven. Re-routed binding row to **P24 WP3 — licensed-data adapter dry run**. | ruff PASS; quick GREEN (104+195); reconcile GREEN |
-
 | 2026-11-20T07:32:13Z | `2f8c472` | **P24 WP3 landed — licensed-data adapter dry run.** Added `scripts/bab_licensed_adapter.py`, `research_state/bab_p24/adapter_dryrun.{json,md}`, `tests/test_bab_p24_adapter.py` (27 tests). Offline-only fixture validation; no network. Re-routed binding row to **P24 WP4 — closing decision**. | ruff PASS; quick GREEN; 27/27 tests PASS |
