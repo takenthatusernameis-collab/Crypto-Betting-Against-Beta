@@ -2,8 +2,8 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-20T21:33:16Z
-- **Git state:** HEAD `0a35893` (P25 WP1 complete, full gate GREEN 6932 passed / 35 skipped / TOTAL 100%). Working tree: clean. Certify with `git log --oneline -4 && git status --short`.
+- **Timestamp (UTC):** 2026-11-20T21:54:36Z
+- **Git state:** HEAD `449ea63` (P25 WP1 complete + handoff certified P25 WP2 binding). Working tree: clean. Certify with `git log --oneline -4 && git status --short`.
 - **P24 — COMPLETE** — All WPs landed, lint remediation done, full gate **GREEN 6885 passed / 35 skipped / TOTAL 100%**. No binding row remains in P24.
 - **P20-P23 — COMPLETE** — All campaigns closed per ledger. P20 WP0-WP5 (92 tests), P21 WP0-WP3 (56 tests), P22 WP0-WP3 (85 tests), P23 WP0-WP4 (80 tests), P24 WP0-WP4 (94 tests) all GREEN.
 - **P25 WP0 — COMPLETE** — All 4 deliverables committed: `scripts/bab_wide_universe.py`, `tests/fixtures/wide_bab_universe.csv`, `tests/fixtures/wide_bab_universe_meta.json`, `tests/test_bab_p25_wide_universe.py`. 24/24 acceptance tests GREEN, ruff clean.
@@ -13,7 +13,7 @@
 
 # INITIAL TASK MESSAGE (BINDING — START HERE)
 
-**Timestamp:** 2026-11-20T21:33:16Z · **Campaign:** P25 "Rank-weighting promotion via wide-universe OOS validation" · **Lane:** C · **WP:** **P25 WP2 — equal vs rank OOS bake-off**
+**Timestamp:** 2026-11-20T21:54:36Z · **Campaign:** P25 "Rank-weighting promotion via wide-universe OOS validation" · **Lane:** C · **WP:** **P25 WP2 — equal vs rank OOS bake-off**
 
 **One-sentence objective:** Run an equal-weight vs rank-weighted out-of-sample bake-off on the wide P25 universe across identical walk-forward folds so rank weighting can be compared to the equal-weight default and the evidence for the WP3 promotion decision is produced.
 
