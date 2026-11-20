@@ -2,8 +2,8 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-20T00:25:06Z
-- **Git state:** HEAD `8c3cba1` (checkpoint after `f281085`, **P23 WP4 landed + gate green**). Working tree clean. Certify with `git log --oneline -4 && git status --short`. Next row is **P24 WP0 — charter ("Regime-conditional BAB and holdout discipline")**.
+- **Timestamp (UTC):** 2026-11-20T00:36:13Z
+- **Git state:** HEAD `d44261a` (checkpoint after `8c3cba1`, **P23 WP4 landed + gate green**). Working tree clean. Certify with `git log --oneline -4 && git status --short`. Next row is **P24 WP0 — charter ("Regime-conditional BAB and holdout discipline")**.
 - **P23 WP3 IS LANDED, ARTIFACT-GATED AND GREEN** — the short-availability haircut ladder. It reads `research_state/bab_p21/universe.json`, `research_state/bab_p23/charter.json`, `research_state/bab_p23/breadth_ladder.json` and `research_state/bab_p23/beta_drift.json` **read-only**, draws one seeded availability mask per WP3 seed, drops unavailable short positions from the shipped `BABStrategy` book, and runs **400 book runs** (5 haircuts × 20 seeds × 2 weightings × 2 variants). All 20 chartered cells are reported with 20 per-seed recoveries, costed Sharpes and availabilities; 18 acceptance tests pin the artifact.
 - **Headline measurements (WP3):** `haircut_zero_reference` reproduces committed P21 `rank_eval.json` **and** WP2 `drift_zero_reference` at 6 dp (`planted_equal 0.000261`, `planted_rank 0.017360`, nulls `0.0`). Planted recovery is strictly positive on every seed in **every non-censored cell** (equal `+0.000357 → +0.001129`, rank `+0.017103 → +0.016103`). Null recovery is exactly `0.0` in every cell. Availability tracks `1 − h` at the cell mean (`0.9049 / 0.7341 / 0.4793 / 0.2280`). Borrow-costed Sharpe is non-increasing on every book (`+7.035 → −7500.5` equal, `+44.378 → −806.4` rank at `h=0.75`). Rank guards hold on every non-censored rank cell (`min_leg_beta ≥ 0.507692`, `gross_max ≤ 2.414949`).
 - **One cell is censored, visibly and for a real reason:** rank `h=0.75` (both variants) loses its entire short book on seed `20261245` (all 12 signal shorts are unavailable — a 0.75¹² ≈ 3.2% draw that did occur), so `active_rows_min = 0`, `degenerate_rows_max = 541`, `censor_reason = "no_active_rows_after_short_availability_restriction"`. It is never zeroed silently and never hidden. This is a genuine WP4 input: at 75% short withdrawal the market-neutral book can vanish outright.
@@ -22,7 +22,7 @@
 
 # INITIAL TASK MESSAGE (BINDING — START HERE)
 
-**Timestamp:** 2026-11-20T00:25:06Z · **Campaign:** P24 "Regime-conditional BAB and holdout discipline" · **Lane:** A · **WP:** **P24 WP0 — charter (binding immediately after P23 WP4)**
+**Timestamp:** 2026-11-20T00:36:13Z · **Campaign:** P24 "Regime-conditional BAB and holdout discipline" · **Lane:** A · **WP:** **P24 WP0 — charter (binding immediately after P23 WP4)**
 
 **One-sentence objective:** write `scripts/bab_p24_charter.py`, `research_state/bab_p24/charter.{json,md}`, `tests/test_bab_p24_charter.py`, and `docs/BAB_P24_KICKOFF.md`, a machine-checked charter over the committed P23 artifacts (read-only), declaring the P24 acceptance thresholds: two-regime synthetic benchmark (calm/stress) with regime-conditional betas; holdout split fixed before any tuning (no parameter selection on the evaluation window); hysteresis band grid on beta-rank turnover; a licensed-price CSV schema fixture for offline adapter testing (never network); and the P24 NO-GO verdict that keeps P23's NO-GO in force until a maintainer supplies a licensed price series.
 
