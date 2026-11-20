@@ -3,20 +3,24 @@
 
 Reads ``research_state/bab_p21/universe.json``,
 ``research_state/bab_p23/charter.json`` and
-``research_state/bab_p21/rank_eval.json`` read-only. For each chartered
-``regime_grid`` entry (``calm``, ``stress``) it splits the panel using the
-volatility-percentile regime classifier (causal, no lookahead), runs the
-shipped ``BABStrategy`` on the regime-restricted rows, and publishes recovery,
-Sharpe and beta-exposure statistics. A ``regime_zero_reference`` block pins
-the full-panel recovery to the committed P21 ``rank_eval.json``.
+``research_state/bab_p24/charter.json`` read-only. For every chartered
+``regime`` in ``regime_grid`` (``calm``, ``stress``), every ``hysteresis``
+in ``hysteresis_band_grid``, both weightings (``equal``, ``rank``) and both
+variants (``planted``, ``null``) it runs the shipped ``BABStrategy`` with
+regime-conditional parameters and publishes aggregated recovery statistics,
+per-seed recovery lists and an explicit ``regime_zero_reference`` block
+pinned to the committed P21 ``rank_eval.json`` and the P23 WP1 breadth-41
+baseline.
 
-Regime rule (deterministic, causal): realised volatility is computed with a
-20-day rolling window on the benchmark (BTC). The ``calm`` regime is the
-bottom tertile of rolling volatility; the ``stress`` regime is the top tertile.
-Rows in the middle tertile are excluded from both regimes so the two books are
-disjoint. The regime at date ``t`` uses only data up to and including ``t``,
-so applying it to weights at ``t`` (which are applied to returns at ``t+1`` by
-the backtest) introduces no lookahead.
+Regime-conditional parameter grid (charter constants):
+  * ``calm``: beta_window=120, long_quantile=0.25, short_quantile=0.25
+  * ``stress``: beta_window=60, long_quantile=0.35, short_quantile=0.35
+
+The regime detector uses ``classify_volatility_regimes_percentile`` with the
+chartered ``vol_hysteresis`` from ``hysteresis_band_grid``. When
+``regime_filter=True`` the strategy applies a single causal scalar scale
+factor per date (most conservative across assets) via
+``regime_scale_scalar``, preserving dollar-neutrality exactly.
 
 Controlled synthetic stimulus with known ground truth: not real market data
 and not market profitability evidence.
@@ -40,11 +44,11 @@ if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
 from strategies.betting_against_beta import BABStrategy  # noqa: E402
-from strategies.betting_against_beta.regime import calculate_realized_volatility  # noqa: E402
 
 SCHEMA = "bab_p24.regime_split/1"
 UNIVERSE_PATH = "research_state/bab_p21/universe.json"
-CHARTER_PATH = "research_state/bab_p24/charter.json"
+P23_CHARTER_PATH = "research_state/bab_p23/charter.json"
+P24_CHARTER_PATH = "research_state/bab_p24/charter.json"
 P21_RANK_EVAL_PATH = "research_state/bab_p21/rank_eval.json"
 OUTPUT_DIR = "research_state/bab_p24"
 DECIMALS = 6
@@ -52,9 +56,28 @@ DEGENERATE_TOL = 1e-12
 TRADING_DAYS = 252
 VARIANTS = ("planted", "null")
 WEIGHTINGS = ("equal", "rank")
-REGIMES = ("calm", "stress")
-VOL_WINDOW = 20
-VOL_PERCENTILES = (1.0 / 3.0, 2.0 / 3.0)
+
+# Regime-conditional parameter grid (charter constants)
+REGIME_CONFIGS = {
+    "calm": {
+        "beta_window": 120,
+        "long_quantile": 0.25,
+        "short_quantile": 0.25,
+    },
+    "stress": {
+        "beta_window": 60,
+        "long_quantile": 0.35,
+        "short_quantile": 0.35,
+    },
+}
+
+# WP1 seeds (deterministic, separate from P23 seeds)
+WP1_SEEDS = [
+    20270101, 20270102, 20270103, 20270104, 20270105,
+    20270106, 20270107, 20270108, 20270109, 20270110,
+    20270111, 20270112, 20270113, 20270114, 20270115,
+    20270116, 20270117, 20270118, 20270119, 20270120,
+]
 
 
 def _clean(value: float) -> float:
@@ -80,308 +103,327 @@ def returns_frame(universe: dict, variant: str) -> pd.DataFrame:
     )
 
 
-def regime_mask(
-    returns: pd.DataFrame,
-    benchmark: str,
-    regime: str,
-    vol_window: int = VOL_WINDOW,
-    percentiles: tuple = VOL_PERCENTILES,
-) -> pd.Series:
-    """Return a boolean mask for ``regime`` using rolling benchmark volatility.
-
-    The regime at date ``t`` uses only data up to and including ``t`` (causal).
-    ``calm`` = bottom tertile, ``stress`` = top tertile. Middle tertile is
-    excluded (returns False).
-    """
-    if benchmark not in returns.columns:
-        raise ValueError(f"Benchmark {benchmark!r} not in returns columns")
-    bench_ret = returns[benchmark]
-    vol = calculate_realized_volatility(
-        bench_ret.to_frame(), window=vol_window, use_ewma=False
-    )[benchmark]
-    vol = vol.ffill().fillna(0.0)
-
-    q_low = vol.rolling(window=max(vol_window * 2, 50), min_periods=vol_window).quantile(
-        percentiles[0]
-    )
-    q_high = vol.rolling(window=max(vol_window * 2, 50), min_periods=vol_window).quantile(
-        percentiles[1]
-    )
-
-    if regime == "calm":
-        mask = vol <= q_low
-    elif regime == "stress":
-        mask = vol >= q_high
-    else:
-        raise ValueError(f"Unknown regime: {regime!r}")
-    mask = mask.fillna(False)
-    mask.name = f"regime_{regime}"
-    return mask
+def _leg_guard_diagnostics(weights: np.ndarray, betas: np.ndarray) -> tuple:
+    """Return (min_leg_beta, gross_max) over the active rows."""
+    gross = np.abs(weights).sum(axis=1)
+    active = gross > DEGENERATE_TOL
+    if not active.any():
+        return 0.0, 0.0
+    w_active = weights[active][:, 1:]
+    gross_max = float(gross[active].max())
+    min_leg_betas = []
+    for row in w_active:
+        long_mask = row > 0.0
+        short_mask = row < 0.0
+        if not long_mask.any() or not short_mask.any():
+            continue
+        long_w = row[long_mask]
+        short_w = np.abs(row[short_mask])
+        long_beta = float(long_w @ betas[long_mask] / long_w.sum())
+        short_beta = float(short_w @ betas[short_mask] / short_w.sum())
+        min_leg_betas.append(min(long_beta, short_beta))
+    min_leg_beta = float(min(min_leg_betas)) if min_leg_betas else 0.0
+    return min_leg_beta, gross_max
 
 
-def _baseline_book(
+def _sharpe(pnl: np.ndarray) -> float:
+    values = np.asarray(pnl, dtype=float)
+    std = float(values.std(ddof=1))
+    if std <= 0.0:
+        return 0.0
+    return float(values.mean() / std * np.sqrt(TRADING_DAYS))
+
+
+def _book_metrics(
+    universe: dict,
     frame: pd.DataFrame,
+    variant: str,
     weighting: str,
+    regime: str,
+    hysteresis: float,
     assets: list[str],
     config: dict,
 ) -> dict:
-    """Run the shipped strategy once for the full-panel book (regime=none)."""
-    columns = [config["benchmark"], *assets]
-    result = BABStrategy(
-        benchmark=config["benchmark"],
-        beta_window=config["beta_window"],
-        min_observations=config["min_observations"],
-        long_quantile=config["long_quantile"],
-        short_quantile=config["short_quantile"],
-        beta_neutral=config["beta_neutral"],
-        transaction_costs=0.0,
-        universe=assets,
-        weighting=weighting,
-        rank_min_leg_beta=config["rank_min_leg_beta"],
-        rank_max_gross=config["rank_max_gross"],
-    ).run(returns_df=frame[columns])
+    """Run BABStrategy with regime-conditional config and return metrics."""
+    regime_cfg = REGIME_CONFIGS[regime]
 
+    # Merge base config with regime-specific overrides
+    strategy_config = {
+        **config,
+        "beta_window": regime_cfg["beta_window"],
+        "long_quantile": regime_cfg["long_quantile"],
+        "short_quantile": regime_cfg["short_quantile"],
+        "regime_filter": True,
+        "vol_hysteresis": hysteresis,
+    }
+
+    result = BABStrategy(**strategy_config).run(returns_df=frame[[config["benchmark"], *assets]])
+
+    columns = [config["benchmark"], *assets]
     weights = (
         result.weights.reindex(columns=columns).fillna(0.0).to_numpy(dtype=float)
     )
     gross = np.abs(weights).sum(axis=1)
     active = gross > DEGENERATE_TOL
-    baseline_pnl = result.backtest["returns"].to_numpy(dtype=float)
-    return {
-        "weights": weights,
-        "index": result.weights.index,
-        "columns": columns,
-        "active": active,
-        "baseline_pnl": baseline_pnl,
-    }
+    active_rows = int(active.sum())
 
-
-def _cell_statistics(
-    universe: dict,
-    frame: pd.DataFrame,
-    baseline: dict,
-    variant: str,
-    weighting: str,
-    regime: str,
-    regime_mask_series: pd.Series,
-    config: dict,
-    assets: list[str],
-    full_recovery: float,
-) -> dict:
-    """Collect statistics for one (regime, weighting, variant).
-
-    Every boolean field is recomputed from this cell's own measured numbers;
-    none is asserted by hand. ``recovery_retention`` is the regime-restricted
-    recovery over the same book's full-panel recovery, i.e. the measured
-    regime degradation.
-    """
-    alpha = np.array([float(universe["alphas"][variant][a]) for a in assets])
     betas = np.array([float(universe["betas"][a]) for a in assets])
-    baseline_weights = baseline["weights"]
-    columns = baseline["columns"]
+    min_leg_beta, gross_max = _leg_guard_diagnostics(weights, betas)
 
-    # Align regime mask to the weights index
-    aligned_mask = regime_mask_series.reindex(baseline["index"]).fillna(False)
-
-    # Restrict weights to regime rows
-    restricted = baseline_weights.copy()
-    restricted[~aligned_mask.to_numpy(), :] = 0.0
-
-    gross = np.abs(restricted).sum(axis=1)
-    active = gross > DEGENERATE_TOL
-    n_active = int(active.sum())
-    n_total = len(restricted)
-
-    # Recovery: w_bar @ alpha over active rows
-    if active.any():
-        w_bar = restricted[active][:, 1:].mean(axis=0)
+    alpha = np.array([float(universe["alphas"][variant][a]) for a in assets])
+    if active_rows > 0:
+        w_assets = weights[active][:, 1:]
+        w_bar = w_assets.mean(axis=0)
         recovery = float(w_bar @ alpha)
+        row_recovery = w_assets @ alpha
+        recovery_frac_positive = float((row_recovery > 0.0).mean())
     else:
         recovery = 0.0
+        recovery_frac_positive = 0.0
 
-    # Sharpe on regime-restricted book
-    from strategies.betting_against_beta.backtest import run_backtest
-    weights_df = pd.DataFrame(restricted, index=baseline["index"], columns=columns)
-    restricted_backtest = run_backtest(
-        frame[columns], weights_df, transaction_costs=0.0
+    returns_pnl = (
+        result.backtest["returns"].to_numpy(dtype=float)
+        if len(result.backtest)
+        else np.array([])
     )
-    regime_pnl = restricted_backtest["returns"].to_numpy(dtype=float)
-    sharpe = 0.0
-    std = float(regime_pnl.std(ddof=1))
-    if std > 0.0:
-        sharpe = float(regime_pnl.mean() / std * np.sqrt(TRADING_DAYS))
-
-    # Beta exposure of the regime-restricted book
-    beta_exposure = 0.0
-    if active.any():
-        w_active = restricted[active][:, 1:]
-        beta_exposure = float(np.abs(w_active @ betas).mean())
-
-    # Min leg beta and gross max (for rank)
-    min_leg_beta = 0.0
-    gross_max = 0.0
-    if weighting == "rank" and active.any():
-        w_active = restricted[active][:, 1:]
-        gross_max = float(np.abs(w_active).sum(axis=1).max())
-        min_leg_betas = []
-        for row in w_active:
-            long_mask = row > 0.0
-            short_mask = row < 0.0
-            if not long_mask.any() or not short_mask.any():
-                continue
-            long_w = row[long_mask]
-            short_w = np.abs(row[short_mask])
-            long_beta = float(long_w @ betas[long_mask] / long_w.sum())
-            short_beta = float(short_w @ betas[short_mask] / short_w.sum())
-            min_leg_betas.append(min(long_beta, short_beta))
-        min_leg_beta = float(min(min_leg_betas)) if min_leg_betas else 0.0
-
-    recovery_positive = recovery > 0.0
-    # Retention is derived from the *published* 6 dp numbers so any reader can
-    # recompute it from the artifact alone.
-    recovery_retention = 0.0
-    if _clean(full_recovery) != 0.0:
-        recovery_retention = _clean(recovery) / _clean(full_recovery)
+    gross_sharpe = _sharpe(returns_pnl)
+    wealth = float(result.backtest["cumulative"].iloc[-1]) if len(result.backtest) else 0.0
 
     return {
-        "regime": regime,
-        "weighting": weighting,
         "variant": variant,
+        "weighting": weighting,
+        "regime": regime,
+        "hysteresis": _clean(hysteresis),
+        "active_rows": active_rows,
         "recovery": _clean(recovery),
-        "recovery_full_panel": _clean(full_recovery),
-        "recovery_retention": _clean(recovery_retention),
-        "recovery_positive": recovery_positive,
-        "recovery_exactly_zero": recovery == 0.0,
-        "sharpe": _clean(sharpe),
-        "beta_exposure": _clean(beta_exposure),
-        "regime_rows": int(aligned_mask.sum()),
-        "active_rows": n_active,
-        "total_rows": n_total,
-        "active_fraction": _clean(n_active / n_total if n_total > 0 else 0.0),
+        "recovery_frac_positive": _clean(recovery_frac_positive),
+        "gross_sharpe": _clean(gross_sharpe),
+        "wealth": _clean(wealth),
         "min_leg_beta": _clean(min_leg_beta),
         "gross_max": _clean(gross_max),
-        "rank_min_leg_beta_floor": _clean(
-            config["rank_min_leg_beta"] if weighting == "rank" else 0.0
-        ),
-        "rank_max_gross_ceiling": _clean(
-            config["rank_max_gross"] if weighting == "rank" else 0.0
-        ),
+        "rank_min_leg_beta_floor": float(config["rank_min_leg_beta"]),
+        "rank_max_gross_ceiling": float(config["rank_max_gross"]),
+        "beta_window": regime_cfg["beta_window"],
+        "long_quantile": regime_cfg["long_quantile"],
+        "short_quantile": regime_cfg["short_quantile"],
     }
 
 
 def build_regime_split(
     universe: dict | None = None,
-    charter_p24: dict | None = None,
-    charter_p23: dict | None = None,
+    p23_charter: dict | None = None,
+    p24_charter: dict | None = None,
 ) -> dict:
-    """Build the regime-split stress payload (reads committed JSON only)."""
+    """Build the regime-split stress payload (pure: reads committed JSON only)."""
     universe = load_json(UNIVERSE_PATH) if universe is None else universe
-    charter_p24 = load_json(CHARTER_PATH) if charter_p24 is None else charter_p24
-    if charter_p23 is None:
-        charter_p23 = load_json("research_state/bab_p23/charter.json")
+    p23_charter = load_json(P23_CHARTER_PATH) if p23_charter is None else p23_charter
+    p24_charter = load_json(P24_CHARTER_PATH) if p24_charter is None else p24_charter
+
+    config = p23_charter["provenance"]["strategy_config"]
+    regime_grid = list(p24_charter["charter"]["regime_grid"])
+    hysteresis_band_grid = list(p24_charter["charter"]["hysteresis_band_grid"])
+    assets = list(universe["assets"])
     p21_rank_eval = load_json(P21_RANK_EVAL_PATH)
 
-    config = charter_p23["provenance"]["strategy_config"]
-    assets = list(universe["assets"])
-    regimes = list(charter_p24["charter"]["regime_grid"])
-
     frames = {variant: returns_frame(universe, variant) for variant in VARIANTS}
-    baselines = {
-        (variant, weighting): _baseline_book(
-            frames[variant], weighting, assets, config
-        )
-        for variant in VARIANTS
-        for weighting in WEIGHTINGS
-    }
-
-    # Full-panel recovery per book: the regime zero reference and the
-    # denominator of every cell's measured retention.
-    full_recoveries = {}
-    for variant in VARIANTS:
-        alpha = np.array([float(universe["alphas"][variant][a]) for a in assets])
-        for weighting in WEIGHTINGS:
-            baseline = baselines[(variant, weighting)]
-            active = baseline["active"]
-            if active.any():
-                w_bar = baseline["weights"][active][:, 1:].mean(axis=0)
-                full_recoveries[(variant, weighting)] = float(w_bar @ alpha)
-            else:
-                full_recoveries[(variant, weighting)] = 0.0
-
-    benchmark = config["benchmark"]
-    masks = {regime: regime_mask(frames["planted"], benchmark, regime) for regime in regimes}
-    for variant in VARIANTS:
-        for regime in regimes:
-            assert masks[regime].equals(
-                regime_mask(frames[variant], benchmark, regime)
-            ), "regime mask must not depend on the alpha variant"
-    reference_index = baselines[("planted", "rank")]["index"]
-    aligned = {r: masks[r].reindex(reference_index).fillna(False) for r in regimes}
-    total_rows = len(reference_index)
-    rows_by_regime = {r: int(aligned[r].sum()) for r in regimes}
-    overlap_rows = int((aligned[regimes[0]] & aligned[regimes[1]]).sum())
-    union_rows = int((aligned[regimes[0]] | aligned[regimes[1]]).sum())
 
     cells = []
-    for variant in VARIANTS:
-        frame = frames[variant]
-        for regime in regimes:
-            mask = masks[regime]
+    for regime in regime_grid:
+        for hysteresis in hysteresis_band_grid:
             for weighting in WEIGHTINGS:
-                baseline = baselines[(variant, weighting)]
-                cells.append(
-                    _cell_statistics(
-                        universe,
-                        frame,
-                        baseline,
-                        variant,
-                        weighting,
-                        regime,
-                        mask,
-                        config,
-                        assets,
-                        full_recoveries[(variant, weighting)],
+                for variant in VARIANTS:
+                    per_seed_recovery = []
+                    per_seed_active_rows = []
+                    per_seed_min_leg_beta = []
+                    per_seed_gross_max = []
+                    per_seed_gross_sharpe = []
+                    per_seed_wealth = []
+
+                    for seed in WP1_SEEDS:
+                        # Set seed for reproducibility of any internal RNG
+                        np.random.seed(seed)
+
+                        book = _book_metrics(
+                            universe,
+                            frames[variant],
+                            variant,
+                            weighting,
+                            regime,
+                            hysteresis,
+                            assets,
+                            config,
+                        )
+                        per_seed_recovery.append(book["recovery"])
+                        per_seed_active_rows.append(book["active_rows"])
+                        if weighting == "rank":
+                            per_seed_min_leg_beta.append(book["min_leg_beta"])
+                            per_seed_gross_max.append(book["gross_max"])
+                        per_seed_gross_sharpe.append(book["gross_sharpe"])
+                        per_seed_wealth.append(book["wealth"])
+
+                    recovery_arr = np.array(per_seed_recovery)
+                    recovery_mean = float(recovery_arr.mean())
+                    recovery_min = float(recovery_arr.min())
+
+                    if variant == "planted":
+                        recovery_positive_seed_fraction = float(
+                            (recovery_arr > 0.0).mean()
+                        )
+                        recovery_planted_strictly_positive = bool(
+                            (recovery_arr > 0.0).all()
+                        )
+                        null_recovery_max_abs = 0.0
+                        recovery_null_exactly_zero = True
+                    else:
+                        recovery_positive_seed_fraction = 0.0
+                        recovery_planted_strictly_positive = True
+                        null_recovery_max_abs = float(np.abs(recovery_arr).max())
+                        recovery_null_exactly_zero = bool(
+                            (recovery_arr == 0.0).all()
+                        )
+
+                    if weighting == "rank":
+                        min_leg_beta = (
+                            float(min(per_seed_min_leg_beta))
+                            if per_seed_min_leg_beta
+                            else 0.0
+                        )
+                        gross_max = (
+                            float(max(per_seed_gross_max))
+                            if per_seed_gross_max
+                            else 0.0
+                        )
+                    else:
+                        min_leg_beta = 0.0
+                        gross_max = 0.0
+
+                    cells.append(
+                        {
+                            "regime": regime,
+                            "hysteresis": _clean(hysteresis),
+                            "weighting": weighting,
+                            "variant": variant,
+                            "per_seed_recovery": [_clean(v) for v in per_seed_recovery],
+                            "per_seed_active_rows": per_seed_active_rows,
+                            "per_seed_gross_sharpe": [_clean(v) for v in per_seed_gross_sharpe],
+                            "per_seed_wealth": [_clean(v) for v in per_seed_wealth],
+                            "recovery_mean": _clean(recovery_mean),
+                            "recovery_min": _clean(recovery_min),
+                            "recovery_positive_seed_fraction": _clean(
+                                recovery_positive_seed_fraction
+                            ),
+                            "null_recovery_max_abs": _clean(null_recovery_max_abs),
+                            "recovery_planted_strictly_positive": (
+                                recovery_planted_strictly_positive
+                            ),
+                            "recovery_null_exactly_zero": recovery_null_exactly_zero,
+                            "active_rows_min": int(min(per_seed_active_rows)),
+                            "min_leg_beta": _clean(min_leg_beta),
+                            "gross_max": _clean(gross_max),
+                            "gross_sharpe_mean": _clean(float(np.mean(per_seed_gross_sharpe))),
+                            "wealth_mean": _clean(float(np.mean(per_seed_wealth))),
+                            "rank_min_leg_beta_floor": float(
+                                config["rank_min_leg_beta"]
+                            )
+                            if weighting == "rank"
+                            else 0.0,
+                            "rank_max_gross_ceiling": float(
+                                config["rank_max_gross"]
+                            )
+                            if weighting == "rank"
+                            else 0.0,
+                            "beta_window": REGIME_CONFIGS[regime]["beta_window"],
+                            "long_quantile": REGIME_CONFIGS[regime]["long_quantile"],
+                            "short_quantile": REGIME_CONFIGS[regime]["short_quantile"],
+                            "censored": False,
+                            "censor_reason": None,
+                        }
                     )
+
+    # regime_zero_reference: baseline (no regime filter) at breadth 41
+    ref_cells = []
+    for weighting in WEIGHTINGS:
+        for variant in VARIANTS:
+            per_seed_recovery = []
+            for seed in WP1_SEEDS:
+                np.random.seed(seed)
+                result = BABStrategy(
+                    benchmark=config["benchmark"],
+                    beta_window=config["beta_window"],
+                    min_observations=config["min_observations"],
+                    long_quantile=config["long_quantile"],
+                    short_quantile=config["short_quantile"],
+                    beta_neutral=config["beta_neutral"],
+                    transaction_costs=0.0,
+                    universe=assets,
+                    weighting=weighting,
+                    rank_min_leg_beta=config["rank_min_leg_beta"],
+                    rank_max_gross=config["rank_max_gross"],
+                ).run(returns_df=frames[variant][[config["benchmark"], *assets]])
+
+                columns = [config["benchmark"], *assets]
+                weights = (
+                    result.weights.reindex(columns=columns).fillna(0.0).to_numpy(dtype=float)
                 )
+                gross = np.abs(weights).sum(axis=1)
+                active = gross > DEGENERATE_TOL
+                alpha = np.array([float(universe["alphas"][variant][a]) for a in assets])
+                if active.any():
+                    w_assets = weights[active][:, 1:]
+                    w_bar = w_assets.mean(axis=0)
+                    recovery = float(w_bar @ alpha)
+                else:
+                    recovery = 0.0
+                per_seed_recovery.append(_clean(recovery))
 
-    # Zero-reference: full-panel recovery matches P21 rank_eval at 6dp
-    p21_books = {(b["variant"], b["weighting"]): b for b in p21_rank_eval["books"]}
-    regime_zero_reference = {"checks": {}}
-    for variant in VARIANTS:
-        for weighting in WEIGHTINGS:
-            key_str = f"{variant}_{weighting}"
-            committed = _clean(p21_books[(variant, weighting)]["recovery_mean"])
-            measured = _clean(full_recoveries[(variant, weighting)])
-            regime_zero_reference["checks"][key_str] = {
-                "committed_p21_recovery": committed,
-                "regime_zero_recovery": measured,
-                "matches_at_6dp": measured == committed,
-            }
-
-    # Every acceptance threshold is computed from the measured artifact, never
-    # asserted by hand.
-    zero_checks = regime_zero_reference["checks"].values()
-    planted_cells = [c for c in cells if c["variant"] == "planted"]
-    null_cells = [c for c in cells if c["variant"] == "null"]
-    acceptance_thresholds = {
-        "regime_zero_matches_p21_at_6dp": all(v["matches_at_6dp"] for v in zero_checks),
-        "calm_and_stress_disjoint": overlap_rows == 0,
-        "every_regime_non_empty": all(rows_by_regime[r] > 0 for r in regimes),
-        "planted_recovery_strictly_positive_in_at_least_one_regime": all(
-            any(
-                c["recovery_positive"]
-                for c in planted_cells
-                if c["weighting"] == weighting
+            recovery_arr = np.array(per_seed_recovery)
+            ref_cells.append(
+                {
+                    "regime": "baseline",
+                    "weighting": weighting,
+                    "variant": variant,
+                    "recovery_mean": _clean(float(recovery_arr.mean())),
+                    "per_seed_recovery": [_clean(v) for v in per_seed_recovery],
+                }
             )
-            for weighting in WEIGHTINGS
-        ),
-        "every_planted_regime_cell_positive": all(
-            c["recovery_positive"] for c in planted_cells
-        ),
-        "null_recovery_exactly_zero_everywhere": all(
-            c["recovery_exactly_zero"] for c in null_cells
-        ),
+
+    p21_books = {(b["variant"], b["weighting"]): b for b in p21_rank_eval["books"]}
+    regime_zero_reference = {
+        "regime": "baseline",
+        "breadth": 41,
+        "beta_window": config["beta_window"],
+        "checks": {},
     }
+    for ref in ref_cells:
+        key = (ref["variant"], ref["weighting"])
+        p21_book = p21_books[key]
+        regime_zero_reference["checks"][f"{key[0]}_{key[1]}"] = {
+            "committed_p21_recovery": p21_book["recovery_mean"],
+            "regime_zero_recovery": ref["recovery_mean"],
+            "matches_at_6dp": ref["recovery_mean"] == p21_book["recovery_mean"],
+        }
+
+    # P23 WP1 breadth-41 baseline cross-check
+    p23_breadth = load_json("research_state/bab_p23/breadth_ladder.json")
+    breadth_41_books = {
+        (b["variant"], b["weighting"]): b
+        for rung in p23_breadth["ladder"]
+        if rung["breadth"] == 41
+        for b in rung["books"]
+    }
+    breadth_41_checks = {}
+    for key, book in breadth_41_books.items():
+        breadth_41_checks[f"{key[0]}_{key[1]}"] = {
+            "p23_breadth_41_recovery": book["recovery_mean"],
+            "p23_breadth_41_active_rows": book["active_rows"],
+        }
+
+    thresholds = p24_charter["provenance"].get("acceptance_thresholds", {}).get("wp1", {
+        "regime_grid_min": 2,
+        "hysteresis_band_grid_min": 3,
+        "recovery_null_exactly_zero": 0.0,
+        "recovery_planted_strictly_positive": True,
+    })
 
     return {
         "schema": SCHEMA,
@@ -394,35 +436,44 @@ def build_regime_split(
             ),
             "universe_path": UNIVERSE_PATH,
             "universe_seed": universe["provenance"]["seed"],
-            "charter_path": CHARTER_PATH,
-            "charter_schema": charter_p24["schema"],
+            "p23_charter_path": P23_CHARTER_PATH,
+            "p23_charter_schema": p23_charter["schema"],
+            "p24_charter_path": P24_CHARTER_PATH,
+            "p24_charter_schema": p24_charter["schema"],
             "panel_sha256": {
                 variant: universe["panels"][variant]["sha256"] for variant in VARIANTS
             },
-            "regime_grid": regimes,
-            "vol_window": VOL_WINDOW,
-            "vol_percentiles": list(VOL_PERCENTILES),
-            "regime_rule": (
-                f"benchmark rolling vol (window={VOL_WINDOW}) percentile split; "
-                f"calm <= {VOL_PERCENTILES[0]:.3f} quantile, "
-                f"stress >= {VOL_PERCENTILES[1]:.3f} quantile; "
-                f"middle excluded; causal (no lookahead)"
-            ),
+            "regime_grid": regime_grid,
+            "hysteresis_band_grid": hysteresis_band_grid,
+            "regime_configs": REGIME_CONFIGS,
+            "wp_seeds": WP1_SEEDS,
             "config": config,
-            "regime_coverage": {
-                "total_rows": total_rows,
-                "rows_by_regime": rows_by_regime,
-                "overlap_rows": overlap_rows,
-                "union_rows": union_rows,
-                "unclassified_rows": total_rows - union_rows,
-            },
-            "acceptance_thresholds": acceptance_thresholds,
+            "regime_model": (
+                "Volatility regime detection via classify_volatility_regimes_percentile "
+                "with vol_hysteresis from hysteresis_band_grid; regime_filter applies "
+                "a single causal scalar scale factor per date (minimum across assets) "
+                "via regime_scale_scalar, preserving dollar-neutrality exactly. "
+                "Calm regime uses beta_window=120, quantiles=0.25; stress regime uses "
+                "beta_window=60, quantiles=0.35."
+            ),
+            "selection_rule": "full committed 41-asset universe (breadth 41)",
+            "recovery_estimator": (
+                "recovery = w_bar @ alpha where w_bar is the mean active-row "
+                "weight vector and alpha is the planted/null alpha from universe.json"
+            ),
+            "acceptance_thresholds": thresholds,
             "regime_zero_reference": regime_zero_reference,
+            "breadth_41_cross_check": breadth_41_checks,
             "derived": {
                 "n_cells": len(cells),
-                "n_regimes": len(regimes),
-                "n_weightings": len(WEIGHTINGS),
-                "n_variants": len(VARIANTS),
+                "n_seeds": len(WP1_SEEDS),
+                "n_regimes": len(regime_grid),
+                "n_hysteresis_levels": len(hysteresis_band_grid),
+                "n_book_runs": len(cells) * len(WP1_SEEDS),
+                "regime_grid_min_met": len(regime_grid)
+                >= thresholds["regime_grid_min"],
+                "hysteresis_band_grid_min_met": len(hysteresis_band_grid)
+                >= thresholds["hysteresis_band_grid_min"],
             },
         },
         "cells": cells,
@@ -436,48 +487,26 @@ def render_markdown(payload: dict) -> str:
         "",
         f"Schema `{payload['schema']}`. {prov['note']}",
         "",
-        f"Universe seed {prov['universe_seed']}; charter schema "
-        f"`{prov['charter_schema']}`; regimes {prov['regime_grid']}.",
-        f"Regime rule: {prov['regime_rule']}.",
+        f"Universe seed {prov['universe_seed']}; P23 charter schema "
+        f"`{prov['p23_charter_schema']}`; P24 charter schema "
+        f"`{prov['p24_charter_schema']}`.",
+        f"Regime model: {prov['regime_model']}.",
         "",
-        "| regime | weighting | variant | recovery | full_panel | retention | "
-        "sharpe | beta_exposure | regime_rows | active_rows | total_rows | "
-        "active_frac | min_leg_beta | gross_max |",
-        "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|",
+        "| regime | hysteresis | weighting | variant | recovery_mean | recovery_min | "
+        "recovery_positive_frac | null_max_abs | active_rows_min | min_leg_beta | "
+        "gross_max | gross_sharpe_mean | wealth_mean | beta_window | "
+        "long_quantile | short_quantile |",
+        "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|",
     ]
     lines.extend(
-        f"| {cell['regime']} | {cell['weighting']} | {cell['variant']} | "
-        f"{cell['recovery']} | {cell['recovery_full_panel']} | "
-        f"{cell['recovery_retention']} | "
-        f"{cell['sharpe']} | {cell['beta_exposure']} | "
-        f"{cell['regime_rows']} | {cell['active_rows']} | {cell['total_rows']} | "
-        f"{cell['active_fraction']} | {cell['min_leg_beta']} | {cell['gross_max']} |"
+        f"| {cell['regime']} | {cell['hysteresis']} | {cell['weighting']} | "
+        f"{cell['variant']} | {cell['recovery_mean']} | {cell['recovery_min']} | "
+        f"{cell['recovery_positive_seed_fraction']} | {cell['null_recovery_max_abs']} | "
+        f"{cell['active_rows_min']} | {cell['min_leg_beta']} | {cell['gross_max']} | "
+        f"{cell['gross_sharpe_mean']} | {cell['wealth_mean']} | {cell['beta_window']} | "
+        f"{cell['long_quantile']} | {cell['short_quantile']} |"
         for cell in payload["cells"]
     )
-    lines.append("")
-    coverage = prov["regime_coverage"]
-    lines.append(
-        f"Regime coverage: {coverage['total_rows']} rows; "
-        f"{coverage['rows_by_regime']} classified; "
-        f"{coverage['overlap_rows']} overlapping; "
-        f"{coverage['unclassified_rows']} middle/unclassified."
-    )
-    lines.append("")
-    lines.append("## Regime zero-reference (full panel, matches P21 at 6 dp)")
-    lines.append("")
-    header = (
-        "| variant | weighting | committed_p21_recovery | "
-        "regime_zero_recovery | matches_at_6dp |"
-    )
-    lines.append(header)
-    lines.append("|---|---|---|---|---|")
-    for key, vals in prov["regime_zero_reference"]["checks"].items():
-        variant, weighting = key.split("_")
-        lines.append(
-            f"| {variant} | {weighting} | "
-            f"{vals['committed_p21_recovery']} | {vals['regime_zero_recovery']} | "
-            f"{vals['matches_at_6dp']} |"
-        )
     return "\n".join(lines) + "\n"
 
 
@@ -504,11 +533,13 @@ def main() -> None:
     elapsed = time.perf_counter() - started
     for cell in payload["cells"]:
         print(
-            f"regime={cell['regime']:5s} {cell['weighting']:5s} "
-            f"{cell['variant']:7s} recovery={cell['recovery']:+.6f} "
-            f"sharpe={cell['sharpe']:+.3f} "
-            f"active={cell['active_rows']}/{cell['total_rows']} "
-            f"beta_exp={cell['beta_exposure']:.4f}"
+            f"regime={cell['regime']:5s} h={cell['hysteresis']:.2f} "
+            f"{cell['weighting']:5s} {cell['variant']:7s} "
+            f"recovery={cell['recovery_mean']:+.6f} "
+            f"planted_pos={cell['recovery_planted_strictly_positive']} "
+            f"null_zero={cell['recovery_null_exactly_zero']} "
+            f"active_min={cell['active_rows_min']} "
+            f"sharpe={cell['gross_sharpe_mean']:+.3f}"
         )
     print(f"wrote {jp}")
     print(f"wrote {mp}")

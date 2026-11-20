@@ -2,27 +2,32 @@
 
 Schema `bab_p24.regime_split/1`. Controlled synthetic stimulus with known ground truth: not real market data and not market profitability evidence.
 
-Universe seed 20261118; charter schema `bab_p24.charter/1`; regimes ['calm', 'stress'].
-Regime rule: benchmark rolling vol (window=20) percentile split; calm <= 0.333 quantile, stress >= 0.667 quantile; middle excluded; causal (no lookahead).
+Universe seed 20261118; P23 charter schema `bab_p23.charter/1`; P24 charter schema `bab_p24.charter/1`.
+Regime model: Volatility regime detection via classify_volatility_regimes_percentile with vol_hysteresis from hysteresis_band_grid; regime_filter applies a single causal scalar scale factor per date (minimum across assets) via regime_scale_scalar, preserving dollar-neutrality exactly. Calm regime uses beta_window=120, quantiles=0.25; stress regime uses beta_window=60, quantiles=0.35..
 
-| regime | weighting | variant | recovery | full_panel | retention | sharpe | beta_exposure | regime_rows | active_rows | total_rows | active_frac | min_leg_beta | gross_max |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| calm | equal | planted | 0.000262 | 0.000261 | 1.003831 | 4.553331 | 0.037119 | 219 | 213 | 600 | 0.355 | 0.0 | 0.0 |
-| calm | rank | planted | 0.017356 | 0.01736 | 0.99977 | 11.59948 | 0.012578 | 219 | 213 | 600 | 0.355 | 0.510833 | 2.414949 |
-| stress | equal | planted | 0.000251 | 0.000261 | 0.961686 | 3.480383 | 0.037776 | 206 | 179 | 600 | 0.298333 | 0.0 | 0.0 |
-| stress | rank | planted | 0.017311 | 0.01736 | 0.997177 | 10.221435 | 0.011091 | 206 | 179 | 600 | 0.298333 | 0.507692 | 2.403391 |
-| calm | equal | null | 0.0 | 0.0 | 0.0 | 0.76551 | 0.037119 | 219 | 213 | 600 | 0.355 | 0.0 | 0.0 |
-| calm | rank | null | 0.0 | 0.0 | 0.0 | 1.304143 | 0.012578 | 219 | 213 | 600 | 0.355 | 0.510833 | 2.414949 |
-| stress | equal | null | 0.0 | 0.0 | 0.0 | 0.234073 | 0.037776 | 206 | 179 | 600 | 0.298333 | 0.0 | 0.0 |
-| stress | rank | null | 0.0 | 0.0 | 0.0 | -0.366438 | 0.011091 | 206 | 179 | 600 | 0.298333 | 0.507692 | 2.403391 |
-
-Regime coverage: 600 rows; {'calm': 219, 'stress': 206} classified; 0 overlapping; 175 middle/unclassified.
-
-## Regime zero-reference (full panel, matches P21 at 6 dp)
-
-| variant | weighting | committed_p21_recovery | regime_zero_recovery | matches_at_6dp |
-|---|---|---|---|---|
-| planted | equal | 0.000261 | 0.000261 | True |
-| planted | rank | 0.01736 | 0.01736 | True |
-| null | equal | 0.0 | 0.0 | True |
-| null | rank | 0.0 | 0.0 | True |
+| regime | hysteresis | weighting | variant | recovery_mean | recovery_min | recovery_positive_frac | null_max_abs | active_rows_min | min_leg_beta | gross_max | gross_sharpe_mean | wealth_mean | beta_window | long_quantile | short_quantile |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| calm | 0.05 | equal | planted | 0.00019 | 0.00019 | 1.0 | 0.0 | 541 | 0.0 | 0.0 | 4.680954 | 1.10657 | 120 | 0.25 | 0.25 |
+| calm | 0.05 | equal | null | 0.0 | 0.0 | 0.0 | 0.0 | 541 | 0.0 | 0.0 | -0.061797 | 0.998582 | 120 | 0.25 | 0.25 |
+| calm | 0.05 | rank | planted | 0.00019 | 0.00019 | 1.0 | 0.0 | 541 | 1.461772 | 1.03602 | 4.680954 | 1.10657 | 120 | 0.25 | 0.25 |
+| calm | 0.05 | rank | null | 0.0 | 0.0 | 0.0 | 0.0 | 541 | 1.461772 | 1.03602 | -0.061797 | 0.998582 | 120 | 0.25 | 0.25 |
+| calm | 0.1 | equal | planted | 0.000191 | 0.000191 | 1.0 | 0.0 | 541 | 0.0 | 0.0 | 4.687032 | 1.106237 | 120 | 0.25 | 0.25 |
+| calm | 0.1 | equal | null | 0.0 | 0.0 | 0.0 | 0.0 | 541 | 0.0 | 0.0 | -0.103003 | 0.99771 | 120 | 0.25 | 0.25 |
+| calm | 0.1 | rank | planted | 0.000191 | 0.000191 | 1.0 | 0.0 | 541 | 1.461772 | 1.036523 | 4.687032 | 1.106237 | 120 | 0.25 | 0.25 |
+| calm | 0.1 | rank | null | 0.0 | 0.0 | 0.0 | 0.0 | 541 | 1.461772 | 1.036523 | -0.103003 | 0.99771 | 120 | 0.25 | 0.25 |
+| calm | 0.15 | equal | planted | 0.000192 | 0.000192 | 1.0 | 0.0 | 541 | 0.0 | 0.0 | 4.72523 | 1.107064 | 120 | 0.25 | 0.25 |
+| calm | 0.15 | equal | null | 0.0 | 0.0 | 0.0 | 0.0 | 541 | 0.0 | 0.0 | -0.086861 | 0.998056 | 120 | 0.25 | 0.25 |
+| calm | 0.15 | rank | planted | 0.000192 | 0.000192 | 1.0 | 0.0 | 541 | 1.461772 | 1.036523 | 4.72523 | 1.107064 | 120 | 0.25 | 0.25 |
+| calm | 0.15 | rank | null | 0.0 | 0.0 | 0.0 | 0.0 | 541 | 1.461772 | 1.036523 | -0.086861 | 0.998056 | 120 | 0.25 | 0.25 |
+| stress | 0.05 | equal | planted | -0.00016 | -0.00016 | 0.0 | 0.0 | 541 | 0.0 | 0.0 | -6.979323 | 0.908464 | 60 | 0.35 | 0.35 |
+| stress | 0.05 | equal | null | 0.0 | 0.0 | 0.0 | 0.0 | 541 | 0.0 | 0.0 | -0.730612 | 0.990243 | 60 | 0.35 | 0.35 |
+| stress | 0.05 | rank | planted | -0.00016 | -0.00016 | 0.0 | 0.0 | 541 | 1.464354 | 0.743608 | -6.979323 | 0.908464 | 60 | 0.35 | 0.35 |
+| stress | 0.05 | rank | null | 0.0 | 0.0 | 0.0 | 0.0 | 541 | 1.464354 | 0.743608 | -0.730612 | 0.990243 | 60 | 0.35 | 0.35 |
+| stress | 0.1 | equal | planted | -0.000161 | -0.000161 | 0.0 | 0.0 | 541 | 0.0 | 0.0 | -6.916945 | 0.909539 | 60 | 0.35 | 0.35 |
+| stress | 0.1 | equal | null | 0.0 | 0.0 | 0.0 | 0.0 | 541 | 0.0 | 0.0 | -0.605881 | 0.991888 | 60 | 0.35 | 0.35 |
+| stress | 0.1 | rank | planted | -0.000161 | -0.000161 | 0.0 | 0.0 | 541 | 1.464354 | 0.743608 | -6.916945 | 0.909539 | 60 | 0.35 | 0.35 |
+| stress | 0.1 | rank | null | 0.0 | 0.0 | 0.0 | 0.0 | 541 | 1.464354 | 0.743608 | -0.605881 | 0.991888 | 60 | 0.35 | 0.35 |
+| stress | 0.15 | equal | planted | -0.000161 | -0.000161 | 0.0 | 0.0 | 541 | 0.0 | 0.0 | -6.899948 | 0.909611 | 60 | 0.35 | 0.35 |
+| stress | 0.15 | equal | null | 0.0 | 0.0 | 0.0 | 0.0 | 541 | 0.0 | 0.0 | -0.574093 | 0.99229 | 60 | 0.35 | 0.35 |
+| stress | 0.15 | rank | planted | -0.000161 | -0.000161 | 0.0 | 0.0 | 541 | 1.464354 | 0.743608 | -6.899948 | 0.909611 | 60 | 0.35 | 0.35 |
+| stress | 0.15 | rank | null | 0.0 | 0.0 | 0.0 | 0.0 | 541 | 1.464354 | 0.743608 | -0.574093 | 0.99229 | 60 | 0.35 | 0.35 |
