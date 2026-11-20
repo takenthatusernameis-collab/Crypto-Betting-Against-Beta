@@ -22,6 +22,21 @@
     ]
   },
   "provenance": {
+    "acceptance_thresholds": {
+      "nominal_slack": 0.05,
+      "wp4": {
+        "adapter_valid_offline": true,
+        "explicit_signal_noise_verdict": true,
+        "hysteresis_band_grid_min": 3,
+        "no_go_for_market": true,
+        "no_harness_re_run": true,
+        "numbers_matched_min": 100,
+        "planted_recovery_labelled_controlled_synthetic": true,
+        "regime_grid_min": 2,
+        "turnover_monotone_non_increasing": true,
+        "zero_unmatched_cells": 0
+      }
+    },
     "generator": "scripts/bab_p24_charter.py",
     "licensed_data_required": true,
     "no_go_for_market": true,

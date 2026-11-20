@@ -42,6 +42,30 @@ def build_charter():
             "licensed_price_csv_schema": "tests/fixtures/licensed_price_schema.csv",
             "wps_in_order": ["P24 WP0 — charter"],
         },
+        "provenance": {
+            "generator": "scripts/bab_p24_charter.py",
+            "synthetic": True,
+            "note": "Controlled synthetic stimulus: not real market data.",
+            "p23_source_schema": p23["schema"],
+            "universe_seed": p23["provenance"]["universe_seed"],
+            "no_go_for_market": True,
+            "licensed_data_required": True,
+            "acceptance_thresholds": {
+                "nominal_slack": 0.05,
+                "wp4": {
+                    "explicit_signal_noise_verdict": True,
+                    "no_go_for_market": True,
+                    "no_harness_re_run": True,
+                    "planted_recovery_labelled_controlled_synthetic": True,
+                    "numbers_matched_min": 100,
+                    "zero_unmatched_cells": 0,
+                    "regime_grid_min": 2,
+                    "hysteresis_band_grid_min": 3,
+                    "turnover_monotone_non_increasing": True,
+                    "adapter_valid_offline": True,
+                },
+            },
+        },
     }
     return payload
 
