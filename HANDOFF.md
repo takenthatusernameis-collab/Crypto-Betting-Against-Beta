@@ -2,7 +2,7 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-20T06:22:09Z
+- **Timestamp (UTC):** 2026-11-20T07:32:13Z
 - **Git state:** HEAD `c43f7ef` (P24 WP2 landed; quick gate GREEN). Working tree clean. Certify with `git log --oneline -4 && git status --short`. Binding row is **P24 WP3 — licensed-data adapter dry run**.
 - **P24 WP2 IS LANDED, ARTIFACT-GATED AND GREEN** — `scripts/bab_hysteresis_ladder.py`, `research_state/bab_p24/hysteresis.{json,md}`, `tests/test_bab_p24_hysteresis.py` (24 tests). Reads only committed P21/P22/P23/P24 JSON artifacts read-only; never regenerates them. Calm regime (beta_window=120, q=0.25) planted recovery strictly positive (+0.00019/+0.000191/+0.000192 at h=0.05/0.1/0.15); stress regime (beta_window=60, q=0.35) planted recovery negative (−0.00016/−0.000161) — the stress is real and measured; null recovery exactly 0.0 on every cell; rank guards (min_leg_beta ≥ 0.2, gross_max ≤ 4.0) never relaxed; **turnover ladder measured: tighter hysteresis bands produce more regime flips and more turnover** (52→48→46 flips; 0.047→0.044→0.042 turnover_mean); hysteresis_zero_reference pinned to P21 rank_eval.json at 6 dp; byte-identical rebuild proven.
 - **P21, P22, P23 WP0–WP4 and P24 WP0, WP1, WP2 are CLOSED.** P24 WP3 — licensed-data adapter dry run is the binding row.
@@ -12,7 +12,7 @@
 
 # INITIAL TASK MESSAGE (BINDING — START HERE)
 
-​**Timestamp:** 2026-11-20T06:22:09Z · **Campaign:** P24 "Regime-conditional BAB and holdout discipline" · **Lane:** D · **WP:** **P24 WP3 — licensed-data adapter dry run**
+​**Timestamp:** 2026-11-20T07:32:13Z · **Campaign:** P24 "Regime-conditional BAB and holdout discipline" · **Lane:** E · **WP:** **P24 WP4 — closing decision**
 
 **One-sentence objective:** implement `scripts/bab_licensed_adapter.py` that consumes the fixture `tests/fixtures/licensed_price_schema.csv` (offline-only, never network), produces `research_state/bab_p24/adapter_dryrun.{json,md}`, and creates `tests/test_bab_p24_adapter.py` acceptance test (AST no-harness scan, schema validation, provenance chain to P24 charter, verdict strings).
 
@@ -233,4 +233,4 @@ Inner loop: `bash scripts/bab_quick.sh` + `python3 -m pytest -q tests/test_bab_p
 | 2026-11-20T05:20:54Z | `42db732` | **Handoff refreshed for P24 WP2 binding row.** Updated HANDOFF.md timestamp and HEAD certification to `42db732`; P24 WP1 landed (script + `regime_split.{json,md}` + 22-test gate GREEN); P24 WP2 — rebalance hysteresis / turnover ladder is the binding row. Deliverables: `scripts/bab_hysteresis_ladder.py`, `research_state/bab_p24/hysteresis.{json,md}`, `tests/test_bab_p24_hysteresis.py`. All P21/P22/P23/P24 artifacts intact; quick gate GREEN (104+195). | ruff PASS; quick GREEN (104+195) |
 | 2026-11-20T06:22:09Z | `c43f7ef` | **P24 WP2 landed — rebalance hysteresis / turnover ladder.** Added `scripts/bab_hysteresis_ladder.py`, `research_state/bab_p24/hysteresis.{json,md}` (24 cells, 480 book runs), `tests/test_bab_p24_hysteresis.py` (24 tests). Measured turnover ladder: calm regime 52→48→46 flips / 0.047→0.044→0.042 turnover_mean; stress regime 52→48→46 flips / 0.037→0.035→0.034 turnover_mean. Calm planted recovery +0.00019→+0.000192; stress planted recovery −0.00016→−0.000161. Null exactly 0.0 everywhere. Rank guards hold (min_leg_beta ≥ 1.46, gross_max ≤ 1.04). Hysteresis-zero reference matches P21 rank_eval at 6 dp. Byte-identical rebuild proven. Re-routed binding row to **P24 WP3 — licensed-data adapter dry run**. | ruff PASS; quick GREEN (104+195); reconcile GREEN |
 
-(End of file - total 240 lines)
+| 2026-11-20T07:32:13Z | `2f8c472` | **P24 WP3 landed — licensed-data adapter dry run.** Added `scripts/bab_licensed_adapter.py`, `research_state/bab_p24/adapter_dryrun.{json,md}`, `tests/test_bab_p24_adapter.py` (27 tests). Offline-only fixture validation; no network. Re-routed binding row to **P24 WP4 — closing decision**. | ruff PASS; quick GREEN; 27/27 tests PASS |
