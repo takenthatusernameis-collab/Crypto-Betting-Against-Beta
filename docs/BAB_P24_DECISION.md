@@ -1,3 +1,4 @@
+
 # BAB P24 Closing Decision — Regime-Conditional BAB and Holdout Discipline
 
 **Campaign:** P24 "Regime-conditional BAB and holdout discipline"
@@ -14,9 +15,14 @@
 - `research_state/bab_p22/null_battery.json`
 - `research_state/bab_p21/rank_eval.json`
 
-**Verdict strings verified:** `signal`, `noise`, `no-go for market`, `controlled synthetic`, `not market evidence`
+**Verdict strings verified:** `signal`, `noise`, `no-go for market`,
+`controlled synthetic`, `not market evidence`
 
-**Decision:** **NO-GO for market** — this campaign does not prove a demonstrated profitable strategy for real-world deployment. This is a **decision-grade** closing verdict: every published number traces to a committed JSON leaf, and the planted universe is labelled **controlled synthetic** throughout.
+**Decision:** **NO-GO for market** — this campaign does not prove a
+demonstrated profitable strategy for real-world deployment. This is a
+**decision-grade** closing verdict: every published number traces to a
+committed JSON leaf, and the planted universe is labelled **controlled
+synthetic** throughout.
 
 ---
 
@@ -62,7 +68,10 @@
 
 ## Licensed-Data Adapter Dry Run
 
-The licensed-data adapter validates the offline CSV fixture (`tests/fixtures/licensed_price_schema.csv`) against the P21 universe contract and the P24 charter. No network is used; the adapter runs in dry-run mode with synthetic data.
+The licensed-data adapter validates the offline CSV fixture
+(`tests/fixtures/licensed_price_schema.csv`) against the P21 universe
+contract and the P24 charter. No network is used; the adapter runs in
+dry-run mode with synthetic data.
 
 <!-- table:adapter:start -->
 | fixture_path | fixture_sha256 | rows | columns | date_start | valid | dry_run | network_used | synthetic | no_go_for_market | not_market_evidence |
@@ -74,7 +83,9 @@ The licensed-data adapter validates the offline CSV fixture (`tests/fixtures/lic
 
 ## Rebalance Hysteresis / Turnover Ladder
 
-Hysteresis bands of 0.05, 0.10, and 0.15 were tested across calm and stress regimes with both equal and rank weighting. Tighter hysteresis bands produce more regime flips and higher turnover. The turnover ladder is monotone non-increasing as hysteresis widens.
+Hysteresis bands of 0.05, 0.10, and 0.15 were tested across calm and stress regimes with both equal
+    and rank weighting. Tighter hysteresis bands produce more regime flips and higher turnover. The
+    turnover ladder is monotone non-increasing as hysteresis widens.
 
 <!-- table:hysteresis:start -->
 | regime | hysteresis | weighting | variant | active_rows_min | recovery_mean | recovery_min | recovery_positive_seed_fraction | regime_flips_mean | turnover_mean | turnover_total | wealth_mean | gross_sharpe_mean | gross_max | min_leg_beta |
@@ -109,7 +120,9 @@ Hysteresis bands of 0.05, 0.10, and 0.15 were tested across calm and stress regi
 
 ## Regime-Split Stress Test
 
-The regime grid defines **calm** (beta_window=120, quantiles=0.25, hysteresis=0.05) and **stress** (beta_window=60, quantiles=0.35, hysteresis=0.05). Planted recovery is strictly positive in calm and negative in stress; null recovery is exactly zero in both.
+The regime grid defines **calm** (beta_window=120, quantiles=0.25, hysteresis=0.05) and **stress**
+    (beta_window=60, quantiles=0.35, hysteresis=0.05). Planted recovery is strictly positive in calm and
+    negative in stress; null recovery is exactly zero in both.
 
 <!-- table:regime:start -->
 | regime | beta_window | long_quantile | short_quantile | hysteresis | weighting | variant | active_rows_min | recovery_mean | recovery_min | recovery_positive_seed_fraction | gross_sharpe_mean | wealth_mean |
@@ -144,7 +157,8 @@ The regime grid defines **calm** (beta_window=120, quantiles=0.25, hysteresis=0.
 
 ## Breadth Ladder (P23)
 
-Five rungs spanning 9 to 41 assets, all with strictly positive planted recovery. Null recovery is exactly zero.
+Five rungs spanning 9 to 41 assets, all with strictly positive planted recovery. Null recovery is
+    exactly zero.
 
 <!-- table:breadth:start -->
 | breadth | variant | weighting | active_rows | recovery_mean | recovery_frac_positive | gross_max | min_leg_beta | gross_sharpe | wealth |
@@ -175,7 +189,8 @@ Five rungs spanning 9 to 41 assets, all with strictly positive planted recovery.
 
 ## Beta Drift Grid (P23)
 
-48 cells across 4 beta windows x 3 drift thresholds x 2 variants x 2 weightings. Drift scale = 0.1 (±6% at δ=1e-3). Zero-drift reference matches P21 at 6 dp.
+48 cells across 4 beta windows x 3 drift thresholds x 2 variants x 2 weightings. Drift scale = 0.1
+    (±6% at δ=1e-3). Zero-drift reference matches P21 at 6 dp.
 
 <!-- table:drift:start -->
 | beta_window | drift_threshold | variant | weighting | active_rows_min | recovery_mean | recovery_min | recovery_positive_seed_fraction | gross_max | min_leg_beta |
@@ -245,7 +260,13 @@ Five rungs spanning 9 to 41 assets, all with strictly positive planted recovery.
 
 ## Short Haircut Ladder (P23)
 
-20 cells across 5 haircut levels x 2 variants x 2 weightings. 400 book runs. Censored cell at rank h=0.75 with `censor_reason = "no_active_rows_after_short_availability_restriction"`, active_rows_min=0, degenerate_rows_max=541. Zero-haircut reference matches P21 and WP2 at 6 dp. The degenerate draw is real and published: seed `20261245` (index 4 of 20) holds zero of 12 shorts at h=0.75 (0.75¹² ≈ 3.2% draw), so its entire short book is unavailable; its `per_seed_degenerate_rows` is 541 and its `per_seed_active_rows` is 0. Every other seed keeps a positive short book, and every non-censored planted seed has strictly positive recovery.
+20 cells across 5 haircut levels x 2 variants x 2 weightings. 400 book runs. Censored cell at rank
+    h=0.75 with `censor_reason = "no_active_rows_after_short_availability_restriction"`,
+    active_rows_min=0, degenerate_rows_max=541. Zero-haircut reference matches P21 and WP2 at 6 dp. The
+    degenerate draw is real and published: seed `20261245` (index 4 of 20) holds zero of 12 shorts at
+    h=0.75 (0.75¹² ≈ 3.2% draw), so its entire short book is unavailable; its `per_seed_degenerate_rows`
+    is 541 and its `per_seed_active_rows` is 0. Every other seed keeps a positive short book, and every
+    non-censored planted seed has strictly positive recovery.
 
 <!-- table:haircut:start -->
 | haircut | variant | weighting | active_rows_min | availability_mean | short_survival_mean | recovery_mean | recovery_min | recovery_positive_seed_fraction | costed_sharpe_mean | costed_sharpe_non_increasing | censored | censor_reason |
@@ -398,24 +419,43 @@ False positive rate at alpha ≤ 0.05; max absolute recovery ≤ 1e-10.
 
 ## What This Does Not Prove
 
-- **No demonstrated real-world profitability.** The planted universe is a controlled synthetic stimulus with a convex alpha curve (`alpha = A(0.5 - u²)`), idiosyncratic vol 0.003-0.005, and a known ground truth. It is **not real market data** and **not market profitability evidence**.
-- **No out-of-sample validation.** All results are in-sample on the planted panel (seed 20261118). The holdout discipline (P24 charter: `holdout_before_tuning = true`) prevents parameter selection on the evaluation window.
-- **No walk-forward / OOS harness.** Campaign P24 closes without a walk-forward/out-of-sample harness. The default book is dollar-neutral only and carries a large negative benchmark beta (measured -0.57 at default config, -0.91 at q=0.2 on the committed fixture).
-- **No Frazzini-Pedersen rank weighting with beta scaling.** The rank path is documented in `docs/BAB_FIDELITY.md` §9 but is **not empirically evaluable** on the committed 9-asset synthetic fixture. The shipped default remains equal-weight.
-- **No live execution evidence.** The licensed-data adapter (P24 WP3) validated only an offline CSV fixture. The live adapter (`--adapter live`) is dry-run by default and requires explicit two-key opt-in (`--allow-live-execution` and `--accept-terms I_UNDERSTAND_LIVE_TRADING`). No network was used in this campaign.
+- **No demonstrated real-world profitability.** The planted universe is a controlled synthetic
+    stimulus with a convex alpha curve (`alpha = A(0.5 - u²)`), idiosyncratic vol 0.003-0.005, and a
+    known ground truth. It is **not real market data** and **not market profitability evidence**.
+- **No out-of-sample validation.** All results are in-sample on the planted panel (seed 20261118).
+    The holdout discipline (P24 charter: `holdout_before_tuning = true`) prevents parameter selection on
+    the evaluation window.
+- **No walk-forward / OOS harness.** Campaign P24 closes without a walk-forward/out-of-sample
+    harness. The default book is dollar-neutral only and carries a large negative benchmark beta
+    (measured -0.57 at default config, -0.91 at q=0.2 on the committed fixture).
+- **No Frazzini-Pedersen rank weighting with beta scaling.** The rank path is documented in
+    `docs/BAB_FIDELITY.md` §9 but is **not empirically evaluable** on the committed 9-asset synthetic
+    fixture. The shipped default remains equal-weight.
+- **No live execution evidence.** The licensed-data adapter (P24 WP3) validated only an offline CSV
+    fixture. The live adapter (`--adapter live`) is dry-run by default and requires explicit two-key
+    opt-in (`--allow-live-execution` and `--accept-terms I_UNDERSTAND_LIVE_TRADING`). No network was
+    used in this campaign.
 
 ---
 
 ## Next Steps
 
-Campaign P24 concludes here. The NO-GO verdict is restated from P23/P24 charters and validated against every committed JSON artifact. All planted recovery is labelled **controlled synthetic** — never market alpha. The regime-conditional BAB hypothesis is **not supported** by the evidence: stress regime planted recovery is negative, and the calibrated hysteresis ladder only reduces turnover without recovering positive expectancy in stress.
+Campaign P24 concludes here. The NO-GO verdict is restated from P23/P24 charters and validated
+    against every committed JSON artifact. All planted recovery is labelled **controlled synthetic** —
+    never market alpha. The regime-conditional BAB hypothesis is **not supported** by the evidence:
+    stress regime planted recovery is negative, and the calibrated hysteresis ladder only reduces
+    turnover without recovering positive expectancy in stress.
 
 **Future work** (not in scope for P24):
 - Walk-forward / out-of-sample harness
 - Real market data ingestion (maintainer-supplied licensed CSV; Coinbase public API returns 403)
-- CI enforcement of `ruff`, `scripts/bab_gate.sh`, `scripts/bab_reconcile_gate.sh` (P19-1, maintainer-only — agent tokens lack `workflows:write`)
+- CI enforcement of `ruff`, `scripts/bab_gate.sh`, `scripts/bab_reconcile_gate.sh` (P19-1,
+    maintainer-only — agent tokens lack `workflows:write`)
 - Frazzini-Pedersen rank-weighted / beta-scaled construction on a wider universe
 
 ---
 
-*This report is artifact-gated: every numeric table cell resolves to a committed JSON leaf at 6 dp. The acceptance test `tests/test_bab_p24_decision_consistency.py` verifies zero unmatched cells, ≥100 machine-checked cells, byte-identical table rendering, AST no-harness scan, and explicit verdict strings.*
+*This report is artifact-gated: every numeric table cell resolves to a committed JSON leaf at 6 dp.
+    The acceptance test `tests/test_bab_p24_decision_consistency.py` verifies zero unmatched cells, ≥100
+    machine-checked cells, byte-identical table rendering, AST no-harness scan, and explicit verdict
+    strings.*
