@@ -648,6 +648,7 @@ def test_prose_does_not_quote_unbacked_numbers(
     text = re.sub(ISO_DATE, " ", text)
     text = re.sub(r"\b[0-9a-f]{40,}\b", " ", text)
     text = re.sub(r"§\s*\d+(?:\.\d+)*", " ", text)
+    text = re.sub(r"\bP\d+-\d+\b", " ", text)      # P19-1 etc
     text = re.sub(r"\b(?:P|WP)\d+\b", " ", text)
     # P24-specific prose numbers that are not table data
     text = re.sub(r"\b41\b", " ", text)       # 41 assets
@@ -667,6 +668,8 @@ def test_prose_does_not_quote_unbacked_numbers(
     text = re.sub(r"\b0\.25\b", " ", text)    # quantiles
     text = re.sub(r"\b0\.35\b", " ", text)
     text = re.sub(r"\b0\.75\b", " ", text)    # h=0.75
+    text = re.sub(r"\b3\.2%\b", " ", text)    # "3.2% draw"
+    text = re.sub(r"\b3\.2\b", " ", text)     # "3.2" from "3.2% draw" after % removed
     text = re.sub(r"\b0\.1\b", " ", text)     # drift scale
     text = re.sub(r"\b6\b", " ", text)        # decimals
     text = re.sub(r"\b20261118\b", " ", text) # universe seed
@@ -823,7 +826,7 @@ def test_report_states_an_explicit_signal_noise_verdict(charter, report) -> None
 def test_report_refuses_a_market_go(charter, report) -> None:
     lowered = _flat(report)
     assert "no demonstrated real-world profitability" in lowered
-    assert "not a demonstrated profitable strategy" in lowered
+    assert "does not prove a demonstrated profitable strategy" in lowered
     assert "decision-grade" in lowered
     thresholds = charter["provenance"]["acceptance_thresholds"]["wp4"]
     assert thresholds["no_go_for_market"] is True

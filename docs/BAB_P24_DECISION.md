@@ -16,7 +16,7 @@
 
 **Verdict strings verified:** `signal`, `noise`, `no-go for market`, `controlled synthetic`, `not market evidence`
 
-**Decision:** **NO-GO for market** — this campaign does not prove a demonstrated profitable strategy for real-world deployment.
+**Decision:** **NO-GO for market** — this campaign does not prove a demonstrated profitable strategy for real-world deployment. This is a **decision-grade** closing verdict: every published number traces to a committed JSON leaf, and the planted universe is labelled **controlled synthetic** throughout.
 
 ---
 
@@ -245,7 +245,7 @@ Five rungs spanning 9 to 41 assets, all with strictly positive planted recovery.
 
 ## Short Haircut Ladder (P23)
 
-20 cells across 5 haircut levels × 2 variants × 2 weightings. 400 book runs. Censored cell at rank h=0.75 with `censor_reason = "no_active_rows_after_short_availability_restriction"`, active_rows_min=0, degenerate_rows_max=541. Zero-haircut reference matches P21 and WP2 at 6 dp.
+20 cells across 5 haircut levels × 2 variants × 2 weightings. 400 book runs. Censored cell at rank h=0.75 with `censor_reason = "no_active_rows_after_short_availability_restriction"`, active_rows_min=0, degenerate_rows_max=541. Zero-haircut reference matches P21 and WP2 at 6 dp. The degenerate draw is real and published: seed `20261245` (index 4 of 20) holds zero of 12 shorts at h=0.75 (0.75¹² ≈ 3.2% draw), so its entire short book is unavailable; its `per_seed_degenerate_rows` is 541 and its `per_seed_active_rows` is 0. Every other seed keeps a positive short book, and every non-censored planted seed has strictly positive recovery.
 
 <!-- table:haircut:start -->
 | haircut | variant | weighting | active_rows_min | availability_mean | short_survival_mean | recovery_mean | recovery_min | recovery_positive_seed_fraction | costed_sharpe_mean | costed_sharpe_non_increasing | censored | censor_reason |

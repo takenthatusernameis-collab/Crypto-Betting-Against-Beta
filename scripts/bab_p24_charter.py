@@ -26,6 +26,7 @@ def build_charter():
         "universe_seed": p23["provenance"]["universe_seed"],
         "no_go_for_market": True,
         "licensed_data_required": True,
+        "p22_verdict": p23["provenance"]["p22_verdict"],
         "acceptance_thresholds": {
             "nominal_slack": 0.05,
             "wp4": {
