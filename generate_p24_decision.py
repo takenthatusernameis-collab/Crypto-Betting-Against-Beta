@@ -41,8 +41,7 @@ def _cell(value) -> str:
 def _render(columns, rows) -> str:
     lines = ["| " + " | ".join(columns) + " |"]
     lines.append("|" + "|".join("---" for _ in columns) + "|")
-    for row in rows:
-        lines.append("| " + " | ".join(_cell(row[column]) for column in columns) + " |")
+    lines.extend("| " + " | ".join(_cell(row[column]) for column in columns) + " |" for row in rows)
     return "\n".join(lines)
 
 
@@ -145,27 +144,26 @@ adapter_table = _render(
 )
 
 # Hysteresis table
-hysteresis_rows = []
-for cell in hysteresis["cells"]:
-    hysteresis_rows.append(
-        {
-            "regime": cell["regime"],
-            "hysteresis": cell["hysteresis"],
-            "weighting": cell["weighting"],
-            "variant": cell["variant"],
-            "active_rows_min": cell["active_rows_min"],
-            "recovery_mean": cell["recovery_mean"],
-            "recovery_min": cell["recovery_min"],
-            "recovery_positive_seed_fraction": cell["recovery_positive_seed_fraction"],
-            "regime_flips_mean": cell["regime_flips_mean"],
-            "turnover_mean": cell["turnover_mean"],
-            "turnover_total": cell["turnover_total"],
-            "wealth_mean": cell["wealth_mean"],
-            "gross_sharpe_mean": cell["gross_sharpe_mean"],
-            "gross_max": cell["gross_max"],
-            "min_leg_beta": cell["min_leg_beta"],
-        }
-    )
+  hysteresis_rows = [
+      {
+          "regime": cell["regime"],
+          "hysteresis": cell["hysteresis"],
+          "weighting": cell["weighting"],
+          "variant": cell["variant"],
+          "active_rows_min": cell["active_rows_min"],
+          "recovery_mean": cell["recovery_mean"],
+          "recovery_min": cell["recovery_min"],
+          "recovery_positive_seed_fraction": cell["recovery_positive_seed_fraction"],
+          "regime_flips_mean": cell["regime_flips_mean"],
+          "turnover_mean": cell["turnover_mean"],
+          "turnover_total": cell["turnover_total"],
+          "wealth_mean": cell["wealth_mean"],
+          "gross_sharpe_mean": cell["gross_sharpe_mean"],
+          "gross_max": cell["gross_max"],
+          "min_leg_beta": cell["min_leg_beta"],
+      }
+      for cell in hysteresis["cells"]
+  ]
 hysteresis_table = _render(
     [
         "regime",
@@ -188,25 +186,24 @@ hysteresis_table = _render(
 )
 
 # Regime table
-regime_rows = []
-for cell in regime_split["cells"]:
-    regime_rows.append(
-        {
-            "regime": cell["regime"],
-            "beta_window": cell["beta_window"],
-            "long_quantile": cell["long_quantile"],
-            "short_quantile": cell["short_quantile"],
-            "hysteresis": cell["hysteresis"],
-            "weighting": cell["weighting"],
-            "variant": cell["variant"],
-            "active_rows_min": cell["active_rows_min"],
-            "recovery_mean": cell["recovery_mean"],
-            "recovery_min": cell["recovery_min"],
-            "recovery_positive_seed_fraction": cell["recovery_positive_seed_fraction"],
-            "gross_sharpe_mean": cell["gross_sharpe_mean"],
-            "wealth_mean": cell["wealth_mean"],
-        }
-    )
+  regime_rows = [
+      {
+          "regime": cell["regime"],
+          "beta_window": cell["beta_window"],
+          "long_quantile": cell["long_quantile"],
+          "short_quantile": cell["short_quantile"],
+          "hysteresis": cell["hysteresis"],
+          "weighting": cell["weighting"],
+          "variant": cell["variant"],
+          "active_rows_min": cell["active_rows_min"],
+          "recovery_mean": cell["recovery_mean"],
+          "recovery_min": cell["recovery_min"],
+          "recovery_positive_seed_fraction": cell["recovery_positive_seed_fraction"],
+          "gross_sharpe_mean": cell["gross_sharpe_mean"],
+          "wealth_mean": cell["wealth_mean"],
+      }
+      for cell in regime_split["cells"]
+  ]
 regime_table = _render(
     [
         "regime",
@@ -227,24 +224,22 @@ regime_table = _render(
 )
 
 # Breadth table
-breadth_rows = []
-for rung in breadth_ladder["ladder"]:
-    b = rung["breadth"]
-    for book in rung["books"]:
-        breadth_rows.append(
-            {
-                "breadth": b,
-                "variant": book["variant"],
-                "weighting": book["weighting"],
-                "active_rows": book["active_rows"],
-                "recovery_mean": book["recovery_mean"],
-                "recovery_frac_positive": book["recovery_frac_positive"],
-                "gross_max": book["gross_max"],
-                "min_leg_beta": book["min_leg_beta"],
-                "gross_sharpe": book["gross_sharpe"],
-                "wealth": book["wealth"],
-            }
-        )
+  breadth_rows = [
+      {
+          "breadth": rung["breadth"],
+          "variant": book["variant"],
+          "weighting": book["weighting"],
+          "active_rows": book["active_rows"],
+          "recovery_mean": book["recovery_mean"],
+          "recovery_frac_positive": book["recovery_frac_positive"],
+          "gross_max": book["gross_max"],
+          "min_leg_beta": book["min_leg_beta"],
+          "gross_sharpe": book["gross_sharpe"],
+          "wealth": book["wealth"],
+      }
+      for rung in breadth_ladder["ladder"]
+      for book in rung["books"]
+  ]
 breadth_table = _render(
     [
         "breadth",
@@ -262,22 +257,21 @@ breadth_table = _render(
 )
 
 # Drift table
-drift_rows = []
-for cell in beta_drift["cells"]:
-    drift_rows.append(
-        {
-            "beta_window": cell["beta_window"],
-            "drift_threshold": cell["drift_threshold"],
-            "variant": cell["variant"],
-            "weighting": cell["weighting"],
-            "active_rows_min": cell["active_rows_min"],
-            "recovery_mean": cell["recovery_mean"],
-            "recovery_min": cell["recovery_min"],
-            "recovery_positive_seed_fraction": cell["recovery_positive_seed_fraction"],
-            "gross_max": cell["gross_max"],
-            "min_leg_beta": cell["min_leg_beta"],
-        }
-    )
+  drift_rows = [
+      {
+          "beta_window": cell["beta_window"],
+          "drift_threshold": cell["drift_threshold"],
+          "variant": cell["variant"],
+          "weighting": cell["weighting"],
+          "active_rows_min": cell["active_rows_min"],
+          "recovery_mean": cell["recovery_mean"],
+          "recovery_min": cell["recovery_min"],
+          "recovery_positive_seed_fraction": cell["recovery_positive_seed_fraction"],
+          "gross_max": cell["gross_max"],
+          "min_leg_beta": cell["min_leg_beta"],
+      }
+      for cell in beta_drift["cells"]
+  ]
 drift_table = _render(
     [
         "beta_window",
@@ -314,25 +308,24 @@ drift_zero_table = _render(
 )
 
 # Haircut table
-haircut_rows = []
-for cell in short_haircut["cells"]:
-    haircut_rows.append(
-        {
-            "haircut": cell["haircut"],
-            "variant": cell["variant"],
-            "weighting": cell["weighting"],
-            "active_rows_min": cell["active_rows_min"],
-            "availability_mean": cell["availability_mean"],
-            "short_survival_mean": cell["short_survival_mean"],
-            "recovery_mean": cell["recovery_mean"],
-            "recovery_min": cell["recovery_min"],
-            "recovery_positive_seed_fraction": cell["recovery_positive_seed_fraction"],
-            "costed_sharpe_mean": cell["costed_sharpe_mean"],
-            "costed_sharpe_non_increasing": cell["costed_sharpe_non_increasing"],
-            "censored": cell["censored"],
-            "censor_reason": cell["censor_reason"],
-        }
-    )
+  haircut_rows = [
+      {
+          "haircut": cell["haircut"],
+          "variant": cell["variant"],
+          "weighting": cell["weighting"],
+          "active_rows_min": cell["active_rows_min"],
+          "availability_mean": cell["availability_mean"],
+          "short_survival_mean": cell["short_survival_mean"],
+          "recovery_mean": cell["recovery_mean"],
+          "recovery_min": cell["recovery_min"],
+          "recovery_positive_seed_fraction": cell["recovery_positive_seed_fraction"],
+          "costed_sharpe_mean": cell["costed_sharpe_mean"],
+          "costed_sharpe_non_increasing": cell["costed_sharpe_non_increasing"],
+          "censored": cell["censored"],
+          "censor_reason": cell["censor_reason"],
+      }
+      for cell in short_haircut["cells"]
+  ]
 haircut_table = _render(
     [
         "haircut",
@@ -382,23 +375,22 @@ haircut_zero_table = _render(
 )
 
 # Null battery table
-null_battery_rows = []
-for seed_entry in null_battery["seeds"]:
-    for book in seed_entry["books"]:
-        null_battery_rows.append(
-            {
-                "seed": seed_entry["seed"],
-                "variant": book["variant"],
-                "weighting": book["weighting"],
-                "active_rows": book["active_rows"],
-                "recovery_mean": book["recovery_mean"],
-                "recovery_frac_positive": book["recovery_frac_positive"],
-                "gross_max": book["gross_max"],
-                "gross_sharpe": book["oos_sharpe"],
-                "p_value": book["p_value"],
-                "significant": book["significant"],
-            }
-        )
+  null_battery_rows = [
+      {
+          "seed": seed_entry["seed"],
+          "variant": book["variant"],
+          "weighting": book["weighting"],
+          "active_rows": book["active_rows"],
+          "recovery_mean": book["recovery_mean"],
+          "recovery_frac_positive": book["recovery_frac_positive"],
+          "gross_max": book["gross_max"],
+          "gross_sharpe": book["oos_sharpe"],
+          "p_value": book["p_value"],
+          "significant": book["significant"],
+      }
+      for seed_entry in null_battery["seeds"]
+      for book in seed_entry["books"]
+  ]
 null_battery_table = _render(
     [
         "seed",
@@ -515,7 +507,7 @@ Five rungs spanning 9 to 41 assets, all with strictly positive planted recovery.
 
 ## Beta Drift Grid (P23)
 
-48 cells across 4 beta windows × 3 drift thresholds × 2 variants × 2 weightings. Drift scale = 0.1 (±6% at δ=1e-3). Zero-drift reference matches P21 at 6 dp.
+48 cells across 4 beta windows x 3 drift thresholds x 2 variants x 2 weightings. Drift scale = 0.1 (±6% at δ=1e-3). Zero-drift reference matches P21 at 6 dp.
 
 <!-- table:drift:start -->
 {drift_table}
@@ -531,7 +523,7 @@ Five rungs spanning 9 to 41 assets, all with strictly positive planted recovery.
 
 ## Short Haircut Ladder (P23)
 
-20 cells across 5 haircut levels × 2 variants × 2 weightings. 400 book runs. Censored cell at rank h=0.75 with `censor_reason = "no_active_rows_after_short_availability_restriction"`, active_rows_min=0, degenerate_rows_max=541. Zero-haircut reference matches P21 and WP2 at 6 dp. The degenerate draw is real and published: seed `20261245` (index 4 of 20) holds zero of 12 shorts at h=0.75 (0.75¹² ≈ 3.2% draw), so its entire short book is unavailable; its `per_seed_degenerate_rows` is 541 and its `per_seed_active_rows` is 0. Every other seed keeps a positive short book, and every non-censored planted seed has strictly positive recovery.
+20 cells across 5 haircut levels x 2 variants x 2 weightings. 400 book runs. Censored cell at rank h=0.75 with `censor_reason = "no_active_rows_after_short_availability_restriction"`, active_rows_min=0, degenerate_rows_max=541. Zero-haircut reference matches P21 and WP2 at 6 dp. The degenerate draw is real and published: seed `20261245` (index 4 of 20) holds zero of 12 shorts at h=0.75 (0.75¹² ≈ 3.2% draw), so its entire short book is unavailable; its `per_seed_degenerate_rows` is 541 and its `per_seed_active_rows` is 0. Every other seed keeps a positive short book, and every non-censored planted seed has strictly positive recovery.
 
 <!-- table:haircut:start -->
 {haircut_table}
@@ -565,9 +557,9 @@ False positive rate at alpha ≤ 0.05; max absolute recovery ≤ 1e-10.
 
 ## What This Does Not Prove
 
-- **No demonstrated real-world profitability.** The planted universe is a controlled synthetic stimulus with a convex alpha curve (`alpha = A(0.5 - u²)`), idiosyncratic vol 0.003–0.005, and a known ground truth. It is **not real market data** and **not market profitability evidence**.
+- **No demonstrated real-world profitability.** The planted universe is a controlled synthetic stimulus with a convex alpha curve (`alpha = A(0.5 - u²)`), idiosyncratic vol 0.003-0.005, and a known ground truth. It is **not real market data** and **not market profitability evidence**.
 - **No out-of-sample validation.** All results are in-sample on the planted panel (seed 20261118). The holdout discipline (P24 charter: `holdout_before_tuning = true`) prevents parameter selection on the evaluation window.
-- **No walk-forward / OOS harness.** Campaign P24 closes without a walk-forward/out-of-sample harness. The default book is dollar-neutral only and carries a large negative benchmark beta (measured −0.57 at default config, −0.91 at q=0.2 on the committed fixture).
+- **No walk-forward / OOS harness.** Campaign P24 closes without a walk-forward/out-of-sample harness. The default book is dollar-neutral only and carries a large negative benchmark beta (measured -0.57 at default config, -0.91 at q=0.2 on the committed fixture).
 - **No Frazzini–Pedersen rank weighting with beta scaling.** The rank path is documented in `docs/BAB_FIDELITY.md` §9 but is **not empirically evaluable** on the committed 9-asset synthetic fixture. The shipped default remains equal-weight.
 - **No live execution evidence.** The licensed-data adapter (P24 WP3) validated only an offline CSV fixture. The live adapter (`--adapter live`) is dry-run by default and requires explicit two-key opt-in (`--allow-live-execution` and `--accept-terms I_UNDERSTAND_LIVE_TRADING`). No network was used in this campaign.
 
