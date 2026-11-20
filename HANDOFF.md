@@ -2,8 +2,8 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-20T00:36:13Z
-- **Git state:** HEAD `d44261a` (checkpoint after `8c3cba1`, **P23 WP4 landed + gate green**). Working tree clean. Certify with `git log --oneline -4 && git status --short`. Next row is **P24 WP0 — charter ("Regime-conditional BAB and holdout discipline")**.
+- **Timestamp (UTC):** 2026-11-20T01:26:04Z
+- **Git state:** HEAD `95356dc` (checkpoint after `8c3cba1`, **P23 WP4 landed + gate green**). Working tree clean. Certify with `git log --oneline -4 && git status --short`. Next row is **P24 WP0 — complete the charter acceptance test and create the licensed-price CSV schema fixture**.
 - **P23 WP3 IS LANDED, ARTIFACT-GATED AND GREEN** — the short-availability haircut ladder. It reads `research_state/bab_p21/universe.json`, `research_state/bab_p23/charter.json`, `research_state/bab_p23/breadth_ladder.json` and `research_state/bab_p23/beta_drift.json` **read-only**, draws one seeded availability mask per WP3 seed, drops unavailable short positions from the shipped `BABStrategy` book, and runs **400 book runs** (5 haircuts × 20 seeds × 2 weightings × 2 variants). All 20 chartered cells are reported with 20 per-seed recoveries, costed Sharpes and availabilities; 18 acceptance tests pin the artifact.
 - **Headline measurements (WP3):** `haircut_zero_reference` reproduces committed P21 `rank_eval.json` **and** WP2 `drift_zero_reference` at 6 dp (`planted_equal 0.000261`, `planted_rank 0.017360`, nulls `0.0`). Planted recovery is strictly positive on every seed in **every non-censored cell** (equal `+0.000357 → +0.001129`, rank `+0.017103 → +0.016103`). Null recovery is exactly `0.0` in every cell. Availability tracks `1 − h` at the cell mean (`0.9049 / 0.7341 / 0.4793 / 0.2280`). Borrow-costed Sharpe is non-increasing on every book (`+7.035 → −7500.5` equal, `+44.378 → −806.4` rank at `h=0.75`). Rank guards hold on every non-censored rank cell (`min_leg_beta ≥ 0.507692`, `gross_max ≤ 2.414949`).
 - **One cell is censored, visibly and for a real reason:** rank `h=0.75` (both variants) loses its entire short book on seed `20261245` (all 12 signal shorts are unavailable — a 0.75¹² ≈ 3.2% draw that did occur), so `active_rows_min = 0`, `degenerate_rows_max = 541`, `censor_reason = "no_active_rows_after_short_availability_restriction"`. It is never zeroed silently and never hidden. This is a genuine WP4 input: at 75% short withdrawal the market-neutral book can vanish outright.
@@ -16,31 +16,30 @@
 - **P21 IS CLOSED** — WP0 synthetic universe (41 assets, 600 rows, seed 20261118, planted α Spearman = −1, null α = 0), WP1 rank vs equal, WP2 significance, WP3 cost surface, WP4 report.
 - **Repo:** `Crypto-Betting-Against-Beta` — crypto market-neutral BAB trading system.
 
-**Handoff reviewed and confirmed as the single durable handoff. The binding initial task message below is the most relevant, timestamped, clear directive for the next agentic work session, prioritized from the repository name (`Crypto-Betting-Against-Beta`, a betting-against-beta system whose measured failure modes are beta-estimation drift, breadth concentration and the crypto short leg) and the measured state after P23 WP4. P21, P22, P23 WP0, P23 WP1, P23 WP2, P23 WP3 and P23 WP4 are CLOSED. The next row is P24 WP0 — charter ("Regime-conditional BAB and holdout discipline") and is the only row a session may take.**
+**Handoff reviewed and confirmed as the single durable handoff. The binding initial task message below is the most relevant, timestamped, clear directive for the next agentic work session, prioritized from the repository name (`Crypto-Betting-Against-Beta`, a betting-against-beta system whose measured failure modes are beta-estimation drift, breadth concentration and the crypto short leg) and the measured state after P23 WP4. P21, P22, P23 WP0, P23 WP1, P23 WP2, P23 WP3 and P23 WP4 are CLOSED. P24 WP0 charter files exist but the acceptance test is minimal (2 assertions) and the `tests/fixtures/licensed_price_schema.csv` fixture is missing. The next row is completing P24 WP0 properly.**
 
 ---
 
 # INITIAL TASK MESSAGE (BINDING — START HERE)
 
-**Timestamp:** 2026-11-20T00:36:13Z · **Campaign:** P24 "Regime-conditional BAB and holdout discipline" · **Lane:** A · **WP:** **P24 WP0 — charter (binding immediately after P23 WP4)**
+**Timestamp:** 2026-11-20T01:26:04Z · **Campaign:** P24 "Regime-conditional BAB and holdout discipline" · **Lane:** A · **WP:** **P24 WP0 — complete charter acceptance test + create licensed-price CSV schema fixture**
 
-**One-sentence objective:** write `scripts/bab_p24_charter.py`, `research_state/bab_p24/charter.{json,md}`, `tests/test_bab_p24_charter.py`, and `docs/BAB_P24_KICKOFF.md`, a machine-checked charter over the committed P23 artifacts (read-only), declaring the P24 acceptance thresholds: two-regime synthetic benchmark (calm/stress) with regime-conditional betas; holdout split fixed before any tuning (no parameter selection on the evaluation window); hysteresis band grid on beta-rank turnover; a licensed-price CSV schema fixture for offline adapter testing (never network); and the P24 NO-GO verdict that keeps P23's NO-GO in force until a maintainer supplies a licensed price series.
+**One-sentence objective:** enhance `tests/test_bab_p24_charter.py` to a comprehensive acceptance test (mirroring `tests/test_bab_p23_decision_consistency.py` pattern: AST no-harness scan, numeric field mapping from committed P21/P22/P23 JSON, verdict string checks, byte-identical artifact verification), create `tests/fixtures/licensed_price_schema.csv` (the schema fixture declared in `research_state/bab_p24/charter.json`), and verify all charter fields are machine-pinned.
 
-**Why this and nothing else:** P23 has closed all three instability axes — breadth concentration, beta-estimation drift, and crypto short-availability scarcity — with an explicit NO-GO for market deployment. The repository name is *betting against beta*, and the next unmeasured axis from that name is **regime dependence plus honest holdout discipline**. P24 WP0 is the only unrouted row; Campaign P24 cannot begin until its charter lands, and no session after WP4 may idle.
+**Why this and nothing else:** P23 has closed all three instability axes — breadth concentration, beta-estimation drift, and crypto short-availability scarcity — with an explicit NO-GO for market deployment. The repository name is *betting against beta*, and the next unmeasured axis from that name is **regime dependence plus honest holdout discipline**. P24 WP0 charter files exist but the test is a stub and the licensed-price schema fixture is missing; Campaign P24 cannot advance until WP0 is genuinely complete with a machine-checked test.
 
-**Prioritization basis:** the repository name is *betting against beta*. P23 proved the estimator's instability handling under controlled conditions; P24 WP0 must now declare the regime-conditional stress axes and the holdout discipline that prevent overfitting to the synthetic stimulus. The charter must restate the NO-GO verdict and declare licensed data as a hard requirement — never market evidence, never real profitability.
+**Prioritization basis:** the repository name is *betting against beta*. P23 proved the estimator's instability handling under controlled conditions; P24 WP0 must now have a real acceptance test that validates the regime-conditional stress axes and holdout discipline declared in the charter. The charter restates the NO-GO verdict and declares licensed data as a hard requirement — the fixture enables offline adapter testing without network.
 
 **Deliverable files are the claim.** Run:
-
 ```bash
-git ls-files scripts/bab_p24_charter.py research_state/bab_p24/charter.json research_state/bab_p24/charter.md tests/test_bab_p24_charter.py docs/BAB_P24_KICKOFF.md
+git ls-files tests/test_bab_p24_charter.py tests/fixtures/licensed_price_schema.csv
 ```
 
-The first missing row is **P24 WP0 — charter**; you own all four files. **No script harness re-run** — WP0 reads only committed P21/P22/P23 JSON artifacts and must never regenerate or edit them.
+The binding row is **P24 WP0 completion**; you own the enhanced test and the CSV fixture. **No script harness re-run** — WP0 reads only committed P21/P22/P23 JSON artifacts and must never regenerate or edit them.
 
 Rules:
-1. Never take a WP whose deliverable already exists. If a deliverable exists but its acceptance test is red, fixing that test **is** the session's work — do not start a new row on a red gate.
-2. Solo default: **P24 WP0**. It reads only committed JSON artifacts read-only; it must not regenerate, re-run or edit any P21/P22/P23 artifact or harness.
+1. Never take a WP whose deliverable already exists. If a deliverable exists but its acceptance test is insufficient (stub), fixing that test **is** the session's work — do not start a new row on a stub gate.
+2. Solo default: **P24 WP0 completion**. It reads only committed JSON artifacts read-only; it must not regenerate, re-run or edit any P21/P22/P23 artifact or harness.
 3. A partially finished WP is not locked.
 4. Everything blocked? Repair the red gate first (`bash scripts/bab_quick.sh`), then take the first missing row.
 5. Never end a session with prose. A landed WP = deliverable + consistency test in **one** commit + green full gate.
@@ -50,9 +49,9 @@ Rules:
 
 ## ROUTE YOUR SESSION IN 60 SECONDS (no prose debate, no idle)
 
-Deliverable files are the claim. Run the `git ls-files` command above; the first missing row is yours. P21, P22 and P23 WP0–WP4 are CLOSED. P24 WP0 — charter is the binding row; Campaign P24 begins now.
+Deliverable files are the claim. Run the `git ls-files` command above; the missing fixture and the stub test are yours. P21, P22 and P23 WP0–WP4 are CLOSED. P24 WP0 completion is the binding row; Campaign P24 begins now.
 
-Rules are identical to the numbered list immediately above. Solo default: **P24 WP0**.
+Rules are identical to the numbered list immediately above. Solo default: **P24 WP0 completion**.
 
 ## MANDATORY FIRST ACTIONS (in order, ~4 minutes)
 
@@ -78,9 +77,10 @@ Rules are identical to the numbered list immediately above. Solo default: **P24 
    print("P21, P22, P23-WP0/WP1/WP2/WP3/WP4 closed; artifacts intact")
    EOF
    ```
-4. Read `research_state/bab_p23/charter.json` provenance — the P24 charter thresholds to declare: `numbers_matched_min`, `zero_unmatched_cells`, `no_harness_re_run`, `explicit_signal_noise_verdict`, `planted_recovery_labelled_controlled_synthetic`, `no_go_for_market`.
-5. Read `docs/BAB_P23_DECISION.md` and `tests/test_bab_p23_decision_consistency.py` — the landed WP4 report + consistency-test pattern to mirror for P24 WP0.
-6. Read `research_state/bab_p21/rank_eval.json` — the frozen P21 panel (sha256-pinned) that P24 must consume read-only and never regenerate.
+4. Read `research_state/bab_p24/charter.json` — the charter thresholds to validate: `regime_grid`, `holdout_before_tuning`, `hysteresis_band_grid`, `licensed_price_csv_schema`, `no_go_for_market`, `not_market_evidence`, `artifact_gated`.
+5. Read `tests/test_bab_p23_decision_consistency.py` — the landed WP4 consistency-test pattern to mirror for P24 WP0 (AST no-harness scan, numeric leaf mapping, table rendering from JSON, verdict string checks, byte-identical artifact verification).
+6. Read `research_state/bab_p23/charter.json` provenance — the P23 acceptance thresholds (`numbers_matched_min`, `zero_unmatched_cells`, `no_harness_re_run`, `explicit_signal_noise_verdict`, `planted_recovery_labelled_controlled_synthetic`, `no_go_for_market`) that P24 must honor.
+7. Read `research_state/bab_p21/rank_eval.json` — the frozen P21 panel (sha256-pinned) that P24 must consume read-only and never regenerate.
 
 ---
 
@@ -121,13 +121,13 @@ P23 closes the instability axis; the next unmeasured axis from the repository na
 
 | Lane | WP | Deliverable files | Status |
 |---|---|---|---|
-| A | **WP0 — charter** | `scripts/bab_p24_charter.py`, `research_state/bab_p24/charter.{json,md}`, `tests/test_bab_p24_charter.py`, `docs/BAB_P24_KICKOFF.md` | **BINDING — MISSING** |
+| A | **WP0 — charter (completion)** | `tests/test_bab_p24_charter.py` (enhanced), `tests/fixtures/licensed_price_schema.csv` (create) | **BINDING — INCOMPLETE** |
 | B | WP1 — regime-split stress | `scripts/bab_regime_split.py`, `research_state/bab_p24/regime_split.{json,md}`, `tests/test_bab_p24_regime_split.py` | QUEUED |
 | C | WP2 — rebalance hysteresis / turnover ladder | `scripts/bab_hysteresis_ladder.py`, `research_state/bab_p24/hysteresis.{json,md}`, `tests/test_bab_p24_hysteresis.py` | QUEUED |
 | D | WP3 — licensed-data adapter dry run | `scripts/bab_licensed_adapter.py`, `research_state/bab_p24/adapter_dryrun.{json,md}`, `tests/test_bab_p24_adapter.py` | QUEUED (fixture only; **never** network) |
 | E | WP4 — closing decision | `docs/BAB_P24_DECISION.md`, `tests/test_bab_p24_decision_consistency.py` | QUEUED |
 
-P24 WP0 must charter, at minimum: two-regime synthetic benchmark (calm/stress) with regime-conditional betas; holdout split fixed **before** any tuning (no parameter selection on the evaluation window); hysteresis band grid on beta-rank turnover; a licensed-price CSV **schema fixture** so the adapter can be tested without network access. P24 must keep P21–P23 artifacts frozen and restate the NO-GO verdict.
+P24 WP0 must be completed with a comprehensive acceptance test that pins all charter JSON fields, verifies no `build_*` harness is imported/called via AST scan, validates the `licensed_price_csv_schema` fixture exists and has the expected schema, and restates the NO-GO verdict from P23. P24 must keep P21–P23 artifacts frozen and restate the NO-GO verdict.
 
 ---
 
@@ -140,7 +140,7 @@ P24 WP0 must charter, at minimum: two-regime synthetic benchmark (calm/stress) w
 | **C — Borrow** | WP3 | `scripts/bab_short_haircut.py`, `research_state/bab_p23/short_haircut.{json,md}`, `tests/test_bab_p23_short_haircut.py` | **CLOSED** (18 tests; 400 book runs; 1 visible censored cell) |
 | **D — Decision** | **WP4** | `docs/BAB_P23_DECISION.md`, `tests/test_bab_p23_decision_consistency.py` | **CLOSED** (gate green: ruff PASS, quick GREEN 104+195, reconcile GREEN, full gate GREEN 6765 passed / 35 skipped / TOTAL 100%) |
 
-Rules: one WP per session; lanes B/C/D consume earlier P23 artifacts read-only and must never regenerate them. **P23 WP4 is CLOSED. P24 WP0 — charter is the binding row.**
+Rules: one WP per session; lanes B/C/D consume earlier P23 artifacts read-only and must never regenerate them. **P23 WP4 is CLOSED. P24 WP0 completion is the binding row.**
 
 ---
 
@@ -148,28 +148,30 @@ Rules: one WP per session; lanes B/C/D consume earlier P23 artifacts read-only a
 
 A session is **not** complete unless **all** of the following landed in one commit:
 
-1. One complete WP from the routing table (P24 WP0 — charter).
-2. Its **script + committed artifact + acceptance test** (WP0), or report + consistency test (WP4 reference).
-3. A machine-checked number mapping, not a "looks consistent" claim; for WP0, every quoted threshold must resolve to a committed JSON field.
+1. One complete WP from the routing table (P24 WP0 completion).
+2. Its **script + committed artifact + acceptance test** (WP0 completion = enhanced test + CSV fixture).
+3. A machine-checked number mapping, not a "looks consistent" claim; for WP0 completion, every charter threshold must resolve to a committed JSON field and the fixture must be validated.
 4. `python3 -m ruff check .` PASS and `bash scripts/bab_quick.sh` GREEN; full gate once per WP boundary.
 5. A ledger row below with UTC timestamp, HEAD, what landed, and the gate line.
 6. **No documentation-only turn.** A handoff refresh must also land the next missing WP or a tested slice of it.
 
-**Hard minimums that make P24 WP0 impossible to fake:**
-- Script reads only committed P21/P22/P23 JSON artifacts read-only; never regenerates or edits them.
-- Charter declares regime-conditional betas, holdout-before-tuning, hysteresis band grid, licensed-price CSV schema fixture, and restates the NO-GO verdict.
-- Acceptance test pins the charter JSON fields and verifies no `build_*` harness is imported or called.
+**Hard minimums that make P24 WP0 completion impossible to fake:**
+- Enhanced test reads only committed P21/P22/P23 JSON artifacts read-only; never regenerates or edits them.
+- AST scan verifies no `build_*` harness is imported or called in the test file.
+- Numeric field mapping from charter JSON to committed P21/P22/P23 artifacts (like P23 WP4 test).
+- `tests/fixtures/licensed_price_schema.csv` exists with a valid header row (at minimum: `date,BTC,<assets...>` compatible with `load_prices()`).
 - Explicit `no_go_for_market = True` restated from the P23 charter verdict.
+- Verdict strings verified: `signal`, `noise`, `no-go for market`, `controlled synthetic`, `not market evidence`.
 
 ---
 
 ## No-idle ladder (if the assigned WP is blocked, do the next rung — never end a session empty-handed)
 
-1. WP0 feels large? Land the charter test skeleton first: an explicit JSON-path → threshold mapping for ≥20 committed fields plus the AST no-harness scan, committed with a partial charter, then extend in the same commit.
-2. Blocked because a threshold you want to declare is not in committed JSON? Do not type it. Either quote only existing fields, or land a new upstream WP in the same commit that adds the field to the harness **plus** its acceptance test — never a hand-typed number.
-3. Blocked because P23's censored rank `h=0.75` cell must be restated? Say so precisely: seed `20261245`, `censor_reason = "no_active_rows_after_short_availability_restriction"`. Never delete the censor or the cell.
+1. Test enhancement feels large? Land the AST no-harness scan first (copied from P23 WP4 test), committed with a partial test, then extend numeric mapping in the same commit.
+2. Blocked on CSV schema? Create a minimal valid header: `date,BTC,A001,A002,...,A041` (42 columns matching P21 universe) with one row of ISO dates and numeric prices; the test only validates schema/header, not values.
+3. Blocked because a threshold you want to validate is not in committed JSON? Do not type it. Either quote only existing fields, or land a new upstream WP in the same commit that adds the field to the harness **plus** its acceptance test — never a hand-typed number.
 4. Blocked on everything? Repair the gate and add one missing assertion to a P21/P22/P23 consistency test. Something landable always exists.
-5. Dead account of last resort: pre-build the P24 WP1 regime-split stress test skeleton as a tested slice, but P24 WP1 cannot be *declared complete* before P24 WP0 lands.
+5. Dead account of last resort: pre-build the P24 WP1 regime-split stress test skeleton as a tested slice, but P24 WP1 cannot be *declared complete* before P24 WP0 completion lands.
 
 Every session must end with a committed **code/test/artifact** diff and a ledger row. If a WP is only partially done, commit the slice and write the exact remainder in its ledger row.
 
@@ -184,7 +186,7 @@ bash scripts/bab_reconcile_gate.sh
 BAB_GATE_LOG=/tmp/bab_gate_handoff.log BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh
 ```
 
-Inner loop: `bash scripts/bab_quick.sh` + `python3 -m pytest -q tests/test_bab_p24_charter.py` (once WP0 tests exist). Full gate once per WP boundary; never hand off mid-gate. Never lower the coverage floor.
+Inner loop: `bash scripts/bab_quick.sh` + `python3 -m pytest -q tests/test_bab_p24_charter.py` (once WP0 tests enhanced). Full gate once per WP boundary; never hand off mid-gate. Never lower the coverage floor.
 
 ---
 
@@ -243,3 +245,6 @@ Inner loop: `bash scripts/bab_quick.sh` + `python3 -m pytest -q tests/test_bab_p
 | 2026-11-19T05:34:13Z | `575601d` | **P22 WP0 complete.** Ran `python3 scripts/bab_p22_charter.py`, committed `docs/BAB_P22_KICKOFF.md`. | full gate **GREEN 6616 passed / TOTAL 100%** |
 | 2026-11-19T02:44:44Z | `8591247` | **P21 WP3 landed + handoff re-certified.** Added `tests/test_bab_p21_cost_surface.py` (18 tests); fixed markdown renderer. | full gate **GREEN 6593 passed / TOTAL 100%** |
 | 2026-11-20T00:25:06Z | `8c3cba1` | **P23 WP4 gate green + handoff re-certification for P24 WP0.** Fixed 5 ruff errors in `tests/test_bab_p23_decision_consistency.py` (E501 ×3, PERF102 ×1, W292 ×1); full gate GREEN 6765 passed / 35 skipped / TOTAL 100%. P23 WP0–WP4 all CLOSED. Re-routed binding row to **P24 WP0 — charter ("Regime-conditional BAB and holdout discipline")**. | ruff PASS; quick GREEN (104+195); reconcile GREEN; full gate **GREEN 6765 passed / 35 skipped / TOTAL 100%** |
+| 2026-11-20T01:26:04Z | `95356dc` | **Handoff refreshed for P24 WP0 completion.** P24 WP0 charter files exist but acceptance test is a stub (2 assertions) and `tests/fixtures/licensed_price_schema.csv` fixture is missing. Binding row updated to P24 WP0 completion: enhance test to mirror P23 WP4 pattern (AST no-harness scan, numeric leaf mapping, verdict strings, byte-identical artifact check) and create the CSV schema fixture. | ruff PASS; quick GREEN (104+195) |
+
+(End of file)
