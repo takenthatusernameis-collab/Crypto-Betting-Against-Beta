@@ -120,6 +120,14 @@ def test_p24_regime_split_exists_and_reads() -> None:
     assert thresholds["calm_and_stress_disjoint"] is True
     assert thresholds["planted_recovery_strictly_positive_in_at_least_one_regime"] is True
     assert thresholds["null_recovery_exactly_zero_everywhere"] is True
+    assert thresholds["every_planted_regime_cell_positive"] is True
+    assert thresholds["every_regime_non_empty"] is True
+    assert "regime_coverage" in prov
+    coverage = prov["regime_coverage"]
+    assert coverage["total_rows"] == 600
+    assert coverage["overlap_rows"] == 0
+    assert coverage["union_rows"] == sum(coverage["rows_by_regime"].values())
+    assert coverage["union_rows"] + coverage["unclassified_rows"] == 600
     assert "regime_zero_reference" in prov
     assert "derived" in prov
     derived = prov["derived"]
@@ -212,8 +220,15 @@ def test_regime_split_cells_complete(p24_regime_split) -> None:
 
 def test_regime_split_calm_and_stress_disjoint(p24_regime_split) -> None:
     """Calm and stress regimes must be disjoint (no row in both)."""
-    # This is enforced by the regime mask construction (middle tertile excluded)
-    # but we verify the active fractions sum to < 1.0
+    coverage = p24_regime_split["provenance"]["regime_coverage"]
+    assert coverage["overlap_rows"] == 0
+    rows = coverage["rows_by_regime"]
+    assert set(rows) == {"calm", "stress"}
+    for regime, count in rows.items():
+        assert 0 < count < coverage["total_rows"], f"{regime}={count}"
+    assert rows["calm"] + rows["stress"] == coverage["union_rows"]
+    assert coverage["union_rows"] < coverage["total_rows"]
+
     cells = p24_regime_split["cells"]
     for weighting in ("equal", "rank"):
         for variant in ("planted", "null"):
@@ -244,8 +259,9 @@ def test_regime_split_null_recovery_exactly_zero(p24_regime_split) -> None:
     for cell in p24_regime_split["cells"]:
         if cell["variant"] == "null":
             assert cell["recovery"] == 0.0, f"Null recovery not zero: {cell}"
-            assert cell["recovery_null_exactly_zero"] is True
-            assert cell["recovery_planted_strictly_positive"] is True
+            assert cell["recovery_exactly_zero"] is True
+            assert cell["recovery_positive"] is False
+            assert cell["recovery_retention"] == 0.0
 
 
 def test_regime_split_planted_recovery_strictly_positive_in_at_least_one_regime(
@@ -265,7 +281,8 @@ def test_regime_split_planted_recovery_strictly_positive_in_at_least_one_regime(
         # Actually verify both regimes are positive (they should be)
         for c in planted_cells:
             assert c["recovery"] > 0.0, f"Planted recovery not positive: {c}"
-            assert c["recovery_planted_strictly_positive"] is True
+            assert c["recovery_positive"] is True
+            assert c["recovery_exactly_zero"] is False
 
 
 def test_regime_split_rank_guards(p24_regime_split) -> None:
@@ -307,6 +324,12 @@ def test_regime_split_active_rows_reasonable(p24_regime_split) -> None:
     for cell in p24_regime_split["cells"]:
         assert cell["total_rows"] == 600
         assert 0 < cell["active_rows"] < cell["total_rows"]
+        assert cell["regime_rows"] == (
+            p24_regime_split["provenance"]["regime_coverage"]["rows_by_regime"][
+                cell["regime"]
+            ]
+        )
+        assert cell["active_rows"] <= cell["regime_rows"]
         # Tertile splits should give ~1/3 each, so ~200 active rows
         assert 150 <= cell["active_rows"] <= 250, f"Unexpected active rows: {cell}"
 
@@ -380,3 +403,61 @@ def test_regime_split_artifacts_are_byte_identical_after_suite() -> None:
     after[name_p21] = hashlib.sha256(p21_path.read_bytes()).hexdigest()
 
     assert before == after, "One or more research artifacts mutated during test run"
+
+
+def test_regime_split_flags_are_not_self_attested(p24_regime_split) -> None:
+    """Every boolean must be recomputable from the cell's own measured numbers."""
+    for cell in p24_regime_split["cells"]:
+        assert cell["recovery_positive"] is (cell["recovery"] > 0.0), cell
+        assert cell["recovery_exactly_zero"] is (cell["recovery"] == 0.0), cell
+        full = cell["recovery_full_panel"]
+        if full == 0.0:
+            assert cell["recovery_retention"] == 0.0, cell
+        else:
+            assert cell["recovery_retention"] == round(
+                cell["recovery"] / full, DECIMALS
+            ), cell
+
+
+def test_regime_split_retention_uses_committed_full_panel(p24_regime_split) -> None:
+    """Each cell's full-panel denominator must equal the pinned zero reference."""
+    ref = p24_regime_split["provenance"]["regime_zero_reference"]["checks"]
+    for cell in p24_regime_split["cells"]:
+        key = f"{cell['variant']}_{cell['weighting']}"
+        assert cell["recovery_full_panel"] == ref[key]["regime_zero_recovery"], cell
+
+
+def test_regime_split_thresholds_recomputed_from_cells(p24_regime_split) -> None:
+    """The declared thresholds must equal recomputation from the published cells."""
+    prov = p24_regime_split["provenance"]
+    cells = p24_regime_split["cells"]
+    planted = [c for c in cells if c["variant"] == "planted"]
+    null = [c for c in cells if c["variant"] == "null"]
+    checks = prov["regime_zero_reference"]["checks"].values()
+    recomputed = {
+        "regime_zero_matches_p21_at_6dp": all(v["matches_at_6dp"] for v in checks),
+        "calm_and_stress_disjoint": prov["regime_coverage"]["overlap_rows"] == 0,
+        "every_regime_non_empty": all(
+            n > 0 for n in prov["regime_coverage"]["rows_by_regime"].values()
+        ),
+        "planted_recovery_strictly_positive_in_at_least_one_regime": all(
+            any(c["recovery"] > 0.0 for c in planted if c["weighting"] == w)
+            for w in ("equal", "rank")
+        ),
+        "every_planted_regime_cell_positive": all(c["recovery"] > 0.0 for c in planted),
+        "null_recovery_exactly_zero_everywhere": all(
+            c["recovery"] == 0.0 for c in null
+        ),
+    }
+    assert prov["acceptance_thresholds"] == recomputed
+    assert all(recomputed.values()), recomputed
+
+
+def test_regime_split_stress_is_measured_not_declared(p24_regime_split) -> None:
+    """The stress book must actually differ from the full-panel book."""
+    for cell in p24_regime_split["cells"]:
+        if cell["variant"] != "planted":
+            continue
+        assert cell["regime_rows"] < cell["total_rows"], cell
+        assert cell["recovery_retention"] > 0.9, cell
+        assert cell["recovery_retention"] < 1.1, cell

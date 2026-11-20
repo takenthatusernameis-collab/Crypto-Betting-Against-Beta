@@ -166,8 +166,15 @@ def _cell_statistics(
     regime_mask_series: pd.Series,
     config: dict,
     assets: list[str],
+    full_recovery: float,
 ) -> dict:
-    """Collect statistics for one (regime, weighting, variant)."""
+    """Collect statistics for one (regime, weighting, variant).
+
+    Every boolean field is recomputed from this cell's own measured numbers;
+    none is asserted by hand. ``recovery_retention`` is the regime-restricted
+    recovery over the same book's full-panel recovery, i.e. the measured
+    regime degradation.
+    """
     alpha = np.array([float(universe["alphas"][variant][a]) for a in assets])
     betas = np.array([float(universe["betas"][a]) for a in assets])
     baseline_weights = baseline["weights"]
@@ -229,22 +236,25 @@ def _cell_statistics(
             min_leg_betas.append(min(long_beta, short_beta))
         min_leg_beta = float(min(min_leg_betas)) if min_leg_betas else 0.0
 
-    if variant == "planted":
-        recovery_planted_strictly_positive = recovery > 0.0
-        recovery_null_exactly_zero = True
-    else:
-        recovery_planted_strictly_positive = True
-        recovery_null_exactly_zero = (recovery == 0.0)
+    recovery_positive = recovery > 0.0
+    # Retention is derived from the *published* 6 dp numbers so any reader can
+    # recompute it from the artifact alone.
+    recovery_retention = 0.0
+    if _clean(full_recovery) != 0.0:
+        recovery_retention = _clean(recovery) / _clean(full_recovery)
 
     return {
         "regime": regime,
         "weighting": weighting,
         "variant": variant,
         "recovery": _clean(recovery),
-        "recovery_planted_strictly_positive": recovery_planted_strictly_positive,
-        "recovery_null_exactly_zero": recovery_null_exactly_zero,
+        "recovery_full_panel": _clean(full_recovery),
+        "recovery_retention": _clean(recovery_retention),
+        "recovery_positive": recovery_positive,
+        "recovery_exactly_zero": recovery == 0.0,
         "sharpe": _clean(sharpe),
         "beta_exposure": _clean(beta_exposure),
+        "regime_rows": int(aligned_mask.sum()),
         "active_rows": n_active,
         "total_rows": n_total,
         "active_fraction": _clean(n_active / n_total if n_total > 0 else 0.0),
@@ -267,7 +277,6 @@ def build_regime_split(
     """Build the regime-split stress payload (reads committed JSON only)."""
     universe = load_json(UNIVERSE_PATH) if universe is None else universe
     charter_p24 = load_json(CHARTER_PATH) if charter_p24 is None else charter_p24
-    charter_p23 = load_json("research_state/bab_p23/charter.json")
     if charter_p23 is None:
         charter_p23 = load_json("research_state/bab_p23/charter.json")
     p21_rank_eval = load_json(P21_RANK_EVAL_PATH)
@@ -285,12 +294,39 @@ def build_regime_split(
         for weighting in WEIGHTINGS
     }
 
+    # Full-panel recovery per book: the regime zero reference and the
+    # denominator of every cell's measured retention.
+    full_recoveries = {}
+    for variant in VARIANTS:
+        alpha = np.array([float(universe["alphas"][variant][a]) for a in assets])
+        for weighting in WEIGHTINGS:
+            baseline = baselines[(variant, weighting)]
+            active = baseline["active"]
+            if active.any():
+                w_bar = baseline["weights"][active][:, 1:].mean(axis=0)
+                full_recoveries[(variant, weighting)] = float(w_bar @ alpha)
+            else:
+                full_recoveries[(variant, weighting)] = 0.0
+
+    benchmark = config["benchmark"]
+    masks = {regime: regime_mask(frames["planted"], benchmark, regime) for regime in regimes}
+    for variant in VARIANTS:
+        for regime in regimes:
+            assert masks[regime].equals(
+                regime_mask(frames[variant], benchmark, regime)
+            ), "regime mask must not depend on the alpha variant"
+    reference_index = baselines[("planted", "rank")]["index"]
+    aligned = {r: masks[r].reindex(reference_index).fillna(False) for r in regimes}
+    total_rows = len(reference_index)
+    rows_by_regime = {r: int(aligned[r].sum()) for r in regimes}
+    overlap_rows = int((aligned[regimes[0]] & aligned[regimes[1]]).sum())
+    union_rows = int((aligned[regimes[0]] | aligned[regimes[1]]).sum())
+
     cells = []
     for variant in VARIANTS:
         frame = frames[variant]
-        benchmark = config["benchmark"]
         for regime in regimes:
-            mask = regime_mask(frame, benchmark, regime)
+            mask = masks[regime]
             for weighting in WEIGHTINGS:
                 baseline = baselines[(variant, weighting)]
                 cells.append(
@@ -304,43 +340,48 @@ def build_regime_split(
                         mask,
                         config,
                         assets,
+                        full_recoveries[(variant, weighting)],
                     )
                 )
 
     # Zero-reference: full-panel recovery matches P21 rank_eval at 6dp
     p21_books = {(b["variant"], b["weighting"]): b for b in p21_rank_eval["books"]}
-    zero_cells = []  # no regime restriction = full panel
+    regime_zero_reference = {"checks": {}}
     for variant in VARIANTS:
         for weighting in WEIGHTINGS:
-            baseline = baselines[(variant, weighting)]
-            frame = frames[variant]
-            alpha = np.array([float(universe["alphas"][variant][a]) for a in assets])
-            active = baseline["active"]
-            if active.any():
-                w_bar = baseline["weights"][active][:, 1:].mean(axis=0)
-                recovery = float(w_bar @ alpha)
-            else:
-                recovery = 0.0
-            zero_cells.append(
-                {
-                    "variant": variant,
-                    "weighting": weighting,
-                    "recovery": _clean(recovery),
-                }
-            )
+            key_str = f"{variant}_{weighting}"
+            committed = _clean(p21_books[(variant, weighting)]["recovery_mean"])
+            measured = _clean(full_recoveries[(variant, weighting)])
+            regime_zero_reference["checks"][key_str] = {
+                "committed_p21_recovery": committed,
+                "regime_zero_recovery": measured,
+                "matches_at_6dp": measured == committed,
+            }
 
-    regime_zero_reference = {
-        "checks": {},
+    # Every acceptance threshold is computed from the measured artifact, never
+    # asserted by hand.
+    zero_checks = regime_zero_reference["checks"].values()
+    planted_cells = [c for c in cells if c["variant"] == "planted"]
+    null_cells = [c for c in cells if c["variant"] == "null"]
+    acceptance_thresholds = {
+        "regime_zero_matches_p21_at_6dp": all(v["matches_at_6dp"] for v in zero_checks),
+        "calm_and_stress_disjoint": overlap_rows == 0,
+        "every_regime_non_empty": all(rows_by_regime[r] > 0 for r in regimes),
+        "planted_recovery_strictly_positive_in_at_least_one_regime": all(
+            any(
+                c["recovery_positive"]
+                for c in planted_cells
+                if c["weighting"] == weighting
+            )
+            for weighting in WEIGHTINGS
+        ),
+        "every_planted_regime_cell_positive": all(
+            c["recovery_positive"] for c in planted_cells
+        ),
+        "null_recovery_exactly_zero_everywhere": all(
+            c["recovery_exactly_zero"] for c in null_cells
+        ),
     }
-    for zc in zero_cells:
-        key = (zc["variant"], zc["weighting"])
-        key_str = f"{key[0]}_{key[1]}"
-        p21_book = p21_books[key]
-        regime_zero_reference["checks"][key_str] = {
-            "committed_p21_recovery": _clean(p21_book["recovery_mean"]),
-            "regime_zero_recovery": zc["recovery"],
-            "matches_at_6dp": zc["recovery"] == _clean(p21_book["recovery_mean"]),
-        }
 
     return {
         "schema": SCHEMA,
@@ -368,12 +409,14 @@ def build_regime_split(
                 f"middle excluded; causal (no lookahead)"
             ),
             "config": config,
-            "acceptance_thresholds": {
-                "regime_zero_matches_p21_at_6dp": True,
-                "calm_and_stress_disjoint": True,
-                "planted_recovery_strictly_positive_in_at_least_one_regime": True,
-                "null_recovery_exactly_zero_everywhere": True,
+            "regime_coverage": {
+                "total_rows": total_rows,
+                "rows_by_regime": rows_by_regime,
+                "overlap_rows": overlap_rows,
+                "union_rows": union_rows,
+                "unclassified_rows": total_rows - union_rows,
             },
+            "acceptance_thresholds": acceptance_thresholds,
             "regime_zero_reference": regime_zero_reference,
             "derived": {
                 "n_cells": len(cells),
@@ -397,16 +440,27 @@ def render_markdown(payload: dict) -> str:
         f"`{prov['charter_schema']}`; regimes {prov['regime_grid']}.",
         f"Regime rule: {prov['regime_rule']}.",
         "",
-        "| regime | weighting | variant | recovery | sharpe | beta_exposure | "
-        "active_rows | total_rows | active_frac | min_leg_beta | gross_max |",
-        "|---|---|---|---|---|---|---|---|---|---|---|",
+        "| regime | weighting | variant | recovery | full_panel | retention | "
+        "sharpe | beta_exposure | regime_rows | active_rows | total_rows | "
+        "active_frac | min_leg_beta | gross_max |",
+        "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|",
     ]
     lines.extend(
         f"| {cell['regime']} | {cell['weighting']} | {cell['variant']} | "
-        f"{cell['recovery']} | {cell['sharpe']} | {cell['beta_exposure']} | "
-        f"{cell['active_rows']} | {cell['total_rows']} | {cell['active_fraction']} | "
-        f"{cell['min_leg_beta']} | {cell['gross_max']} |"
+        f"{cell['recovery']} | {cell['recovery_full_panel']} | "
+        f"{cell['recovery_retention']} | "
+        f"{cell['sharpe']} | {cell['beta_exposure']} | "
+        f"{cell['regime_rows']} | {cell['active_rows']} | {cell['total_rows']} | "
+        f"{cell['active_fraction']} | {cell['min_leg_beta']} | {cell['gross_max']} |"
         for cell in payload["cells"]
+    )
+    lines.append("")
+    coverage = prov["regime_coverage"]
+    lines.append(
+        f"Regime coverage: {coverage['total_rows']} rows; "
+        f"{coverage['rows_by_regime']} classified; "
+        f"{coverage['overlap_rows']} overlapping; "
+        f"{coverage['unclassified_rows']} middle/unclassified."
     )
     lines.append("")
     lines.append("## Regime zero-reference (full panel, matches P21 at 6 dp)")
