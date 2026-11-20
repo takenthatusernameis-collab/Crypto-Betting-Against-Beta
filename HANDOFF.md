@@ -2,8 +2,8 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-20T21:54:36Z
-- **Git state:** HEAD `449ea63` (P25 WP1 complete + handoff certified P25 WP2 binding). Working tree: clean. Certify with `git log --oneline -4 && git status --short`.
+- **Timestamp (UTC):** 2026-11-20T21:55:05Z
+- **Git state:** HEAD `08593c0` (checkpoint atop P25 WP1 complete `0a35893`; binding row P25 WP2). Working tree: clean. Certify with `git log --oneline -4 && git status --short`.
 - **P24 — COMPLETE** — All WPs landed, lint remediation done, full gate **GREEN 6885 passed / 35 skipped / TOTAL 100%**. No binding row remains in P24.
 - **P20-P23 — COMPLETE** — All campaigns closed per ledger. P20 WP0-WP5 (92 tests), P21 WP0-WP3 (56 tests), P22 WP0-WP3 (85 tests), P23 WP0-WP4 (80 tests), P24 WP0-WP4 (94 tests) all GREEN.
 - **P25 WP0 — COMPLETE** — All 4 deliverables committed: `scripts/bab_wide_universe.py`, `tests/fixtures/wide_bab_universe.csv`, `tests/fixtures/wide_bab_universe_meta.json`, `tests/test_bab_p25_wide_universe.py`. 24/24 acceptance tests GREEN, ruff clean.
@@ -13,7 +13,7 @@
 
 # INITIAL TASK MESSAGE (BINDING — START HERE)
 
-**Timestamp:** 2026-11-20T21:54:36Z · **Campaign:** P25 "Rank-weighting promotion via wide-universe OOS validation" · **Lane:** C · **WP:** **P25 WP2 — equal vs rank OOS bake-off**
+**Timestamp:** 2026-11-20T21:55:05Z · **Campaign:** P25 "Rank-weighting promotion via wide-universe OOS validation" · **Lane:** C · **WP:** **P25 WP2 — equal vs rank OOS bake-off**
 
 **One-sentence objective:** Run an equal-weight vs rank-weighted out-of-sample bake-off on the wide P25 universe across identical walk-forward folds so rank weighting can be compared to the equal-weight default and the evidence for the WP3 promotion decision is produced.
 
@@ -267,3 +267,4 @@ Inner loop: `bash scripts/bab_quick.sh` + `python3 -m pytest -q tests/test_bab_p
 | 2026-11-20T20:53:54Z | `790d54a` | **HANDOFF refreshed for P25 WP1 binding row.** P25 WP0 deliverables all exist and pass: `scripts/bab_wide_universe.py`, `tests/fixtures/wide_bab_universe.csv`, `tests/fixtures/wide_bab_universe_meta.json`, `tests/test_bab_p25_wide_universe.py` — 24/24 acceptance tests GREEN, ruff clean. Fixed 5× E501 ruff errors in test file (uncommitted change). Binding row re-routed to **P25 WP1 — rank walk-forward harness**. Pre-declared WP2 (bake-off) and WP3 (decision) for continuity. | ruff PASS; quick GREEN (104+195); reconcile GREEN |
 | 2026-11-20T21:33:16Z | `0a35893` | **P25 WP1 landed — rank walk-forward harness.** Added `scripts/bab_walk_forward_rank.py`, `research_state/bab_p25/walk_forward_rank.{json,md}`, `tests/test_bab_p25_walk_forward_rank.py` (23 tests). Expanding walk-forward over the P25 WP0 wide fixture: 5 folds (train 180 / test 40), rank weighting (long low-beta quantile, short high-beta quantile, beta-neutral, rank_min_leg_beta=0.20, rank_max_gross=4.0). Every fold 40/40 OOS non-flat rows, per-fold portfolio beta ≈ 0, recovered planted beta spread ≈ 1.11 (long ≈ 0.55, short ≈ 1.68), byte-identical deterministic JSON, fixture SHA256 provenance matching WP0. Full gate GREEN 6932 passed / 35 skipped / TOTAL 100% coverage. Binding row re-routed to **P25 WP2 — equal vs rank OOS bake-off** with a binding initial task message and hard contract; WP3 pre-declared. | ruff PASS; quick GREEN (104+195); reconcile GREEN; full gate **GREEN 6932 passed / 35 skipped / TOTAL 100%**
 (End of file)
+| 2026-11-20T21:55:05Z | `08593c0` | **HANDOFF refreshed for P25 WP2 binding row.** P25 WP1 complete (rank walk-forward harness: `scripts/bab_walk_forward_rank.py`, `research_state/bab_p25/walk_forward_rank.{json,md}`, 23 tests, full gate GREEN 6932 passed / 35 skipped / TOTAL 100%). Binding row re-routed to **P25 WP2 — equal vs rank OOS bake-off** with hard contract and four deliverables. WP3 pre-declared for continuity. | ruff PASS; quick GREEN (104+195); reconcile GREEN; full gate **GREEN 6932 passed / 35 skipped / TOTAL 100%** |
