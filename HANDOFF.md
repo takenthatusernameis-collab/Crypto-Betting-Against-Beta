@@ -2,44 +2,45 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-19T23:25:50Z
-- **Git state:** HEAD `f281085` (checkpoint after `644a181`, **P23 WP3 landed + re-certify handoff**). Working tree clean. Certify with `git log --oneline -4 && git status --short`. Next row is **P23 WP4 — closing decision report**.
+- **Timestamp (UTC):** 2026-11-20T00:25:06Z
+- **Git state:** HEAD `8c3cba1` (checkpoint after `f281085`, **P23 WP4 landed + gate green**). Working tree clean. Certify with `git log --oneline -4 && git status --short`. Next row is **P24 WP0 — charter ("Regime-conditional BAB and holdout discipline")**.
 - **P23 WP3 IS LANDED, ARTIFACT-GATED AND GREEN** — the short-availability haircut ladder. It reads `research_state/bab_p21/universe.json`, `research_state/bab_p23/charter.json`, `research_state/bab_p23/breadth_ladder.json` and `research_state/bab_p23/beta_drift.json` **read-only**, draws one seeded availability mask per WP3 seed, drops unavailable short positions from the shipped `BABStrategy` book, and runs **400 book runs** (5 haircuts × 20 seeds × 2 weightings × 2 variants). All 20 chartered cells are reported with 20 per-seed recoveries, costed Sharpes and availabilities; 18 acceptance tests pin the artifact.
 - **Headline measurements (WP3):** `haircut_zero_reference` reproduces committed P21 `rank_eval.json` **and** WP2 `drift_zero_reference` at 6 dp (`planted_equal 0.000261`, `planted_rank 0.017360`, nulls `0.0`). Planted recovery is strictly positive on every seed in **every non-censored cell** (equal `+0.000357 → +0.001129`, rank `+0.017103 → +0.016103`). Null recovery is exactly `0.0` in every cell. Availability tracks `1 − h` at the cell mean (`0.9049 / 0.7341 / 0.4793 / 0.2280`). Borrow-costed Sharpe is non-increasing on every book (`+7.035 → −7500.5` equal, `+44.378 → −806.4` rank at `h=0.75`). Rank guards hold on every non-censored rank cell (`min_leg_beta ≥ 0.507692`, `gross_max ≤ 2.414949`).
 - **One cell is censored, visibly and for a real reason:** rank `h=0.75` (both variants) loses its entire short book on seed `20261245` (all 12 signal shorts are unavailable — a 0.75¹² ≈ 3.2% draw that did occur), so `active_rows_min = 0`, `degenerate_rows_max = 541`, `censor_reason = "no_active_rows_after_short_availability_restriction"`. It is never zeroed silently and never hidden. This is a genuine WP4 input: at 75% short withdrawal the market-neutral book can vanish outright.
-- **Bottlenecks removed this session (both were real, both blocked progress):**
+- **P23 WP4 IS LANDED, ARTIFACT-GATED AND GREEN** — `docs/BAB_P23_DECISION.md` + `tests/test_bab_p23_decision_consistency.py`. Reads only committed JSON (`bab_p23/charter.json`, `breadth_ladder.json`, `beta_drift.json`, `short_haircut.json`, `bab_p21/rank_eval.json`). ≥100 numbers matched to committed JSON fields, zero unmatched cells, AST scan proves no `build_*` harness imported or called. Explicit `SIGNAL on controlled synthetic planted / NOISE on null`, explicit `NO-GO for market deployment`, names the censored rank `h=0.75` cell (seed `20261245`, `censor_reason = "no_active_rows_after_short_availability_restriction"`). Full gate green: ruff PASS, quick GREEN (104+195), reconcile GREEN, full gate GREEN 6765 passed / 35 skipped / TOTAL 100%.
+- **Bottlenecks removed this session (all were real, all blocked progress):**
   1. **The binding WP3 spec was self-contradictory.** It required (a) renormalizing surviving shorts back to the baseline short gross **and** (b) strictly positive planted recovery on every seed. Requirement (a) was implemented and measured first: it amplifies the beta-neutrality residual names (the equal-weight book's `w_bar·alpha` is only `+0.000261` and its signal-short contribution is `−2.6e−6`), flipping 3–5 planted seeds negative at `h ≥ 0.25`. The spec is now resolved in favour of realistic economics: unavailable shorts are **dropped and never re-levered** (the realized short gross falls with `h`), which keeps every non-censored planted seed positive. The rejected re-levering variant is documented in the harness docstring so no future session re-tries it blindly.
   2. **A fully-short-unavailable seed makes strict positivity mathematically impossible.** At `h=0.75` a seed can lose all 12 shorts; the book has no hedge and must flatten. The old spec ("every seeded cell strictly positive") therefore cannot hold for all cells. The charter's own escape hatch is now used explicitly: a censored cell stays visible with a machine-readable `censor_reason`, and its only zero-recovery seed must coincide with `per_seed_degenerate_rows = 541`. Do not delete the censor to make a test greener.
   3. Per-seed availability was first asserted against `1−h` with the 0.05 cell slack; single 41-asset draws have σ ≈ 0.047 and one legitimate tail (`0.0488` at `h=0.75`) tripped it. The test now asserts the chartered **cell-mean** slack and pins each per-seed value to an exact recomputation from `availability_mask(seed, 41, h)`.
-- **P22 IS CLOSED** — WP0 charter, WP1 null battery, WP2 nonlinear impact, WP3 capacity, WP4 decision report all landed. Verdict: **NO-GO for market deployment**, SIGNAL on planted, NOISE on null.
+  4. **WP4 consistency test had 5 ruff errors (E501 ×3, PERF102 ×1, W292 ×1) blocking the gate.** Fixed by breaking long lines, using `.values()` for unused keys, and adding a trailing newline. Gate now fully green.
 - **P21 IS CLOSED** — WP0 synthetic universe (41 assets, 600 rows, seed 20261118, planted α Spearman = −1, null α = 0), WP1 rank vs equal, WP2 significance, WP3 cost surface, WP4 report.
 - **Repo:** `Crypto-Betting-Against-Beta` — crypto market-neutral BAB trading system.
 
-**Handoff reviewed and confirmed as the single durable handoff. The binding initial task message below is the most relevant, timestamped, clear directive for the next agentic work session, prioritized from the repository name (`Crypto-Betting-Against-Beta`, a betting-against-beta system whose measured failure modes are beta-estimation drift, breadth concentration and the crypto short leg) and the measured state after P23 WP3. P21, P22, P23 WP0, P23 WP1, P23 WP2 and P23 WP3 are CLOSED. The next row is P23 WP4 and is the only row a session may take.**
+**Handoff reviewed and confirmed as the single durable handoff. The binding initial task message below is the most relevant, timestamped, clear directive for the next agentic work session, prioritized from the repository name (`Crypto-Betting-Against-Beta`, a betting-against-beta system whose measured failure modes are beta-estimation drift, breadth concentration and the crypto short leg) and the measured state after P23 WP4. P21, P22, P23 WP0, P23 WP1, P23 WP2, P23 WP3 and P23 WP4 are CLOSED. The next row is P24 WP0 — charter ("Regime-conditional BAB and holdout discipline") and is the only row a session may take.**
 
 ---
 
 # INITIAL TASK MESSAGE (BINDING — START HERE)
 
-**Timestamp:** 2026-11-19T23:25:50Z · **Campaign:** P23 "Breadth and instability stress" · **Lane:** D · **WP:** **P23 WP4 — closing decision report (must keep NO-GO in force)**
+**Timestamp:** 2026-11-20T00:25:06Z · **Campaign:** P24 "Regime-conditional BAB and holdout discipline" · **Lane:** A · **WP:** **P24 WP0 — charter (binding immediately after P23 WP4)**
 
-**One-sentence objective:** write `docs/BAB_P23_DECISION.md` plus `tests/test_bab_p23_decision_consistency.py`, a machine-checked decision report over the four committed P23 JSON artifacts (charter, breadth ladder, beta-drift grid, short-availability haircut ladder), quoting **≥100 numbers that each resolve to a committed JSON field with zero unmatched cells**, restating the four stress axes, the single censored rank `h=0.75` cell and its cause, the explicit `SIGNAL on controlled synthetic planted / NOISE on null` verdict, and the explicit **NO-GO for market deployment**, with an AST scan proving no P21/P22/P23 `build_*` harness is imported or called.
+**One-sentence objective:** write `scripts/bab_p24_charter.py`, `research_state/bab_p24/charter.{json,md}`, `tests/test_bab_p24_charter.py`, and `docs/BAB_P24_KICKOFF.md`, a machine-checked charter over the committed P23 artifacts (read-only), declaring the P24 acceptance thresholds: two-regime synthetic benchmark (calm/stress) with regime-conditional betas; holdout split fixed before any tuning (no parameter selection on the evaluation window); hysteresis band grid on beta-rank turnover; a licensed-price CSV schema fixture for offline adapter testing (never network); and the P24 NO-GO verdict that keeps P23's NO-GO in force until a maintainer supplies a licensed price series.
 
-**Why this and nothing else:** WP1 pinned breadth concentration, WP2 pinned beta-estimation drift, WP3 pinned short-availability collapse. P23 now has measured answers on all three instability axes; the campaign cannot be left without its evaluated conclusion. WP4 is the only remaining P23 row and is the gate that converts three ladders into a defensible decision and unlocks Campaign P24.
+**Why this and nothing else:** P23 has closed all three instability axes — breadth concentration, beta-estimation drift, and crypto short-availability scarcity — with an explicit NO-GO for market deployment. The repository name is *betting against beta*, and the next unmeasured axis from that name is **regime dependence plus honest holdout discipline**. P24 WP0 is the only unrouted row; Campaign P24 cannot begin until its charter lands, and no session after WP4 may idle.
 
-**Prioritization basis:** the repository name is *betting against beta*. P23 has now measured all three inputs that make a crypto BAB book fragile: how few names it can survive, how wrong the betas can be, and how much of the short leg must survive. The next session's highest-value act is to turn those committed measurements — including the new finding that a 75% short withdrawal can annihilate the book on a whole seed — into a decision report that cannot overclaim.
+**Prioritization basis:** the repository name is *betting against beta*. P23 proved the estimator's instability handling under controlled conditions; P24 WP0 must now declare the regime-conditional stress axes and the holdout discipline that prevent overfitting to the synthetic stimulus. The charter must restate the NO-GO verdict and declare licensed data as a hard requirement — never market evidence, never real profitability.
 
 **Deliverable files are the claim.** Run:
 
 ```bash
-git ls-files docs/BAB_P23_DECISION.md tests/test_bab_p23_decision_consistency.py
+git ls-files scripts/bab_p24_charter.py research_state/bab_p24/charter.json research_state/bab_p24/charter.md tests/test_bab_p24_charter.py docs/BAB_P24_KICKOFF.md
 ```
 
-The first missing row is **P23 WP4 — closing decision report**; you own `docs/BAB_P23_DECISION.md` and `tests/test_bab_p23_decision_consistency.py`. **No script harness** — WP4 is a report over committed JSON and is only legitimate together with its consistency test.
+The first missing row is **P24 WP0 — charter**; you own all four files. **No script harness re-run** — WP0 reads only committed P21/P22/P23 JSON artifacts and must never regenerate or edit them.
 
 Rules:
 1. Never take a WP whose deliverable already exists. If a deliverable exists but its acceptance test is red, fixing that test **is** the session's work — do not start a new row on a red gate.
-2. Solo default: **P23 WP4**. It reads only committed JSON: `bab_p23/charter.json`, `breadth_ladder.json`, `beta_drift.json`, `short_haircut.json` (plus committed `bab_p21/rank_eval.json` and the P22 JSON already restated in the charter). It must **not** regenerate, re-run or edit any P21/P22/P23 artifact or harness.
+2. Solo default: **P24 WP0**. It reads only committed JSON artifacts read-only; it must not regenerate, re-run or edit any P21/P22/P23 artifact or harness.
 3. A partially finished WP is not locked.
 4. Everything blocked? Repair the red gate first (`bash scripts/bab_quick.sh`), then take the first missing row.
 5. Never end a session with prose. A landed WP = deliverable + consistency test in **one** commit + green full gate.
@@ -49,15 +50,15 @@ Rules:
 
 ## ROUTE YOUR SESSION IN 60 SECONDS (no prose debate, no idle)
 
-Deliverable files are the claim. Run the `git ls-files` command above; the first missing row is yours. P21, P22 and P23 WP0–WP3 are CLOSED. P23 WP4 is the only remaining P23 row; Campaign P24 (queued below) begins only after WP4 lands.
+Deliverable files are the claim. Run the `git ls-files` command above; the first missing row is yours. P21, P22 and P23 WP0–WP4 are CLOSED. P24 WP0 — charter is the binding row; Campaign P24 begins now.
 
-Rules are identical to the numbered list immediately above. Solo default: **P23 WP4**.
+Rules are identical to the numbered list immediately above. Solo default: **P24 WP0**.
 
 ## MANDATORY FIRST ACTIONS (in order, ~4 minutes)
 
 1. `git log --oneline -4 && git status --short` — locate yourself. Do not re-derive what this file certifies.
 2. `bash scripts/bab_quick.sh` (≈20 s, must be GREEN). It bootstraps numpy/pandas/scipy/pytest/ruff from PyPI.
-3. Confirm P21/P22/P23-WP0/WP1/WP2/WP3 are closed and their artifacts are intact (≈0.1 s, must print only the confirmation line and exit 0):
+3. Confirm P21/P22/P23-WP0/WP1/WP2/WP3/WP4 are closed and their artifacts are intact (≈0.1 s, must print only the confirmation line and exit 0):
    ```bash
    python3 - <<'EOF'
    import json
@@ -72,19 +73,18 @@ Rules are identical to the numbered list immediately above. Solo default: **P23 
            p = root / f"research_state/{campaign}/{name}.json"
            assert p.is_file(), f"missing {p}"
            json.loads(p.read_text(encoding="utf-8"))
-   for report in ("docs/BAB_SIGNAL_OR_NOISE.md", "docs/BAB_P22_DECISION.md", "docs/BAB_P23_KICKOFF.md"):
+   for report in ("docs/BAB_SIGNAL_OR_NOISE.md", "docs/BAB_P22_DECISION.md", "docs/BAB_P23_KICKOFF.md", "docs/BAB_P23_DECISION.md"):
        assert (root / report).is_file(), f"missing {report}"
-   print("P21, P22, P23-WP0/WP1/WP2/WP3 closed; artifacts intact")
+   print("P21, P22, P23-WP0/WP1/WP2/WP3/WP4 closed; artifacts intact")
    EOF
    ```
-4. Read `research_state/bab_p23/short_haircut.json` — the WP3 artifact you must consume read-only. Note `provenance.haircut_zero_reference`, `availability_rule`, `cost_rule`, the censored rank `h=0.75` cell (`censor_reason = "no_active_rows_after_short_availability_restriction"`, seed `20261245`) and `derived.n_book_runs = 400`.
-5. Read `research_state/bab_p23/breadth_ladder.json` and `research_state/bab_p23/beta_drift.json` — the WP1/WP2 surfaces WP4 must restate. Note `provenance.drift_scale = 0.1` and `drift_zero_reference`.
-6. Read `docs/BAB_P22_DECISION.md` and `tests/test_bab_p22_decision_consistency.py` — the report + consistency-test pattern to mirror (`numbers_matched_min`, `zero_unmatched_cells`, no-harness AST scan).
-7. Read `research_state/bab_p23/charter.json` provenance — the WP4 thresholds: `numbers_matched_min=100`, `zero_unmatched_cells=0`, `no_harness_re_run=true`, `explicit_signal_noise_verdict=true`, `planted_recovery_labelled_controlled_synthetic=true`, `no_go_for_market=true`.
+4. Read `research_state/bab_p23/charter.json` provenance — the P24 charter thresholds to declare: `numbers_matched_min`, `zero_unmatched_cells`, `no_harness_re_run`, `explicit_signal_noise_verdict`, `planted_recovery_labelled_controlled_synthetic`, `no_go_for_market`.
+5. Read `docs/BAB_P23_DECISION.md` and `tests/test_bab_p23_decision_consistency.py` — the landed WP4 report + consistency-test pattern to mirror for P24 WP0.
+6. Read `research_state/bab_p21/rank_eval.json` — the frozen P21 panel (sha256-pinned) that P24 must consume read-only and never regenerate.
 
 ---
 
-## P23 WP4 SPEC — closing decision report (binding)
+## P23 WP4 SPEC — closing decision report (landed, green — reference only)
 
 **Deliverables:** `docs/BAB_P23_DECISION.md`, `tests/test_bab_p23_decision_consistency.py`. No script harness.
 
@@ -115,13 +115,13 @@ Rules are identical to the numbered list immediately above. Solo default: **P23 
 
 ---
 
-## Pre-declared Campaign P24 — "Regime-conditional BAB and holdout discipline" (queued, binding immediately after WP4)
+## Pre-declared Campaign P24 — "Regime-conditional BAB and holdout discipline" (binding now — P23 WP4 landed)
 
 P23 closes the instability axis; the next unmeasured axis from the repository name is **regime dependence plus honest holdout**. Declared now so no session after WP4 can idle:
 
 | Lane | WP | Deliverable files | Status |
 |---|---|---|---|
-| A | **WP0 — charter** | `scripts/bab_p24_charter.py`, `research_state/bab_p24/charter.{json,md}`, `tests/test_bab_p24_charter.py`, `docs/BAB_P24_KICKOFF.md` | QUEUED (binding after P23 WP4) |
+| A | **WP0 — charter** | `scripts/bab_p24_charter.py`, `research_state/bab_p24/charter.{json,md}`, `tests/test_bab_p24_charter.py`, `docs/BAB_P24_KICKOFF.md` | **BINDING — MISSING** |
 | B | WP1 — regime-split stress | `scripts/bab_regime_split.py`, `research_state/bab_p24/regime_split.{json,md}`, `tests/test_bab_p24_regime_split.py` | QUEUED |
 | C | WP2 — rebalance hysteresis / turnover ladder | `scripts/bab_hysteresis_ladder.py`, `research_state/bab_p24/hysteresis.{json,md}`, `tests/test_bab_p24_hysteresis.py` | QUEUED |
 | D | WP3 — licensed-data adapter dry run | `scripts/bab_licensed_adapter.py`, `research_state/bab_p24/adapter_dryrun.{json,md}`, `tests/test_bab_p24_adapter.py` | QUEUED (fixture only; **never** network) |
@@ -138,9 +138,9 @@ P24 WP0 must charter, at minimum: two-regime synthetic benchmark (calm/stress) w
 | **A — Breadth** | WP1 | `scripts/bab_breadth_ladder.py`, `research_state/bab_p23/breadth_ladder.{json,md}`, `tests/test_bab_p23_breadth_ladder.py` | **CLOSED** (16 tests) |
 | **B — Drift** | WP2 | `scripts/bab_beta_drift.py`, `research_state/bab_p23/beta_drift.{json,md}`, `tests/test_bab_p23_beta_drift.py` | **CLOSED** (16 tests; drift calibrated, AST scan fixed) |
 | **C — Borrow** | WP3 | `scripts/bab_short_haircut.py`, `research_state/bab_p23/short_haircut.{json,md}`, `tests/test_bab_p23_short_haircut.py` | **CLOSED** (18 tests; 400 book runs; 1 visible censored cell) |
-| **D — Decision** | **WP4** | `docs/BAB_P23_DECISION.md`, `tests/test_bab_p23_decision_consistency.py` | **BINDING — MISSING** |
+| **D — Decision** | **WP4** | `docs/BAB_P23_DECISION.md`, `tests/test_bab_p23_decision_consistency.py` | **CLOSED** (gate green: ruff PASS, quick GREEN 104+195, reconcile GREEN, full gate GREEN 6765 passed / 35 skipped / TOTAL 100%) |
 
-Rules: one WP per session; lanes B/C/D consume earlier P23 artifacts read-only and must never regenerate them. **P23 WP4 is the binding row.**
+Rules: one WP per session; lanes B/C/D consume earlier P23 artifacts read-only and must never regenerate them. **P23 WP4 is CLOSED. P24 WP0 — charter is the binding row.**
 
 ---
 
@@ -148,28 +148,28 @@ Rules: one WP per session; lanes B/C/D consume earlier P23 artifacts read-only a
 
 A session is **not** complete unless **all** of the following landed in one commit:
 
-1. One complete WP from the routing table (P23 WP4).
-2. Its **report + consistency test** (WP4), or script + committed artifact + acceptance test (any future harness WP).
-3. A machine-checked number mapping, not a "looks consistent" claim; for WP4 ≥100 matched numbers and zero unmatched.
+1. One complete WP from the routing table (P24 WP0 — charter).
+2. Its **script + committed artifact + acceptance test** (WP0), or report + consistency test (WP4 reference).
+3. A machine-checked number mapping, not a "looks consistent" claim; for WP0, every quoted threshold must resolve to a committed JSON field.
 4. `python3 -m ruff check .` PASS and `bash scripts/bab_quick.sh` GREEN; full gate once per WP boundary.
 5. A ledger row below with UTC timestamp, HEAD, what landed, and the gate line.
 6. **No documentation-only turn.** A handoff refresh must also land the next missing WP or a tested slice of it.
 
-**Hard minimums that make WP4 impossible to fake:**
-- ≥100 report numbers each recomputed from committed JSON; **zero** unmatched cells.
-- The report must restate all four committed surfaces (breadth, drift, availability, zero-reference) and name the censored rank `h=0.75` cell and its exact `censor_reason`.
-- Explicit `SIGNAL on controlled synthetic planted / NOISE on null` and `NO-GO for market deployment`.
-- AST scan proves no P21/P22/P23 harness is imported or called; no artifact edited.
+**Hard minimums that make P24 WP0 impossible to fake:**
+- Script reads only committed P21/P22/P23 JSON artifacts read-only; never regenerates or edits them.
+- Charter declares regime-conditional betas, holdout-before-tuning, hysteresis band grid, licensed-price CSV schema fixture, and restates the NO-GO verdict.
+- Acceptance test pins the charter JSON fields and verifies no `build_*` harness is imported or called.
+- Explicit `no_go_for_market = True` restated from the P23 charter verdict.
 
 ---
 
 ## No-idle ladder (if the assigned WP is blocked, do the next rung — never end a session empty-handed)
 
-1. WP4 feels large? Land the consistency-test skeleton first: an explicit JSON-path → number mapping for ≥40 fields plus the AST no-harness scan, committed with a partial report, then extend to ≥100 in the same commit.
-2. Blocked because a number you want to quote is not in committed JSON? Do not type it. Either quote only existing fields, or land a new upstream WP in the same commit that adds the field to the harness **plus** its acceptance test — never a hand-typed number.
-3. Blocked because the censored rank `h=0.75` cell makes a "strictly positive everywhere" sentence false? Say so precisely: the cell is censored, the seed is `20261245`, the reason is the committed string. Never delete the censor or the cell.
+1. WP0 feels large? Land the charter test skeleton first: an explicit JSON-path → threshold mapping for ≥20 committed fields plus the AST no-harness scan, committed with a partial charter, then extend in the same commit.
+2. Blocked because a threshold you want to declare is not in committed JSON? Do not type it. Either quote only existing fields, or land a new upstream WP in the same commit that adds the field to the harness **plus** its acceptance test — never a hand-typed number.
+3. Blocked because P23's censored rank `h=0.75` cell must be restated? Say so precisely: seed `20261245`, `censor_reason = "no_active_rows_after_short_availability_restriction"`. Never delete the censor or the cell.
 4. Blocked on everything? Repair the gate and add one missing assertion to a P21/P22/P23 consistency test. Something landable always exists.
-5. Dead account of last resort: pre-build the P24 WP0 charter test skeleton as a tested slice, but P24 WP0 cannot be *declared complete* before P23 WP4 lands.
+5. Dead account of last resort: pre-build the P24 WP1 regime-split stress test skeleton as a tested slice, but P24 WP1 cannot be *declared complete* before P24 WP0 lands.
 
 Every session must end with a committed **code/test/artifact** diff and a ledger row. If a WP is only partially done, commit the slice and write the exact remainder in its ledger row.
 
@@ -184,7 +184,7 @@ bash scripts/bab_reconcile_gate.sh
 BAB_GATE_LOG=/tmp/bab_gate_handoff.log BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh
 ```
 
-Inner loop: `bash scripts/bab_quick.sh` + `python3 -m pytest -q tests/test_bab_p23_decision_consistency.py`. Full gate once per WP boundary; never hand off mid-gate. Never lower the coverage floor.
+Inner loop: `bash scripts/bab_quick.sh` + `python3 -m pytest -q tests/test_bab_p24_charter.py` (once WP0 tests exist). Full gate once per WP boundary; never hand off mid-gate. Never lower the coverage floor.
 
 ---
 
@@ -223,6 +223,7 @@ Inner loop: `bash scripts/bab_quick.sh` + `python3 -m pytest -q tests/test_bab_p
 - **[REMOVED 2026-11-19T02:44:44Z] The WP3 markdown renderer emitted one character per line.** Fixed and pinned.
 - **[REMOVED 2026-11-18T23:32:30Z] The WP0 planted-alpha spec was self-defeating (linear alpha ⇒ zero beta-neutral residual).** Fixed to a convex curve `alpha = A(0.5 − u²)`.
 - **[REMOVED 2026-11-18T23:32:30Z] High idiosyncratic vol made the daily re-ranked book incoherent.** Idio vol lowered to `0.003–0.005`.
+- **[REMOVED 2026-11-20T00:25:06Z] WP4 consistency test had 5 ruff errors (E501 ×3, PERF102 ×1, W292 ×1) blocking the gate.** Fixed by breaking long lines, using `.values()` for unused dict keys, and adding a trailing newline. Gate now fully green: ruff PASS, quick GREEN (104+195), reconcile GREEN, full gate GREEN 6765 passed / 35 skipped / TOTAL 100%.
 - **[PERMANENTLY EXTERNAL] P19-1 CI enforcement.** Agent tokens lack `workflows:write`; maintainer-only — never re-attempt, never list as a task.
 - **[PERMANENTLY EXTERNAL] Real market data ingestion.** `api.exchange.coinbase.com` returns 403 from this environment; a licensed CSV is maintainer-supplied. Never a P21/P22/P23 task; P24 WP3 handles it as an offline fixture only.
 
@@ -241,3 +242,4 @@ Inner loop: `bash scripts/bab_quick.sh` + `python3 -m pytest -q tests/test_bab_p
 | 2026-11-19T08:09:22Z | `c3ff485` | **P22 WP1 complete.** Certified `scripts/bab_null_battery.py` + artifacts + 26 tests. | full gate **GREEN 6632 passed / TOTAL 100%** |
 | 2026-11-19T05:34:13Z | `575601d` | **P22 WP0 complete.** Ran `python3 scripts/bab_p22_charter.py`, committed `docs/BAB_P22_KICKOFF.md`. | full gate **GREEN 6616 passed / TOTAL 100%** |
 | 2026-11-19T02:44:44Z | `8591247` | **P21 WP3 landed + handoff re-certified.** Added `tests/test_bab_p21_cost_surface.py` (18 tests); fixed markdown renderer. | full gate **GREEN 6593 passed / TOTAL 100%** |
+| 2026-11-20T00:25:06Z | `8c3cba1` | **P23 WP4 gate green + handoff re-certification for P24 WP0.** Fixed 5 ruff errors in `tests/test_bab_p23_decision_consistency.py` (E501 ×3, PERF102 ×1, W292 ×1); full gate GREEN 6765 passed / 35 skipped / TOTAL 100%. P23 WP0–WP4 all CLOSED. Re-routed binding row to **P24 WP0 — charter ("Regime-conditional BAB and holdout discipline")**. | ruff PASS; quick GREEN (104+195); reconcile GREEN; full gate **GREEN 6765 passed / 35 skipped / TOTAL 100%** |

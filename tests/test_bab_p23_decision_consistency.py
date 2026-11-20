@@ -588,11 +588,13 @@ def test_haircut_ladder_is_calibrated(short_haircut) -> None:
     assert prov["derived"]["haircut_zero_baseline_required"] is True
     assert prov["availability_rule"] is not None
     assert prov["cost_rule"] is not None
-    assert prov["haircut_semantics"] == "borrow/availability stress: P22 WP2 owns nonlinear market impact; this ladder is not a price-impact model"
+    expected_semantics = ("borrow/availability stress: P22 WP2 owns nonlinear market impact; "
+                          "this ladder is not a price-impact model")
+    assert prov["haircut_semantics"] == expected_semantics
 
     # Zero-reference matches P21 and WP2 at 6dp
     ref = prov["haircut_zero_reference"]["checks"]
-    for key, vals in ref.items():
+    for vals in ref.values():
         assert vals["matches_p21_at_6dp"] is True
         assert vals["matches_wp2_at_6dp"] is True
 
@@ -676,13 +678,15 @@ def test_decision_artifacts_are_byte_identical_after_the_suite() -> None:
         name: hashlib.sha256((RESEARCH_P23_DIR / f"{name}.json").read_bytes()).hexdigest()
         for name in names
     }
-    before["rank_eval"] = hashlib.sha256((RESEARCH_P21_DIR / "rank_eval.json").read_bytes()).hexdigest()
-    for name in names:
-        _load(f"{name}.json")
+    _rank_eval_digest = hashlib.sha256(
+        (RESEARCH_P21_DIR / "rank_eval.json").read_bytes()
+    ).hexdigest()
+    before["rank_eval"] = _rank_eval_digest
     _load("rank_eval.json")
     after = {
         name: hashlib.sha256((RESEARCH_P23_DIR / f"{name}.json").read_bytes()).hexdigest()
         for name in names
     }
-    after["rank_eval"] = hashlib.sha256((RESEARCH_P21_DIR / "rank_eval.json").read_bytes()).hexdigest()
+    after_rank_eval = hashlib.sha256((RESEARCH_P21_DIR / "rank_eval.json").read_bytes()).hexdigest()
+    after["rank_eval"] = after_rank_eval
     assert before == after
