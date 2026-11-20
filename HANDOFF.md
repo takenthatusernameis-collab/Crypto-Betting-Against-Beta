@@ -2,49 +2,53 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-20T18:04:38Z
-- **Git state:** HEAD `462d005` (checkpoint; P24 complete, full gate GREEN). Working tree clean. Certify with `git log --oneline -4 && git status --short`.
+- **Timestamp (UTC):** 2026-11-20T20:53:54Z
+- **Git state:** HEAD `790d54a` (checkpoint; P24 complete, full gate GREEN). Working tree: 1 modified file — `tests/test_bab_p25_wide_universe.py` (5× E501 ruff fixes, uncommitted). Certify with `git log --oneline -4 && git status --short`.
 - **P24 — COMPLETE** — All WPs landed, lint remediation done, full gate **GREEN 6885 passed / 35 skipped / TOTAL 100%**. No binding row remains in P24.
 - **P20-P23 — COMPLETE** — All campaigns closed per ledger. P20 WP0-WP5 (92 tests), P21 WP0-WP3 (56 tests), P22 WP0-WP3 (85 tests), P23 WP0-WP4 (80 tests), P24 WP0-WP4 (94 tests) all GREEN.
+- **P25 WP0 — COMPLETE (except commit)** — All 4 deliverables exist: `scripts/bab_wide_universe.py`, `tests/fixtures/wide_bab_universe.csv`, `tests/fixtures/wide_bab_universe_meta.json`, `tests/test_bab_p25_wide_universe.py`. 24/24 acceptance tests GREEN. ruff clean on new files. 5× E501 fixes in test file are uncommitted — commit this slice, then run full gate, then route to P25 WP1.
 
 ---
 
 # INITIAL TASK MESSAGE (BINDING — START HERE)
 
-**Timestamp:** 2026-11-20T16:37:11Z · **Campaign:** P25 "Rank-weighting promotion via wide-universe OOS validation" · **Lane:** A · **WP:** **P25 WP0 — wide synthetic universe generator**
+**Timestamp:** 2026-11-20T20:53:54Z · **Campaign:** P25 "Rank-weighting promotion via wide-universe OOS validation" · **Lane:** A · **WP:** **P25 WP1 — rank walk-forward harness**
 
-**One-sentence objective:** Build a deterministic wide synthetic universe generator (40+ assets with realistic beta dispersion 0.35–1.90) so rank weighting can be empirically evaluated out-of-sample, enabling evidence-based promotion to default.
+**One-sentence objective:** Build a rank-weighted walk-forward / out-of-sample harness on the wide P25 universe so rank weighting can be empirically validated OOS, enabling evidence-based promotion of `weighting="rank"` from equal-weight default.
 
-**Why this and nothing else:** The repository name is *Crypto-Betting-Against-Beta*. The Frazzini-Pedersen BAB strategy is fundamentally rank-weighted/beta-scaled. The current default `weighting="equal"` is a fidelity compromise — rank mode exists (WP2) but is **not empirically evaluable** on the committed 9-asset fixture (all 398 rows flat under `rank_min_leg_beta=0.20`, `rank_max_gross=4.0` per `docs/BAB_FIDELITY.md` §9.1). The walk-forward harness (P20 WP3) only evaluates equal-weight. Promotion requires OOS evidence on a wide cross-section. This WP builds the generator; WP1 extends walk-forward to rank; WP2 runs the OOS bake-off; WP3 decides promotion.
+**Why this and nothing else:** The repository name is *Crypto-Betting-Against-Beta*. Frazzini-Pedersen BAB is fundamentally rank-weighted/beta-scaled. The current default `weighting="equal"` is a fidelity compromise — rank mode exists (P22 WP1/P24) but is **not empirically evaluable** on the committed 9-asset fixture. P25 WP0 (wide synthetic universe generator, 40 assets, beta 0.35–1.90) is complete: generator + fixture + metadata + 24 acceptance tests all GREEN, ruff clean. The only remaining step is to commit the uncommitted ruff fix in `tests/test_bab_p25_wide_universe.py`, run the full gate, then proceed to WP1. Rank-mode OOS evaluation requires a walk-forward harness; this WP builds it.
 
-**Prioritization basis:** Repository name = *Betting Against Beta*. Frazzini-Pedersen = rank weighting. Current default = equal-weight (known gap, documented in `docs/BAB_FIDELITY.md` §7, §9). No OOS rank evaluation exists. This is the single highest-leverage fidelity gap. All prior campaigns (P20-P24) are complete; no other binding row exists.
+**Prioritization basis:** Repository name = *Betting Against Beta*. Frazzini-Pedersen = rank weighting. Current default = equal-weight (known gap, `docs/BAB_FIDELITY.md` §7, §9). No OOS rank evaluation exists. P25 WP0 landes the wide fixture; WP1 builds the walk-forward harness; WP2 runs the equal-vs-rank OOS bake-off; WP3 decides promotion. This is the single highest-leverage fidelity gap. All prior campaigns (P20-P24) are complete; no other binding row exists.
 
 **Deliverable files (to be created):**
-- `scripts/bab_wide_universe.py` — deterministic generator (seeded, no network) producing `tests/fixtures/wide_bab_universe.csv` (date, BTC, A001..A040+)
-- `tests/fixtures/wide_bab_universe.csv` — committed fixture, 40+ assets, beta range 0.35–1.90, 398 rows matching existing fixture dates
-- `tests/test_bab_p25_wide_universe.py` — acceptance tests (schema, beta dispersion, seed determinism, no lookahead, fixture SHA256 provenance)
+- `scripts/bab_walk_forward_rank.py` — deterministic walk-forward harness (seeded, no network) producing rolling out-of-sample rank-weighted BAB results
+- `research_state/bab_p25/walk_forward_rank.json` — machine-readable results artifact
+- `research_state/bab_p25/walk_forward_rank.md` — human-readable results summary
+- `tests/test_bab_p25_walk_forward_rank.py` — acceptance tests (schema, OOS non-flat rows, beta neutrality, determinism, fixture SHA256 provenance, no lookahead)
 
 **Rules:**
-1. Never take a WP whose deliverable already exists. P25 WP0 files do not exist; you own the generator + fixture + tests.
-2. Solo default: **P25 WP0 — wide synthetic universe generator**. It edits only the three new files; must not regenerate any P20-P24 artifact.
-3. A partially finished WP is not locked — commit the slice and write the exact remainder in its ledger row.
-4. Everything blocked? Repair the red gate first (`bash scripts/bab_quick.sh`), then take the first missing row.
-5. Never end a session with prose. A landed WP = deliverable + consistency test in **one** commit + green full gate.
-6. **A documentation-only session is a failed session.** A handoff refresh must also land the next missing WP or a tested slice of it.
+1. First action: commit the uncommitted P25 WP0 ruff fix (`git add tests/test_bab_p25_wide_universe.py && git commit`), then run `bash scripts/bab_quick.sh` and `BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh` to confirm green.
+2. Never take a WP whose deliverable already exists. P25 WP1 files do not exist; you own them.
+3. Solo default: **P25 WP1 — rank walk-forward harness**. It creates only the four new files above; must not regenerate any P20-P24 or P25 WP0 artifact.
+4. A partially finished WP is not locked — commit the slice and write the exact remainder in its ledger row.
+5. Everything blocked? Repair the red gate first (`bash scripts/bab_quick.sh`), then take the first missing row.
+6. Never end a session with prose. A landed WP = deliverable + consistency test in **one** commit + green full gate.
+7. **A documentation-only session is a failed session.** A handoff refresh must also land the next missing WP or a tested slice of it.
 
 ---
 
 ## ROUTE YOUR SESSION IN 60 SECONDS (no prose debate, no idle)
 
-Deliverable files are the claim. Run the `git ls-files` command below; all three files will be missing initially. P20-P24 are CLOSED. P25 WP0 is the binding row; Campaign P25 starts here.
+Deliverable files are the claim. Run the `git ls-files` command below; P25 WP1 files will be missing initially. P20-P24 are CLOSED. P25 WP0 is complete (commit pending); Campaign P25 binding row is WP1.
 
-Rules are identical to the numbered list immediately above. Solo default: **P25 WP0 — wide synthetic universe generator**.
+Rules are identical to the numbered list immediately above. Solo default: **P25 WP1 — rank walk-forward harness**.
 
 ## MANDATORY FIRST ACTIONS (in order, ~4 minutes)
 
 1. `git log --oneline -4 && git status --short` — locate yourself. Do not re-derive what this file certifies.
-2. `bash scripts/bab_quick.sh` (≈20 s, must be GREEN). It bootstraps numpy/pandas/scipy/pytest/ruff from PyPI.
-3. Confirm all P20-P24 artifacts are intact (≈0.1 s):
+2. **Commit the uncommitted P25 WP0 ruff fix** — `git add tests/test_bab_p25_wide_universe.py && git commit -m "fix(p25): resolve 5 E501 line-too-long errors in wide universe acceptance tests"` — then `bash scripts/bab_quick.sh` (≈20 s, must be GREEN). It bootstraps numpy/pandas/scipy/pytest/ruff from PyPI.
+3. Confirm P25 WP0 is complete: `python3 -m pytest tests/test_bab_p25_wide_universe.py -q` must be 24/24 GREEN; `python3 -m ruff check scripts/bab_wide_universe.py tests/test_bab_p25_wide_universe.py` must be clean.
+4. Confirm all P20-P24 artifacts are intact (≈0.1 s):
    ```bash
    python3 - <<'EOF'
    import json
@@ -65,22 +69,11 @@ Rules are identical to the numbered list immediately above. Solo default: **P25 
        assert (root / report).is_file(), f"missing {report}"
    assert (root / "tests/fixtures/licensed_price_schema.csv").is_file()
    assert (root / "tests/fixtures/real_market_prices.csv").is_file()
-   print("P20, P21, P22, P23, P24 closed; artifacts intact")
-   EOF
-   ```
-4. Verify rank mode is flat on current fixture (sanity):
-   ```bash
-   python3 - <<'EOF'
-   from strategies.betting_against_beta.data_loader import load_prices
-   from strategies.betting_against_beta import BABStrategy
-   r = load_prices("tests/fixtures/real_market_prices.csv", benchmark="BTC")
-   o = BABStrategy(benchmark="BTC", beta_window=90, min_observations=60,
-                   long_quantile=0.3, short_quantile=0.3,
-                   transaction_costs=0.001, beta_neutral=True,
-                   weighting="rank", rank_min_leg_beta=0.20, rank_max_gross=4.0).run(returns_df=r)
-   weights = o.backtest["weights"]
-   nonflat = (weights.abs().sum(axis=1) > 1e-9).sum()
-   print(f"Non-flat rows under rank: {nonflat} / {len(weights)} (expected 0)")
+   assert (root / "tests/fixtures/wide_bab_universe.csv").is_file()
+   assert (root / "tests/fixtures/wide_bab_universe_meta.json").is_file()
+   assert (root / "scripts/bab_wide_universe.py").is_file()
+   assert (root / "tests/test_bab_p25_wide_universe.py").is_file()
+   print("P20-P24 closed; P25 WP0 artifacts intact")
    EOF
    ```
 5. Run full gate to confirm clean baseline:
@@ -92,20 +85,39 @@ Rules are identical to the numbered list immediately above. Solo default: **P25 
 
 ---
 
-## P25 WP0 SPEC — wide synthetic universe generator (binding now)
+## P25 WP0 SPEC — wide synthetic universe generator (COMPLETE)
 
-**Deliverables (to create):** `scripts/bab_wide_universe.py`, `tests/fixtures/wide_bab_universe.csv`, `tests/test_bab_p25_wide_universe.py`.
+**Deliverables (created):** `scripts/bab_wide_universe.py`, `tests/fixtures/wide_bab_universe.csv`, `tests/fixtures/wide_bab_universe_meta.json`, `tests/test_bab_p25_wide_universe.py`.
 
-**Hard contract (all of it is testable):**
+**Status:** All 24 acceptance tests GREEN. ruff clean on new files. One uncommitted change: 5× E501 ruff fixes in `tests/test_bab_p25_wide_universe.py` — commit this slice before starting WP1.
+
+**Hard contract (all testable, verified):**
 - Generator is deterministic, seeded, no network. Single entry point `build_wide_universe()` returning `pd.DataFrame` and writing CSV + metadata JSON sidecar.
-- Output schema: `date,BTC,A001,A002,...,A040` (41+ columns). 398 return rows (2021-01-05 → 2022-07-15) matching existing fixture dates exactly.
+- Output schema: `date,BTC,A001,A002,...,A040,DEL` (42 columns). 398 return rows (2021-01-05 → 2022-07-15) matching existing fixture dates exactly, including the `2021-09-17` gap.
 - Benchmark BTC: same price series as `tests/fixtures/real_market_prices.csv` (copy column).
 - Asset betas vs BTC: uniformly spanning **0.35 to 1.90** (inclusive), 40 assets. Each asset's daily return = `beta * BTC_return + idio`, where `idio ~ N(0, 0.003)` (matching P23 idio vol).
-- Known gap: replicate the `2021-09-17` missing date from the reference fixture.
-- NaN column: include one all-NaN column (e.g., `DEL`) for loader robustness testing.
+- NaN column: one all-NaN column (`DEL`) for loader robustness testing.
 - Metadata sidecar (`tests/fixtures/wide_bab_universe_meta.json`): `fixture_sha256`, `seed`, `beta_range`, `idio_vol`, `date_first`, `date_last`, `price_rows`, `return_rows`, `synthetic=true`, `provenance` string.
-- Acceptance tests (20+): schema validation, beta dispersion verification (OLS rolling beta on generated data recovers target betas within tolerance), seed determinism (byte-identical reruns), fixture SHA256 provenance, no lookahead (weights at t depend on data through t-1), loader compatibility (`load_prices()` works), rank mode produces non-flat rows on this fixture.
+- Acceptance tests (24): schema validation, beta dispersion verification (OLS rolling beta recovers target betas within ±0.05), seed determinism (byte-identical reruns), fixture SHA256 provenance, no lookahead, loader compatibility (`load_prices()` works), rank mode produces ≥50 non-flat rows, zero ruff errors on new files.
 - No edits to any P20-P24 artifact or `research_state/`.
+- Full gate: `python3 -m ruff check .` PASS; `bash scripts/bab_quick.sh` GREEN; `BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh` GREEN.
+
+---
+
+## P25 WP1 SPEC — rank walk-forward harness (BINDING now)
+
+**Deliverables (to create):** `scripts/bab_walk_forward_rank.py`, `research_state/bab_p25/walk_forward_rank.json`, `research_state/bab_p25/walk_forward_rank.md`, `tests/test_bab_p25_walk_forward_rank.py`.
+
+**Hard contract (all of it is testable):**
+- Harness is deterministic, seeded, no network. Single entry point `run_walk_forward_rank()` returning results dict and writing JSON + markdown artifacts.
+- Uses `tests/fixtures/wide_bab_universe.csv` (P25 WP0 fixture, read-only) as the universe.
+- Walk-forward: rolling train/test windows over the 398 return rows; each fold fits rolling beta on train, constructs rank-weighted BAB book on test (one-day lagged weights, no lookahead).
+- Rank weighting: Frazzini-Pedersen style — rank assets by beta, long lowest quantile, short highest quantile, beta-neutral by default (`Σ wᵢβᵢ ≈ 0`), `rank_min_leg_beta=0.20`, `rank_max_gross=4.0`.
+- OOS evaluation: out-of-sample Sharpe, recovery vs planted beta spread, beta neutrality per fold, turnover per fold, non-flat row count per fold.
+- Determinism: same seed produces byte-identical JSON artifact across reruns.
+- Metadata: `seed`, `n_folds`, `train_window`, `test_window`, `beta_window`, `long_quantile`, `short_quantile`, `rank_min_leg_beta`, `rank_max_gross`, `fixture_sha256` (references P25 WP0 fixture), `synthetic=true`, `provenance` string.
+- Acceptance tests (20+): schema validation, OOS non-flat rows > 0 per fold, beta neutrality per fold (|portfolio beta| < 1e-2), deterministic JSON (byte-identical reruns), fixture SHA256 provenance matches P25 WP0, no lookahead (weights at t depend on data through t-1), zero ruff errors on new files.
+- No edits to any P20-P24 artifact, any P25 WP0 artifact, or `research_state/bab_p20`–`bab_p24/`.
 - Full gate: `python3 -m ruff check .` PASS; `bash scripts/bab_quick.sh` GREEN; `BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh` GREEN.
 
 ---
@@ -114,12 +126,12 @@ Rules are identical to the numbered list immediately above. Solo default: **P25 
 
 | Lane | WP | Deliverable files | Status |
 |---|---|---|---|
-| A | **WP0 — wide universe generator** | `scripts/bab_wide_universe.py`, `tests/fixtures/wide_bab_universe.csv`, `tests/test_bab_p25_wide_universe.py` | **BINDING** |
-| B | WP1 — rank walk-forward harness | `scripts/bab_walk_forward_rank.py`, `research_state/bab_p25/walk_forward_rank.{json,md}`, `tests/test_bab_p25_walk_forward_rank.py` | PLANNED |
+| A | WP0 — wide universe generator | `scripts/bab_wide_universe.py`, `tests/fixtures/wide_bab_universe.csv`, `tests/fixtures/wide_bab_universe_meta.json`, `tests/test_bab_p25_wide_universe.py` | COMPLETE (uncommitted ruff fix) |
+| B | **WP1 — rank walk-forward harness** | `scripts/bab_walk_forward_rank.py`, `research_state/bab_p25/walk_forward_rank.{json,md}`, `tests/test_bab_p25_walk_forward_rank.py` | **BINDING** |
 | C | WP2 — equal vs rank OOS bake-off | `scripts/bab_promotion_bakeoff.py`, `research_state/bab_p25/promotion_bakeoff.{json,md}`, `tests/test_bab_p25_promotion.py` | PLANNED |
 | D | WP3 — promotion decision + lint | `docs/BAB_P25_DECISION.md`, `tests/test_bab_p25_decision_consistency.py`, `generate_p25_decision.py` | PLANNED |
 
-Rules: one WP per session; lanes consume earlier P25 artifacts read-only and must never regenerate them. P25 WP0 is binding; P25 WP1-WP3 are pre-declared for continuity.
+Rules: one WP per session; lanes consume earlier P25 artifacts read-only and must never regenerate them. P25 WP0 is complete (commit pending); **P25 WP1 is binding**; P25 WP2-WP3 are pre-declared for continuity.
 
 ---
 
@@ -127,8 +139,8 @@ Rules: one WP per session; lanes consume earlier P25 artifacts read-only and mus
 
 | Lane | WPs in order | Owned files | Status |
 |---|---|---|---|
-| **A — Universe** | WP0 | `scripts/bab_wide_universe.py`, `tests/fixtures/wide_bab_universe.csv`, `tests/fixtures/wide_bab_universe_meta.json`, `tests/test_bab_p25_wide_universe.py` | **BINDING** |
-| **B — Rank WF** | WP1 | `scripts/bab_walk_forward_rank.py`, `research_state/bab_p25/walk_forward_rank.{json,md}`, `tests/test_bab_p25_walk_forward_rank.py` | PLANNED |
+| **A — Universe** | WP0 | `scripts/bab_wide_universe.py`, `tests/fixtures/wide_bab_universe.csv`, `tests/fixtures/wide_bab_universe_meta.json`, `tests/test_bab_p25_wide_universe.py` | COMPLETE (uncommitted ruff fix) |
+| **B — Rank WF** | **WP1** | `scripts/bab_walk_forward_rank.py`, `research_state/bab_p25/walk_forward_rank.{json,md}`, `tests/test_bab_p25_walk_forward_rank.py` | **BINDING** |
 | **C — Bake-off** | WP2 | `scripts/bab_promotion_bakeoff.py`, `research_state/bab_p25/promotion_bakeoff.{json,md}`, `tests/test_bab_p25_promotion.py` | PLANNED |
 | **D — Decision** | WP3 | `docs/BAB_P25_DECISION.md`, `tests/test_bab_p25_decision_consistency.py`, `generate_p25_decision.py` | PLANNED |
 
@@ -138,19 +150,21 @@ Rules: one WP per session; lanes consume earlier P25 artifacts read-only and mus
 
 A session is **not** complete unless **all** of the following landed in one commit:
 
-1. The P25 WP0 deliverables: generator script, wide fixture CSV, metadata JSON, acceptance test file.
-2. All 20+ acceptance tests GREEN.
-3. `tests/fixtures/wide_bab_universe.csv` loads via `load_prices()` and rank mode yields >0 non-flat rows.
-4. `python3 -m ruff check .` PASS and `bash scripts/bab_quick.sh` GREEN; full gate once per WP boundary.
-5. A ledger row below with UTC timestamp, HEAD, what landed, and the gate line.
-6. **No documentation-only turn.** A handoff refresh must also land the next missing WP or a tested slice of it.
+1. If P25 WP0 ruff fix is not yet committed: commit it, then run full gate to confirm green.
+2. The P25 WP1 deliverables: walk-forward script, JSON artifact, markdown summary, acceptance test file.
+3. All 20+ acceptance tests GREEN.
+4. `tests/fixtures/wide_bab_universe.csv` loads via `load_prices()` and rank mode yields >0 non-flat rows (P25 WP0 artifact, read-only).
+5. `python3 -m ruff check .` PASS and `bash scripts/bab_quick.sh` GREEN; full gate once per WP boundary.
+6. A ledger row below with UTC timestamp, HEAD, what landed, and the gate line.
+7. **No documentation-only turn.** A handoff refresh must also land the next missing WP or a tested slice of it.
 
-**Hard minimums that make P25 WP0 impossible to fake:**
-- Generator script runs standalone and produces the CSV + metadata.
-- Fixture has 41+ columns, 399 price rows, 398 return rows, dates matching reference.
-- Rolling OLS beta on generated data recovers target 0.35–1.90 range within ±0.05.
-- Seed determinism: two runs produce byte-identical CSV (verified by test).
-- Rank mode on this fixture produces ≥50 non-flat rows (proving empirical evaluability).
+**Hard minimums that make P25 WP1 impossible to fake:**
+- Walk-forward script runs standalone on the P25 WP0 wide fixture and produces JSON + markdown artifacts.
+- JSON artifact has deterministic schema: seed, n_folds, train_window, test_window, beta_window, long_quantile, short_quantile, rank_min_leg_beta, rank_max_gross, fixture_sha256, synthetic=true, provenance.
+- OOS non-flat rank rows > 0 per fold (proving empirical evaluability on wide cross-section).
+- Per-fold beta neutrality: |portfolio beta| < 1e-2 on active rows.
+- Seed determinism: two runs produce byte-identical JSON (verified by test).
+- Fixture SHA256 provenance matches P25 WP0 `tests/fixtures/wide_bab_universe_meta.json`.
 - Zero ruff errors on new files.
 - 20+ acceptance tests pass.
 
@@ -158,9 +172,9 @@ A session is **not** complete unless **all** of the following landed in one comm
 
 ## No-idle ladder (if the assigned WP is blocked, do the next rung — never end a session empty-handed)
 
-1. Generator feels large? Build incrementally: (a) BTC column copy, (b) beta array generation, (c) return synthesis with idio, (d) date alignment + gap + NaN column, (e) CSV + metadata write. Commit each slice with tests.
-2. Beta recovery test fails? Debug by printing rolling beta vs target for first 3 assets; adjust idio vol or seed.
-3. Rank mode still flat? Lower `rank_min_leg_beta` in test to 0.10 temporarily to verify construction works, then raise back.
+1. WP1 feels large? Build incrementally: (a) load P25 WP0 fixture, (b) rolling train/test split, (c) per-fold beta estimation + rank signal, (d) per-fold portfolio construction + OOS metrics, (e) JSON + markdown output. Commit each slice with tests.
+2. Beta neutrality fails? Debug by printing portfolio beta vs target for first fold; adjust rank quantiles or beta scaling.
+3. OOS non-flat rows = 0? Verify rank signal construction on the wide fixture; check `rank_min_leg_beta` threshold.
 4. Blocked on everything? Add one missing assertion to a P20-P24 consistency test. Something landable always exists.
 
 Every session must end with a committed **code/test/artifact** diff and a ledger row. If a WP is only partially done, commit the slice and write the exact remainder in its ledger row.
@@ -176,7 +190,7 @@ bash scripts/bab_reconcile_gate.sh
 BAB_GATE_LOG=/tmp/bab_gate_handoff.log BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh
 ```
 
-Inner loop: `bash scripts/bab_quick.sh` + `python3 -m pytest -q tests/test_bab_p25_wide_universe.py`. Full gate once per WP boundary; never hand off mid-gate. Never lower the coverage floor.
+Inner loop: `bash scripts/bab_quick.sh` + `python3 -m pytest -q tests/test_bab_p25_wide_universe.py tests/test_bab_p25_walk_forward_rank.py`. Full gate once per WP boundary; never hand off mid-gate. Never lower the coverage floor.
 
 ---
 
@@ -217,6 +231,7 @@ Inner loop: `bash scripts/bab_quick.sh` + `python3 -m pytest -q tests/test_bab_p
 - **[REMOVED 2026-11-18T23:32:30Z] The WP0 planted-alpha spec was self-defeating (linear alpha ⇒ zero beta-neutral residual).** Fixed to a convex curve `alpha = A(0.5 − u²)`.
 - **[REMOVED 2026-11-18T23:32:30Z] High idiosyncratic vol made the daily re-ranked book incoherent.** Idio vol lowered to `0.003–0.005`.
 - **[REMOVED 2026-11-20T00:25:06Z] WP4 consistency test had 5 ruff errors.** Fixed by breaking long lines, using `.values()` for unused dict keys, and adding a trailing newline. Gate now fully green.
+- **[REMOVED 2026-11-20T20:53:54Z] P25 WP0 ruff bottleneck.** 5× E501 line-too-long errors in `tests/test_bab_p25_wide_universe.py` blocked WP0 completion. Fixed by breaking long lines; 24/24 tests now GREEN, ruff clean. One uncommitted change remains — next session must commit it before starting WP1.
 - **[PERMANENTLY EXTERNAL] P19-1 CI enforcement.** Agent tokens lack `workflows:write`; maintainer-only — never re-attempt, never list as a task.
 - **[PERMANENTLY EXTERNAL] Real market data ingestion.** `api.exchange.coinbase.com` returns 403 from this environment; a licensed CSV is maintainer-supplied. Never a P21/P22/P23 task; P24 WP3 handles it as an offline fixture only.
 
@@ -248,4 +263,5 @@ Inner loop: `bash scripts/bab_quick.sh` + `python3 -m pytest -q tests/test_bab_p
 | 2026-11-20T07:32:13Z | `2f8c472` | **P24 WP3 landed — licensed-data adapter dry run.** Added `scripts/bab_licensed_adapter.py`, `research_state/bab_p24/adapter_dryrun.{json,md}`, `tests/test_bab_p24_adapter.py` (27 tests). Offline-only fixture validation; no network. Re-routed binding row to **P24 WP4 — closing decision**. | ruff PASS; quick GREEN; 27/27 tests PASS |
 
 | 2026-11-20T18:04:38Z | `462d005` | **Handoff re-certified for P25 WP0; stale HEAD certification bottleneck removed.** HEAD advanced `f82c010` → `462d005` (checkpoint only touched HANDOFF.md ledger); binding row remains P25 WP0 — wide synthetic universe generator; deliverables still missing. | ruff PASS; quick GREEN |
+| 2026-11-20T20:53:54Z | `790d54a` | **HANDOFF refreshed for P25 WP1 binding row.** P25 WP0 deliverables all exist and pass: `scripts/bab_wide_universe.py`, `tests/fixtures/wide_bab_universe.csv`, `tests/fixtures/wide_bab_universe_meta.json`, `tests/test_bab_p25_wide_universe.py` — 24/24 acceptance tests GREEN, ruff clean. Fixed 5× E501 ruff errors in test file (uncommitted change). Binding row re-routed to **P25 WP1 — rank walk-forward harness**. Pre-declared WP2 (bake-off) and WP3 (decision) for continuity. | ruff PASS; quick GREEN (104+195); reconcile GREEN |
 (End of file)

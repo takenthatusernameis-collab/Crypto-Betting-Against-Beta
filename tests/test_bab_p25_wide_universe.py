@@ -111,19 +111,25 @@ def test_fixture_column_names():
 
 def test_fixture_price_row_count():
     prices = _load_fixture_prices()
-    assert len(prices) == EXPECTED_PRICE_ROWS, f"expected {EXPECTED_PRICE_ROWS} price rows, got {len(prices)}"
+    assert len(prices) == EXPECTED_PRICE_ROWS, (
+        f"expected {EXPECTED_PRICE_ROWS} price rows, got {len(prices)}"
+    )
 
 
 def test_fixture_return_row_count():
     prices = _load_fixture_prices()
     rets = prices.pct_change().iloc[1:]
-    assert len(rets) == EXPECTED_RETURN_ROWS, f"expected {EXPECTED_RETURN_ROWS} return rows, got {len(rets)}"
+    assert len(rets) == EXPECTED_RETURN_ROWS, (
+        f"expected {EXPECTED_RETURN_ROWS} return rows, got {len(rets)}"
+    )
 
 
 def test_fixture_dates_match_reference():
     prices = _load_fixture_prices()
     ref = _load_reference_prices()
-    assert list(prices.index) == list(ref.index), "fixture dates must match reference fixture exactly"
+    assert list(prices.index) == list(ref.index), (
+        "fixture dates must match reference fixture exactly"
+    )
 
 
 def test_fixture_missing_2021_09_17():
@@ -156,7 +162,8 @@ def test_beta_range_spans_min_max():
         assert len(beta) > 0, f"{col}: no rolling beta observations"
         recovered = float(beta.median())
         assert abs(recovered - target_betas[i]) <= BETA_TOLERANCE, (
-            f"{col}: recovered beta {recovered:.4f} outside ±{BETA_TOLERANCE} of target {target_betas[i]:.4f}"
+            f"{col}: recovered beta {recovered:.4f} outside ±{BETA_TOLERANCE}"
+            f" of target {target_betas[i]:.4f}"
         )
 
 
@@ -194,7 +201,9 @@ def test_cli_rerun_byte_identical():
 def test_fixture_sha256_in_metadata():
     meta = json_load(FIXTURE_META)
     actual_sha = hashlib.sha256(FIXTURE_CSV.read_bytes()).hexdigest()
-    assert meta["fixture_sha256"] == actual_sha, "metadata fixture_sha256 must match actual file hash"
+    assert meta["fixture_sha256"] == actual_sha, (
+        "metadata fixture_sha256 must match actual file hash"
+    )
 
 
 def test_metadata_fields():
