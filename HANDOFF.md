@@ -2,17 +2,21 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-20T10:33:16Z
-- **Git state:** HEAD `42ae735` (P24 WP4 deliverables landed; consistency test 21/21 GREEN). Working tree clean. Certify with `git log --oneline -4 && git status --short`.
-- **P24 WP4 IS LANDED** — `docs/BAB_P24_DECISION.md`, `tests/test_bab_p24_decision_consistency.py` (21 tests), and `generate_p24_decision.py` (report generator). All P21/P22/P23/P24 JSON artifacts intact. Quick gate GREEN except ruff lint errors in the generator script and test file (67 total: E501 line-too-long × 54, PERF401 list-comprehension × 7, RUF001 ambiguous unicode × 6). **Campaign P24 concludes here; no binding next row declared.**
+- **Timestamp (UTC):** 2026-11-20T14:48:59Z
+- **Git state:** HEAD `61bf38e` (P24 WP4 deliverables landed; consistency test 21/21 GREEN). Working tree clean. Certify with `git log --oneline -4 && git status --short`.
+- **P24 WP4 IS LANDED** — `docs/BAB_P24_DECISION.md`, `tests/test_bab_p24_decision_consistency.py` (21 tests), and `generate_p24_decision.py` (report generator). All P21/P22/P23/P24 JSON artifacts intact. Quick gate GREEN except ruff lint errors in the generator script and test file (38 total: E501 line-too-long × 37, W292 no-trailing-newline × 1; PERF401/RUF001 already cleared by prior sessions). Progress since last certification: 67 → 38 ruff errors. **Campaign P24 concludes here; the binding row is the lint remediation below.**
 
 ---
 
 # INITIAL TASK MESSAGE (BINDING — START HERE)
 
-​**Timestamp:** 2026-11-20T10:33:16Z · **Campaign:** P24 "Regime-conditional BAB and holdout discipline" · **Lane:** E · **WP:** **P24 WP4 — lint remediation**
+​**Timestamp:** 2026-11-20T14:48:59Z · **Campaign:** P24 "Regime-conditional BAB and holdout discipline" · **Lane:** E · **WP:** **P24 WP4 — lint remediation**
 
-**One-sentence objective:** Fix all 67 ruff errors in `generate_p24_decision.py` and `tests/test_bab_p24_decision_consistency.py` so `python3 -m ruff check .` passes, while preserving the byte-identical report output and all 21 decision-consistency tests.
+**One-sentence objective:** Fix all 38 ruff errors in `generate_p24_decision.py` and `tests/test_bab_p24_decision_consistency.py` so `python3 -m ruff check .` passes, while preserving the byte-identical report output and all 21 decision-consistency tests.
+
+**Precise targets (run `python3 -m ruff check generate_p24_decision.py tests/test_bab_p24_decision_consistency.py --output-format concise`):**
+- `generate_p24_decision.py:589` E501 (104>100), `:595` E501 (101>100), `:607` E501 (102>100), `:622` E501 (104>100), `:629` W292 (no newline at end of file).
+- `tests/test_bab_p24_decision_consistency.py:189` E501 (103>100), `:198` E501 (117>100), `:200` E501 (104>100), `:492` E501 (108>100), `:495` E501 (139>100), `:500` E501 (111>100), `:522` E501 (152>100), `:548` E501 (154>100), `:549` E501 (147>100), `:598` E501 (129>100), `:601` E501 (139>100), `:622` E501 (129>100), `:625` E501 (139>100), `:639` E501 (129>100), `:645` E501 (143>100), `:651` E501 (129>100), `:654` E501 (139>100), `:688` E501 (116>100), `:913` E501 (134>100), `:919` E501 (138>100), `:930` E501 (108>100), `:934` E501 (112>100), `:1031` E501 (121>100), `:1090` E501 (114>100), `:1091` E501 (106>100), `:1092` E501 (112>100), `:1093` E501 (110>100), `:1094` E501 (104>100), `:1104` E501 (113>100), `:1105` E501 (105>100), `:1106` E501 (111>100), `:1107` E501 (109>100), `:1108` E501 (103>100).
 
 **Why this and nothing else:** P24 WP4 deliverables (`docs/BAB_P24_DECISION.md`, `tests/test_bab_p24_decision_consistency.py`) are landed and their acceptance tests are GREEN (21/21). The campaign map declares WP4 as the final WP. The only open gate is `ruff check .` failing on the generator script and the test file. No session may idle on a landed WP with a red style gate.
 
@@ -207,6 +211,8 @@ Inner loop: `bash scripts/bab_quick.sh` + `python3 -m pytest -q tests/test_bab_p
 - **[REMOVED 2026-11-20T07:32:13Z] Stale HANDOFF.md pointed at P24 WP3 as the binding row.** WP3 landed; binding row re-routed to **P24 WP4**.
 - **[REMOVED 2026-11-20T08:39:32Z] Stale HANDOFF.md pointed at P24 WP4 as the binding row and cited missing deliverables.** Deliverables `docs/BAB_P24_DECISION.md` and `tests/test_bab_p24_decision_consistency.py` already exist with 21 passing tests. Binding row updated to **P24 WP4 — lint remediation**.
 - **[REMOVED 2026-11-20T10:28:55Z] Stale HEAD certification.** HANDOFF.md certified HEAD `64668fd`; HEAD advanced to `69917b3`. Binding row re-confirmed as **P24 WP4 — lint remediation**.
+- **[REMOVED 2026-11-20T14:48:59Z] Stale HEAD certification.** HANDOFF.md certified HEAD `42ae735`; HEAD advanced to `61bf38e` via 4 checkpoint sessions that regenerated `generate_p24_decision.py`, `tests/test_bab_p24_decision_consistency.py`, and `docs/BAB_P24_DECISION.md`. Binding row re-confirmed as **P24 WP4 — lint remediation**; ruff count down 67 → 38 (37×E501 + 1×W292). PERF401/RUF001 already cleared; only E501/W292 remain.
+- **[REMOVED 2026-11-20T14:48:59Z] Stale ruff error count.** HANDOFF.md cited 67 errors (54×E501, 7×PERF401, 6×RUF001). Actual at HEAD `61bf38e`: 38 errors (37×E501 + 1×W292) with precise file:line targets declared in the INITIAL TASK MESSAGE. No session may re-derive the count; run `python3 -m ruff check .` to verify zero.
 
 ---
 
@@ -214,7 +220,7 @@ Inner loop: `bash scripts/bab_quick.sh` + `python3 -m pytest -q tests/test_bab_p
 
 | Session (UTC) | HEAD | Did | Gate |
 |---|---|---|---|
-| 2026-11-20T10:33:16Z | `42ae735` | **Handoff refreshed for P24 WP4 lint remediation.** Updated HANDOFF.md timestamp and HEAD certification to `42ae735`; P24 WP4 deliverables landed: `docs/BAB_P24_DECISION.md`, `tests/test_bab_p24_decision_consistency.py` (21 tests), `generate_p24_decision.py`. All 21 decision-consistency tests PASS. Only blocker: 67 ruff errors (54×E501, 7×PERF401, 6×RUF001) in generator and test file. Binding row: lint remediation to close final gate. | quick GREEN (104+195); ruff FAIL (67 errors) |
+| 2026-11-20T14:48:59Z | `61bf38e` | **Handoff re-certified for P24 WP4 lint remediation.** Updated HANDOFF.md timestamp and HEAD certification to `61bf38e`; P24 WP4 deliverables landed: `docs/BAB_P24_DECISION.md`, `tests/test_bab_p24_decision_consistency.py` (21 tests), `generate_p24_decision.py`. All 21 decision-consistency tests PASS. Prior checkpoint sessions cut ruff errors 67 → 38 (37×E501 + 1×W292); precise file:line targets declared above. Binding row: lint remediation to close final gate. | quick GREEN (104+195); ruff FAIL (38 errors) |
 | 2026-11-20T10:28:55Z | `69917b3` | **Handoff refreshed for P24 WP4 lint remediation.** Updated HANDOFF.md timestamp and HEAD certification to `69917b3`; P24 WP4 deliverables landed: `docs/BAB_P24_DECISION.md`, `tests/test_bab_p24_decision_consistency.py` (21 tests), `generate_p24_decision.py`. All 21 decision-consistency tests PASS. Only blocker: 67 ruff errors (54×E501, 7×PERF401, 6×RUF001) in generator and test file. Binding row: lint remediation to close final gate. | quick GREEN (104+195); ruff FAIL (67 errors) |
 | 2026-11-20T09:40:18Z | `64668fd` | **Handoff refreshed for P24 WP4 lint remediation.** P24 WP4 deliverables landed: `docs/BAB_P24_DECISION.md`, `tests/test_bab_p24_decision_consistency.py` (21 tests), `generate_p24_decision.py`. All 21 decision-consistency tests PASS. Only blocker: 67 ruff errors (54×E501, 7×PERF401, 6×RUF001) in generator and test file. Binding row: lint remediation to close final gate. | quick GREEN (104+195); ruff FAIL (67 errors) |
 | 2026-11-20T08:39:32Z | `446a43d` | **Handoff refreshed for P24 WP4 binding row.** Updated HANDOFF.md timestamp and HEAD certification to `446a43d`; P24 WP3 landed (script + `adapter_dryrun.{json,md}` + 27-test gate GREEN); P24 WP4 — closing decision is the binding row. Deliverables: `docs/BAB_P24_DECISION.md`, `tests/test_bab_p24_decision_consistency.py`. All P21/P22/P23/P24 artifacts intact; quick gate GREEN (104+195). | ruff PASS; quick GREEN (104+195) |
