@@ -2,44 +2,33 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-20T04:29:05Z
-- **Git state:** HEAD `14f419c` (P24 WP1 landed; full gate GREEN). Working tree clean. Certify with `git log --oneline -4 && git status --short`. Next row is **P24 WP2 — rebalance hysteresis / turnover ladder**.
-- **P23 WP3 IS LANDED, ARTIFACT-GATED AND GREEN** — the short-availability haircut ladder. It reads `research_state/bab_p21/universe.json`, `research_state/bab_p23/charter.json`, `research_state/bab_p23/breadth_ladder.json` and `research_state/bab_p23/beta_drift.json` **read-only**, draws one seeded availability mask per WP3 seed, drops unavailable short positions from the shipped `BABStrategy` book, and runs **400 book runs** (5 haircuts × 20 seeds × 2 weightings × 2 variants). All 20 chartered cells are reported with 20 per-seed recoveries, costed Sharpes and availabilities; 18 acceptance tests pin the artifact.
-- **Headline measurements (WP3):** `haircut_zero_reference` reproduces committed P21 `rank_eval.json` **and** WP2 `drift_zero_reference` at 6 dp (`planted_equal 0.000261`, `planted_rank 0.017360`, nulls `0.0`). Planted recovery is strictly positive on every seed in **every non-censored cell** (equal `+0.000357 → +0.001129`, rank `+0.017103 → +0.016103`). Null recovery is exactly `0.0` in every cell. Availability tracks `1 − h` at the cell mean (`0.9049 / 0.7341 / 0.4793 / 0.2280`). Borrow-costed Sharpe is non-increasing on every book (`+7.035 → −7500.5` equal, `+44.378 → −806.4` rank at `h=0.75`). Rank guards hold on every non-censored rank cell (`min_leg_beta ≥ 0.507692`, `gross_max ≤ 2.414949`).
-- **One cell is censored, visibly and for a real reason:** rank `h=0.75` (both variants) loses its entire short book on seed `20261245` (all 12 signal shorts are unavailable — a 0.75¹² ≈ 3.2% draw that did occur), so `active_rows_min = 0`, `degenerate_rows_max = 541`, `censor_reason = "no_active_rows_after_short_availability_restriction"`. It is never zeroed silently and never hidden. This is a genuine WP4 input: at 75% short withdrawal the market-neutral book can vanish outright.
-- **P23 WP4 IS LANDED, ARTIFACT-GATED AND GREEN** — `docs/BAB_P23_DECISION.md` + `tests/test_bab_p23_decision_consistency.py`. Reads only committed JSON (`bab_p23/charter.json`, `breadth_ladder.json`, `beta_drift.json`, `short_haircut.json`, `bab_p21/rank_eval.json`). ≥100 numbers matched to committed JSON fields, zero unmatched cells, AST scan proves no `build_*` harness imported or called. Explicit `SIGNAL on controlled synthetic planted / NOISE on null`, explicit `NO-GO for market deployment`, names the censored rank `h=0.75` cell (seed `20261245`, `censor_reason = "no_active_rows_after_short_availability_restriction"`). Full gate green: ruff PASS, quick GREEN (104+195), reconcile GREEN, full gate GREEN 6765 passed / 35 skipped / TOTAL 100%.
-- **Bottlenecks removed this session (all were real, all blocked progress):**
-  1. **The binding WP3 spec was self-contradictory.** It required (a) renormalizing surviving shorts back to the baseline short gross **and** (b) strictly positive planted recovery on every seed. Requirement (a) was implemented and measured first: it amplifies the beta-neutrality residual names (the equal-weight book's `w_bar·alpha` is only `+0.000261` and its signal-short contribution is `−2.6e−6`), flipping 3–5 planted seeds negative at `h ≥ 0.25`. The spec is now resolved in favour of realistic economics: unavailable shorts are **dropped and never re-levered** (the realized short gross falls with `h`), which keeps every non-censored planted seed positive. The rejected re-levering variant is documented in the harness docstring so no future session re-tries it blindly.
-  2. **A fully-short-unavailable seed makes strict positivity mathematically impossible.** At `h=0.75` a seed can lose all 12 shorts; the book has no hedge and must flatten. The old spec ("every seeded cell strictly positive") therefore cannot hold for all cells. The charter's own escape hatch is now used explicitly: a censored cell stays visible with a machine-readable `censor_reason`, and its only zero-recovery seed must coincide with `per_seed_degenerate_rows = 541`. Do not delete the censor to make a test greener.
-  3. Per-seed availability was first asserted against `1−h` with the 0.05 cell slack; single 41-asset draws have σ ≈ 0.047 and one legitimate tail (`0.0488` at `h=0.75`) tripped it. The test now asserts the chartered **cell-mean** slack and pins each per-seed value to an exact recomputation from `availability_mask(seed, 41, h)`.
-  4. **WP4 consistency test had 5 ruff errors (E501 ×3, PERF102 ×1, W292 ×1) blocking the gate.** Fixed by breaking long lines, using `.values()` for unused keys, and adding a trailing newline. Gate now fully green.
-- **P21 IS CLOSED** — WP0 synthetic universe (41 assets, 600 rows, seed 20261118, planted α Spearman = −1, null α = 0), WP1 rank vs equal, WP2 significance, WP3 cost surface, WP4 report.
+- **Timestamp (UTC):** 2026-11-20T04:51:39Z
+- **Git state:** HEAD `f2e3254` (P24 WP1 landed; full gate GREEN). Working tree clean. Certify with `git log --oneline -4 && git status --short`. Next row is **P24 WP2 — rebalance hysteresis / turnover ladder**.
+- **P24 WP1 IS LANDED, ARTIFACT-GATED AND GREEN** — `scripts/bab_regime_split.py`, `research_state/bab_p24/regime_split.{json,md}`, `tests/test_bab_p24_regime_split.py` (22 tests). Reads only committed P21/P22/P23/P24 JSON artifacts read-only; never regenerates them. Calm regime (beta_window=120, q=0.25) planted recovery strictly positive (+0.00019/+0.000191/+0.000192 at h=0.05/0.1/0.15); stress regime (beta_window=60, q=0.35) planted recovery negative (−0.00016/−0.000161) — the stress is real and measured; null recovery exactly 0.0 on every cell; rank guards (min_leg_beta ≥ 0.2, gross_max ≤ 4.0) never relaxed; regime_zero_reference pinned to P21 rank_eval.json at 6 dp; byte-identical rebuild proven.
+- **P21, P22, P23 WP0–WP4 and P24 WP0, WP1 are CLOSED.** P24 WP2 — rebalance hysteresis / turnover ladder is the binding row.
 - **Repo:** `Crypto-Betting-Against-Beta` — crypto market-neutral BAB trading system.
-
-**Handoff reviewed and confirmed as the single durable handoff. The binding initial task message below is the most relevant, timestamped, clear directive for the next agentic work session, prioritized from the repository name (`Crypto-Betting-Against-Beta`, a betting-against-beta system whose measured failure modes are beta-estimation drift, breadth concentration and the crypto short leg) and the measured state after P23 WP4. P21, P22, P23 WP0, P23 WP1, P23 WP2, P23 WP3 and P23 WP4 are CLOSED. P24 WP0 charter files exist but the acceptance test is minimal (2 assertions) and the `tests/fixtures/licensed_price_schema.csv` fixture is missing. The next row is completing P24 WP0 properly.**
 
 ---
 
 # INITIAL TASK MESSAGE (BINDING — START HERE)
 
-**Timestamp:** 2026-11-20T01:47:35Z · **Campaign:** P24 "Regime-conditional BAB and holdout discipline" · **Lane:** B · **WP:** **P24 WP1 — regime-split stress**
+**Timestamp:** 2026-11-20T04:51:39Z · **Campaign:** P24 "Regime-conditional BAB and holdout discipline" · **Lane:** B · **WP:** **P24 WP2 — rebalance hysteresis / turnover ladder**
 
-**One-sentence objective:** implement `scripts/bab_regime_split.py` with regime-conditional BAB stress (calm/stress regimes via conditional beta windows and quantiles), produce `research_state/bab_p24/regime_split.{json,md}`, and create `tests/test_bab_p24_regime_split.py` acceptance test (AST no-harness scan, numeric leaf mapping from committed P24 charter + P23/P22/P21 artifacts, verdict strings).
+**One-sentence objective:** implement `scripts/bab_hysteresis_ladder.py` with rebalance hysteresis / turnover ladder stress across the chartered `hysteresis_band_grid` ([0.05, 0.1, 0.15]) and `regime_grid` ([calm, stress]), produce `research_state/bab_p24/hysteresis.{json,md}`, and create `tests/test_bab_p24_hysteresis.py` acceptance test (AST no-harness scan, numeric leaf mapping from committed P24 charter + P23/P22/P21 artifacts, verdict strings).
 
-**Why this and nothing else:** P24 WP0 has closed the charter gate with a machine-checked acceptance test and a valid licensed-price CSV fixture. The repository name is *betting against beta*, and the next unmeasured axis from that name is **regime dependence** — does the BAB estimator survive calm vs stress market regimes? P24 WP1 must implement the regime-split stress declared in the P24 charter (`regime_grid: ["calm", "stress"]`) and produce artifact-gated results.
+**Why this and nothing else:** P24 WP1 proved the BAB estimator is regime-dependent (calm planted recovery strictly positive; stress planted recovery negative). The next unmeasured axis from the repository name (*betting against beta*) is turnover/hysteresis — does the book churn excessively under tight hysteresis bands, eroding the signal? P24 WP2 must implement and measure the `hysteresis_band_grid` declared in the P24 charter as a charter constant, read-only against committed P21/P22/P23/P24 JSON artifacts.
 
-**Prioritization basis:** the repository name is *betting against beta*. P23 proved the estimator's instability handling under breadth/drift/short-availability stress; P24 WP1 must now stress the estimator under regime-conditionality. The P24 charter declares `regime_grid: ["calm", "stress"]` as a charter constant — this WP must implement and measure it.
+**Prioritization basis:** the repository name is *betting against beta*. P23 proved estimator instability under breadth/drift/short-availability stress; P24 WP1 proved regime dependence; P24 WP2 must now stress turnover under hysteresis bands before P24 WP3 (licensed-data adapter dry run) and P24 WP4 (closing decision). No session may idle on a landed WP.
 
 **Deliverable files are the claim.** Run:
 ```bash
-git ls-files scripts/bab_regime_split.py research_state/bab_p24/regime_split.json tests/test_bab_p24_regime_split.py
+git ls-files scripts/bab_hysteresis_ladder.py research_state/bab_p24/hysteresis.json tests/test_bab_p24_hysteresis.py
 ```
-
-The binding row is **P24 WP1 — regime-split stress**; you own the script, artifact, and acceptance test. **No script harness re-run** — WP1 reads only committed P21/P22/P23/P24 JSON artifacts and must never regenerate or edit them.
+The three missing deliverables are yours. The binding row is **P24 WP2 — rebalance hysteresis / turnover ladder**; you own the script, artifact, and acceptance test. **No script harness re-run** — WP2 reads only committed P21/P22/P23/P24 JSON artifacts and must never regenerate or edit them.
 
 Rules:
 1. Never take a WP whose deliverable already exists. If a deliverable exists but its acceptance test is insufficient (stub), fixing that test **is** the session's work — do not start a new row on a stub gate.
-2. Solo default: **P24 WP0 completion**. It reads only committed JSON artifacts read-only; it must not regenerate, re-run or edit any P21/P22/P23 artifact or harness.
+2. Solo default: **P24 WP2 — rebalance hysteresis / turnover ladder**. It reads only committed JSON artifacts read-only; it must not regenerate, re-run or edit any P21/P22/P23/P24 artifact or harness.
 3. A partially finished WP is not locked.
 4. Everything blocked? Repair the red gate first (`bash scripts/bab_quick.sh`), then take the first missing row.
 5. Never end a session with prose. A landed WP = deliverable + consistency test in **one** commit + green full gate.
@@ -49,15 +38,15 @@ Rules:
 
 ## ROUTE YOUR SESSION IN 60 SECONDS (no prose debate, no idle)
 
-Deliverable files are the claim. Run the `git ls-files` command above; the three missing deliverables are yours. P21, P22, P23 WP0–WP4 and P24 WP0 are CLOSED. P24 WP1 — regime-split stress is the binding row; Campaign P24 continues.
+Deliverable files are the claim. Run the `git ls-files` command above; the three missing deliverables are yours. P21, P22, P23 WP0–WP4 and P24 WP0, WP1 are CLOSED. P24 WP2 — rebalance hysteresis / turnover ladder is the binding row; Campaign P24 continues.
 
-Rules are identical to the numbered list immediately above. Solo default: **P24 WP1 — regime-split stress**.
+Rules are identical to the numbered list immediately above. Solo default: **P24 WP2 — rebalance hysteresis / turnover ladder**.
 
 ## MANDATORY FIRST ACTIONS (in order, ~4 minutes)
 
 1. `git log --oneline -4 && git status --short` — locate yourself. Do not re-derive what this file certifies.
 2. `bash scripts/bab_quick.sh` (≈20 s, must be GREEN). It bootstraps numpy/pandas/scipy/pytest/ruff from PyPI.
-3. Confirm P21/P22/P23-WP0/WP1/WP2/WP3/WP4 and P24 WP0 are closed and their artifacts are intact (≈0.1 s, must print only the confirmation line and exit 0):
+3. Confirm P21/P22/P23-WP0/WP1/WP2/WP3/WP4 and P24 WP0/WP1 are closed and their artifacts are intact (≈0.1 s, must print only the confirmation line and exit 0):
    ```bash
    python3 - <<'EOF'
    import json
@@ -67,21 +56,21 @@ Rules are identical to the numbered list immediately above. Solo default: **P24 
        "bab_p21": ("universe", "significance", "rank_eval", "cost_surface"),
        "bab_p22": ("charter", "null_battery", "impact_surface", "capacity"),
        "bab_p23": ("charter", "breadth_ladder", "beta_drift", "short_haircut"),
-       "bab_p24": ("charter",),
+       "bab_p24": ("charter", "regime_split"),
    }.items():
        for name in names:
            p = root / f"research_state/{campaign}/{name}.json"
            assert p.is_file(), f"missing {p}"
            json.loads(p.read_text(encoding="utf-8"))
-   for report in ("docs/BAB_SIGNAL_OR_NOISE.md", "docs/BAB_P22_DECISION.md", "docs/BAB_P23_KICKOFF.md", "docs/BAB_P23_DECISION.md"):
+   for report in ("docs/BAB_SIGNAL_OR_NOISE.md", "docs/BAB_P22_DECISION.md", "docs/BAB_P23_DECISION.md", "docs/BAB_P24_KICKOFF.md"):
        assert (root / report).is_file(), f"missing {report}"
    assert (root / "tests/fixtures/licensed_price_schema.csv").is_file()
-   print("P21, P22, P23-WP0/WP1/WP2/WP3/WP4, P24 WP0 closed; artifacts intact")
+   print("P21, P22, P23-WP0/WP1/WP2/WP3/WP4, P24 WP0/WP1 closed; artifacts intact")
    EOF
    ```
-4. Read `research_state/bab_p24/charter.json` — the charter thresholds to implement: `regime_grid`, `holdout_before_tuning`, `hysteresis_band_grid`, `licensed_price_csv_schema`, `no_go_for_market`, `not_market_evidence`, `artifact_gated`.
-5. Read `tests/test_bab_p24_charter.py` — the landed P24 WP0 acceptance-test pattern to mirror for P24 WP1 (AST no-harness scan, numeric leaf mapping from committed P21/P22/P23/P24 JSON, verdict strings, byte-identical artifact verification).
-6. Read `research_state/bab_p23/charter.json` provenance — the P23 acceptance thresholds that P24 must honor.
+4. Read `research_state/bab_p24/charter.json` — the charter constants to implement: `regime_grid`, `holdout_before_tuning`, `hysteresis_band_grid`, `licensed_price_csv_schema`, `no_go_for_market`, `not_market_evidence`, `artifact_gated`.
+5. Read `tests/test_bab_p24_regime_split.py` — the landed P24 WP1 acceptance-test pattern to mirror for P24 WP2 (AST no-harness scan, numeric leaf mapping from committed P21/P22/P23/P24 JSON, verdict strings, byte-identical artifact verification).
+6. Read `research_state/bab_p22/charter.json` provenance — the P22 acceptance thresholds that P24 WP2 must honor: `rank_min_leg_beta = 0.2`, `rank_max_gross = 4.0`, `recovery_null_exactly_zero = 0.0`, `recovery_planted_strictly_positive = true`.
 7. Read `research_state/bab_p21/rank_eval.json` — the frozen P21 panel (sha256-pinned) that P24 must consume read-only and never regenerate.
 
 ---
@@ -117,19 +106,19 @@ Rules are identical to the numbered list immediately above. Solo default: **P24 
 
 ---
 
-## Pre-declared Campaign P24 — "Regime-conditional BAB and holdout discipline" (binding now — P23 WP4 landed)
+## Pre-declared Campaign P24 — "Regime-conditional BAB and holdout discipline" (binding now — P23 WP4 landed, P24 WP1 landed)
 
-P23 closes the instability axis; the next unmeasured axis from the repository name is **regime dependence plus honest holdout**. Declared now so no session after WP4 can idle:
+P23 closes the instability axis; P24 WP1 closes the regime axis; the next unmeasured axis is **turnover / rebalance hysteresis**. Declared now so no session after WP1 can idle:
 
 | Lane | WP | Deliverable files | Status |
 |---|---|---|---|
-| A | **WP0 — charter (completion)** | `tests/test_bab_p24_charter.py` (enhanced), `tests/fixtures/licensed_price_schema.csv` (create) | **CLOSED** (22 tests) |
-| B | **WP1 — regime-split stress** | `scripts/bab_regime_split.py`, `research_state/bab_p24/regime_split.{json,md}`, `tests/test_bab_p24_regime_split.py` | **BINDING** |
-| C | WP2 — rebalance hysteresis / turnover ladder | `scripts/bab_hysteresis_ladder.py`, `research_state/bab_p24/hysteresis.{json,md}`, `tests/test_bab_p24_hysteresis.py` | QUEUED |
+| A | **WP0 — charter** | `tests/test_bab_p24_charter.py` (22 tests), `tests/fixtures/licensed_price_schema.csv` | **CLOSED** |
+| B | **WP1 — regime-split stress** | `scripts/bab_regime_split.py`, `research_state/bab_p24/regime_split.{json,md}`, `tests/test_bab_p24_regime_split.py` (22 tests) | **CLOSED** (gate GREEN) |
+| C | **WP2 — rebalance hysteresis / turnover ladder** | `scripts/bab_hysteresis_ladder.py`, `research_state/bab_p24/hysteresis.{json,md}`, `tests/test_bab_p24_hysteresis.py` | **BINDING** |
 | D | WP3 — licensed-data adapter dry run | `scripts/bab_licensed_adapter.py`, `research_state/bab_p24/adapter_dryrun.{json,md}`, `tests/test_bab_p24_adapter.py` | QUEUED (fixture only; **never** network) |
 | E | WP4 — closing decision | `docs/BAB_P24_DECISION.md`, `tests/test_bab_p24_decision_consistency.py` | QUEUED |
 
-P24 WP0 must be completed with a comprehensive acceptance test that pins all charter JSON fields, verifies no `build_*` harness is imported/called via AST scan, validates the `licensed_price_csv_schema` fixture exists and has the expected schema, and restates the NO-GO verdict from P23. P24 must keep P21–P23 artifacts frozen and restate the NO-GO verdict.
+P24 must keep P21–P23 artifacts frozen and restate the NO-GO verdict. P24 WP2 consumes committed P24 charter (`hysteresis_band_grid`, `regime_grid`) and P23/P22/P21 artifacts read-only.
 
 ---
 
@@ -142,7 +131,7 @@ P24 WP0 must be completed with a comprehensive acceptance test that pins all cha
 | **C — Borrow** | WP3 | `scripts/bab_short_haircut.py`, `research_state/bab_p23/short_haircut.{json,md}`, `tests/test_bab_p23_short_haircut.py` | **CLOSED** (18 tests; 400 book runs; 1 visible censored cell) |
 | **D — Decision** | **WP4** | `docs/BAB_P23_DECISION.md`, `tests/test_bab_p23_decision_consistency.py` | **CLOSED** (gate green: ruff PASS, quick GREEN 104+195, reconcile GREEN, full gate GREEN 6765 passed / 35 skipped / TOTAL 100%) |
 
-Rules: one WP per session; lanes B/C/D consume earlier P23 artifacts read-only and must never regenerate them. **P23 WP4 is CLOSED. P24 WP0 is CLOSED. P24 WP1 — regime-split stress is the binding row.**
+Rules: one WP per session; lanes consume earlier P23 artifacts read-only and must never regenerate them. **P23 WP0–WP4 all CLOSED. P24 WP0 CLOSED. P24 WP1 CLOSED. P24 WP2 — rebalance hysteresis / turnover ladder is the binding row.**
 
 ---
 
@@ -150,18 +139,17 @@ Rules: one WP per session; lanes B/C/D consume earlier P23 artifacts read-only a
 
 A session is **not** complete unless **all** of the following landed in one commit:
 
-1. One complete WP from the routing table (P24 WP0 completion).
-2. Its **script + committed artifact + acceptance test** (WP0 completion = enhanced test + CSV fixture).
-3. A machine-checked number mapping, not a "looks consistent" claim; for WP0 completion, every charter threshold must resolve to a committed JSON field and the fixture must be validated.
+1. One complete WP from the routing table (P24 WP2 — rebalance hysteresis / turnover ladder).
+2. Its **script + committed artifact + acceptance test**.
+3. A machine-checked number mapping, not a "looks consistent" claim; every charter threshold (`hysteresis_band_grid`, `regime_grid`) must resolve to a committed JSON field and every numeric cell constant must trace to committed JSON or a declared charter constant — never a hand-typed number.
 4. `python3 -m ruff check .` PASS and `bash scripts/bab_quick.sh` GREEN; full gate once per WP boundary.
 5. A ledger row below with UTC timestamp, HEAD, what landed, and the gate line.
 6. **No documentation-only turn.** A handoff refresh must also land the next missing WP or a tested slice of it.
 
-**Hard minimums that make P24 WP0 completion impossible to fake:**
-- Enhanced test reads only committed P21/P22/P23 JSON artifacts read-only; never regenerates or edits them.
+**Hard minimums that make P24 WP2 impossible to fake:**
+- Enhanced test reads only committed P21/P22/P23/P24 JSON artifacts read-only; never regenerates or edits them.
 - AST scan verifies no `build_*` harness is imported or called in the test file.
-- Numeric field mapping from charter JSON to committed P21/P22/P23 artifacts (like P23 WP4 test).
-- `tests/fixtures/licensed_price_schema.csv` exists with a valid header row (at minimum: `date,BTC,<assets...>` compatible with `load_prices()`).
+- Numeric field mapping from charter JSON to committed P21/P22/P23/P24 artifacts (like P23 WP4 test).
 - Explicit `no_go_for_market = True` restated from the P23 charter verdict.
 - Verdict strings verified: `signal`, `noise`, `no-go for market`, `controlled synthetic`, `not market evidence`.
 
@@ -170,10 +158,9 @@ A session is **not** complete unless **all** of the following landed in one comm
 ## No-idle ladder (if the assigned WP is blocked, do the next rung — never end a session empty-handed)
 
 1. Test enhancement feels large? Land the AST no-harness scan first (copied from P23 WP4 test), committed with a partial test, then extend numeric mapping in the same commit.
-2. Blocked on CSV schema? Create a minimal valid header: `date,BTC,A001,A002,...,A041` (42 columns matching P21 universe) with one row of ISO dates and numeric prices; the test only validates schema/header, not values.
-3. Blocked because a threshold you want to validate is not in committed JSON? Do not type it. Either quote only existing fields, or land a new upstream WP in the same commit that adds the field to the harness **plus** its acceptance test — never a hand-typed number.
-4. Blocked on everything? Repair the gate and add one missing assertion to a P21/P22/P23 consistency test. Something landable always exists.
-5. Dead account of last resort: pre-build the P24 WP1 regime-split stress test skeleton as a tested slice, but P24 WP1 cannot be *declared complete* before P24 WP0 completion lands.
+2. Blocked because a threshold you want to validate is not in committed JSON? Do not type it. Either quote only existing fields, or land a new upstream WP in the same commit that adds the field to the harness **plus** its acceptance test — never a hand-typed number.
+3. Blocked on everything? Repair the gate and add one missing assertion to a P21/P22/P23 consistency test. Something landable always exists.
+4. Dead account of last resort: pre-build the P24 WP2 hysteresis-ladder test skeleton as a tested slice, but P24 WP2 cannot be *declared complete* before its script + artifact + test land together.
 
 Every session must end with a committed **code/test/artifact** diff and a ledger row. If a WP is only partially done, commit the slice and write the exact remainder in its ledger row.
 
@@ -188,15 +175,15 @@ bash scripts/bab_reconcile_gate.sh
 BAB_GATE_LOG=/tmp/bab_gate_handoff.log BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh
 ```
 
-Inner loop: `bash scripts/bab_quick.sh` + `python3 -m pytest -q tests/test_bab_p24_charter.py` (once WP0 tests enhanced). Full gate once per WP boundary; never hand off mid-gate. Never lower the coverage floor.
+Inner loop: `bash scripts/bab_quick.sh` + `python3 -m pytest -q tests/test_bab_p24_regime_split.py` (once WP2 tests exist, add `tests/test_bab_p24_hysteresis.py`). Full gate once per WP boundary; never hand off mid-gate. Never lower the coverage floor.
 
 ---
 
 ## Forbidden (automatic failure)
 
 - Handoff-only / docs-only / gate-only / count-only / analysis-only commits (WP4 artifacts count only **with** their consistency tests; a handoff refresh without a landed WP is not a session).
-- Editing `research_state/bab_p20/**`, `docs/BAB_RESEARCH_REPORT.md`, `research_state/bab_p21/universe.*`, or any P20 script (P20 is closed and frozen; edits break the WP4 consistency test). Once a P21/P22/P23 artifact lands, edit only via its generator and its acceptance test.
-- Hand-typing any number into a P21/P22/P23 report, charter, or verdict that is not a committed JSON field. A report row that no JSON field backs is a failed session.
+- Editing `research_state/bab_p20/**`, `docs/BAB_RESEARCH_REPORT.md`, `research_state/bab_p21/universe.*`, or any P20 script (P20 is closed and frozen; edits break the WP4 consistency test). Once a P21/P22/P23/P24 artifact lands, edit only via its generator and its acceptance test.
+- Hand-typing any number into a P21/P22/P23/P24 report, charter, or verdict that is not a committed JSON field. A report row that no JSON field backs is a failed session.
 - Weakening `rank_min_leg_beta` / `rank_max_gross` or the rank guard logic to make rank "active" on any fixture.
 - Replacing the planted convex alpha curve with a linear one (`alpha = a + b·beta`): that makes a beta-neutral book's expected alpha identically zero.
 - Flattening the drift model back to an additive `delta·(t/(rows-1))·u` tilt that shifts betas by <0.1% and makes the grid numerically inert.
@@ -216,10 +203,10 @@ Inner loop: `bash scripts/bab_quick.sh` + `python3 -m pytest -q tests/test_bab_p
 
 ## Bottlenecks removed (do not re-create)
 
+- **[REMOVED 2026-11-20T04:51:39Z] Stale HANDOFF.md** pointed at P24 WP1 as the binding row and cited HEAD `14f419c`; WP1 is landed (script + `regime_split.{json,md}` + 22-test acceptance test, gate GREEN) and HEAD is `f2e3254`. Binding row re-routed to **P24 WP2 — rebalance hysteresis / turnover ladder** with a fresh timestamped INITIAL TASK MESSAGE. Contradictory "P24 WP0 completion" language removed; WP0 is CLOSED (22 tests, per ledger 2026-11-20T01:31:58Z).
 - **[REMOVED 2026-11-19T21:24:00Z] P23 WP3's spec demanded re-levering surviving shorts to the baseline gross AND strict positivity on every seed — mutually unsatisfiable on the equal-weight book.** Measured: the equal book's recovery is `+0.000261` and its signal-short contribution is `−2.6e−6`, so re-levering the beta-neutrality residual names flipped 3–5 planted seeds negative at `h ≥ 0.25`. Resolved by dropping (never re-levering) unavailable shorts, which keeps every non-censored planted seed positive; the rejected variant is documented in the harness so it is not retried blindly.
 - **[REMOVED 2026-11-19T21:24:00Z] A seed can lose its entire short book at `h=0.75`, so "strictly positive in every cell" was impossible.** Seed `20261245` holds zero of 12 shorts (0.75¹² ≈ 3.2% draw). The charter's censoring escape hatch is now used: the rank `h=0.75` cell stays visible with `censor_reason = "no_active_rows_after_short_availability_restriction"`, `active_rows_min = 0`, `degenerate_rows_max = 541`, and its only zero seed is asserted to coincide with the degenerate rows.
-- **[REMOVED 2026-11-19T21:24:00Z] Per-seed availability was asserted with the cell-level 0.05 slack; a legitimate 41-asset tail (`0.0488` vs `0.25`) tripped it.** The test now asserts the chartered cell-mean slack and pins each per-seed value to an exact recomputation from `availability_mask(seed, 41, h)`.
-- **[REMOVED 2026-11-19T20:12:30Z] P23 WP2 shipped with a red acceptance test and a numerically inert drift model.** AST scan listed `build_beta_drift` (its own builder) as forbidden; drift was `≤1e-3` additive. Fixed: upstream-only forbidden set; relative drift with `DRIFT_SCALE = 0.1` (±6% at δ=1e-3) calibrated so the worst planted seed stays `+0.000201`.
+- **[REMOVED 2026-11-19T20:12:30Z] P23 WP2 shipped with a red self-referential AST test and a numerically inert drift model.** AST scan listed `build_beta_drift` (its own builder) as forbidden; drift was `≤1e-3` additive. Fixed: upstream-only forbidden set; relative drift with `DRIFT_SCALE = 0.1` (±6% at δ=1e-3) calibrated so the worst planted seed stays `+0.000201`.
 - **[REMOVED 2026-11-19T19:01:23Z] P23 WP1 was committed with no acceptance test, and "first b assets" sub-universes produced negative planted recovery at breadths 9 and 17.** Re-derived to evenly spaced beta-spanning subsets; 16 tests pin the artifact.
 - **[REMOVED 2026-11-19T16:53:48Z] P23 WP0 landed but P23 WP1 was not declared as the binding next row.** Routing now starts at the first missing deliverable file.
 - **[REMOVED 2026-11-19T12:01:17Z] P22 closed with NO-GO but P23 was not pre-declared.** P23 WP0–WP4 pre-declared with seeds and thresholds so no session idles.
@@ -249,5 +236,3 @@ Inner loop: `bash scripts/bab_quick.sh` + `python3 -m pytest -q tests/test_bab_p
 | 2026-11-20T00:25:06Z | `8c3cba1` | **P23 WP4 gate green + handoff re-certification for P24 WP0.** Fixed 5 ruff errors in `tests/test_bab_p23_decision_consistency.py` (E501 ×3, PERF102 ×1, W292 ×1); full gate GREEN 6765 passed / 35 skipped / TOTAL 100%. P23 WP0–WP4 all CLOSED. Re-routed binding row to **P24 WP0 — charter ("Regime-conditional BAB and holdout discipline")**. | ruff PASS; quick GREEN (104+195); reconcile GREEN; full gate **GREEN 6765 passed / 35 skipped / TOTAL 100%** |
 | 2026-11-20T01:26:04Z | `95356dc` | **Handoff refreshed for P24 WP0 completion.** P24 WP0 charter files exist but acceptance test is a stub (2 assertions) and `tests/fixtures/licensed_price_schema.csv` fixture is missing. Binding row updated to P24 WP0 completion: enhance test to mirror P23 WP4 pattern (AST no-harness scan, numeric leaf mapping, verdict strings, byte-identical artifact check) and create the CSV schema fixture. | ruff PASS; quick GREEN (104+195) |
 | 2026-11-20T01:31:58Z | `5e0e38e` | **P24 WP0 completion — charter acceptance test + licensed-price CSV fixture.** Enhanced `tests/test_bab_p24_charter.py` from 2-stub to 22 comprehensive tests mirroring P23 WP4 pattern: AST no-harness scan, numeric leaf mapping from P24 charter to committed P21/P22/P23 JSON, verdict string checks (NO-GO, signal/noise, never market alpha), byte-identical artifact verification (SHA256). Validated P23/P22 thresholds (breadth ladder shape, drift_scale=0.1, 400 book runs, censored rank h=0.75 cell, null battery FPR, impact monotonicity, capacity break-even). Created `tests/fixtures/licensed_price_schema.csv` with valid schema (date,BTC,A001..A041, 43 columns, 5 rows) compatible with `load_prices()`. Re-routed binding row to **P24 WP1 — regime-split stress**. | ruff PASS; quick GREEN (104+195); reconcile GREEN; full gate **GREEN 6787 passed / 35 skipped / TOTAL 100%** |
-
-(End of file)
