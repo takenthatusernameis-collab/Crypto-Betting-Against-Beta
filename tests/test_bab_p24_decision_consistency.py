@@ -143,7 +143,15 @@ def _render(columns, rows) -> list[str]:
 
 
 def provenance_table(
-    charter, adapter_dryrun, hysteresis, regime_split, breadth_ladder, beta_drift, short_haircut, null_battery, rank_eval
+    charter,
+    adapter_dryrun,
+    hysteresis,
+    regime_split,
+    breadth_ladder,
+    beta_drift,
+    short_haircut,
+    null_battery,
+    rank_eval,
 ) -> tuple[list[str], list[dict]]:
     prov = charter["provenance"]
     charter_body = charter["charter"]
@@ -176,7 +184,10 @@ def provenance_table(
         {"Fact": "Adapter network used", "Value": ad_prov["network_used"]},
         {"Fact": "Adapter dry run", "Value": ad_prov["dry_run"]},
         {"Fact": "Adapter synthetic", "Value": ad_prov["synthetic"]},
-        {"Fact": "Hysteresis zero reference matches P21", "Value": hy_prov["hysteresis_zero_reference"]["checks"]["planted_equal"]["matches_at_6dp"]},
+        {
+            "Fact": "Hysteresis zero reference matches P21",
+            "Value": hy_prov["hysteresis_zero_reference"]["checks"]["planted_equal"]["matches_at_6dp"],
+        },
         {"Fact": "Hysteresis turnover monotone non-increasing", "Value": True},
         {"Fact": "Regime grid min met", "Value": rs_prov["derived"]["regime_grid_min_met"]},
         {"Fact": "Stress regime planted negative", "Value": True},

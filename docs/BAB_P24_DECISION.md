@@ -175,7 +175,7 @@ Five rungs spanning 9 to 41 assets, all with strictly positive planted recovery.
 
 ## Beta Drift Grid (P23)
 
-48 cells across 4 beta windows × 3 drift thresholds × 2 variants × 2 weightings. Drift scale = 0.1 (±6% at δ=1e-3). Zero-drift reference matches P21 at 6 dp.
+48 cells across 4 beta windows x 3 drift thresholds x 2 variants x 2 weightings. Drift scale = 0.1 (±6% at δ=1e-3). Zero-drift reference matches P21 at 6 dp.
 
 <!-- table:drift:start -->
 | beta_window | drift_threshold | variant | weighting | active_rows_min | recovery_mean | recovery_min | recovery_positive_seed_fraction | gross_max | min_leg_beta |
@@ -245,7 +245,7 @@ Five rungs spanning 9 to 41 assets, all with strictly positive planted recovery.
 
 ## Short Haircut Ladder (P23)
 
-20 cells across 5 haircut levels × 2 variants × 2 weightings. 400 book runs. Censored cell at rank h=0.75 with `censor_reason = "no_active_rows_after_short_availability_restriction"`, active_rows_min=0, degenerate_rows_max=541. Zero-haircut reference matches P21 and WP2 at 6 dp. The degenerate draw is real and published: seed `20261245` (index 4 of 20) holds zero of 12 shorts at h=0.75 (0.75¹² ≈ 3.2% draw), so its entire short book is unavailable; its `per_seed_degenerate_rows` is 541 and its `per_seed_active_rows` is 0. Every other seed keeps a positive short book, and every non-censored planted seed has strictly positive recovery.
+20 cells across 5 haircut levels x 2 variants x 2 weightings. 400 book runs. Censored cell at rank h=0.75 with `censor_reason = "no_active_rows_after_short_availability_restriction"`, active_rows_min=0, degenerate_rows_max=541. Zero-haircut reference matches P21 and WP2 at 6 dp. The degenerate draw is real and published: seed `20261245` (index 4 of 20) holds zero of 12 shorts at h=0.75 (0.75¹² ≈ 3.2% draw), so its entire short book is unavailable; its `per_seed_degenerate_rows` is 541 and its `per_seed_active_rows` is 0. Every other seed keeps a positive short book, and every non-censored planted seed has strictly positive recovery.
 
 <!-- table:haircut:start -->
 | haircut | variant | weighting | active_rows_min | availability_mean | short_survival_mean | recovery_mean | recovery_min | recovery_positive_seed_fraction | costed_sharpe_mean | costed_sharpe_non_increasing | censored | censor_reason |
@@ -398,10 +398,10 @@ False positive rate at alpha ≤ 0.05; max absolute recovery ≤ 1e-10.
 
 ## What This Does Not Prove
 
-- **No demonstrated real-world profitability.** The planted universe is a controlled synthetic stimulus with a convex alpha curve (`alpha = A(0.5 - u²)`), idiosyncratic vol 0.003–0.005, and a known ground truth. It is **not real market data** and **not market profitability evidence**.
+- **No demonstrated real-world profitability.** The planted universe is a controlled synthetic stimulus with a convex alpha curve (`alpha = A(0.5 - u²)`), idiosyncratic vol 0.003-0.005, and a known ground truth. It is **not real market data** and **not market profitability evidence**.
 - **No out-of-sample validation.** All results are in-sample on the planted panel (seed 20261118). The holdout discipline (P24 charter: `holdout_before_tuning = true`) prevents parameter selection on the evaluation window.
-- **No walk-forward / OOS harness.** Campaign P24 closes without a walk-forward/out-of-sample harness. The default book is dollar-neutral only and carries a large negative benchmark beta (measured −0.57 at default config, −0.91 at q=0.2 on the committed fixture).
-- **No Frazzini–Pedersen rank weighting with beta scaling.** The rank path is documented in `docs/BAB_FIDELITY.md` §9 but is **not empirically evaluable** on the committed 9-asset synthetic fixture. The shipped default remains equal-weight.
+- **No walk-forward / OOS harness.** Campaign P24 closes without a walk-forward/out-of-sample harness. The default book is dollar-neutral only and carries a large negative benchmark beta (measured -0.57 at default config, -0.91 at q=0.2 on the committed fixture).
+- **No Frazzini-Pedersen rank weighting with beta scaling.** The rank path is documented in `docs/BAB_FIDELITY.md` §9 but is **not empirically evaluable** on the committed 9-asset synthetic fixture. The shipped default remains equal-weight.
 - **No live execution evidence.** The licensed-data adapter (P24 WP3) validated only an offline CSV fixture. The live adapter (`--adapter live`) is dry-run by default and requires explicit two-key opt-in (`--allow-live-execution` and `--accept-terms I_UNDERSTAND_LIVE_TRADING`). No network was used in this campaign.
 
 ---
@@ -414,7 +414,7 @@ Campaign P24 concludes here. The NO-GO verdict is restated from P23/P24 charters
 - Walk-forward / out-of-sample harness
 - Real market data ingestion (maintainer-supplied licensed CSV; Coinbase public API returns 403)
 - CI enforcement of `ruff`, `scripts/bab_gate.sh`, `scripts/bab_reconcile_gate.sh` (P19-1, maintainer-only — agent tokens lack `workflows:write`)
-- Frazzini–Pedersen rank-weighted / beta-scaled construction on a wider universe
+- Frazzini-Pedersen rank-weighted / beta-scaled construction on a wider universe
 
 ---
 

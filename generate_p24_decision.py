@@ -144,26 +144,26 @@ adapter_table = _render(
 )
 
 # Hysteresis table
-  hysteresis_rows = [
-      {
-          "regime": cell["regime"],
-          "hysteresis": cell["hysteresis"],
-          "weighting": cell["weighting"],
-          "variant": cell["variant"],
-          "active_rows_min": cell["active_rows_min"],
-          "recovery_mean": cell["recovery_mean"],
-          "recovery_min": cell["recovery_min"],
-          "recovery_positive_seed_fraction": cell["recovery_positive_seed_fraction"],
-          "regime_flips_mean": cell["regime_flips_mean"],
-          "turnover_mean": cell["turnover_mean"],
-          "turnover_total": cell["turnover_total"],
-          "wealth_mean": cell["wealth_mean"],
-          "gross_sharpe_mean": cell["gross_sharpe_mean"],
-          "gross_max": cell["gross_max"],
-          "min_leg_beta": cell["min_leg_beta"],
-      }
-      for cell in hysteresis["cells"]
-  ]
+hysteresis_rows = [
+    {
+        "regime": cell["regime"],
+        "hysteresis": cell["hysteresis"],
+        "weighting": cell["weighting"],
+        "variant": cell["variant"],
+        "active_rows_min": cell["active_rows_min"],
+        "recovery_mean": cell["recovery_mean"],
+        "recovery_min": cell["recovery_min"],
+        "recovery_positive_seed_fraction": cell["recovery_positive_seed_fraction"],
+        "regime_flips_mean": cell["regime_flips_mean"],
+        "turnover_mean": cell["turnover_mean"],
+        "turnover_total": cell["turnover_total"],
+        "wealth_mean": cell["wealth_mean"],
+        "gross_sharpe_mean": cell["gross_sharpe_mean"],
+        "gross_max": cell["gross_max"],
+        "min_leg_beta": cell["min_leg_beta"],
+    }
+    for cell in hysteresis["cells"]
+]
 hysteresis_table = _render(
     [
         "regime",
@@ -186,24 +186,24 @@ hysteresis_table = _render(
 )
 
 # Regime table
-  regime_rows = [
-      {
-          "regime": cell["regime"],
-          "beta_window": cell["beta_window"],
-          "long_quantile": cell["long_quantile"],
-          "short_quantile": cell["short_quantile"],
-          "hysteresis": cell["hysteresis"],
-          "weighting": cell["weighting"],
-          "variant": cell["variant"],
-          "active_rows_min": cell["active_rows_min"],
-          "recovery_mean": cell["recovery_mean"],
-          "recovery_min": cell["recovery_min"],
-          "recovery_positive_seed_fraction": cell["recovery_positive_seed_fraction"],
-          "gross_sharpe_mean": cell["gross_sharpe_mean"],
-          "wealth_mean": cell["wealth_mean"],
-      }
-      for cell in regime_split["cells"]
-  ]
+regime_rows = [
+    {
+        "regime": cell["regime"],
+        "beta_window": cell["beta_window"],
+        "long_quantile": cell["long_quantile"],
+        "short_quantile": cell["short_quantile"],
+        "hysteresis": cell["hysteresis"],
+        "weighting": cell["weighting"],
+        "variant": cell["variant"],
+        "active_rows_min": cell["active_rows_min"],
+        "recovery_mean": cell["recovery_mean"],
+        "recovery_min": cell["recovery_min"],
+        "recovery_positive_seed_fraction": cell["recovery_positive_seed_fraction"],
+        "gross_sharpe_mean": cell["gross_sharpe_mean"],
+        "wealth_mean": cell["wealth_mean"],
+    }
+    for cell in regime_split["cells"]
+]
 regime_table = _render(
     [
         "regime",
@@ -224,22 +224,22 @@ regime_table = _render(
 )
 
 # Breadth table
-  breadth_rows = [
-      {
-          "breadth": rung["breadth"],
-          "variant": book["variant"],
-          "weighting": book["weighting"],
-          "active_rows": book["active_rows"],
-          "recovery_mean": book["recovery_mean"],
-          "recovery_frac_positive": book["recovery_frac_positive"],
-          "gross_max": book["gross_max"],
-          "min_leg_beta": book["min_leg_beta"],
-          "gross_sharpe": book["gross_sharpe"],
-          "wealth": book["wealth"],
-      }
-      for rung in breadth_ladder["ladder"]
-      for book in rung["books"]
-  ]
+breadth_rows = [
+    {
+        "breadth": rung["breadth"],
+        "variant": book["variant"],
+        "weighting": book["weighting"],
+        "active_rows": book["active_rows"],
+        "recovery_mean": book["recovery_mean"],
+        "recovery_frac_positive": book["recovery_frac_positive"],
+        "gross_max": book["gross_max"],
+        "min_leg_beta": book["min_leg_beta"],
+        "gross_sharpe": book["gross_sharpe"],
+        "wealth": book["wealth"],
+    }
+    for rung in breadth_ladder["ladder"]
+    for book in rung["books"]
+]
 breadth_table = _render(
     [
         "breadth",
@@ -257,21 +257,21 @@ breadth_table = _render(
 )
 
 # Drift table
-  drift_rows = [
-      {
-          "beta_window": cell["beta_window"],
-          "drift_threshold": cell["drift_threshold"],
-          "variant": cell["variant"],
-          "weighting": cell["weighting"],
-          "active_rows_min": cell["active_rows_min"],
-          "recovery_mean": cell["recovery_mean"],
-          "recovery_min": cell["recovery_min"],
-          "recovery_positive_seed_fraction": cell["recovery_positive_seed_fraction"],
-          "gross_max": cell["gross_max"],
-          "min_leg_beta": cell["min_leg_beta"],
-      }
-      for cell in beta_drift["cells"]
-  ]
+drift_rows = [
+    {
+        "beta_window": cell["beta_window"],
+        "drift_threshold": cell["drift_threshold"],
+        "variant": cell["variant"],
+        "weighting": cell["weighting"],
+        "active_rows_min": cell["active_rows_min"],
+        "recovery_mean": cell["recovery_mean"],
+        "recovery_min": cell["recovery_min"],
+        "recovery_positive_seed_fraction": cell["recovery_positive_seed_fraction"],
+        "gross_max": cell["gross_max"],
+        "min_leg_beta": cell["min_leg_beta"],
+    }
+    for cell in beta_drift["cells"]
+]
 drift_table = _render(
     [
         "beta_window",
@@ -308,24 +308,24 @@ drift_zero_table = _render(
 )
 
 # Haircut table
-  haircut_rows = [
-      {
-          "haircut": cell["haircut"],
-          "variant": cell["variant"],
-          "weighting": cell["weighting"],
-          "active_rows_min": cell["active_rows_min"],
-          "availability_mean": cell["availability_mean"],
-          "short_survival_mean": cell["short_survival_mean"],
-          "recovery_mean": cell["recovery_mean"],
-          "recovery_min": cell["recovery_min"],
-          "recovery_positive_seed_fraction": cell["recovery_positive_seed_fraction"],
-          "costed_sharpe_mean": cell["costed_sharpe_mean"],
-          "costed_sharpe_non_increasing": cell["costed_sharpe_non_increasing"],
-          "censored": cell["censored"],
-          "censor_reason": cell["censor_reason"],
-      }
-      for cell in short_haircut["cells"]
-  ]
+haircut_rows = [
+    {
+        "haircut": cell["haircut"],
+        "variant": cell["variant"],
+        "weighting": cell["weighting"],
+        "active_rows_min": cell["active_rows_min"],
+        "availability_mean": cell["availability_mean"],
+        "short_survival_mean": cell["short_survival_mean"],
+        "recovery_mean": cell["recovery_mean"],
+        "recovery_min": cell["recovery_min"],
+        "recovery_positive_seed_fraction": cell["recovery_positive_seed_fraction"],
+        "costed_sharpe_mean": cell["costed_sharpe_mean"],
+        "costed_sharpe_non_increasing": cell["costed_sharpe_non_increasing"],
+        "censored": cell["censored"],
+        "censor_reason": cell["censor_reason"],
+    }
+    for cell in short_haircut["cells"]
+]
 haircut_table = _render(
     [
         "haircut",
@@ -375,22 +375,22 @@ haircut_zero_table = _render(
 )
 
 # Null battery table
-  null_battery_rows = [
-      {
-          "seed": seed_entry["seed"],
-          "variant": book["variant"],
-          "weighting": book["weighting"],
-          "active_rows": book["active_rows"],
-          "recovery_mean": book["recovery_mean"],
-          "recovery_frac_positive": book["recovery_frac_positive"],
-          "gross_max": book["gross_max"],
-          "gross_sharpe": book["oos_sharpe"],
-          "p_value": book["p_value"],
-          "significant": book["significant"],
-      }
-      for seed_entry in null_battery["seeds"]
-      for book in seed_entry["books"]
-  ]
+null_battery_rows = [
+    {
+        "seed": seed_entry["seed"],
+        "variant": book["variant"],
+        "weighting": book["weighting"],
+        "active_rows": book["active_rows"],
+        "recovery_mean": book["recovery_mean"],
+        "recovery_frac_positive": book["recovery_frac_positive"],
+        "gross_max": book["gross_max"],
+        "gross_sharpe": book["oos_sharpe"],
+        "p_value": book["p_value"],
+        "significant": book["significant"],
+    }
+    for seed_entry in null_battery["seeds"]
+    for book in seed_entry["books"]
+]
 null_battery_table = _render(
     [
         "seed",
@@ -451,9 +451,14 @@ report = f"""# BAB P24 Closing Decision — Regime-Conditional BAB and Holdout D
 - `research_state/bab_p22/null_battery.json`
 - `research_state/bab_p21/rank_eval.json`
 
-**Verdict strings verified:** `signal`, `noise`, `no-go for market`, `controlled synthetic`, `not market evidence`
+**Verdict strings verified:** `signal`, `noise`, `no-go for market`,
+`controlled synthetic`, `not market evidence`
 
-**Decision:** **NO-GO for market** — this campaign does not prove a demonstrated profitable strategy for real-world deployment. This is a **decision-grade** closing verdict: every published number traces to a committed JSON leaf, and the planted universe is labelled **controlled synthetic** throughout.
+**Decision:** **NO-GO for market** — this campaign does not prove a
+demonstrated profitable strategy for real-world deployment. This is a
+**decision-grade** closing verdict: every published number traces to a
+committed JSON leaf, and the planted universe is labelled **controlled
+synthetic** throughout.
 
 ---
 
@@ -467,7 +472,10 @@ report = f"""# BAB P24 Closing Decision — Regime-Conditional BAB and Holdout D
 
 ## Licensed-Data Adapter Dry Run
 
-The licensed-data adapter validates the offline CSV fixture (`tests/fixtures/licensed_price_schema.csv`) against the P21 universe contract and the P24 charter. No network is used; the adapter runs in dry-run mode with synthetic data.
+The licensed-data adapter validates the offline CSV fixture
+(`tests/fixtures/licensed_price_schema.csv`) against the P21 universe
+contract and the P24 charter. No network is used; the adapter runs in
+dry-run mode with synthetic data.
 
 <!-- table:adapter:start -->
 {adapter_table}
@@ -560,7 +568,7 @@ False positive rate at alpha ≤ 0.05; max absolute recovery ≤ 1e-10.
 - **No demonstrated real-world profitability.** The planted universe is a controlled synthetic stimulus with a convex alpha curve (`alpha = A(0.5 - u²)`), idiosyncratic vol 0.003-0.005, and a known ground truth. It is **not real market data** and **not market profitability evidence**.
 - **No out-of-sample validation.** All results are in-sample on the planted panel (seed 20261118). The holdout discipline (P24 charter: `holdout_before_tuning = true`) prevents parameter selection on the evaluation window.
 - **No walk-forward / OOS harness.** Campaign P24 closes without a walk-forward/out-of-sample harness. The default book is dollar-neutral only and carries a large negative benchmark beta (measured -0.57 at default config, -0.91 at q=0.2 on the committed fixture).
-- **No Frazzini–Pedersen rank weighting with beta scaling.** The rank path is documented in `docs/BAB_FIDELITY.md` §9 but is **not empirically evaluable** on the committed 9-asset synthetic fixture. The shipped default remains equal-weight.
+- **No Frazzini-Pedersen rank weighting with beta scaling.** The rank path is documented in `docs/BAB_FIDELITY.md` §9 but is **not empirically evaluable** on the committed 9-asset synthetic fixture. The shipped default remains equal-weight.
 - **No live execution evidence.** The licensed-data adapter (P24 WP3) validated only an offline CSV fixture. The live adapter (`--adapter live`) is dry-run by default and requires explicit two-key opt-in (`--allow-live-execution` and `--accept-terms I_UNDERSTAND_LIVE_TRADING`). No network was used in this campaign.
 
 ---
@@ -573,7 +581,7 @@ Campaign P24 concludes here. The NO-GO verdict is restated from P23/P24 charters
 - Walk-forward / out-of-sample harness
 - Real market data ingestion (maintainer-supplied licensed CSV; Coinbase public API returns 403)
 - CI enforcement of `ruff`, `scripts/bab_gate.sh`, `scripts/bab_reconcile_gate.sh` (P19-1, maintainer-only — agent tokens lack `workflows:write`)
-- Frazzini–Pedersen rank-weighted / beta-scaled construction on a wider universe
+- Frazzini-Pedersen rank-weighted / beta-scaled construction on a wider universe
 
 ---
 
