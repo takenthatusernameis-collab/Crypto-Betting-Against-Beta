@@ -2,35 +2,37 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-20T21:56:34Z
-- **Git state:** HEAD `c211c81` (checkpoint atop P25 WP1 complete `0a35893`; binding row P25 WP2). Working tree: clean. Certify with `git log --oneline -4 && git status --short`.
+- **Timestamp (UTC):** 2026-11-20T21:58:10Z
+- **Git state:** HEAD `c211c81` (P25 WP1 complete `0a35893`; P25 WP2 built & gate-green, uncommitted slice). Working tree: dirty (P25 WP2 deliverables uncommitted — next session commits the slice first). Certify with `git log --oneline -4 && git status --short`.
 - **P24 — COMPLETE** — All WPs landed, lint remediation done, full gate **GREEN 6885 passed / 35 skipped / TOTAL 100%**. No binding row remains in P24.
 - **P20-P23 — COMPLETE** — All campaigns closed per ledger. P20 WP0-WP5 (92 tests), P21 WP0-WP3 (56 tests), P22 WP0-WP3 (85 tests), P23 WP0-WP4 (80 tests), P24 WP0-WP4 (94 tests) all GREEN.
 - **P25 WP0 — COMPLETE** — All 4 deliverables committed: `scripts/bab_wide_universe.py`, `tests/fixtures/wide_bab_universe.csv`, `tests/fixtures/wide_bab_universe_meta.json`, `tests/test_bab_p25_wide_universe.py`. 24/24 acceptance tests GREEN, ruff clean.
 - **P25 WP1 — COMPLETE** — All 4 deliverables committed: `scripts/bab_walk_forward_rank.py`, `research_state/bab_p25/walk_forward_rank.{json,md}`, `tests/test_bab_p25_walk_forward_rank.py`. 23 acceptance tests GREEN, ruff clean, full gate GREEN 100% coverage.
+- **P25 WP2 — COMPLETE (built, gate-green, uncommitted slice)** — `scripts/bab_promotion_bakeoff.py`, `research_state/bab_p25/promotion_bakeoff.{json,md}`, `tests/test_bab_p25_promotion.py`. 27 acceptance tests GREEN, ruff clean, full gate GREEN 6959 passed / 35 skipped / TOTAL 100%. Equal-vs-rank OOS bake-off on identical causal folds: rank mean OOS Sharpe 0.4373 vs equal 0.1703 (delta +0.2670), both weightings beta-neutral per fold (|portfolio beta| < 1e-2), 40 nonflat OOS rows per fold per weighting, byte-identical deterministic JSON, fixture SHA256 provenance matching WP0. Next session commits this slice, then takes WP3.
 
 ---
 
 # INITIAL TASK MESSAGE (BINDING — START HERE)
 
-**Timestamp:** 2026-11-20T21:55:05Z · **Campaign:** P25 "Rank-weighting promotion via wide-universe OOS validation" · **Lane:** C · **WP:** **P25 WP2 — equal vs rank OOS bake-off**
+**Timestamp:** 2026-11-20T21:58:10Z · **Campaign:** P25 "Rank-weighting promotion via wide-universe OOS validation" · **Lane:** D · **WP:** **P25 WP3 — promotion decision + lint**
 
-**One-sentence objective:** Run an equal-weight vs rank-weighted out-of-sample bake-off on the wide P25 universe across identical walk-forward folds so rank weighting can be compared to the equal-weight default and the evidence for the WP3 promotion decision is produced.
+**One-sentence objective:** Commit the landed P25 WP2 bake-off slice, then write the P25 WP3 promotion decision (`docs/BAB_P25_DECISION.md`, `tests/test_bab_p25_decision_consistency.py`, `generate_p25_decision.py`) that decides promote/no-promote for ``weighting="rank"`` using the WP2 bake-off evidence (delta Sharpe, beta neutrality, turnover, wealth), keeping ``rank_min_leg_beta=0.20`` / ``rank_max_gross=4.0`` unchanged, with a green full gate.
 
-**Why this and nothing else:** P25 WP1 (rank walk-forward harness) is complete and gate-green: 5 folds, 40/40 non-flat OOS rows per fold, per-fold portfolio beta ≈ 0, recovered planted beta spread ≈ 1.11 (long ≈ 0.55 beta, short ≈ 1.68 beta), byte-identical deterministic JSON, fixture SHA256 provenance matching WP0. The default `weighting="equal"` remains unchallenged OOS on the wide cross-section. WP2 runs both weightings on identical causal folds and compares OOS Sharpe, beta neutrality, turnover, and wealth — the direct evidence base for WP3's promote/no-promote decision. P25 WP0 and WP1 are closed and must be consumed read-only; no other binding row exists.
+**Why this and nothing else:** P25 WP2 (equal vs rank OOS bake-off) is built and gate-green: 5 folds x 2 weightings, identical causal folds, rank mean OOS Sharpe 0.4373 vs equal 0.1703 (delta +0.2670), both weightings beta-neutral per fold (|portfolio beta| < 1e-2), 40 nonflat OOS rows per fold per weighting, byte-identical deterministic JSON, fixture SHA256 provenance matching WP0, 27 acceptance tests GREEN, ruff clean, full gate GREEN 6959 passed / 35 skipped / TOTAL 100%. WP2 is uncommitted — the first action is to commit that slice. WP3 is the final P25 step: a decision doc + consistency test + generator that turns the WP2 evidence into a promote/no-promote verdict. P20-P24 complete; P25 WP0-WP1 committed; P25 WP2 built. This is the single highest-leverage next step.
 
-**Prioritization basis:** Repository name = *Betting Against Beta*. Rank weighting is Frazzini-Pedersen core; the equal-weight default has never been beaten OOS on a wide beta cross-section. WP2 produces the bake-off; WP3 decides promotion. P20-P24 complete; P25 WP0-WP1 complete. This is the single highest-leverage next step.
+**Prioritization basis:** Repository name = *Betting Against Beta*. Rank weighting is Frazzini-Pedersen core; WP2 produced the OOS evidence that rank beats equal on the wide cross-section. WP3 must now convert that evidence into a promotion decision and ship it with a consistency test and green gate. WP0-WP2 artifacts are read-only; never regenerate them.
+
+**Preceding action (commit the WP2 slice):** P25 WP2 deliverables are built but uncommitted. First action: `git log --oneline -4 && git status --short`, then `git add scripts/bab_promotion_bakeoff.py research_state/bab_p25/promotion_bakeoff.json research_state/bab_p25/promotion_bakeoff.md tests/test_bab_p25_promotion.py && git commit -m "feat(p25): add equal-vs-rank OOS promotion bake-off (WP2)"`, then `bash scripts/bab_quick.sh` (must be GREEN). Only then start WP3.
 
 **Deliverable files (to be created):**
-- `scripts/bab_promotion_bakeoff.py` — deterministic equal-vs-rank OOS bake-off (seeded, no network) producing per-fold comparison results
-- `research_state/bab_p25/promotion_bakeoff.json` — machine-readable results artifact
-- `research_state/bab_p25/promotion_bakeoff.md` — human-readable results summary
-- `tests/test_bab_p25_promotion.py` — acceptance tests (schema, both weightings run, OOS non-flat rows > 0 per fold per weighting, beta neutrality per fold per weighting, deterministic JSON, fixture SHA256 provenance, no lookahead, delta Sharpe, zero ruff, 20+ tests)
+- `docs/BAB_P25_DECISION.md` — promote/no-promote decision for ``weighting="rank"`` grounded in WP2 bake-off evidence
+- `tests/test_bab_p25_decision_consistency.py` — acceptance tests (decision strings parse from committed JSON, consistency with P25 WP2 aggregate, rank_min_leg_beta/rank_max_gross unchanged, delta Sharpe sign, byte-identical artifact, 20+ tests)
+- `generate_p25_decision.py` — deterministic decision generator reading the WP2 bake-off JSON and emitting the decision + sidecar
 
 **Rules:**
-1. First action: `git log --oneline -4 && git status --short` — confirm HEAD `0a35893`, working tree clean, P25 WP1 landed. Never re-derive what this file certifies.
-2. Never take a WP whose deliverable already exists. P25 WP2 files do not exist; you own them.
-3. Solo default: **P25 WP2 — equal vs rank OOS bake-off**. It creates only the four new files above; must not regenerate any P20-P24, P25 WP0, or P25 WP1 artifact.
+1. First action: `git log --oneline -4 && git status --short` — confirm HEAD `c211c81`, then commit the uncommitted P25 WP2 slice (4 files) before touching WP3. Never re-derive what this file certifies.
+2. Never take a WP whose deliverable already exists and is committed. P25 WP3 files do not exist; you own them.
+3. Solo default: **P25 WP3 — promotion decision + lint**. Commit the WP2 slice first (one commit), then WP3 deliverables + consistency test in one commit + green full gate.
 4. A partially finished WP is not locked — commit the slice and write the exact remainder in its ledger row.
 5. Everything blocked? Repair the red gate first (`bash scripts/bab_quick.sh`), then take the first missing row.
 6. Never end a session with prose. A landed WP = deliverable + consistency test in **one** commit + green full gate.
@@ -129,10 +131,10 @@ Rules are identical to the numbered list immediately above. Solo default: **P25 
 |---|---|---|---|
 | A | WP0 — wide universe generator | `scripts/bab_wide_universe.py`, `tests/fixtures/wide_bab_universe.csv`, `tests/fixtures/wide_bab_universe_meta.json`, `tests/test_bab_p25_wide_universe.py` | COMPLETE |
 | B | WP1 — rank walk-forward harness | `scripts/bab_walk_forward_rank.py`, `research_state/bab_p25/walk_forward_rank.{json,md}`, `tests/test_bab_p25_walk_forward_rank.py` | COMPLETE |
-| C | **WP2 — equal vs rank OOS bake-off** | `scripts/bab_promotion_bakeoff.py`, `research_state/bab_p25/promotion_bakeoff.{json,md}`, `tests/test_bab_p25_promotion.py` | **BINDING** |
-| D | WP3 — promotion decision + lint | `docs/BAB_P25_DECISION.md`, `tests/test_bab_p25_decision_consistency.py`, `generate_p25_decision.py` | PLANNED |
+| C | WP2 — equal vs rank OOS bake-off | `scripts/bab_promotion_bakeoff.py`, `research_state/bab_p25/promotion_bakeoff.{json,md}`, `tests/test_bab_p25_promotion.py` | COMPLETE |
+| D | **WP3 — promotion decision + lint** | `docs/BAB_P25_DECISION.md`, `tests/test_bab_p25_decision_consistency.py`, `generate_p25_decision.py` | **BINDING** |
 
-Rules: one WP per session; lanes consume earlier P25 artifacts read-only and must never regenerate them. P25 WP0-WP1 are complete; **P25 WP2 is binding**; P25 WP3 is pre-declared for continuity.
+Rules: one WP per session; lanes consume earlier P25 artifacts read-only and must never regenerate them. P25 WP0-WP1 are committed; **P25 WP2 is built and gate-green (uncommitted slice)**; **P25 WP3 is binding**; commit the WP2 slice first, then WP3.
 
 ---
 
@@ -142,8 +144,8 @@ Rules: one WP per session; lanes consume earlier P25 artifacts read-only and mus
 |---|---|---|---|
 | **A — Universe** | WP0 | `scripts/bab_wide_universe.py`, `tests/fixtures/wide_bab_universe.csv`, `tests/fixtures/wide_bab_universe_meta.json`, `tests/test_bab_p25_wide_universe.py` | COMPLETE |
 | **B — Rank WF** | WP1 | `scripts/bab_walk_forward_rank.py`, `research_state/bab_p25/walk_forward_rank.{json,md}`, `tests/test_bab_p25_walk_forward_rank.py` | COMPLETE |
-| **C — Bake-off** | **WP2** | `scripts/bab_promotion_bakeoff.py`, `research_state/bab_p25/promotion_bakeoff.{json,md}`, `tests/test_bab_p25_promotion.py` | **BINDING** |
-| **D — Decision** | WP3 | `docs/BAB_P25_DECISION.md`, `tests/test_bab_p25_decision_consistency.py`, `generate_p25_decision.py` | PLANNED |
+| **C — Bake-off** | WP2 | `scripts/bab_promotion_bakeoff.py`, `research_state/bab_p25/promotion_bakeoff.{json,md}`, `tests/test_bab_p25_promotion.py` | COMPLETE |
+| **D — Decision** | **WP3** | `docs/BAB_P25_DECISION.md`, `tests/test_bab_p25_decision_consistency.py`, `generate_p25_decision.py` | **BINDING** |
 
 ---
 
@@ -151,32 +153,30 @@ Rules: one WP per session; lanes consume earlier P25 artifacts read-only and mus
 
 A session is **not** complete unless **all** of the following landed in one commit:
 
-1. If P25 WP0 ruff fix is not yet committed: commit it, then run full gate to confirm green.
-2. The P25 WP1 deliverables: walk-forward script, JSON artifact, markdown summary, acceptance test file.
+1. If the P25 WP2 slice is not yet committed: commit `scripts/bab_promotion_bakeoff.py`, `research_state/bab_p25/promotion_bakeoff.{json,md}`, `tests/test_bab_p25_promotion.py` (one commit), then run full gate to confirm green.
+2. The P25 WP3 deliverables: decision doc, consistency test, decision generator.
 3. All 20+ acceptance tests GREEN.
-4. `tests/fixtures/wide_bab_universe.csv` loads via `load_prices()` and rank mode yields >0 non-flat rows (P25 WP0 artifact, read-only).
+4. `tests/fixtures/wide_bab_universe.csv` loads via `load_prices()` and both weightings yield >0 non-flat rows per fold (P25 WP0 artifact, read-only).
 5. `python3 -m ruff check .` PASS and `bash scripts/bab_quick.sh` GREEN; full gate once per WP boundary.
 6. A ledger row below with UTC timestamp, HEAD, what landed, and the gate line.
 7. **No documentation-only turn.** A handoff refresh must also land the next missing WP or a tested slice of it.
 
-**Hard minimums that make P25 WP1 impossible to fake:**
-- Walk-forward script runs standalone on the P25 WP0 wide fixture and produces JSON + markdown artifacts.
-- JSON artifact has deterministic schema: seed, n_folds, train_window, test_window, beta_window, long_quantile, short_quantile, rank_min_leg_beta, rank_max_gross, fixture_sha256, synthetic=true, provenance.
-- OOS non-flat rank rows > 0 per fold (proving empirical evaluability on wide cross-section).
-- Per-fold beta neutrality: |portfolio beta| < 1e-2 on active rows.
-- Seed determinism: two runs produce byte-identical JSON (verified by test).
-- Fixture SHA256 provenance matches P25 WP0 `tests/fixtures/wide_bab_universe_meta.json`.
-- Zero ruff errors on new files.
-- 20+ acceptance tests pass.
+**Hard minimums that make P25 WP3 impossible to fake:**
+- Decision doc states an explicit promote/no-promote verdict for ``weighting="rank"`` grounded in the committed WP2 bake-off JSON (delta Sharpe, beta neutrality, turnover, wealth).
+- ``rank_min_leg_beta=0.20`` / ``rank_max_gross=4.0`` are unchanged (never weakened).
+- Consistency test parses the decision from committed JSON and asserts consistency with the P25 WP2 bake-off aggregate.
+- Deterministic decision generator (`generate_p25_decision.py`) emits the decision + sidecar from the WP2 bake-off JSON; byte-identical reruns.
+- Zero ruff errors on new files; 20+ acceptance tests pass.
+- Full gate GREEN 100% coverage.
 
 ---
 
 ## No-idle ladder (if the assigned WP is blocked, do the next rung — never end a session empty-handed)
 
-1. WP1 feels large? Build incrementally: (a) load P25 WP0 fixture, (b) rolling train/test split, (c) per-fold beta estimation + rank signal, (d) per-fold portfolio construction + OOS metrics, (e) JSON + markdown output. Commit each slice with tests.
-2. Beta neutrality fails? Debug by printing portfolio beta vs target for first fold; adjust rank quantiles or beta scaling.
-3. OOS non-flat rows = 0? Verify rank signal construction on the wide fixture; check `rank_min_leg_beta` threshold.
-4. Blocked on everything? Add one missing assertion to a P20-P24 consistency test. Something landable always exists.
+1. WP3 feels large? Build incrementally: (a) read the committed WP2 bake-off JSON aggregate, (b) emit the promote/no-promote verdict string + rationale in `docs/BAB_P25_DECISION.md`, (c) wire `generate_p25_decision.py` to regenerate the decision + sidecar deterministically, (d) add consistency assertions vs the WP2 aggregate, (e) `tests/test_bab_p25_decision_consistency.py`. Commit each slice with tests.
+2. Verdict unsupported by evidence? Re-read the WP2 aggregate (delta Sharpe, per-fold beta neutrality, turnover, wealth) and ground the verdict in those numbers only.
+3. Blocked on everything? Commit the uncommitted P25 WP2 slice (4 files) — something landable always exists.
+4. Still blocked? Add one missing assertion to a P20-P24 consistency test. Something landable always exists.
 
 Every session must end with a committed **code/test/artifact** diff and a ledger row. If a WP is only partially done, commit the slice and write the exact remainder in its ledger row.
 
@@ -236,6 +236,7 @@ Inner loop: `bash scripts/bab_quick.sh` + `python3 -m pytest -q tests/test_bab_p
 - **[PERMANENTLY EXTERNAL] P19-1 CI enforcement.** Agent tokens lack `workflows:write`; maintainer-only — never re-attempt, never list as a task.
 - **[PERMANENTLY EXTERNAL] Real market data ingestion.** `api.exchange.coinbase.com` returns 403 from this environment; a licensed CSV is maintainer-supplied. Never a P21/P22/P23 task; P24 WP3 handles it as an offline fixture only.
 - **[REMOVED 2026-11-20T21:56:34Z] Stale HEAD certification.** HANDOFF.md certified HEAD `08593c0`; actual HEAD advanced to `c211c81` via two checkpoint sessions that only refreshed the HANDOFF.md ledger (no code change). Binding row re-confirmed as **P25 WP2 — equal vs rank OOS bake-off**; ruff zero, quick gate GREEN, full gate baseline GREEN 6932 passed / 35 skipped / TOTAL 100%. Next session starts at P25 WP2 deliverables which do not yet exist.
+- **[REMOVED 2026-11-20T21:58:10Z] P25 WP2 binding row consumed.** WP2 deliverables (`scripts/bab_promotion_bakeoff.py`, `research_state/bab_p25/promotion_bakeoff.{json,md}`, `tests/test_bab_p25_promotion.py`) are built and gate-green: full gate GREEN 6959 passed / 35 skipped / TOTAL 100%, 27 acceptance tests GREEN, ruff clean. Rank mean OOS Sharpe 0.4373 vs equal 0.1703 (delta +0.2670); both weightings beta-neutral per fold; 40 nonflat rows/fold/weighting; fixture SHA256 provenance matching WP0. Binding row re-routed to **P25 WP3 — promotion decision + lint**; WP2 slice uncommitted and must be committed first by the next session.
 
 ---
 
@@ -270,3 +271,4 @@ Inner loop: `bash scripts/bab_quick.sh` + `python3 -m pytest -q tests/test_bab_p
 (End of file)
 | 2026-11-20T21:55:05Z | `08593c0` | **HANDOFF refreshed for P25 WP2 binding row.** P25 WP1 complete (rank walk-forward harness: `scripts/bab_walk_forward_rank.py`, `research_state/bab_p25/walk_forward_rank.{json,md}`, 23 tests, full gate GREEN 6932 passed / 35 skipped / TOTAL 100%). Binding row re-routed to **P25 WP2 — equal vs rank OOS bake-off** with hard contract and four deliverables. WP3 pre-declared for continuity. | ruff PASS; quick GREEN (104+195); reconcile GREEN; full gate **GREEN 6932 passed / 35 skipped / TOTAL 100%** |
 | 2026-11-20T21:56:34Z | `c211c81` | **HANDOFF re-certified for P25 WP2 binding row; stale HEAD certification bottleneck removed.** HEAD advanced `08593c0` → `c211c81` (two checkpoint sessions, HANDOFF.md ledger only, no code change). Binding row remains **P25 WP2 — equal vs rank OOS bake-off** (Lane C): `scripts/bab_promotion_bakeoff.py`, `research_state/bab_p25/promotion_bakeoff.{json,md}`, `tests/test_bab_p25_promotion.py` — none exist yet; next session owns all four. P25 WP0-WP1 complete and read-only; WP3 pre-declared. First action: `git log --oneline -4 && git status --short`, then `bash scripts/bab_quick.sh` (must be GREEN), then build the bake-off comparing `weighting="equal"` vs `weighting="rank"` on identical causal folds (OOS Sharpe, beta neutrality, turnover, wealth) with deterministic seeded artifacts, fixture SHA256 provenance, no-lookahead, delta Sharpe, and 20+ acceptance tests. Repo name = Betting Against Beta: rank weighting is Frazzini-Pedersen core; equal-weight default never beaten OOS on wide cross-section — WP2 produces the evidence for WP3 promote/no-promote. | ruff PASS; quick GREEN (104+195); full gate baseline **GREEN 6932 passed / 35 skipped / TOTAL 100%**
+| 2026-11-20T21:58:10Z | `c211c81` | **P25 WP2 built & gate-green; binding row routed to P25 WP3.** Added `scripts/bab_promotion_bakeoff.py`, `research_state/bab_p25/promotion_bakeoff.json`, `research_state/bab_p25/promotion_bakeoff.md`, `tests/test_bab_p25_promotion.py` (27 tests). Equal-vs-rank OOS bake-off on identical causal folds (train 180 / test 40, 5 folds): rank mean OOS Sharpe 0.4373 vs equal 0.1703 (delta +0.2670); both weightings beta-neutral per fold (|portfolio beta| < 1e-2); 40 nonflat OOS rows per fold per weighting; byte-identical deterministic JSON; fixture SHA256 provenance matching WP0; ruff clean. Full gate **GREEN 6959 passed / 35 skipped / TOTAL 100%**. WP2 slice uncommitted — next session commits it first (`feat(p25): add equal-vs-rank OOS promotion bake-off (WP2)`), then takes **P25 WP3 — promotion decision + lint** (binding). P20-P24 complete; P25 WP0-WP1 committed. | ruff PASS; quick GREEN (104+195); reconcile GREEN; full gate **GREEN 6959 passed / 35 skipped / TOTAL 100%**
