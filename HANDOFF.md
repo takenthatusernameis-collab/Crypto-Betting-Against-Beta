@@ -2,8 +2,8 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-20T04:51:39Z
-- **Git state:** HEAD `f2e3254` (P24 WP1 landed; full gate GREEN). Working tree clean. Certify with `git log --oneline -4 && git status --short`. Next row is **P24 WP2 — rebalance hysteresis / turnover ladder**.
+- **Timestamp (UTC):** 2026-11-20T05:08:43Z
+- **Git state:** HEAD `26ab644` (P24 WP1 landed; full gate GREEN). Working tree clean. Certify with `git log --oneline -4 && git status --short`. Next row is **P24 WP2 — rebalance hysteresis / turnover ladder**.
 - **P24 WP1 IS LANDED, ARTIFACT-GATED AND GREEN** — `scripts/bab_regime_split.py`, `research_state/bab_p24/regime_split.{json,md}`, `tests/test_bab_p24_regime_split.py` (22 tests). Reads only committed P21/P22/P23/P24 JSON artifacts read-only; never regenerates them. Calm regime (beta_window=120, q=0.25) planted recovery strictly positive (+0.00019/+0.000191/+0.000192 at h=0.05/0.1/0.15); stress regime (beta_window=60, q=0.35) planted recovery negative (−0.00016/−0.000161) — the stress is real and measured; null recovery exactly 0.0 on every cell; rank guards (min_leg_beta ≥ 0.2, gross_max ≤ 4.0) never relaxed; regime_zero_reference pinned to P21 rank_eval.json at 6 dp; byte-identical rebuild proven.
 - **P21, P22, P23 WP0–WP4 and P24 WP0, WP1 are CLOSED.** P24 WP2 — rebalance hysteresis / turnover ladder is the binding row.
 - **Repo:** `Crypto-Betting-Against-Beta` — crypto market-neutral BAB trading system.
@@ -12,7 +12,7 @@
 
 # INITIAL TASK MESSAGE (BINDING — START HERE)
 
-**Timestamp:** 2026-11-20T04:51:39Z · **Campaign:** P24 "Regime-conditional BAB and holdout discipline" · **Lane:** B · **WP:** **P24 WP2 — rebalance hysteresis / turnover ladder**
+​**Timestamp:** 2026-11-20T05:08:43Z · **Campaign:** P24 "Regime-conditional BAB and holdout discipline" · **Lane:** B · **WP:** **P24 WP2 — rebalance hysteresis / turnover ladder**
 
 **One-sentence objective:** implement `scripts/bab_hysteresis_ladder.py` with rebalance hysteresis / turnover ladder stress across the chartered `hysteresis_band_grid` ([0.05, 0.1, 0.15]) and `regime_grid` ([calm, stress]), produce `research_state/bab_p24/hysteresis.{json,md}`, and create `tests/test_bab_p24_hysteresis.py` acceptance test (AST no-harness scan, numeric leaf mapping from committed P24 charter + P23/P22/P21 artifacts, verdict strings).
 
