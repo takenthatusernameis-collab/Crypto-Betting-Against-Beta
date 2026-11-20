@@ -186,7 +186,9 @@ def provenance_table(
         {"Fact": "Adapter synthetic", "Value": ad_prov["synthetic"]},
         {
             "Fact": "Hysteresis zero reference matches P21",
-            "Value": hy_prov["hysteresis_zero_reference"]["checks"]["planted_equal"]["matches_at_6dp"],
+            "Value": hy_prov["hysteresis_zero_reference"]["checks"]["planted_equal"][
+                "matches_at_6dp"
+            ],
         },
         {"Fact": "Hysteresis turnover monotone non-increasing", "Value": True},
         {"Fact": "Regime grid min met", "Value": rs_prov["derived"]["regime_grid_min_met"]},
