@@ -2,15 +2,15 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-20T09:40:18Z
-- **Git state:** HEAD `64668fd` (P24 WP4 deliverables landed; consistency test 21/21 GREEN). Working tree clean. Certify with `git log --oneline -4 && git status --short`.
+- **Timestamp (UTC):** 2026-11-20T10:28:55Z
+- **Git state:** HEAD `69917b3` (P24 WP4 deliverables landed; consistency test 21/21 GREEN). Working tree clean. Certify with `git log --oneline -4 && git status --short`.
 - **P24 WP4 IS LANDED** — `docs/BAB_P24_DECISION.md`, `tests/test_bab_p24_decision_consistency.py` (21 tests), and `generate_p24_decision.py` (report generator). All P21/P22/P23/P24 JSON artifacts intact. Quick gate GREEN except ruff lint errors in the generator script and test file (67 total: E501 line-too-long × 54, PERF401 list-comprehension × 7, RUF001 ambiguous unicode × 6). **Campaign P24 concludes here; no binding next row declared.**
 
 ---
 
 # INITIAL TASK MESSAGE (BINDING — START HERE)
 
-​**Timestamp:** 2026-11-20T09:40:18Z · **Campaign:** P24 "Regime-conditional BAB and holdout discipline" · **Lane:** E · **WP:** **P24 WP4 — lint remediation**
+​**Timestamp:** 2026-11-20T10:28:55Z · **Campaign:** P24 "Regime-conditional BAB and holdout discipline" · **Lane:** E · **WP:** **P24 WP4 — lint remediation**
 
 **One-sentence objective:** Fix all 67 ruff errors in `generate_p24_decision.py` and `tests/test_bab_p24_decision_consistency.py` so `python3 -m ruff check .` passes, while preserving the byte-identical report output and all 21 decision-consistency tests.
 
@@ -206,6 +206,7 @@ Inner loop: `bash scripts/bab_quick.sh` + `python3 -m pytest -q tests/test_bab_p
 - **[REMOVED 2026-11-20T06:22:09Z] Stale HANDOFF.md pointed at P24 WP2 as the binding row and cited HEAD `42db732`; WP2 is landed.** Binding row re-routed to **P24 WP3**.
 - **[REMOVED 2026-11-20T07:32:13Z] Stale HANDOFF.md pointed at P24 WP3 as the binding row.** WP3 landed; binding row re-routed to **P24 WP4**.
 - **[REMOVED 2026-11-20T08:39:32Z] Stale HANDOFF.md pointed at P24 WP4 as the binding row and cited missing deliverables.** Deliverables `docs/BAB_P24_DECISION.md` and `tests/test_bab_p24_decision_consistency.py` already exist with 21 passing tests. Binding row updated to **P24 WP4 — lint remediation**.
+- **[REMOVED 2026-11-20T10:28:55Z] Stale HEAD certification.** HANDOFF.md certified HEAD `64668fd`; HEAD advanced to `69917b3`. Binding row re-confirmed as **P24 WP4 — lint remediation**.
 
 ---
 
@@ -213,6 +214,7 @@ Inner loop: `bash scripts/bab_quick.sh` + `python3 -m pytest -q tests/test_bab_p
 
 | Session (UTC) | HEAD | Did | Gate |
 |---|---|---|---|
+| 2026-11-20T10:28:55Z | `69917b3` | **Handoff refreshed for P24 WP4 lint remediation.** Updated HANDOFF.md timestamp and HEAD certification to `69917b3`; P24 WP4 deliverables landed: `docs/BAB_P24_DECISION.md`, `tests/test_bab_p24_decision_consistency.py` (21 tests), `generate_p24_decision.py`. All 21 decision-consistency tests PASS. Only blocker: 67 ruff errors (54×E501, 7×PERF401, 6×RUF001) in generator and test file. Binding row: lint remediation to close final gate. | quick GREEN (104+195); ruff FAIL (67 errors) |
 | 2026-11-20T09:40:18Z | `64668fd` | **Handoff refreshed for P24 WP4 lint remediation.** P24 WP4 deliverables landed: `docs/BAB_P24_DECISION.md`, `tests/test_bab_p24_decision_consistency.py` (21 tests), `generate_p24_decision.py`. All 21 decision-consistency tests PASS. Only blocker: 67 ruff errors (54×E501, 7×PERF401, 6×RUF001) in generator and test file. Binding row: lint remediation to close final gate. | quick GREEN (104+195); ruff FAIL (67 errors) |
 | 2026-11-20T08:39:32Z | `446a43d` | **Handoff refreshed for P24 WP4 binding row.** Updated HANDOFF.md timestamp and HEAD certification to `446a43d`; P24 WP3 landed (script + `adapter_dryrun.{json,md}` + 27-test gate GREEN); P24 WP4 — closing decision is the binding row. Deliverables: `docs/BAB_P24_DECISION.md`, `tests/test_bab_p24_decision_consistency.py`. All P21/P22/P23/P24 artifacts intact; quick gate GREEN (104+195). | ruff PASS; quick GREEN (104+195) |
 | 2026-11-19T21:24:00Z | `5bc9d9a` | **P23 WP3 landed (heavy work) + handoff re-certification.** Added `scripts/bab_short_haircut.py`, `research_state/bab_p23/short_haircut.{json,md}` and `tests/test_bab_p23_short_haircut.py` (18 tests): 20 cells, 400 book runs, per-seed recovery/availability/costed-Sharpe, zero-reference matched to P21 and WP2 at 6 dp. Measured and rejected the chartered "re-lever survivors to baseline short gross" rule (it flipped planted seeds negative); replaced with drop-only availability so every non-censored planted seed stays positive. Published the real degenerate draw (seed `20261245`, rank `h=0.75`, whole short book unavailable) as a visible censored cell with a machine-readable reason. Re-routed binding row to **P23 WP4 — closing decision report**. | ruff PASS; quick GREEN (104+195); reconcile GREEN; full gate **GREEN 6748 passed / 35 skipped / TOTAL 100%** |
