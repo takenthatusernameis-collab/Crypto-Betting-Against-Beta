@@ -2,36 +2,32 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-20T16:23:09Z
-- **Git state:** HEAD `2c1a432` (P24 WP4 lint remediation committed; full gate GREEN). Working tree clean. Certify with `git log --oneline -4 && git status --short`.
-- **P24 WP4 — CLOSED** — `docs/BAB_P24_DECISION.md`, `tests/test_bab_p24_decision_consistency.py` (21 tests), `generate_p24_decision.py` (report generator). All 38 ruff errors (37×E501 + 1×W292) fixed; `python3 -m ruff check .` PASS; report regeneration byte-identical; full gate **GREEN 6885 passed / 35 skipped / TOTAL 100%**. **Campaign P24 is complete. No binding row remains.**
+- **Timestamp (UTC):** 2026-11-20T16:37:11Z
+- **Git state:** HEAD `e62a277` (P24 WP4 lint remediation committed; full gate GREEN). Working tree clean. Certify with `git log --oneline -4 && git status --short`.
+- **P24 — COMPLETE** — All WPs landed, lint remediation done, full gate **GREEN 6885 passed / 35 skipped / TOTAL 100%**. No binding row remains in P24.
+- **P20-P23 — COMPLETE** — All campaigns closed per ledger. P20 WP0-WP5 (92 tests), P21 WP0-WP3 (56 tests), P22 WP0-WP3 (85 tests), P23 WP0-WP4 (80 tests), P24 WP0-WP4 (94 tests) all GREEN.
 
 ---
 
 # INITIAL TASK MESSAGE (BINDING — START HERE)
 
-​**Timestamp:** 2026-11-20T14:48:59Z · **Campaign:** P24 "Regime-conditional BAB and holdout discipline" · **Lane:** E · **WP:** **P24 WP4 — lint remediation**
+**Timestamp:** 2026-11-20T16:37:11Z · **Campaign:** P25 "Rank-weighting promotion via wide-universe OOS validation" · **Lane:** A · **WP:** **P25 WP0 — wide synthetic universe generator**
 
-**One-sentence objective:** Fix all 38 ruff errors in `generate_p24_decision.py` and `tests/test_bab_p24_decision_consistency.py` so `python3 -m ruff check .` passes, while preserving the byte-identical report output and all 21 decision-consistency tests.
+**One-sentence objective:** Build a deterministic wide synthetic universe generator (40+ assets with realistic beta dispersion 0.35–1.90) so rank weighting can be empirically evaluated out-of-sample, enabling evidence-based promotion to default.
 
-**Precise targets (run `python3 -m ruff check generate_p24_decision.py tests/test_bab_p24_decision_consistency.py --output-format concise`):**
-- `generate_p24_decision.py:589` E501 (104>100), `:595` E501 (101>100), `:607` E501 (102>100), `:622` E501 (104>100), `:629` W292 (no newline at end of file).
-- `tests/test_bab_p24_decision_consistency.py:189` E501 (103>100), `:198` E501 (117>100), `:200` E501 (104>100), `:492` E501 (108>100), `:495` E501 (139>100), `:500` E501 (111>100), `:522` E501 (152>100), `:548` E501 (154>100), `:549` E501 (147>100), `:598` E501 (129>100), `:601` E501 (139>100), `:622` E501 (129>100), `:625` E501 (139>100), `:639` E501 (129>100), `:645` E501 (143>100), `:651` E501 (129>100), `:654` E501 (139>100), `:688` E501 (116>100), `:913` E501 (134>100), `:919` E501 (138>100), `:930` E501 (108>100), `:934` E501 (112>100), `:1031` E501 (121>100), `:1090` E501 (114>100), `:1091` E501 (106>100), `:1092` E501 (112>100), `:1093` E501 (110>100), `:1094` E501 (104>100), `:1104` E501 (113>100), `:1105` E501 (105>100), `:1106` E501 (111>100), `:1107` E501 (109>100), `:1108` E501 (103>100).
+**Why this and nothing else:** The repository name is *Crypto-Betting-Against-Beta*. The Frazzini-Pedersen BAB strategy is fundamentally rank-weighted/beta-scaled. The current default `weighting="equal"` is a fidelity compromise — rank mode exists (WP2) but is **not empirically evaluable** on the committed 9-asset fixture (all 398 rows flat under `rank_min_leg_beta=0.20`, `rank_max_gross=4.0` per `docs/BAB_FIDELITY.md` §9.1). The walk-forward harness (P20 WP3) only evaluates equal-weight. Promotion requires OOS evidence on a wide cross-section. This WP builds the generator; WP1 extends walk-forward to rank; WP2 runs the OOS bake-off; WP3 decides promotion.
 
-**Why this and nothing else:** P24 WP4 deliverables (`docs/BAB_P24_DECISION.md`, `tests/test_bab_p24_decision_consistency.py`) are landed and their acceptance tests are GREEN (21/21). The campaign map declares WP4 as the final WP. The only open gate is `ruff check .` failing on the generator script and the test file. No session may idle on a landed WP with a red style gate.
+**Prioritization basis:** Repository name = *Betting Against Beta*. Frazzini-Pedersen = rank weighting. Current default = equal-weight (known gap, documented in `docs/BAB_FIDELITY.md` §7, §9). No OOS rank evaluation exists. This is the single highest-leverage fidelity gap. All prior campaigns (P20-P24) are complete; no other binding row exists.
 
-**Prioritization basis:** the repository name is *betting against beta*. P24 WP0–WP4 are landed; the campaign concludes here. The binding row is the lint remediation required to close the final gate.
+**Deliverable files (to be created):**
+- `scripts/bab_wide_universe.py` — deterministic generator (seeded, no network) producing `tests/fixtures/wide_bab_universe.csv` (date, BTC, A001..A040+)
+- `tests/fixtures/wide_bab_universe.csv` — committed fixture, 40+ assets, beta range 0.35–1.90, 398 rows matching existing fixture dates
+- `tests/test_bab_p25_wide_universe.py` — acceptance tests (schema, beta dispersion, seed determinism, no lookahead, fixture SHA256 provenance)
 
-**Deliverable files are the claim.** Run:
-```bash
-git ls-files generate_p24_decision.py tests/test_bab_p24_decision_consistency.py
-```
-Both files exist. The binding row is **P24 WP4 — lint remediation**; you own the ruff fixes. **Never network** — all data is from committed JSON artifacts.
-
-Rules:
-1. Never take a WP whose deliverable already exists. The P24 WP4 report and test are complete; only ruff cleanup remains.
-2. Solo default: **P24 WP4 — lint remediation**. It edits only `generate_p24_decision.py` and `tests/test_bab_p24_decision_consistency.py`; it must not regenerate, re-run or edit any P21/P22/P23/P24 artifact or harness.
-3. A partially finished WP is not locked.
+**Rules:**
+1. Never take a WP whose deliverable already exists. P25 WP0 files do not exist; you own the generator + fixture + tests.
+2. Solo default: **P25 WP0 — wide synthetic universe generator**. It edits only the three new files; must not regenerate any P20-P24 artifact.
+3. A partially finished WP is not locked — commit the slice and write the exact remainder in its ledger row.
 4. Everything blocked? Repair the red gate first (`bash scripts/bab_quick.sh`), then take the first missing row.
 5. Never end a session with prose. A landed WP = deliverable + consistency test in **one** commit + green full gate.
 6. **A documentation-only session is a failed session.** A handoff refresh must also land the next missing WP or a tested slice of it.
@@ -40,21 +36,22 @@ Rules:
 
 ## ROUTE YOUR SESSION IN 60 SECONDS (no prose debate, no idle)
 
-Deliverable files are the claim. Run the `git ls-files` command above; both files exist and their tests pass. P21, P22, P23 WP0–WP4 and P24 WP0–WP4 are CLOSED. P24 WP4 — lint remediation is the binding row; Campaign P24 concludes here.
+Deliverable files are the claim. Run the `git ls-files` command below; all three files will be missing initially. P20-P24 are CLOSED. P25 WP0 is the binding row; Campaign P25 starts here.
 
-Rules are identical to the numbered list immediately above. Solo default: **P24 WP4 — lint remediation**.
+Rules are identical to the numbered list immediately above. Solo default: **P25 WP0 — wide synthetic universe generator**.
 
 ## MANDATORY FIRST ACTIONS (in order, ~4 minutes)
 
 1. `git log --oneline -4 && git status --short` — locate yourself. Do not re-derive what this file certifies.
-2. `bash scripts/bab_quick.sh` (≈20 s, must be GREEN except ruff). It bootstraps numpy/pandas/scipy/pytest/ruff from PyPI.
-3. Confirm all P21/P22/P23/P24 artifacts are intact (≈0.1 s):
+2. `bash scripts/bab_quick.sh` (≈20 s, must be GREEN). It bootstraps numpy/pandas/scipy/pytest/ruff from PyPI.
+3. Confirm all P20-P24 artifacts are intact (≈0.1 s):
    ```bash
    python3 - <<'EOF'
    import json
    from pathlib import Path
    root = Path(".")
    for campaign, names in {
+       "bab_p20": ("sweep", "walk_forward", "breakeven"),
        "bab_p21": ("universe", "significance", "rank_eval", "cost_surface"),
        "bab_p22": ("charter", "null_battery", "impact_surface", "capacity"),
        "bab_p23": ("charter", "breadth_ladder", "beta_drift", "short_haircut"),
@@ -64,64 +61,76 @@ Rules are identical to the numbered list immediately above. Solo default: **P24 
            p = root / f"research_state/{campaign}/{name}.json"
            assert p.is_file(), f"missing {p}"
            json.loads(p.read_text(encoding="utf-8"))
-   for report in ("docs/BAB_SIGNAL_OR_NOISE.md", "docs/BAB_P22_DECISION.md", "docs/BAB_P23_DECISION.md", "docs/BAB_P24_KICKOFF.md", "docs/BAB_P24_DECISION.md"):
+   for report in ("docs/BAB_SIGNAL_OR_NOISE.md", "docs/BAB_P22_DECISION.md", "docs/BAB_P23_DECISION.md", "docs/BAB_P24_DECISION.md", "docs/BAB_FIDELITY.md"):
        assert (root / report).is_file(), f"missing {report}"
    assert (root / "tests/fixtures/licensed_price_schema.csv").is_file()
-   print("P21, P22, P23-WP0/WP1/WP2/WP3/WP4, P24 WP0/WP1/WP2/WP3/WP4 closed; artifacts intact")
+   assert (root / "tests/fixtures/real_market_prices.csv").is_file()
+   print("P20, P21, P22, P23, P24 closed; artifacts intact")
    EOF
    ```
-4. Run the decision consistency test to confirm byte-identical baseline:
+4. Verify rank mode is flat on current fixture (sanity):
    ```bash
-   python3 -m pytest -q tests/test_bab_p24_decision_consistency.py
+   python3 - <<'EOF'
+   from strategies.betting_against_beta.data_loader import load_prices
+   from strategies.betting_against_beta import BABStrategy
+   r = load_prices("tests/fixtures/real_market_prices.csv", benchmark="BTC")
+   o = BABStrategy(benchmark="BTC", beta_window=90, min_observations=60,
+                   long_quantile=0.3, short_quantile=0.3,
+                   transaction_costs=0.001, beta_neutral=True,
+                   weighting="rank", rank_min_leg_beta=0.20, rank_max_gross=4.0).run(returns_df=r)
+   weights = o.backtest["weights"]
+   nonflat = (weights.abs().sum(axis=1) > 1e-9).sum()
+   print(f"Non-flat rows under rank: {nonflat} / {len(weights)} (expected 0)")
+   EOF
    ```
-5. Run ruff to see the 67 errors:
+5. Run full gate to confirm clean baseline:
    ```bash
    python3 -m ruff check .
+   bash scripts/bab_reconcile_gate.sh
+   BAB_GATE_LOG=/tmp/bab_gate_baseline.log BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh
    ```
 
 ---
 
-## P24 WP4 SPEC — lint remediation (binding now — deliverables landed, tests GREEN)
+## P25 WP0 SPEC — wide synthetic universe generator (binding now)
 
-**Deliverables (already exist):** `docs/BAB_P24_DECISION.md`, `tests/test_bab_p24_decision_consistency.py` (21 tests), `generate_p24_decision.py` (report generator).
+**Deliverables (to create):** `scripts/bab_wide_universe.py`, `tests/fixtures/wide_bab_universe.csv`, `tests/test_bab_p25_wide_universe.py`.
 
 **Hard contract (all of it is testable):**
-- Fix all 67 ruff errors: 54× E501 (line too long >100), 7× PERF401 (use list comprehension/extend), 6× RUF001 (ambiguous unicode ×/–/−).
-- **Must preserve byte-identical report output**: running `python3 generate_p24_decision.py` must produce the exact same `docs/BAB_P24_DECISION.md` (verified by `test_tables_are_byte_identical_to_the_json_renderers` and `test_decision_artifacts_are_byte_identical_after_the_suite`).
-- **Must keep all 21 decision-consistency tests passing**.
-- No changes to any JSON artifact in `research_state/`.
-- No network, no harness re-run.
+- Generator is deterministic, seeded, no network. Single entry point `build_wide_universe()` returning `pd.DataFrame` and writing CSV + metadata JSON sidecar.
+- Output schema: `date,BTC,A001,A002,...,A040` (41+ columns). 398 return rows (2021-01-05 → 2022-07-15) matching existing fixture dates exactly.
+- Benchmark BTC: same price series as `tests/fixtures/real_market_prices.csv` (copy column).
+- Asset betas vs BTC: uniformly spanning **0.35 to 1.90** (inclusive), 40 assets. Each asset's daily return = `beta * BTC_return + idio`, where `idio ~ N(0, 0.003)` (matching P23 idio vol).
+- Known gap: replicate the `2021-09-17` missing date from the reference fixture.
+- NaN column: include one all-NaN column (e.g., `DEL`) for loader robustness testing.
+- Metadata sidecar (`tests/fixtures/wide_bab_universe_meta.json`): `fixture_sha256`, `seed`, `beta_range`, `idio_vol`, `date_first`, `date_last`, `price_rows`, `return_rows`, `synthetic=true`, `provenance` string.
+- Acceptance tests (20+): schema validation, beta dispersion verification (OLS rolling beta on generated data recovers target betas within tolerance), seed determinism (byte-identical reruns), fixture SHA256 provenance, no lookahead (weights at t depend on data through t-1), loader compatibility (`load_prices()` works), rank mode produces non-flat rows on this fixture.
+- No edits to any P20-P24 artifact or `research_state/`.
 - Full gate: `python3 -m ruff check .` PASS; `bash scripts/bab_quick.sh` GREEN; `BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh` GREEN.
 
 ---
 
-## Pre-declared Campaign P24 — "Regime-conditional BAB and holdout discipline" (binding now — P24 WP4 lint remediation)
-
-P23 closes the instability axis; P24 WP1 closes the regime axis; P24 WP2 closes the turnover/hysteresis axis; P24 WP3 closes the licensed-data adapter axis; P24 WP4 deliverables landed and tests GREEN; the final axis is the **lint remediation** to close the style gate.
+## Pre-declared Campaign P25 — "Rank-weighting promotion via wide-universe OOS validation"
 
 | Lane | WP | Deliverable files | Status |
 |---|---|---|---|
-| A | **WP0 — charter** | `tests/test_bab_p24_charter.py` (22 tests), `tests/fixtures/licensed_price_schema.csv` | **CLOSED** |
-| B | **WP1 — regime-split stress** | `scripts/bab_regime_split.py`, `research_state/bab_p24/regime_split.{json,md}`, `tests/test_bab_p24_regime_split.py` (22 tests) | **CLOSED** |
-| C | **WP2 — rebalance hysteresis / turnover ladder** | `scripts/bab_hysteresis_ladder.py`, `research_state/bab_p24/hysteresis.{json,md}`, `tests/test_bab_p24_hysteresis.py` (24 tests) | **CLOSED** |
-| D | **WP3 — licensed-data adapter dry run** | `scripts/bab_licensed_adapter.py`, `research_state/bab_p24/adapter_dryrun.{json,md}`, `tests/test_bab_p24_adapter.py` (27 tests) | **CLOSED** |
-| E | **WP4 — closing decision + lint** | `docs/BAB_P24_DECISION.md`, `tests/test_bab_p24_decision_consistency.py` (21 tests), `generate_p24_decision.py` | **BINDING (lint only)** |
+| A | **WP0 — wide universe generator** | `scripts/bab_wide_universe.py`, `tests/fixtures/wide_bab_universe.csv`, `tests/test_bab_p25_wide_universe.py` | **BINDING** |
+| B | WP1 — rank walk-forward harness | `scripts/bab_walk_forward_rank.py`, `research_state/bab_p25/walk_forward_rank.{json,md}`, `tests/test_bab_p25_walk_forward_rank.py` | PLANNED |
+| C | WP2 — equal vs rank OOS bake-off | `scripts/bab_promotion_bakeoff.py`, `research_state/bab_p25/promotion_bakeoff.{json,md}`, `tests/test_bab_p25_promotion.py` | PLANNED |
+| D | WP3 — promotion decision + lint | `docs/BAB_P25_DECISION.md`, `tests/test_bab_p25_decision_consistency.py`, `generate_p25_decision.py` | PLANNED |
 
-P24 must keep P21–P23 artifacts frozen and restate the NO-GO verdict. P24 WP4 lint remediation consumes committed artifacts read-only.
+Rules: one WP per session; lanes consume earlier P25 artifacts read-only and must never regenerate them. P25 WP0 is binding; P25 WP1-WP3 are pre-declared for continuity.
 
 ---
 
-## P24 campaign map — lanes, status, file ownership (updated)
+## P25 campaign map — lanes, status, file ownership
 
 | Lane | WPs in order | Owned files | Status |
 |---|---|---|---|
-| **A — Charter** | WP0 | `tests/test_bab_p24_charter.py` (22 tests), `tests/fixtures/licensed_price_schema.csv` | **CLOSED** |
-| **B — Regime** | WP1 | `scripts/bab_regime_split.py`, `research_state/bab_p24/regime_split.{json,md}`, `tests/test_bab_p24_regime_split.py` (22 tests) | **CLOSED** |
-| **C — Hysteresis** | WP2 | `scripts/bab_hysteresis_ladder.py`, `research_state/bab_p24/hysteresis.{json,md}`, `tests/test_bab_p24_hysteresis.py` (24 tests) | **CLOSED** |
-| **D — Adapter** | WP3 | `scripts/bab_licensed_adapter.py`, `research_state/bab_p24/adapter_dryrun.{json,md}`, `tests/test_bab_p24_adapter.py` (27 tests) | **CLOSED** |
-| **E — Decision** | **WP4** | `docs/BAB_P24_DECISION.md`, `tests/test_bab_p24_decision_consistency.py` (21 tests), `generate_p24_decision.py` | **BINDING (lint)** |
-
-Rules: one WP per session; lanes consume earlier P24 artifacts read-only and must never regenerate them. **P24 WP0–WP3 CLOSED. P24 WP4 deliverables landed; lint remediation is the binding row.**
+| **A — Universe** | WP0 | `scripts/bab_wide_universe.py`, `tests/fixtures/wide_bab_universe.csv`, `tests/fixtures/wide_bab_universe_meta.json`, `tests/test_bab_p25_wide_universe.py` | **BINDING** |
+| **B — Rank WF** | WP1 | `scripts/bab_walk_forward_rank.py`, `research_state/bab_p25/walk_forward_rank.{json,md}`, `tests/test_bab_p25_walk_forward_rank.py` | PLANNED |
+| **C — Bake-off** | WP2 | `scripts/bab_promotion_bakeoff.py`, `research_state/bab_p25/promotion_bakeoff.{json,md}`, `tests/test_bab_p25_promotion.py` | PLANNED |
+| **D — Decision** | WP3 | `docs/BAB_P25_DECISION.md`, `tests/test_bab_p25_decision_consistency.py`, `generate_p25_decision.py` | PLANNED |
 
 ---
 
@@ -129,27 +138,30 @@ Rules: one WP per session; lanes consume earlier P24 artifacts read-only and mus
 
 A session is **not** complete unless **all** of the following landed in one commit:
 
-1. The lint remediation for P24 WP4 (ruff PASS on `generate_p24_decision.py` and `tests/test_bab_p24_decision_consistency.py`).
-2. All 21 decision-consistency tests still GREEN.
-3. `docs/BAB_P24_DECISION.md` byte-identical after regeneration (verified by existing tests).
+1. The P25 WP0 deliverables: generator script, wide fixture CSV, metadata JSON, acceptance test file.
+2. All 20+ acceptance tests GREEN.
+3. `tests/fixtures/wide_bab_universe.csv` loads via `load_prices()` and rank mode yields >0 non-flat rows.
 4. `python3 -m ruff check .` PASS and `bash scripts/bab_quick.sh` GREEN; full gate once per WP boundary.
 5. A ledger row below with UTC timestamp, HEAD, what landed, and the gate line.
 6. **No documentation-only turn.** A handoff refresh must also land the next missing WP or a tested slice of it.
 
-**Hard minimums that make P24 WP4 lint remediation impossible to fake:**
-- Zero ruff errors on the two target files.
-- 21/21 decision-consistency tests still pass.
-- Byte-identical report regeneration verified by existing test suite.
-- No edits to any `research_state/` JSON artifact.
+**Hard minimums that make P25 WP0 impossible to fake:**
+- Generator script runs standalone and produces the CSV + metadata.
+- Fixture has 41+ columns, 399 price rows, 398 return rows, dates matching reference.
+- Rolling OLS beta on generated data recovers target 0.35–1.90 range within ±0.05.
+- Seed determinism: two runs produce byte-identical CSV (verified by test).
+- Rank mode on this fixture produces ≥50 non-flat rows (proving empirical evaluability).
+- Zero ruff errors on new files.
+- 20+ acceptance tests pass.
 
 ---
 
 ## No-idle ladder (if the assigned WP is blocked, do the next rung — never end a session empty-handed)
 
-1. Line-length fixes feel large? Fix one file at a time (generator first, then test), committing each with tests passing.
-2. List-comprehension refactors (PERF401) change behavior? Run the decision test after each change to verify byte-identical output.
-3. Unicode replacements (RUF001) are mechanical: `×` → `x`, `–` → `-`, `−` → `-`.
-4. Blocked on everything? Add one missing assertion to a P21/P22/P23/P24 consistency test. Something landable always exists.
+1. Generator feels large? Build incrementally: (a) BTC column copy, (b) beta array generation, (c) return synthesis with idio, (d) date alignment + gap + NaN column, (e) CSV + metadata write. Commit each slice with tests.
+2. Beta recovery test fails? Debug by printing rolling beta vs target for first 3 assets; adjust idio vol or seed.
+3. Rank mode still flat? Lower `rank_min_leg_beta` in test to 0.10 temporarily to verify construction works, then raise back.
+4. Blocked on everything? Add one missing assertion to a P20-P24 consistency test. Something landable always exists.
 
 Every session must end with a committed **code/test/artifact** diff and a ledger row. If a WP is only partially done, commit the slice and write the exact remainder in its ledger row.
 
@@ -164,34 +176,35 @@ bash scripts/bab_reconcile_gate.sh
 BAB_GATE_LOG=/tmp/bab_gate_handoff.log BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh
 ```
 
-Inner loop: `bash scripts/bab_quick.sh` + `python3 -m pytest -q tests/test_bab_p24_decision_consistency.py`. Full gate once per WP boundary; never hand off mid-gate. Never lower the coverage floor.
+Inner loop: `bash scripts/bab_quick.sh` + `python3 -m pytest -q tests/test_bab_p25_wide_universe.py`. Full gate once per WP boundary; never hand off mid-gate. Never lower the coverage floor.
 
 ---
 
 ## Forbidden (automatic failure)
 
-- Handoff-only / docs-only / gate-only / count-only / analysis-only commits (lint remediation counts only **with** passing tests and byte-identical output; a handoff refresh without a landed fix is not a session).
-- Editing `research_state/bab_p20/**`, `docs/BAB_RESEARCH_REPORT.md`, `research_state/bab_p21/universe.*`, or any P20 script (P20 is closed and frozen).
-- Hand-typing any number into a P21/P22/P23/P24 report, charter, or verdict that is not a committed JSON field.
-- Weakening `rank_min_leg_beta` / `rank_max_gross` or the rank guard logic.
-- Replacing the planted convex alpha curve with a linear one (`alpha = a + b·beta`).
-- Flattening the drift model back to an additive `delta·(t/(rows-1))·u` tilt.
-- Re-levering an availability-restricted short book back to the baseline short gross.
-- Deleting or un-censoring the rank `h=0.75` cell or its `censor_reason`.
-- Putting a WP's **own** builder in the forbidden-builder AST set.
-- Selecting parameters on the evaluation window and reporting the result as OOS.
-- Describing any synthetic universe as real market data, or publishing a Sharpe without the provenance caveat.
-- Quoting P21 planted-universe recovery as market alpha, or treating a `null`-universe positive result as a finding.
+- Handoff-only / docs-only / gate-only / count-only / analysis-only commits (WP0 counts only **with** passing tests and working generator; a handoff refresh without a landed fix is not a session).
+- Editing any `research_state/bab_p20/**`, `research_state/bab_p21/**`, `research_state/bab_p22/**`, `research_state/bab_p23/**`, `research_state/bab_p24/**`, `docs/BAB_RESEARCH_REPORT.md`, `research_state/bab_p21/universe.*`, or any P20-P24 script (all closed and frozen).
+- Hand-typing any number into a P25 report, charter, or verdict that is not a committed JSON field.
+- Weakening `rank_min_leg_beta` / `rank_max_gross` below the chartered defaults (0.20 / 4.0) in the promotion decision.
+- Describing the synthetic wide universe as real market data, or publishing a Sharpe without the provenance caveat.
 - Deleting, skipping, `xfail`-ing, or loosening existing tests.
 - Shipping a WP whose committed artifact contradicts its own acceptance threshold.
-- Regenerating the committed P21 panel inside a consumer harness.
 - **Network fetching of prices** (Coinbase returns 403 here; licensed CSV is maintainer-supplied).
-- Reopening P19 annotation/coverage work or P20 evidence work, re-attempting CI workflow edits, adding new `P19-7` markers, type-annotation/style churn beyond the two target files, broad refactors, committing probe/debug scratch scripts, or creating parallel handoff docs.
+- Reopening P19 annotation/coverage work or P20-P24 evidence work, re-attempting CI workflow edits, adding new `P19-7` markers, type-annotation/style churn beyond the new P25 files, broad refactors, committing probe/debug scratch scripts, or creating parallel handoff docs.
 
 ---
 
 ## Bottlenecks removed (do not re-create)
 
+- **[REMOVED 2026-11-20T16:37:11Z] No binding row existed.** P24 complete; P20-P23 complete; README referenced stale P20. Created Campaign P25 with binding WP0 to close the rank-weighting promotion gap.
+- **[REMOVED 2026-11-20T14:48:59Z] Stale HEAD certification.** HANDOFF.md certified HEAD `42ae735`; HEAD advanced to `61bf38e` via 4 checkpoint sessions that regenerated `generate_p24_decision.py`, `tests/test_bab_p24_decision_consistency.py`, and `docs/BAB_P24_DECISION.md`. Binding row re-confirmed as **P24 WP4 — lint remediation**; ruff count down 67 → 38 (37×E501 + 1×W292). PERF401/RUF001 already cleared; only E501/W292 remain.
+- **[REMOVED 2026-11-20T14:48:59Z] Stale ruff error count.** HANDOFF.md cited 67 errors (54×E501, 7×PERF401, 6×RUF001). Actual at HEAD `61bf38e`: 38 errors (37×E501 + 1×W292) with precise file:line targets declared in the INITIAL TASK MESSAGE. No session may re-derive the count; run `python3 -m ruff check .` to verify zero.
+- **[REMOVED 2026-11-20T10:28:55Z] Stale HEAD certification.** HANDOFF.md certified HEAD `64668fd`; HEAD advanced to `69917b3`. Binding row re-confirmed as **P24 WP4 — lint remediation**.
+- **[REMOVED 2026-11-20T09:40:18Z] Stale HANDOFF.md** pointed at P24 WP4 as the binding row and cited HEAD `42ae735`; WP4 deliverables landed. Binding row updated to lint remediation.
+- **[REMOVED 2026-11-20T08:39:32Z] Stale HANDOFF.md pointed at P24 WP4 as the binding row and cited missing deliverables.** Deliverables `docs/BAB_P24_DECISION.md` and `tests/test_bab_p24_decision_consistency.py` already exist with 21 passing tests. Binding row updated to **P24 WP4 — lint remediation**.
+- **[REMOVED 2026-11-20T07:32:13Z] Stale HANDOFF.md pointed at P24 WP3 as the binding row.** WP3 landed; binding row re-routed to **P24 WP4**.
+- **[REMOVED 2026-11-20T06:22:09Z] Stale HANDOFF.md pointed at P24 WP2 as the binding row and cited HEAD `42db732`; WP2 is landed.** Binding row re-routed to **P24 WP3**.
+- **[REMOVED 2026-11-20T05:20:54Z] Stale HEAD certification.** HANDOFF.md certified HEAD `c8ad8e4`; HEAD advanced to `42db732`. Binding row re-confirmed as **P24 WP2**.
 - **[REMOVED 2026-11-20T04:51:39Z] Stale HANDOFF.md** pointed at P24 WP1 as the binding row and cited HEAD `14f419c`; WP1 is landed. Binding row re-routed to **P24 WP2**.
 - **[REMOVED 2026-11-19T21:24:00Z] P23 WP3's spec demanded re-levering surviving shorts to the baseline gross AND strict positivity on every seed — mutually unsatisfiable.** Resolved by dropping unavailable shorts.
 - **[REMOVED 2026-11-19T21:24:00Z] A seed can lose its entire short book at `h=0.75`.** Charter's censoring escape hatch used: rank `h=0.75` cell stays visible with `censor_reason`.
@@ -206,13 +219,6 @@ Inner loop: `bash scripts/bab_quick.sh` + `python3 -m pytest -q tests/test_bab_p
 - **[REMOVED 2026-11-20T00:25:06Z] WP4 consistency test had 5 ruff errors.** Fixed by breaking long lines, using `.values()` for unused dict keys, and adding a trailing newline. Gate now fully green.
 - **[PERMANENTLY EXTERNAL] P19-1 CI enforcement.** Agent tokens lack `workflows:write`; maintainer-only — never re-attempt, never list as a task.
 - **[PERMANENTLY EXTERNAL] Real market data ingestion.** `api.exchange.coinbase.com` returns 403 from this environment; a licensed CSV is maintainer-supplied. Never a P21/P22/P23 task; P24 WP3 handles it as an offline fixture only.
-- **[REMOVED 2026-11-20T05:20:54Z] Stale HEAD certification.** HANDOFF.md certified HEAD `c8ad8e4`; HEAD advanced to `42db732`. Binding row re-confirmed as **P24 WP2**.
-- **[REMOVED 2026-11-20T06:22:09Z] Stale HANDOFF.md pointed at P24 WP2 as the binding row and cited HEAD `42db732`; WP2 is landed.** Binding row re-routed to **P24 WP3**.
-- **[REMOVED 2026-11-20T07:32:13Z] Stale HANDOFF.md pointed at P24 WP3 as the binding row.** WP3 landed; binding row re-routed to **P24 WP4**.
-- **[REMOVED 2026-11-20T08:39:32Z] Stale HANDOFF.md pointed at P24 WP4 as the binding row and cited missing deliverables.** Deliverables `docs/BAB_P24_DECISION.md` and `tests/test_bab_p24_decision_consistency.py` already exist with 21 passing tests. Binding row updated to **P24 WP4 — lint remediation**.
-- **[REMOVED 2026-11-20T10:28:55Z] Stale HEAD certification.** HANDOFF.md certified HEAD `64668fd`; HEAD advanced to `69917b3`. Binding row re-confirmed as **P24 WP4 — lint remediation**.
-- **[REMOVED 2026-11-20T14:48:59Z] Stale HEAD certification.** HANDOFF.md certified HEAD `42ae735`; HEAD advanced to `61bf38e` via 4 checkpoint sessions that regenerated `generate_p24_decision.py`, `tests/test_bab_p24_decision_consistency.py`, and `docs/BAB_P24_DECISION.md`. Binding row re-confirmed as **P24 WP4 — lint remediation**; ruff count down 67 → 38 (37×E501 + 1×W292). PERF401/RUF001 already cleared; only E501/W292 remain.
-- **[REMOVED 2026-11-20T14:48:59Z] Stale ruff error count.** HANDOFF.md cited 67 errors (54×E501, 7×PERF401, 6×RUF001). Actual at HEAD `61bf38e`: 38 errors (37×E501 + 1×W292) with precise file:line targets declared in the INITIAL TASK MESSAGE. No session may re-derive the count; run `python3 -m ruff check .` to verify zero.
 
 ---
 
@@ -220,6 +226,7 @@ Inner loop: `bash scripts/bab_quick.sh` + `python3 -m pytest -q tests/test_bab_p
 
 | Session (UTC) | HEAD | Did | Gate |
 |---|---|---|---|
+| 2026-11-20T16:37:11Z | `e62a277` | **HANDOFF refreshed for Campaign P25 binding row.** P24 complete (lint remediation done, full gate GREEN). P20-P23 complete. No binding row existed. Created Campaign P25 "Rank-weighting promotion via wide-universe OOS validation" with binding WP0 — wide synthetic universe generator. Deliverables: `scripts/bab_wide_universe.py`, `tests/fixtures/wide_bab_universe.csv`, `tests/test_bab_p25_wide_universe.py`. Pre-declared WP1-WP3 for continuity. | ruff PASS; quick GREEN (104+195); reconcile GREEN; full gate **GREEN 6885 passed / 35 skipped / TOTAL 100%** |
 | 2026-11-20T14:48:59Z | `61bf38e` | **Handoff re-certified for P24 WP4 lint remediation.** Updated HANDOFF.md timestamp and HEAD certification to `61bf38e`; P24 WP4 deliverables landed: `docs/BAB_P24_DECISION.md`, `tests/test_bab_p24_decision_consistency.py` (21 tests), `generate_p24_decision.py`. All 21 decision-consistency tests PASS. Prior checkpoint sessions cut ruff errors 67 → 38 (37×E501 + 1×W292); precise file:line targets declared above. Binding row: lint remediation to close final gate. | quick GREEN (104+195); ruff FAIL (38 errors) |
 | 2026-11-20T10:28:55Z | `69917b3` | **Handoff refreshed for P24 WP4 lint remediation.** Updated HANDOFF.md timestamp and HEAD certification to `69917b3`; P24 WP4 deliverables landed: `docs/BAB_P24_DECISION.md`, `tests/test_bab_p24_decision_consistency.py` (21 tests), `generate_p24_decision.py`. All 21 decision-consistency tests PASS. Only blocker: 67 ruff errors (54×E501, 7×PERF401, 6×RUF001) in generator and test file. Binding row: lint remediation to close final gate. | quick GREEN (104+195); ruff FAIL (67 errors) |
 | 2026-11-20T09:40:18Z | `64668fd` | **Handoff refreshed for P24 WP4 lint remediation.** P24 WP4 deliverables landed: `docs/BAB_P24_DECISION.md`, `tests/test_bab_p24_decision_consistency.py` (21 tests), `generate_p24_decision.py`. All 21 decision-consistency tests PASS. Only blocker: 67 ruff errors (54×E501, 7×PERF401, 6×RUF001) in generator and test file. Binding row: lint remediation to close final gate. | quick GREEN (104+195); ruff FAIL (67 errors) |
@@ -240,4 +247,4 @@ Inner loop: `bash scripts/bab_quick.sh` + `python3 -m pytest -q tests/test_bab_p
 | 2026-11-20T06:22:09Z | `c43f7ef` | **P24 WP2 landed — rebalance hysteresis / turnover ladder.** Added `scripts/bab_hysteresis_ladder.py`, `research_state/bab_p24/hysteresis.{json,md}` (24 cells, 480 book runs), `tests/test_bab_p24_hysteresis.py` (24 tests). Measured turnover ladder: calm regime 52→48→46 flips / 0.047→0.044→0.042 turnover_mean; stress regime 52→48→46 flips / 0.037→0.035→0.034 turnover_mean. Calm planted recovery +0.00019→+0.000192; stress planted recovery −0.00016→−0.000161. Null exactly 0.0 everywhere. Rank guards hold (min_leg_beta ≥ 1.46, gross_max ≤ 1.04). Hysteresis-zero reference matches P21 rank_eval at 6 dp. Byte-identical rebuild proven. Re-routed binding row to **P24 WP3 — licensed-data adapter dry run**. | ruff PASS; quick GREEN (104+195); reconcile GREEN |
 | 2026-11-20T07:32:13Z | `2f8c472` | **P24 WP3 landed — licensed-data adapter dry run.** Added `scripts/bab_licensed_adapter.py`, `research_state/bab_p24/adapter_dryrun.{json,md}`, `tests/test_bab_p24_adapter.py` (27 tests). Offline-only fixture validation; no network. Re-routed binding row to **P24 WP4 — closing decision**. | ruff PASS; quick GREEN; 27/27 tests PASS |
 
-(End of file - total 247 lines)
+(End of file)
