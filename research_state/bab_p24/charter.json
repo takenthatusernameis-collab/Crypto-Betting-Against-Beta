@@ -1,0 +1,34 @@
+{
+  "charter": {
+    "artifact_gated": true,
+    "binding_row": "P24 WP0",
+    "campaign": "P24",
+    "holdout_before_tuning": true,
+    "hysteresis_band_grid": [
+      0.05,
+      0.1,
+      0.15
+    ],
+    "licensed_data_required": true,
+    "licensed_price_csv_schema": "tests/fixtures/licensed_price_schema.csv",
+    "not_market_evidence": true,
+    "regime_grid": [
+      "calm",
+      "stress"
+    ],
+    "title": "Regime-conditional BAB and holdout discipline",
+    "wps_in_order": [
+      "P24 WP0 \u2014 charter"
+    ]
+  },
+  "provenance": {
+    "generator": "scripts/bab_p24_charter.py",
+    "licensed_data_required": true,
+    "no_go_for_market": true,
+    "note": "Controlled synthetic stimulus: not real market data.",
+    "p23_source_schema": "bab_p23.charter/1",
+    "synthetic": true,
+    "universe_seed": 20261118
+  },
+  "schema": "bab_p24.charter/1"
+}
