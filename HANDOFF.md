@@ -2,7 +2,7 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-20T01:31:58Z
+- **Timestamp (UTC):** 2026-11-20T01:47:35Z
 - **Git state:** HEAD `5e0e38e` (checkpoint after P24 WP0 completion). Working tree clean. Certify with `git log --oneline -4 && git status --short`. Next row is **P24 WP1 — regime-split stress**.
 - **P23 WP3 IS LANDED, ARTIFACT-GATED AND GREEN** — the short-availability haircut ladder. It reads `research_state/bab_p21/universe.json`, `research_state/bab_p23/charter.json`, `research_state/bab_p23/breadth_ladder.json` and `research_state/bab_p23/beta_drift.json` **read-only**, draws one seeded availability mask per WP3 seed, drops unavailable short positions from the shipped `BABStrategy` book, and runs **400 book runs** (5 haircuts × 20 seeds × 2 weightings × 2 variants). All 20 chartered cells are reported with 20 per-seed recoveries, costed Sharpes and availabilities; 18 acceptance tests pin the artifact.
 - **Headline measurements (WP3):** `haircut_zero_reference` reproduces committed P21 `rank_eval.json` **and** WP2 `drift_zero_reference` at 6 dp (`planted_equal 0.000261`, `planted_rank 0.017360`, nulls `0.0`). Planted recovery is strictly positive on every seed in **every non-censored cell** (equal `+0.000357 → +0.001129`, rank `+0.017103 → +0.016103`). Null recovery is exactly `0.0` in every cell. Availability tracks `1 − h` at the cell mean (`0.9049 / 0.7341 / 0.4793 / 0.2280`). Borrow-costed Sharpe is non-increasing on every book (`+7.035 → −7500.5` equal, `+44.378 → −806.4` rank at `h=0.75`). Rank guards hold on every non-censored rank cell (`min_leg_beta ≥ 0.507692`, `gross_max ≤ 2.414949`).
@@ -22,7 +22,7 @@
 
 # INITIAL TASK MESSAGE (BINDING — START HERE)
 
-**Timestamp:** 2026-11-20T01:31:58Z · **Campaign:** P24 "Regime-conditional BAB and holdout discipline" · **Lane:** B · **WP:** **P24 WP1 — regime-split stress**
+**Timestamp:** 2026-11-20T01:47:35Z · **Campaign:** P24 "Regime-conditional BAB and holdout discipline" · **Lane:** B · **WP:** **P24 WP1 — regime-split stress**
 
 **One-sentence objective:** implement `scripts/bab_regime_split.py` with regime-conditional BAB stress (calm/stress regimes via conditional beta windows and quantiles), produce `research_state/bab_p24/regime_split.{json,md}`, and create `tests/test_bab_p24_regime_split.py` acceptance test (AST no-harness scan, numeric leaf mapping from committed P24 charter + P23/P22/P21 artifacts, verdict strings).
 
