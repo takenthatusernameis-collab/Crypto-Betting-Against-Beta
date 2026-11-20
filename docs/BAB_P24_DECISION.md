@@ -433,7 +433,8 @@ False positive rate at alpha ≤ 0.05; max absolute recovery ≤ 1e-10.
     harness. The default book is dollar-neutral only and carries a large negative benchmark beta
     (measured -0.57 at default config, -0.91 at q=0.2 on the committed fixture).
 - **No Frazzini-Pedersen rank weighting with beta scaling.** The rank path is documented in
-    `docs/BAB_FIDELITY.md` §9 but is **not empirically evaluable** on the committed 9-asset     synthetic fixture. The shipped default remains equal-weight.
+    `docs/BAB_FIDELITY.md` §9 but is **not empirically evaluable** on the committed 9-asset
+    synthetic fixture. The shipped default remains equal-weight.
 - **No live execution evidence.** The licensed-data adapter (P24 WP3) validated only an offline CSV
     fixture. The live adapter (`--adapter live`) is dry-run by default and requires explicit two-key
     opt-in (`--allow-live-execution` and `--accept-terms I_UNDERSTAND_LIVE_TRADING`). No network was
@@ -462,3 +463,4 @@ Campaign P24 concludes here. The NO-GO verdict is restated from P23/P24 charters
 *This report is artifact-gated: every numeric table cell resolves to a committed JSON leaf at 6     dp. The acceptance test `tests/test_bab_p24_decision_consistency.py` verifies zero unmatched
     cells, ≥100 machine-checked cells, byte-identical table rendering, AST no-harness scan, and
     explicit verdict strings.*
+

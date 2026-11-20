@@ -197,9 +197,15 @@ def provenance_table(
         {"Fact": "Beta drift cells", "Value": bd_prov["derived"]["n_cells"]},
         {"Fact": "Beta drift scale", "Value": bd_prov["drift_scale"]},
         {"Fact": "Short haircut book runs", "Value": sh_prov["derived"]["n_book_runs"]},
-        {"Fact": "Short haircut censored cells", "Value": len([c for c in short_haircut["cells"] if c["censored"]])},
+        {
+            "Fact": "Short haircut censored cells",
+            "Value": len([c for c in short_haircut["cells"] if c["censored"]]),
+        },
         {"Fact": "Null battery FPR rate", "Value": nb_prov["summary"]["fpr_rate"]},
-        {"Fact": "Null battery max abs recovery", "Value": nb_prov["summary"]["null_recovery_max_abs"]},
+        {
+            "Fact": "Null battery max abs recovery",
+            "Value": nb_prov["summary"]["null_recovery_max_abs"],
+        },
     ]
     return ["Fact", "Value"], rows
 
@@ -491,15 +497,24 @@ def decision_table(charter) -> tuple[list[str], list[dict]]:
     thresholds = charter["provenance"]["acceptance_thresholds"]
     wp4 = thresholds["wp4"]
     rows = [
-        {"Criterion": "Explicit signal-or-noise verdict", "Required": wp4["explicit_signal_noise_verdict"]},
+        {
+            "Criterion": "Explicit signal-or-noise verdict",
+            "Required": wp4["explicit_signal_noise_verdict"],
+        },
         {"Criterion": "NO-GO for market", "Required": wp4["no_go_for_market"]},
         {"Criterion": "No harness re-run", "Required": wp4["no_harness_re_run"]},
-        {"Criterion": "Planted recovery labelled controlled synthetic", "Required": wp4["planted_recovery_labelled_controlled_synthetic"]},
+        {
+            "Criterion": "Planted recovery labelled controlled synthetic",
+            "Required": wp4["planted_recovery_labelled_controlled_synthetic"],
+        },
         {"Criterion": "Numbers matched minimum", "Required": wp4["numbers_matched_min"]},
         {"Criterion": "Unmatched cells maximum", "Required": wp4["zero_unmatched_cells"]},
         {"Criterion": "Regime grid minimum", "Required": wp4["regime_grid_min"]},
         {"Criterion": "Hysteresis band grid minimum", "Required": wp4["hysteresis_band_grid_min"]},
-        {"Criterion": "Turnover monotone non-increasing", "Required": wp4["turnover_monotone_non_increasing"]},
+        {
+            "Criterion": "Turnover monotone non-increasing",
+            "Required": wp4["turnover_monotone_non_increasing"],
+        },
         {"Criterion": "Adapter valid offline", "Required": wp4["adapter_valid_offline"]},
         {"Criterion": "Nominal slack", "Required": thresholds["nominal_slack"]},
     ]
@@ -521,7 +536,18 @@ TABLE_BUILDERS = {
 }
 
 
-def _args_for(name: str, charter, adapter_dryrun, hysteresis, regime_split, breadth_ladder, beta_drift, short_haircut, null_battery, rank_eval) -> dict:
+def _args_for(
+    name: str,
+    charter,
+    adapter_dryrun,
+    hysteresis,
+    regime_split,
+    breadth_ladder,
+    beta_drift,
+    short_haircut,
+    null_battery,
+    rank_eval,
+) -> dict:
     return {
         "provenance": {
             "charter": charter,
@@ -547,8 +573,30 @@ def _args_for(name: str, charter, adapter_dryrun, hysteresis, regime_split, brea
     }[name]
 
 
-def _built(name: str, charter, adapter_dryrun, hysteresis, regime_split, breadth_ladder, beta_drift, short_haircut, null_battery, rank_eval) -> list[str]:
-    kwargs = _args_for(name, charter, adapter_dryrun, hysteresis, regime_split, breadth_ladder, beta_drift, short_haircut, null_battery, rank_eval)
+def _built(
+    name: str,
+    charter,
+    adapter_dryrun,
+    hysteresis,
+    regime_split,
+    breadth_ladder,
+    beta_drift,
+    short_haircut,
+    null_battery,
+    rank_eval,
+) -> list[str]:
+    kwargs = _args_for(
+        name,
+        charter,
+        adapter_dryrun,
+        hysteresis,
+        regime_split,
+        breadth_ladder,
+        beta_drift,
+        short_haircut,
+        null_battery,
+        rank_eval,
+    )
     columns, rows = TABLE_BUILDERS[name](**kwargs)
     return _render(columns, rows)
 
@@ -597,10 +645,29 @@ def test_report_exists_and_declares_its_sources() -> None:
 
 
 def test_every_published_number_matches_a_committed_json_field(
-    charter, adapter_dryrun, hysteresis, regime_split, breadth_ladder, beta_drift, short_haircut, null_battery, rank_eval, report
+    charter,
+    adapter_dryrun,
+    hysteresis,
+    regime_split,
+    breadth_ladder,
+    beta_drift,
+    short_haircut,
+    null_battery,
+    rank_eval,
+    report,
 ) -> None:
     allowed = set()
-    for payload in (charter, adapter_dryrun, hysteresis, regime_split, breadth_ladder, beta_drift, short_haircut, null_battery, rank_eval):
+    for payload in (
+        charter,
+        adapter_dryrun,
+        hysteresis,
+        regime_split,
+        breadth_ladder,
+        beta_drift,
+        short_haircut,
+        null_battery,
+        rank_eval,
+    ):
         allowed |= _numeric_leaves(payload)
     published = []
     unmatched = []
@@ -621,10 +688,29 @@ def test_every_published_number_matches_a_committed_json_field(
 
 
 def test_zero_unmatched_cells_is_the_chartered_invariant(
-    charter, adapter_dryrun, hysteresis, regime_split, breadth_ladder, beta_drift, short_haircut, null_battery, rank_eval, report
+    charter,
+    adapter_dryrun,
+    hysteresis,
+    regime_split,
+    breadth_ladder,
+    beta_drift,
+    short_haircut,
+    null_battery,
+    rank_eval,
+    report,
 ) -> None:
     allowed = set()
-    for payload in (charter, adapter_dryrun, hysteresis, regime_split, breadth_ladder, beta_drift, short_haircut, null_battery, rank_eval):
+    for payload in (
+        charter,
+        adapter_dryrun,
+        hysteresis,
+        regime_split,
+        breadth_ladder,
+        beta_drift,
+        short_haircut,
+        null_battery,
+        rank_eval,
+    ):
         allowed |= _numeric_leaves(payload)
     unmatched = 0
     for body in _extract_tables(report).values():
@@ -638,22 +724,61 @@ def test_zero_unmatched_cells_is_the_chartered_invariant(
 
 
 def test_tables_are_byte_identical_to_the_json_renderers(
-    charter, adapter_dryrun, hysteresis, regime_split, breadth_ladder, beta_drift, short_haircut, null_battery, rank_eval, report
+    charter,
+    adapter_dryrun,
+    hysteresis,
+    regime_split,
+    breadth_ladder,
+    beta_drift,
+    short_haircut,
+    null_battery,
+    rank_eval,
+    report,
 ) -> None:
     published = _extract_tables(report)
     assert set(published) == set(TABLE_BUILDERS), f"table anchors differ: {sorted(published)}"
     for name in TABLE_BUILDERS:
         expected = "\n".join(
-            _built(name, charter, adapter_dryrun, hysteresis, regime_split, breadth_ladder, beta_drift, short_haircut, null_battery, rank_eval)
+            _built(
+                name,
+                charter,
+                adapter_dryrun,
+                hysteresis,
+                regime_split,
+                breadth_ladder,
+                beta_drift,
+                short_haircut,
+                null_battery,
+                rank_eval,
+            )
         )
         assert published[name] == expected, f"table {name} drifted from its JSON artifact"
 
 
 def test_prose_does_not_quote_unbacked_numbers(
-    charter, adapter_dryrun, hysteresis, regime_split, breadth_ladder, beta_drift, short_haircut, null_battery, rank_eval, report
+    charter,
+    adapter_dryrun,
+    hysteresis,
+    regime_split,
+    breadth_ladder,
+    beta_drift,
+    short_haircut,
+    null_battery,
+    rank_eval,
+    report,
 ) -> None:
     allowed = set()
-    for payload in (charter, adapter_dryrun, hysteresis, regime_split, breadth_ladder, beta_drift, short_haircut, null_battery, rank_eval):
+    for payload in (
+        charter,
+        adapter_dryrun,
+        hysteresis,
+        regime_split,
+        breadth_ladder,
+        beta_drift,
+        short_haircut,
+        null_battery,
+        rank_eval,
+    ):
         allowed |= _numeric_leaves(payload)
     text = re.sub(r"<!--.*?-->", " ", report, flags=re.DOTALL)
     text = re.sub(r"```.*?```", " ", text, flags=re.DOTALL)
@@ -687,7 +812,8 @@ def test_prose_does_not_quote_unbacked_numbers(
     text = re.sub(r"\b6\b", " ", text)        # decimals
     text = re.sub(r"\b20261118\b", " ", text) # universe seed
     text = re.sub(r"\b20261245\b", " ", text) # censored seed
-    text = re.sub(r"\b3dd449d6ccbc8f9b4f52f1b424b9791fd963d41d2fec78939f14329f97cd74ce\b", " ", text)  # fixture sha
+    fixture_sha = r"\b3dd449d6ccbc8f9b4f52f1b424b9791fd963d41d2fec78939f14329f97cd74ce\b"
+    text = re.sub(fixture_sha, " ", text)
     text = re.sub(r"\b0\.000261\b", " ", text)  # P21 planted recovery
     text = re.sub(r"\b0\.01736\b", " ", text)   # P21 rank planted recovery
     text = re.sub(r"\b0\.000246\b", " ", text)  # P22 planted recovery
@@ -912,13 +1038,21 @@ def test_hysteresis_evidence_is_calibrated(hysteresis) -> None:
     assert prov["derived"]["regime_grid_min_met"] is True
     assert prov["hysteresis_zero_reference"]["checks"]["planted_equal"]["matches_at_6dp"] is True
     # Verify calm regime: tighter hysteresis -> fewer flips, lower turnover
-    calm_cells = [c for c in hysteresis["cells"] if c["regime"] == "calm" and c["variant"] == "planted" and c["weighting"] == "equal"]
+    calm_cells = [
+        c
+        for c in hysteresis["cells"]
+        if c["regime"] == "calm" and c["variant"] == "planted" and c["weighting"] == "equal"
+    ]
     calm_cells.sort(key=lambda c: c["hysteresis"])
     for i in range(1, len(calm_cells)):
         assert calm_cells[i]["regime_flips_mean"] <= calm_cells[i-1]["regime_flips_mean"]
         assert calm_cells[i]["turnover_mean"] <= calm_cells[i-1]["turnover_mean"]
     # Verify stress regime: same pattern
-    stress_cells = [c for c in hysteresis["cells"] if c["regime"] == "stress" and c["variant"] == "planted" and c["weighting"] == "equal"]
+    stress_cells = [
+        c
+        for c in hysteresis["cells"]
+        if c["regime"] == "stress" and c["variant"] == "planted" and c["weighting"] == "equal"
+    ]
     stress_cells.sort(key=lambda c: c["hysteresis"])
     for i in range(1, len(stress_cells)):
         assert stress_cells[i]["regime_flips_mean"] <= stress_cells[i-1]["regime_flips_mean"]
@@ -929,11 +1063,15 @@ def test_regime_evidence_is_calibrated(regime_split) -> None:
     prov = regime_split["provenance"]
     assert prov["derived"]["regime_grid_min_met"] is True
     # Verify calm regime planted positive
-    calm_planted = [c for c in regime_split["cells"] if c["regime"] == "calm" and c["variant"] == "planted"]
+    calm_planted = [
+        c for c in regime_split["cells"] if c["regime"] == "calm" and c["variant"] == "planted"
+    ]
     for cell in calm_planted:
         assert cell["recovery_mean"] > 0
     # Verify stress regime planted negative
-    stress_planted = [c for c in regime_split["cells"] if c["regime"] == "stress" and c["variant"] == "planted"]
+    stress_planted = [
+        c for c in regime_split["cells"] if c["regime"] == "stress" and c["variant"] == "planted"
+    ]
     for cell in stress_planted:
         assert cell["recovery_mean"] < 0
     # Null exactly zero in both
@@ -1030,7 +1168,15 @@ def test_null_battery_evidence_is_calibrated(null_battery) -> None:
 
 
 def test_panel_shas_agree_across_artifacts(
-    charter, adapter_dryrun, hysteresis, regime_split, breadth_ladder, beta_drift, short_haircut, null_battery, rank_eval
+    charter,
+    adapter_dryrun,
+    hysteresis,
+    regime_split,
+    breadth_ladder,
+    beta_drift,
+    short_haircut,
+    null_battery,
+    rank_eval,
 ) -> None:
     expected = rank_eval["provenance"]["panel_sha256"]
     assert breadth_ladder["provenance"]["panel_sha256"] == expected
@@ -1089,11 +1235,21 @@ def test_decision_artifacts_are_byte_identical_after_the_suite() -> None:
         name: hashlib.sha256((RESEARCH_P24_DIR / f"{name}.json").read_bytes()).hexdigest()
         for name in names
     }
-    before["breadth_ladder"] = hashlib.sha256((RESEARCH_P23_DIR / "breadth_ladder.json").read_bytes()).hexdigest()
-    before["beta_drift"] = hashlib.sha256((RESEARCH_P23_DIR / "beta_drift.json").read_bytes()).hexdigest()
-    before["short_haircut"] = hashlib.sha256((RESEARCH_P23_DIR / "short_haircut.json").read_bytes()).hexdigest()
-    before["null_battery"] = hashlib.sha256((RESEARCH_P22_DIR / "null_battery.json").read_bytes()).hexdigest()
-    before["rank_eval"] = hashlib.sha256((RESEARCH_P21_DIR / "rank_eval.json").read_bytes()).hexdigest()
+    before["breadth_ladder"] = hashlib.sha256(
+        (RESEARCH_P23_DIR / "breadth_ladder.json").read_bytes()
+    ).hexdigest()
+    before["beta_drift"] = hashlib.sha256(
+        (RESEARCH_P23_DIR / "beta_drift.json").read_bytes()
+    ).hexdigest()
+    before["short_haircut"] = hashlib.sha256(
+        (RESEARCH_P23_DIR / "short_haircut.json").read_bytes()
+    ).hexdigest()
+    before["null_battery"] = hashlib.sha256(
+        (RESEARCH_P22_DIR / "null_battery.json").read_bytes()
+    ).hexdigest()
+    before["rank_eval"] = hashlib.sha256(
+        (RESEARCH_P21_DIR / "rank_eval.json").read_bytes()
+    ).hexdigest()
     _load("breadth_ladder.json")
     _load("beta_drift.json")
     _load("short_haircut.json")
@@ -1103,9 +1259,19 @@ def test_decision_artifacts_are_byte_identical_after_the_suite() -> None:
         name: hashlib.sha256((RESEARCH_P24_DIR / f"{name}.json").read_bytes()).hexdigest()
         for name in names
     }
-    after["breadth_ladder"] = hashlib.sha256((RESEARCH_P23_DIR / "breadth_ladder.json").read_bytes()).hexdigest()
-    after["beta_drift"] = hashlib.sha256((RESEARCH_P23_DIR / "beta_drift.json").read_bytes()).hexdigest()
-    after["short_haircut"] = hashlib.sha256((RESEARCH_P23_DIR / "short_haircut.json").read_bytes()).hexdigest()
-    after["null_battery"] = hashlib.sha256((RESEARCH_P22_DIR / "null_battery.json").read_bytes()).hexdigest()
-    after["rank_eval"] = hashlib.sha256((RESEARCH_P21_DIR / "rank_eval.json").read_bytes()).hexdigest()
+    after["breadth_ladder"] = hashlib.sha256(
+        (RESEARCH_P23_DIR / "breadth_ladder.json").read_bytes()
+    ).hexdigest()
+    after["beta_drift"] = hashlib.sha256(
+        (RESEARCH_P23_DIR / "beta_drift.json").read_bytes()
+    ).hexdigest()
+    after["short_haircut"] = hashlib.sha256(
+        (RESEARCH_P23_DIR / "short_haircut.json").read_bytes()
+    ).hexdigest()
+    after["null_battery"] = hashlib.sha256(
+        (RESEARCH_P22_DIR / "null_battery.json").read_bytes()
+    ).hexdigest()
+    after["rank_eval"] = hashlib.sha256(
+        (RESEARCH_P21_DIR / "rank_eval.json").read_bytes()
+    ).hexdigest()
     assert before == after
