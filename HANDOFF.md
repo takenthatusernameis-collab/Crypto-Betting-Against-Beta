@@ -2,35 +2,42 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-21T07:57:02Z
-- **Git state:** HEAD `0900cad` (HANDOFF.md checkpoint only; code HEAD `712f87d` P27 WP0 COMPLETE — execution adapter hardening & dry-run paper campaign; `scripts/bab_execution_hardening.py`, `research_state/bab_p27/execution_hardening.{json,md}`, `tests/test_bab_p27_execution_hardening.py` landed; 39 acceptance tests GREEN, ruff clean, artifacts byte-identical deterministic, fixture SHA256 matches P25 WP0 `a6d390fc755641ea28d14b8204615786fdc9a95733a87e4c3b63d66be64c163b`; `weighting` switched to `equal`, `rank_min_leg_beta=0.20` / `rank_max_gross=4.0` unchanged; paper campaign: 13,858 orders + 398 diagnostics). Working tree: **CLEAN** (only this HANDOFF.md refresh uncommitted). Baseline re-verified at 2026-11-21T07:57:02Z: `python3 -m ruff check .` PASS, `bash scripts/bab_quick.sh` GREEN (195 passed), `bash scripts/bab_reconcile_gate.sh` GREEN (drift rc=2, clean rc=0, emit-only rc=0). Sole suite failure remains the pre-existing P26 WP0 `test_null_stats_consistent` 6th-decimal z-score rounding mismatch — certified unrelated, do not chase/edit it. Certify with `git log --oneline -4 && git status --short`.
+- **Timestamp (UTC):** 2026-11-21T09:20:00Z
+- **Git state:** HEAD `fcccb2d` (P27 WP1 COMPLETE — risk controls & kill switches committed: `scripts/bab_risk_controls.py`, `research_state/bab_p27/risk_controls.{json,md}`, `tests/test_bab_p27_risk_controls.py` landed at `fcccb2d`, 1090 insertions; prior P27 WP0 `712f87d` execution adapter hardening & dry-run paper campaign). Working tree: **CLEAN** (only this HANDOFF.md refresh uncommitted). Baseline re-verified at 2026-11-21T09:20:00Z on this environment: `python3 -m ruff check .` PASS, `bash scripts/bab_quick.sh` GREEN (104 passed + 195 passed), `bash scripts/bab_reconcile_gate.sh` GREEN (drift rc=2, clean rc=0, emit-only rc=0), `python3 -m pytest -q tests/test_bab_p27_risk_controls.py` GREEN (28 passed), fixture SHA256 `a6d390fc755641ea28d14b8204615786fdc9a95733a87e4c3b63d66be64c163b` matches P25 WP0 provenance. Sole suite failure remains the pre-existing P26 WP0 `test_null_stats_consistent` 6th-decimal z-score rounding mismatch — certified unrelated, do not chase/edit it. Certify with `git log --oneline -4 && git status --short`.
 
 ---
 
-# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-21T07:57:02Z)
+# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-21T09:20:00Z)
 
-**Repo name = Crypto-Betting-Against-Beta:** the whole repo is a bet against beta. All research campaigns P20-P26 are complete (P26 NO-SIGNAL: no real alpha on the no-alpha synthetic fixture → no real-market deployment claim). P27 WP0 (execution adapter hardening & dry-run paper campaign) is COMPLETE at HEAD `712f87d` — paper adapter end-to-end (13,858 orders + 398 diagnostics), dry-run live adapter health check (`dry_run=true`, never implicit live), risk gates all trip, and R5-B/R5-C reconciliation enforced — ruff clean, byte-identical deterministic, fixture SHA256 `a6d390fc…163b` matches P25 WP0, 39 acceptance tests GREEN. The remaining agent-executable heavy work is **P27 "Production Execution Infrastructure & Live-Trading Readiness"** so the beta bet is safe to execute when licensed market data arrives (maintainer-external; Coinbase returns 403 — never network-fetch).
+**Repo name = Crypto-Betting-Against-Beta:** the whole repo is a bet against beta. All research campaigns P20-P26 are complete (P26 NO-SIGNAL: no real alpha on the no-alpha synthetic fixture → no real-market deployment claim). **P27 WP0 (execution adapter hardening & dry-run paper campaign) is COMPLETE at HEAD `712f87d`** and **P27 WP1 (risk controls & kill switches) is COMPLETE at HEAD `fcccb2d`** — risk gates all trip (kill switch on max drawdown + flatten, per-leg weight rejection, gross exposure batch rejection, staleness position-age breach, `limit=None` byte-identical default path), 28 acceptance tests GREEN, ruff clean, deterministic byte-identical, fixture SHA256 matches P25 WP0. The remaining agent-executable heavy work is **P27 "Production Execution Infrastructure & Live-Trading Readiness"** so the beta bet is safe to execute when licensed market data arrives (maintainer-external; Coinbase returns 403 — never network-fetch). **The binding next row is P27 WP2 — reconciliation enforcement end-to-end.**
 
-**Binding row: P27 WP1 — risk controls & kill switches.** Deliverables do not exist:
-- `scripts/bab_risk_controls.py` — entry point `run_risk_controls()` returning results dict + writing JSON + markdown artifacts; `build_risk_controls()` does no writes; deterministic, seeded, no network
-- `research_state/bab_p27/risk_controls.{json,md}` — byte-identical artifacts
-- `tests/test_bab_p27_risk_controls.py` — 20+ acceptance tests
+**Binding row: P27 WP2 — reconciliation enforcement end-to-end.** Deliverables do not exist:
+- `scripts/bab_reconciliation_e2e.py` — entry point `run_reconciliation_e2e()` returning results dict + writing JSON + markdown artifacts; `build_reconciliation_e2e()` does no writes; deterministic, seeded, no network
+- `research_state/bab_p27/reconciliation_e2e.{json,md}` — byte-identical artifacts
+- `tests/test_bab_p27_reconciliation_e2e.py` — 20+ acceptance tests
 
-Hard contract (P27 WP1, binding):
-1. Risk controls end-to-end on the P25 WP0 fixture read-only: `RiskLimits` + `RiskManager` + `apply_kill_switch`; validate kill switch on max drawdown (trigger + flatten positions from first breach date onward), max position size (per-leg exposure cap rejects oversized legs), max staleness/position age (holding beyond `max_position_age_days` trips), per-leg and portfolio exposure caps (gross exposure cap rejects batches); assert every gate trips correctly on synthetic stress scenarios and `limit=None` is byte-identical / not triggered.
-2. Stress-scenario battery: synthetic cumulative/weight paths covering (a) drawdown breach → kill switch triggered + flattened; (b) per-leg weight above `max_position_weight` → `order_rejected`; (c) gross exposure above `max_gross_exposure` → batch rejected; (d) position age beyond `max_position_age_days` → staleness `limit_breach`; (e) `limit=None` → not triggered, weights unchanged (byte-identical default path).
+Hard contract (P27 WP2, binding):
+1. Reconciliation enforcement end-to-end on the P25 WP0 fixture read-only: run the existing `reconcile_costs` (R5-B modeled-vs-executed) and `reconcile_fills_to_backtest` (R5-C fills-vs-backtest) from `strategies.betting_against_beta.reconciliation`, plus `evaluate_reconciliation_gate(costs_rec, fills_rec, cost_tolerance=..., mismatch_tolerance=...)`; assert emit-only passes, drift-above-tolerance fails closed (rc 2 / `ok=False`), mismatch-count-above-limit fails closed, and tolerance-exactly-equal-to-drift passes.
+2. Stress-scenario battery: synthetic cost/equity drift paths covering (a) drift strictly above `--reconcile-tolerance` → gate `ok=False` / violation present; (b) tolerance exactly equal to observed drift → passes; (c) mismatch count strictly above `--reconcile-max-mismatch` → fails closed; (d) emit-only (no tolerance, no max-mismatch) → passes; (e) clean path (no drift) → passes. Assert every gate trips correctly on synthetic stress scenarios.
 3. `rank_min_leg_beta=0.20` / `rank_max_gross=4.0` unchanged; never weakened (chartered safety valves).
-4. Deterministic seeded; byte-identical reruns of `build_risk_controls()`; fixture SHA256 provenance matches P25 WP0 (`a6d390fc755641ea28d14b8204615786fdc9a95733a87e4c3b63d66be64c163b`); synthetic, no network.
+4. Deterministic seeded; byte-identical reruns of `build_reconciliation_e2e()`; fixture SHA256 provenance matches P25 WP0 (`a6d390fc755641ea28d14b8204615786fdc9a95733a87e4c3b63d66be64c163b`); synthetic, no network.
 5. Zero ruff errors on new files; 20+ acceptance tests pass; full gate 100% coverage.
-6. No edits to any P20-P26 artifact or any P27 WP0 artifact; P27 WP1 consumes them read-only.
+6. No edits to any P20-P26 artifact or any P27 WP0-WP1 artifact; P27 WP2 consumes them read-only.
+
+**Reference patterns (read-only, do not edit):**
+- `scripts/bab_execution_hardening.py` lines 431-476 (`_run_reconciliation`) — exact `reconcile_costs` / `reconcile_fills_to_backtest` / `evaluate_reconciliation_gate` invocation pattern (R5-B + R5-C + emit-only + drift-breach + max-mismatch-breach).
+- `strategies/betting_against_beta/reconciliation.py` — `reconcile_costs`, `reconcile_fills_to_backtest`, `evaluate_reconciliation_gate(costs_rec, fills_rec, cost_tolerance, mismatch_tolerance)` signatures and return schema.
+- `strategies/betting_against_beta/cli.py` lines 488-511, 928-935 — `--reconcile` / `--reconcile-tolerance` / `--reconcile-max-mismatch` fail-closed semantics (rc 2 on drift above tolerance / mismatch above limit; emit-only passes).
+- `scripts/bab_risk_controls.py` (P27 WP1, committed) — the `build_*` (no writes) / `run_*` (writes artifacts + determinism check) / `render_markdown` / `write_artifacts` structure to mirror for WP2.
+- `scripts/bab_reconcile_gate.sh` — the drift-fail-closed (rc 2) / clean-passes (rc 0) / emit-only-passes (rc 0) gate proof already GREEN.
 
 **Mandatory first actions (next session):**
-1. `git log --oneline -4 && git status --short` — working tree must be clean.
-2. `bash scripts/bab_quick.sh` (≈20 s, must be GREEN).
+1. `git log --oneline -4 && git status --short` — working tree must be clean; HEAD must be `fcccb2d` or later.
+2. `bash scripts/bab_quick.sh` (≈20 s, must be GREEN: 104 + 195).
 3. `python3 -m ruff check .` and `bash scripts/bab_reconcile_gate.sh` (must pass/GREEN).
-4. Land P27 WP1 in one commit + green full gate. No docs-only session; no idle.
+4. Land P27 WP2 in one commit + green full gate. No docs-only session; no idle.
 
-**Future agents:** do not idle-invent work beyond P27; do not declare P28 unless a maintainer declares it; do not re-open closed P20-P26 artifacts; do not chase `test_null_stats_consistent` (pre-existing, certified unrelated, read-only); P27 WP1 is the binding row until its deliverables land — WP2 (reconciliation enforcement) and WP3 (production readiness decision) are pre-declared and follow in order.
+**Future agents:** do not idle-invent work beyond P27; do not declare P28 unless a maintainer declares it; do not re-open closed P20-P26 artifacts; do not re-do P27 WP0 or WP1 (both COMPLETE and committed); do not chase `test_null_stats_consistent` (pre-existing, certified unrelated, read-only); P27 WP2 is the binding row until its deliverables land — WP3 (production readiness decision) is pre-declared and follows in order.
 - **P26 WP0 — COMPLETE** — All 4 deliverables committed: `scripts/bab_signal_null_battery.py`, `research_state/bab_p26/signal_null_battery.{json,md}`, `tests/test_bab_p26_signal_null.py`. 24/25 acceptance tests GREEN (the 1 remaining failure is a pre-existing 6th-decimal rounding mismatch in `test_null_stats_consistent`, unrelated to this work; z_score computation is internally consistent). Observed rank mean OOS Sharpe 0.437311, equal 0.170267 — both reproduce P25 WP2 to 6 dp. Verdict **NO-SIGNAL** (rank p=0.286, equal p=0.359; the SIGNAL condition `p_rank < 0.05 AND p_equal > 0.05` is false because both p-values are < 0.05 — correct anti-victory outcome on the no-alpha fixture). Null stability: equal null_mean −0.348 (|null_mean| < 1.0), rank null_mean −0.348; all null Sharpes within ±10; 1000 replications. ruff clean, full gate GREEN.
 - **P26 WP1 — COMPLETE** — All 3 deliverables committed: `scripts/bab_p26_regime_stress.py`, `research_state/bab_p26/regime_stress.{json,md}`, `tests/test_bab_p26_regime_stress.py`. 23/23 acceptance tests GREEN, ruff clean, bab_quick.sh GREEN (104+195). Split P25 WP0 fixture into calm (3 folds: 0, 3, 4) vs stress (2 folds: 1, 2) by 60-day rolling BTC volatility median split. Falsification gate result: Assertion A (calm rank > 0) **PASSES** (rank 0.817); Assertion B (stress rank < equal) **FAILS** (rank −0.133 > equal −0.842). Gate NOT passed — valid falsification outcome; the rank premium does not survive regime stress on the no-alpha synthetic fixture. All folds 40/40 nonflat rows, beta-neutral per fold, deterministic byte-identical JSON, fixture SHA256 provenance matching WP0.
 - **P26 WP2 — COMPLETE** — All 3 deliverables committed: `scripts/bab_rank_capacity.py`, `research_state/bab_p26/rank_capacity.{json,md}`, `tests/test_bab_p26_rank_capacity.py`. 26 acceptance tests GREEN, ruff clean, bab_quick.sh GREEN (104+195), reconcile GREEN, full gate GREEN 7046 passed / 35 skipped / TOTAL 100%. Sweep gross caps [1.0, 2.0, 3.0, 4.0] x rebalance freqs [daily, weekly, monthly] on identical causal folds from P25 WP0 fixture read-only (train 180 / test 40, `rank_min_leg_beta=0.20`, `rank_max_gross=<cell cap>`); per-cell OOS Sharpe/turnover/wealth/capacity break-even for rank vs equal; byte-identical deterministic JSON + markdown; fixture SHA256 provenance matches P25 WP0. Default cell (4.0, daily) reproduces P25 WP2 exactly: rank 0.437311 vs equal 0.170267 (delta +0.267044), both beta-neutral per fold; rank break-even AUM finite (~$1.63B), equal break-even None (net mean OOS return <= 0). Verdict **rank survives capacity** at the default cell — but this is a mechanical premium on a no-alpha fixture; WP0 (NO-SIGNAL) and WP1 (regime gate NOT passed) are the binding evidence for the closing decision.
@@ -55,7 +62,7 @@ Hard contract (P27 WP1, binding):
 
 **Conclusion:** no real alpha demonstrated → **no real-market deployment claim**. Real-market efficacy requires licensed market data (maintainer-supplied; Coinbase returns 403 here — never network-fetch). Do NOT edit the frozen P25 WP0 fixture to "plant" alpha to force SIGNAL; a mechanics-only planted-alpha fixture, if ever desired, is a NEW campaign (P27) with its own frozen fixture clearly labelled "planted mechanics, not market evidence."
 
-**No agent-binding next row exists.** P26 is the final agent-executable campaign. Remaining work is maintainer-external and explicitly NOT an agent task:
+**P26 is closed (NO-SIGNAL).** No further P26 work is agent-executable; the binding campaign is now **P27 (Production Execution Infrastructure & Live-Trading Readiness)** — see the INITIAL TASK MESSAGE at the top of this file. Remaining maintainer-external work (NOT an agent task):
 - CI gate enforcement (P19-1 `bab-gate` job / `ruff` / `bab_gate.sh` / `bab_reconcile_gate.sh` in `.github/workflows/main.yml`): agent token lacks `workflows:write` — maintainer must add via GitHub web UI or PAT. Do not re-attempt the push from an agent session.
 - Real-market data ingestion: licensed CSV is maintainer-supplied; `api.exchange.coinbase.com` returns 403 from this environment.
 
@@ -63,7 +70,7 @@ Future agents: do not idle-invent work beyond P27; do not declare P28 unless a m
 
 # CAMPAIGN P27 — PRE-DECLARED (BINDING)
 
-**Timestamp:** 2026-11-21T06:52:18Z · **Campaign:** P27 "Production Execution Infrastructure & Live-Trading Readiness" · **Binding row: WP0 — execution adapter hardening & dry-run paper campaign**
+**Timestamp:** 2026-11-21T09:20:00Z · **Campaign:** P27 "Production Execution Infrastructure & Live-Trading Readiness" · **Binding row: WP2 — reconciliation enforcement end-to-end** (WP0 & WP1 COMPLETE)
 
 **Why this campaign exists:** All research campaigns P20-P26 are complete. P26 returned NO-SIGNAL for rank-weighted BAB on the no-alpha synthetic fixture — no real alpha demonstrated, no real-market deployment claim. The bridge between completed research and real deployment is execution infrastructure: paper trading, dry-run live adapter, risk controls, and reconciliation enforcement. P27 hardens this infrastructure so that when licensed market data arrives (maintainer-supplied; Coinbase returns 403 — never network-fetch), the strategy can trade safely.
 
@@ -72,8 +79,8 @@ Future agents: do not idle-invent work beyond P27; do not declare P28 unless a m
 | Lane | WP | Deliverable files | Status |
 |---|---|---|---|
 | A | WP0 — execution adapter hardening & dry-run paper campaign | `scripts/bab_execution_hardening.py`, `research_state/bab_p27/execution_hardening.{json,md}`, `tests/test_bab_p27_execution_hardening.py` | COMPLETE |
-| B | WP1 — risk controls & kill switches | `scripts/bab_risk_controls.py`, `research_state/bab_p27/risk_controls.{json,md}`, `tests/test_bab_p27_risk_controls.py` | BINDING |
-| C | WP2 — reconciliation enforcement end-to-end | `scripts/bab_reconciliation_e2e.py`, `research_state/bab_p27/reconciliation_e2e.{json,md}`, `tests/test_bab_p27_reconciliation_e2e.py` | PRE-DECLARED |
+| B | WP1 — risk controls & kill switches | `scripts/bab_risk_controls.py`, `research_state/bab_p27/risk_controls.{json,md}`, `tests/test_bab_p27_risk_controls.py` | COMPLETE |
+| C | WP2 — reconciliation enforcement end-to-end | `scripts/bab_reconciliation_e2e.py`, `research_state/bab_p27/reconciliation_e2e.{json,md}`, `tests/test_bab_p27_reconciliation_e2e.py` | BINDING |
 | D | WP3 — production readiness decision | `docs/BAB_P27_DECISION.md`, `tests/test_bab_p27_decision_consistency.py`, `generate_p27_decision.py` | PRE-DECLARED |
 
 **P27 WP0 — execution adapter hardening & dry-run paper campaign (binding spec):**
@@ -86,9 +93,11 @@ Future agents: do not idle-invent work beyond P27; do not declare P28 unless a m
 7. Zero ruff errors on new files; 20+ acceptance tests pass; full gate 100% coverage.
 8. No edits to any P20-P26 artifact; P27 consumes them read-only.
 
-## P27 WP1 SPEC — risk controls & kill switches (BINDING now)
+## P27 WP1 SPEC — risk controls & kill switches (COMPLETE at HEAD `fcccb2d`)
 
-**Deliverables (to create):** `scripts/bab_risk_controls.py`, `research_state/bab_p27/risk_controls.json`, `research_state/bab_p27/risk_controls.md`, `tests/test_bab_p27_risk_controls.py`.
+**Status:** COMPLETE. All 4 deliverables committed at `fcccb2d`: `scripts/bab_risk_controls.py`, `research_state/bab_p27/risk_controls.json`, `research_state/bab_p27/risk_controls.md`, `tests/test_bab_p27_risk_controls.py`. 28 acceptance tests GREEN, ruff clean, deterministic byte-identical, fixture SHA256 `a6d390fc…163b` matches P25 WP0. Risk gates all trip (kill switch + flatten, per-leg weight rejection, gross exposure batch rejection, staleness position-age breach, `limit=None` byte-identical). Consumed read-only by future WPs; never edit.
+
+**Deliverables (landed):** `scripts/bab_risk_controls.py`, `research_state/bab_p27/risk_controls.json`, `research_state/bab_p27/risk_controls.md`, `tests/test_bab_p27_risk_controls.py`.
 
 **Hard contract (all of it is testable):**
 - Campaign is deterministic, seeded, no network. Single entry point `run_risk_controls()` returning results dict and writing JSON + markdown artifacts. `build_risk_controls()` does no writes.
@@ -102,7 +111,7 @@ Future agents: do not idle-invent work beyond P27; do not declare P28 unless a m
 - No edits to any P20-P26 artifact or any P27 WP0 artifact; P27 WP1 consumes them read-only.
 - Full gate: `python3 -m ruff check .` PASS; `bash scripts/bab_quick.sh` GREEN; `BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh` GREEN.
 
-## P27 WP2 SPEC — reconciliation enforcement end-to-end (PRE-DECLARED)
+## P27 WP2 SPEC — reconciliation enforcement end-to-end (BINDING now)
 
 **Deliverables (to create):** `scripts/bab_reconciliation_e2e.py`, `research_state/bab_p27/reconciliation_e2e.json`, `research_state/bab_p27/reconciliation_e2e.md`, `tests/test_bab_p27_reconciliation_e2e.py`.
 
@@ -131,27 +140,27 @@ Future agents: do not idle-invent work beyond P27; do not declare P28 unless a m
 **P27 rules:**
 1. P27 consumes P20-P26 artifacts read-only; never regenerates them.
 2. One WP per session; pre-declared rows are binding when reached.
-3. P27 WP1 is the binding row now.
+3. P27 WP2 is the binding row now (WP0 & WP1 COMPLETE).
 4. Same hard gates, same forbidden list, same work quantum as P25/P26.
 5. P27 is production-readiness: it validates safe execution before any real-market claim; it never forces a predetermined outcome.
 
 ---
 
-## P27 no-idle ladder (if WP1 is blocked, do the next rung — never end a session empty-handed)
+## P27 no-idle ladder (if WP2 is blocked, do the next rung — never end a session empty-handed)
 
-1. WP1 feels large? Build incrementally: (a) write `scripts/bab_risk_controls.py` with `build_risk_controls()` (no writes) and `run_risk_controls()` (writes JSON + markdown); (b) implement one kill-switch gate at a time (max drawdown → max position weight → max staleness → gross exposure cap); (c) wire the stress-scenario battery (a)-(e); (d) write `tests/test_bab_p27_risk_controls.py` (20+ tests); (e) regenerate `research_state/bab_p27/risk_controls.{json,md}`. Commit each slice with tests.
-2. Blocked on risk controls? Add one missing assertion to P27 WP1 consistency test. Something landable always exists.
-3. Never end a session without landing a tested slice of P27 WP1 or a P27 WP2/WP3 pre-declared deliverable.
+1. WP2 feels large? Build incrementally: (a) read `scripts/bab_execution_hardening.py` `_run_reconciliation` (lines 431-476) and `strategies/betting_against_beta/reconciliation.py` signatures (`reconcile_costs`, `reconcile_fills_to_backtest`, `evaluate_reconciliation_gate`); (b) write `scripts/bab_reconciliation_e2e.py` with `build_reconciliation_e2e()` (no writes) and `run_reconciliation_e2e()` (writes JSON + markdown); (c) wire the stress-scenario battery (a)-(e) for drift-above-tolerance, tolerance-exactly-equal, mismatch-above-limit, emit-only, clean; (d) write `tests/test_bab_p27_reconciliation_e2e.py` (20+ tests); (e) regenerate `research_state/bab_p27/reconciliation_e2e.{json,md}`. Commit each slice with tests.
+2. Blocked on reconciliation e2e? Add one missing assertion to a P27 WP1/WP0 consistency test. Something landable always exists.
+3. Never end a session without landing a tested slice of P27 WP2 or a P27 WP3 pre-declared deliverable.
 
 ---
 
 # MANDATORY FIRST ACTIONS (next session — P27 binding)
 
 Run in order:
-1. `git log --oneline -4 && git status --short` — working tree must be clean.
-2. `bash scripts/bab_quick.sh` (≈20 s, must be GREEN).
+1. `git log --oneline -4 && git status --short` — working tree must be clean; HEAD must be `fcccb2d` or later.
+2. `bash scripts/bab_quick.sh` (≈20 s, must be GREEN: 104 + 195).
 3. `python3 -m ruff check .` and `bash scripts/bab_reconcile_gate.sh` (must pass/GREEN).
-4. Land P27 WP1 in one commit + green full gate. No docs-only session; no idle.
+4. Land P27 WP2 in one commit + green full gate. No docs-only session; no idle.
 
 ---
 
@@ -412,6 +421,7 @@ Inner loop: `bash scripts/bab_quick.sh` + `python3 -m pytest -q tests/test_bab_p
 - **[PERMANENTLY EXTERNAL] Real market data ingestion.** `api.exchange.coinbase.com` returns 403 from this environment; a licensed CSV is maintainer-supplied. Never a P21/P22/P23 task; P24 WP3 handles it as an offline fixture only.
 - **[REMOVED 2026-11-21T05:49:54Z] Pre-existing `test_null_stats_consistent` bottleneck (certified unrelated — do not chase).** `tests/test_bab_p26_signal_null.py::test_null_stats_consistent` fails on a 6th-decimal z-score rounding mismatch (committed `z_score` stored at 4 dp vs test recompute at 6 dp) in the read-only P26 WP0 artifact. It is not caused by WP3, the artifact is read-only, and editing/xfail/deleting it is forbidden. Future agents must treat it as a known pre-existing condition, not a regression from their work; the WP3 deliverables (decision doc, generator, consistency test) are independent and fully green (20/20, ruff clean, generator byte-identical).
 - **[REMOVED 2026-11-21T07:57:00Z] No P27 bottleneck.** Gate baseline re-verified green at HEAD `712f87d`: ruff PASS, `bab_quick.sh` GREEN (195 passed), `bab_reconcile_gate.sh` GREEN (drift rc=2, clean rc=0, emit-only rc=0), working tree CLEAN. P27 WP0 COMPLETE; P27 WP1 binding row (`scripts/bab_risk_controls.py`, `research_state/bab_p27/risk_controls.{json,md}`, `tests/test_bab_p27_risk_controls.py`) deliverables do not exist — ready to start. All P20-P26 artifacts intact and read-only. No blocking condition remains for P27 WP1.
+- **[REMOVED 2026-11-21T09:20:00Z] Stale HANDOFF.md — P27 WP1 was COMPLETE but handoff still claimed it was the missing binding row.** P27 WP1 deliverables (`scripts/bab_risk_controls.py`, `research_state/bab_p27/risk_controls.{json,md}`, `tests/test_bab_p27_risk_controls.py`) were committed at HEAD `fcccb2d` (1090 insertions) and verified GREEN this session (28 acceptance tests pass, ruff clean on whole repo, fixture SHA256 `a6d390fc…163b` matches P25 WP0, quick gate GREEN 104+195, reconcile gate GREEN drift rc=2 / clean rc=0 / emit-only rc=0). The prior INITIAL TASK MESSAGE still routed the next session to "P27 WP1 — risk controls & kill switches" as if its deliverables did not exist — that would have caused a duplicate/redo session and stalled the campaign. Binding row re-routed to **P27 WP2 — reconciliation enforcement end-to-end** (Lane C): `scripts/bab_reconciliation_e2e.py`, `research_state/bab_p27/reconciliation_e2e.{json,md}`, `tests/test_bab_p27_reconciliation_e2e.py` (none exist yet). All P27 WP2/WP3 specs, hard contracts, and reference patterns (`_run_reconciliation` in `scripts/bab_execution_hardening.py` lines 431-476; `reconcile_costs`/`reconcile_fills_to_backtest`/`evaluate_reconciliation_gate` in `strategies/betting_against_beta/reconciliation.py`) pre-declared so future agents cannot idle past WP2. Working tree CLEAN; HEAD `fcccb2d`. No other bottleneck remains.
 
 ---
 
@@ -419,6 +429,7 @@ Inner loop: `bash scripts/bab_quick.sh` + `python3 -m pytest -q tests/test_bab_p
 
 | Session (UTC) | HEAD | Did | Gate |
 |---|---|---|---|
+| 2026-11-21T09:20:00Z | `fcccb2d` | **HANDOFF refresh — stale-WP1-binding bottleneck removed; re-routed to P27 WP2.** Verified actual repo state vs handoff claims: P27 WP1 deliverables (`scripts/bab_risk_controls.py`, `research_state/bab_p27/risk_controls.{json,md}`, `tests/test_bab_p27_risk_controls.py`) are COMPLETE and committed at HEAD `fcccb2d` (1090 insertions), but the prior INITIAL TASK MESSAGE still routed the next session to "P27 WP1 — risk controls & kill switches" as if its deliverables did not exist — a duplicate-work/stale-handoff bottleneck. Re-verified baseline green this session: ruff PASS (whole repo), `bab_quick.sh` GREEN (104 + 195), `bab_reconcile_gate.sh` GREEN (drift rc=2, clean rc=0, emit-only rc=0), `pytest tests/test_bab_p27_risk_controls.py` GREEN (28 passed), fixture SHA256 `a6d390fc…163b` matches P25 WP0. Binding row re-routed to **P27 WP2 — reconciliation enforcement end-to-end** (Lane C): `scripts/bab_reconciliation_e2e.py`, `research_state/bab_p27/reconciliation_e2e.{json,md}`, `tests/test_bab_p27_reconciliation_e2e.py` (none exist yet). WP2 hard contract, stress-scenario battery (a)-(e), and reference patterns (`_run_reconciliation` in `scripts/bab_execution_hardening.py` lines 431-476; `reconcile_costs`/`reconcile_fills_to_backtest`/`evaluate_reconciliation_gate` in `strategies/betting_against_beta/reconciliation.py`) declared in INITIAL TASK MESSAGE so future agents cannot idle past WP2. Repo name = *Crypto-Betting-Against-Beta*: the beta bet must be executable safely before any capital is at risk; P27 WP2 closes the reconciliation-enforcement gap before the WP3 production-readiness decision. No parallel handoff docs exist; HANDOFF.md is the single source of truth. | ruff PASS; quick GREEN (104+195); reconcile GREEN; WP1 28/28 GREEN; tree CLEAN |
 | 2026-11-21T07:53:06Z | `712f87d` | **HANDOFF refresh for P27 WP1 binding row.** P27 WP0 COMPLETE at HEAD `712f87d` (execution adapter hardening & dry-run paper campaign: 13,858 orders + 398 diagnostics, lifecycle valid, risk gates all trip, reconciliation enforced, byte-identical deterministic, fixture SHA256 matches P25 WP0; 39 acceptance tests GREEN, ruff clean). Working tree CLEAN; baseline re-verified green (ruff PASS, quick GREEN 104+195, reconcile GREEN). Stale INITIAL TASK MESSAGE contradiction removed (it claimed P27 WP0 undone; WP0 is committed). Binding row re-routed to **P27 WP1 — risk controls & kill switches** (Lane B): `scripts/bab_risk_controls.py`, `research_state/bab_p27/risk_controls.{json,md}`, `tests/test_bab_p27_risk_controls.py`. P27 WP2 (reconciliation enforcement) and WP3 (production readiness decision) pre-declared with hard contracts so future agents cannot idle past them. Repo name = *Crypto-Betting-Against-Beta*: the beta bet must be executable safely before any capital is at risk; P27 is the production-readiness campaign future agents cannot avoid. | ruff PASS; quick GREEN (104+195); reconcile GREEN; tree CLEAN |
 | 2026-11-21T07:57:02Z | `712f87d` | **HANDOFF refreshed for P27 WP1 binding row — no bottlenecks, gate green.** Repo name = *Crypto-Betting-Against-Beta*: the whole repo is a bet against beta; P27 WP1 — risk controls & kill switches — is the binding row with all deliverables missing (`scripts/bab_risk_controls.py`, `research_state/bab_p27/risk_controls.{json,md}`, `tests/test_bab_p27_risk_controls.py`). Added P27 no-idle ladder (incremental slices, never end session empty-handed) and P27 bottleneck removal (all gates green, tree clean, no blocking condition). INITIAL TASK MESSAGE remains the single source of truth for the next session. P27 WP2 (reconciliation enforcement) and WP3 (production readiness decision) pre-declared with hard contracts so future agents cannot idle past WP1. | ruff PASS; quick GREEN (195); reconcile GREEN; tree CLEAN |
 | 2026-11-21T07:55:32Z | `712f87d` | **State re-verified for P27 WP1 binding row.** Confirmed P27 WP0 artifacts present and green: `scripts/bab_execution_hardening.py`, `tests/test_bab_p27_execution_hardening.py`, `research_state/bab_p27/execution_hardening.{json,md}`; ruff PASS, `bab_quick.sh` GREEN (195 passed), `bab_reconcile_gate.sh` GREEN (drift rc=2, clean rc=0, emit-only rc=0), working tree CLEAN. P27 WP1 deliverables still missing: `scripts/bab_risk_controls.py`, `research_state/bab_p27/risk_controls.{json,md}`, `tests/test_bab_p27_risk_controls.py`. Binding row unchanged: **P27 WP1 — risk controls & kill switches** (Lane B). No bottlenecks remain; prior bottleneck removals stand. INITIAL TASK MESSAGE timestamp refreshed to 2026-11-21T07:55:32Z. | ruff PASS; quick GREEN (195); reconcile GREEN; tree CLEAN |
