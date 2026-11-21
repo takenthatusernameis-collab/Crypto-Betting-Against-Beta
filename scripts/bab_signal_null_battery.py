@@ -54,6 +54,7 @@ if str(_REPO_ROOT) not in sys.path:
 
 from strategies.betting_against_beta import BABStrategy, metrics  # noqa: E402
 from strategies.betting_against_beta.backtest import run_backtest  # noqa: E402
+from strategies.betting_against_beta.beta import calculate_rolling_beta  # noqa: E402
 from strategies.betting_against_beta.data_loader import load_prices  # noqa: E402
 from strategies.betting_against_beta.portfolio import (  # noqa: E402
     construct_portfolio,
@@ -61,7 +62,6 @@ from strategies.betting_against_beta.portfolio import (  # noqa: E402
     enforce_beta_neutrality,
 )
 from strategies.betting_against_beta.signals import generate_bab_signals  # noqa: E402
-from strategies.betting_against_beta.beta import calculate_rolling_beta  # noqa: E402
 
 SCHEMA = "bab_p26.signal_null_battery/1"
 FIXTURE_CSV = _REPO_ROOT / "tests" / "fixtures" / "wide_bab_universe.csv"
@@ -128,7 +128,9 @@ def _strategy_config(weighting: str) -> dict:
     )
 
 
-def _score_observed_fold(returns: pd.DataFrame, weighting: str, test_start: int, test_end: int) -> float:
+def _score_observed_fold(
+    returns: pd.DataFrame, weighting: str, test_start: int, test_end: int
+) -> float:
     """Observed OOS mean Sharpe for one weighting on one fold (P25 WP2 path)."""
     result = BABStrategy(**_strategy_config(weighting)).run(returns_df=returns.iloc[:test_end])
     backtest = result.backtest
@@ -148,8 +150,8 @@ def _fold_plan(returns: pd.DataFrame, betas: pd.DataFrame, signals: pd.DataFrame
             c
             for c in betas_fold.columns
             if c != BENCHMARK
-            and betas_fold[c].notna().all()
-            and (betas_fold[c] > 0.0).all()
+            and betas_fold[c].notna().any()
+            and (betas_fold[c].dropna() > 0.0).all()
         ]
         plan.append(
             {
@@ -164,7 +166,9 @@ def _fold_plan(returns: pd.DataFrame, betas: pd.DataFrame, signals: pd.DataFrame
     return plan
 
 
-def _null_signals(returns: pd.DataFrame, train_end: int, test_end: int, longs, shorts) -> pd.DataFrame:
+def _null_signals(
+    returns: pd.DataFrame, train_end: int, test_end: int, longs, shorts
+) -> pd.DataFrame:
     """Build an all-zero signals frame with one random long/short set held for
     every row in [0, test_end) (the draw is fixed across all rows of the fold)."""
     signals_null = pd.DataFrame(
@@ -197,7 +201,13 @@ def _construct_null_weights(signals_null, betas, weighting: str) -> pd.DataFrame
 
 def _score_null_fold(returns, betas, fold, rng, weighting: str) -> float:
     """One null OOS Sharpe for one weighting on one fold: a single random
-    long/short draw fixed across all rows of the fold."""
+    long/short draw fixed across all rows of the fold.
+
+    For ``weighting="rank"`` the random draw is sorted by mean test-slice beta
+    so the lowest-beta assets go long and the highest-beta assets go short,
+    matching the Frazzini-Pedersen leg direction that ``construct_rank_weights``
+    requires. For ``weighting="equal"`` the draw stays unsorted (random legs).
+    """
     test_start = fold["test_start"]
     test_end = fold["test_end"]
     eligible = fold["eligible"]
@@ -206,8 +216,15 @@ def _score_null_fold(returns, betas, fold, rng, weighting: str) -> float:
     if n_long + n_short > len(eligible):
         return float("nan")
     perm = rng.permutation(eligible)
-    longs = list(perm[:n_long])
-    shorts = list(perm[n_long : n_long + n_short])
+    draw = list(perm[: n_long + n_short])
+    if weighting == "rank":
+        beta_mean = betas.iloc[test_start:test_end][draw].mean()
+        draw_sorted = sorted(draw, key=lambda c: beta_mean[c])
+        longs = draw_sorted[:n_long]
+        shorts = draw_sorted[n_long:]
+    else:
+        longs = draw[:n_long]
+        shorts = draw[n_long:]
     signals_null = _null_signals(returns, fold["train_end"], test_end, longs, shorts)
     weights = _construct_null_weights(signals_null, betas.iloc[:test_end], weighting)
     backtest = run_backtest(
@@ -280,11 +297,14 @@ def build_signal_null_battery(fixture_path: str | Path = FIXTURE_CSV) -> dict:
     if n_rows < needed:
         raise ValueError(f"fixture has {n_rows} return rows but battery needs {needed}")
     fixture_sha = _sha256(path)
-    betas = calculate_rolling_beta_needed = None
-    from strategies.betting_against_beta.beta import calculate_rolling_beta  # noqa: E402
+    betas = None
 
-    betas = calculate_rolling_beta(returns, BENCHMARK, window=BETA_WINDOW, min_obs=MIN_OBSERVATIONS)
-    signals = generate_bab_signals(betas, long_quantile=LONG_QUANTILE, short_quantile=SHORT_QUANTILE)
+    betas = calculate_rolling_beta(
+        returns, BENCHMARK, window=BETA_WINDOW, min_obs=MIN_OBSERVATIONS
+    )
+    signals = generate_bab_signals(
+        betas, long_quantile=LONG_QUANTILE, short_quantile=SHORT_QUANTILE
+    )
     plan = _fold_plan(returns, betas, signals)
 
     # --- Observed: reproduce P25 WP2 (rank 0.437311, equal 0.170267) -------
@@ -360,7 +380,12 @@ def build_signal_null_battery(fixture_path: str | Path = FIXTURE_CSV) -> dict:
 
     p_rank = weighting_stats["rank"]["p_value"]
     p_equal = weighting_stats["equal"]["p_value"]
-    verdict = "SIGNAL" if (p_rank is not None and p_equal is not None and p_rank < P_LEVEL and p_equal > P_LEVEL) else "NO-SIGNAL"
+    verdict = (
+        "SIGNAL"
+        if (p_rank is not None and p_equal is not None
+            and p_rank < P_LEVEL and p_equal > P_LEVEL)
+        else "NO-SIGNAL"
+    )
 
     return {
         "schema": SCHEMA,
@@ -414,8 +439,10 @@ def render_markdown(payload: dict) -> str:
         "",
         f"**Verdict:** {payload['verdict']}",
         f"**Verdict rule:** {payload['verdict_rule']}",
-        f"**Seed:** {payload['seed']}  |  **Null replications:** {payload['n_null_replications']}  |  **Folds:** {payload['n_folds']}",
-        f"**Fixture:** tests/fixtures/wide_bab_universe.csv  |  **SHA256:** {payload['fixture_sha256']}",
+        f"**Seed:** {payload['seed']}  |  **Null replications:** "
+        f"{payload['n_null_replications']}  |  **Folds:** {payload['n_folds']}",
+        f"**Fixture:** tests/fixtures/wide_bab_universe.csv  |  **SHA256:** "
+        f"{payload['fixture_sha256']}",
         "",
         "## Observed mean OOS Sharpe (reproduces P25 WP2 bake-off)",
         "",
@@ -433,7 +460,8 @@ def render_markdown(payload: dict) -> str:
     lines.append("## Null distribution vs observed (per weighting)")
     lines.append("")
     lines.append(
-        "| weighting | observed | null_mean | null_std | null_min | null_max | p_value | z_score | percentile |"
+        "| weighting | observed | null_mean | null_std | null_min | null_max | "
+        "p_value | z_score | percentile |"
     )
     lines.append(
         "|---|---|---|---|---|---|---|---|---|"
@@ -441,9 +469,11 @@ def render_markdown(payload: dict) -> str:
     for weighting in WEIGHTINGS:
         st = payload["null"][weighting]
         lines.append(
-            f"| {weighting} | {_format(st['observed_mean_oos_sharpe'])} | {_format(st['null_mean'])} | "
-            f"{_format(st['null_std'])} | {_format(st['null_min'])} | {_format(st['null_max'])} | "
-            f"{_format(st['p_value'])} | {_format(st['z_score'])} | {_format(st['empirical_percentile'])} |"
+            f"| {weighting} | {_format(st['observed_mean_oos_sharpe'])} | "
+            f"{_format(st['null_mean'])} | {_format(st['null_std'])} | "
+            f"{_format(st['null_min'])} | {_format(st['null_max'])} | "
+            f"{_format(st['p_value'])} | {_format(st['z_score'])} | "
+            f"{_format(st['empirical_percentile'])} |"
         )
     lines.append("")
     lines.append("## Conclusion")
@@ -462,11 +492,10 @@ def render_markdown(payload: dict) -> str:
     lines.append("## Provenance")
     lines.append("")
     prov = payload["provenance"]
-    for key in (
+    lines.extend(f"- {key}: {prov.get(key)}" for key in (
         "fixture_path", "fixture_sha256", "return_rows", "date_first", "date_last",
         "seed", "synthetic", "provenance", "no_lookahead", "rank_rule", "verdict_rule",
-    ):
-        lines.append(f"- {key}: {prov.get(key)}")
+    ))
     return "\n".join(lines) + "\n"
 
 
