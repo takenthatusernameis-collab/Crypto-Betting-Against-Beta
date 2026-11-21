@@ -2,12 +2,12 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-21T06:32:00Z
-- **Git state:** HEAD `c012572` (P26 COMPLETE — signal-to-noise closing decision NO-SIGNAL for `weighting="rank"`; WP0-WP3 all COMPLETE; generator byte-identical; ruff clean). Working tree: **CLEAN**. Baseline re-verified: `python3 -m ruff check .` PASS (2026-11-21T06:30:46Z), `bash scripts/bab_quick.sh` GREEN (104+195 = 299 passed), `bash scripts/bab_reconcile_gate.sh` GREEN (drift rc=2, clean rc=0, emit-only rc=0). Full gate: quick+reconcile GREEN; the only suite failure is the pre-existing P26 WP0 `test_null_stats_consistent` 6th-decimal z-score rounding mismatch in the read-only `tests/test_bab_p26_signal_null.py` — certified unrelated, do not chase/edit it. Certify with `git log --oneline -4 && git status --short`.
+- **Timestamp (UTC):** 2026-11-21T06:51:03Z
+- **Git state:** HEAD `c012572` (P26 COMPLETE — signal-to-noise closing decision NO-SIGNAL for `weighting="rank"`; WP0-WP3 all COMPLETE; generator byte-identical; ruff clean). Working tree: **CLEAN**. Baseline re-verified: `python3 -m ruff check .` PASS, `bash scripts/bab_quick.sh` GREEN (104+195 = 299 passed), `bash scripts/bab_reconcile_gate.sh` GREEN (drift rc=2, clean rc=0, emit-only rc=0). Full gate: quick+reconcile GREEN; the only suite failure is the pre-existing P26 WP0 `test_null_stats_consistent` 6th-decimal z-score rounding mismatch in the read-only `tests/test_bab_p26_signal_null.py` — certified unrelated, do not chase/edit it. Certify with `git log --oneline -4 && git status --short`.
 
 ---
 
-# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-21T06:32:00Z)
+# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-21T06:51:03Z)
 
 **Repo name = Crypto-Betting-Against-Beta:** the whole repo is a bet against beta. Campaign P26 "Signal-to-Noise Validation of Rank-Weighted BAB" is CLOSED (WP0-WP3 all COMPLETE, NO-SIGNAL verdict: no real alpha on the no-alpha synthetic fixture → no real-market deployment claim). All research campaigns P20-P26 are complete. The remaining agent-executable heavy work is **P27 "Production Execution Infrastructure & Live-Trading Readiness"** — hardening the execution adapters, risk controls, and end-to-end paper trading so the strategy is safe to deploy when licensed market data arrives (maintainer-external; Coinbase returns 403 — never network-fetch).
 
@@ -65,7 +65,7 @@ Future agents: do not idle-invent work beyond P27; do not declare P28 unless a m
 
 # CAMPAIGN P27 — PRE-DECLARED (BINDING)
 
-**Timestamp:** 2026-11-21T06:32:00Z · **Campaign:** P27 "Production Execution Infrastructure & Live-Trading Readiness" · **Binding row: WP0 — execution adapter hardening & dry-run paper campaign**
+**Timestamp:** 2026-11-21T06:51:03Z · **Campaign:** P27 "Production Execution Infrastructure & Live-Trading Readiness" · **Binding row: WP0 — execution adapter hardening & dry-run paper campaign**
 
 **Why this campaign exists:** All research campaigns P20-P26 are complete. P26 returned NO-SIGNAL for rank-weighted BAB on the no-alpha synthetic fixture — no real alpha demonstrated, no real-market deployment claim. The bridge between completed research and real deployment is execution infrastructure: paper trading, dry-run live adapter, risk controls, and reconciliation enforcement. P27 hardens this infrastructure so that when licensed market data arrives (maintainer-supplied; Coinbase returns 403 — never network-fetch), the strategy can trade safely.
 
