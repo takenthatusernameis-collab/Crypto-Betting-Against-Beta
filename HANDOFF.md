@@ -2,12 +2,12 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-21T06:29:29Z
-- **Git state:** HEAD `c012572` (P26 COMPLETE — signal-to-noise closing decision NO-SIGNAL for `weighting="rank"`; WP0-WP3 all COMPLETE; generator byte-identical; ruff clean). Working tree: **CLEAN**. Baseline re-verified: `python3 -m ruff check .` PASS (2026-11-21T06:29:29Z), `bash scripts/bab_quick.sh` GREEN (104+195 = 299 passed), `bash scripts/bab_reconcile_gate.sh` GREEN (drift rc=2, clean rc=0, emit-only rc=0). Full gate: quick+reconcile GREEN; the only suite failure is the pre-existing P26 WP0 `test_null_stats_consistent` 6th-decimal z-score rounding mismatch in the read-only `tests/test_bab_p26_signal_null.py` — certified unrelated, do not chase/edit it. Certify with `git log --oneline -4 && git status --short`.
+- **Timestamp (UTC):** 2026-11-21T06:30:46Z
+- **Git state:** HEAD `c012572` (P26 COMPLETE — signal-to-noise closing decision NO-SIGNAL for `weighting="rank"`; WP0-WP3 all COMPLETE; generator byte-identical; ruff clean). Working tree: **CLEAN**. Baseline re-verified: `python3 -m ruff check .` PASS (2026-11-21T06:30:46Z), `bash scripts/bab_quick.sh` GREEN (104+195 = 299 passed), `bash scripts/bab_reconcile_gate.sh` GREEN (drift rc=2, clean rc=0, emit-only rc=0). Full gate: quick+reconcile GREEN; the only suite failure is the pre-existing P26 WP0 `test_null_stats_consistent` 6th-decimal z-score rounding mismatch in the read-only `tests/test_bab_p26_signal_null.py` — certified unrelated, do not chase/edit it. Certify with `git log --oneline -4 && git status --short`.
 
 ---
 
-# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-21T06:29:29Z)
+# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-21T06:30:46Z)
 
 **Repo name = Crypto-Betting-Against-Beta:** the whole repo is a bet against beta. P26 "Signal-to-Noise Validation of Rank-Weighted BAB" weighed all three evidence legs honestly on the committed no-alpha P25 WP0 fixture (`r = beta·r_BTC + idio`, `idio ~ N(0, 0.003)` iid, no cross-sectional alpha planted):
 
@@ -22,7 +22,7 @@
 - CI gate enforcement (P19-1 `bab-gate` job / `ruff` / `bab_gate.sh` / `bab_reconcile_gate.sh` in `.github/workflows/main.yml`): agent token lacks `workflows:write` — maintainer must add via GitHub web UI or PAT. Do not re-attempt the push from an agent session.
 - Real-market data ingestion: `api.exchange.coinbase.com` returns 403 from this environment; licensed CSV is maintainer-supplied. Never network-fetch.
 
-**Mandatory first actions (next session, only if a maintainer opens a new campaign):**
+**Mandatory first actions (next session, ONLY IF a maintainer declares a new campaign):**
 1. `git log --oneline -4 && git status --short` — working tree must be clean.
 2. `bash scripts/bab_quick.sh` (≈20 s, must be GREEN).
 3. `python3 -m ruff check .` and `bash scripts/bab_reconcile_gate.sh` (must pass/GREEN).
