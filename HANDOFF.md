@@ -2,12 +2,12 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-21T19:43:54Z (refreshed this session)
+- **Timestamp (UTC):** 2026-11-21T20:27:00Z (refreshed this session)
 - **Git state:** HEAD `2eeb04c`. Working tree clean. **P29 WP0 COMPLETE** (`scripts/bab_replay_full.py`, `scripts/bab_replay_gate.sh`, `tests/test_bab_p29_replay_coverage.py`, `bab_gate.sh` hook — 9 tests GREEN, ruff clean). **P29 WP1 COMPLETE** — implementation committed: `scripts/bab_replay_full.py --xproc`, `research_state/bab_p29/provenance_audit.json`, `tests/test_bab_p29_xproc_determinism.py`. All 8 artifacts have `replay_ok: true`, ledger deterministic, fixture SHA256 `a6d390fc755641ea28d14b8204615786fdc9a95733a87e4c3b63d66be64c163b` matches P25 WP0. **Verified this session:** `python3 -m ruff check .` PASS; `bash scripts/bab_quick.sh` GREEN; `bash scripts/bab_reconcile_gate.sh` GREEN; `pytest -q tests/test_bab_p29_replay_coverage.py` → **9 passed**. P28 WP0+WP1 COMPLETE; P28 WP2-WP4 maintainer-gated. No `research_state/**` P20-P28 modified.
 
 ---
 
-# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-21T19:43:54Z)
+# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-21T20:27:00Z)
 
 **Repo name = Crypto-Betting-Against-Beta:** the whole repo is a bet against beta, and its credibility rests entirely on the committed research numbers being **reproducible**. Research campaigns P20-P27 are COMPLETE and frozen. P26 = NO-SIGNAL (no real alpha on the no-alpha synthetic fixture → no real-market deployment claim on synthetic evidence). P27 execution infrastructure is production-ready on paper/dry-run but its WP3 verdict is **NOT-READY for live real-market deployment** (P26 NO-SIGNAL + no licensed market data here).
 
