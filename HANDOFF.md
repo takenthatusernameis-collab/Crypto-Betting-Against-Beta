@@ -2,7 +2,7 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-21T00:17:38Z
+- **Timestamp (UTC):** 2026-11-21T02:18:27Z
 - **Git state:** HEAD `363073f` (P25 WP3 `07c672d`; checkpoints `e2e25d0`→`b5024f1`→`363073f` touched HANDOFF.md only, no code change). Working tree: **CLEAN**. Baseline re-verified at this HEAD: `python3 -m ruff check .` PASS, `bash scripts/bab_quick.sh` GREEN (104+195), P25 WP0–WP3 artifacts intact, `research_state/bab_p26` does not yet exist. Certify with `git log --oneline -4 && git status --short`.
 - **P24 — COMPLETE** — All WPs landed, lint remediation done, full gate **GREEN 6959 passed / 35 skipped / TOTAL 100%**. No binding row remains in P24.
 - **P20-P23 — COMPLETE** — All campaigns closed per ledger. P20 WP0-WP5 (92 tests), P21 WP0-WP3 (56 tests), P22 WP0-WP3 (85 tests), P23 WP0-WP4 (80 tests), P24 WP0-WP4 (94 tests) all GREEN.
@@ -15,7 +15,7 @@
 
 # INITIAL TASK MESSAGE (BINDING — START HERE)
 
-**Timestamp:** 2026-11-21T00:17:38Z · **Campaign:** P26 "Signal-to-Noise Validation of Rank-Weighted BAB" · **Lane:** A · **WP:** **P26 WP0 — signal vs null battery (re-specified; valid beta-neutral-preserving null)**
+**Timestamp:** 2026-11-21T02:18:27Z · **Campaign:** P26 "Signal-to-Noise Validation of Rank-Weighted BAB" · **Lane:** A · **WP:** **P26 WP0 — signal vs null battery (re-specified; valid beta-neutral-preserving null)**
 
 **One-sentence objective:** Write the P26 WP0 signal-vs-null battery (`scripts/bab_signal_null_battery.py`, `research_state/bab_p26/signal_null_battery.{json,md}`, `tests/test_bab_p26_signal_null.py`) that compares the observed rank-weighted and equal-weight OOS mean Sharpe (5 causal folds, P25 WP0 wide fixture, read-only) against a **stable, beta-neutral-preserving permutation null** (B=1000 random long/short selections fixed per fold, each book built with the *same* construction as the observed book — rank via `construct_rank_weights`, equal via equal-weight + `enforce_beta_neutrality`), reporting p-value / z-score / empirical percentile for BOTH weightings, and recording an explicit **SIGNAL / NO-SIGNAL** verdict determined by the data (rank p<0.05 AND equal p>0.05 ⇒ SIGNAL; else NO-SIGNAL) — keeping `rank_min_leg_beta=0.20` / `rank_max_gross=4.0` unchanged, deterministic byte-identical artifacts, fixture SHA256 provenance matching P25 WP0, 20+ acceptance tests, green full gate.
 
