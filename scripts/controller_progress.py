@@ -98,7 +98,14 @@ def _is_excluded(path: str) -> bool:
 def list_meaningful_changes(base_sha: str, head_sha: str) -> list[str]:
     """Return the list of meaningful (non-excluded) changed file paths."""
     changed = _git_diff_names(base_sha, head_sha)
-    return [path for path in changed if not _is_excluded(path)]
+    out = []
+    for path in changed:
+        if not path or not path.strip():
+            continue
+        if _is_excluded(path.strip()):
+            continue
+        out.append(path.strip())
+    return out
 
 
 def has_meaningful_changes(base_sha: str, head_sha: str) -> bool:
@@ -111,12 +118,66 @@ def verify_remote_sha(head_sha: str, verified_remote_sha: str) -> bool:
     return head_sha == verified_remote_sha
 
 
+
+
+def _run_git(cwd, *args):
+    import subprocess
+    return subprocess.run(["git", *args], cwd=cwd, capture_output=True, text=True, check=True)
+
+
+def _self_test() -> int:
+    import os
+    import tempfile
+    tmp = tempfile.mkdtemp()
+    try:
+        _run_git(tmp, "init", "-q")
+        _run_git(tmp, "config", "user.email", "t@t.com")
+        _run_git(tmp, "config", "user.name", "t")
+        # commit 0: base
+        os.makedirs(os.path.join(tmp, "src"), exist_ok=True)
+        with open(os.path.join(tmp, "src", "x.py"), "w") as f:
+            f.write("x = 1\n")
+        _run_git(tmp, "add", "src/x.py")
+        _run_git(tmp, "commit", "-q", "-m", "base")
+        base = _run_git(tmp, "rev-parse", "HEAD").stdout.strip()
+        # commit 1: meaningful .py change
+        with open(os.path.join(tmp, "src", "x.py"), "w") as f:
+            f.write("x = 2\n")
+        _run_git(tmp, "add", "src/x.py")
+        _run_git(tmp, "commit", "-q", "-m", "meaningful")
+        head1 = _run_git(tmp, "rev-parse", "HEAD").stdout.strip()
+        # commit 2: workflow-only change
+        os.makedirs(os.path.join(tmp, ".github", "workflows"), exist_ok=True)
+        with open(os.path.join(tmp, ".github", "workflows", "ci.yml"), "w") as f:
+            f.write("name: ci\n")
+        _run_git(tmp, "add", ".github/workflows/ci.yml")
+        _run_git(tmp, "commit", "-q", "-m", "workflow")
+        head2 = _run_git(tmp, "rev-parse", "HEAD").stdout.strip()
+
+        # monkeypatch _git_diff_names to use temp repo by chdir? Instead call with cwd via env?
+        # We'll invoke git in temp repo by temporarily changing working dir.
+        orig_cwd = os.getcwd()
+        os.chdir(tmp)
+        try:
+            meaningful_case = list_meaningful_changes(base, head1)
+            workflow_case = list_meaningful_changes(head1, head2)
+        finally:
+            os.chdir(orig_cwd)
+
+        ok = bool(meaningful_case) and not bool(workflow_case)
+        print(json.dumps({"meaningful_case": meaningful_case,
+              "workflow_case": workflow_case, "pass": ok}))
+        return 0 if ok else 1
+    except Exception as e:
+        print(json.dumps({"error": str(e), "pass": False}))
+        return 1
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="Determine whether Git changes represent meaningful controller progress."
     )
-    parser.add_argument("--base-sha", required=True, help="Base commit SHA to compare against")
-    parser.add_argument("--head-sha", required=True, help="Head commit SHA to compare")
+    parser.add_argument("--base-sha", required=False, default="", help="Base commit SHA")
+    parser.add_argument("--head-sha", required=False, default="", help="Head commit SHA")
     parser.add_argument(
         "--verified-remote-sha",
         default=None,
@@ -127,7 +188,15 @@ def main() -> int:
         action="store_true",
         help="Emit a JSON object with the meaningful file list and verification result",
     )
+    parser.add_argument(
+        "--self-test",
+        action="store_true",
+        help="Run synthesized meaningful-vs-workflow-only commit checks in a temp repo",
+    )
     args = parser.parse_args()
+
+    if args.self_test:
+        return _self_test()
 
     # Delegate the progress decision to has_meaningful_changes so callers can
     # stub the predicate; the file list is only materialized for JSON output.
