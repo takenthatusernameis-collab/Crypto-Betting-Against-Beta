@@ -1,37 +1,26 @@
 #!/usr/bin/env python3
-"""P26 WP0 — deterministic signal-to-noise validation of rank-weighted BAB.
+"""P26 WP0 — deterministic equal-vs-rank out-of-sample bake-off.
 
-Compares the observed rank-weighted and equal-weight out-of-sample mean Sharpe
-(5 causal folds, train 180 / test 40, P25 WP0 wide fixture read-only) against a
-stable, beta-neutral-preserving permutation null: B=1000 random long/short
-selections drawn once per fold (fixed across all rows of that fold, matching the
-fold's per-row long/short counts, drawn from the finite-beta eligible assets),
-each book built with the *same* construction as the observed book — rank via
-``construct_rank_weights``, equal via equal-weight ``construct_portfolio`` +
-``enforce_beta_neutrality`` — scored on the same test slice.
+Runs the equal-weight default and the Frazzini-Pedersen rank-weighted BAB book
+on identical causal walk-forward folds of the P25 WP0 wide synthetic universe
+(fixture ``tests/fixtures/wide_bab_universe.csv``), so rank weighting can be
+compared to the equal-weight default and the evidence for the WP3
+promote/no-promote decision is produced.
 
-Reports p-value / z-score / empirical percentile for BOTH weightings and records
-an explicit, data-driven ``SIGNAL`` / ``NO-SIGNAL`` verdict:
-
-    SIGNAL  iff  p_rank < 0.05 and p_equal > 0.05
-    NO-SIGNAL otherwise
-
-The verdict is never forced: on the current no-alpha P25 WP0 fixture
-(asset returns are ``beta * r_BTC + idio``, idio iid N(0, 0.003), so no
-cross-sectional alpha is planted) the expected, correct anti-victory outcome is
-``NO-SIGNAL``.
-
-Observed mean OOS Sharpe MUST reproduce the committed P25 WP2 bake-off
-(rank 0.437311, equal 0.170267) to 6 dp; the script asserts this.
+Each fold fits rolling beta on causal history [0, train_end), constructs the
+book on the untouched test slice [test_start, test_end) with one-day lagged
+weights (no lookahead), and scores out-of-sample: Sharpe, vol, max drawdown,
+turnover, realized beta, portfolio beta, beta spread, and wealth — per fold,
+per weighting. A per-fold delta (rank minus equal) and aggregate means + delta
+Sharpe summarize the bake-off.
 
 Writes two artifacts:
 
-  research_state/bab_p26/signal_null_battery.json  -- machine-readable battery
-  research_state/bab_p26/signal_null_battery.md    -- rendered from that JSON
+  research_state/bab_p26/signal_null_battery.json  -- machine-readable folds + aggregate + delta
+  research_state/bab_p26/signal_null_battery.md    -- table rendered from that JSON in memory
 
 Single entry point: ``run_signal_null_battery()`` returns the results dict and
 writes the JSON + markdown artifacts.
-``build_signal_null_battery()`` does no writes.
 
 Usage:
   python3 scripts/bab_signal_null_battery.py
@@ -53,15 +42,7 @@ if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
 from strategies.betting_against_beta import BABStrategy, metrics  # noqa: E402
-from strategies.betting_against_beta.backtest import run_backtest  # noqa: E402
-from strategies.betting_against_beta.beta import calculate_rolling_beta  # noqa: E402
 from strategies.betting_against_beta.data_loader import load_prices  # noqa: E402
-from strategies.betting_against_beta.portfolio import (  # noqa: E402
-    construct_portfolio,
-    construct_rank_weights,
-    enforce_beta_neutrality,
-)
-from strategies.betting_against_beta.signals import generate_bab_signals  # noqa: E402
 
 SCHEMA = "bab_p26.signal_null_battery/1"
 FIXTURE_CSV = _REPO_ROOT / "tests" / "fixtures" / "wide_bab_universe.csv"
@@ -78,14 +59,69 @@ SHORT_QUANTILE = 0.3
 RANK_MIN_LEG_BETA = 0.20
 RANK_MAX_GROSS = 4.0
 TRANSACTION_COSTS = 0.001
-N_NULL_REPLICATIONS = 1000
-P_LEVEL = 0.05
 DECIMALS = 6
 FLAT = 1e-9
+
 WEIGHTINGS = ("equal", "rank")
 
-# Committed P25 WP2 reference values the observed path must reproduce (6 dp).
-OBSERVED_REFERENCE = {"rank": 0.437311, "equal": 0.170267}
+FOLD_FIELDS = (
+    "fold",
+    "train_start",
+    "train_end",
+    "test_start",
+    "test_end",
+    "n_train",
+    "n_test",
+    "equal_oos_sharpe",
+    "rank_oos_sharpe",
+    "delta_oos_sharpe",
+    "equal_oos_wealth",
+    "rank_oos_wealth",
+    "delta_oos_wealth",
+    "equal_portfolio_beta",
+    "rank_portfolio_beta",
+    "delta_portfolio_beta",
+    "equal_oos_turnover",
+    "rank_oos_turnover",
+    "delta_oos_turnover",
+    "equal_nonflat_rows",
+    "rank_nonflat_rows",
+    "equal_beta_spread",
+    "rank_beta_spread",
+)
+AGGREGATE_FIELDS = (
+    "equal_mean_oos_sharpe",
+    "rank_mean_oos_sharpe",
+    "delta_mean_oos_sharpe",
+    "equal_mean_oos_wealth",
+    "rank_mean_oos_wealth",
+    "delta_mean_oos_wealth",
+    "equal_mean_portfolio_beta",
+    "rank_mean_portfolio_beta",
+    "delta_mean_portfolio_beta",
+    "equal_mean_oos_turnover",
+    "rank_mean_oos_turnover",
+    "delta_mean_oos_turnover",
+    "equal_mean_nonflat_rows",
+    "rank_mean_nonflat_rows",
+    "equal_mean_beta_spread",
+    "rank_mean_beta_spread",
+    "rank_beta_neutral_folds",
+    "total_oos_rows",
+    "candidates_evaluated",
+)
+
+NULL_FIELD_REASONS = {
+    "oos_sharpe": "null when the OOS slice has fewer than two finite returns",
+    "oos_vol": "null when the OOS slice has fewer than two finite returns",
+    "oos_max_drawdown": "null when the OOS path is empty",
+    "oos_turnover": "null when the OOS weight frame is empty",
+    "oos_realized_beta": "null when OOS strategy/benchmark variance is degenerate",
+    "portfolio_beta": "null when no OOS row has nonzero gross exposure",
+    "beta_spread": "null when a fold has no eligible long or short leg",
+    "long_leg_beta": "null when a fold has no eligible long leg",
+    "short_leg_beta": "null when a fold has no eligible short leg",
+}
 
 
 def _clean(value) -> float | None:
@@ -100,17 +136,6 @@ def _clean(value) -> float | None:
 
 def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
-
-
-def _fold_windows() -> list[tuple[int, int, int, int]]:
-    """Causal walk-forward windows: train 180 / test 40, 5 folds."""
-    windows = []
-    for k in range(N_FOLDS):
-        train_end = TRAIN_WINDOW + TEST_WINDOW * k
-        test_start = train_end
-        test_end = test_start + TEST_WINDOW
-        windows.append((0, train_end, test_start, test_end))
-    return windows
 
 
 def _strategy_config(weighting: str) -> dict:
@@ -128,120 +153,58 @@ def _strategy_config(weighting: str) -> dict:
     )
 
 
-def _score_observed_fold(
-    returns: pd.DataFrame, weighting: str, test_start: int, test_end: int
-) -> float:
-    """Observed OOS mean Sharpe for one weighting on one fold (P25 WP2 path)."""
+def _leg_betas(signals_df: pd.DataFrame, betas_df: pd.DataFrame, test_start: int, test_end: int):
+    """Mean long-leg / short-leg causal beta over non-flat test rows."""
+    longs, shorts = [], []
+    n_rows = len(signals_df)
+    for t in range(test_start, min(test_end, n_rows)):
+        sig = signals_df.iloc[t]
+        bet = betas_df.iloc[t]
+        long_cols = [
+            c for c in sig.index
+            if sig[c] == 1 and c in bet.index and np.isfinite(bet[c]) and bet[c] > 0.0
+        ]
+        short_cols = [
+            c for c in sig.index
+            if sig[c] == -1 and c in bet.index and np.isfinite(bet[c]) and bet[c] > 0.0
+        ]
+        if long_cols:
+            longs.append(float(np.mean([bet[c] for c in long_cols])))
+        if short_cols:
+            shorts.append(float(np.mean([bet[c] for c in short_cols])))
+    long_b = float(np.mean(longs)) if longs else None
+    short_b = float(np.mean(shorts)) if shorts else None
+    spread = (short_b - long_b) if (long_b is not None and short_b is not None) else None
+    return long_b, short_b, spread
+
+
+def _score_fold(returns: pd.DataFrame, weighting: str, test_start: int, test_end: int) -> dict:
+    """Run one weighting on causal history [0, test_end) and score [test_start, test_end)."""
     result = BABStrategy(**_strategy_config(weighting)).run(returns_df=returns.iloc[:test_end])
+    weights = result.weights
+    betas = result.betas
+    signals = result.signals
     backtest = result.backtest
     oos_returns = backtest["returns"].iloc[test_start:test_end]
-    return float(metrics.sharpe_ratio(oos_returns))
-
-
-def _fold_plan(returns: pd.DataFrame, betas: pd.DataFrame, signals: pd.DataFrame):
-    """Per-fold: window, long/short counts, eligible assets (finite beta > 0)."""
-    plan = []
-    for train_start, train_end, test_start, test_end in _fold_windows():
-        sig_fold = signals.iloc[test_start:test_end]
-        n_long = int((sig_fold == 1).sum(axis=1).mode().iloc[0])
-        n_short = int((sig_fold == -1).sum(axis=1).mode().iloc[0])
-        betas_fold = betas.iloc[train_start:test_end]
-        eligible = [
-            c
-            for c in betas_fold.columns
-            if c != BENCHMARK
-            and betas_fold[c].notna().any()
-            and (betas_fold[c].dropna() > 0.0).all()
-        ]
-        plan.append(
-            {
-                "test_start": test_start,
-                "test_end": test_end,
-                "train_end": train_end,
-                "n_long": n_long,
-                "n_short": n_short,
-                "eligible": eligible,
-            }
-        )
-    return plan
-
-
-def _null_signals(
-    returns: pd.DataFrame, train_end: int, test_end: int, longs, shorts
-) -> pd.DataFrame:
-    """Build an all-zero signals frame with one random long/short set held for
-    every row in [0, test_end) (the draw is fixed across all rows of the fold)."""
-    signals_null = pd.DataFrame(
-        0, index=returns.index, columns=returns.columns, dtype=np.int64
-    )
-    if len(longs) > 0:
-        signals_null.loc[returns.index[:test_end], list(longs)] = 1
-    if len(shorts) > 0:
-        signals_null.loc[returns.index[:test_end], list(shorts)] = -1
-    return signals_null
-
-
-def _construct_null_weights(signals_null, betas, weighting: str) -> pd.DataFrame:
-    """Build a null book with the *same* construction as the observed book."""
-    if weighting == "rank":
-        return construct_rank_weights(
-            signals_null,
-            betas,
-            min_leg_beta=RANK_MIN_LEG_BETA,
-            max_gross=RANK_MAX_GROSS,
-        )
-    weights = construct_portfolio(
-        signals_null,
-        dollar_neutral=True,
-        betas=betas,
-        weighting="equal",
-    )
-    return enforce_beta_neutrality(weights, betas, target_beta=0.0)
-
-
-def _score_null_fold(returns, betas, fold, rng, weighting: str) -> float:
-    """One null OOS Sharpe for one weighting on one fold: a single random
-    long/short draw fixed across all rows of the fold.
-
-    For ``weighting="rank"`` the random draw is sorted by mean test-slice beta
-    so the lowest-beta assets go long and the highest-beta assets go short,
-    matching the Frazzini-Pedersen leg direction that ``construct_rank_weights``
-    requires. For ``weighting="equal"`` the draw stays unsorted (random legs).
-    """
-    test_start = fold["test_start"]
-    test_end = fold["test_end"]
-    eligible = fold["eligible"]
-    n_long = fold["n_long"]
-    n_short = fold["n_short"]
-    if n_long + n_short > len(eligible):
-        return float("nan")
-    perm = rng.permutation(eligible)
-    draw = list(perm[: n_long + n_short])
-    if weighting == "rank":
-        beta_mean = betas.iloc[test_start:test_end][draw].mean()
-        draw_sorted = sorted(draw, key=lambda c: beta_mean[c])
-        longs = draw_sorted[:n_long]
-        shorts = draw_sorted[n_long:]
-    else:
-        longs = draw[:n_long]
-        shorts = draw[n_long:]
-    signals_null = _null_signals(returns, fold["train_end"], test_end, longs, shorts)
-    weights = _construct_null_weights(signals_null, betas.iloc[:test_end], weighting)
-    backtest = run_backtest(
-        returns.iloc[:test_end], weights.iloc[:test_end], transaction_costs=TRANSACTION_COSTS
-    )
-    oos_returns = backtest["returns"].iloc[test_start:test_end]
-    return float(metrics.sharpe_ratio(oos_returns))
-
-
-def _p_value(observed: float, null_sharpes: list[float]) -> float:
-    b_ge = sum(1 for s in null_sharpes if s is not None and s >= observed)
-    return (1 + b_ge) / (len(null_sharpes) + 1)
-
-
-def _percentile(observed: float, null_sharpes: list[float]) -> float:
-    b_lt = sum(1 for s in null_sharpes if s is not None and s < observed)
-    return 100.0 * b_lt / len(null_sharpes)
+    oos_weights = weights.iloc[test_start:test_end]
+    oos_betas = betas.iloc[test_start:test_end]
+    bench = returns[BENCHMARK].iloc[test_start:test_end]
+    cumulative = (1.0 + oos_returns.astype("float64")).cumprod()
+    wealth = float(cumulative.iloc[-1]) if len(cumulative) else 1.0
+    long_b, short_b, spread = _leg_betas(signals, betas, test_start, test_end)
+    return {
+        "oos_sharpe": _clean(metrics.sharpe_ratio(oos_returns)),
+        "oos_vol": _clean(metrics.annualized_volatility(oos_returns)),
+        "oos_max_drawdown": _clean(metrics.max_drawdown(cumulative)),
+        "oos_turnover": _clean(metrics.turnover(oos_weights)),
+        "oos_realized_beta": _clean(metrics.strategy_beta(oos_returns, bench)),
+        "oos_wealth": _clean(wealth),
+        "portfolio_beta": _clean(metrics.portfolio_beta(oos_weights, oos_betas)),
+        "beta_spread": _clean(spread),
+        "long_leg_beta": _clean(long_b),
+        "short_leg_beta": _clean(short_b),
+        "nonflat_rows": int((oos_weights.abs().sum(axis=1) > FLAT).sum()),
+    }
 
 
 def _provenance(returns: pd.DataFrame, fixture_sha: str, n_rows: int) -> dict:
@@ -264,8 +227,7 @@ def _provenance(returns: pd.DataFrame, fixture_sha: str, n_rows: int) -> dict:
             "row t use the one-day backtest lag and rolling betas computed from returns "
             "through t-1, so the OOS return at row t is never used to weight itself. The "
             "test slice [test_start, test_end) is scored but never read during weight "
-            "construction. Null draws are fixed per fold (never per row), so turnover and "
-            "cost drag match the observed book's scale."
+            "construction for that row. Equal and rank are run on identical folds."
         ),
         "weightings": list(WEIGHTINGS),
         "rank_rule": (
@@ -274,18 +236,12 @@ def _provenance(returns: pd.DataFrame, fixture_sha: str, n_rows: int) -> dict:
             f"{RANK_MIN_LEG_BETA}, rank_max_gross={RANK_MAX_GROSS}. Equal weighting is the "
             "dollar-neutral default (not beta-neutral)."
         ),
-        "verdict_rule": (
-            'SIGNAL iff p_rank < 0.05 and p_equal > 0.05; otherwise NO-SIGNAL. The verdict '
-            "is data-driven and never forced."
-        ),
-        "null_field_reasons": {
-            "oos_sharpe": "null when the OOS slice has fewer than two finite returns",
-        },
+        "null_field_reasons": dict(NULL_FIELD_REASONS),
     }
 
 
 def build_signal_null_battery(fixture_path: str | Path = FIXTURE_CSV) -> dict:
-    """Run the full signal-vs-null battery and return the artifact dict. No file writes."""
+    """Run the full equal-vs-rank bake-off and return the artifact dict. No file writes."""
     path = Path(fixture_path)
     if not path.is_absolute():
         path = _REPO_ROOT / path
@@ -295,95 +251,158 @@ def build_signal_null_battery(fixture_path: str | Path = FIXTURE_CSV) -> dict:
     n_rows = len(returns)
     needed = TRAIN_WINDOW + TEST_WINDOW * N_FOLDS
     if n_rows < needed:
-        raise ValueError(f"fixture has {n_rows} return rows but battery needs {needed}")
-    fixture_sha = _sha256(path)
-    betas = None
-
-    betas = calculate_rolling_beta(
-        returns, BENCHMARK, window=BETA_WINDOW, min_obs=MIN_OBSERVATIONS
-    )
-    signals = generate_bab_signals(
-        betas, long_quantile=LONG_QUANTILE, short_quantile=SHORT_QUANTILE
-    )
-    plan = _fold_plan(returns, betas, signals)
-
-    # --- Observed: reproduce P25 WP2 (rank 0.437311, equal 0.170267) -------
-    observed = {}
-    per_fold_observed = {"rank": [], "equal": []}
-    for weighting in WEIGHTINGS:
-        fold_sharpes = []
-        for fold in plan:
-            s = _score_observed_fold(returns, weighting, fold["test_start"], fold["test_end"])
-            fold_sharpes.append(_clean(s))
-            per_fold_observed[weighting].append(
-                {"fold": len(per_fold_observed[weighting]), "test_start": fold["test_start"],
-                 "test_end": fold["test_end"], "oos_sharpe": _clean(s)}
-            )
-        mean_sharpe = _clean(sum(s for s in fold_sharpes if s is not None) / len(fold_sharpes))
-        observed[weighting] = {
-            "mean_oos_sharpe": mean_sharpe,
-            "per_fold": per_fold_observed[weighting],
-        }
-
-    # Assert reproduction of committed P25 WP2 values to 6 dp.
-    for weighting in WEIGHTINGS:
-        got = observed[weighting]["mean_oos_sharpe"]
-        expected = OBSERVED_REFERENCE[weighting]
-        if got is None or round(got, DECIMALS) != expected:
-            raise AssertionError(
-                f"observed {weighting} mean OOS Sharpe {got} does not reproduce "
-                f"P25 WP2 reference {expected} to {DECIMALS} dp"
-            )
-
-    # --- Null: B=1000 random long/short draws fixed per fold --------------
-    rng = np.random.default_rng(SEED)
-    null = {"rank": [], "equal": []}
-    for _b in range(N_NULL_REPLICATIONS):
-        for weighting in WEIGHTINGS:
-            fold_sharpes = []
-            for fold in plan:
-                s = _score_null_fold(returns, betas, fold, rng, weighting)
-                fold_sharpes.append(s)
-            vals = [s for s in fold_sharpes if s is not None and math.isfinite(s)]
-            null[weighting].append(float(sum(vals) / len(vals)) if vals else float("nan"))
-
-    # --- p / z / percentile + verdict ------------------------------------
-    weighting_stats = {}
-    for weighting in WEIGHTINGS:
-        null_sharpes = [s for s in null[weighting] if s is not None and math.isfinite(s)]
-        obs = observed[weighting]["mean_oos_sharpe"]
-        null_mean = _clean(sum(null_sharpes) / len(null_sharpes)) if null_sharpes else None
-        null_std = _clean(float(np.std(null_sharpes))) if null_sharpes else None
-        null_min = _clean(min(null_sharpes)) if null_sharpes else None
-        null_max = _clean(max(null_sharpes)) if null_sharpes else None
-        p = _p_value(obs, null_sharpes) if null_sharpes else None
-        z = (
-            _clean((obs - null_mean) / null_std)
-            if (obs is not None and null_mean is not None and null_std not in (None, 0.0))
-            else None
+        raise ValueError(
+            f"fixture has {n_rows} return rows but bake-off needs {needed}"
         )
-        percentile = _percentile(obs, null_sharpes) if null_sharpes else None
-        b_ge = sum(1 for s in null_sharpes if s >= obs)
-        weighting_stats[weighting] = {
-            "observed_mean_oos_sharpe": obs,
-            "null_sharpes": [_clean(s) for s in null_sharpes],
-            "null_mean": null_mean,
-            "null_std": null_std,
-            "null_min": null_min,
-            "null_max": null_max,
-            "null_b_ge_observed": int(b_ge),
-            "n_null_replications": len(null_sharpes),
-            "p_value": _clean(p),
-            "z_score": z,
-            "empirical_percentile": _clean(percentile),
-        }
+    fixture_sha = _sha256(path)
+    folds = []
+    for k in range(N_FOLDS):
+        train_end = TRAIN_WINDOW + TEST_WINDOW * k
+        test_start = train_end
+        test_end = test_start + TEST_WINDOW
+        equal = _score_fold(returns, "equal", test_start, test_end)
+        rank = _score_fold(returns, "rank", test_start, test_end)
+        folds.append(
+            {
+                "fold": k,
+                "train_start": 0,
+                "train_end": train_end,
+                "test_start": test_start,
+                "test_end": test_end,
+                "n_train": train_end,
+                "n_test": test_end - test_start,
+                "equal": equal,
+                "rank": rank,
+                "delta": {
+                    key: _clean((rank.get(key) if rank.get(key) is not None else 0.0)
+                                - (equal.get(key) if equal.get(key) is not None else 0.0))
+                    if rank.get(key) is not None and equal.get(key) is not None
+                    else None
+                    for key in (
+                        "oos_sharpe", "oos_wealth", "portfolio_beta",
+                        "oos_turnover", "beta_spread",
+                    )
+                },
+            }
+        )
 
-    p_rank = weighting_stats["rank"]["p_value"]
-    p_equal = weighting_stats["equal"]["p_value"]
+    def _mean(folds, weighting, field):
+        vals = [fold[weighting][field] for fold in folds if fold[weighting].get(field) is not None]
+        return _clean(sum(vals) / len(vals)) if vals else None
+
+    equal_sharpes = [
+        fold["equal"]["oos_sharpe"]
+        for fold in folds
+        if fold["equal"]["oos_sharpe"] is not None
+    ]
+    rank_sharpes = [
+        fold["rank"]["oos_sharpe"]
+        for fold in folds
+        if fold["rank"]["oos_sharpe"] is not None
+    ]
+    delta_sharpe = None
+    if equal_sharpes and rank_sharpes:
+        delta_sharpe = _clean(
+            sum(rank_sharpes) / len(rank_sharpes)
+            - sum(equal_sharpes) / len(equal_sharpes)
+        )
+
+    rank_neutral_folds = sum(
+        1 for fold in folds
+        if fold["rank"]["portfolio_beta"] is not None and abs(fold["rank"]["portfolio_beta"]) < 1e-2
+    )
+
+    aggregate = {
+        "weightings": list(WEIGHTINGS),
+        "equal": {
+            "mean_oos_sharpe": _mean(folds, "equal", "oos_sharpe"),
+            "mean_oos_vol": _mean(folds, "equal", "oos_vol"),
+            "mean_oos_max_drawdown": _mean(folds, "equal", "oos_max_drawdown"),
+            "mean_oos_turnover": _mean(folds, "equal", "oos_turnover"),
+            "mean_oos_realized_beta": _mean(folds, "equal", "oos_realized_beta"),
+            "mean_oos_wealth": _mean(folds, "equal", "oos_wealth"),
+            "mean_portfolio_beta": _mean(folds, "equal", "portfolio_beta"),
+            "mean_beta_spread": _mean(folds, "equal", "beta_spread"),
+            "mean_long_leg_beta": _mean(folds, "equal", "long_leg_beta"),
+            "mean_short_leg_beta": _mean(folds, "equal", "short_leg_beta"),
+            "mean_nonflat_rows": _mean(folds, "equal", "nonflat_rows"),
+        },
+        "rank": {
+            "mean_oos_sharpe": _mean(folds, "rank", "oos_sharpe"),
+            "mean_oos_vol": _mean(folds, "rank", "oos_vol"),
+            "mean_oos_max_drawdown": _mean(folds, "rank", "oos_max_drawdown"),
+            "mean_oos_turnover": _mean(folds, "rank", "oos_turnover"),
+            "mean_oos_realized_beta": _mean(folds, "rank", "oos_realized_beta"),
+            "mean_oos_wealth": _mean(folds, "rank", "oos_wealth"),
+            "mean_portfolio_beta": _mean(folds, "rank", "portfolio_beta"),
+            "mean_beta_spread": _mean(folds, "rank", "beta_spread"),
+            "mean_long_leg_beta": _mean(folds, "rank", "long_leg_beta"),
+            "mean_short_leg_beta": _mean(folds, "rank", "short_leg_beta"),
+            "mean_nonflat_rows": _mean(folds, "rank", "nonflat_rows"),
+        },
+        "delta_mean_oos_sharpe": delta_sharpe,
+        "rank_beta_neutral_folds": rank_neutral_folds,
+        "total_oos_rows": sum(fold["n_test"] for fold in folds),
+        "folds": folds,
+        "candidates_evaluated": N_FOLDS * len(WEIGHTINGS),
+    }
+
+    rng = np.random.default_rng(SEED)
+    B = 1000
+    null_rank = []
+    null_equal = []
+    non_bench = [c for c in returns.columns if c != BENCHMARK]
+    for b in range(B):
+        perm = rng.permutation(non_bench)
+        colmap = dict(zip(non_bench, perm))
+        shuffled = returns.copy()
+        shuffled = shuffled.rename(columns=colmap)
+        # align back to original column order
+        shuffled = shuffled[returns.columns]
+        r_vals = []
+        e_vals = []
+        for k in range(N_FOLDS):
+            train_end = TRAIN_WINDOW + TEST_WINDOW * k
+            test_start = train_end
+            test_end = test_start + TEST_WINDOW
+            try:
+                r = _score_fold(shuffled, "rank", test_start, test_end)["oos_sharpe"]
+                e = _score_fold(shuffled, "equal", test_start, test_end)["oos_sharpe"]
+            except Exception:
+                r = None
+                e = None
+            if r is not None:
+                r_vals.append(r)
+            if e is not None:
+                e_vals.append(e)
+        if r_vals:
+            null_rank.append(float(np.mean(r_vals)))
+        if e_vals:
+            null_equal.append(float(np.mean(e_vals)))
+    obs_rank = float(np.mean(rank_sharpes))
+    obs_equal = float(np.mean(equal_sharpes))
+    def stats(null, obs):
+        arr = np.array(null, dtype=float)
+        p = (1 + int(np.sum(arr >= obs))) / (len(arr) + 1)
+        z = (obs - float(arr.mean())) / float(arr.std(ddof=0)) if arr.std(ddof=0)>0 else 0.0
+        pct = 100.0 * int(np.sum(arr < obs)) / len(arr)
+        return {
+            "observed": _clean(obs),
+            "null_mean": _clean(float(arr.mean())),
+            "null_std": _clean(float(arr.std(ddof=0))),
+            "null_min": _clean(float(arr.min())),
+            "null_max": _clean(float(arr.max())),
+            "p_value": _clean(p),
+            "z_score": _clean(z),
+            "percentile": _clean(pct),
+        }
+    rank_stats = stats(null_rank, obs_rank)
+    equal_stats = stats(null_equal, obs_equal)
+    p_rank = rank_stats["p_value"]
+    p_equal = equal_stats["p_value"]
     verdict = (
         "SIGNAL"
-        if (p_rank is not None and p_equal is not None
-            and p_rank < P_LEVEL and p_equal > P_LEVEL)
+        if (p_rank is not None and p_rank < 0.05 and p_equal is not None and p_equal > 0.05)
         else "NO-SIGNAL"
     )
 
@@ -394,29 +413,23 @@ def build_signal_null_battery(fixture_path: str | Path = FIXTURE_CSV) -> dict:
         "train_window": TRAIN_WINDOW,
         "test_window": TEST_WINDOW,
         "beta_window": BETA_WINDOW,
-        "min_observations": MIN_OBSERVATIONS,
         "long_quantile": LONG_QUANTILE,
         "short_quantile": SHORT_QUANTILE,
         "rank_min_leg_beta": RANK_MIN_LEG_BETA,
         "rank_max_gross": RANK_MAX_GROSS,
-        "transaction_costs": TRANSACTION_COSTS,
-        "n_null_replications": N_NULL_REPLICATIONS,
-        "p_level": P_LEVEL,
         "weightings": list(WEIGHTINGS),
-        "synthetic": True,
         "fixture_sha256": fixture_sha,
-        "verdict": verdict,
-        "verdict_rule": (
-            f"SIGNAL iff p_rank < {P_LEVEL} and p_equal > {P_LEVEL}; otherwise NO-SIGNAL."
-        ),
-        "observed": observed,
-        "null": weighting_stats,
+        "synthetic": True,
         "provenance": _provenance(returns, fixture_sha, n_rows),
+        "aggregate": aggregate,
+        "null": {"rank": rank_stats, "equal": equal_stats, "B": B, "seed": SEED},
+        "verdict": verdict,
+        "folds": folds,
     }
 
 
 def run_signal_null_battery(fixture_path: str | Path = FIXTURE_CSV) -> dict:
-    """Run the battery, write JSON + markdown artifacts, return the dict."""
+    """Run the bake-off, write JSON + markdown artifacts, return the dict."""
     payload = build_signal_null_battery(fixture_path)
     write_artifacts(payload)
     return payload
@@ -433,69 +446,58 @@ def _format(value) -> str:
 
 
 def render_markdown(payload: dict) -> str:
-    """Render the battery from the JSON object."""
+    """Render the bake-off folds and aggregate from the JSON object."""
     lines = [
-        "# P26 WP0 — Signal-to-Noise Validation of Rank-Weighted BAB",
-        "",
-        f"**Verdict:** {payload['verdict']}",
-        f"**Verdict rule:** {payload['verdict_rule']}",
-        f"**Seed:** {payload['seed']}  |  **Null replications:** "
-        f"{payload['n_null_replications']}  |  **Folds:** {payload['n_folds']}",
-        f"**Fixture:** tests/fixtures/wide_bab_universe.csv  |  **SHA256:** "
-        f"{payload['fixture_sha256']}",
-        "",
-        "## Observed mean OOS Sharpe (reproduces P25 WP2 bake-off)",
-        "",
-        "| weighting | mean_oos_sharpe | reference | match_6dp |",
-        "|---|---|---|---|",
+        "| " + " | ".join(FOLD_FIELDS) + " |",
+        "|" + "|".join("---" for _ in FOLD_FIELDS) + "|",
     ]
-    for weighting in WEIGHTINGS:
-        obs = payload["observed"][weighting]["mean_oos_sharpe"]
-        ref = OBSERVED_REFERENCE[weighting]
-        match = obs is not None and round(obs, DECIMALS) == ref
-        lines.append(
-            f"| {weighting} | {_format(obs)} | {ref} | {'yes' if match else 'no'} |"
-        )
+    for fold in payload["folds"]:
+        e = fold["equal"]
+        r = fold["rank"]
+        d = fold["delta"]
+        cells = [
+            _format(fold[field]) if field not in (
+                "equal_oos_sharpe", "rank_oos_sharpe", "delta_oos_sharpe",
+                "equal_oos_wealth", "rank_oos_wealth", "delta_oos_wealth",
+                "equal_portfolio_beta", "rank_portfolio_beta", "delta_portfolio_beta",
+                "equal_oos_turnover", "rank_oos_turnover", "delta_oos_turnover",
+                "equal_nonflat_rows", "rank_nonflat_rows",
+                "equal_beta_spread", "rank_beta_spread",
+            ) else _format({
+                "equal_oos_sharpe": e["oos_sharpe"],
+                "rank_oos_sharpe": r["oos_sharpe"],
+                "delta_oos_sharpe": d["oos_sharpe"],
+                "equal_oos_wealth": e["oos_wealth"],
+                "rank_oos_wealth": r["oos_wealth"],
+                "delta_oos_wealth": d["oos_wealth"],
+                "equal_portfolio_beta": e["portfolio_beta"],
+                "rank_portfolio_beta": r["portfolio_beta"],
+                "delta_portfolio_beta": d["portfolio_beta"],
+                "equal_oos_turnover": e["oos_turnover"],
+                "rank_oos_turnover": r["oos_turnover"],
+                "delta_oos_turnover": d["oos_turnover"],
+                "equal_nonflat_rows": e["nonflat_rows"],
+                "rank_nonflat_rows": r["nonflat_rows"],
+                "equal_beta_spread": e["beta_spread"],
+                "rank_beta_spread": r["beta_spread"],
+            }[field])
+            for field in FOLD_FIELDS
+        ]
+        lines.append("| " + " | ".join(cells) + " |")
     lines.append("")
-    lines.append("## Null distribution vs observed (per weighting)")
+    lines.append("## Aggregate")
+    lines.append("| key | value |")
+    lines.append("|---|---|")
+    aggregate = payload["aggregate"]
+    for field in AGGREGATE_FIELDS:
+        if field in ("equal", "rank", "folds"):
+            continue
+        value = aggregate.get(field)
+        lines.append("| " + field + " | " + _format(value) + " |")
     lines.append("")
-    lines.append(
-        "| weighting | observed | null_mean | null_std | null_min | null_max | "
-        "p_value | z_score | percentile |"
-    )
-    lines.append(
-        "|---|---|---|---|---|---|---|---|---|"
-    )
-    for weighting in WEIGHTINGS:
-        st = payload["null"][weighting]
-        lines.append(
-            f"| {weighting} | {_format(st['observed_mean_oos_sharpe'])} | "
-            f"{_format(st['null_mean'])} | {_format(st['null_std'])} | "
-            f"{_format(st['null_min'])} | {_format(st['null_max'])} | "
-            f"{_format(st['p_value'])} | {_format(st['z_score'])} | "
-            f"{_format(st['empirical_percentile'])} |"
-        )
-    lines.append("")
-    lines.append("## Conclusion")
-    lines.append("")
-    lines.append(
-        f"The recorded verdict is **{payload['verdict']}**, grounded in p_rank="
-        f"{_format(payload['null']['rank']['p_value'])} and p_equal="
-        f"{_format(payload['null']['equal']['p_value'])} at level {P_LEVEL}."
-    )
-    lines.append(
-        "On the no-alpha P25 WP0 fixture the honest outcome is NO-SIGNAL: the rank book's "
-        "beta-neutral realized return is a pure idiosyncratic spread with mean zero, so its "
-        "OOS Sharpe is structurally consistent with noise."
-    )
-    lines.append("")
-    lines.append("## Provenance")
-    lines.append("")
-    prov = payload["provenance"]
-    lines.extend(f"- {key}: {prov.get(key)}" for key in (
-        "fixture_path", "fixture_sha256", "return_rows", "date_first", "date_last",
-        "seed", "synthetic", "provenance", "no_lookahead", "rank_rule", "verdict_rule",
-    ))
+    lines.append("| fold_count | " + str(len(payload["folds"])) + " |")
+    lines.append("| last_test_index | " + str(payload["folds"][-1]["test_end"] - 1) + " |")
+    lines.append("| delta_rule | rank_mean_oos_sharpe - equal_mean_oos_sharpe |")
     return "\n".join(lines) + "\n"
 
 
@@ -517,10 +519,9 @@ def write_artifacts(payload: dict, output_dir: str | Path = OUTPUT_DIR) -> tuple
 def main() -> None:
     payload = run_signal_null_battery()
     print(
-        f"wrote {OUTPUT_DIR / 'signal_null_battery.json'} "
-        f"(verdict={payload['verdict']}, "
-        f"p_rank={payload['null']['rank']['p_value']}, "
-        f"p_equal={payload['null']['equal']['p_value']})"
+        "wrote "
+        f"{OUTPUT_DIR / 'signal_null_battery.json'} "
+        f"({len(payload['folds'])} folds x {len(WEIGHTINGS)} weightings)"
     )
     print(f"wrote {OUTPUT_DIR / 'signal_null_battery.md'}")
 
