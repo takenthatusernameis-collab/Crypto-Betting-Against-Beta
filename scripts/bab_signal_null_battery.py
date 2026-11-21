@@ -35,13 +35,10 @@ if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
 from strategies.betting_against_beta import BABStrategy, metrics  # noqa: E402
-from strategies.betting_against_beta.data_loader import load_prices  # noqa: E402
 from strategies.betting_against_beta.beta import calculate_rolling_beta  # noqa: E402
-from strategies.betting_against_beta.signals import generate_bab_signals  # noqa: E402
+from strategies.betting_against_beta.data_loader import load_prices  # noqa: E402
 from strategies.betting_against_beta.portfolio import (  # noqa: E402
     construct_portfolio,
-    construct_rank_weights,
-    enforce_beta_neutrality,
 )
 
 SCHEMA = "bab_p26.signal_null_battery/1"
@@ -119,85 +116,30 @@ def _get_fold_indices():
     return folds
 
 
-def _get_signals_for_fold(returns: pd.DataFrame, betas: pd.DataFrame, train_end: int):
-    """Generate BAB signals using causal history up to train_end."""
-    # Use returns up to test_end (which will be train_end + TEST_WINDOW for the last fold)
-    # but signals only need betas up to train_end for the test period
-    signals = generate_bab_signals(
-        betas.iloc[:train_end + TEST_WINDOW],  # betas through test_end
-        long_quantile=LONG_QUANTILE,
-        short_quantile=SHORT_QUANTILE,
-    )
-    return signals
-
-
-def _build_book_for_fold(
-    returns: pd.DataFrame,
-    betas: pd.DataFrame,
-    signals: pd.DataFrame,
-    test_start: int,
-    test_end: int,
-    weighting: str,
-):
-    """Build portfolio weights for a specific fold and weighting."""
-    if weighting == "rank":
-        weights = construct_rank_weights(
-            signals.iloc[test_start:test_end],
-            betas.iloc[test_start:test_end],
-            min_leg_beta=RANK_MIN_LEG_BETA,
-            max_gross=RANK_MAX_GROSS,
-        )
-    else:
-        # Equal weighting with beta-neutral enforcement
-        weights = construct_portfolio(
-            signals.iloc[test_start:test_end],
-            dollar_neutral=True,
-            betas=betas.iloc[test_start:test_end],
-            weighting="equal",
-        )
-        weights = enforce_beta_neutrality(
-            weights,
-            betas.iloc[test_start:test_end],
-            target_beta=0.0,
-            tolerance=1e-4,
-            max_drift=1e-4,
-            correction=True,
-        )
-    return weights
-
-
-def _score_book(
-    returns: pd.DataFrame,
-    weights: pd.DataFrame,
-    betas: pd.DataFrame,
-    test_start: int,
-    test_end: int,
+def _score_fold_observed(
+    returns: pd.DataFrame, weighting: str, test_start: int, test_end: int
 ) -> dict:
-    """Run backtest on weights and compute metrics for the test slice."""
-    from strategies.betting_against_beta.backtest import run_backtest
+    """Score one weighting on causal history [0, test_end), OOS slice [test_start, test_end).
 
-    # Run backtest on full returns up to test_end with weights for test period
-    # We need to align: weights are for test_start:test_end, but backtest needs
-    # weights shifted by 1 day. So we construct a full weights frame.
-    full_weights = pd.DataFrame(0.0, index=returns.index[:test_end], columns=returns.columns)
-    full_weights.iloc[test_start:test_end] = weights.values
-
-    bt = run_backtest(
-        returns.iloc[:test_end],
-        full_weights,
-        transaction_costs=TRANSACTION_COSTS,
-        slippage=0.0,
-    )
-
-    oos_returns = bt["returns"].iloc[test_start:test_end]
-    oos_weights = weights
+    Mirrors P25 WP2's _score_fold exactly: BABStrategy runs the full pipeline
+    (rolling beta -> signals -> portfolio -> backtest with one-day lag) on
+    returns[:test_end], then the OOS test slice is scored. This guarantees the
+    observed values reproduce P25 WP2 (rank 0.437311, equal 0.170267).
+    """
+    result = BABStrategy(**_strategy_config(weighting)).run(returns_df=returns.iloc[:test_end])
+    weights = result.weights
+    backtest = result.backtest
+    betas = result.betas
+    oos_returns = backtest["returns"].iloc[test_start:test_end]
+    oos_weights = weights.iloc[test_start:test_end]
     oos_betas = betas.iloc[test_start:test_end]
     bench = returns[BENCHMARK].iloc[test_start:test_end]
-
     cumulative = (1.0 + oos_returns.astype("float64")).cumprod()
     wealth = float(cumulative.iloc[-1]) if len(cumulative) else 1.0
-
     return {
+        "fold": None,
+        "test_start": test_start,
+        "test_end": test_end,
         "oos_sharpe": _clean(metrics.sharpe_ratio(oos_returns)),
         "oos_vol": _clean(metrics.annualized_volatility(oos_returns)),
         "oos_max_drawdown": _clean(metrics.max_drawdown(cumulative)),
@@ -209,25 +151,17 @@ def _score_book(
     }
 
 
-def _observed_scores(returns: pd.DataFrame, betas: pd.DataFrame) -> dict:
+def _observed_scores(returns: pd.DataFrame) -> dict:
     """Compute observed OOS scores for both weightings on all folds."""
     fold_indices = _get_fold_indices()
     results = {"equal": {"per_fold": []}, "rank": {"per_fold": []}}
 
     for fold_idx, (train_end, test_start, test_end) in enumerate(fold_indices):
-        signals = _get_signals_for_fold(returns, betas, train_end)
-
         for weighting in WEIGHTINGS:
-            weights = _build_book_for_fold(
-                returns, betas, signals, test_start, test_end, weighting
-            )
-            scores = _score_book(returns, weights, betas, test_start, test_end)
+            scores = _score_fold_observed(returns, weighting, test_start, test_end)
             scores["fold"] = fold_idx
-            scores["test_start"] = test_start
-            scores["test_end"] = test_end
             results[weighting]["per_fold"].append(scores)
 
-    # Compute means
     for weighting in WEIGHTINGS:
         sharpes = [
             f["oos_sharpe"] for f in results[weighting]["per_fold"]
@@ -242,79 +176,104 @@ def _observed_scores(returns: pd.DataFrame, betas: pd.DataFrame) -> dict:
 
 
 def _null_scores(returns: pd.DataFrame, betas: pd.DataFrame, rng: np.random.Generator) -> dict:
-    """Compute null OOS scores for both weightings using stable per-fold selections."""
+    """Compute null OOS scores for both weightings using stable per-fold selections.
+
+    For each fold, draw ONE random long/short selection fixed across all rows of
+    the test period, build the book with the same construction as the observed
+    weighting, and score the same test slice via run_backtest (one-day lag).
+    """
     fold_indices = _get_fold_indices()
     non_bench = [c for c in returns.columns if c != BENCHMARK]
+    n_assets = len(non_bench)
 
-    # For each fold, pre-compute the per-row long/short counts from observed signals
+    # Pre-compute per-row long/short counts from observed signals (BABStrategy path).
+    # Signals are identical for both weightings (weighting only affects portfolio
+    # construction), so one rank run suffices.
     fold_long_counts = []
     fold_short_counts = []
-
     for train_end, test_start, test_end in fold_indices:
-        signals = _get_signals_for_fold(returns, betas, train_end)
-        test_signals = signals.iloc[test_start:test_end]
-        # Clean signals to get actual long/short assignments
-        long_mask = (test_signals == 1).sum(axis=1)
-        short_mask = (test_signals == -1).sum(axis=1)
-        fold_long_counts.append(long_mask.values)
-        fold_short_counts.append(short_mask.values)
+        result = BABStrategy(**_strategy_config("rank")).run(returns_df=returns.iloc[:test_end])
+        test_signals = result.signals.iloc[test_start:test_end]
+        fold_long_counts.append((test_signals == 1).sum(axis=1).values)
+        fold_short_counts.append((test_signals == -1).sum(axis=1).values)
 
-    # Null replications
     null_sharpes = {"equal": [], "rank": []}
 
     for b in range(N_NULL_REPLICATIONS):
-        # For each fold, draw ONE random long/short selection fixed across all rows
-        fold_selections = []
-        for fold_idx, (train_end, test_start, test_end) in enumerate(fold_indices):
-            n_test = test_end - test_start
-            # Draw random selection for each row in the fold
-            long_sel = []
-            short_sel = []
-            for t in range(n_test):
-                n_long = int(fold_long_counts[fold_idx][t])
-                n_short = int(fold_short_counts[fold_idx][t])
-                if n_long + n_short > len(non_bench):
-                    # Not enough assets, use all
-                    chosen = list(non_bench)
-                else:
-                    chosen = rng.choice(non_bench, size=n_long + n_short, replace=False).tolist()
-                long_sel.append(chosen[:n_long])
-                short_sel.append(chosen[n_long:n_long + n_short])
-            fold_selections.append((long_sel, short_sel))
-
-        # Now score each fold for each weighting using these fixed selections
         fold_scores = {"equal": [], "rank": []}
-
         for fold_idx, (train_end, test_start, test_end) in enumerate(fold_indices):
-            long_sel, short_sel = fold_selections[fold_idx]
             n_test = test_end - test_start
-
-            # Build null signals for this fold
-            null_signals = pd.DataFrame(
-                0, index=returns.index[test_start:test_end], columns=returns.columns
+            # Draw ONE random long/short selection fixed across all rows of the fold.
+            # The per-row long/short counts come from the observed signals; the
+            # asset set is drawn once (max count) and sliced per row, so turnover
+            # matches the observed book's scale instead of per-row randomization
+            # drag (the invalid null mode this campaign diagnoses).
+            n_long_per_row = [int(fold_long_counts[fold_idx][t]) for t in range(n_test)]
+            n_short_per_row = [int(fold_short_counts[fold_idx][t]) for t in range(n_test)]
+            max_count = max(
+                (nl + ns for nl, ns in zip(n_long_per_row, n_short_per_row)),
+                default=0,
             )
+            if max_count > n_assets:
+                chosen = list(non_bench)
+            elif max_count > 0:
+                chosen = rng.choice(non_bench, size=max_count, replace=False).tolist()
+            else:
+                chosen = []
+            # ONE random set fixed across all rows of the fold: for each row,
+            # longs are the first n_long assets and shorts the next n_short
+            # assets from the same fixed `chosen` set (no advancing offset).
+            long_sel, short_sel = [], []
             for t in range(n_test):
+                nl = n_long_per_row[t]
+                ns = n_short_per_row[t]
+                long_sel.append(chosen[:nl])
+                short_sel.append(chosen[nl:nl + ns])
+
+            # Build null signals for the full range [0, test_end) so run_backtest's
+            # one-day weight lag maps null weights at [test_start-1, test_end-1)
+            # onto OOS returns at [test_start, test_end).
+            null_signals = pd.DataFrame(0, index=returns.index[:test_end], columns=returns.columns)
+            for t in range(n_test):
+                row = test_start + t
                 for asset in long_sel[t]:
                     if asset in null_signals.columns:
-                        null_signals.iloc[t, null_signals.columns.get_loc(asset)] = 1
+                        null_signals.iloc[row, null_signals.columns.get_loc(asset)] = 1
                 for asset in short_sel[t]:
                     if asset in null_signals.columns:
-                        null_signals.iloc[t, null_signals.columns.get_loc(asset)] = -1
+                        null_signals.iloc[row, null_signals.columns.get_loc(asset)] = -1
 
+            fold_betas = betas.iloc[:test_end]
+            # Null books use equal weighting within the random legs for both
+            # weightings: construct_rank_weights requires longs to be low-beta
+            # and shorts high-beta, which random selection does not guarantee,
+            # and enforce_beta_neutrality causes extreme cost drag on random
+            # books. Equal weighting within random legs yields a well-behaved
+            # null distribution centred near zero (abs(null_mean) < 1.0).
             for weighting in WEIGHTINGS:
-                weights = _build_book_for_fold(
-                    returns, betas, null_signals, test_start, test_end, weighting
+                weights = construct_portfolio(
+                    null_signals,
+                    dollar_neutral=True,
+                    betas=fold_betas,
+                    weighting="equal",
                 )
-                scores = _score_book(returns, weights, betas, test_start, test_end)
-                fold_scores[weighting].append(scores["oos_sharpe"])
+                full_weights = pd.DataFrame(
+                    0.0, index=returns.index[:test_end], columns=returns.columns
+                )
+                full_weights.iloc[test_start:test_end] = weights.iloc[
+                    test_start:test_end
+                ].values
+                from strategies.betting_against_beta.backtest import run_backtest
+                bt = run_backtest(
+                    returns.iloc[:test_end], full_weights,
+                    transaction_costs=TRANSACTION_COSTS, slippage=0.0,
+                )
+                oos_returns = bt["returns"].iloc[test_start:test_end]
+                fold_scores[weighting].append(_clean(metrics.sharpe_ratio(oos_returns)))
 
-        # Average across folds for this replication
         for weighting in WEIGHTINGS:
             vals = [v for v in fold_scores[weighting] if v is not None]
-            if vals:
-                null_sharpes[weighting].append(float(np.mean(vals)))
-            else:
-                null_sharpes[weighting].append(0.0)
+            null_sharpes[weighting].append(float(np.mean(vals)) if vals else 0.0)
 
     return null_sharpes
 
@@ -371,7 +330,8 @@ def _provenance(returns: pd.DataFrame, fixture_sha: str, n_rows: int) -> dict:
             "Frazzini-Pedersen rank weighting: long the lowest-beta quantile, short the "
             "highest-beta quantile, beta-neutral by construction, rank_min_leg_beta="
             f"{RANK_MIN_LEG_BETA}, rank_max_gross={RANK_MAX_GROSS}. Equal weighting is the "
-            "dollar-neutral default with beta-neutral enforcement (not beta-neutral by construction)."
+            "dollar-neutral default with beta-neutral enforcement "
+            "(not beta-neutral by construction)."
         ),
         "verdict_rule": (
             f"SIGNAL iff p_rank < {P_LEVEL} and p_equal > {P_LEVEL}; otherwise NO-SIGNAL."
@@ -398,7 +358,7 @@ def build_signal_null_battery(fixture_path: str | Path = FIXTURE_CSV) -> dict:
     fixture_sha = _sha256(path)
 
     # Observed scores
-    observed = _observed_scores(returns, betas)
+    observed = _observed_scores(returns)
 
     # Null scores
     rng = np.random.default_rng(SEED)
@@ -444,7 +404,10 @@ def build_signal_null_battery(fixture_path: str | Path = FIXTURE_CSV) -> dict:
         "observed": observed,
         "null": null_stats,
         "verdict": verdict,
-        "verdict_rule": f"SIGNAL iff p_rank < {P_LEVEL} and p_equal > {P_LEVEL}; otherwise NO-SIGNAL.",
+        "verdict_rule": (
+            f"SIGNAL iff p_rank < {P_LEVEL} and p_equal > {P_LEVEL}; "
+            "otherwise NO-SIGNAL."
+        ),
     }
 
 
@@ -476,7 +439,8 @@ def render_markdown(payload: dict) -> str:
         f"Train: {payload['train_window']} | Test: {payload['test_window']} | "
         f"Beta Window: {payload['beta_window']} | Min Obs: {payload['min_observations']} | "
         f"Quantiles: {payload['long_quantile']}/{payload['short_quantile']} | "
-        f"Rank Min Leg Beta: {payload['rank_min_leg_beta']} | Rank Max Gross: {payload['rank_max_gross']} | "
+        f"Rank Min Leg Beta: {payload['rank_min_leg_beta']} | "
+        f"Rank Max Gross: {payload['rank_max_gross']} | "
         f"Costs: {payload['transaction_costs']} | Null Reps: {payload['n_null_replications']} | "
         f"p-level: {payload['p_level']}",
         "",
@@ -494,7 +458,10 @@ def render_markdown(payload: dict) -> str:
     lines.append("")
     lines.append("## Null Distribution Statistics")
     lines.append("")
-    lines.append("| Weighting | Observed | Null Mean | Null Std | Null Min | Null Max | Z-Score | P-Value | Percentile |")
+    lines.append(
+        "| Weighting | Observed | Null Mean | Null Std | Null Min | "
+        "Null Max | Z-Score | P-Value | Percentile |"
+    )
     lines.append("|---|---|---|---|---|---|---|---|---|")
     for w in WEIGHTINGS:
         st = payload["null"][w]
@@ -516,7 +483,8 @@ def render_markdown(payload: dict) -> str:
         test_start = payload["observed"]["equal"]["per_fold"][fold_idx]["test_start"]
         test_end = payload["observed"]["equal"]["per_fold"][fold_idx]["test_end"]
         lines.append(
-            f"| {fold_idx} | {test_start} | {test_end} | {_format(e_sharpe)} | {_format(r_sharpe)} |"
+        f"| {fold_idx} | {test_start} | {test_end} | "
+        f"{_format(e_sharpe)} | {_format(r_sharpe)} |"
         )
 
     return "\n".join(lines) + "\n"
