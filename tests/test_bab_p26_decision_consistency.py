@@ -252,6 +252,41 @@ def wp2_table(rank_capacity) -> tuple[list[str], list[dict]]:
     return ["key", "value"], rows
 
 
+def wp2_folds_table(rank_capacity) -> tuple[list[str], list[dict]]:
+    capacity = rank_capacity["aggregate"]
+    default_cell = capacity["cells"][9]  # gross_cap=4.0, rebalance_freq=daily
+    rank_per_fold = default_cell["results"]["rank"]["per_fold"]
+    equal_per_fold = default_cell["results"]["equal"]["per_fold"]
+    columns = [
+        "fold", "weighting",
+        "mean_oos_return", "nonflat_rows", "oos_max_drawdown",
+        "oos_realized_beta", "oos_sharpe", "oos_turnover", "oos_vol",
+        "oos_wealth", "portfolio_beta", "test_end", "test_start",
+    ]
+    rows = []
+    for fold in rank_per_fold:
+        f = fold["fold"]
+        eq = equal_per_fold[f]
+        rk = fold
+        for weighting, row in (("equal", eq), ("rank", rk)):
+            rows.append({
+                "fold": f,
+                "weighting": weighting,
+                "mean_oos_return": row["mean_oos_return"],
+                "nonflat_rows": row["nonflat_rows"],
+                "oos_max_drawdown": row["oos_max_drawdown"],
+                "oos_realized_beta": row["oos_realized_beta"],
+                "oos_sharpe": row["oos_sharpe"],
+                "oos_turnover": row["oos_turnover"],
+                "oos_vol": row["oos_vol"],
+                "oos_wealth": row["oos_wealth"],
+                "portfolio_beta": row["portfolio_beta"],
+                "test_end": row["test_end"],
+                "test_start": row["test_start"],
+            })
+    return columns, rows
+
+
 def decision_table(null_battery, regime_stress, rank_capacity
                    ) -> tuple[list[str], list[dict]]:
     null_equal = null_battery["null"]["equal"]
@@ -331,6 +366,7 @@ TABLE_BUILDERS = {
     "wp0": wp0_table,
     "wp1": wp1_table,
     "wp2": wp2_table,
+    "wp2_folds": wp2_folds_table,
     "decision": decision_table,
 }
 
@@ -341,6 +377,7 @@ def _args_for(name: str, null_battery, regime_stress, rank_capacity) -> dict:
         "wp0": {"null_battery": null_battery},
         "wp1": {"regime_stress": regime_stress},
         "wp2": {"rank_capacity": rank_capacity},
+        "wp2_folds": {"rank_capacity": rank_capacity},
         "decision": {
             "null_battery": null_battery,
             "regime_stress": regime_stress,
@@ -463,7 +500,8 @@ def test_tables_are_byte_identical_to_the_json_renderers(
     assert set(published) == set(TABLE_BUILDERS), f"table anchors differ: " \
         f"{sorted(published)}"
     for name in TABLE_BUILDERS:
-        expected = "\n".join(_built(name))
+        expected = "\n".join(
+            _built(name, null_battery, regime_stress, rank_capacity))
         assert published[name] == expected, f"table {name} drifted from " \
             f"its JSON artifact"
 
@@ -652,6 +690,49 @@ def test_capacity_evidence_is_calibrated(rank_capacity) -> None:
 
     # Fixture SHA256 matches WP0
     assert rank_capacity["fixture_sha256"] == WP0_SHA
+
+
+def test_wp0_signal_condition_is_false(null_battery) -> None:
+    null_equal = null_battery["null"]["equal"]
+    null_rank = null_battery["null"]["rank"]
+    signal_condition = (null_rank["p_value"] < 0.05
+                        and null_equal["p_value"] > 0.05)
+    assert not signal_condition
+    assert null_battery["verdict"] == "NO-SIGNAL"
+
+
+def test_wp1_falsification_gate_logic(regime_stress) -> None:
+    assertions = regime_stress["assertions"]
+    gate = (assertions["assertion_a_calm_rank_positive"]
+            and assertions["assertion_b_stress_rank_below_equal"])
+    assert assertions["falsification_gate_passed"] == gate
+    assert assertions["falsification_gate_passed"] is False
+
+
+def test_wp2_default_cell_is_gross_cap_4_daily(rank_capacity) -> None:
+    capacity = rank_capacity["aggregate"]
+    cells = capacity["cells"]
+    default_cell = cells[9]
+    assert default_cell["cell"] == 9
+    assert default_cell["gross_cap"] == 4.0
+    assert default_cell["rebalance_freq"] == "daily"
+
+
+def test_wp2_sweep_shape_and_rank_survives_default(rank_capacity) -> None:
+    capacity = rank_capacity["aggregate"]
+    cells = capacity["cells"]
+    assert len(cells) == 12
+    assert rank_capacity["gross_caps"] == [1.0, 2.0, 3.0, 4.0]
+    assert rank_capacity["rebalance_freqs"] == ["daily", "weekly", "monthly"]
+    default_cell = cells[9]
+    assert default_cell["results"]["rank"]["mean_oos_sharpe"] > \
+        default_cell["results"]["equal"]["mean_oos_sharpe"]
+
+
+def test_report_contains_per_fold_table(report) -> None:
+    assert "<!-- table:wp2_folds:start -->" in report
+    assert "<!-- table:wp2_folds:end -->" in report
+    assert "WP2 Per-Fold OOS Detail" in report
 
 
 def test_fixture_shas_agree(null_battery, regime_stress, rank_capacity) -> None:

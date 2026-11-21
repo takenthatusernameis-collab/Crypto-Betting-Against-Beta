@@ -219,6 +219,38 @@ wp2_rows = [
 ]
 wp2_table = _render(["key", "value"], wp2_rows)
 
+# WP2 per-fold OOS detail table (default cell: gross_cap=4.0, daily)
+wp2_folds_rows = []
+rank_per_fold = default_cell["results"]["rank"]["per_fold"]
+equal_per_fold = default_cell["results"]["equal"]["per_fold"]
+for fold in rank_per_fold:
+    f = fold["fold"]
+    eq = equal_per_fold[f]
+    rk = fold
+    for weighting, row in (("equal", eq), ("rank", rk)):
+        wp2_folds_rows.append({
+            "fold": f,
+            "weighting": weighting,
+            "mean_oos_return": row["mean_oos_return"],
+            "nonflat_rows": row["nonflat_rows"],
+            "oos_max_drawdown": row["oos_max_drawdown"],
+            "oos_realized_beta": row["oos_realized_beta"],
+            "oos_sharpe": row["oos_sharpe"],
+            "oos_turnover": row["oos_turnover"],
+            "oos_vol": row["oos_vol"],
+            "oos_wealth": row["oos_wealth"],
+            "portfolio_beta": row["portfolio_beta"],
+            "test_end": row["test_end"],
+            "test_start": row["test_start"],
+        })
+wp2_folds_columns = [
+    "fold", "weighting",
+    "mean_oos_return", "nonflat_rows", "oos_max_drawdown", "oos_realized_beta",
+    "oos_sharpe", "oos_turnover", "oos_vol", "oos_wealth",
+    "portfolio_beta", "test_end", "test_start",
+]
+wp2_folds_table = _render(wp2_folds_columns, wp2_folds_rows)
+
 # Decision criteria table
 decision_rows = [
     {"Criterion": "Explicit SIGNAL / NO-SIGNAL verdict for weighting=\"rank\"",
@@ -340,6 +372,14 @@ throughout.
 <!-- table:wp2:start -->
 {wp2_table}
 <!-- table:wp2:end -->
+
+---
+
+## WP2 Per-Fold OOS Detail (default cell gross_cap=4.0, daily)
+
+<!-- table:wp2_folds:start -->
+{wp2_folds_table}
+<!-- table:wp2_folds:end -->
 
 ---
 
