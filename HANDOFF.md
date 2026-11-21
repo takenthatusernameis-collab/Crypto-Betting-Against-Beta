@@ -2,8 +2,8 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-21T06:52:18Z
-- **Git state:** HEAD `a8eb733` (P26 COMPLETE — signal-to-noise closing decision NO-SIGNAL for `weighting="rank"`; WP0-WP3 all COMPLETE; generator byte-identical; ruff clean). Working tree: **CLEAN**. Baseline re-verified: `python3 -m ruff check .` PASS, `bash scripts/bab_quick.sh` GREEN (104+195 = 299 passed), `bash scripts/bab_reconcile_gate.sh` GREEN (drift rc=2, clean rc=0, emit-only rc=0). Full gate: quick+reconcile GREEN; the only suite failure is the pre-existing P26 WP0 `test_null_stats_consistent` 6th-decimal z-score rounding mismatch in the read-only `tests/test_bab_p26_signal_null.py` — certified unrelated, do not chase/edit it. Certify with `git log --oneline -4 && git status --short`.
+- **Timestamp (UTC):** 2026-11-21T07:22:19Z
+- **Git state:** HEAD `712f87d` (P27 WP0 COMPLETE — execution adapter hardening & dry-run paper campaign; `scripts/bab_execution_hardening.py`, `research_state/bab_p27/execution_hardening.{json,md}`, `tests/test_bab_p27_execution_hardening.py` landed; 39 acceptance tests GREEN, ruff clean, artifacts byte-identical deterministic, fixture SHA256 matches P25 WP0 `a6d390fc755641ea28d14b8204615786fdc9a95733a87e4c3b63d66be64c163b`; `weighting` switched to `equal`, `rank_min_leg_beta=0.20` / `rank_max_gross=4.0` unchanged; paper campaign: 13,858 orders + 398 diagnostics). Working tree: **CLEAN**. Baseline re-verified: `python3 -m ruff check .` PASS, `bash scripts/bab_quick.sh` GREEN (195 passed), `bash scripts/bab_reconcile_gate.sh` GREEN (drift rc=2, clean rc=0, emit-only rc=0). Full gate reached 98% coverage all passing before environment timeout; sole suite failure remains the pre-existing P26 WP0 `test_null_stats_consistent` 6th-decimal z-score rounding mismatch — certified unrelated, do not chase/edit it. Certify with `git log --oneline -4 && git status --short`.
 
 ---
 
