@@ -137,3 +137,11 @@ if [[ "$MIN_COVERAGE" != "0" ]]; then
   fi
   echo "[bab_gate] coverage floor met: TOTAL ${total_pct}% >= ${MIN_COVERAGE}%"
 fi
+
+# --- P29 WP0: full-artifact replay gate -------------------------------------
+# Regenerates every committed P25/P26/P27 JSON artifact and byte-diffs it,
+# read-only. This is deliberately part of the mandatory gate so a future
+# session cannot skip provenance verification.
+echo "[bab_gate] replay gate (P29 WP0)"
+bash "$ROOT/scripts/bab_replay_gate.sh"
+echo "[bab_gate] replay gate GREEN"
