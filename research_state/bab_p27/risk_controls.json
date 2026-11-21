@@ -1,0 +1,157 @@
+{
+  "benchmark": "BTC",
+  "beta_window": 90,
+  "determinism": {
+    "byte_identical": true,
+    "seed": 20261121
+  },
+  "fixture_sha256": "a6d390fc755641ea28d14b8204615786fdc9a95733a87e4c3b63d66be64c163b",
+  "gross_exposure": {
+    "events": [
+      {
+        "details": {
+          "limit_type": "portfolio"
+        },
+        "event_type": "limit_breach",
+        "message": "Gross exposure 1.8000 exceeds max 1.0000",
+        "severity": "warning"
+      },
+      {
+        "details": {
+          "limit_type": "portfolio"
+        },
+        "event_type": "limit_breach",
+        "message": "Net exposure 1.8000 exceeds max 1.0000",
+        "severity": "warning"
+      },
+      {
+        "details": {
+          "limit": 0.1,
+          "observed_drawdown": -0.28
+        },
+        "event_type": "kill_switch",
+        "message": "Drawdown limit breached: -0.2800 > 0.1000",
+        "severity": "critical"
+      },
+      {
+        "details": {
+          "drawdown": -0.28,
+          "limit": 0.1
+        },
+        "event_type": "position_flattened",
+        "message": "Kill switch triggered: all positions flattened",
+        "severity": "critical"
+      }
+    ],
+    "limit_breach": true,
+    "rejected": true
+  },
+  "kill_switch": {
+    "breach_date": "2021-01-06T00:00:00",
+    "flattened_from_breach_date_onward": true,
+    "limit": 0.1,
+    "observed_drawdown": -0.15,
+    "positions_flattened": true,
+    "triggered": true
+  },
+  "kill_switch_none": {
+    "byte_identical_default_path": true,
+    "not_triggered": true,
+    "weights_unchanged": true
+  },
+  "kill_switch_risk_manager": {
+    "event_types": [
+      "kill_switch",
+      "order_rejected",
+      "position_flattened"
+    ],
+    "kill_switch_triggered": true,
+    "position_flattened": true
+  },
+  "limits": {
+    "max_drawdown": 0.1,
+    "max_gross_exposure": 1.0,
+    "max_position_age_days": 5,
+    "max_position_weight": 0.2,
+    "rank_max_gross": 4.0,
+    "rank_min_leg_beta": 0.2
+  },
+  "min_observations": 60,
+  "no_network": true,
+  "position_weight": {
+    "events": [
+      {
+        "details": {
+          "asset": "A",
+          "violation": "Asset A weight 0.5000 exceeds max position weight 0.2000"
+        },
+        "event_type": "order_rejected",
+        "message": "Asset limit violation for A",
+        "severity": "warning"
+      },
+      {
+        "details": {
+          "asset": "B",
+          "violation": "Asset B weight -0.5000 exceeds max position weight 0.2000"
+        },
+        "event_type": "order_rejected",
+        "message": "Asset limit violation for B",
+        "severity": "warning"
+      },
+      {
+        "details": {
+          "limit": 0.1,
+          "observed_drawdown": -0.28
+        },
+        "event_type": "kill_switch",
+        "message": "Drawdown limit breached: -0.2800 > 0.1000",
+        "severity": "critical"
+      },
+      {
+        "details": {
+          "drawdown": -0.28,
+          "limit": 0.1
+        },
+        "event_type": "position_flattened",
+        "message": "Kill switch triggered: all positions flattened",
+        "severity": "critical"
+      }
+    ],
+    "order_rejected": true,
+    "rejected": true
+  },
+  "provenance": {
+    "benchmark": "BTC",
+    "beta_window": 90,
+    "fixture_sha256": "a6d390fc755641ea28d14b8204615786fdc9a95733a87e4c3b63d66be64c163b",
+    "no_lookahead": "Rolling betas computed through t-1 from the fixture; stress paths are synthetic and do not consult future returns.",
+    "no_network": true,
+    "provenance": "Deterministic synthetic risk-control campaign on the P25 WP0 wide fixture (read-only); not real market data and not evidence of real-market profitability. P27 consumes P20-P26 artifacts read-only.",
+    "seed": 20261121,
+    "synthetic": true,
+    "universe": "BTC + A001..A040 (P25 WP0 wide fixture, read-only)"
+  },
+  "rank_max_gross": 4.0,
+  "rank_max_gross_unchanged": true,
+  "rank_min_leg_beta": 0.2,
+  "rank_min_leg_beta_unchanged": true,
+  "risk_gates_all_trip": true,
+  "schema": "bab_p27.risk_controls/1",
+  "seed": 20261121,
+  "staleness": {
+    "events": [
+      {
+        "details": {
+          "limit_type": "position_age"
+        },
+        "event_type": "limit_breach",
+        "message": "Asset A position age 2 days exceeds max 1 days",
+        "severity": "warning"
+      }
+    ],
+    "limit_breach_events": 1,
+    "trips": true
+  },
+  "synthetic": true,
+  "transaction_costs": 0.001
+}
