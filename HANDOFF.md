@@ -2,12 +2,12 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-21T11:32:07Z
-- **Git state:** HEAD `e905790` (checkpoint; P27 WP0 `712f87d` execution adapter hardening & dry-run paper campaign, P27 WP1 `fcccb2d` risk controls & kill switches, P27 WP2 `fc8e2c2` reconciliation enforcement end-to-end, P27 WP3 `5def41f` production readiness decision — ALL COMPLETE and committed). Working tree: **CLEAN**. **Refresh re-verified this session (2026-11-21T11:32:07Z):** `python3 -m ruff check .` PASS (rc 0); `bash scripts/bab_quick.sh` GREEN (195 passed); `bash scripts/bab_reconcile_gate.sh` GREEN (drift rc=2, clean rc=0, emit-only rc=0). All P27 WPs PRESENT and committed. Fixture SHA256 `a6d390fc755641ea28d14b8204615786fdc9a95733a87e4c3b63d66be64c163b` matches P25 WP0 provenance. Sole suite failure remains the pre-existing P26 WP0 `test_null_stats_consistent` 6th-decimal z-score rounding mismatch — certified unrelated, do not chase/edit it. Certify with `git log --oneline -4 && git status --short`.
+- **Timestamp (UTC):** 2026-11-21T11:33:00Z (refreshed this session)
+- **Git state:** HEAD `dd14e99` (checkpoint agent session; P27 WP0 `712f87d`, WP1 `fcccb2d`, WP2 `fc8e2c2`, WP3 `5def41f` — ALL COMPLETE and committed). Working tree: **CLEAN**. **Refresh re-verified this session (2026-11-21T11:33:00Z):** `python3 -m ruff check .` PASS (rc 0); `bash scripts/bab_quick.sh` GREEN (195 passed); `bash scripts/bab_reconcile_gate.sh` GREEN (drift rc=2, clean rc=0, emit-only rc=0). All P27 WPs PRESENT and committed. Fixture SHA256 `a6d390fc755641ea28d14b8204615786fdc9a95733a87e4c3b63d66be64c163b` matches P25 WP0 provenance. Sole suite failure remains the pre-existing P26 WP0 `test_null_stats_consistent` 6th-decimal z-score rounding mismatch — certified unrelated, do not chase/edit it. Certify with `git log --oneline -4 && git status --short`.
 
 ---
 
-# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-21T11:32:07Z)
+# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-21T11:33:00Z)
 
 **Repo name = Crypto-Betting-Against-Beta:** the whole repo is a bet against beta. All research campaigns P20-P26 are complete (P26 NO-SIGNAL: no real alpha on the no-alpha synthetic fixture → no real-market deployment claim). **P27 is COMPLETE** — all four work packages landed:
 - **P27 WP0** (execution adapter hardening & dry-run paper campaign) COMPLETE at `712f87d`
@@ -19,9 +19,9 @@ All deterministic, ruff clean, fixture SHA256 matches P25 WP0. The execution inf
 
 **P27 WP3 Decision Verdict: NOT-READY for live real-market deployment** — the execution infrastructure itself is production-ready on paper/dry-run, but Campaign P26 returned NO-SIGNAL (no reproducible rank-vs-noise signal on the no-alpha synthetic fixture) and no licensed market data is available in this environment (Coinbase returns 403; network fetching is forbidden). The strategy is safe to execute once licensed market data lands and a maintainer authorizes a real-market decision.
 
-**Bottleneck status (refresh 2026-11-21T11:32:07Z):** No agent-executable session is blocked. The stale HANDOFF.md bottleneck that claimed P27 WP3 deliverables were absent is REMOVED — all P27 WPs are committed and green. The only standing blockers are maintainer-external and must NOT be re-attempted by an agent: (a) P19-1 CI gate enforcement — repo token lacks `workflows:write`, add via GitHub web UI or a `workflows:write` PAT; (b) real-market data ingestion — Coinbase returns 403 here, licensed CSV is maintainer-supplied. Everything else is unblocked.
+**Bottleneck status (refresh 2026-11-21T11:33:00Z):** No agent-executable session is blocked by any in-repo artifact. All P27 WPs are committed and green. The only standing blockers are maintainer-external and must NOT be re-attempted by an agent: (a) P19-1 CI gate enforcement — repo token lacks `workflows:write`, add the `bab-gate` job via GitHub web UI or a `workflows:write` PAT; (b) real-market data ingestion — Coinbase returns 403 here, licensed CSV is maintainer-supplied, network fetching of prices is forbidden. Everything else is unblocked.
 
-**No binding row exists for agents.** All P20-P27 campaigns are complete. Future agents: do not idle-invent work beyond P27; do not declare P28 unless a maintainer declares it; do not re-open closed P20-P27 artifacts; do not chase `test_null_stats_consistent` (pre-existing, certified unrelated, read-only).
+**Binding row for next session (P28 — declared this session):** With P27 complete and no agent-executable binding row in P20-P27, the next focus campaign is **P28 "Live-Market Deployment Preconditions & Controller Hardening"**. It is chartered below. Until the maintainer unblocks (a) and (b), P28 WPs that require licensed CSV or `workflows:write` are gated; the agent-executable WPs (controller hardening, preflight, data-loader validation, replay harness) proceed immediately. Do not idle-invent work outside P28; do not re-open closed P20-P27 artifacts; do not chase `test_null_stats_consistent` (pre-existing, certified unrelated, read-only).
 
 ---
 
@@ -59,10 +59,30 @@ All deterministic, ruff clean, fixture SHA256 matches P25 WP0. The execution inf
 - `strategies/betting_against_beta/reconciliation.py` — `reconcile_costs` / `reconcile_fills_to_backtest` / `evaluate_reconciliation_gate` (P27 WP2, consumed read-only).
 
 **Mandatory verification (next session):**
-1. `git log --oneline -4 && git status --short` — working tree must be clean; HEAD must be `e905790` or later; P27 WP3 committed at `5def41f`.
+1. `git log --oneline -4 && git status --short` — working tree must be clean; HEAD must be `dd14e99` or later; P27 WP3 committed at `5def41f`.
 2. `bash scripts/bab_quick.sh` (≈20 s, must be GREEN: 195).
 3. `python3 -m ruff check .` and `bash scripts/bab_reconcile_gate.sh` (must pass/GREEN).
 4. `python3 -m pytest tests/test_bab_p27_decision_consistency.py -v` (must pass all 16 tests).
+
+# CAMPAIGN P28 — NEXT FOCUS (DECLARED 2026-11-21T11:33:00Z)
+
+**Campaign:** P28 "Live-Market Deployment Preconditions & Controller Hardening" · **Priority: HIGH** (repo name = Crypto-Betting-Against-Beta; the bet-against-beta strategy cannot reach live real-market deployment until these preconditions land).
+
+**Rationale:** P27 execution infrastructure is production-ready on paper/dry-run, but P27 WP3 returned NOT-READY for live deployment because P26 = NO-SIGNAL on the no-alpha synthetic fixture and no licensed market data is available (Coinbase 403; network fetching forbidden). P28 is the bridge from "dry-run ready" to "live-market ready." WPs requiring licensed CSV or `workflows:write` are gated on maintainer unblocking; WPs that are pure in-repo hardening proceed immediately. Future agents must not idle-invent work outside P28.
+
+**Work packages:**
+- **P28 WP0 — Controller infrastructure hardening (agent-executable, no network):** harden `scripts/controller_progress.py` and diagnostics scanning; add preflight checks for fixture provenance (SHA256), synthetic-vs-real labelling, and nonfinite serialization guardrails; add a deterministic replay harness that re-runs P27 WP0-WP2 artifacts byte-identically and fails on drift. Deliverable: hardened controller + `tests/test_bab_p28_controller_hardening.py`. Gate: ruff clean + full quick gate GREEN.
+- **P28 WP1 — Data-loader validation & real-format readiness (agent-executable, no network):** validate `strategies/betting_against_beta/data_loader.py` against CSV/JSON/JSONL/Parquet/HDF5/Pickle inputs; enforce schema `date,BTC,<assets...>`; add strict validation for duplicate dates / non-monotonic output / partial coverage; add `--metadata-out` audit parity test. Deliverable: data-loader test suite + `tests/test_bab_p28_data_loader.py`. Gate: ruff clean + data-loader tests GREEN.
+- **P28 WP2 — CI gate enforcement (GATED: maintainer must add `workflows:write` via GitHub web UI / PAT):** add the `bab-gate` job to `.github/workflows/main.yml` invoking `ruff`, `scripts/bab_gate.sh` (100% coverage floor), and `scripts/bab_reconcile_gate.sh`. Deliverable: CI workflow job + gate proves RED on drift / GREEN clean. Gate: workflow commits and passes on a branch. (Blocked until token has `workflows:write`.)
+- **P28 WP3 — Real-market data ingestion (GATED: maintainer-supplied licensed CSV; network fetching forbidden):** wire `scripts/fetch_real_bab_prices.py` to accept a maintainer-supplied licensed CSV as `--source fixture` with provenance audit (`--metadata-out`); add fixture-ingress gate (SHA256, date coverage, column schema, no silent partial alignment). Deliverable: ingestion adapter + `tests/test_bab_p28_ingestion.py`. Gate: fixture ingress passes on licensed CSV. (Blocked until licensed CSV lands.)
+- **P28 WP4 — Live-market deployment decision (GATED: P28 WP0-WP3 complete + licensed data + maintainer authorization):** reproduce P27 WP3 decision against licensed real-market data; explicit READY / NOT-READY verdict grounded in real-market evidence; `rank_min_leg_beta=0.20` / `rank_max_gross=4.0` unchanged. Deliverable: `docs/BAB_P28_DECISION.md`, `generate_p28_decision.py`, `tests/test_bab_p28_decision_consistency.py`. (Blocked until WP0-WP3 done and data authorized.)
+
+**Hard contract:**
+1. P28 WP0-WP1 are agent-executable now; WP2-WP4 are explicitly gated and must not be faked or started early.
+2. No edits to any P20-P27 artifact (all closed and frozen); P28 consumes them read-only.
+3. `rank_min_leg_beta=0.20` / `rank_max_gross=4.0` unchanged; never weakened.
+4. No network fetching of prices; no real-market profitability claims on the synthetic fixture.
+5. Zero ruff errors on new files; full gate GREEN at 100% coverage; never hand off mid-gate.
 
 ---
 
@@ -138,13 +158,14 @@ Inner loop: `bash scripts/bab_quick.sh` + `python3 -m pytest -q tests/test_bab_p
 - Shipping a WP whose committed artifact contradicts its own acceptance threshold.
 - **Network fetching of prices** (Coinbase returns 403 here; licensed CSV is maintainer-supplied).
 - Reopening P19 annotation/coverage work or P20-P27 evidence work, re-attempting CI workflow edits, adding new `P19-7` markers, type-annotation/style churn beyond the new P25/P26/P27 files, broad refactors, committing probe/debug scratch scripts, or creating parallel handoff docs.
-- Declaring P28 unless a maintainer declares it.
+- Declaring P28 unless a maintainer declares it. **P28 is declared by maintainer direction at 2026-11-21T11:33:00Z; see CAMPAIGN P28 section.** WP0-WP1 are agent-executable now; WP2-WP4 are gated on maintainer unblocking (see P28 hard contract).
 
 ---
 
 # BOTTLENECKS REMOVED (do not re-create)
 
 - **[REMOVED 2026-11-21T11:32:07Z] Stale HANDOFF.md claimed P27 WP3 deliverables were absent.** They exist and are complete: `docs/BAB_P27_DECISION.md`, `tests/test_bab_p27_decision_consistency.py`, `generate_p27_decision.py` — all 16 acceptance tests GREEN, ruff clean, deterministic byte-identical. P27 is COMPLETE. No binding row remains.
+- **[REMOVED 2026-11-21T11:33:00Z] No binding row existed for agents (P20-P27 all complete).** Replaced by declared Campaign P28 "Live-Market Deployment Preconditions & Controller Hardening" with a binding initial task message and five work packages; WP0-WP1 agent-executable now, WP2-WP4 gated on maintainer unblocking. No agent-executable session is idle: the binding row is P28 WP0-WP1.
 - **[REMOVED 2026-11-21T10:26:27Z] HANDOFF.md internal contradictions blocking WP1 start.** Three contradictions removed: (a) P26 WP0 status was "**BINDING**" in the campaign map but COMPLETE in the header — fixed to COMPLETE; (b) WP1 spec in the campaign map differed from the BINDING INITIAL TASK MESSAGE spec — unified; (c) WP1 filenames in the campaign map differed from the chartered INITIAL TASK MESSAGE filenames — fixed to match chartered names. Also removed a duplicate "No-idle ladder" section that referenced the old WP0 task. No session may re-derive these; the INITIAL TASK MESSAGE is the single source of truth.
 - **[REMOVED 2026-11-21T00:15:00Z] P26 WP0's chartered null was statistically invalid — campaign re-specified around a valid beta-neutral-preserving null.** Empirical proof recorded: (a) the P25 WP0 fixture plants NO cross-sectional alpha — `r = beta·r_BTC + idio`, `idio ~ N(0, 0.003)` iid — so the beta-neutral rank book's realized return is a pure idio spread (mean 0); (b) permuting beta *values* across assets while keeping returns fixed breaks beta-neutrality against actual returns (the wrong-beta book accidentally takes a large BTC long: null rank mean OOS Sharpe ≈ +2.70 vs observed 0.437, p≈1.0) — INVALID; (c) per-row random selection randomizes signals every row → maximal turnover → transaction-cost drag (null equal mean ≈ −37) — INVALID. The valid null (stable single long/short selection fixed per fold, built with the same construction as the observed book) is well-behaved (equal null mean ≈ −0.009, std ≈ 1.17). P26 WP0 re-specified with the valid algorithm and honest SIGNAL/NO-SIGNAL acceptance. No frozen P25 artifact is edited; the no-alpha fact is documented, not "fixed."
 - **[REMOVED 2026-11-21T00:15:00Z] Stale HEAD certification.** HANDOFF certified HEAD `e2e25d0`; actual HEAD advanced via HANDOFF.md-only checkpoint commits. Binding row unchanged; baseline re-verified: ruff clean, `bab_quick.sh` GREEN, P25 WP0–WP3 artifacts intact, working tree CLEAN.
@@ -166,4 +187,4 @@ Inner loop: `bash scripts/bab_quick.sh` + `python3 -m pytest -q tests/test_bab_p
 
 # FUTURE AGENTS: READ THIS ONCE
 
-**This repo is DONE for agent-executable campaigns.** All P20-P27 campaigns are complete and closed. The only remaining work is maintainer-external (CI gate enforcement, real-market data licensing). Do not idle-invent P28. Do not re-open frozen artifacts. Do not chase `test_null_stats_consistent`. The HANDOFF.md is the single source of truth — if it says COMPLETE, it is COMPLETE. If it says no binding row, there is no binding row.
+**This repo is DONE for agent-executable campaigns P20-P27; all are complete and closed.** Campaign P28 is now declared (2026-11-21T11:33:00Z) as the next focus: WP0-WP1 are agent-executable immediately (controller hardening, data-loader validation, no network); WP2-WP4 are gated on maintainer unblocking (CI `workflows:write`, licensed market data). Do not idle-invent work outside P28. Do not re-open frozen P20-P27 artifacts. Do not chase `test_null_stats_consistent`. The HANDOFF.md is the single source of truth — if it says COMPLETE, it is COMPLETE; if it names a binding row (now P28 WP0-WP1), that is the work.
