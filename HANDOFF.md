@@ -2,12 +2,12 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-21T11:37:28Z (refreshed this session)
-- **Git state:** HEAD `e530c1b` (checkpoint agent session; P27 WP0 `712f87d`, WP1 `fcccb2d`, WP2 `fc8e2c2`, WP3 `5def41f` — ALL COMPLETE and committed). Working tree: **CLEAN**. **Refresh re-verified this session (2026-11-21T11:37:28Z):** `python3 -m ruff check .` PASS (rc 0, "All checks passed!"); `bash scripts/bab_quick.sh` GREEN (unit 104 passed + smoke 195 passed). All P27 WPs PRESENT and committed (`scripts/bab_execution_hardening.py`, `scripts/bab_risk_controls.py`, `scripts/bab_reconciliation_e2e.py`, `docs/BAB_P27_DECISION.md`, `generate_p27_decision.py`, `tests/test_bab_p27_*.py` all on disk). P28 has **no** committed artifacts yet (no `tests/test_bab_p28_*.py` exists — P28 is genuinely unstarted, verified by `ls tests/ | grep p28` = empty). Fixture SHA256 `a6d390fc755641ea28d14b8204615786fdc9a95733a87e4c3b63d66be64c163b` matches P25 WP0 provenance. Sole suite failure remains the pre-existing P26 WP0 `test_null_stats_consistent` 6th-decimal z-score rounding mismatch — certified unrelated, do not chase/edit it. Certify with `git log --oneline -4 && git status --short`.
+- **Timestamp (UTC):** 2026-11-21T11:39:35Z (refreshed this session)
+- **Git state:** HEAD `15d0712` (checkpoint agent session advanced one past `e530c1b`; P27 WP0 `712f87d`, WP1 `fcccb2d`, WP2 `fc8e2c2`, WP3 `5def41f` — ALL COMPLETE and committed). Working tree: **CLEAN**. **Refresh re-verified this session (2026-11-21T11:39:35Z):** `python3 -m ruff check .` PASS (rc 0, "All checks passed!"); `bash scripts/bab_quick.sh` GREEN (unit 104 passed + smoke 195 passed); `bash scripts/bab_reconcile_gate.sh` GREEN (drift rc=2, clean rc=0, emit-only rc=0). All P27 WPs PRESENT and committed (`scripts/bab_execution_hardening.py`, `scripts/bab_risk_controls.py`, `scripts/bab_reconciliation_e2e.py`, `docs/BAB_P27_DECISION.md`, `generate_p27_decision.py`, `tests/test_bab_p27_*.py` all on disk). P28 has **no** committed artifacts yet (no `tests/test_bab_p28_*.py` exists — P28 is genuinely unstarted, verified by `ls tests/ | grep p28` = empty). Fixture SHA256 `a6d390fc755641ea28d14b8204615786fdc9a95733a87e4c3b63d66be64c163b` matches P25 WP0 provenance. Sole suite failure remains the pre-existing P26 WP0 `test_null_stats_consistent` 6th-decimal z-score rounding mismatch — certified unrelated, do not chase/edit it. Certify with `git log --oneline -4 && git status --short`.
 
 ---
 
-# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-21T11:37:28Z)
+# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-21T11:39:35Z)
 
 **Repo name = Crypto-Betting-Against-Beta:** the whole repo is a bet against beta. Research campaigns P20-P27 are all COMPLETE and frozen. P26 = NO-SIGNAL (no real alpha on the no-alpha synthetic fixture → no real-market deployment claim on synthetic evidence). P27 execution infrastructure is production-ready on paper/dry-run but its WP3 verdict is **NOT-READY for live real-market deployment** (P26 NO-SIGNAL + no licensed market data in this environment).
 
@@ -71,7 +71,7 @@ Deliverable: hardened `scripts/controller_progress.py` + `scripts/bab_replay_har
 
 # CAMPAIGN P28 — NEXT FOCUS (DECLARED 2026-11-21T11:33:00Z; REFRESHED 2026-11-21T11:37:28Z)
 
-**Campaign:** P28 "Live-Market Deployment Preconditions & Controller Hardening" · **Priority: HIGH** (repo name = Crypto-Betting-Against-Beta; the bet-against-beta strategy cannot reach live real-market deployment until these preconditions land) · **Declared: 2026-11-21T11:35:20Z**
+**Campaign:** P28 "Live-Market Deployment Preconditions & Controller Hardening" · **Priority: HIGH** (repo name = Crypto-Betting-Against-Beta; the bet-against-beta strategy cannot reach live real-market deployment until these preconditions land) · **Declared: 2026-11-21T11:35:20Z; refreshed 2026-11-21T11:39:35Z**
 
 **Rationale:** P27 execution infrastructure is production-ready on paper/dry-run, but P27 WP3 returned NOT-READY for live deployment because P26 = NO-SIGNAL on the no-alpha synthetic fixture and no licensed market data is available (Coinbase 403; network fetching forbidden). P28 is the bridge from "dry-run ready" to "live-market ready." WPs requiring licensed CSV or `workflows:write` are gated on maintainer unblocking; WPs that are pure in-repo hardening proceed immediately. Future agents must not idle-invent work outside P28. **P28 WP0 and WP1 are fully agent-executable NOW with zero maintainer dependency — the binding row is WP0 → WP1, in that order, landed with real tested code in this session.**
 
