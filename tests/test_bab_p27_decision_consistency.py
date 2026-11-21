@@ -163,6 +163,15 @@ def wp0_table(execution) -> tuple[list[str], list[dict]]:
     return ["key", "value"], rows
 
 
+def wp0_diagnostics_table(execution) -> tuple[list[str], list[dict]]:
+    columns = ["n_long", "n_short", "turnover", "beta_mean", "beta_median",
+               "beta_std", "beta_min", "beta_max", "beta_neutrality_error",
+               "hhi", "long_beta_boundary", "short_beta_boundary"]
+    diagnostics = execution["paper"]["diagnostics"]
+    rows = [{col: d[col] for col in columns} for d in diagnostics]
+    return columns, rows
+
+
 def wp1_table(risk) -> tuple[list[str], list[dict]]:
     kill_switch = risk["kill_switch"]
     position_weight = risk["position_weight"]
@@ -375,6 +384,7 @@ def decision_table(execution, risk, reconciliation
 TABLE_BUILDERS = {
     "provenance": provenance_table,
     "wp0": wp0_table,
+    "wp0_diagnostics": wp0_diagnostics_table,
     "wp1": wp1_table,
     "wp2": wp2_table,
     "live": live_table,
@@ -388,6 +398,7 @@ def _args_for(name: str, execution, risk, reconciliation) -> dict:
             "execution": execution, "risk": risk,
             "reconciliation": reconciliation},
         "wp0": {"execution": execution},
+        "wp0_diagnostics": {"execution": execution},
         "wp1": {"risk": risk},
         "wp2": {"reconciliation": reconciliation},
         "live": {"execution": execution},

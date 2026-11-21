@@ -105,6 +105,14 @@ prov_rows = [
 ]
 provenance_table = _render(["Fact", "Value"], prov_rows)
 
+# WP0 execution diagnostics per period (every cell a committed JSON leaf)
+_diag_columns = ["n_long", "n_short", "turnover", "beta_mean", "beta_median",
+                 "beta_std", "beta_min", "beta_max", "beta_neutrality_error",
+                 "hhi", "long_beta_boundary", "short_beta_boundary"]
+_diag_rows = [{col: d[col] for col in _diag_columns}
+              for d in execution["paper"]["diagnostics"]]
+wp0_diagnostics_table = _render(_diag_columns, _diag_rows)
+
 # WP0 execution adapter hardening / paper lifecycle table
 wp0_rows = [
     {"key": "adapter_present", "value": paper["adapter_present"]},
@@ -395,6 +403,14 @@ leaf, and the universe is labelled **controlled synthetic** throughout.
 
 ---
 
+## WP0 Execution Diagnostics (per period)
+
+<!-- table:wp0_diagnostics:start -->
+{wp0_diagnostics_table}
+<!-- table:wp0_diagnostics:end -->
+
+---
+
 ## WP1 Risk Controls & Kill Switches
 
 <!-- table:wp1:start -->
@@ -411,7 +427,7 @@ leaf, and the universe is labelled **controlled synthetic** throughout.
 
 ---
 
-## Live Adapter Health Check (dry-run)
+## Live Health Check (dry-run)
 
 <!-- table:live:start -->
 {live_table}
