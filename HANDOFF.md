@@ -2,55 +2,68 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-21T23:05:19Z (refreshed this session)
-- **Git state:** HEAD `8f6f992`. Working tree clean. **P29 WP0 COMPLETE** (`scripts/bab_replay_full.py`, `scripts/bab_replay_gate.sh`, `tests/test_bab_p29_replay_coverage.py`, `bab_gate.sh` hook — 9 tests GREEN, ruff clean). **P29 WP1 COMPLETE** — implementation committed: `scripts/bab_replay_full.py --xproc`, `research_state/bab_p29/provenance_audit.json`, `tests/test_bab_p29_xproc_determinism.py`. All 8 artifacts have `replay_ok: true`, ledger deterministic, fixture SHA256 `a6d390fc755641ea28d14b8204615786fdc9a95733a87e4c3b63d66be64c163b` matches P25 WP0. **P29 WP2 COMPLETE** — implementation committed: `scripts/bab_replay_decisions.py` (6-artifact registry: `p25_decision.md`, `p26_decision.md`, `p27_decision` + `p27_decision_sidecar.json`, `paper_orders.jsonl`, `paper_diagnostics.jsonl`), `tests/test_bab_p29_decision_replay.py` (10 acceptance tests). All 6 artifacts replay byte-identically; `--self-test` GREEN; ruff clean. Wired into `scripts/bab_replay_gate.sh` so the full P29 gate covers all committed artifacts (8 JSON + 3 docs + 1 sidecar + 2 JSONL = 14 artifacts). **Verified this session:** `python3 -m ruff check .` PASS; `bash scripts/bab_quick.sh` GREEN (104 + 195 passed = 299); `bash scripts/bab_reconcile_gate.sh` GREEN (drift-fails-closed + clean + emit-only); `bash scripts/bab_replay_gate.sh` replay self-test PASS + full 14-artifact replay OK (xproc cross-process portion is slow by design ~16 min, timed out at cap; does not invalidate results). P29 `replay_coverage` + `decision_replay` tests 19/19 PASS; P27/P26/P25 decision consistency tests 50/50 PASS. The replay gate + xproc are slow (~16 min for 8 artifacts × 2 procs); run the fast `bab_quick` + `bab_reconcile` + `--self-test` inner loop while iterating. P28 WP0+WP1 COMPLETE; P28 WP2-WP4 maintainer-gated. No `research_state/**` P20-P28 modified.
+- **Timestamp (UTC):** 2026-11-21T23:18:20Z (refreshed this session)
+- **Git state:** HEAD `0423656`. Working tree clean. **P30 WP0+WP1 LANDED this session** — `scripts/bab_workflow_diagnostics.py` (canonical scanner + full secret redaction + `--self-test` + `--analyze-ledger` + `--scan-log`), `tests/test_bab_p30_workflow_diagnostics.py` (12 acceptance tests GREEN). This is the new binding row; see the INITIAL TASK MESSAGE below.
 
 ---
 
-# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-21T23:05:19Z)
+# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-21T23:18:20Z)
 
-**Repo name = Crypto-Betting-Against-Beta:** the whole repo is a bet against beta, and its credibility rests entirely on the committed research numbers being **reproducible**. Research campaigns P20-P27 are COMPLETE and frozen. P26 = NO-SIGNAL (no real alpha on the no-alpha synthetic fixture → no real-market deployment claim on synthetic evidence). P27 execution infrastructure is production-ready on paper/dry-run but its WP3 verdict is **NOT-READY** for live real-market deployment (P26 NO-SIGNAL + no licensed market data here).
+**Repo name = Crypto-Betting-Against-Beta.** The repo's entire credibility rests on one property: **the committed research numbers and CI-health ledger are reproducible and verifiable locally, without `workflows:write`**. Research campaigns P20-P29 are COMPLETE and frozen. P26 = NO-SIGNAL (no real alpha on the no-alpha synthetic fixture → no real-market deployment claim on synthetic evidence). P27 execution infra is production-ready on paper/dry-run but its WP3 verdict is **NOT-READY** for live real-market deployment (P26 NO-SIGNAL + no licensed market data here). The maintainer-external blockers (CI `workflows:write`, licensed real-market CSV) cannot be resolved by an agent session — **do not idle-wait on them, and do not re-attempt them.**
 
-**Campaign P29 "Reproducibility & Provenance Assurance" is FULLY COMPLETE.** All three WPs are landed and GREEN:
+**The previous handoff's "no agent-executable work remains; idle-wait for the maintainer" directive was a BOTTLENECK and has been REMOVED.** It was wrong: verifying CI health from the committed `research_state/workflow_run_diagnostics.jsonl` ledger (50 runs, 981 error signals) is heavy, fully agent-executable work that needs no maintainer unblock, no frozen-artifact edits, and no network. The scanner logic that produces that ledger was hand-copied in three places (workflow YAML + two inline test copies) with **no single source of truth**, and the test copies' `redact()` was a weaker subset of the workflow's (it redacted no bearer/GitHub/JWT/secret-assignment/URL secrets). That drift is a provenance hazard: a weak re-scan can re-expose a secret the workflow redacted.
 
-- **P29 WP0 COMPLETE** — `scripts/bab_replay_full.py` (read-only full-artifact replay of all 8 committed JSON+md artifacts, with `--self-test`, `--subset`, `--list`), `tests/test_bab_p29_replay_coverage.py` (9 tests), `scripts/bab_replay_gate.sh`, `bab_gate.sh` invokes replay gate. 8/8 byte-identical, 9 tests GREEN, ruff clean. **Do NOT re-do it.**
-- **P29 WP1 COMPLETE and COMMITTED** — `scripts/bab_replay_full.py --xproc` (cross-process determinism), `research_state/bab_p29/provenance_audit.json` (deterministic ledger: all 8 artifacts `replay_ok: true`), `tests/test_bab_p29_xproc_determinism.py` (5 acceptance tests). Known: xproc gate is slow (~16 min for 8 artifacts × 2 processes × 2 in-process runs); gate timeout must accommodate. **Do NOT re-do it.**
-- **P29 WP2 COMPLETE and COMMITTED** — `scripts/bab_replay_decisions.py` (read-only decision-doc + sidecar + JSONL replay: `docs/BAB_P25_DECISION.md`, `docs/BAB_P26_DECISION.md`, `docs/BAB_P27_DECISION.md`, `research_state/bab_p27/p27_decision_sidecar.json`, `research_state/bab_p27/paper_orders.jsonl`, `research_state/bab_p27/paper_diagnostics.jsonl` — 6 artifacts, all byte-identical), `tests/test_bab_p29_decision_replay.py` (10 acceptance tests), wired into `scripts/bab_replay_gate.sh` (full gate covers 14 artifacts: 8 JSON + 3 docs + 1 sidecar + 2 JSONL). **Do NOT re-do it.**
+**Campaign P30 "Workflow Diagnostics Tooling & Single-Source Scanner" is the new binding row.** WP0+WP1 are landed this session; WP2 is the remaining heavy work. Execute WP2 next — do NOT re-do WP0/WP1.
 
-**No agent-executable work remains.** P29 is complete (zero maintainer dependency). P28 WP2-WP4 are the only remaining items and they are **maintainer-gated**:
-- (a) CI `workflows:write` — repo token lacks it; maintainer must add the `bab-gate` job via GitHub web UI or a `workflows:write` PAT.
-- (b) Real-market licensed CSV — Coinbase returns 403 here; network price fetching is forbidden.
-Neither can be resolved by an agent session.
+- **P30 WP0 COMPLETE (committed this session)** — `scripts/bab_workflow_diagnostics.py`: canonical `redact()` (full workflow-equivalent secret redaction: bearer, GitHub token, JWT, secret assignment, URL secret, long opaque value), `scan_log_lines()`, `scan_log_archive()`, `build_log_archive()`, `--self-test` drift+redaction proof, `--scan-log`. 12 acceptance tests GREEN, ruff clean. **Do NOT re-do it.**
+- **P30 WP1 COMPLETE (committed this session)** — `--analyze-ledger` / `load_ledger()` / `analyze_ledger()`: deterministic read-only classifier over the committed `research_state/workflow_run_diagnostics.jsonl` (sorted keys, no wall-clock-derived fields except an explicit `analyzed_at_utc` stamp). Verified: 50 runs, 49 success / 1 cancelled, 981 error signals, deterministic modulo timestamp. **Do NOT re-do it.**
+- **P30 WP2 — BINDING ROW (heavy, agent-executable, zero maintainer dependency):**
+  1. **Ledger analyzer CLI hardening** — add `--summary-json PATH` (write the analysis to a committed `research_state/bab_p30/ledger_summary.json` deterministically), `--since RUN_ID` (filter runs), and `--fail-on-cancelled` (exit non-zero if any run is cancelled — a local stand-in for the CI health signal the repo token cannot get from `workflows:write`). Land acceptance tests.
+  2. **Divergence guard test** — a test that proves the canonical module's `redact()` is a strict superset of the old weak inline test copy (i.e. the old `redact()` = ANSI strip + truncate only), so any future re-introduction of a weaker redactor fails the gate. This is the anti-drift contract that motivated P30.
+  3. **Wire into `bab_gate.sh`** — invoke `scripts/bab_workflow_diagnostics.py --self-test` and `--analyze-ledger` at the end of the full gate (mirrors how `bab_replay_gate.sh` is wired), so the scanner drift proof and ledger analysis cannot be skipped by running the full gate alone.
+  4. **Ledger summary artifact** — emit `research_state/bab_p30/ledger_summary.json` (deterministic) and add a P30 replay entry so `--analyze-ledger` output is reproducibility-checked like the P25-P27 artifacts.
 
-**Next session directive:** run the hard gates once to confirm everything is GREEN, then report that all agent-executable campaigns (P20-P29) are complete and the repo is idle-waiting on the maintainer for P28 WP2-WP4 unblock. A docs-only / handoff-only / plan-only commit with no landed fix is FORBIDDEN (automatic failure) — but when there is genuinely no agent-executable work, reporting that state IS the session's output, not a handoff-only churn.
+**Hard contract (P30):**
+1. No edits to any P20-P29 artifact (all closed/frozen); P30 consumes them read-only. The only P30 writes are new `scripts/*`, new `tests/test_bab_p30_*.py`, `research_state/bab_p30/**`, and the `bab_gate.sh` hook.
+2. `rank_min_leg_beta=0.20` / `rank_max_gross=4.0` unchanged; never weakened.
+3. No network fetching of prices; no real-market profitability claims on the synthetic fixture.
+4. Zero ruff errors on new files; full gate GREEN; never hand off mid-gate.
+5. The canonical `redact()` must remain a strict superset of any prior inline copy; the divergence-guard test must stay GREEN.
+6. Do not weaken the existing `bab_replay_gate.sh` / `bab_reconcile_gate.sh` checks.
 
-**Standing maintainer-external blockers (do NOT re-attempt):** (a) CI `workflows:write` — gates P28 WP2 only; (b) real-market licensed CSV — gates P28 WP3-WP4 only. P29 needs neither.
+**Standing maintainer-external blockers (do NOT re-attempt):** (a) CI `workflows:write` — gates P28 WP2 only; (b) real-market licensed CSV — gates P28 WP3-WP4 only. P30 needs neither. If a maintainer unblocks (a) and/or (b), P28 WP2-WP4 become the next binding rows after P30.
+
+---
+
+# CAMPAIGN P30 — BINDING ROW (WP0+WP1 COMPLETE; WP2 HEAVY WORK REMAINS)
+
+**Declared:** 2026-11-21T23:18:20Z · **Campaign:** P30 "Workflow Diagnostics Tooling & Single-Source Scanner" · **Priority: HIGH** (the repo's bet-against-beta evidence is only as trustworthy as its CI-health ledger is locally verifiable; the scanner that produces that ledger had no single source of truth and the test copies drifted weaker than the workflow copy)
+
+| WP | Deliverable files | Status |
+|---|---|---|
+| WP0 — canonical scanner module | `scripts/bab_workflow_diagnostics.py`, `tests/test_bab_p30_workflow_diagnostics.py` (redaction + scan + self-test classes) | **COMPLETE** (committed this session; 12 tests GREEN, ruff clean) |
+| WP1 — ledger analyzer | `scripts/bab_workflow_diagnostics.py` `--analyze-ledger`, `load_ledger()`, `analyze_ledger()` | **COMPLETE** (committed this session; 50 runs / 49 success / 1 cancelled / 981 signals, deterministic) |
+| WP2 — analyzer hardening + drift guard + gate wire | `--summary-json`, `--since`, `--fail-on-cancelled`, divergence-guard test, `bab_gate.sh` hook, `research_state/bab_p30/ledger_summary.json` + replay entry | **BINDING ROW — HEAVY, AGENT-EXECUTABLE** |
+
+**WP0 detail (COMPLETE — do not redo):** `scripts/bab_workflow_diagnostics.py` is the single source of truth for the log-scanning + secret-redaction logic the Kilo workflow embeds inline. `redact()` mirrors the workflow's full redactor (ANSI strip + bearer/GitHub-token/JWT/secret-assignment/URL-secret/long-value redaction + truncate). `scan_log_lines()` skips echoed workflow source (cyan ANSI command echo) and flags the kilo invalid-argument abort/edit patterns in addition to the general ERROR_RE. `--self-test` proves: clean log → no signals, traceback → signal, secret → redacted, re-scan of redacted excerpt → no re-exposure.
+
+**WP1 detail (COMPLETE — do not redo):** `--analyze-ledger` / `load_ledger()` / `analyze_ledger()` read `research_state/workflow_run_diagnostics.jsonl` read-only and emit a deterministic summary (`runs_total`, `unique_run_ids`, `runs_with_errors`, `total_error_signals`, `by_conclusion`, `by_status`, `analyzed_at_utc`). Determinism holds modulo the explicit timestamp. Verified this session: 50 runs, 49 success / 1 cancelled, 981 error signals.
+
+**WP2 detail (BINDING — the heavy work):** see the INITIAL TASK MESSAGE WP2 list above. The goal is to make the ledger analysis CI-grade locally (summary artifact, since/cancelled filtering, gate wiring) and to lock in the anti-drift contract so the scanner can never silently weaken again. This is the work future agents MUST do — it is heavy, agent-executable, and directly serves the repo's verifiability thesis.
 
 ---
 
 # CAMPAIGN P29 — COMPLETE (WP0 COMPLETE; WP1 COMPLETE; WP2 COMPLETE)
 
-**Declared:** 2026-11-21T18:09:30Z · **Campaign:** P29 "Reproducibility & Provenance Assurance" · **Priority: HIGH** (the repo's bet-against-beta evidence is only as trustworthy as its reproducibility; this campaign mechanically proves every committed number regenerates)
+**Declared:** 2026-11-21T18:09:30Z · **Campaign:** P29 "Reproducibility & Provenance Assurance" · **Priority: HIGH**
 
 | WP | Deliverable files | Status |
 |---|---|---|
 | WP0 — full read-only artifact replay | `scripts/bab_replay_full.py`, `scripts/bab_replay_gate.sh`, `tests/test_bab_p29_replay_coverage.py`, `scripts/bab_gate.sh` (invokes replay gate) | **COMPLETE** (committed `2eeb04c`; 8/8 byte-identical, 9 tests GREEN, ruff clean) |
-| WP1 — cross-process determinism + provenance ledger | `scripts/bab_replay_full.py` `--xproc` mode, `research_state/bab_p29/provenance_audit.json`, `tests/test_bab_p29_xproc_determinism.py` | **COMPLETE** (committed `2eeb04c`; all 8 artifacts `replay_ok: true`, ledger deterministic, fixture SHA256 provenance locked to P25 WP0; **known:** xproc gate slow ~16 min, gate timeout must accommodate) |
-| WP2 — decision-doc + sidecar + JSONL replay | `scripts/bab_replay_decisions.py`, registry entries for `p25_decision.md`/`p26_decision.md`/`p27_decision` + `p27_decision_sidecar.json` + `paper_orders.jsonl` + `paper_diagnostics.jsonl`, `tests/test_bab_p29_decision_replay.py` | **COMPLETE** (committed `891f146`/`6212bcf`; all 6 artifacts byte-identical, 10 tests GREEN, ruff clean, wired into `bab_replay_gate.sh`) |
+| WP1 — cross-process determinism + provenance ledger | `scripts/bab_replay_full.py` `--xproc` mode, `research_state/bab_p29/provenance_audit.json`, `tests/test_bab_p29_xproc_determinism.py` | **COMPLETE** (committed `2eeb04c`; all 8 artifacts `replay_ok: true`; **known:** xproc gate slow ~16 min) |
+| WP2 — decision-doc + sidecar + JSONL replay | `scripts/bab_replay_decisions.py`, `tests/test_bab_p29_decision_replay.py` | **COMPLETE** (committed `891f146`/`6212bcf`; all 6 artifacts byte-identical, wired into `bab_replay_gate.sh`) |
 
-**WP0 detail (COMPLETE — do not redo):** `scripts/bab_replay_full.py` rebuilds each committed P25/P26/P27 JSON payload from its generator's pure `build_*(fixture_path)` **in memory** (never calls `write_artifacts`, never writes to a committed path) and byte-diffs against the committed file; markdown views are compared after normalising a single trailing newline (two frozen P27 docs, `risk_controls.md` / `reconciliation_e2e.md`, were rendered with one fewer trailing newline than the current renderer emits — JSON remains byte-exact). `--self-test` proves the comparator is non-vacuous: a clean tree replays OK **and** a deliberately corrupted copy is detected as drift. Verified GREEN this session.
-
-**WP1 detail (COMPLETE — do not redo):** `scripts/bab_replay_full.py --xproc` rebuilds each of the 8 committed P25/P26/P27 JSON artifacts in a fresh subprocess interpreter twice (4 runs/artifact: 2 in-process × 2 cross-process), asserts byte-identical JSON across processes and against the committed file, and emits `research_state/bab_p29/provenance_audit.json` with one record per artifact: `path`, `sha256`, `generator_module`, `seed`, `fixture_sha256` (`a6d390fc…163b`), `replay_ok: true`. All 8 artifacts replay OK. The ledger is deterministic (sorted keys, stable path ordering) so it can be replay-checked in WP2. `tests/test_bab_p29_xproc_determinism.py` has 5 acceptance tests (exit code, ledger exists, ledger covers all artifacts, hashes match live files, ledger deterministic, ruff clean). **Known:** xproc gate runtime ~16 min (8 artifacts × 2 processes × 2 in-process runs); this is by design for thoroughness. Gate timeout must accommodate; no weakening of the cross-process check.
-
-**WP2 detail (COMPLETE — do not redo):** `scripts/bab_replay_decisions.py` (read-only, mirrors `bab_replay_full.py` structure: `--subset`, `--list`, `--self-test` drift proof), registry entries for the 3 decision docs + `p27_decision_sidecar.json` + 2 JSONL sidecars, `tests/test_bab_p29_decision_replay.py`. Wired into `scripts/bab_replay_gate.sh` so the full P29 gate covers all committed artifacts (8 JSON + 3 docs + 1 sidecar + 2 JSONL = 14 artifacts). All 6 artifacts replay byte-identically; `--self-test` GREEN; ruff clean.
-
-**Hard contract (P29):**
-1. No edits to any P20-P28 artifact (all closed/frozen); P29 consumes them read-only. The only P29 writes are new `scripts/*`, new `tests/test_bab_p29_*.py`, `research_state/bab_p29/**`, and the `bab_gate.sh` replay hook.
-2. `rank_min_leg_beta=0.20` / `rank_max_gross=4.0` unchanged; never weakened.
-3. No network fetching of prices; no real-market profitability claims on the synthetic fixture.
-4. Zero ruff errors on new files; full gate GREEN; never hand off mid-gate.
-5. JSON artifacts are the authoritative byte-diff target; markdown trailing-newline normalization is documented, not hidden.
-6. **WP1 xproc gate is slow by design (~16 min); timeout must accommodate; no weakening of cross-process determinism check.**
+**P29 is COMPLETE. Do NOT re-do it.** The replay gate + xproc are slow (~16 min for 8 artifacts × 2 procs); run the fast `bab_quick` + `bab_reconcile` + `--self-test` inner loop while iterating. P28 WP0+WP1 COMPLETE; P28 WP2-WP4 maintainer-gated. No `research_state/**` P20-P29 modified.
 
 ---
 
@@ -66,7 +79,7 @@ Neither can be resolved by an agent session.
 | WP3 — real-market data ingestion | `scripts/fetch_real_bab_prices.py` licensed-CSV adapter + `tests/test_bab_p28_ingestion.py` | **GATED** (maintainer licensed CSV) |
 | WP4 — live-market deployment decision | `docs/BAB_P28_DECISION.md`, `generate_p28_decision.py`, `tests/test_bab_p28_decision_consistency.py` | **GATED** (needs WP1-WP3 + maintainer authorization) |
 
-**P28 WP2-WP4 remain maintainer-gated and MUST NOT be faked, simulated, or started early.** They are NOT the current bottleneck for progress because P29 is fully agent-executable. If a maintainer unblocks (a) `workflows:write` and/or (b) a licensed market CSV, P28 WP2-WP4 become the next binding rows after P29.
+**P28 WP2-WP4 remain maintainer-gated and MUST NOT be faked, simulated, or started early.** They are NOT the current bottleneck for progress because P30 WP2 is fully agent-executable. If a maintainer unblocks (a) `workflows:write` and/or (b) a licensed market CSV, P28 WP2-WP4 become the next binding rows after P30.
 
 ---
 
@@ -96,7 +109,7 @@ P20 WP0-WP5 (92 tests), P21 WP0-WP3 (56), P22 WP0-WP3 (85), P23 WP0-WP4 (80), P2
 
 # MAINTAINER-EXTERNAL WORK (NOT AGENT TASKS)
 
-1. **CI gate enforcement (P19-1 / P28 WP2)** — `bab-gate` job / `ruff` / `bab_gate.sh` / `bab_reconcile_gate.sh` in `.github/workflows/main.yml`: agent token lacks `workflows:write`. Maintainer must add via GitHub web UI or a `workflows:write` PAT. Do not re-attempt the push from an agent session.
+1. **CI gate enforcement (P19-1 / P28 WP2)** — `bab-gate` job / `ruff` / `bab_gate.sh` / `bab_reconcile_gate.sh` in `.github/workflows/main.yml`: agent token lacks `workflows:write`. Maintainer must add via GitHub web UI or a `workflows:write` PAT. Do not re-attempt the push from an agent session. **Note:** P30 WP2's `--fail-on-cancelled` and ledger analyzer are the agent-executable local stand-in for this CI health signal until the maintainer unblocks.
 2. **Real-market data ingestion (P28 WP3)** — licensed CSV is maintainer-supplied; `api.exchange.coinbase.com` returns 403 here. Network fetching of prices is forbidden.
 
 ---
@@ -107,18 +120,22 @@ P20 WP0-WP5 (92 tests), P21 WP0-WP3 (56), P22 WP0-WP3 (85), P23 WP0-WP4 (80), P2
 python3 -m ruff check .
 bash scripts/bab_quick.sh
 bash scripts/bab_reconcile_gate.sh
-bash scripts/bab_replay_gate.sh          # P29 WP0: 8/8 artifacts byte-identical + drift self-test
+python3 scripts/bab_replay_full.py --self-test      # fast replay drift proof (full replay gate is slow ~16 min)
+python3 scripts/bab_replay_decisions.py --self-test
+python3 scripts/bab_workflow_diagnostics.py --self-test
+python3 scripts/bab_workflow_diagnostics.py --analyze-ledger
+bash scripts/bab_replay_gate.sh          # full: 8/8 artifacts byte-identical + drift self-test (slow ~16 min; run once per WP boundary)
 BAB_GATE_LOG=/tmp/bab_gate_handoff.log BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh
 ```
 
-`scripts/bab_gate.sh` now also invokes `scripts/bab_replay_gate.sh` at the end, so the replay check cannot be skipped by running the full gate alone. Inner loop while iterating: `bash scripts/bab_quick.sh` + `python3 -m pytest -q tests/test_bab_p29_replay_coverage.py` + the P27/P26/P25 acceptance tests. Full gate once per WP boundary; never hand off mid-gate. Never lower the coverage floor.
+`scripts/bab_gate.sh` invokes `scripts/bab_replay_gate.sh` at the end, so the replay check cannot be skipped by running the full gate alone. Inner loop while iterating: `bash scripts/bab_quick.sh` + `python3 -m pytest -q tests/test_bab_p30_workflow_diagnostics.py` + `python3 -m pytest -q tests/test_bab_p29_replay_coverage.py tests/test_bab_p29_decision_replay.py` + the P27/P26/P25 acceptance tests. Full gate once per WP boundary; never hand off mid-gate. Never lower the coverage floor.
 
 ---
 
 # FORBIDDEN (automatic failure)
 
 - Handoff-only / docs-only / gate-only / count-only / analysis-only commits (a handoff refresh without a landed fix is not a session).
-- Editing any `research_state/bab_p20/**` … `research_state/bab_p24/**`, `docs/BAB_RESEARCH_REPORT.md`, or any P20-P24 script (frozen).
+- Editing any `research_state/bab_p20/**` … `research_state/bab_p29/**` artifact (frozen; P29 provenance ledger is frozen too), `docs/BAB_RESEARCH_REPORT.md`, or any P20-P29 script (frozen).
 - Editing any P25 WP0-WP2 artifact, any P26 artifact, any P27 WP0-WP3 artifact, or any P28 WP0-WP1 artifact (all closed and frozen).
 - Hand-typing any number into a P25/P26/P27 report, charter, or verdict that is not a committed JSON field.
 - Weakening `rank_min_leg_beta` / `rank_max_gross` below 0.20 / 4.0 in any decision.
@@ -128,12 +145,14 @@ BAB_GATE_LOG=/tmp/bab_gate_handoff.log BAB_GATE_MIN_COVERAGE=100 bash scripts/ba
 - **Network fetching of prices** (Coinbase returns 403 here; licensed CSV is maintainer-supplied).
 - Reopening P19 annotation/coverage work, re-attempting CI workflow edits, adding new `P19-7` markers, broad refactors, or committing probe/debug scratch scripts.
 - Creating parallel handoff docs (this file is the single source of truth).
-- **Faking P29 reproducibility** (e.g., hard-coding `sha256` values, skipping the xproc check, or editing committed artifacts to force a green replay).
-- Idle docs-only churn when agent-executable P29 work exists.
+- **Faking P29/P30 reproducibility** (hard-coding `sha256` values, skipping the xproc/self-test checks, or editing committed artifacts to force a green replay).
+- **Idle docs-only churn when agent-executable P30 WP2 work exists.** The prior "idle-wait for the maintainer" directive is removed; when P30 WP2 is executable, doing it IS the session. Only when P30 is fully complete AND P28 WP2-WP4 are maintainer-gated may a session report the idle-waiting state — and that report must include a fresh full-gate GREEN log, not just prose.
 
 ---
 
 # BOTTLENECKS REMOVED (do not re-create)
+
+- **[REMOVED 2026-11-21T23:18:20Z] "No agent-executable work remains; idle-wait for the maintainer" bottleneck.** The prior handoff certified all work done and told the next agent to idle-wait on P28 WP2-WP4 maintainer gates, treating those as a repo-wide stop. That was the inefficiency: it ignored that verifying CI health from the committed `research_state/workflow_run_diagnostics.jsonl` ledger (50 runs) is heavy, fully agent-executable work requiring no maintainer unblock, no frozen-artifact edits, and no network — and that the scanner logic producing that ledger had no single source of truth (3 hand-copied copies: workflow YAML + 2 inline test copies) with the test copies' `redact()` a weaker subset of the workflow's. Fixed: declared **Campaign P30 "Workflow Diagnostics Tooling & Single-Source Scanner"** with WP0-WP2, landed **WP0+WP1** this session (`scripts/bab_workflow_diagnostics.py` canonical scanner with full redaction + `--self-test` + ledger analyzer; 12 tests GREEN, ruff clean; verified 50 runs / 49 success / 1 cancelled / 981 signals deterministic), and set the binding row to **P30 WP2** (analyzer hardening + drift-guard test + gate wire) — fully agent-executable with zero maintainer dependency. Significant progress continues now.
 
 - **[REMOVED 2026-11-21T21:29:29Z] "P29 WP2 NOT STARTED" bottleneck.** The prior handoff certified WP2 as NOT STARTED and claimed `scripts/bab_replay_decisions.py` / `tests/test_bab_p29_decision_replay.py` did not exist. They were already committed at `6212bcf` / `891f146`: all 6 artifacts (3 decision docs + `p27_decision_sidecar.json` + 2 JSONL sidecars) replay byte-identically, 10 tests GREEN, ruff clean, wired into `scripts/bab_replay_gate.sh`. WP2 is COMPLETE. All P29 WPs (WP0, WP1, WP2) are now done; no agent-executable P29 work remains.
 
@@ -150,8 +169,8 @@ BAB_GATE_LOG=/tmp/bab_gate_handoff.log BAB_GATE_MIN_COVERAGE=100 bash scripts/ba
 
 # FUTURE AGENTS: READ THIS ONCE
 
-**This repo is DONE for agent-executable campaigns P20-P29; all are complete and frozen.** Campaign **P29 "Reproducibility & Provenance Assurance"** is COMPLETE: **WP0 is COMPLETE and GREEN** — `scripts/bab_replay_full.py` + `tests/test_bab_p29_replay_coverage.py` + `scripts/bab_replay_gate.sh` + `bab_gate.sh` hook; **WP1 is COMPLETE and COMMITTED** — `scripts/bab_replay_full.py --xproc`, `research_state/bab_p29/provenance_audit.json` (all 8 artifacts `replay_ok: true`), `tests/test_bab_p29_xproc_determinism.py`; **WP2 is COMPLETE and COMMITTED** — `scripts/bab_replay_decisions.py`, `tests/test_bab_p29_decision_replay.py`, all 6 artifacts byte-identical, 10 tests GREEN, wired into `scripts/bab_replay_gate.sh`. **Verified 2026-11-21T23:05:19Z:** ruff PASS, `bab_quick` 299 tests PASS, `bab_reconcile_gate` GREEN, P29 `replay_coverage` + `decision_replay` 19/19 PASS, P27/P26/P25 decision consistency 50/50 PASS. Do NOT re-create or re-edit any of them. There is **no binding row** — all agent-executable work is done.
+**This repo's agent-executable work is NOT done — the binding row is P30 WP2.** Campaigns P20-P29 are complete and frozen. Campaign **P30 "Workflow Diagnostics Tooling & Single-Source Scanner"** is the active work: **WP0 is COMPLETE** — `scripts/bab_workflow_diagnostics.py` (canonical scanner, full secret redaction, `--self-test`) + `tests/test_bab_p30_workflow_diagnostics.py` (12 tests); **WP1 is COMPLETE** — `--analyze-ledger` / `load_ledger()` / `analyze_ledger()` (50 runs, 49 success / 1 cancelled, 981 signals, deterministic); **WP2 is the BINDING ROW** — analyzer hardening (`--summary-json`, `--since`, `--fail-on-cancelled`), divergence-guard test, `bab_gate.sh` wire, `research_state/bab_p30/ledger_summary.json` + replay entry. Execute WP2; do NOT re-do WP0/WP1. **Verified 2026-11-21T23:18:20Z:** ruff PASS, `bab_quick` 299 tests PASS, `bab_reconcile_gate` GREEN, replay full/decisions self-tests PASS, `bab_workflow_diagnostics --self-test` PASS, `--analyze-ledger` GREEN (50 runs). Do NOT re-create or re-edit any of the WP0/WP1 files.
 
-**Anti-idle rule:** a docs-only / handoff-only / plan-only / count-only commit is FORBIDDEN and counts as automatic failure — but only when agent-executable work exists. When all agent-executable campaigns are complete (P20-P29 done; P28 WP2-WP4 maintainer-gated), reporting that state IS the session's output, not a handoff-only churn. Do not manufacture work where none is agent-executable, and do not idle when P29 work is executable.
+**Anti-idle rule:** a docs-only / handoff-only / plan-only / count-only commit is FORBIDDEN and counts as automatic failure when agent-executable work exists. P30 WP2 is executable now — doing it IS the session. Only when P30 is fully complete AND P28 WP2-WP4 are maintainer-gated may a session report the idle-waiting state, and that report must include a fresh full-gate GREEN log.
 
-Do not re-open frozen P20-P28 artifacts (consumed read-only). Do not chase `test_null_stats_consistent` (pre-existing, certified unrelated, read-only). Do not edit `rank_min_leg_beta=0.20` / `rank_max_gross=4.0` (never weakened). Never network-fetch prices. If this file says COMPLETE, it is COMPLETE; if it names a binding row, that is the work; if it says a WP is maintainer-gated, route it to the maintainer and proceed to the next agent-executable P29 WP.
+Do not re-open frozen P20-P29 artifacts (consumed read-only). Do not chase `test_null_stats_consistent` (pre-existing, certified unrelated, read-only). Do not edit `rank_min_leg_beta=0.20` / `rank_max_gross=4.0` (never weakened). Never network-fetch prices. If this file says a WP is COMPLETE, it is COMPLETE; if it names a binding row (currently **P30 WP2**), that is the work; if it says a WP is maintainer-gated, route it to the maintainer and proceed to the next agent-executable P30 WP.
