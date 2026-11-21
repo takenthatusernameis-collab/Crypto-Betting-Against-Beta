@@ -1,0 +1,244 @@
+{
+  "assertions": {
+    "assertion_a_calm_rank_positive": true,
+    "assertion_b_stress_rank_below_equal": false,
+    "calm_rank_mean_oos_sharpe": 0.817343,
+    "falsification_gate_passed": false,
+    "stress_equal_mean_oos_sharpe": -0.841977,
+    "stress_rank_mean_oos_sharpe": -0.132738
+  },
+  "beta_window": 90,
+  "fixture_sha256": "a6d390fc755641ea28d14b8204615786fdc9a95733a87e4c3b63d66be64c163b",
+  "long_quantile": 0.3,
+  "min_observations": 60,
+  "n_folds": 5,
+  "provenance": {
+    "date_first": "2021-01-05",
+    "date_last": "2022-07-15",
+    "falsification_gate": "Assertion A: rank mean OOS Sharpe > 0 in the calm regime. Assertion B: rank mean OOS Sharpe < equal mean OOS Sharpe in the stress regime. Both must hold for the gate to pass.",
+    "fixture_path": "tests/fixtures/wide_bab_universe.csv",
+    "fixture_sha256": "a6d390fc755641ea28d14b8204615786fdc9a95733a87e4c3b63d66be64c163b",
+    "no_lookahead": "Each fold runs both weightings over causal history [0, test_end); weights at row t use the one-day backtest lag and rolling betas computed from returns through t-1, so the OOS return at row t is never used to weight itself. The BTC volatility used for the regime split is a causal 60-day rolling standard deviation (looks backward only). Regime labels are computed once over the full sample; fold assignment uses only each fold's test-window days.",
+    "price_rows": 399,
+    "provenance": "Deterministic synthetic wide universe (P25 WP0 fixture); not real market data and not evidence of real-market profitability.",
+    "rank_rule": "Frazzini-Pedersen rank weighting: long the lowest-beta quantile, short the highest-beta quantile, beta-neutral by construction, rank_min_leg_beta=0.2, rank_max_gross=4.0. Equal weighting is the dollar-neutral default with beta-neutral enforcement.",
+    "regime_split_rule": "Per-day BTC return volatility over a 60-day rolling window; sample split at the median volatility into calm (low-vol) and stress (high-vol) regimes. Median volatility: 0.019137. A fold is assigned to the regime that covers the majority of its test-window days; ties are unassigned.",
+    "regimes": [
+      "calm",
+      "stress"
+    ],
+    "return_rows": 398,
+    "seed": 20261120,
+    "synthetic": true,
+    "universe": "BTC + A001..A040 (DEL all-NaN column dropped by loader)",
+    "weightings": [
+      "equal",
+      "rank"
+    ]
+  },
+  "rank_max_gross": 4.0,
+  "rank_min_leg_beta": 0.2,
+  "regimes": {
+    "calm": {
+      "delta_mean_oos_sharpe": -0.027753,
+      "equal": {
+        "mean_oos_sharpe": 0.845096,
+        "per_fold": [
+          {
+            "fold": 0,
+            "nonflat_rows": 40,
+            "oos_max_drawdown": -0.001913,
+            "oos_realized_beta": -0.002335,
+            "oos_sharpe": 2.464833,
+            "oos_turnover": 0.021467,
+            "oos_vol": 0.005807,
+            "oos_wealth": 1.002272,
+            "portfolio_beta": -2.4e-05,
+            "regime": "calm",
+            "test_end": 220,
+            "test_start": 180,
+            "train_end": 180
+          },
+          {
+            "fold": 3,
+            "nonflat_rows": 40,
+            "oos_max_drawdown": -0.004928,
+            "oos_realized_beta": -0.006254,
+            "oos_sharpe": -3.020664,
+            "oos_turnover": 0.008331,
+            "oos_vol": 0.007406,
+            "oos_wealth": 0.996451,
+            "portfolio_beta": 2.6e-05,
+            "regime": "calm",
+            "test_end": 340,
+            "test_start": 300,
+            "train_end": 300
+          },
+          {
+            "fold": 4,
+            "nonflat_rows": 40,
+            "oos_max_drawdown": -0.002241,
+            "oos_realized_beta": 0.005264,
+            "oos_sharpe": 3.091118,
+            "oos_turnover": 0.014,
+            "oos_vol": 0.006445,
+            "oos_wealth": 1.003164,
+            "portfolio_beta": 7.2e-05,
+            "regime": "calm",
+            "test_end": 380,
+            "test_start": 340,
+            "train_end": 340
+          }
+        ]
+      },
+      "folds_assigned": [
+        0,
+        3,
+        4
+      ],
+      "n_folds_assigned": 3,
+      "rank": {
+        "mean_oos_sharpe": 0.817343,
+        "per_fold": [
+          {
+            "fold": 0,
+            "nonflat_rows": 40,
+            "oos_max_drawdown": -0.014579,
+            "oos_realized_beta": 0.008633,
+            "oos_sharpe": 0.256134,
+            "oos_turnover": 0.005719,
+            "oos_vol": 0.042264,
+            "oos_wealth": 1.001581,
+            "portfolio_beta": -0.0,
+            "regime": "calm",
+            "test_end": 220,
+            "test_start": 180,
+            "train_end": 180
+          },
+          {
+            "fold": 3,
+            "nonflat_rows": 40,
+            "oos_max_drawdown": -0.012527,
+            "oos_realized_beta": -0.024523,
+            "oos_sharpe": 0.931271,
+            "oos_turnover": 0.011375,
+            "oos_vol": 0.035034,
+            "oos_wealth": 1.005096,
+            "portfolio_beta": 0.0,
+            "regime": "calm",
+            "test_end": 340,
+            "test_start": 300,
+            "train_end": 300
+          },
+          {
+            "fold": 4,
+            "nonflat_rows": 40,
+            "oos_max_drawdown": -0.010102,
+            "oos_realized_beta": 0.019416,
+            "oos_sharpe": 1.264624,
+            "oos_turnover": 0.008843,
+            "oos_vol": 0.030755,
+            "oos_wealth": 1.006119,
+            "portfolio_beta": -0.0,
+            "regime": "calm",
+            "test_end": 380,
+            "test_start": 340,
+            "train_end": 340
+          }
+        ]
+      },
+      "regime": "calm"
+    },
+    "stress": {
+      "delta_mean_oos_sharpe": 0.709239,
+      "equal": {
+        "mean_oos_sharpe": -0.841977,
+        "per_fold": [
+          {
+            "fold": 1,
+            "nonflat_rows": 40,
+            "oos_max_drawdown": -0.001918,
+            "oos_realized_beta": 0.002774,
+            "oos_sharpe": -0.321648,
+            "oos_turnover": 0.014622,
+            "oos_vol": 0.006249,
+            "oos_wealth": 0.999678,
+            "portfolio_beta": 8e-06,
+            "regime": "stress",
+            "test_end": 260,
+            "test_start": 220,
+            "train_end": 220
+          },
+          {
+            "fold": 2,
+            "nonflat_rows": 40,
+            "oos_max_drawdown": -0.003455,
+            "oos_realized_beta": 0.001902,
+            "oos_sharpe": -1.362306,
+            "oos_turnover": 0.007181,
+            "oos_vol": 0.007273,
+            "oos_wealth": 0.998424,
+            "portfolio_beta": -7.4e-05,
+            "regime": "stress",
+            "test_end": 300,
+            "test_start": 260,
+            "train_end": 260
+          }
+        ]
+      },
+      "folds_assigned": [
+        1,
+        2
+      ],
+      "n_folds_assigned": 2,
+      "rank": {
+        "mean_oos_sharpe": -0.132738,
+        "per_fold": [
+          {
+            "fold": 1,
+            "nonflat_rows": 40,
+            "oos_max_drawdown": -0.006228,
+            "oos_realized_beta": 0.004233,
+            "oos_sharpe": 0.539,
+            "oos_turnover": 0.030547,
+            "oos_vol": 0.027043,
+            "oos_wealth": 1.00226,
+            "portfolio_beta": -0.0,
+            "regime": "stress",
+            "test_end": 260,
+            "test_start": 220,
+            "train_end": 220
+          },
+          {
+            "fold": 2,
+            "nonflat_rows": 40,
+            "oos_max_drawdown": -0.022465,
+            "oos_realized_beta": -0.050654,
+            "oos_sharpe": -0.804475,
+            "oos_turnover": 0.011565,
+            "oos_vol": 0.034706,
+            "oos_wealth": 0.995485,
+            "portfolio_beta": 0.0,
+            "regime": "stress",
+            "test_end": 300,
+            "test_start": 260,
+            "train_end": 260
+          }
+        ]
+      },
+      "regime": "stress"
+    }
+  },
+  "schema": "bab_p26.regime_stress/1",
+  "seed": 20261120,
+  "short_quantile": 0.3,
+  "synthetic": true,
+  "test_window": 40,
+  "train_window": 180,
+  "transaction_costs": 0.001,
+  "vol_window": 60,
+  "weightings": [
+    "equal",
+    "rank"
+  ]
+}

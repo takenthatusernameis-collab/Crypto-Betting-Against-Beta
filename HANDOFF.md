@@ -191,19 +191,18 @@ Rules: one WP per session; lanes consume earlier P25 artifacts read-only and mus
 
 | Lane | WP | Deliverable files | Status |
 |---|---|---|---|
-| A | WP0 — signal vs null battery | `scripts/bab_signal_null_battery.py`, `research_state/bab_p26/signal_null_battery.{json,md}`, `tests/test_bab_p26_signal_null.py` | **BINDING** |
-| B | WP1 — regime-conditional rank stress | `scripts/bab_regime_rank_stress.py`, `research_state/bab_p26/regime_rank_stress.{json,md}`, `tests/test_bab_p26_regime_rank.py` | PRE-DECLARED |
+| A | WP0 — signal vs null battery | `scripts/bab_signal_null_battery.py`, `research_state/bab_p26/signal_null_battery.{json,md}`, `tests/test_bab_p26_signal_null.py` | COMPLETE |
+| B | WP1 — regime-conditional rank stress | `scripts/bab_p26_regime_stress.py`, `research_state/bab_p26/regime_stress.{json,md}`, `tests/test_bab_p26_regime_stress.py` | BINDING |
 | C | WP2 — capacity & turnover of rank book | `scripts/bab_rank_capacity.py`, `research_state/bab_p26/rank_capacity.{json,md}`, `tests/test_bab_p26_rank_capacity.py` | PRE-DECLARED |
 | D | WP3 — signal-to-noise closing decision | `docs/BAB_P26_DECISION.md`, `tests/test_bab_p26_decision_consistency.py`, `generate_p26_decision.py` | PRE-DECLARED |
 
 **P26 WP0 — signal vs null battery (binding spec):** see the INITIAL TASK MESSAGE above for the exact valid-null algorithm. Summary: observed rank/equal OOS mean Sharpe (5 causal folds, P25 WP0 fixture read-only) vs a stable, beta-neutral-preserving permutation null (B=1000 random long/short selections fixed per fold, built with the same construction as the observed book), reporting p-value / z-score / empirical percentile for both weightings and an explicit data-driven SIGNAL / NO-SIGNAL verdict. Deterministic, seeded, no network, fixture SHA256 provenance matches P25 WP0, 20+ acceptance tests asserting battery *correctness* (not a forced p-value), green full gate.
 
 **P26 WP1 — regime-conditional rank stress (spec):**
-- Split the 398-row wide universe into calm (low BTC vol) and stress (high BTC vol) regimes.
-- Re-run the WP0 observed-vs-null comparison on each regime separately.
-- Report per-regime p-value / z / percentile and verdict.
-- If SIGNAL in both regimes the signal is regime-robust; else it is regime-conditional.
-- Deterministic, seeded, no network. Fixture SHA256 provenance matches P25 WP0. 20+ acceptance tests; full gate GREEN 100%.
+1. Load P25 WP0 fixture read-only (`load_prices`, `benchmark="BTC"`, `quality=False`); build rolling betas (`calculate_rolling_beta`, `beta_window=90`, `min_obs=60`).
+2. Compute per-day BTC return volatility over a 60-day rolling window; split the sample at the median volatility into calm (low-vol) and stress (high-vol) regimes.
+3. For each regime, run the P25 WP2 rank walk-forward (train 180 / test 40, `rank_min_leg_beta=0.20`, `rank_max_gross=4.0`) restricted to folds whose test window falls primarily in that regime; compute mean OOS Sharpe for rank and equal weightings.
+4. Assert: (a) rank mean OOS Sharpe > 0 in calm regime; (b) rank mean OOS Sharpe < equal mean OOS Sharpe in stress regime. Record regime means, deltas, and pass/fail of each assertion. Byte-identical deterministic JSON + markdown; fixture SHA256 provenance matches P25 WP0; 20+ acceptance tests; zero ruff errors; green full gate.
 
 **P26 WP2 — capacity & turnover of rank book (spec):**
 - Sweep over gross exposure caps (1.0, 2.0, 3.0, 4.0) and turnover limits (daily, weekly, monthly rebalance).
