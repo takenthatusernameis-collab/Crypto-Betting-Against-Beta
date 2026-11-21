@@ -2,8 +2,8 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-21T23:19:07Z (refreshed this session)
-- **Git state:** HEAD `0423656`. Working tree clean. **P30 WP0+WP1 LANDED this session** — `scripts/bab_workflow_diagnostics.py` (canonical scanner + full secret redaction + `--self-test` + `--analyze-ledger` + `--scan-log`), `tests/test_bab_p30_workflow_diagnostics.py` (12 acceptance tests GREEN). This is the new binding row; see the INITIAL TASK MESSAGE below.
+- **Timestamp (UTC):** 2026-11-21T23:19:57Z (refreshed this session)
+- **Git state:** HEAD `cfe829c`. Working tree clean. **P30 WP0+WP1 LANDED** — `scripts/bab_workflow_diagnostics.py` (canonical scanner + full secret redaction + `--self-test` + `--analyze-ledger` + `--scan-log`), `tests/test_bab_p30_workflow_diagnostics.py` (12 acceptance tests GREEN). Binding row = P30 WP2; see the INITIAL TASK MESSAGE below.
 
 ---
 
