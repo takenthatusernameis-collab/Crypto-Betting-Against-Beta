@@ -1,0 +1,102 @@
+{
+  "all_gates_trip": true,
+  "benchmark": "BTC",
+  "beta_window": 90,
+  "determinism": {
+    "byte_identical": true,
+    "seed": 20261121
+  },
+  "fixture_sha256": "a6d390fc755641ea28d14b8204615786fdc9a95733a87e4c3b63d66be64c163b",
+  "min_observations": 60,
+  "no_network": true,
+  "paper_run": {
+    "costs_aggregate": {
+      "delta_max_abs": 0.000762,
+      "delta_mean": 1.5e-05,
+      "delta_total": 0.005776,
+      "executed_total": 0.005776,
+      "modeled_total": 0.0,
+      "n_mismatches": 338,
+      "n_periods": 398
+    },
+    "costs_checksum": "c2a90a7060ad8895e4662d4e772a9bfb856b4a0f16677791a8258fca87aff814",
+    "fills_aggregate": {
+      "delta_final": -0.0,
+      "max_delta_abs": 0.0,
+      "model_final_equity": 1.001215,
+      "n_mismatches": 0,
+      "n_periods": 398,
+      "realized_final_equity": 1.001215
+    },
+    "fills_checksum": "560baed34c45dc0523d95f9078f280ee5b64938efd561f9c833262a9eec3a56e",
+    "gate_drift_exact_ok": true,
+    "gate_drift_exact_violations": 0,
+    "gate_drift_zero_ok": false,
+    "gate_drift_zero_violations": 2,
+    "gate_emit_only_ok": true,
+    "gate_emit_only_violations": 0,
+    "gate_max_mismatch_zero_ok": false,
+    "gate_max_mismatch_zero_violations": 1,
+    "n_fills": 13858,
+    "n_periods_costs": 398,
+    "n_periods_fills": 398,
+    "observed_cost_drift_max_abs": 0.000762,
+    "observed_cost_n_mismatches": 338,
+    "observed_fills_n_mismatches": 0,
+    "reconciliation_enforced": true
+  },
+  "provenance": {
+    "benchmark": "BTC",
+    "beta_window": 90,
+    "fixture_sha256": "a6d390fc755641ea28d14b8204615786fdc9a95733a87e4c3b63d66be64c163b",
+    "no_lookahead": "Rolling betas computed through t-1 from the fixture; stress paths are synthetic and do not consult future returns.",
+    "no_network": true,
+    "provenance": "Deterministic synthetic reconciliation-enforcement campaign on the P25 WP0 wide fixture (read-only); not real market data and not evidence of real-market profitability. P27 consumes P20-P26 artifacts read-only.",
+    "seed": 20261121,
+    "synthetic": true,
+    "universe": "BTC + A001..A040 (P25 WP0 wide fixture, read-only)"
+  },
+  "rank_max_gross": 4.0,
+  "rank_max_gross_unchanged": true,
+  "rank_min_leg_beta": 0.2,
+  "rank_min_leg_beta_unchanged": true,
+  "schema": "bab_p27.reconciliation_e2e/1",
+  "seed": 20261121,
+  "slippage": 0.0,
+  "stress_scenarios": {
+    "a_drift_above_tolerance": {
+      "delta_max_abs": 0.002,
+      "n_mismatches": 5,
+      "ok": false,
+      "violations": 2
+    },
+    "b_tolerance_exact_equal": {
+      "delta_max_abs": 0.002,
+      "n_mismatches": 5,
+      "ok": true,
+      "violations": 0
+    },
+    "c_mismatch_above_limit": {
+      "delta_max_abs": 0.002,
+      "n_mismatches": 5,
+      "ok": false,
+      "violations": 1
+    },
+    "d_emit_only": {
+      "delta_max_abs": 0.002,
+      "n_mismatches": 5,
+      "ok": true,
+      "violations": 0
+    },
+    "e_clean_path": {
+      "delta_max_abs": 0.0,
+      "n_mismatches": 0,
+      "ok": true,
+      "violations": 0
+    },
+    "observed_drift_max_abs": 0.002,
+    "observed_n_mismatches": 5
+  },
+  "synthetic": true,
+  "transaction_costs": 0.001
+}
