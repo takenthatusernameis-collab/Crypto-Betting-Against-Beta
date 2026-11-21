@@ -1,0 +1,17 @@
+{
+  "analyzed_at_utc": "2026-11-21T23:55:59+00:00",
+  "by_conclusion": {
+    "cancelled": 1,
+    "success": 49
+  },
+  "by_status": {
+    "completed": 50
+  },
+  "cancelled_run_ids": [
+    43764777657
+  ],
+  "runs_total": 50,
+  "runs_with_errors": 50,
+  "total_error_signals": 981,
+  "unique_run_ids": 50
+}

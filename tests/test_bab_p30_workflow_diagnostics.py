@@ -9,6 +9,7 @@ deterministically classifies the committed ``research_state/workflow_run_diagnos
 
 from __future__ import annotations
 
+import importlib.util
 import json
 import subprocess
 import sys
@@ -18,6 +19,7 @@ import pytest
 
 ROOT = Path(__file__).resolve().parent.parent
 SCRIPT = ROOT / "scripts" / "bab_workflow_diagnostics.py"
+WEAK_SCANNER = ROOT / "tests" / "test_workflow_diagnostics_scanner.py"
 LEDGER = ROOT / "research_state" / "workflow_run_diagnostics.jsonl"
 
 
@@ -118,6 +120,95 @@ class TestLedgerAnalyzer:
     def test_conclusion_counts_sum_to_total(self) -> None:
         summary = json.loads(_run("--analyze-ledger").stdout)
         assert sum(summary["by_conclusion"].values()) == summary["runs_total"]
+
+
+class TestDivergenceGuard:
+    """Prove canonical redact() is a strict superset of the weak inline copy.
+
+    The weak inline copy (tests/test_workflow_diagnostics_scanner.py:redact)
+    only strips ANSI and truncates. The canonical redact() (in
+    scripts/bab_workflow_diagnostics.py) additionally redacts bearer tokens,
+    GitHub tokens, JWTs, secret assignments, URL secrets, and long opaque
+    values. This guard fails if a weaker redactor is ever reintroduced.
+    """
+
+    def _weak_module(self):
+        spec = importlib.util.spec_from_file_location("weak_scanner", WEAK_SCANNER)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
+
+    def _canonical_module(self):
+        spec = importlib.util.spec_from_file_location(
+            "canonical_diagnostics", SCRIPT
+        )
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
+
+    def test_weak_leaves_secrets_exposed(self) -> None:
+        weak = self._weak_module().redact
+        secrets = [
+            ("Authorization: Bearer abc123def456ghi789", "abc123def456ghi789"),
+            ("token: ghp_abcdefghijklmnopqrstuvwxyz0123456789XYZ", "ghp_"),
+            (
+                "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlFUP0THsR8U",
+                "eyj",
+            ),
+            ("api_key=supersecretvalue123456", "supersecret"),
+            ("https://x/y?token=abcd1234&sig=efgh5678", "abcd1234"),
+        ]
+        for text, marker in secrets:
+            out = weak(text).lower()
+            assert marker in out, f"weak copy exposes secret: {marker!r} in {text!r}"
+
+    def test_canonical_redacts_all_six_secret_classes(self) -> None:
+        canon = self._canonical_module().redact
+        raw = (
+            "Authorization: Bearer abc123def456ghi789\n"
+            "token: ghp_abcdefghijklmnopqrstuvwxyz0123456789XYZ\n"
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlFUP0THsR8U\n"
+            "api_key=supersecretvalue123456\n"
+            "https://x/y?token=abcd1234&sig=efgh5678\n"
+        )
+        redacted = canon(raw)
+        lowered = redacted.lower()
+        for token in (
+            "abc123def456ghi789",
+            "ghp_abcdefghijklmnopqrstuvwxyz0123456789xyz",
+            "supersecretvalue123456",
+            "abcd1234",
+            "efgh5678",
+        ):
+            assert token not in lowered, f"secret survived canonical redaction: {token}"
+        assert "[REDACTED" in redacted
+
+    def test_canonical_is_strict_superset_of_weak(self) -> None:
+        weak = self._weak_module().redact
+        canon = self._canonical_module().redact
+        cases = [
+            "\x1b[31mred text\x1b[0m",
+            "42",
+            "normal text line",
+            "Traceback (most recent call last):\nValueError: boom",
+        ]
+        for case in cases:
+            weak_out = weak(case)
+            canon_out = canon(case)
+            # Canonical preserves ANSI strip + truncate (the weak behavior).
+            assert "\x1b[" not in canon_out
+            assert len(canon_out) <= 500
+            # On non-secret, non-long-value input, both produce identical output.
+            assert canon_out == weak_out
+
+    def test_canonical_redacts_long_value_weak_leaves(self) -> None:
+        """The long-value class is the clearest superset divergence: weak keeps
+        100+ char opaque strings, canonical redacts them."""
+        weak = self._weak_module().redact
+        canon = self._canonical_module().redact
+        long_val = "x" * 1000
+        assert weak(long_val) == long_val[:500]  # weak only truncates
+        assert canon(long_val) == "[REDACTED_LONG_VALUE]"  # canonical redacts
 
 
 def _write_log(content: str) -> str:

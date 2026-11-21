@@ -181,6 +181,7 @@ def analyze_ledger(records: list[dict]) -> dict:
     total_errors = 0
     runs_with_errors = 0
     run_ids: list[int] = []
+    cancelled_run_ids: list[int] = []
     for record in records:
         conclusion = str(record.get("conclusion", "unknown"))
         status = str(record.get("status", "unknown"))
@@ -193,6 +194,8 @@ def analyze_ledger(records: list[dict]) -> dict:
         run_id = record.get("run_id")
         if isinstance(run_id, int):
             run_ids.append(run_id)
+        if conclusion == "cancelled":
+            cancelled_run_ids.append(run_id)
 
     return {
         "runs_total": len(records),
@@ -201,8 +204,56 @@ def analyze_ledger(records: list[dict]) -> dict:
         "total_error_signals": total_errors,
         "by_conclusion": dict(sorted(by_conclusion.items())),
         "by_status": dict(sorted(by_status.items())),
+        "cancelled_run_ids": sorted(cancelled_run_ids),
         "analyzed_at_utc": utc_now(),
     }
+
+
+def filter_since(records: list[dict], since_run_id: int) -> list[dict]:
+    """Return records with ``run_id >= since_run_id`` (deterministic filter)."""
+    return [r for r in records if isinstance(r.get("run_id"), int) and r["run_id"] >= since_run_id]
+
+
+def write_summary_json(summary: dict, path: Path) -> None:
+    """Write the ledger summary to ``path`` deterministically.
+
+    Sorted keys, no wall-clock-derived fields except the explicit
+    ``analyzed_at_utc`` stamp. Creates parent directories as needed.
+    """
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+
+
+def _strip_timestamp(summary: dict) -> dict:
+    """Return a copy of ``summary`` with ``analyzed_at_utc`` removed for comparison."""
+    stripped = dict(summary)
+    stripped.pop("analyzed_at_utc", None)
+    return stripped
+
+
+def check_ledger_summary(committed_path: Path, ledger_path: Path) -> int:
+    """Regenerate the ledger summary and byte-diff (modulo timestamp) against committed.
+
+    Exit 0 when the regenerated summary matches the committed file modulo
+    ``analyzed_at_utc``; non-zero on drift.
+    """
+    records = load_ledger(ledger_path)
+    regenerated = analyze_ledger(records)
+    if not committed_path.is_file():
+        print(f"error: committed summary not found: {committed_path}", file=sys.stderr)
+        return 1
+    committed = json.loads(committed_path.read_text(encoding="utf-8"))
+    if _strip_timestamp(regenerated) != _strip_timestamp(committed):
+        print(
+            "error: ledger summary drift: regenerated output differs from committed "
+            f"{committed_path} (modulo analyzed_at_utc)",
+            file=sys.stderr,
+        )
+        return 1
+    print(json.dumps({"check_ledger_summary": True, "pass": True}, sort_keys=True))
+    return 0
 
 
 # --- Self-test / drift proof ------------------------------------------------
@@ -285,6 +336,28 @@ def main(argv: list[str] | None = None) -> int:
         help="Analyze the committed workflow diagnostics ledger (read-only)",
     )
     parser.add_argument(
+        "--summary-json",
+        metavar="PATH",
+        help="Write the ledger analysis as deterministic JSON to PATH (e.g. research_state/bab_p30/ledger_summary.json)",
+    )
+    parser.add_argument(
+        "--since",
+        type=int,
+        metavar="RUN_ID",
+        help="Filter ledger records to run_id >= RUN_ID before analysis",
+    )
+    parser.add_argument(
+        "--fail-on-cancelled",
+        action="store_true",
+        help="Exit non-zero if any ledger run has conclusion=cancelled",
+    )
+    parser.add_argument(
+        "--check-ledger-summary",
+        metavar="PATH",
+        help="Regenerate the ledger summary and byte-diff (modulo analyzed_at_utc) "
+        "against the committed PATH; exit non-zero on drift",
+    )
+    parser.add_argument(
         "--ledger",
         default=str(DEFAULT_LEDGER),
         help="Path to the workflow_run_diagnostics.jsonl ledger",
@@ -308,14 +381,28 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps({"signals": signals, "count": len(signals)}, sort_keys=True))
         return 0
 
-    if args.analyze_ledger:
+    if args.analyze_ledger or args.summary_json or args.since is not None or args.fail_on_cancelled or args.check_ledger_summary:
         path = Path(args.ledger)
         if not path.is_file():
             print(f"error: ledger not found: {path}", file=sys.stderr)
             return 1
         records = load_ledger(path)
+        if args.since is not None:
+            records = filter_since(records, args.since)
         summary = analyze_ledger(records)
-        print(json.dumps(summary, sort_keys=True))
+        if args.fail_on_cancelled and summary["cancelled_run_ids"]:
+            print(
+                f"error: --fail-on-cancelled: {len(summary['cancelled_run_ids'])} cancelled run(s): "
+                + ", ".join(str(r) for r in summary["cancelled_run_ids"]),
+                file=sys.stderr,
+            )
+            return 2
+        if args.summary_json:
+            write_summary_json(summary, Path(args.summary_json))
+        if args.check_ledger_summary:
+            return check_ledger_summary(Path(args.check_ledger_summary), path)
+        if args.analyze_ledger or args.summary_json:
+            print(json.dumps(summary, sort_keys=True))
         return 0
 
     parser.print_help()

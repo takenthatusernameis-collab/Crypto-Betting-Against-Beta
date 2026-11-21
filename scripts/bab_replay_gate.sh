@@ -28,4 +28,7 @@ echo "== decision-doc + JSONL sidecar replay (P29 WP2) =="
 python3 scripts/bab_replay_decisions.py --self-test
 python3 scripts/bab_replay_decisions.py
 
+echo "== P30 ledger summary reproducibility replay =="
+python3 scripts/bab_workflow_diagnostics.py --check-ledger-summary research_state/bab_p30/ledger_summary.json
+
 echo "== replay gate OK =="

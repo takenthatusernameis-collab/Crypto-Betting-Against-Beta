@@ -145,3 +145,13 @@ fi
 echo "[bab_gate] replay gate (P29 WP0)"
 bash "$ROOT/scripts/bab_replay_gate.sh"
 echo "[bab_gate] replay gate GREEN"
+
+# --- P30 WP2: workflow-diagnostics scanner + ledger analysis hook -----------
+# Runs the canonical scanner drift/redaction proof and the read-only ledger
+# analyzer. This is the agent-executable local stand-in for the CI health
+# signal the repo token cannot get from workflows:write (see HANDOFF.md P28 WP2).
+echo "[bab_gate] workflow diagnostics self-test (P30 WP0)"
+python3 "$ROOT/scripts/bab_workflow_diagnostics.py --self-test"
+echo "[bab_gate] workflow diagnostics ledger analysis (P30 WP1)"
+python3 "$ROOT/scripts/bab_workflow_diagnostics.py --analyze-ledger"
+echo "[bab_gate] workflow diagnostics GREEN"
