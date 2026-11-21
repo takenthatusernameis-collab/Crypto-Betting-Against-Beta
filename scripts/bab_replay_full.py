@@ -26,8 +26,11 @@ non-zero otherwise.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import importlib.util
 import json
+import os
+import subprocess
 import sys
 import tempfile
 from pathlib import Path
@@ -59,6 +62,15 @@ REGISTRY: list[dict] = [
 # Cheap subset (fast P27 generators) used by the drift self-test so it runs in
 # ~1s instead of regenerating the multi-minute P25/P26 sweeps.
 CHEAP_NAMES = ("risk_controls", "reconciliation_e2e")
+
+# P25 WP0 wide-universe fixture (SHA256 a6d390fc…163b). All 8 committed artifacts
+# are derived from this single read-only fixture.
+FIXTURE_PATH = ROOT / "tests" / "fixtures" / "wide_bab_universe.csv"
+P25_WP0_FIXTURE_SHA256 = hashlib.sha256(FIXTURE_PATH.read_bytes()).hexdigest()
+
+# P29 WP1 provenance ledger output (new, non-frozen, deterministic).
+PROVENANCE_DIR = ROOT / "research_state" / "bab_p29"
+PROVENANCE_PATH = PROVENANCE_DIR / "provenance_audit.json"
 
 
 def _load(name: str):
@@ -151,11 +163,142 @@ def _self_test() -> int:
     return 0 if passed else 1
 
 
+def _subprocess_env() -> dict[str, str]:
+    env = dict(os.environ)
+    env["PYTHONPATH"] = str(ROOT) + (":" + env["PYTHONPATH"] if env.get("PYTHONPATH") else "")
+    return env
+
+
+def _run_build_once(entry: dict) -> bytes:
+    """Run the generator's build() in a fresh interpreter; return stdout bytes.
+
+    Faithfully reproduces WP0's ``_build`` inside a fresh interpreter: build()
+    is invoked twice, cross-process consistency is computed, and (for P27
+    generators) the ``determinism`` block is injected from ``mod.SEED``. A fresh
+    ``python3 -c`` subprocess per call is the cross-process guard: it surfaces
+    hidden global-state / PYTHONHASHSEED / wall-clock dependence that a
+    single-process double-build cannot.
+    """
+    lines = [
+        "import importlib.util, json, sys",
+        "sys.path.insert(0, " + repr(str(ROOT / "scripts")) + ")",
+        "spec = importlib.util.spec_from_file_location(" + repr(entry["module"]) + ", "
+        + repr(str(ROOT / "scripts" / (entry["module"] + ".py"))) + ")",
+        "mod = importlib.util.module_from_spec(spec)",
+        "spec.loader.exec_module(mod)",
+        "build = getattr(mod, " + repr(entry["build"]) + ")",
+        "payload1 = build()",
+        "payload2 = build()",
+        "identical = json.dumps(payload1, sort_keys=True) == json.dumps(payload2, sort_keys=True)",
+        "if " + repr(entry["inject_determinism"]) + ":",
+        "    payload1[\"determinism\"] = {\"byte_identical\": identical, \"seed\": mod.SEED}",
+        "sys.stdout.buffer.write(json.dumps(payload1, indent=2, sort_keys=True).encode(\"utf-8\"))",
+        "sys.stdout.buffer.write(b\"\\n\")",
+    ]
+    script = "\n".join(lines) + "\n"
+    proc = subprocess.run(
+        [sys.executable, "-c", script],
+        cwd=str(ROOT),
+        capture_output=True,
+        env=_subprocess_env(),
+    )
+    if proc.returncode != 0:
+        raise RuntimeError(
+            f"xproc build failed for {entry['name']}: "
+            + proc.stderr.decode("utf-8", "replace")
+        )
+    return proc.stdout
+
+
+def _check_xproc(entry: dict) -> tuple[bool, list[str], int | None]:
+    """Run build() in two fresh interpreters; assert byte-identical + matches committed.
+
+    Returns (ok, problems, seed). seed is read from the regenerated payload so
+    the provenance ledger can record it without hand-typing.
+    """
+    problems: list[str] = []
+    committed_json = ROOT / "research_state" / entry["dir"] / f"{entry['name']}.json"
+    committed_bytes = committed_json.read_bytes()
+    seed: int | None = None
+    try:
+        run1 = _run_build_once(entry)
+        run2 = _run_build_once(entry)
+    except RuntimeError as exc:
+        return False, [f"XPROC {entry['name']}: {exc}"], None
+    if run1 != run2:
+        problems.append(f"XPROC {entry['name']}: not byte-identical across processes")
+    if run1 != committed_bytes:
+        problems.append(f"XPROC {entry['name']}: subprocess output differs from committed json")
+    try:
+        seed = json.loads(run1).get("seed")
+    except Exception:
+        seed = None
+    return (not problems), problems, seed
+
+
+def _write_provenance_ledger(results: dict[str, dict]) -> None:
+    """Write research_state/bab_p29/provenance_audit.json.
+
+    One record per artifact: path, sha256, generator_module, seed, fixture_sha256,
+    replay_ok. Deterministic (sorted keys, stable path ordering) so the ledger
+    itself can be replay-checked in a later WP.
+    """
+    PROVENANCE_DIR.mkdir(parents=True, exist_ok=True)
+    records: list[dict] = []
+    for entry in REGISTRY:
+        name = entry["name"]
+        res = results.get(name, {})
+        json_path = ROOT / "research_state" / entry["dir"] / f"{name}.json"
+        sha = (
+            hashlib.sha256(json_path.read_bytes()).hexdigest()
+            if json_path.is_file()
+            else None
+        )
+        records.append(
+            {
+                "path": f"research_state/{entry['dir']}/{name}.json",
+                "sha256": sha,
+                "generator_module": entry["module"],
+                "seed": res.get("seed"),
+                "fixture_sha256": P25_WP0_FIXTURE_SHA256,
+                "replay_ok": bool(res.get("ok")),
+            }
+        )
+    records.sort(key=lambda r: r["path"])
+    audit = {"schema": "bab_p29.provenance_audit/1", "artifacts": records}
+    PROVENANCE_PATH.write_text(
+        json.dumps(audit, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+
+
+def _xproc_main() -> int:
+    results: dict[str, dict] = {}
+    ok = True
+    for entry in REGISTRY:
+        good, problems, seed = _check_xproc(entry)
+        results[entry["name"]] = {"ok": good, "seed": seed, "problems": problems}
+        if good:
+            print(f"XPROC OK {entry['name']} (seed={seed})")
+        else:
+            ok = False
+            for problem in problems:
+                print(problem)
+    _write_provenance_ledger(results)
+    print(json.dumps({"xproc": True, "pass": ok}))
+    return 0 if ok else 1
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--subset", default="", help="Comma-separated artifact names to replay")
     parser.add_argument("--list", action="store_true", help="Print registry artifact names")
     parser.add_argument("--self-test", action="store_true", help="Fast drift-detection proof")
+    parser.add_argument(
+        "--xproc",
+        action="store_true",
+        help="Cross-process determinism: rebuild each artifact in two fresh "
+        "interpreters, assert byte-identical, and write the provenance ledger",
+    )
     args = parser.parse_args(argv)
 
     if args.list:
@@ -165,6 +308,9 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.self_test:
         return _self_test()
+
+    if args.xproc:
+        return _xproc_main()
 
     entries = _select(args.subset.split(","))
     if not entries:

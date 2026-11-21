@@ -18,4 +18,7 @@ python3 scripts/bab_replay_full.py --self-test
 echo "== full artifact replay (P25/P26/P27) =="
 python3 scripts/bab_replay_full.py
 
+echo "== cross-process determinism + provenance ledger (P29 WP1) =="
+python3 scripts/bab_replay_full.py --xproc
+
 echo "== replay gate OK =="

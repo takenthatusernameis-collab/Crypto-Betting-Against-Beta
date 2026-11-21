@@ -1,0 +1,69 @@
+{
+  "artifacts": [
+    {
+      "fixture_sha256": "a6d390fc755641ea28d14b8204615786fdc9a95733a87e4c3b63d66be64c163b",
+      "generator_module": "bab_promotion_bakeoff",
+      "path": "research_state/bab_p25/promotion_bakeoff.json",
+      "replay_ok": true,
+      "seed": 20261120,
+      "sha256": "153d28babc3b88d6539499968cb550ad96a816ca24dd84c7037270c3bdb3266b"
+    },
+    {
+      "fixture_sha256": "a6d390fc755641ea28d14b8204615786fdc9a95733a87e4c3b63d66be64c163b",
+      "generator_module": "bab_walk_forward_rank",
+      "path": "research_state/bab_p25/walk_forward_rank.json",
+      "replay_ok": true,
+      "seed": 20261120,
+      "sha256": "1bad6e81ccb33094251747f5e40482625515e0e74f3d51c3378ca4032291290f"
+    },
+    {
+      "fixture_sha256": "a6d390fc755641ea28d14b8204615786fdc9a95733a87e4c3b63d66be64c163b",
+      "generator_module": "bab_rank_capacity",
+      "path": "research_state/bab_p26/rank_capacity.json",
+      "replay_ok": true,
+      "seed": 20261120,
+      "sha256": "9097a06d680f86cb9acff72ee23a02e1b82cac9ca295680dadb1ec8d2ae82372"
+    },
+    {
+      "fixture_sha256": "a6d390fc755641ea28d14b8204615786fdc9a95733a87e4c3b63d66be64c163b",
+      "generator_module": "bab_p26_regime_stress",
+      "path": "research_state/bab_p26/regime_stress.json",
+      "replay_ok": true,
+      "seed": 20261120,
+      "sha256": "140c153837924358b8d434d00f1887b464e68323fbff480037f5a491996c9e0c"
+    },
+    {
+      "fixture_sha256": "a6d390fc755641ea28d14b8204615786fdc9a95733a87e4c3b63d66be64c163b",
+      "generator_module": "bab_signal_null_battery",
+      "path": "research_state/bab_p26/signal_null_battery.json",
+      "replay_ok": true,
+      "seed": 20261120,
+      "sha256": "5a0f81561c5f2a524d7f78c95b704320238ae315b2647f3bc3085966b357d9e8"
+    },
+    {
+      "fixture_sha256": "a6d390fc755641ea28d14b8204615786fdc9a95733a87e4c3b63d66be64c163b",
+      "generator_module": "bab_execution_hardening",
+      "path": "research_state/bab_p27/execution_hardening.json",
+      "replay_ok": true,
+      "seed": 20261121,
+      "sha256": "dac4b5808f91720676bed4a4fa617b0846e4ac1b8141b024fed8eef268c94957"
+    },
+    {
+      "fixture_sha256": "a6d390fc755641ea28d14b8204615786fdc9a95733a87e4c3b63d66be64c163b",
+      "generator_module": "bab_reconciliation_e2e",
+      "path": "research_state/bab_p27/reconciliation_e2e.json",
+      "replay_ok": true,
+      "seed": 20261121,
+      "sha256": "aad24cf6536ba94e14ae09c15ed404631ce6782ec880b62e042fbf90ca439b9a"
+    },
+    {
+      "fixture_sha256": "a6d390fc755641ea28d14b8204615786fdc9a95733a87e4c3b63d66be64c163b",
+      "generator_module": "bab_risk_controls",
+      "path": "research_state/bab_p27/risk_controls.json",
+      "replay_ok": true,
+      "seed": 20261121,
+      "sha256": "fc520cb8af80bc5d10917e522353625e3321988e5939dbe632109c8739473214"
+    }
+  ],
+  "schema": "bab_p29.provenance_audit/1"
+}
