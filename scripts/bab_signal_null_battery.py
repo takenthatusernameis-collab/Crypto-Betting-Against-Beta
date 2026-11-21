@@ -286,17 +286,26 @@ def _compute_null_stats(null_sharpes: list, observed: float) -> dict:
     p = (1 + int(np.sum(arr >= obs))) / (len(arr) + 1)
     null_mean = float(arr.mean())
     null_std = float(arr.std(ddof=0))
-    z = (obs - null_mean) / null_std if null_std > 0 else 0.0
+
+    # Round the published components first, then derive z_score from those
+    # rounded values. This keeps the artifact internally self-consistent: a
+    # consumer recomputing z from the published null_mean / null_std / observed
+    # (all 6dp) reproduces the stored z_score exactly instead of drifting on a
+    # double-rounding 6th decimal.
+    null_mean_r = _clean(null_mean)
+    null_std_r = _clean(null_std)
+    obs_r = _clean(obs)
+    z = (obs_r - null_mean_r) / null_std_r if null_std_r > 0 else 0.0
     pct = 100.0 * int(np.sum(arr < obs)) / len(arr)
 
     return {
         "null_sharpes": [_clean(x) for x in arr],
         "n_null_replications": len(arr),
-        "null_mean": _clean(null_mean),
-        "null_std": _clean(null_std),
+        "null_mean": null_mean_r,
+        "null_std": null_std_r,
         "null_min": _clean(float(arr.min())),
         "null_max": _clean(float(arr.max())),
-        "observed": _clean(obs),
+        "observed": obs_r,
         "z_score": _clean(z),
         "p_value": _clean(p),
         "empirical_percentile": _clean(pct),
