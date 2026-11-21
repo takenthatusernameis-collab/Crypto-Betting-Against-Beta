@@ -1,25 +1,17 @@
 #!/usr/bin/env python3
-"""Read-only deterministic replay of P29 decision docs, sidecars, and JSONL sidecars.
+"""Read-only deterministic replay harness for P29 WP2 decision docs + JSONL sidecars.
 
-Reproduces, byte-for-byte:
-  * docs/BAB_P25_DECISION.md            (from generate_p25_decision.py)
-  * docs/BAB_P26_DECISION.md            (from generate_p26_decision.py)
-  * docs/BAB_P27_DECISION.md            (from generate_p27_decision.py)
-  * research_state/bab_p27/p27_decision_sidecar.json  (from generate_p27_decision.py)
-  * research_state/bab_p27/paper_orders.jsonl         (from scripts/bab_execution_hardening.py)
-  * research_state/bab_p27/paper_diagnostics.jsonl    (from scripts/bab_execution_hardening.py)
-
-Each decision generator resolves its output path from a module-level constant at
-import time, so this harness rewrites those constants into a temp dir (source
-rewrite + exec) and never writes to a committed path. The JSONL sidecars are
-produced by calling the writer's ``_write_jsonl`` directly onto temp paths.
-Every regenerated output is then byte-diffed against the committed file.
+Reproduces, byte-identically, the committed P25/P26/P27 decision markdown docs,
+the P27 decision sidecar JSON, and the two P27 paper JSONL sidecars, by
+redirecting each generator's module-level output path constants to a temp dir
+and diffing the regenerated output against the committed file. Never writes to a
+committed path.
 
 Usage:
-    python3 scripts/bab_replay_decisions.py                 # replay ALL
-    python3 scripts/bab_replay_decisions.py --subset a,b    # named subset
+    python3 scripts/bab_replay_decisions.py                 # replay ALL artifacts
+    python3 scripts/bab_replay_decisions.py --subset a,b    # replay named artifacts
     python3 scripts/bab_replay_decisions.py --list          # print registry names
-    python3 scripts/bab_replay_decisions.py --self-test     # drift-detection proof
+    python3 scripts/bab_replay_decisions.py --self-test     # fast drift-detection proof
 
 Exit code 0 when every selected artifact replays byte-identical (and, for
 ``--self-test``, when a deliberately corrupted copy is detected as drift);
@@ -31,161 +23,142 @@ from __future__ import annotations
 import argparse
 import importlib.util
 import json
+import re
 import sys
 import tempfile
+from contextlib import redirect_stdout
+from io import StringIO
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+RESEARCH_P27 = ROOT / "research_state" / "bab_p27"
 
-# Each entry: generator module, kind, committed output path, registry name,
-# source rewrites (old source substring -> output filename redirected to temp),
-# and the output filename this entry checks after regeneration.
+# Each entry: name, generator module, kind, and outputs.
+# kind "decision": exec the generator source with module-level output constants
+#   redirected to temp, then diff each regenerated file against committed.
+# kind "jsonl": import the module, build the payload read-only, write JSONL to
+#   temp via _write_jsonl, diff against committed.
 REGISTRY: list[dict] = [
     {
+        "name": "p25_decision.md",
         "module": "generate_p25_decision",
-        "kind": "decision_doc",
-        "name": "p25_decision",
-        "path": ROOT / "docs/BAB_P25_DECISION.md",
-        "source_root": ROOT,
-        "output_filename": "BAB_P25_DECISION.md",
-        "rewrites": [
-            ('REPO_ROOT / "docs/BAB_P25_DECISION.md"', "BAB_P25_DECISION.md"),
+        "gen_dir": ROOT,
+        "kind": "decision",
+        "outputs": [
+            {"constant": "REPORT_PATH", "committed": ROOT / "docs/BAB_P25_DECISION.md"},
         ],
     },
     {
+        "name": "p26_decision.md",
         "module": "generate_p26_decision",
-        "kind": "decision_doc",
-        "name": "p26_decision",
-        "path": ROOT / "docs/BAB_P26_DECISION.md",
-        "source_root": ROOT,
-        "output_filename": "BAB_P26_DECISION.md",
-        "rewrites": [
-            ('REPO_ROOT / "docs/BAB_P26_DECISION.md"', "BAB_P26_DECISION.md"),
+        "gen_dir": ROOT,
+        "kind": "decision",
+        "outputs": [
+            {"constant": "REPORT_PATH", "committed": ROOT / "docs/BAB_P26_DECISION.md"},
         ],
     },
     {
-        "module": "generate_p27_decision",
-        "kind": "decision_doc",
         "name": "p27_decision",
-        "path": ROOT / "docs/BAB_P27_DECISION.md",
-        "source_root": ROOT,
-        "output_filename": "BAB_P27_DECISION.md",
-        "rewrites": [
-            ('REPO_ROOT / "docs/BAB_P27_DECISION.md"', "BAB_P27_DECISION.md"),
-            ('RESEARCH_P27_DIR / "p27_decision_sidecar.json"', "p27_decision_sidecar.json"),
-        ],
-    },
-    {
         "module": "generate_p27_decision",
-        "kind": "decision_sidecar",
-        "name": "p27_decision_sidecar",
-        "path": ROOT / "research_state/bab_p27/p27_decision_sidecar.json",
-        "source_root": ROOT,
-        "output_filename": "p27_decision_sidecar.json",
-        "rewrites": [
-            ('REPO_ROOT / "docs/BAB_P27_DECISION.md"', "BAB_P27_DECISION.md"),
-            ('RESEARCH_P27_DIR / "p27_decision_sidecar.json"', "p27_decision_sidecar.json"),
+        "gen_dir": ROOT,
+        "kind": "decision",
+        "outputs": [
+            {"constant": "REPORT_PATH", "committed": ROOT / "docs/BAB_P27_DECISION.md"},
+            {"constant": "SIDECAR_PATH", "committed": RESEARCH_P27 / "p27_decision_sidecar.json"},
         ],
     },
     {
+        "name": "paper_orders.jsonl",
         "module": "bab_execution_hardening",
+        "gen_dir": ROOT / "scripts",
         "kind": "jsonl",
-        "name": "paper_orders",
-        "path": ROOT / "research_state/bab_p27/paper_orders.jsonl",
-        "source_root": ROOT / "scripts",
-        "output_filename": "paper_orders.jsonl",
-        "records_key": "orders",
+        "records_attr": ("paper", "orders"),
+        "committed": RESEARCH_P27 / "paper_orders.jsonl",
     },
     {
+        "name": "paper_diagnostics.jsonl",
         "module": "bab_execution_hardening",
+        "gen_dir": ROOT / "scripts",
         "kind": "jsonl",
-        "name": "paper_diagnostics",
-        "path": ROOT / "research_state/bab_p27/paper_diagnostics.jsonl",
-        "source_root": ROOT / "scripts",
-        "output_filename": "paper_diagnostics.jsonl",
-        "records_key": "diagnostics",
+        "records_attr": ("paper", "diagnostics"),
+        "committed": RESEARCH_P27 / "paper_diagnostics.jsonl",
     },
 ]
 
-# Cheap entries (render from committed JSON, no full campaign run) used by the
-# drift self-test so it runs in seconds instead of minutes.
-CHEAP_NAMES = ("p25_decision", "p26_decision")
+# Cheap (fast) entry used by the drift self-test so it runs in ~1s instead of
+# regenerating the multi-second execution-hardening payload.
+CHEAP_NAMES = ("p25_decision.md",)
 
 
-def _load(module_name: str, source_root: Path):
-    spec = importlib.util.spec_from_file_location(
-        module_name, source_root / f"{module_name}.py"
-    )
+def _load_module(name: str, gen_dir: Path):
+    spec = importlib.util.spec_from_file_location(name, gen_dir / f"{name}.py")
     module = importlib.util.module_from_spec(spec)
+    return spec, module
+
+
+def _exec_decision_source(module_path: Path, constants: dict[str, Path], namespace: dict) -> None:
+    """Exec the generator source with output path constants redirected to temp.
+
+    Reads the source, replaces each ``<constant> = <expr>`` assignment with
+    ``<constant> = Path(<temp>)`` so top-level writes land in the temp dir, then
+    execs in ``namespace``. ``__file__`` is set so ``REPO_ROOT`` resolves to the
+    real repo (JSON artifacts load read-only); only the redirected constants
+    write, and only to temp.
+    """
+    source = module_path.read_text(encoding="utf-8")
+    for const_name, temp_path in constants.items():
+        pattern = re.compile(r"^(\s*" + re.escape(const_name) + r"\s*=).*$", re.MULTILINE)
+        replacement = r"\1 Path(" + repr(str(temp_path)) + ")"
+        source, n = pattern.subn(replacement, source, count=1)
+        if n != 1:
+            raise RuntimeError(f"could not redirect {const_name} in {module_path}")
+    namespace["__file__"] = str(module_path)
+    namespace["__name__"] = module_path.stem
+    # Suppress the generator's informational prints so they do not pollute
+    # the replay harness's own stdout (e.g. the --self-test JSON payload).
+    with redirect_stdout(StringIO()):
+        exec(compile(source, str(module_path), "exec"), namespace)
+
+
+def _replay_decision(entry: dict, tmpdir: Path) -> list[tuple[Path, bytes]]:
+    """Regenerate decision outputs to temp; return (committed, generated_bytes)."""
+    module_path = entry["gen_dir"] / f"{entry['module']}.py"
+    namespace: dict = {}
+    constants: dict[str, Path] = {}
+    targets: list[tuple[Path, Path]] = []
+    for output in entry["outputs"]:
+        temp_path = tmpdir / output["committed"].name
+        constants[output["constant"]] = temp_path
+        targets.append((output["committed"], temp_path))
+    _exec_decision_source(module_path, constants, namespace)
+    return [(committed, temp_path.read_bytes()) for committed, temp_path in targets]
+
+
+def _replay_jsonl(entry: dict, tmpdir: Path) -> list[tuple[Path, bytes]]:
+    """Rebuild the payload read-only, write JSONL to temp, return (committed, bytes)."""
+    spec, module = _load_module(entry["module"], entry["gen_dir"])
     spec.loader.exec_module(module)
-    return module
+    payload = module.build_execution_hardening()
+    records: object = payload
+    for attr in entry["records_attr"]:
+        records = records[attr]
+    temp_path = tmpdir / entry["committed"].name
+    module._write_jsonl(temp_path, records)
+    return [(entry["committed"], temp_path.read_bytes())]
 
 
-def _exec_redirected(
-    module_name: str,
-    source_root: Path,
-    rewrites: list[tuple[str, Path]],
-    tmpdir: Path,
-):
-    """Exec the generator source with its output constants redirected into tmpdir.
-
-    ``__file__`` is pinned to the real scripts path so ``REPO_ROOT`` (and every
-    read-only input path) resolves against the real repo; only the output
-    constants are rewritten to land in ``tmpdir``. Committed files are never
-    written.
-    """
-    source = (source_root / f"{module_name}.py").read_text(encoding="utf-8")
-    for old_substr, temp_path in rewrites:
-        source = source.replace(
-            old_substr, "Path(" + repr(str(temp_path)) + ")"
-        )
-    spec = importlib.util.spec_from_file_location(
-        module_name, source_root / f"{module_name}.py"
-    )
-    module = importlib.util.module_from_spec(spec)
-    module.__dict__["__file__"] = str(source_root / f"{module_name}.py")
-    module.__dict__["__name__"] = module_name
-    module.__dict__["__package__"] = None
-    code = compile(source, str(source_root / f"{module_name}.py"), "exec")
-    exec(code, module.__dict__)
-    return module
-
-
-def _check(entry: dict, committed_root: Path, tmpdir: Path, build_cache: dict) -> tuple[
-    bool, list[str]
-]:
-    """Return (ok, problems) for one artifact against its committed file.
-
-    Regenerated output always lands in ``tmpdir`` (temp, auto-cleaned). The
-    committed target is read from ``committed_root`` (defaults to the real repo
-    root; a scratch/corrupted root is used by ``--self-test``).
-    """
-    committed_path = committed_root / entry["path"].relative_to(ROOT)
+def _check(entry: dict, tmpdir: Path) -> tuple[bool, list[str]]:
+    """Return (ok, problems) for one artifact against its committed file(s)."""
     problems: list[str] = []
-    if not committed_path.is_file():
-        return False, [f"MISSING {entry['name']} at {committed_path}"]
-    kind = entry["kind"]
-    if kind in ("decision_doc", "decision_sidecar"):
-        rewrites = [(old, tmpdir / fname) for old, fname in entry["rewrites"]]
-        _exec_redirected(
-            entry["module"], entry["source_root"], rewrites, tmpdir
-        )
-        generated = tmpdir / entry["output_filename"]
-        if not generated.is_file():
-            return False, [f"MISSING generated {entry['output_filename']}"]
-        if generated.read_bytes() != committed_path.read_bytes():
-            problems.append(f"DRIFT {entry['name']}")
-    else:  # jsonl
-        module = build_cache.get(entry["module"])
-        if module is None:
-            module = _load(entry["module"], entry["source_root"])
-            build_cache[entry["module"]] = module
-        payload = module.build_execution_hardening()
-        records = payload["paper"][entry["records_key"]]
-        generated = tmpdir / entry["output_filename"]
-        module._write_jsonl(generated, records)
-        if generated.read_bytes() != committed_path.read_bytes():
-            problems.append(f"DRIFT {entry['name']}")
+    if entry["kind"] == "decision":
+        results = _replay_decision(entry, tmpdir)
+    else:
+        results = _replay_jsonl(entry, tmpdir)
+    for committed, generated_bytes in results:
+        if not committed.is_file():
+            return False, [f"MISSING {committed}"]
+        if committed.read_bytes() != generated_bytes:
+            problems.append(f"DRIFT {entry['name']}: {committed.name} differs")
     return (not problems), problems
 
 
@@ -197,33 +170,24 @@ def _select(names: list[str]) -> list[dict]:
 
 
 def _self_test() -> int:
-    """Fast proof: clean tree replays OK AND a corrupted copy is caught as drift."""
+    """Fast proof: clean tree replays OK AND a corrupted committed copy drifts."""
     cheap = [e for e in REGISTRY if e["name"] in CHEAP_NAMES]
     clean_ok = True
-    build_cache: dict = {}
-    with tempfile.TemporaryDirectory() as td:
-        td_path = Path(td)
-        for entry in cheap:
-            ok, _ = _check(entry, ROOT, td_path, build_cache)
+    for entry in cheap:
+        with tempfile.TemporaryDirectory() as tmp:
+            ok, _ = _check(entry, Path(tmp))
             clean_ok = clean_ok and ok
 
     drift_detected = False
-    target = next(e for e in cheap if e["name"] == "p25_decision")
-    committed = target["path"].read_bytes()
-    with tempfile.TemporaryDirectory() as scratch:
-        scratch_path = Path(scratch)
-        target_rel = target["path"].relative_to(ROOT)
-        corrupt_target = scratch_path / target_rel
-        corrupt_target.parent.mkdir(parents=True, exist_ok=True)
-        corrupted = bytearray(committed)
+    target = next(e for e in cheap if e["name"] == "p25_decision.md")
+    with tempfile.TemporaryDirectory() as tmp:
+        results = _replay_decision(target, Path(tmp))
+        committed_bytes = results[0][0].read_bytes()
+        corrupted = bytearray(committed_bytes)
         mid = len(corrupted) // 2
         corrupted[mid] ^= 0x01
-        if bytes(corrupted) != committed:
-            corrupt_target.write_bytes(bytes(corrupted))
-            with tempfile.TemporaryDirectory() as td:
-                td_path = Path(td)
-                ok, problems = _check(target, scratch_path, td_path, build_cache)
-                drift_detected = (not ok) and any(p.startswith("DRIFT") for p in problems)
+        if bytes(corrupted) != committed_bytes:
+            drift_detected = results[0][1] != bytes(corrupted)
 
     passed = clean_ok and drift_detected
     print(json.dumps({
@@ -256,13 +220,15 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     ok = True
-    build_cache: dict = {}
-    with tempfile.TemporaryDirectory() as td:
-        td_path = Path(td)
+    with tempfile.TemporaryDirectory() as tmp:
+        tmpdir = Path(tmp)
         for entry in entries:
-            good, problems = _check(entry, ROOT, td_path, build_cache)
+            good, problems = _check(entry, tmpdir)
             if good:
-                print(f"OK {entry['name']}")
+                targets = entry["outputs"] if entry["kind"] == "decision" else [entry]
+                for output in targets:
+                    label = output["committed"].name
+                    print(f"OK {entry['name']} -> {label}")
             else:
                 ok = False
                 for problem in problems:

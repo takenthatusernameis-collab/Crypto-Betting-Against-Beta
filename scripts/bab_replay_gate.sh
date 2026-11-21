@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
-# BAB full-artifact replay gate (P29 WP0).
+# BAB full-artifact replay gate (P29 WP0 + WP1 + WP2).
 #
-# Proves every committed P25/P26/P27 JSON artifact is byte-reproducible from its
-# generator, read-only, and that the comparator catches injected drift.
+# Proves every committed P25/P26/P27 JSON artifact (WP0), every committed artifact
+# is byte-reproducible across processes (WP1), and every committed P25/P26/P27
+# decision doc, the P27 decision sidecar JSON, and the two P27 paper JSONL
+# sidecars are byte-reproducible from their generators (WP2), read-only, and that
+# the comparator catches injected drift.
 #
 # Usage:  bash scripts/bab_replay_gate.sh
 # Exit 0 => GREEN; non-zero => DRIFT or self-test failure.
@@ -20,5 +23,9 @@ python3 scripts/bab_replay_full.py
 
 echo "== cross-process determinism + provenance ledger (P29 WP1) =="
 python3 scripts/bab_replay_full.py --xproc
+
+echo "== decision-doc + JSONL sidecar replay (P29 WP2) =="
+python3 scripts/bab_replay_decisions.py --self-test
+python3 scripts/bab_replay_decisions.py
 
 echo "== replay gate OK =="
