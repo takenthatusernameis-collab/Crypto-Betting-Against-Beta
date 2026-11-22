@@ -27,9 +27,12 @@ python3 scripts/bab_replay_full.py --xproc
 echo "== provenance-ledger regeneration-diff vs committed (P31 WP2) =="
 python3 scripts/bab_replay_full.py --check-provenance
 
-echo "== decision-doc + JSONL sidecar replay (P29 WP2) =="
+echo "== decision-doc + KICKOFF doc + JSONL sidecar replay (P29 WP2 + P32 WP0/WP2) =="
 python3 scripts/bab_replay_decisions.py --self-test
 python3 scripts/bab_replay_decisions.py
+
+echo "== P32 doc-replay summary reproducibility (decision + KICKOFF manifest) =="
+python3 scripts/bab_replay_decisions.py --check-doc-summary research_state/bab_p32/doc_replay_summary.json
 
 echo "== P30 ledger summary reproducibility replay =="
 python3 scripts/bab_workflow_diagnostics.py --check-ledger-summary research_state/bab_p30/ledger_summary.json

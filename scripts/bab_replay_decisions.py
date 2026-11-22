@@ -1,17 +1,26 @@
 #!/usr/bin/env python3
-"""Read-only deterministic replay harness for P29 WP2 decision docs + JSONL sidecars.
+"""Read-only deterministic replay harness for decision docs + KICKOFF docs.
 
-Reproduces, byte-identically, the committed P25/P26/P27 decision markdown docs,
-the P27 decision sidecar JSON, and the two P27 paper JSONL sidecars, by
-redirecting each generator's module-level output path constants to a temp dir
-and diffing the regenerated output against the committed file. Never writes to a
-committed path.
+Reproduces, byte-identically:
+  * the committed P24/P25/P26/P27 decision markdown docs (P24 added by P32 WP0),
+  * the P27 decision sidecar JSON,
+  * the charter-generated P22/P23/P24 KICKOFF docs (P32 WP2), rendered read-only
+    via each charter module's build_charter() + render_markdown(),
+  * the two P27 paper JSONL sidecars.
+
+Decision docs are replayed by redirecting each generator's module-level output
+path constants to a temp dir and diffing the regenerated output against the
+committed file. KICKOFF docs are replayed by importing the charter module and
+rendering read-only (never calling write_artifacts(), which would touch the
+frozen research_state dirs). Never writes to a committed path.
 
 Usage:
     python3 scripts/bab_replay_decisions.py                 # replay ALL artifacts
     python3 scripts/bab_replay_decisions.py --subset a,b    # replay named artifacts
     python3 scripts/bab_replay_decisions.py --list          # print registry names
     python3 scripts/bab_replay_decisions.py --self-test     # fast drift-detection proof
+    python3 scripts/bab_replay_decisions.py --summary-json PATH   # write doc summary
+    python3 scripts/bab_replay_decisions.py --check-doc-summary PATH  # verify summary
 
 Exit code 0 when every selected artifact replays byte-identical (and, for
 ``--self-test``, when a deliberately corrupted copy is detected as drift);
@@ -39,6 +48,15 @@ RESEARCH_P27 = ROOT / "research_state" / "bab_p27"
 # kind "jsonl": import the module, build the payload read-only, write JSONL to
 #   temp via _write_jsonl, diff against committed.
 REGISTRY: list[dict] = [
+    {
+        "name": "p24_decision.md",
+        "module": "generate_p24_decision",
+        "gen_dir": ROOT,
+        "kind": "decision",
+        "outputs": [
+            {"constant": "REPORT_PATH", "committed": ROOT / "docs/BAB_P24_DECISION.md"},
+        ],
+    },
     {
         "name": "p25_decision.md",
         "module": "generate_p25_decision",
@@ -68,6 +86,31 @@ REGISTRY: list[dict] = [
         ],
     },
     {
+        # P32 WP2: charter-generated KICKOFF docs, rendered read-only via the
+        # charter module's build_charter() + render_markdown() (never the
+        # write_artifacts() path, which would touch the frozen research_state
+        # dirs). The committed KICKOFF is byte-identical to that render.
+        "name": "p22_kickoff.md",
+        "module": "bab_p22_charter",
+        "gen_dir": ROOT / "scripts",
+        "kind": "kickoff",
+        "committed": ROOT / "docs/BAB_P22_KICKOFF.md",
+    },
+    {
+        "name": "p23_kickoff.md",
+        "module": "bab_p23_charter",
+        "gen_dir": ROOT / "scripts",
+        "kind": "kickoff",
+        "committed": ROOT / "docs/BAB_P23_KICKOFF.md",
+    },
+    {
+        "name": "p24_kickoff.md",
+        "module": "bab_p24_charter",
+        "gen_dir": ROOT / "scripts",
+        "kind": "kickoff",
+        "committed": ROOT / "docs/BAB_P24_KICKOFF.md",
+    },
+    {
         "name": "paper_orders.jsonl",
         "module": "bab_execution_hardening",
         "gen_dir": ROOT / "scripts",
@@ -85,9 +128,11 @@ REGISTRY: list[dict] = [
     },
 ]
 
-# Cheap (fast) entry used by the drift self-test so it runs in ~1s instead of
-# regenerating the multi-second execution-hardening payload.
-CHEAP_NAMES = ("p25_decision.md",)
+# Cheap (fast) entries used by the drift self-test so it runs in ~1s instead of
+# regenerating the multi-second execution-hardening payload. The KICKOFF renders
+# and the P24 decision are pure deterministic renders from committed JSON, so
+# they are cheap enough to include here.
+CHEAP_NAMES = ("p25_decision.md", "p24_decision.md", "p22_kickoff.md")
 
 
 def _load_module(name: str, gen_dir: Path):
@@ -147,13 +192,36 @@ def _replay_jsonl(entry: dict, tmpdir: Path) -> list[tuple[Path, bytes]]:
     return [(entry["committed"], temp_path.read_bytes())]
 
 
+def _replay_kickoff(entry: dict, tmpdir: Path) -> list[tuple[Path, bytes]]:
+    """Render a charter KICKOFF doc read-only, write to temp, return (committed, bytes).
+
+    Imports the charter module and calls build_charter() + render_markdown()
+    only; it never calls write_artifacts(), so no frozen research_state file is
+    touched. build_charter() reads the committed JSON read-only and is pure, so
+    the render is byte-reproducible.
+    """
+    spec, module = _load_module(entry["module"], entry["gen_dir"])
+    spec.loader.exec_module(module)
+    payload = module.build_charter()
+    markdown = module.render_markdown(payload)
+    temp_path = tmpdir / entry["committed"].name
+    temp_path.write_text(markdown, encoding="utf-8")
+    return [(entry["committed"], temp_path.read_bytes())]
+
+
+def _replay_entry(entry: dict, tmpdir: Path) -> list[tuple[Path, bytes]]:
+    """Dispatch to the kind-specific read-only replay helper."""
+    if entry["kind"] == "decision":
+        return _replay_decision(entry, tmpdir)
+    if entry["kind"] == "kickoff":
+        return _replay_kickoff(entry, tmpdir)
+    return _replay_jsonl(entry, tmpdir)
+
+
 def _check(entry: dict, tmpdir: Path) -> tuple[bool, list[str]]:
     """Return (ok, problems) for one artifact against its committed file(s)."""
     problems: list[str] = []
-    if entry["kind"] == "decision":
-        results = _replay_decision(entry, tmpdir)
-    else:
-        results = _replay_jsonl(entry, tmpdir)
+    results = _replay_entry(entry, tmpdir)
     for committed, generated_bytes in results:
         if not committed.is_file():
             return False, [f"MISSING {committed}"]
@@ -199,11 +267,75 @@ def _self_test() -> int:
     return 0 if passed else 1
 
 
+DOC_KINDS = ("decision", "kickoff")
+
+
+def _rel(path: Path) -> str:
+    try:
+        return str(path.resolve().relative_to(ROOT))
+    except ValueError:
+        return str(path)
+
+
+def _doc_entries() -> list[dict]:
+    """Document (decision + kickoff) registry entries, sorted by name."""
+    return sorted((e for e in REGISTRY if e["kind"] in DOC_KINDS), key=lambda e: e["name"])
+
+
+def _build_doc_summary() -> dict:
+    """Deterministic manifest of every replay-gated document, with replay_ok.
+
+    Covers decision + kickoff entries only (the document layer). The two JSONL
+    sidecars are replayed by the main replay run (P29 WP2) and are intentionally
+    out of this document summary. ``replay_ok`` is computed by replaying each
+    entry read-only into a temp dir; on a clean tree every entry is True.
+    """
+    entries: list[dict] = []
+    with tempfile.TemporaryDirectory() as tmp:
+        tmpdir = Path(tmp)
+        for entry in _doc_entries():
+            for committed, generated in _replay_entry(entry, tmpdir):
+                entries.append({
+                    "name": entry["name"],
+                    "kind": entry["kind"],
+                    "module": entry["module"],
+                    "committed": _rel(committed),
+                    "replay_ok": committed.is_file() and committed.read_bytes() == generated,
+                })
+    return {"schema": "bab_p32.doc_replay_summary/1", "entries": entries}
+
+
+def _dump_doc_summary(summary: dict) -> str:
+    return json.dumps(summary, indent=2, sort_keys=True) + "\n"
+
+
+def _check_doc_summary(path: Path) -> bool:
+    expected = _dump_doc_summary(_build_doc_summary()).encode("utf-8")
+    if not path.is_file():
+        print(f"MISSING doc summary {path}")
+        return False
+    if path.read_bytes() != expected:
+        print(f"DRIFT doc summary: {path} differs from fresh build")
+        return False
+    print(f"OK doc summary {path}")
+    return True
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--subset", default="", help="Comma-separated artifact names to replay")
     parser.add_argument("--list", action="store_true", help="Print registry artifact names")
     parser.add_argument("--self-test", action="store_true", help="Fast drift-detection proof")
+    parser.add_argument(
+        "--summary-json",
+        default="",
+        help="Write the deterministic document replay summary JSON to PATH (P32 WP2)",
+    )
+    parser.add_argument(
+        "--check-doc-summary",
+        default="",
+        help="Byte-diff the document replay summary at PATH vs a fresh build (P32 WP2)",
+    )
     args = parser.parse_args(argv)
 
     if args.list:
@@ -213,6 +345,16 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.self_test:
         return _self_test()
+
+    if args.summary_json:
+        out = Path(args.summary_json)
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(_dump_doc_summary(_build_doc_summary()), encoding="utf-8")
+        print(f"WROTE doc summary {out}")
+        return 0
+
+    if args.check_doc_summary:
+        return 0 if _check_doc_summary(Path(args.check_doc_summary)) else 1
 
     entries = _select(args.subset.split(","))
     if not entries:

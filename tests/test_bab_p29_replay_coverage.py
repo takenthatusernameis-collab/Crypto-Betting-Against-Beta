@@ -27,7 +27,19 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 REPLAY = REPO_ROOT / "scripts" / "bab_replay_full.py"
 RESEARCH = REPO_ROOT / "research_state"
 
+# The full-artifact registry (scripts/bab_replay_full.py REGISTRY) grew from the
+# 8 P25/P26/P27 artifacts covered at P29 WP0 to all 27 committed P20-P27 JSON
+# artifacts after P31 WP0 added the 19 P20-P24 entries. The registry is the
+# single source of truth for "every committed JSON research artifact is
+# replayed", so this exact set is the complete set of registry artifact names.
+# ("charter" appears once each under bab_p22/bab_p23/bab_p24; --list prints the
+# bare name, so the set of distinct names has 25 elements across the 27
+# (dir, name) entries.) The assertion below stays an EXACT equality -- it is not
+# loosened -- so a 26th artifact added to the registry still fails closed here,
+# while tests/test_bab_p31_registry_completeness.py independently guards the
+# "no committed JSON escapes replay" direction.
 EXPECTED_NAMES = {
+    # P25 / P26 / P27 (P29 WP0 scope)
     "walk_forward_rank",
     "promotion_bakeoff",
     "signal_null_battery",
@@ -36,6 +48,29 @@ EXPECTED_NAMES = {
     "execution_hardening",
     "risk_controls",
     "reconciliation_e2e",
+    # P20 (P31 WP0)
+    "sweep",
+    "breakeven",
+    "walk_forward",
+    # P21 (P31 WP0)
+    "universe",
+    "cost_surface",
+    "rank_eval",
+    "significance",
+    # P22 (P31 WP0)
+    "null_battery",
+    "impact_surface",
+    "capacity",
+    # P23 (P31 WP0)
+    "beta_drift",
+    "breadth_ladder",
+    "short_haircut",
+    # P24 (P31 WP0)
+    "adapter_dryrun",
+    "hysteresis",
+    "regime_split",
+    # shared name across bab_p22 / bab_p23 / bab_p24
+    "charter",
 }
 
 

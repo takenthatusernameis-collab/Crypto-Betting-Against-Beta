@@ -1,0 +1,61 @@
+{
+  "entries": [
+    {
+      "committed": "docs/BAB_P22_KICKOFF.md",
+      "kind": "kickoff",
+      "module": "bab_p22_charter",
+      "name": "p22_kickoff.md",
+      "replay_ok": true
+    },
+    {
+      "committed": "docs/BAB_P23_KICKOFF.md",
+      "kind": "kickoff",
+      "module": "bab_p23_charter",
+      "name": "p23_kickoff.md",
+      "replay_ok": true
+    },
+    {
+      "committed": "docs/BAB_P24_DECISION.md",
+      "kind": "decision",
+      "module": "generate_p24_decision",
+      "name": "p24_decision.md",
+      "replay_ok": true
+    },
+    {
+      "committed": "docs/BAB_P24_KICKOFF.md",
+      "kind": "kickoff",
+      "module": "bab_p24_charter",
+      "name": "p24_kickoff.md",
+      "replay_ok": true
+    },
+    {
+      "committed": "docs/BAB_P25_DECISION.md",
+      "kind": "decision",
+      "module": "generate_p25_decision",
+      "name": "p25_decision.md",
+      "replay_ok": true
+    },
+    {
+      "committed": "docs/BAB_P26_DECISION.md",
+      "kind": "decision",
+      "module": "generate_p26_decision",
+      "name": "p26_decision.md",
+      "replay_ok": true
+    },
+    {
+      "committed": "docs/BAB_P27_DECISION.md",
+      "kind": "decision",
+      "module": "generate_p27_decision",
+      "name": "p27_decision",
+      "replay_ok": true
+    },
+    {
+      "committed": "research_state/bab_p27/p27_decision_sidecar.json",
+      "kind": "decision",
+      "module": "generate_p27_decision",
+      "name": "p27_decision",
+      "replay_ok": true
+    }
+  ],
+  "schema": "bab_p32.doc_replay_summary/1"
+}
