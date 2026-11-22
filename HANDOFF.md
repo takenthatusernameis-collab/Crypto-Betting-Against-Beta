@@ -2,13 +2,13 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-22T10:31:50Z (refreshed this session; supersedes the 2026-11-22T10:31:32Z stamp)
-- **Git state:** HEAD `d0e7e42` at write time (working tree clean; verified via `git rev-parse HEAD`). **P20–P34 are all COMPLETE and frozen.** The binding row is **Campaign P35 "Beta-Estimation Robustness & Signal-Stability Closure" — ACTIVE, agent-executable, HEAVY.** The post-P34 idle-wait directive is REMOVED: P35 is the first heavy, fully offline, zero-maintainer-dependency successor to P34, and idle-wait is FORBIDDEN while P35 is incomplete.
+- **Timestamp (UTC):** 2026-11-22T10:33:26Z (refreshed this session; supersedes the 2026-11-22T10:31:50Z stamp)
+- **Git state:** HEAD `af5d1d0` at write time (working tree clean; verified via `git rev-parse HEAD`). **P20–P34 are all COMPLETE and frozen.** The binding row is **Campaign P35 "Beta-Estimation Robustness & Signal-Stability Closure" — ACTIVE, agent-executable, HEAVY.** The post-P34 idle-wait directive is REMOVED: P35 is the first heavy, fully offline, zero-maintainer-dependency successor to P34, and idle-wait is FORBIDDEN while P35 is incomplete.
 - **Gate verified GREEN this session (fast inner loop + doc-pointer guard after the P35 binding switch):** `python3 -m ruff check .` PASS; `python3 -m pytest -q tests/test_bab_p34_doc_pointer_guard.py` → 7 passed, 1 skipped (guard now recognizes P35 as the successor binding); `python3 -m pytest -q tests/test_bab_p34_*.py tests/test_bab_p33_*.py tests/test_bab_p31_registry_completeness.py tests/test_bab_p32_*.py` → 83 passed, 2 skipped; `bash scripts/bab_quick.sh` → 104 + 195 tests PASS. The full gate (`BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh`, ~16 min) must be run once and its GREEN log attached before any P35 WP boundary is declared complete.
 
 ---
 
-# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-22T10:31:32Z)
+# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-22T10:33:26Z)
 
 **EXECUTE CAMPAIGN P35 — "Beta-Estimation Robustness & Signal-Stability Closure." THIS IS THE BINDING ROW. IDLE-WAIT IS FORBIDDEN WHILE P35 IS INCOMPLETE.**
 
@@ -272,7 +272,7 @@ BAB_GATE_LOG=/tmp/bab_gate_handoff.log BAB_GATE_MIN_COVERAGE=100 bash scripts/ba
 
 ---
 
-## BOTTLENECKS REMOVED (do not re-create)
+- **[REMOVED 2026-11-22T10:33:26Z] Stale HEAD pointer + timestamp drift.** Handoff still pointed at `d0e7e42` / 10:31:50Z while actual HEAD advanced to `af5d1d0`; refreshed HEAD and timestamp to 10:33:26Z so the next session starts from the real commit. P35 remains the binding row.
 
 - **[REMOVED 2026-11-22T07:31:10Z] Post-P33 idle cliff + stale README/COVERAGE_NOTES binding pointers.** The prior handoff (07:04:44Z) declared "all agent-executable work is done; idle-wait" — the classic idle cliff this repo has removed repeatedly (03:21Z, 03:53Z, 04:38Z, ...). Verified this session: P33 IS complete (27 P33 tests PASS, doc summary OK, ruff clean, reconcile GREEN, quick 104+195 PASS, replay self-tests PASS), so that claim was true *for P20-P33* — but it was the wrong conclusion because a genuine, heavy, repo-name-relevant agent-executable gap remains: the `wide_bab_universe.csv` (40 assets, betas 0.35–1.90, seed 20261120) is only touched by P25 rank tests, and there is **no multi-seed robustness + statistical-honesty battery** for the shipped equal-weight beta-neutral default (P26 NO-SIGNAL was on the 9-asset fixture only; rank mode is flat/untestable on 9 assets). Declared **Campaign P34 "Wide-Universe Robustness & Strategy-Honesty Closure"** (WP0 multi-seed robustness + summary artifact; WP1 statistical falsification/honesty battery; WP2 doc-integrity closure + pointer-rot guard + gate wire). Also removed the **documentation-integrity bottleneck**: `README.md:246` named P26 as binding and `docs/COVERAGE_NOTES.md:5` named P20 as binding — both stale by ~11 campaigns and directly misleading to a fresh agent; WP2 fixes both and adds a guard so they cannot rot again. The pipeline is now **P30 → P31 → P32 → P33 → P34** — heavy, fully agent-executable, zero maintainer dependency. After P34 only maintainer-gated P28 WP2-WP4 remain.
 - **[REMOVED 2026-11-22T09:47:00Z] Post-P34 idle cliff (this session).** Verified: P34 ALL WPs LANDED and GREEN. The binding row is now correctly P28 WP2-WP4 (maintainer-gated). No agent-executable work remains.
