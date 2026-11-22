@@ -192,3 +192,12 @@ python3 -m pytest -q tests/test_bab_p35_signal_stability.py
 echo "[bab_gate] P35 decision-consistency tests (WP3)"
 python3 -m pytest -q tests/test_bab_p35_decision_consistency.py
 echo "[bab_gate] P35 GREEN"
+
+# --- P36 WP0/WP1/WP2/WP3: walk-forward OOS validation + rank-weighted construction + decision doc + gate wire ---
+echo "[bab_gate] P36 walk-forward summary check (WP0)"
+python3 "$ROOT/scripts/bab_p36_walk_forward.py" --check-walk-forward-summary
+echo "[bab_gate] P36 rank-weighted summary check (WP1)"
+python3 "$ROOT/scripts/bab_p36_rank_weighted.py" --check-rank-weighted-summary
+echo "[bab_gate] P36 decision-consistency tests (WP2-WP3)"
+python3 -m pytest -q tests/test_bab_p36_decision_consistency.py
+echo "[bab_gate] P36 GREEN"

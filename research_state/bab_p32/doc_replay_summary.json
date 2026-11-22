@@ -55,6 +55,20 @@
       "module": "generate_p27_decision",
       "name": "p27_decision",
       "replay_ok": true
+    },
+    {
+      "committed": "docs/BAB_P35_DECISION.md",
+      "kind": "decision",
+      "module": "generate_p35_decision",
+      "name": "p35_decision.md",
+      "replay_ok": true
+    },
+    {
+      "committed": "docs/BAB_P36_DECISION.md",
+      "kind": "decision",
+      "module": "generate_p36_decision",
+      "name": "p36_decision.md",
+      "replay_ok": true
     }
   ],
   "schema": "bab_p32.doc_replay_summary/1"

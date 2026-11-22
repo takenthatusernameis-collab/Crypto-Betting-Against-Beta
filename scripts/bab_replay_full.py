@@ -111,6 +111,15 @@ REGISTRY: list[dict] = [
     {"module": "bab_p35_signal_stability", "build": "build_summary",
      "dir": "bab_p35", "name": "signal_stability_summary",
      "inject_determinism": False, "json_only": True, "no_xproc": True},
+    # P36 WP0-WP1 summary artifacts (JSON-only; no .md sidecar). Gated out of
+    # --xproc/--check-provenance so the frozen P29 provenance_audit.json ledger
+    # is never rewritten by P36 entries (see HANDOFF.md P36 WP2-WP3).
+    {"module": "bab_p36_walk_forward", "build": "build_summary",
+     "dir": "bab_p36", "name": "walk_forward_summary",
+     "inject_determinism": False, "json_only": True, "no_xproc": True},
+    {"module": "bab_p36_rank_weighted", "build": "build_summary",
+     "dir": "bab_p36", "name": "rank_weighted_summary",
+     "inject_determinism": False, "json_only": True, "no_xproc": True},
 ]
 
 # Cheap subset (fast generators) used by the drift self-test so it runs in
