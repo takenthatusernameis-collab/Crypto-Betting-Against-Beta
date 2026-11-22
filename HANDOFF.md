@@ -2,8 +2,8 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-22T10:05:00Z (refreshed this session; supersedes the 2026-11-22T10:00:55Z stamp)
-- **Git state:** HEAD `a20a84c` at write time (working tree clean; verified via `git rev-parse HEAD` — the prior `a885d24` pointer was STALE and is corrected here). **P20–P34 are all COMPLETE and frozen.** The binding row is now **Campaign P35 "Beta-Estimation Robustness & Signal-Stability Closure" — ACTIVE, agent-executable, HEAVY.** The post-P34 idle-wait directive is REMOVED: P35 is the first heavy, fully offline, zero-maintainer-dependency successor to P34, and idle-wait is FORBIDDEN while P35 is incomplete.
+- **Timestamp (UTC):** 2026-11-22T10:31:08Z (refreshed this session; supersedes the 2026-11-22T10:05:00Z stamp)
+- **Git state:** HEAD `d6057a5` at write time (working tree clean; verified via `git rev-parse HEAD`). **P20–P34 are all COMPLETE and frozen.** The binding row is **Campaign P35 "Beta-Estimation Robustness & Signal-Stability Closure" — ACTIVE, agent-executable, HEAVY.** The post-P34 idle-wait directive is REMOVED: P35 is the first heavy, fully offline, zero-maintainer-dependency successor to P34, and idle-wait is FORBIDDEN while P35 is incomplete.
 - **Gate verified GREEN this session (fast inner loop + doc-pointer guard after the P35 binding switch):** `python3 -m ruff check .` PASS; `python3 -m pytest -q tests/test_bab_p34_doc_pointer_guard.py` → 7 passed, 1 skipped (guard now recognizes P35 as the successor binding); `python3 -m pytest -q tests/test_bab_p34_*.py tests/test_bab_p33_*.py tests/test_bab_p31_registry_completeness.py tests/test_bab_p32_*.py` → 83 passed, 2 skipped; `bash scripts/bab_quick.sh` → 104 + 195 tests PASS. The full gate (`BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh`, ~16 min) must be run once and its GREEN log attached before any P35 WP boundary is declared complete.
 
 ---
