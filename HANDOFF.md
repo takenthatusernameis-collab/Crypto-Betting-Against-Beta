@@ -2,12 +2,12 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-22T19:28:39Z (refreshed this session; supersedes the 2026-11-22T18:07:12Z stamp)
+- **Timestamp (UTC):** 2026-11-22T19:30:21Z (refreshed this session; supersedes the 2026-11-22T19:28:39Z stamp)
 - **Git state:** working tree clean at HEAD (verified via `git rev-parse HEAD`); P20–P36 are all COMPLETE and frozen. The binding row is now **Campaign P37 "Cost-Aware Turnover & Capacity Closure"** — agent-executable, fully offline, zero maintainer dependency. P28 WP2–WP4 remain **maintainer-gated** (require `workflows:write` for CI and licensed CSV for real-market data).
 
 ---
 
-# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-22T19:28:39Z)
+# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-22T19:30:21Z)
 
 **CAMPAIGN P36 IS COMPLETE — ALL WPs LANDED AND GREEN.** P36 WP0 walk-forward/OOS harness, WP1 rank-weighted construction, WP2-WP3 decision doc + documentation-integrity closure + gate wire are all delivered, byte-identical, registered, and wired into `scripts/bab_gate.sh`. `tests/test_bab_p36_decision_consistency.py` → 14 PASS; `scripts/bab_p36_walk_forward.py --check-walk-forward-summary` → PASS; `scripts/bab_p36_rank_weighted.py --check-rank-weighted-summary` → PASS; `scripts/bab_replay_decisions.py --subset p36_decision.md` → PASS; `scripts/bab_replay_full.py --subset walk_forward_summary,rank_weighted_summary` → PASS; `scripts/bab_replay_decisions.py --check-doc-summary research_state/bab_p32/doc_replay_summary.json` → PASS; `tests/test_bab_p34_doc_pointer_guard.py` → 7 passed, 1 skipped; ruff clean on all new/modified files.
 
@@ -99,6 +99,9 @@ P37 is the sole agent-executable binding row. All WPs are offline/deterministic/
 - **P28 WP4 — Live-Market Deployment Decision.** Blocker: needs WP2+WP3 + maintainer authorization.
 
 If a maintainer unblocks P28 WP2-WP4, they become binding rows AFTER P37 is complete.
+
+### Bottlenecks cleared from agent scope (do not re-attempt)
+P28 WP2-WP4 are intentionally REMOVED from the agent's plate: WP2 needs `workflows:write` (structurally impossible for agents — repo token lacks permission), WP3 needs a maintainer-supplied licensed CSV (Coinbase public returns 403), WP4 needs WP2+WP3 + maintainer authorization. Agents must NOT spin on, re-push, or re-edit CI workflows, licensed data, or live deployment. The sole unblocked, agent-executable, heavy-work path is P37 WP0 → WP1 → WP2 → WP3. All agent cycles go to P37; nothing else.
 
 ---
 
