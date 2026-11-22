@@ -2,18 +2,20 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-22T19:31:11Z (refreshed this session; supersedes the 2026-11-22T19:30:21Z stamp)
-- **Git state:** working tree clean at HEAD (verified via `git rev-parse HEAD`); P20–P36 are all COMPLETE and frozen. The binding row is now **Campaign P37 "Cost-Aware Turnover & Capacity Closure"** — agent-executable, fully offline, zero maintainer dependency. P28 WP2–WP4 remain **maintainer-gated** (require `workflows:write` for CI and licensed CSV for real-market data).
+- **Timestamp (UTC):** 2026-11-22T20:14:50Z (refreshed this session after repairing a RED baseline; supersedes the 2026-11-22T19:31:11Z stamp)
+- **Git state:** P20–P36 COMPLETE and frozen. **Baseline repaired this session (a real code fix, NOT a docs-only handoff):** the full gate was RED — `tests/test_bab_p29_replay_coverage.py` (a P31-era replay-coverage guard) had 3 failures because its hardcoded 25-name `EXPECTED_NAMES` set and its unconditional `.md`-existence assertion were never updated for the four P35/P36 `json_only` registry entries (`estimator_bakeoff_summary`, `signal_stability_summary`, `walk_forward_summary`, `rank_weighted_summary`; `json_only=True`, `no_xproc=True`, no `.md` sidecar). Fixed by guard maintenance: extended the exact set to 29 names and made the `.md` check skip `json_only` entries — the exact-equality contract is preserved (an unexpected 30th name still fails closed). Verified `9 passed` + ruff clean. The binding row remains **Campaign P37 "Cost-Aware Turnover & Capacity Closure"** — **NOT STARTED**, agent-executable, fully offline, zero maintainer dependency. P28 WP2–WP4 remain **maintainer-gated** (require `workflows:write` for CI and licensed CSV for real-market data).
 
 ---
 
-# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-22T19:31:11Z)
+# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-22T20:14:50Z)
 
-**CAMPAIGN P36 IS COMPLETE — ALL WPs LANDED AND GREEN.** P36 WP0 walk-forward/OOS harness, WP1 rank-weighted construction, WP2-WP3 decision doc + documentation-integrity closure + gate wire are all delivered, byte-identical, registered, and wired into `scripts/bab_gate.sh`. `tests/test_bab_p36_decision_consistency.py` → 14 PASS; `scripts/bab_p36_walk_forward.py --check-walk-forward-summary` → PASS; `scripts/bab_p36_rank_weighted.py --check-rank-weighted-summary` → PASS; `scripts/bab_replay_decisions.py --subset p36_decision.md` → PASS; `scripts/bab_replay_full.py --subset walk_forward_summary,rank_weighted_summary` → PASS; `scripts/bab_replay_decisions.py --check-doc-summary research_state/bab_p32/doc_replay_summary.json` → PASS; `tests/test_bab_p34_doc_pointer_guard.py` → 7 passed, 1 skipped; ruff clean on all new/modified files.
+**BASELINE WAS RED — REPAIRED THIS SESSION.** The full gate (`BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh`) was failing on `tests/test_bab_p29_replay_coverage.py` (3 failures: `test_registry_covers_all_generated_artifacts`, `test_registry_entries_have_committed_files`, `test_list_prints_all_names`). Root cause: that P31-era guard hardcoded a 25-name `EXPECTED_NAMES` set and asserted *every* registry entry has a `.md` sidecar, but P35/P36 had legitimately registered four JSON-only summary artifacts (`estimator_bakeoff_summary`, `signal_stability_summary`, `walk_forward_summary`, `rank_weighted_summary`; `json_only=True`, `no_xproc=True`) that have no `.md`. This silently invalidated the prior "all green" claims and blocked every session's full gate. **Fixed** by guard maintenance — extended the exact set to 29 names and made the `.md` check respect `json_only` (exact-equality preserved; not a loosening). Verified `9 passed`, ruff clean. **First action for the next agent: run the HARD GATES below and confirm GREEN; if any gate is red, fix that before anything else.**
+
+**CAMPAIGN P36 IS COMPLETE — all WPs landed** (P36 WP0 walk-forward/OOS harness, WP1 rank-weighted construction, WP2-WP3 decision doc + gate wire; byte-identical, registered, wired into `scripts/bab_gate.sh`).
 
 **Do NOT re-do P20–P36 — all complete and frozen.**
 
-**If you are the next agent:** P36 is done. The binding row is **Campaign P37 "Cost-Aware Turnover & Capacity Closure"** — the P36 successor. Execute the work packages below. The only maintainer-gated rows are P28 WP2–WP4 (`workflows:write` for CI enforcement, licensed CSV for real-market data); those stay blocked until a maintainer unblocks them and are NOT your work.
+**If you are the next agent:** P36 is done and the baseline is repaired. The binding row is **Campaign P37 "Cost-Aware Turnover & Capacity Closure"** — the P36 successor, **NOT STARTED**. Execute the work packages below (WP0 → WP1 → WP2 → WP3). The only maintainer-gated rows are P28 WP2–WP4 (`workflows:write` for CI enforcement, licensed CSV for real-market data); those stay blocked until a maintainer unblocks them and are NOT your work.
 
 **P37 work packages (execute WP0 → WP1 → WP2 → WP3):**
 
@@ -69,6 +71,8 @@ python3 scripts/bab_p36_rank_weighted.py --check-rank-weighted-summary
 **Declared:** 2026-11-22T14:36:10Z · **Campaign:** P36 "Walk-Forward / Out-of-Sample Validation + Rank-Weighted Construction Closure" · **Priority: HIGH** · **Status: COMPLETE — all WPs landed and verified GREEN (verified 2026-11-22T15:45:00Z). Do NOT re-do it.**
 
 P36 WP0 walk-forward/OOS harness, WP1 rank-weighted construction, WP2-WP3 decision doc + documentation-integrity closure + gate wire all complete. `tests/test_bab_p36_decision_consistency.py` → 14 PASS; `scripts/bab_p36_walk_forward.py --check-walk-forward-summary` → PASS; `scripts/bab_p36_rank_weighted.py --check-rank-weighted-summary` → PASS; `scripts/bab_replay_decisions.py --subset p36_decision.md` → PASS; `scripts/bab_replay_full.py --subset walk_forward_summary,rank_weighted_summary` → PASS; `scripts/bab_replay_decisions.py --check-doc-summary research_state/bab_p32/doc_replay_summary.json` → PASS; `scripts/bab_replay_full.py --self-test` → PASS; ruff clean. **P36 is COMPLETE. Do NOT re-do it.**
+
+> **Baseline-repair note (2026-11-22T20:14:50Z):** the "GREEN" above was verified at the P36 *test* level, but the *full* gate was later found RED on `tests/test_bab_p29_replay_coverage.py` (stale P31 guard not updated for the four P35/P36 `json_only` registry entries). That guard is repaired this session — see the INITIAL TASK MESSAGE and the Git-state line at the top. P36 artifacts themselves are unchanged and frozen.
 
 ---
 
@@ -152,7 +156,7 @@ BAB_GATE_LOG=/tmp/bab_gate_handoff.log BAB_GATE_MIN_COVERAGE=100 bash scripts/ba
 
 ## FUTURE AGENTS: READ THIS ONCE
 
-**All agent-executable work through Campaign P36 is COMPLETE and frozen** (P20–P36), verified GREEN 2026-11-22T15:45:00Z. **Campaign P37 "Cost-Aware Turnover & Capacity Closure" is the binding agent-executable row — NOT STARTED.** Execute WP0 → WP1 → WP2 → WP3 per the INITIAL TASK MESSAGE. The only maintainer-gated rows are P28 WP2-WP4.
+**All agent-executable work through Campaign P36 is COMPLETE and frozen** (P20–P36). **The full-gate baseline was RED and is REPAIRED this session** — `tests/test_bab_p29_replay_coverage.py` (stale P31 replay-coverage guard) extended for the four P35/P36 `json_only` registry entries; `9 passed` + ruff clean; exact-equality contract preserved. **Campaign P37 "Cost-Aware Turnover & Capacity Closure" is the binding agent-executable row — NOT STARTED.** Confirm the HARD GATES are GREEN, then execute WP0 → WP1 → WP2 → WP3 per the INITIAL TASK MESSAGE. The only maintainer-gated rows are P28 WP2-WP4.
 
 **Anti-idle rule:** a docs-only / handoff-only / plan-only / count-only commit is FORBIDDEN and counts as automatic failure when agent-executable work exists. P37 is agent-executable and INCOMPLETE. If a future session reports idle-wait, it must be because P37 is complete AND P28 WP2-WP4 remain maintainer-gated — and that report MUST include a fresh full-gate GREEN log, not just prose.
 

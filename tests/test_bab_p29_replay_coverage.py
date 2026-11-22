@@ -29,15 +29,24 @@ RESEARCH = REPO_ROOT / "research_state"
 
 # The full-artifact registry (scripts/bab_replay_full.py REGISTRY) grew from the
 # 8 P25/P26/P27 artifacts covered at P29 WP0 to all 27 committed P20-P27 JSON
-# artifacts after P31 WP0 added the 19 P20-P24 entries. The registry is the
-# single source of truth for "every committed JSON research artifact is
-# replayed", so this exact set is the complete set of registry artifact names.
-# ("charter" appears once each under bab_p22/bab_p23/bab_p24; --list prints the
-# bare name, so the set of distinct names has 25 elements across the 27
-# (dir, name) entries.) The assertion below stays an EXACT equality -- it is not
-# loosened -- so a 26th artifact added to the registry still fails closed here,
-# while tests/test_bab_p31_registry_completeness.py independently guards the
-# "no committed JSON escapes replay" direction.
+# artifacts after P31 WP0 added the 19 P20-P24 entries, then to 31 (dir, name)
+# entries after P35 WP1/WP2 and P36 WP0/WP1 registered their four JSON-only
+# summary artifacts (estimator_bakeoff_summary, signal_stability_summary,
+# walk_forward_summary, rank_weighted_summary; json_only=True, no_xproc=True).
+# The registry is the single source of truth for "every committed JSON research
+# artifact is replayed", so this exact set is the complete set of registry
+# artifact names. ("charter" appears once each under bab_p22/bab_p23/bab_p24;
+# --list prints the bare name, so the set of distinct names has 29 elements
+# across the 31 (dir, name) entries.) The assertion below stays an EXACT
+# equality -- it is not loosened -- so a 30th artifact added to the registry
+# still fails closed here, while tests/test_bab_p31_registry_completeness.py
+# independently guards the "no committed JSON escapes replay" direction.
+# NOTE (bottleneck removal 2026-11-22T19:41:19Z): this set was last extended at
+# P31 and never updated for the P35/P36 json-only registrations, so the guard
+# was RED on an otherwise-green tree (3 failures in this file) and blocked every
+# session's full gate. Adding the four legitimately-registered json-only names
+# restores the EXACT-equality contract without weakening it. This is guard
+# maintenance, not test loosening.
 EXPECTED_NAMES = {
     # P25 / P26 / P27 (P29 WP0 scope)
     "walk_forward_rank",
@@ -71,6 +80,12 @@ EXPECTED_NAMES = {
     "regime_split",
     # shared name across bab_p22 / bab_p23 / bab_p24
     "charter",
+    # P35 WP1/WP2 + P36 WP0/WP1 JSON-only summary artifacts (json_only=True,
+    # no_xproc=True in bab_replay_full.py REGISTRY; no .md sidecar by design).
+    "estimator_bakeoff_summary",
+    "signal_stability_summary",
+    "walk_forward_summary",
+    "rank_weighted_summary",
 }
 
 
@@ -120,6 +135,10 @@ def test_registry_entries_have_committed_files():
     for entry in _load_registry():
         cdir = RESEARCH / entry["dir"]
         assert (cdir / f"{entry['name']}.json").is_file(), entry["name"]
+        # JSON-only artifacts (P35/P36 summary JSONs) have no rendered .md
+        # sidecar by design; the committed JSON is the authoritative artifact.
+        if entry.get("json_only"):
+            continue
         assert (cdir / f"{entry['name']}.md").is_file(), entry["name"]
 
 
