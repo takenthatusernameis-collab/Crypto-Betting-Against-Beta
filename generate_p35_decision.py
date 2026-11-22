@@ -169,39 +169,42 @@ agg_columns = [
 estimator_agg_table = _render(agg_columns, agg_rows)
 
 # --- Per-config breakdown (rolling OLS windows, EWMA halflifes, Shrinkage) ---
+# Iterate cells in committed JSON order (NOT sorted/grouped) so the rendered
+# table is byte-identical to the acceptance-test renderer, which reads
+# ``bakeoff["results"]["cells"]`` directly.
 config_rows = []
-for estimator, cells in sorted(estimator_groups.items()):
-    for cell in cells:
-        params = cell["params"]
-        if estimator == "rolling_ols":
-            config_key = f"rolling_ols_w{params['window']}"
-        elif estimator == "ewma":
-            config_key = f"ewma_h{params['halflife']}"
-        else:  # shrinkage
-            target_is_csm = params["target"] == "cross_sectional_mean"
-            target_str = "csm" if target_is_csm else f"t{params['target']}"
-            config_key = f"shrinkage_i{params['intensity']}_{target_str}"
+for cell in bakeoff_cells:
+    estimator = cell["estimator"]
+    params = cell["params"]
+    if estimator == "rolling_ols":
+        config_key = f"rolling_ols_w{params['window']}"
+    elif estimator == "ewma":
+        config_key = f"ewma_h{params['halflife']}"
+    else:  # shrinkage
+        target_is_csm = params["target"] == "cross_sectional_mean"
+        target_str = "csm" if target_is_csm else f"t{params['target']}"
+        config_key = f"shrinkage_i{params['intensity']}_{target_str}"
 
-        config_rows.append({
-            "Config": config_key,
-            "Estimator": estimator,
-            "Seed_Idx": cell["seed_index"],
-            "Sharpe": cell["metrics"]["sharpe"],
-            "Turnover": cell["metrics"]["turnover"],
-            "Ann_Vol": cell["metrics"]["annualized_volatility"],
-            "Max_DD": cell["metrics"]["max_drawdown"],
-            "Realized_Beta": cell["metrics"]["realized_beta"],
-            "Model_Beta_Neutral": cell["metrics"]["max_model_beta"],
-            "Dollar_Neutral": cell["metrics"]["max_dollar_neutral"],
-            "Spearman_vs_OLS": cell["metrics"]["spearman_vs_ols"],
-            "Jaccard_vs_OLS": cell["metrics"]["jaccard_vs_ols"],
-            "Beta_Noise": cell["metrics"]["beta_noise"],
-            "Beta_Dispersion": cell["metrics"]["beta_dispersion"],
-            "Wealth": cell["metrics"]["wealth"],
-            "Model_Beta_Pass": cell["neutrality_checks"]["model_beta_neutral"]["passed"],
-            "Dollar_Pass": cell["neutrality_checks"]["dollar_neutral"]["passed"],
-            "Realized_Beta_Pass": cell["neutrality_checks"]["realized_beta"]["passed"],
-        })
+    config_rows.append({
+        "Config": config_key,
+        "Estimator": estimator,
+        "Seed_Idx": cell["seed_index"],
+        "Sharpe": cell["metrics"]["sharpe"],
+        "Turnover": cell["metrics"]["turnover"],
+        "Ann_Vol": cell["metrics"]["annualized_volatility"],
+        "Max_DD": cell["metrics"]["max_drawdown"],
+        "Realized_Beta": cell["metrics"]["realized_beta"],
+        "Model_Beta_Neutral": cell["metrics"]["max_model_beta"],
+        "Dollar_Neutral": cell["metrics"]["max_dollar_neutral"],
+        "Spearman_vs_OLS": cell["metrics"]["spearman_vs_ols"],
+        "Jaccard_vs_OLS": cell["metrics"]["jaccard_vs_ols"],
+        "Beta_Noise": cell["metrics"]["beta_noise"],
+        "Beta_Dispersion": cell["metrics"]["beta_dispersion"],
+        "Wealth": cell["metrics"]["wealth"],
+        "Model_Beta_Pass": cell["neutrality_checks"]["model_beta_neutral"]["passed"],
+        "Dollar_Pass": cell["neutrality_checks"]["dollar_neutral"]["passed"],
+        "Realized_Beta_Pass": cell["neutrality_checks"]["realized_beta"]["passed"],
+    })
 
 config_columns = [
     "Config", "Estimator", "Seed_Idx", "Sharpe", "Turnover", "Ann_Vol", "Max_DD",
@@ -456,7 +459,7 @@ Noise ladder monotonicity verified: flip fraction increases with epsilon.
   controlled synthetic stimulus: BTC prices from
   `tests/fixtures/real_market_prices.csv`, asset returns = `beta * BTC_return + idio`,
   `idio ~ N(0, 0.003)`, betas `linspace(0.35, 1.9, 40)`. It is **not real market data**
-  and **not market profitability evidence**.
+  and **not market profitability evidence** — these results are **never market alpha**.
 - **No out-of-sample validation.** All results are in-sample on the synthetic fixture.
 - **No walk-forward / OOS harness.** Campaign P35 closes without a walk-forward/
   out-of-sample harness.
