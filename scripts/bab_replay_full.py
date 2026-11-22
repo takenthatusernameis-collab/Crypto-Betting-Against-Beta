@@ -269,6 +269,7 @@ def _run_build_once(entry: dict) -> bytes:
         cwd=str(ROOT),
         capture_output=True,
         env=_subprocess_env(),
+        timeout=600,
     )
     if proc.returncode != 0:
         raise RuntimeError(
@@ -291,7 +292,7 @@ def _check_xproc(entry: dict) -> tuple[bool, list[str], int | None]:
     try:
         run1 = _run_build_once(entry)
         run2 = _run_build_once(entry)
-    except RuntimeError as exc:
+    except (RuntimeError, subprocess.TimeoutExpired) as exc:
         return False, [f"XPROC {entry['name']}: {exc}"], None
     if run1 != run2:
         problems.append(f"XPROC {entry['name']}: not byte-identical across processes")
