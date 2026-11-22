@@ -2,14 +2,13 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-22T23:22:26Z
-- Timestamp (UTC): 2026-11-22T23:22:26Z
-- **HEAD:** `28d107e`
-- **Git state:** P20–P37 are COMPLETE and frozen (do NOT re-do them). **The binding row has advanced to Campaign P38.** The prior handoff's "baseline is GREEN" claim is **FALSE on a freshly bootstrapped runner** — the provenance replay gate is RED (see INITIAL TASK). Restoring an *honest* GREEN is now the blocking first task (P38 WP0), not a victory lap.
+- **Timestamp (UTC):** 2026-11-22T23:32:55Z
+- **HEAD:** `d6e901a`
+- **Git state:** P20–P37 are COMPLETE and frozen (do NOT re-do them). **The binding row is Campaign P38.** The provenance replay gate remains **RED on a freshly bootstrapped runner** (see INITIAL TASK); no WP0 remediation has landed yet. Restoring an *honest* GREEN is the blocking first task (P38 WP0), not a victory lap.
 
 ---
 
-# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-22T23:22:26Z)
+# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-22T23:32:55Z)
 
 **Repo:** `Crypto-Betting-Against-Beta` — a market-neutral **Betting-Against-Beta** factor strategy for crypto (long low-beta, short high-beta, beta-neutral by construction). The repo's entire value proposition is *honest, reproducible, artifact-gated evidence*. A RED provenance gate therefore undermines the repo's core claim and is the single most relevant thing to fix first.
 
@@ -86,7 +85,7 @@ python3 scripts/bab_replay_full.py --subset deflated_summary,tail_risk_summary
 
 # BINDING ROW = Campaign P38 — "Deflated Significance & Tail-Risk Closure" (+ P28 WP2-WP4 MAINTAINER-GATED)
 
-**Declared:** 2026-11-22T23:22:26Z · **Campaign:** P38 "Deflated Significance & Tail-Risk Closure" · **Priority: HIGH** · **Status: ACTIVE — the sole agent-executable binding row.** P20–P37 COMPLETE and frozen; do NOT re-do them.
+**Declared:** 2026-11-22T23:32:55Z · **Campaign:** P38 "Deflated Significance & Tail-Risk Closure" · **Priority: HIGH** · **Status: ACTIVE — the sole agent-executable binding row.** P20–P37 COMPLETE and frozen; do NOT re-do them.
 
 **Why P38 (prioritized by repo name):** the repo implements a *factor* strategy (Betting Against Beta). The decisive scientific questions for any factor are (1) *is the Sharpe statistically distinguishable from luck after accounting for how many configurations were tried?* and (2) *what does the left tail look like for a book that is structurally short high-beta / short volatility?* P20–P37 answered neither at the campaign level: P21 deflated only the narrow 40-candidate P20 grid, and no campaign characterized tail risk (grep: zero `CVaR`/`expected shortfall` anywhere in `scripts/`, `strategies/`, `docs/`, `research_state/`). P38 closes both, on the committed synthetic fixtures, fully offline and deterministic.
 
