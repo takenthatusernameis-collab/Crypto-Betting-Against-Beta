@@ -1,0 +1,1823 @@
+{
+  "provenance": {
+    "btc_source_sha256": "7e457c5024cb577eca7d4c6f9e6d874d161f80d72e53549eda056d966edebe6a",
+    "config_grid": {
+      "beta_neutral": true,
+      "beta_windows": [
+        60,
+        90,
+        120
+      ],
+      "dollar_neutral": true,
+      "quantiles": [
+        0.2,
+        0.3
+      ],
+      "transaction_costs": 0.001,
+      "weighting": "equal"
+    },
+    "fixture_recipe": "Deterministic synthetic wide universe (P25 recipe). BTC prices from tests/fixtures/real_market_prices.csv. Asset returns = beta * BTC_return + idio, idio ~ N(0, 0.003), betas linspace(0.35, 1.9, 40). One all-NaN DEL column for loader robustness. Not real market data; not market profitability evidence.",
+    "fixture_sha256": "a6d390fc755641ea28d14b8204615786fdc9a95733a87e4c3b63d66be64c163b",
+    "neutrality_tolerances": {
+      "dollar_neutral": 1e-09,
+      "model_beta_neutral": 0.001,
+      "realized_beta": 0.15
+    },
+    "seeds": {
+      "base_seed": 20261120,
+      "increment": 1009,
+      "n_seeds": 8,
+      "seed_list": [
+        20261120,
+        20262129,
+        20263138,
+        20264147,
+        20265156,
+        20266165,
+        20267174,
+        20268183
+      ]
+    }
+  },
+  "results": {
+    "cells": [
+      {
+        "beta_window": 60,
+        "cell_key": "seed_0_bw60_q0.2",
+        "metrics": {
+          "annualized_volatility": 0.010850448460198146,
+          "max_dollar_neutral": 3.4208746946262636e-15,
+          "max_drawdown": -0.025469608616822605,
+          "max_model_beta": 9.991881454662834e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0020673154378237227,
+          "sharpe": -0.7933988093897546,
+          "total_return": -0.013596050965929307,
+          "turnover": 0.023813665167876676,
+          "wealth": 0.9864039490340707
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.4208746946262636e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.991881454662834e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0020673154378237227,
+            "tolerance": 0.15
+          }
+        },
+        "quantile": 0.2,
+        "seed": 20261120,
+        "seed_index": 0,
+        "status": "ok"
+      },
+      {
+        "beta_window": 60,
+        "cell_key": "seed_0_bw60_q0.3",
+        "metrics": {
+          "annualized_volatility": 0.006372050634490155,
+          "max_dollar_neutral": 2.9733160378242474e-15,
+          "max_drawdown": -0.010371370004285943,
+          "max_model_beta": 9.994932482756184e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0006395112891416983,
+          "sharpe": 0.17766884737286384,
+          "total_return": 0.0017575783344530027,
+          "turnover": 0.020261214697659697,
+          "wealth": 1.001757578334453
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 2.9733160378242474e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.994932482756184e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0006395112891416983,
+            "tolerance": 0.15
+          }
+        },
+        "quantile": 0.3,
+        "seed": 20261120,
+        "seed_index": 0,
+        "status": "ok"
+      },
+      {
+        "beta_window": 90,
+        "cell_key": "seed_0_bw90_q0.2",
+        "metrics": {
+          "annualized_volatility": 0.010906038150721697,
+          "max_dollar_neutral": 3.3775066077268434e-15,
+          "max_drawdown": -0.0208391227022985,
+          "max_model_beta": 9.952887197792463e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0025817100371938657,
+          "sharpe": -0.48552789032529414,
+          "total_return": -0.008421167810380825,
+          "turnover": 0.01219355542722515,
+          "wealth": 0.9915788321896192
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.3775066077268434e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.952887197792463e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0025817100371938657,
+            "tolerance": 0.15
+          }
+        },
+        "quantile": 0.2,
+        "seed": 20261120,
+        "seed_index": 0,
+        "status": "ok"
+      },
+      {
+        "beta_window": 90,
+        "cell_key": "seed_0_bw90_q0.3",
+        "metrics": {
+          "annualized_volatility": 0.006141991828210983,
+          "max_dollar_neutral": 3.028827189055505e-15,
+          "max_drawdown": -0.0080665169849831,
+          "max_model_beta": 9.995457448455586e-05,
+          "n_periods": 398,
+          "realized_beta": 0.0003561872855008065,
+          "sharpe": 0.12825668917471708,
+          "total_return": 0.0012151670303381934,
+          "turnover": 0.014513324550190315,
+          "wealth": 1.0012151670303382
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.028827189055505e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.995457448455586e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": 0.0003561872855008065,
+            "tolerance": 0.15
+          }
+        },
+        "quantile": 0.3,
+        "seed": 20261120,
+        "seed_index": 0,
+        "status": "ok"
+      },
+      {
+        "beta_window": 120,
+        "cell_key": "seed_0_bw120_q0.2",
+        "metrics": {
+          "annualized_volatility": 0.010884594137412319,
+          "max_dollar_neutral": 4.32466562561018e-15,
+          "max_drawdown": -0.02070354557486265,
+          "max_model_beta": 9.952887197792463e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0028376186195605,
+          "sharpe": -0.4877669296304277,
+          "total_return": -0.008442664840009995,
+          "turnover": 0.009935088698652205,
+          "wealth": 0.99155733515999
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 4.32466562561018e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.952887197792463e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0028376186195605,
+            "tolerance": 0.15
+          }
+        },
+        "quantile": 0.2,
+        "seed": 20261120,
+        "seed_index": 0,
+        "status": "ok"
+      },
+      {
+        "beta_window": 120,
+        "cell_key": "seed_0_bw120_q0.3",
+        "metrics": {
+          "annualized_volatility": 0.0060773343706122035,
+          "max_dollar_neutral": 3.8614944575243726e-15,
+          "max_drawdown": -0.007491022831802949,
+          "max_model_beta": 9.947561067010527e-05,
+          "n_periods": 398,
+          "realized_beta": 0.0006100417290345246,
+          "sharpe": 0.4232736567356928,
+          "total_return": 0.004041752516215746,
+          "turnover": 0.017550817227016374,
+          "wealth": 1.0040417525162157
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.8614944575243726e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.947561067010527e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": 0.0006100417290345246,
+            "tolerance": 0.15
+          }
+        },
+        "quantile": 0.3,
+        "seed": 20261120,
+        "seed_index": 0,
+        "status": "ok"
+      },
+      {
+        "beta_window": 60,
+        "cell_key": "seed_1_bw60_q0.2",
+        "metrics": {
+          "annualized_volatility": 0.010850000781588369,
+          "max_dollar_neutral": 3.228320388792838e-15,
+          "max_drawdown": -0.013703560470219972,
+          "max_model_beta": 9.986371646760054e-05,
+          "n_periods": 398,
+          "realized_beta": 0.0002583546370133196,
+          "sharpe": 0.7062367429209662,
+          "total_return": 0.012081641619104522,
+          "turnover": 0.03111734668789874,
+          "wealth": 1.0120816416191045
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.228320388792838e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.986371646760054e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": 0.0002583546370133196,
+            "tolerance": 0.15
+          }
+        },
+        "quantile": 0.2,
+        "seed": 20262129,
+        "seed_index": 1,
+        "status": "ok"
+      },
+      {
+        "beta_window": 60,
+        "cell_key": "seed_1_bw60_q0.3",
+        "metrics": {
+          "annualized_volatility": 0.0063104290293478785,
+          "max_dollar_neutral": 2.8900493109773606e-15,
+          "max_drawdown": -0.007280148770743196,
+          "max_model_beta": 9.943015704447984e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0017866586296921838,
+          "sharpe": 0.07409314836948812,
+          "total_return": 0.0007073307017864128,
+          "turnover": 0.020324243822873633,
+          "wealth": 1.0007073307017864
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 2.8900493109773606e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.943015704447984e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0017866586296921838,
+            "tolerance": 0.15
+          }
+        },
+        "quantile": 0.3,
+        "seed": 20262129,
+        "seed_index": 1,
+        "status": "ok"
+      },
+      {
+        "beta_window": 90,
+        "cell_key": "seed_1_bw90_q0.2",
+        "metrics": {
+          "annualized_volatility": 0.010607548306997805,
+          "max_dollar_neutral": 3.3254649034475392e-15,
+          "max_drawdown": -0.013452463610924491,
+          "max_model_beta": 9.975434478525347e-05,
+          "n_periods": 398,
+          "realized_beta": 0.00018003911624840142,
+          "sharpe": 1.2163996764911087,
+          "total_return": 0.020496656946928038,
+          "turnover": 0.018862883710645484,
+          "wealth": 1.020496656946928
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.3254649034475392e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.975434478525347e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": 0.00018003911624840142,
+            "tolerance": 0.15
+          }
+        },
+        "quantile": 0.2,
+        "seed": 20262129,
+        "seed_index": 1,
+        "status": "ok"
+      },
+      {
+        "beta_window": 90,
+        "cell_key": "seed_1_bw90_q0.3",
+        "metrics": {
+          "annualized_volatility": 0.00621793805803089,
+          "max_dollar_neutral": 2.8900493109773606e-15,
+          "max_drawdown": -0.010479754335101118,
+          "max_model_beta": 9.99135545052077e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0015716402048835322,
+          "sharpe": -0.2254057479237525,
+          "total_return": -0.0022415171828675806,
+          "turnover": 0.011972848529714432,
+          "wealth": 0.9977584828171324
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 2.8900493109773606e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.99135545052077e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0015716402048835322,
+            "tolerance": 0.15
+          }
+        },
+        "quantile": 0.3,
+        "seed": 20262129,
+        "seed_index": 1,
+        "status": "ok"
+      },
+      {
+        "beta_window": 120,
+        "cell_key": "seed_1_bw120_q0.2",
+        "metrics": {
+          "annualized_volatility": 0.010407619361559966,
+          "max_dollar_neutral": 3.693226280354622e-15,
+          "max_drawdown": -0.016814604901278306,
+          "max_model_beta": 9.949727455040537e-05,
+          "n_periods": 398,
+          "realized_beta": 0.00017653740136213382,
+          "sharpe": 0.95219537486967,
+          "total_return": 0.015687798427968858,
+          "turnover": 0.014135188006906345,
+          "wealth": 1.0156877984279689
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.693226280354622e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.949727455040537e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": 0.00017653740136213382,
+            "tolerance": 0.15
+          }
+        },
+        "quantile": 0.2,
+        "seed": 20262129,
+        "seed_index": 1,
+        "status": "ok"
+      },
+      {
+        "beta_window": 120,
+        "cell_key": "seed_1_bw120_q0.3",
+        "metrics": {
+          "annualized_volatility": 0.006152601497181499,
+          "max_dollar_neutral": 3.1329105976141136e-15,
+          "max_drawdown": -0.007880544319524898,
+          "max_model_beta": 9.952258165260188e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0016737175536258382,
+          "sharpe": 0.01163324461433813,
+          "total_return": 8.322907660307521e-05,
+          "turnover": 0.007519748251912455,
+          "wealth": 1.000083229076603
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.1329105976141136e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.952258165260188e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0016737175536258382,
+            "tolerance": 0.15
+          }
+        },
+        "quantile": 0.3,
+        "seed": 20262129,
+        "seed_index": 1,
+        "status": "ok"
+      },
+      {
+        "beta_window": 60,
+        "cell_key": "seed_2_bw60_q0.2",
+        "metrics": {
+          "annualized_volatility": 0.010868439522741837,
+          "max_dollar_neutral": 3.8159579662799814e-15,
+          "max_drawdown": -0.03374411244884746,
+          "max_model_beta": 9.983713197279444e-05,
+          "n_periods": 398,
+          "realized_beta": -0.002329551510694442,
+          "sharpe": -1.187509722349425,
+          "total_return": -0.020269224512958206,
+          "turnover": 0.022894041851609134,
+          "wealth": 0.9797307754870418
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.8159579662799814e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.983713197279444e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.002329551510694442,
+            "tolerance": 0.15
+          }
+        },
+        "quantile": 0.2,
+        "seed": 20263138,
+        "seed_index": 2,
+        "status": "ok"
+      },
+      {
+        "beta_window": 60,
+        "cell_key": "seed_2_bw60_q0.3",
+        "metrics": {
+          "annualized_volatility": 0.006191987516692746,
+          "max_dollar_neutral": 3.271688475692258e-15,
+          "max_drawdown": -0.004164704171052819,
+          "max_model_beta": 9.972071352958397e-05,
+          "n_periods": 398,
+          "realized_beta": -0.00073475628974209,
+          "sharpe": 0.9446996700426423,
+          "total_return": 0.009250825506613491,
+          "turnover": 0.016378952986835765,
+          "wealth": 1.0092508255066135
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.271688475692258e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.972071352958397e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.00073475628974209,
+            "tolerance": 0.15
+          }
+        },
+        "quantile": 0.3,
+        "seed": 20263138,
+        "seed_index": 2,
+        "status": "ok"
+      },
+      {
+        "beta_window": 90,
+        "cell_key": "seed_2_bw90_q0.2",
+        "metrics": {
+          "annualized_volatility": 0.010764295850071375,
+          "max_dollar_neutral": 4.587476232220666e-15,
+          "max_drawdown": -0.031182838507028472,
+          "max_model_beta": 9.96922884889963e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0022846019549652413,
+          "sharpe": -0.9947037403371328,
+          "total_return": -0.016858629637123923,
+          "turnover": 0.011881981123553832,
+          "wealth": 0.9831413703628761
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 4.587476232220666e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.96922884889963e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0022846019549652413,
+            "tolerance": 0.15
+          }
+        },
+        "quantile": 0.2,
+        "seed": 20263138,
+        "seed_index": 2,
+        "status": "ok"
+      },
+      {
+        "beta_window": 90,
+        "cell_key": "seed_2_bw90_q0.3",
+        "metrics": {
+          "annualized_volatility": 0.00616302459920029,
+          "max_dollar_neutral": 4.010680676458378e-15,
+          "max_drawdown": -0.0038749116374002033,
+          "max_model_beta": 9.98672429303893e-05,
+          "n_periods": 398,
+          "realized_beta": -0.00023065186542819095,
+          "sharpe": 1.4180237787493233,
+          "total_return": 0.013867690590217308,
+          "turnover": 0.009302657865486532,
+          "wealth": 1.0138676905902173
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 4.010680676458378e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.98672429303893e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.00023065186542819095,
+            "tolerance": 0.15
+          }
+        },
+        "quantile": 0.3,
+        "seed": 20263138,
+        "seed_index": 2,
+        "status": "ok"
+      },
+      {
+        "beta_window": 120,
+        "cell_key": "seed_2_bw120_q0.2",
+        "metrics": {
+          "annualized_volatility": 0.010761479622679294,
+          "max_dollar_neutral": 3.066991105526995e-15,
+          "max_drawdown": -0.03033486136605044,
+          "max_model_beta": 9.94363059401809e-05,
+          "n_periods": 398,
+          "realized_beta": -0.001908756905347178,
+          "sharpe": -0.9270865571345742,
+          "total_return": -0.015723663567285384,
+          "turnover": 0.009737088359983725,
+          "wealth": 0.9842763364327146
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.066991105526995e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.94363059401809e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.001908756905347178,
+            "tolerance": 0.15
+          }
+        },
+        "quantile": 0.2,
+        "seed": 20263138,
+        "seed_index": 2,
+        "status": "ok"
+      },
+      {
+        "beta_window": 120,
+        "cell_key": "seed_2_bw120_q0.3",
+        "metrics": {
+          "annualized_volatility": 0.006142829822512861,
+          "max_dollar_neutral": 2.7651492207070305e-15,
+          "max_drawdown": -0.0037633604234745626,
+          "max_model_beta": 9.918990159097576e-05,
+          "n_periods": 398,
+          "realized_beta": 7.233586763923928e-05,
+          "sharpe": 1.4495902039535151,
+          "total_return": 0.014132556600122692,
+          "turnover": 0.007426259809809138,
+          "wealth": 1.0141325566001227
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 2.7651492207070305e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.918990159097576e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": 7.233586763923928e-05,
+            "tolerance": 0.15
+          }
+        },
+        "quantile": 0.3,
+        "seed": 20263138,
+        "seed_index": 2,
+        "status": "ok"
+      },
+      {
+        "beta_window": 60,
+        "cell_key": "seed_3_bw60_q0.2",
+        "metrics": {
+          "annualized_volatility": 0.01109791662980861,
+          "max_dollar_neutral": 2.9282132274488504e-15,
+          "max_drawdown": -0.012435258402884236,
+          "max_model_beta": 9.982065564591454e-05,
+          "n_periods": 398,
+          "realized_beta": -0.002161663450767374,
+          "sharpe": 0.2864082688322588,
+          "total_return": 0.004935151598677523,
+          "turnover": 0.018238850725135005,
+          "wealth": 1.0049351515986775
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 2.9282132274488504e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.982065564591454e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.002161663450767374,
+            "tolerance": 0.15
+          }
+        },
+        "quantile": 0.2,
+        "seed": 20264147,
+        "seed_index": 3,
+        "status": "ok"
+      },
+      {
+        "beta_window": 60,
+        "cell_key": "seed_3_bw60_q0.3",
+        "metrics": {
+          "annualized_volatility": 0.006012249571251946,
+          "max_dollar_neutral": 2.5431046157819992e-15,
+          "max_drawdown": -0.01170844833820368,
+          "max_model_beta": 9.998917345361568e-05,
+          "n_periods": 398,
+          "realized_beta": 0.00037228568810889563,
+          "sharpe": -1.0057803071908271,
+          "total_return": -0.009533284610417803,
+          "turnover": 0.02866539861743667,
+          "wealth": 0.9904667153895822
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 2.5431046157819992e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.998917345361568e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": 0.00037228568810889563,
+            "tolerance": 0.15
+          }
+        },
+        "quantile": 0.3,
+        "seed": 20264147,
+        "seed_index": 3,
+        "status": "ok"
+      },
+      {
+        "beta_window": 90,
+        "cell_key": "seed_3_bw90_q0.2",
+        "metrics": {
+          "annualized_volatility": 0.010896090705343869,
+          "max_dollar_neutral": 4.057518210309752e-15,
+          "max_drawdown": -0.010705453754320644,
+          "max_model_beta": 9.999967866670597e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0008326343263875949,
+          "sharpe": 0.4814603460095314,
+          "total_return": 0.008225440966165065,
+          "turnover": 0.01205753038556257,
+          "wealth": 1.008225440966165
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 4.057518210309752e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.999967866670597e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0008326343263875949,
+            "tolerance": 0.15
+          }
+        },
+        "quantile": 0.2,
+        "seed": 20264147,
+        "seed_index": 3,
+        "status": "ok"
+      },
+      {
+        "beta_window": 90,
+        "cell_key": "seed_3_bw90_q0.3",
+        "metrics": {
+          "annualized_volatility": 0.006065981184482703,
+          "max_dollar_neutral": 3.587408148320037e-15,
+          "max_drawdown": -0.011054497494507104,
+          "max_model_beta": 9.999174674718801e-05,
+          "n_periods": 398,
+          "realized_beta": -0.00013069831622641745,
+          "sharpe": -0.6550935436450521,
+          "total_return": -0.006285258204706823,
+          "turnover": 0.013645822812439663,
+          "wealth": 0.9937147417952932
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.587408148320037e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.999174674718801e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.00013069831622641745,
+            "tolerance": 0.15
+          }
+        },
+        "quantile": 0.3,
+        "seed": 20264147,
+        "seed_index": 3,
+        "status": "ok"
+      },
+      {
+        "beta_window": 120,
+        "cell_key": "seed_3_bw120_q0.2",
+        "metrics": {
+          "annualized_volatility": 0.010906240532170259,
+          "max_dollar_neutral": 3.2404634531246757e-15,
+          "max_drawdown": -0.010763244231278588,
+          "max_model_beta": 9.891490813821443e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0005301525395833482,
+          "sharpe": 0.5149977226814584,
+          "total_return": 0.008815636896611245,
+          "turnover": 0.00982206282741536,
+          "wealth": 1.0088156368966112
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.2404634531246757e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.891490813821443e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0005301525395833482,
+            "tolerance": 0.15
+          }
+        },
+        "quantile": 0.2,
+        "seed": 20264147,
+        "seed_index": 3,
+        "status": "ok"
+      },
+      {
+        "beta_window": 120,
+        "cell_key": "seed_3_bw120_q0.3",
+        "metrics": {
+          "annualized_volatility": 0.006076413681496134,
+          "max_dollar_neutral": 2.7009644520958886e-15,
+          "max_drawdown": -0.013670483072080254,
+          "max_model_beta": 9.98920455286454e-05,
+          "n_periods": 398,
+          "realized_beta": -0.00019711323960198068,
+          "sharpe": -0.8887944917175936,
+          "total_return": -0.008522308218490093,
+          "turnover": 0.00921103093393914,
+          "wealth": 0.9914776917815099
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 2.7009644520958886e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.98920455286454e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.00019711323960198068,
+            "tolerance": 0.15
+          }
+        },
+        "quantile": 0.3,
+        "seed": 20264147,
+        "seed_index": 3,
+        "status": "ok"
+      },
+      {
+        "beta_window": 60,
+        "cell_key": "seed_4_bw60_q0.2",
+        "metrics": {
+          "annualized_volatility": 0.011721770042584548,
+          "max_dollar_neutral": 3.5752650839881994e-15,
+          "max_drawdown": -0.020470654629034968,
+          "max_model_beta": 9.981315737269296e-05,
+          "n_periods": 398,
+          "realized_beta": -0.002918543822165531,
+          "sharpe": -0.05694942876005062,
+          "total_return": -0.0011618509752758799,
+          "turnover": 0.020129109388505415,
+          "wealth": 0.9988381490247241
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.5752650839881994e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.981315737269296e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.002918543822165531,
+            "tolerance": 0.15
+          }
+        },
+        "quantile": 0.2,
+        "seed": 20265156,
+        "seed_index": 4,
+        "status": "ok"
+      },
+      {
+        "beta_window": 60,
+        "cell_key": "seed_4_bw60_q0.3",
+        "metrics": {
+          "annualized_volatility": 0.006356561069633459,
+          "max_dollar_neutral": 3.0600522116230877e-15,
+          "max_drawdown": -0.013350635438137913,
+          "max_model_beta": 9.997874557878973e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0011255183048492707,
+          "sharpe": -1.2659015491181087,
+          "total_return": -0.012660015375923206,
+          "turnover": 0.021671505580818054,
+          "wealth": 0.9873399846240768
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.0600522116230877e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.997874557878973e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0011255183048492707,
+            "tolerance": 0.15
+          }
+        },
+        "quantile": 0.3,
+        "seed": 20265156,
+        "seed_index": 4,
+        "status": "ok"
+      },
+      {
+        "beta_window": 90,
+        "cell_key": "seed_4_bw90_q0.2",
+        "metrics": {
+          "annualized_volatility": 0.011610215623760514,
+          "max_dollar_neutral": 3.4104663537704027e-15,
+          "max_drawdown": -0.01763570399521567,
+          "max_model_beta": 9.946947430495574e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0020141864930586714,
+          "sharpe": 0.2913642470231933,
+          "total_return": 0.005250206407527269,
+          "turnover": 0.012673155401328892,
+          "wealth": 1.0052502064075273
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.4104663537704027e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.946947430495574e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0020141864930586714,
+            "tolerance": 0.15
+          }
+        },
+        "quantile": 0.2,
+        "seed": 20265156,
+        "seed_index": 4,
+        "status": "ok"
+      },
+      {
+        "beta_window": 90,
+        "cell_key": "seed_4_bw90_q0.3",
+        "metrics": {
+          "annualized_volatility": 0.0062451192314554324,
+          "max_dollar_neutral": 2.9108659926890823e-15,
+          "max_drawdown": -0.0113466874156713,
+          "max_model_beta": 9.944434018756469e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0006682890022059961,
+          "sharpe": -1.0554739066566932,
+          "total_return": -0.010387017183838387,
+          "turnover": 0.012822526045005613,
+          "wealth": 0.9896129828161616
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 2.9108659926890823e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.944434018756469e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0006682890022059961,
+            "tolerance": 0.15
+          }
+        },
+        "quantile": 0.3,
+        "seed": 20265156,
+        "seed_index": 4,
+        "status": "ok"
+      },
+      {
+        "beta_window": 120,
+        "cell_key": "seed_4_bw120_q0.2",
+        "metrics": {
+          "annualized_volatility": 0.011559869579008085,
+          "max_dollar_neutral": 3.7539416020138106e-15,
+          "max_drawdown": -0.016631327001729805,
+          "max_model_beta": 9.370590950483364e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0014853215428409306,
+          "sharpe": 0.2964357323622375,
+          "total_return": 0.005320921534245571,
+          "turnover": 0.010457836301296188,
+          "wealth": 1.0053209215342456
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.7539416020138106e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.370590950483364e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0014853215428409306,
+            "tolerance": 0.15
+          }
+        },
+        "quantile": 0.2,
+        "seed": 20265156,
+        "seed_index": 4,
+        "status": "ok"
+      },
+      {
+        "beta_window": 120,
+        "cell_key": "seed_4_bw120_q0.3",
+        "metrics": {
+          "annualized_volatility": 0.0063258147495213295,
+          "max_dollar_neutral": 3.247402347028583e-15,
+          "max_drawdown": -0.01214734462156303,
+          "max_model_beta": 9.861710414364603e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0008700583313341943,
+          "sharpe": -1.121696224413109,
+          "total_return": -0.011175375476597083,
+          "turnover": 0.007580585051615683,
+          "wealth": 0.9888246245234029
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.247402347028583e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.861710414364603e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0008700583313341943,
+            "tolerance": 0.15
+          }
+        },
+        "quantile": 0.3,
+        "seed": 20265156,
+        "seed_index": 4,
+        "status": "ok"
+      },
+      {
+        "beta_window": 60,
+        "cell_key": "seed_5_bw60_q0.2",
+        "metrics": {
+          "annualized_volatility": 0.01139679685085649,
+          "max_dollar_neutral": 4.0202216555762504e-15,
+          "max_drawdown": -0.028332824828298873,
+          "max_model_beta": 9.939160786695832e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0012002105297655673,
+          "sharpe": -0.9389858621932079,
+          "total_return": -0.016860384431351294,
+          "turnover": 0.028028960794185008,
+          "wealth": 0.9831396155686487
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 4.0202216555762504e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.939160786695832e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0012002105297655673,
+            "tolerance": 0.15
+          }
+        },
+        "quantile": 0.2,
+        "seed": 20266165,
+        "seed_index": 5,
+        "status": "ok"
+      },
+      {
+        "beta_window": 60,
+        "cell_key": "seed_5_bw60_q0.3",
+        "metrics": {
+          "annualized_volatility": 0.006248384850234218,
+          "max_dollar_neutral": 3.490263633665336e-15,
+          "max_drawdown": -0.008794361419293037,
+          "max_model_beta": 9.983970398891583e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0009764069596905242,
+          "sharpe": -0.16181156347693107,
+          "total_return": -0.00162626572602953,
+          "turnover": 0.019409963707243228,
+          "wealth": 0.9983737342739705
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.490263633665336e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.983970398891583e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0009764069596905242,
+            "tolerance": 0.15
+          }
+        },
+        "quantile": 0.3,
+        "seed": 20266165,
+        "seed_index": 5,
+        "status": "ok"
+      },
+      {
+        "beta_window": 90,
+        "cell_key": "seed_5_bw90_q0.2",
+        "metrics": {
+          "annualized_volatility": 0.011472539403397639,
+          "max_dollar_neutral": 3.46077333457373e-15,
+          "max_drawdown": -0.02067060123019006,
+          "max_model_beta": 9.979753864463709e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0017362868090988093,
+          "sharpe": -0.4106702285733154,
+          "total_return": -0.007516422881940099,
+          "turnover": 0.01705701294808015,
+          "wealth": 0.9924835771180599
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.46077333457373e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.979753864463709e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0017362868090988093,
+            "tolerance": 0.15
+          }
+        },
+        "quantile": 0.2,
+        "seed": 20266165,
+        "seed_index": 5,
+        "status": "ok"
+      },
+      {
+        "beta_window": 90,
+        "cell_key": "seed_5_bw90_q0.3",
+        "metrics": {
+          "annualized_volatility": 0.006252539939156496,
+          "max_dollar_neutral": 3.146788385421928e-15,
+          "max_drawdown": -0.008173772001912383,
+          "max_model_beta": 9.9981686386213e-05,
+          "n_periods": 398,
+          "realized_beta": -0.001025480869596511,
+          "sharpe": 0.5011322008379074,
+          "total_return": 0.004929992119533155,
+          "turnover": 0.010290727580328967,
+          "wealth": 1.0049299921195332
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.146788385421928e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.9981686386213e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.001025480869596511,
+            "tolerance": 0.15
+          }
+        },
+        "quantile": 0.3,
+        "seed": 20266165,
+        "seed_index": 5,
+        "status": "ok"
+      },
+      {
+        "beta_window": 120,
+        "cell_key": "seed_5_bw120_q0.2",
+        "metrics": {
+          "annualized_volatility": 0.011385241046109999,
+          "max_dollar_neutral": 3.46077333457373e-15,
+          "max_drawdown": -0.020691888769895785,
+          "max_model_beta": 9.979753864463709e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0018628047880041387,
+          "sharpe": -0.38838557179275895,
+          "total_return": -0.0070608542284226194,
+          "turnover": 0.011115406488579229,
+          "wealth": 0.9929391457715774
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.46077333457373e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.979753864463709e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0018628047880041387,
+            "tolerance": 0.15
+          }
+        },
+        "quantile": 0.2,
+        "seed": 20266165,
+        "seed_index": 5,
+        "status": "ok"
+      },
+      {
+        "beta_window": 120,
+        "cell_key": "seed_5_bw120_q0.3",
+        "metrics": {
+          "annualized_volatility": 0.006173218721469612,
+          "max_dollar_neutral": 3.146788385421928e-15,
+          "max_drawdown": -0.008007500399980686,
+          "max_model_beta": 9.374084654651238e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0008007932465526743,
+          "sharpe": 0.7734214870059571,
+          "total_return": 0.00753886778712598,
+          "turnover": 0.007548549786344182,
+          "wealth": 1.007538867787126
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.146788385421928e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.374084654651238e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0008007932465526743,
+            "tolerance": 0.15
+          }
+        },
+        "quantile": 0.3,
+        "seed": 20266165,
+        "seed_index": 5,
+        "status": "ok"
+      },
+      {
+        "beta_window": 60,
+        "cell_key": "seed_6_bw60_q0.2",
+        "metrics": {
+          "annualized_volatility": 0.01065495381763155,
+          "max_dollar_neutral": 3.733124920302089e-15,
+          "max_drawdown": -0.030823410676581342,
+          "max_model_beta": 9.990742150736244e-05,
+          "n_periods": 398,
+          "realized_beta": 0.00012332377434528245,
+          "sharpe": -1.7270698975228682,
+          "total_return": -0.02873286843972067,
+          "turnover": 0.03299223152548203,
+          "wealth": 0.9712671315602793
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.733124920302089e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.990742150736244e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": 0.00012332377434528245,
+            "tolerance": 0.15
+          }
+        },
+        "quantile": 0.2,
+        "seed": 20267174,
+        "seed_index": 6,
+        "status": "ok"
+      },
+      {
+        "beta_window": 60,
+        "cell_key": "seed_6_bw60_q0.3",
+        "metrics": {
+          "annualized_volatility": 0.0064847089556310565,
+          "max_dollar_neutral": 3.2439329000766293e-15,
+          "max_drawdown": -0.022050546855312714,
+          "max_model_beta": 9.954233151990252e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0023114687843581233,
+          "sharpe": -1.95824170779847,
+          "total_return": -0.01988895620907749,
+          "turnover": 0.01913700019082115,
+          "wealth": 0.9801110437909225
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.2439329000766293e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.954233151990252e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0023114687843581233,
+            "tolerance": 0.15
+          }
+        },
+        "quantile": 0.3,
+        "seed": 20267174,
+        "seed_index": 6,
+        "status": "ok"
+      },
+      {
+        "beta_window": 90,
+        "cell_key": "seed_6_bw90_q0.2",
+        "metrics": {
+          "annualized_volatility": 0.010345711355031897,
+          "max_dollar_neutral": 3.2751579226442118e-15,
+          "max_drawdown": -0.02921155440759038,
+          "max_model_beta": 9.971088996103812e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0004982088214237161,
+          "sharpe": -1.63939232377894,
+          "total_return": -0.026514480530477225,
+          "turnover": 0.024563175622432085,
+          "wealth": 0.9734855194695228
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.2751579226442118e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.971088996103812e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0004982088214237161,
+            "tolerance": 0.15
+          }
+        },
+        "quantile": 0.2,
+        "seed": 20267174,
+        "seed_index": 6,
+        "status": "ok"
+      },
+      {
+        "beta_window": 90,
+        "cell_key": "seed_6_bw90_q0.3",
+        "metrics": {
+          "annualized_volatility": 0.0062621727043657375,
+          "max_dollar_neutral": 2.9629076969683865e-15,
+          "max_drawdown": -0.016122734014425655,
+          "max_model_beta": 9.992635395115498e-05,
+          "n_periods": 398,
+          "realized_beta": -0.00195266116635837,
+          "sharpe": -1.2007608357491564,
+          "total_return": -0.01183629669138564,
+          "turnover": 0.009572103343217049,
+          "wealth": 0.9881637033086144
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 2.9629076969683865e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.992635395115498e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.00195266116635837,
+            "tolerance": 0.15
+          }
+        },
+        "quantile": 0.3,
+        "seed": 20267174,
+        "seed_index": 6,
+        "status": "ok"
+      },
+      {
+        "beta_window": 120,
+        "cell_key": "seed_6_bw120_q0.2",
+        "metrics": {
+          "annualized_volatility": 0.010319983854796839,
+          "max_dollar_neutral": 3.66720542821497e-15,
+          "max_drawdown": -0.02596048854253874,
+          "max_model_beta": 9.998839678734787e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0005884915099385537,
+          "sharpe": -1.401787458984187,
+          "total_return": -0.022671375008447958,
+          "turnover": 0.014852308520629564,
+          "wealth": 0.977328624991552
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.66720542821497e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.998839678734787e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0005884915099385537,
+            "tolerance": 0.15
+          }
+        },
+        "quantile": 0.2,
+        "seed": 20267174,
+        "seed_index": 6,
+        "status": "ok"
+      },
+      {
+        "beta_window": 120,
+        "cell_key": "seed_6_bw120_q0.3",
+        "metrics": {
+          "annualized_volatility": 0.006272509386372714,
+          "max_dollar_neutral": 3.2508717939805365e-15,
+          "max_drawdown": -0.015956276087963128,
+          "max_model_beta": 9.925579310858985e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0018185425992957361,
+          "sharpe": -1.1002767446200672,
+          "total_return": -0.010871598940996097,
+          "turnover": 0.007634520879860029,
+          "wealth": 0.9891284010590039
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.2508717939805365e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.925579310858985e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0018185425992957361,
+            "tolerance": 0.15
+          }
+        },
+        "quantile": 0.3,
+        "seed": 20267174,
+        "seed_index": 6,
+        "status": "ok"
+      },
+      {
+        "beta_window": 60,
+        "cell_key": "seed_7_bw60_q0.2",
+        "metrics": {
+          "annualized_volatility": 0.010241118626723283,
+          "max_dollar_neutral": 4.170275236248244e-15,
+          "max_drawdown": -0.01699807535708138,
+          "max_model_beta": 9.968433800243594e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0014749512082102673,
+          "sharpe": -0.6273500853298983,
+          "total_return": -0.01017765356516509,
+          "turnover": 0.03248056345541515,
+          "wealth": 0.9898223464348349
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 4.170275236248244e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.968433800243594e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0014749512082102673,
+            "tolerance": 0.15
+          }
+        },
+        "quantile": 0.2,
+        "seed": 20268183,
+        "seed_index": 7,
+        "status": "ok"
+      },
+      {
+        "beta_window": 60,
+        "cell_key": "seed_7_bw60_q0.3",
+        "metrics": {
+          "annualized_volatility": 0.006261695156697132,
+          "max_dollar_neutral": 3.563122019656362e-15,
+          "max_drawdown": -0.013632599139872359,
+          "max_model_beta": 9.982688993623324e-05,
+          "n_periods": 398,
+          "realized_beta": -0.001154050064500567,
+          "sharpe": -0.6198839386001077,
+          "total_return": -0.00614233697230393,
+          "turnover": 0.02168366771580349,
+          "wealth": 0.9938576630276961
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.563122019656362e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.982688993623324e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.001154050064500567,
+            "tolerance": 0.15
+          }
+        },
+        "quantile": 0.3,
+        "seed": 20268183,
+        "seed_index": 7,
+        "status": "ok"
+      },
+      {
+        "beta_window": 90,
+        "cell_key": "seed_7_bw90_q0.2",
+        "metrics": {
+          "annualized_volatility": 0.010050369104894612,
+          "max_dollar_neutral": 3.3063829452117943e-15,
+          "max_drawdown": -0.016302453235013673,
+          "max_model_beta": 9.994554727335758e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0009041910520097994,
+          "sharpe": -0.4169875129068569,
+          "total_return": -0.006676166912985226,
+          "turnover": 0.022093099084234534,
+          "wealth": 0.9933238330870148
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.3063829452117943e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.994554727335758e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0009041910520097994,
+            "tolerance": 0.15
+          }
+        },
+        "quantile": 0.2,
+        "seed": 20268183,
+        "seed_index": 7,
+        "status": "ok"
+      },
+      {
+        "beta_window": 90,
+        "cell_key": "seed_7_bw90_q0.3",
+        "metrics": {
+          "annualized_volatility": 0.006057028826984428,
+          "max_dollar_neutral": 2.8345381597461028e-15,
+          "max_drawdown": -0.010903175049335698,
+          "max_model_beta": 9.848401443634593e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0011089104433291434,
+          "sharpe": 0.0248696882754275,
+          "total_return": 0.0002090311868863104,
+          "turnover": 0.010813839564814144,
+          "wealth": 1.0002090311868863
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 2.8345381597461028e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.848401443634593e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0011089104433291434,
+            "tolerance": 0.15
+          }
+        },
+        "quantile": 0.3,
+        "seed": 20268183,
+        "seed_index": 7,
+        "status": "ok"
+      },
+      {
+        "beta_window": 120,
+        "cell_key": "seed_7_bw120_q0.2",
+        "metrics": {
+          "annualized_volatility": 0.009950337808386342,
+          "max_dollar_neutral": 3.1051550219984847e-15,
+          "max_drawdown": -0.015569903091619786,
+          "max_model_beta": 9.980848678879069e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0010221695842887117,
+          "sharpe": -0.3817377545591296,
+          "total_return": -0.00605869957443661,
+          "turnover": 0.017355251725332865,
+          "wealth": 0.9939413004255634
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.1051550219984847e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.980848678879069e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0010221695842887117,
+            "tolerance": 0.15
+          }
+        },
+        "quantile": 0.2,
+        "seed": 20268183,
+        "seed_index": 7,
+        "status": "ok"
+      },
+      {
+        "beta_window": 120,
+        "cell_key": "seed_7_bw120_q0.3",
+        "metrics": {
+          "annualized_volatility": 0.006018495384873497,
+          "max_dollar_neutral": 2.761679773755077e-15,
+          "max_drawdown": -0.01021120727764585,
+          "max_model_beta": 9.991822193800758e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0008868836280416251,
+          "sharpe": 0.13601498782295737,
+          "total_return": 0.0012651409521660106,
+          "turnover": 0.008835311162197873,
+          "wealth": 1.001265140952166
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 2.761679773755077e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.991822193800758e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0008868836280416251,
+            "tolerance": 0.15
+          }
+        },
+        "quantile": 0.3,
+        "seed": 20268183,
+        "seed_index": 7,
+        "status": "ok"
+      }
+    ]
+  },
+  "schema": "bab_p34.multiseed_summary/1"
+}

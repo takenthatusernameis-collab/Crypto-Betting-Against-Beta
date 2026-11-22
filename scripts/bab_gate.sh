@@ -168,3 +168,14 @@ python3 -m pytest -q tests/test_bab_p33_doc_registry_completeness.py
 echo "[bab_gate] P33 doc consistency summary check (WP2)"
 python3 "$ROOT/scripts/bab_doc_consistency_summary.py" --check-doc-summary research_state/bab_p33/doc_consistency_summary.json
 echo "[bab_gate] P33 GREEN"
+
+# --- P34 WP0/WP1/WP2: multiseed robustness + honesty battery + doc pointer guard ---
+echo "[bab_gate] P34 multiseed robustness summary check (WP0)"
+python3 "$ROOT/scripts/bab_p34_multiseed_robustness.py" --check-multiseed-summary
+echo "[bab_gate] P34 multiseed robustness tests (WP0)"
+python3 -m pytest -q tests/test_bab_p34_multiseed_robustness.py
+echo "[bab_gate] P34 honesty battery tests (WP1)"
+python3 -m pytest -q tests/test_bab_p34_honesty_battery.py
+echo "[bab_gate] P34 doc pointer guard tests (WP2)"
+python3 -m pytest -q tests/test_bab_p34_doc_pointer_guard.py
+echo "[bab_gate] P34 GREEN"
