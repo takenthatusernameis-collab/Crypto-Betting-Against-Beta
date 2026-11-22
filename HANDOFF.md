@@ -2,8 +2,8 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-22T04:06:06Z (refreshed this session; supersedes the stale 2026-11-22T04:00:39Z stamp)
-- **Git state:** HEAD `273e79c` at write time (a HANDOFF.md-only checkpoint on top of `ce0f7b0`; code tree unchanged since `12f1483`, identical to the green-verified tree). **P32 is COMPLETE** (verified 2026-11-22T03:53:10Z against HEAD `12f1483`; re-verified GREEN this session at HEAD `273e79c`: `python3 -m ruff check .` PASS; `bash scripts/bab_quick.sh` 104 + 195 tests PASS). The active binding row is **P33 WP0**. Queued campaign is **P33 "Fidelity & Cross-Document Consistency Closure"** (WP0→WP1→WP2). See the INITIAL TASK MESSAGE.
+- **Timestamp (UTC):** 2026-11-22T04:07:41Z (refreshed this session; supersedes the stale 2026-11-22T04:06:06Z stamp)
+- **Git state:** HEAD `ae58b68` at write time (deleted the parallel `NEXT_SESSION_HANDOFF.md`; code tree unchanged since `12f1483`, identical to the green-verified tree). **P32 is COMPLETE** (verified 2026-11-22T03:53:10Z against HEAD `12f1483`; re-verified GREEN this session at HEAD `ae58b68`: `python3 -m ruff check .` PASS; `bash scripts/bab_quick.sh` 104 + 195 tests PASS). The active binding row is **P33 WP0**. Queued campaign is **P33 "Fidelity & Cross-Document Consistency Closure"** (WP0→WP1→WP2). See the INITIAL TASK MESSAGE.
 
 ---
 
