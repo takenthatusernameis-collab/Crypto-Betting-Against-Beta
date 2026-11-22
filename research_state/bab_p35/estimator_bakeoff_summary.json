@@ -1,0 +1,359 @@
+{
+  "provenance": {
+    "btc_source_sha256": "7e457c5024cb577eca7d4c6f9e6d874d161f80d72e53549eda056d966edebe6a",
+    "config_grid": {
+      "beta_neutral": true,
+      "beta_windows": [
+        60,
+        90,
+        120
+      ],
+      "dollar_neutral": true,
+      "estimator_families": {
+        "ewma": {
+          "halflifes": [
+            20,
+            40,
+            60
+          ]
+        },
+        "rolling_ols": {
+          "windows": [
+            60,
+            90,
+            120
+          ]
+        },
+        "shrinkage": {
+          "base_window": 90,
+          "intensities": [
+            0.1,
+            0.3
+          ],
+          "targets": [
+            "1.0",
+            "cross_sectional_mean"
+          ]
+        }
+      },
+      "quantile": 0.3,
+      "transaction_costs": 0.001,
+      "weighting": "equal"
+    },
+    "fixture_recipe": "Deterministic synthetic wide universe (P25 recipe). BTC prices from tests/fixtures/real_market_prices.csv. Asset returns = beta * BTC_return + idio, idio ~ N(0, 0.003), betas linspace(0.35, 1.9, 40). One all-NaN DEL column for loader robustness. Not real market data; not market profitability evidence.",
+    "fixture_sha256": "a6d390fc755641ea28d14b8204615786fdc9a95733a87e4c3b63d66be64c163b",
+    "neutrality_tolerances": {
+      "dollar_neutral": 1e-09,
+      "model_beta_neutral": 0.001,
+      "realized_beta": 0.15
+    },
+    "seeds": {
+      "base_seed": 20261120,
+      "increment": 1009,
+      "n_seeds": 8,
+      "seed_list": [
+        20261120,
+        20262129,
+        20263138,
+        20264147,
+        20265156,
+        20266165,
+        20267174,
+        20268183
+      ]
+    }
+  },
+  "results": {
+    "cells": [
+      {
+        "beta_window": 60,
+        "cell_key": "seed_0_bw60_error",
+        "error": "run_backtest() got an unexpected keyword argument 'benchmark'",
+        "estimator": "error",
+        "metrics": {},
+        "neutrality_checks": {},
+        "params": {},
+        "seed": 20261120,
+        "seed_index": 0,
+        "status": "error"
+      },
+      {
+        "beta_window": 90,
+        "cell_key": "seed_0_bw90_error",
+        "error": "run_backtest() got an unexpected keyword argument 'benchmark'",
+        "estimator": "error",
+        "metrics": {},
+        "neutrality_checks": {},
+        "params": {},
+        "seed": 20261120,
+        "seed_index": 0,
+        "status": "error"
+      },
+      {
+        "beta_window": 120,
+        "cell_key": "seed_0_bw120_error",
+        "error": "run_backtest() got an unexpected keyword argument 'benchmark'",
+        "estimator": "error",
+        "metrics": {},
+        "neutrality_checks": {},
+        "params": {},
+        "seed": 20261120,
+        "seed_index": 0,
+        "status": "error"
+      },
+      {
+        "beta_window": 60,
+        "cell_key": "seed_1_bw60_error",
+        "error": "run_backtest() got an unexpected keyword argument 'benchmark'",
+        "estimator": "error",
+        "metrics": {},
+        "neutrality_checks": {},
+        "params": {},
+        "seed": 20262129,
+        "seed_index": 1,
+        "status": "error"
+      },
+      {
+        "beta_window": 90,
+        "cell_key": "seed_1_bw90_error",
+        "error": "run_backtest() got an unexpected keyword argument 'benchmark'",
+        "estimator": "error",
+        "metrics": {},
+        "neutrality_checks": {},
+        "params": {},
+        "seed": 20262129,
+        "seed_index": 1,
+        "status": "error"
+      },
+      {
+        "beta_window": 120,
+        "cell_key": "seed_1_bw120_error",
+        "error": "run_backtest() got an unexpected keyword argument 'benchmark'",
+        "estimator": "error",
+        "metrics": {},
+        "neutrality_checks": {},
+        "params": {},
+        "seed": 20262129,
+        "seed_index": 1,
+        "status": "error"
+      },
+      {
+        "beta_window": 60,
+        "cell_key": "seed_2_bw60_error",
+        "error": "run_backtest() got an unexpected keyword argument 'benchmark'",
+        "estimator": "error",
+        "metrics": {},
+        "neutrality_checks": {},
+        "params": {},
+        "seed": 20263138,
+        "seed_index": 2,
+        "status": "error"
+      },
+      {
+        "beta_window": 90,
+        "cell_key": "seed_2_bw90_error",
+        "error": "run_backtest() got an unexpected keyword argument 'benchmark'",
+        "estimator": "error",
+        "metrics": {},
+        "neutrality_checks": {},
+        "params": {},
+        "seed": 20263138,
+        "seed_index": 2,
+        "status": "error"
+      },
+      {
+        "beta_window": 120,
+        "cell_key": "seed_2_bw120_error",
+        "error": "run_backtest() got an unexpected keyword argument 'benchmark'",
+        "estimator": "error",
+        "metrics": {},
+        "neutrality_checks": {},
+        "params": {},
+        "seed": 20263138,
+        "seed_index": 2,
+        "status": "error"
+      },
+      {
+        "beta_window": 60,
+        "cell_key": "seed_3_bw60_error",
+        "error": "run_backtest() got an unexpected keyword argument 'benchmark'",
+        "estimator": "error",
+        "metrics": {},
+        "neutrality_checks": {},
+        "params": {},
+        "seed": 20264147,
+        "seed_index": 3,
+        "status": "error"
+      },
+      {
+        "beta_window": 90,
+        "cell_key": "seed_3_bw90_error",
+        "error": "run_backtest() got an unexpected keyword argument 'benchmark'",
+        "estimator": "error",
+        "metrics": {},
+        "neutrality_checks": {},
+        "params": {},
+        "seed": 20264147,
+        "seed_index": 3,
+        "status": "error"
+      },
+      {
+        "beta_window": 120,
+        "cell_key": "seed_3_bw120_error",
+        "error": "run_backtest() got an unexpected keyword argument 'benchmark'",
+        "estimator": "error",
+        "metrics": {},
+        "neutrality_checks": {},
+        "params": {},
+        "seed": 20264147,
+        "seed_index": 3,
+        "status": "error"
+      },
+      {
+        "beta_window": 60,
+        "cell_key": "seed_4_bw60_error",
+        "error": "run_backtest() got an unexpected keyword argument 'benchmark'",
+        "estimator": "error",
+        "metrics": {},
+        "neutrality_checks": {},
+        "params": {},
+        "seed": 20265156,
+        "seed_index": 4,
+        "status": "error"
+      },
+      {
+        "beta_window": 90,
+        "cell_key": "seed_4_bw90_error",
+        "error": "run_backtest() got an unexpected keyword argument 'benchmark'",
+        "estimator": "error",
+        "metrics": {},
+        "neutrality_checks": {},
+        "params": {},
+        "seed": 20265156,
+        "seed_index": 4,
+        "status": "error"
+      },
+      {
+        "beta_window": 120,
+        "cell_key": "seed_4_bw120_error",
+        "error": "run_backtest() got an unexpected keyword argument 'benchmark'",
+        "estimator": "error",
+        "metrics": {},
+        "neutrality_checks": {},
+        "params": {},
+        "seed": 20265156,
+        "seed_index": 4,
+        "status": "error"
+      },
+      {
+        "beta_window": 60,
+        "cell_key": "seed_5_bw60_error",
+        "error": "run_backtest() got an unexpected keyword argument 'benchmark'",
+        "estimator": "error",
+        "metrics": {},
+        "neutrality_checks": {},
+        "params": {},
+        "seed": 20266165,
+        "seed_index": 5,
+        "status": "error"
+      },
+      {
+        "beta_window": 90,
+        "cell_key": "seed_5_bw90_error",
+        "error": "run_backtest() got an unexpected keyword argument 'benchmark'",
+        "estimator": "error",
+        "metrics": {},
+        "neutrality_checks": {},
+        "params": {},
+        "seed": 20266165,
+        "seed_index": 5,
+        "status": "error"
+      },
+      {
+        "beta_window": 120,
+        "cell_key": "seed_5_bw120_error",
+        "error": "run_backtest() got an unexpected keyword argument 'benchmark'",
+        "estimator": "error",
+        "metrics": {},
+        "neutrality_checks": {},
+        "params": {},
+        "seed": 20266165,
+        "seed_index": 5,
+        "status": "error"
+      },
+      {
+        "beta_window": 60,
+        "cell_key": "seed_6_bw60_error",
+        "error": "run_backtest() got an unexpected keyword argument 'benchmark'",
+        "estimator": "error",
+        "metrics": {},
+        "neutrality_checks": {},
+        "params": {},
+        "seed": 20267174,
+        "seed_index": 6,
+        "status": "error"
+      },
+      {
+        "beta_window": 90,
+        "cell_key": "seed_6_bw90_error",
+        "error": "run_backtest() got an unexpected keyword argument 'benchmark'",
+        "estimator": "error",
+        "metrics": {},
+        "neutrality_checks": {},
+        "params": {},
+        "seed": 20267174,
+        "seed_index": 6,
+        "status": "error"
+      },
+      {
+        "beta_window": 120,
+        "cell_key": "seed_6_bw120_error",
+        "error": "run_backtest() got an unexpected keyword argument 'benchmark'",
+        "estimator": "error",
+        "metrics": {},
+        "neutrality_checks": {},
+        "params": {},
+        "seed": 20267174,
+        "seed_index": 6,
+        "status": "error"
+      },
+      {
+        "beta_window": 60,
+        "cell_key": "seed_7_bw60_error",
+        "error": "run_backtest() got an unexpected keyword argument 'benchmark'",
+        "estimator": "error",
+        "metrics": {},
+        "neutrality_checks": {},
+        "params": {},
+        "seed": 20268183,
+        "seed_index": 7,
+        "status": "error"
+      },
+      {
+        "beta_window": 90,
+        "cell_key": "seed_7_bw90_error",
+        "error": "run_backtest() got an unexpected keyword argument 'benchmark'",
+        "estimator": "error",
+        "metrics": {},
+        "neutrality_checks": {},
+        "params": {},
+        "seed": 20268183,
+        "seed_index": 7,
+        "status": "error"
+      },
+      {
+        "beta_window": 120,
+        "cell_key": "seed_7_bw120_error",
+        "error": "run_backtest() got an unexpected keyword argument 'benchmark'",
+        "estimator": "error",
+        "metrics": {},
+        "neutrality_checks": {},
+        "params": {},
+        "seed": 20268183,
+        "seed_index": 7,
+        "status": "error"
+      }
+    ]
+  },
+  "schema": "bab_p35.estimator_bakeoff/1"
+}
