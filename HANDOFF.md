@@ -2,17 +2,17 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-22T09:47:00Z (refreshed this session; supersedes the 2026-11-22T08:25:00Z stamp)
+- **Timestamp (UTC):** 2026-11-22T10:00:55Z (refreshed this session; supersedes the 2026-11-22T09:47:00Z stamp)
 - **Git state:** HEAD `a885d24` at write time (working tree clean). **P20–P34 are all COMPLETE and frozen.** The binding row is now **Campaign P28 WP2-WP4 (maintainer-gated only)** — all agent-executable work is complete. The post-P34 idle-wait is the correct state; a future session must attach a fresh full-gate GREEN log before reporting idle.
 - **Gate verified GREEN this session (fast inner loop):** `python3 -m ruff check .` PASS; `bash scripts/bab_reconcile_gate.sh` GREEN (drift rc=2 / clean rc=0 / emit-only rc=0); `python3 -m pytest -q tests/test_bab_p34_*.py tests/test_bab_p33_*.py tests/test_bab_p31_registry_completeness.py tests/test_bab_p32_*.py` → 83 passed, 2 skipped; `python3 scripts/bab_p34_multiseed_robustness.py --check-multiseed-summary` PASS; `python3 scripts/bab_replay_full.py --self-test` pass; `python3 scripts/bab_replay_decisions.py --self-test` pass; `python3 scripts/bab_doc_consistency_summary.py --check-doc-summary research_state/bab_p33/doc_consistency_summary.json` OK; `bash scripts/bab_quick.sh` 104 + 195 tests PASS. The slow full gate (`BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh`, ~16 min) includes P34 replay/summary checks; re-run it once and attach the GREEN log before any idle-wait report.
 
 ---
 
-# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-22T09:47:00Z)
+# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-22T10:00:55Z)
 
 **ALL AGENT-EXECUTABLE WORK IS COMPLETE.** P20–P34 are fully landed and frozen. Campaign **P34 "Wide-Universe Robustness & Strategy-Honesty Closure" (WP0→WP1→WP2) is COMPLETE** — the multi-seed robustness study, statistical honesty battery, and documentation-integrity closure are all verified GREEN. The only remaining work is **Campaign P28 WP2-WP4**, which are **maintainer-gated** (require `workflows:write` permission for CI gate enforcement and a licensed real-market CSV for ingestion/deployment decision).
 
-**Why the idle-wait (repo-name relevance, 2026-11-22T09:47:00Z):**
+**Why the idle-wait (repo-name relevance, 2026-11-22T10:00:55Z):**
 - The repository is named **Crypto-Betting-Against-Beta** — a quantitative strategy. The complete research pipeline (P20–P34) has been executed on synthetic fixtures (`tests/fixtures/real_market_prices.csv` 9-asset, `tests/fixtures/wide_bab_universe.csv` 40-asset), both deterministic random walks explicitly labelled **not real market data**. P26's verdict on the 9-asset frame was **NO-SIGNAL**; P25 promoted `weighting="rank"` on the 40-asset frame; P34 established multi-seed robustness + strategy-honesty closure for the shipped default (`weighting="equal"`, `beta_neutral=True`) across 8 seeds × 6 config cells.
 - **No further agent-executable gaps exist** in the strategy codebase, test suite, documentation, or gates. The `bab_gate.sh` enforces 100% coverage, full artifact replay (P29), workflow diagnostics (P30), registry completeness (P31), decision-doc replay (P32), fidelity consistency (P33), and P34 multiseed/honesty/doc-pointer checks. All pass locally.
 - **P28 WP2 (CI gate enforcement)** is blocked on the repo token lacking `workflows:write` — a maintainer must add the `bab-gate` job to `.github/workflows/main.yml` via the GitHub web UI or a PAT. **P28 WP3 (real-market data ingestion)** and **WP4 (live-market deployment decision)** are blocked on a licensed CSV (Coinbase public API returns 403 here; `--allow-public-api` requires explicit ToS acknowledgement and is not a substitute for licensed data). **Do not re-attempt these from an agent session.**
