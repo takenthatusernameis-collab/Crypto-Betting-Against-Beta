@@ -67,291 +67,3587 @@
     "cells": [
       {
         "beta_window": 60,
-        "cell_key": "seed_0_bw60_error",
-        "error": "run_backtest() got an unexpected keyword argument 'benchmark'",
-        "estimator": "error",
-        "metrics": {},
-        "neutrality_checks": {},
-        "params": {},
+        "cell_key": "seed_0_rolling_ols_w60",
+        "estimator": "rolling_ols",
+        "metrics": {
+          "annualized_volatility": 0.006372050634490155,
+          "beta_dispersion": 0.46576763706373125,
+          "beta_noise": 0.0027020226156372527,
+          "jaccard_vs_ols": null,
+          "max_dollar_neutral": 2.9733160378242474e-15,
+          "max_drawdown": -0.010371370004285943,
+          "max_model_beta": 9.994932482756184e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0006395112891416987,
+          "sharpe": 0.17766884737286384,
+          "spearman_vs_ols": 1.0,
+          "total_return": 0.0017575783344530027,
+          "turnover": 0.020261214697659697,
+          "wealth": 1.001757578334453
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 2.9733160378242474e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.994932482756184e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0006395112891416987,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "window": 60
+        },
         "seed": 20261120,
         "seed_index": 0,
-        "status": "error"
+        "status": "ok"
       },
       {
         "beta_window": 90,
-        "cell_key": "seed_0_bw90_error",
-        "error": "run_backtest() got an unexpected keyword argument 'benchmark'",
-        "estimator": "error",
-        "metrics": {},
-        "neutrality_checks": {},
-        "params": {},
+        "cell_key": "seed_0_rolling_ols_w90",
+        "estimator": "rolling_ols",
+        "metrics": {
+          "annualized_volatility": 0.006141991828210983,
+          "beta_dispersion": 0.4652615524002457,
+          "beta_noise": 0.0017450986910553137,
+          "jaccard_vs_ols": null,
+          "max_dollar_neutral": 3.028827189055505e-15,
+          "max_drawdown": -0.0080665169849831,
+          "max_model_beta": 9.995457448455586e-05,
+          "n_periods": 398,
+          "realized_beta": 0.0003561872855008061,
+          "sharpe": 0.12825668917471708,
+          "spearman_vs_ols": 1.0,
+          "total_return": 0.0012151670303381934,
+          "turnover": 0.014513324550190315,
+          "wealth": 1.0012151670303382
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.028827189055505e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.995457448455586e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": 0.0003561872855008061,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "window": 90
+        },
         "seed": 20261120,
         "seed_index": 0,
-        "status": "error"
+        "status": "ok"
       },
       {
         "beta_window": 120,
-        "cell_key": "seed_0_bw120_error",
-        "error": "run_backtest() got an unexpected keyword argument 'benchmark'",
-        "estimator": "error",
-        "metrics": {},
-        "neutrality_checks": {},
-        "params": {},
+        "cell_key": "seed_0_rolling_ols_w120",
+        "estimator": "rolling_ols",
+        "metrics": {
+          "annualized_volatility": 0.0060773343706122035,
+          "beta_dispersion": 0.4648407891816893,
+          "beta_noise": 0.0012954821807250752,
+          "jaccard_vs_ols": null,
+          "max_dollar_neutral": 3.8614944575243726e-15,
+          "max_drawdown": -0.007491022831802949,
+          "max_model_beta": 9.947561067010527e-05,
+          "n_periods": 398,
+          "realized_beta": 0.000610041729034525,
+          "sharpe": 0.4232736567356928,
+          "spearman_vs_ols": 1.0,
+          "total_return": 0.004041752516215746,
+          "turnover": 0.017550817227016374,
+          "wealth": 1.0040417525162157
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.8614944575243726e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.947561067010527e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": 0.000610041729034525,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "window": 120
+        },
         "seed": 20261120,
         "seed_index": 0,
-        "status": "error"
+        "status": "ok"
+      },
+      {
+        "beta_window": null,
+        "cell_key": "seed_0_ewma_h20",
+        "estimator": "ewma",
+        "metrics": {
+          "annualized_volatility": 0.006351972878563303,
+          "beta_dispersion": 0.4642734430806818,
+          "beta_noise": 0.003478334852199366,
+          "jaccard_vs_ols": 1.0,
+          "max_dollar_neutral": 2.633310236532793e-15,
+          "max_drawdown": -0.008359663679758903,
+          "max_model_beta": 9.965407906552038e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0008423640552389357,
+          "sharpe": 0.22302581894874351,
+          "spearman_vs_ols": 0.9992474692287077,
+          "total_return": 0.0022080600461480415,
+          "turnover": 0.02935171700087785,
+          "wealth": 1.002208060046148
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 2.633310236532793e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.965407906552038e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0008423640552389357,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "halflife": 20
+        },
+        "seed": 20261120,
+        "seed_index": 0,
+        "status": "ok"
+      },
+      {
+        "beta_window": null,
+        "cell_key": "seed_0_ewma_h40",
+        "estimator": "ewma",
+        "metrics": {
+          "annualized_volatility": 0.006102596548620639,
+          "beta_dispersion": 0.45635051973261154,
+          "beta_noise": 0.0019496614231209555,
+          "jaccard_vs_ols": 1.0,
+          "max_dollar_neutral": 3.0427049768633196e-15,
+          "max_drawdown": -0.008304034666527904,
+          "max_model_beta": 9.987411791937465e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0003389614532722993,
+          "sharpe": 0.6294549907331886,
+          "spearman_vs_ols": 0.9994376636496712,
+          "total_return": 0.0060557116751494,
+          "turnover": 0.014893602818887151,
+          "wealth": 1.0060557116751494
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.0427049768633196e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.987411791937465e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0003389614532722993,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "halflife": 40
+        },
+        "seed": 20261120,
+        "seed_index": 0,
+        "status": "ok"
+      },
+      {
+        "beta_window": null,
+        "cell_key": "seed_0_ewma_h60",
+        "estimator": "ewma",
+        "metrics": {
+          "annualized_volatility": 0.006014406569023582,
+          "beta_dispersion": 0.4461507841357031,
+          "beta_noise": 0.0015717207095297806,
+          "jaccard_vs_ols": 1.0,
+          "max_dollar_neutral": 3.049643870767227e-15,
+          "max_drawdown": -0.007873030806022772,
+          "max_model_beta": 9.989020160236324e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0005002964730618644,
+          "sharpe": 0.6474156774515407,
+          "spearman_vs_ols": 0.9990902624579925,
+          "total_return": 0.006139998049500495,
+          "turnover": 0.01458841590435887,
+          "wealth": 1.0061399980495005
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.049643870767227e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.989020160236324e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0005002964730618644,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "halflife": 60
+        },
+        "seed": 20261120,
+        "seed_index": 0,
+        "status": "ok"
+      },
+      {
+        "beta_window": 90,
+        "cell_key": "seed_0_shrinkage_i0.1_t1.0",
+        "estimator": "shrinkage",
+        "metrics": {
+          "annualized_volatility": 0.006143426754512631,
+          "beta_dispersion": 0.4187353971602212,
+          "beta_noise": 0.001570588821949783,
+          "jaccard_vs_ols": 1.0,
+          "max_dollar_neutral": 2.751271432899216e-15,
+          "max_drawdown": -0.008081986614911999,
+          "max_model_beta": 9.989111276468234e-05,
+          "n_periods": 398,
+          "realized_beta": 0.0003448654522439629,
+          "sharpe": 0.12616433207940506,
+          "spearman_vs_ols": 1.0,
+          "total_return": 0.001195118185309596,
+          "turnover": 0.014513125404191212,
+          "wealth": 1.0011951181853096
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 2.751271432899216e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.989111276468234e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": 0.0003448654522439629,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "intensity": 0.1,
+          "target": 1.0,
+          "window": 90
+        },
+        "seed": 20261120,
+        "seed_index": 0,
+        "status": "ok"
+      },
+      {
+        "beta_window": 90,
+        "cell_key": "seed_0_shrinkage_i0.1_csm",
+        "estimator": "shrinkage",
+        "metrics": {
+          "annualized_volatility": 0.006143356986050721,
+          "beta_dispersion": 0.4187353971602212,
+          "beta_noise": 0.0015758405340780626,
+          "jaccard_vs_ols": 1.0,
+          "max_dollar_neutral": 3.039235529911366e-15,
+          "max_drawdown": -0.008130388562610603,
+          "max_model_beta": 9.987959370581843e-05,
+          "n_periods": 398,
+          "realized_beta": 0.000131074797363917,
+          "sharpe": 0.10878432653312742,
+          "spearman_vs_ols": 0.9999592808692247,
+          "total_return": 0.0010262868040629147,
+          "turnover": 0.014518144055892687,
+          "wealth": 1.001026286804063
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.039235529911366e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.987959370581843e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": 0.000131074797363917,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "intensity": 0.1,
+          "target": "cross_sectional_mean",
+          "window": 90
+        },
+        "seed": 20261120,
+        "seed_index": 0,
+        "status": "ok"
+      },
+      {
+        "beta_window": 90,
+        "cell_key": "seed_0_shrinkage_i0.3_t1.0",
+        "estimator": "shrinkage",
+        "metrics": {
+          "annualized_volatility": 0.006142663493260431,
+          "beta_dispersion": 0.325683086680172,
+          "beta_noise": 0.0012215690837387204,
+          "jaccard_vs_ols": 1.0,
+          "max_dollar_neutral": 4.919675777870225e-15,
+          "max_drawdown": -0.00808480819425859,
+          "max_model_beta": 9.980369989404325e-05,
+          "n_periods": 398,
+          "realized_beta": 0.00032296239209515256,
+          "sharpe": 0.12388578933184997,
+          "spearman_vs_ols": 1.0,
+          "total_return": 0.0011728419099616971,
+          "turnover": 0.01451303078910024,
+          "wealth": 1.0011728419099617
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 4.919675777870225e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.980369989404325e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": 0.00032296239209515256,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "intensity": 0.3,
+          "target": 1.0,
+          "window": 90
+        },
+        "seed": 20261120,
+        "seed_index": 0,
+        "status": "ok"
+      },
+      {
+        "beta_window": 90,
+        "cell_key": "seed_0_shrinkage_i0.3_csm",
+        "estimator": "shrinkage",
+        "metrics": {
+          "annualized_volatility": 0.006147793474749391,
+          "beta_dispersion": 0.32568308668017193,
+          "beta_noise": 0.0012392384102422722,
+          "jaccard_vs_ols": 1.0,
+          "max_dollar_neutral": 4.479056014972116e-15,
+          "max_drawdown": -0.008311620462680344,
+          "max_model_beta": 9.973139298731326e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0007304504116409798,
+          "sharpe": 0.032175961710863926,
+          "spearman_vs_ols": 0.9996979568274129,
+          "total_return": 0.0002826835716858156,
+          "turnover": 0.01452927303190221,
+          "wealth": 1.0002826835716858
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 4.479056014972116e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.973139298731326e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0007304504116409798,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "intensity": 0.3,
+          "target": "cross_sectional_mean",
+          "window": 90
+        },
+        "seed": 20261120,
+        "seed_index": 0,
+        "status": "ok"
       },
       {
         "beta_window": 60,
-        "cell_key": "seed_1_bw60_error",
-        "error": "run_backtest() got an unexpected keyword argument 'benchmark'",
-        "estimator": "error",
-        "metrics": {},
-        "neutrality_checks": {},
-        "params": {},
+        "cell_key": "seed_1_rolling_ols_w60",
+        "estimator": "rolling_ols",
+        "metrics": {
+          "annualized_volatility": 0.0063104290293478785,
+          "beta_dispersion": 0.46665569831085785,
+          "beta_noise": 0.002703041639030014,
+          "jaccard_vs_ols": null,
+          "max_dollar_neutral": 2.8900493109773606e-15,
+          "max_drawdown": -0.007280148770743196,
+          "max_model_beta": 9.943015704447984e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0017866586296921845,
+          "sharpe": 0.07409314836948812,
+          "spearman_vs_ols": 1.0,
+          "total_return": 0.0007073307017864128,
+          "turnover": 0.020324243822873633,
+          "wealth": 1.0007073307017864
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 2.8900493109773606e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.943015704447984e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0017866586296921845,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "window": 60
+        },
         "seed": 20262129,
         "seed_index": 1,
-        "status": "error"
+        "status": "ok"
       },
       {
         "beta_window": 90,
-        "cell_key": "seed_1_bw90_error",
-        "error": "run_backtest() got an unexpected keyword argument 'benchmark'",
-        "estimator": "error",
-        "metrics": {},
-        "neutrality_checks": {},
-        "params": {},
+        "cell_key": "seed_1_rolling_ols_w90",
+        "estimator": "rolling_ols",
+        "metrics": {
+          "annualized_volatility": 0.00621793805803089,
+          "beta_dispersion": 0.4663930475511934,
+          "beta_noise": 0.001730686163484079,
+          "jaccard_vs_ols": null,
+          "max_dollar_neutral": 2.8900493109773606e-15,
+          "max_drawdown": -0.010479754335101118,
+          "max_model_beta": 9.99135545052077e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0015716402048835331,
+          "sharpe": -0.2254057479237525,
+          "spearman_vs_ols": 1.0,
+          "total_return": -0.0022415171828675806,
+          "turnover": 0.011972848529714432,
+          "wealth": 0.9977584828171324
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 2.8900493109773606e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.99135545052077e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0015716402048835331,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "window": 90
+        },
         "seed": 20262129,
         "seed_index": 1,
-        "status": "error"
+        "status": "ok"
       },
       {
         "beta_window": 120,
-        "cell_key": "seed_1_bw120_error",
-        "error": "run_backtest() got an unexpected keyword argument 'benchmark'",
-        "estimator": "error",
-        "metrics": {},
-        "neutrality_checks": {},
-        "params": {},
+        "cell_key": "seed_1_rolling_ols_w120",
+        "estimator": "rolling_ols",
+        "metrics": {
+          "annualized_volatility": 0.006152601497181499,
+          "beta_dispersion": 0.4661860855255437,
+          "beta_noise": 0.0012835845671883344,
+          "jaccard_vs_ols": null,
+          "max_dollar_neutral": 3.1329105976141136e-15,
+          "max_drawdown": -0.007880544319524898,
+          "max_model_beta": 9.952258165260188e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0016737175536258384,
+          "sharpe": 0.01163324461433813,
+          "spearman_vs_ols": 1.0,
+          "total_return": 8.322907660307521e-05,
+          "turnover": 0.007519748251912455,
+          "wealth": 1.000083229076603
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.1329105976141136e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.952258165260188e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0016737175536258384,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "window": 120
+        },
         "seed": 20262129,
         "seed_index": 1,
-        "status": "error"
+        "status": "ok"
+      },
+      {
+        "beta_window": null,
+        "cell_key": "seed_1_ewma_h20",
+        "estimator": "ewma",
+        "metrics": {
+          "annualized_volatility": 0.006341321987186565,
+          "beta_dispersion": 0.46523107329011065,
+          "beta_noise": 0.0034553762715273197,
+          "jaccard_vs_ols": 1.0,
+          "max_dollar_neutral": 3.002806336915853e-15,
+          "max_drawdown": -0.013292682148986705,
+          "max_model_beta": 9.990650049963473e-05,
+          "n_periods": 398,
+          "realized_beta": -0.001596357867252739,
+          "sharpe": -0.5882092584572266,
+          "spearman_vs_ols": 0.9993521019318394,
+          "total_return": -0.005905283709749742,
+          "turnover": 0.0280302856807316,
+          "wealth": 0.9940947162902503
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.002806336915853e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.990650049963473e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.001596357867252739,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "halflife": 20
+        },
+        "seed": 20262129,
+        "seed_index": 1,
+        "status": "ok"
+      },
+      {
+        "beta_window": null,
+        "cell_key": "seed_1_ewma_h40",
+        "estimator": "ewma",
+        "metrics": {
+          "annualized_volatility": 0.006251823300036521,
+          "beta_dispersion": 0.45795204015363167,
+          "beta_noise": 0.001931735033509867,
+          "jaccard_vs_ols": 1.0,
+          "max_dollar_neutral": 2.5118795932144167e-15,
+          "max_drawdown": -0.009675105127049879,
+          "max_model_beta": 9.992388023506442e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0012896490784619133,
+          "sharpe": -0.19658747319978118,
+          "spearman_vs_ols": 0.9996304352308106,
+          "total_return": -0.001969936241146164,
+          "turnover": 0.01109274298888912,
+          "wealth": 0.9980300637588538
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 2.5118795932144167e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.992388023506442e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0012896490784619133,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "halflife": 40
+        },
+        "seed": 20262129,
+        "seed_index": 1,
+        "status": "ok"
+      },
+      {
+        "beta_window": null,
+        "cell_key": "seed_1_ewma_h60",
+        "estimator": "ewma",
+        "metrics": {
+          "annualized_volatility": 0.0061583034644252955,
+          "beta_dispersion": 0.44825484667483345,
+          "beta_noise": 0.0015579800364255826,
+          "jaccard_vs_ols": 1.0,
+          "max_dollar_neutral": 3.1814828549414642e-15,
+          "max_drawdown": -0.007910511866402509,
+          "max_model_beta": 9.968040998254426e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0016749765832545188,
+          "sharpe": 0.021853706897132764,
+          "spearman_vs_ols": 0.9993902439024392,
+          "total_return": 0.00018269817177873904,
+          "turnover": 0.007858402797931745,
+          "wealth": 1.0001826981717787
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.1814828549414642e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.968040998254426e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0016749765832545188,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "halflife": 60
+        },
+        "seed": 20262129,
+        "seed_index": 1,
+        "status": "ok"
+      },
+      {
+        "beta_window": 90,
+        "cell_key": "seed_1_shrinkage_i0.1_t1.0",
+        "estimator": "shrinkage",
+        "metrics": {
+          "annualized_volatility": 0.006218497660553072,
+          "beta_dispersion": 0.419753742796074,
+          "beta_noise": 0.001557617547135671,
+          "jaccard_vs_ols": 1.0,
+          "max_dollar_neutral": 3.271688475692258e-15,
+          "max_drawdown": -0.010507193983522053,
+          "max_model_beta": 9.912930246877304e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0015925673122302816,
+          "sharpe": -0.22821673820882615,
+          "spearman_vs_ols": 1.0,
+          "total_return": -0.002269266831534278,
+          "turnover": 0.011972497542064937,
+          "wealth": 0.9977307331684657
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.271688475692258e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.912930246877304e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0015925673122302816,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "intensity": 0.1,
+          "target": 1.0,
+          "window": 90
+        },
+        "seed": 20262129,
+        "seed_index": 1,
+        "status": "ok"
+      },
+      {
+        "beta_window": 90,
+        "cell_key": "seed_1_shrinkage_i0.1_csm",
+        "estimator": "shrinkage",
+        "metrics": {
+          "annualized_volatility": 0.006223186118931102,
+          "beta_dispersion": 0.419753742796074,
+          "beta_noise": 0.0015618718557327677,
+          "jaccard_vs_ols": 1.0,
+          "max_dollar_neutral": 3.4937330806172895e-15,
+          "max_drawdown": -0.010670185585525436,
+          "max_model_beta": 9.990277730560959e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0018058266118861962,
+          "sharpe": -0.24588123097361378,
+          "spearman_vs_ols": 0.9999731975341734,
+          "total_return": -0.0024442091286246415,
+          "turnover": 0.01197677423488118,
+          "wealth": 0.9975557908713754
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.4937330806172895e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.990277730560959e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0018058266118861962,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "intensity": 0.1,
+          "target": "cross_sectional_mean",
+          "window": 90
+        },
+        "seed": 20262129,
+        "seed_index": 1,
+        "status": "ok"
+      },
+      {
+        "beta_window": 90,
+        "cell_key": "seed_1_shrinkage_i0.3_t1.0",
+        "estimator": "shrinkage",
+        "metrics": {
+          "annualized_volatility": 0.006218236544224694,
+          "beta_dispersion": 0.32647513328583533,
+          "beta_noise": 0.0012114803144388558,
+          "jaccard_vs_ols": 1.0,
+          "max_dollar_neutral": 4.385380947269368e-15,
+          "max_drawdown": -0.010560680977431808,
+          "max_model_beta": 9.983567731399669e-05,
+          "n_periods": 398,
+          "realized_beta": -0.001639367636316712,
+          "sharpe": -0.23590770217711707,
+          "spearman_vs_ols": 1.0,
+          "total_return": -0.002344528499331089,
+          "turnover": 0.011971156567748803,
+          "wealth": 0.9976554715006689
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 4.385380947269368e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.983567731399669e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.001639367636316712,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "intensity": 0.3,
+          "target": 1.0,
+          "window": 90
+        },
+        "seed": 20262129,
+        "seed_index": 1,
+        "status": "ok"
+      },
+      {
+        "beta_window": 90,
+        "cell_key": "seed_1_shrinkage_i0.3_csm",
+        "estimator": "shrinkage",
+        "metrics": {
+          "annualized_volatility": 0.006252335216314564,
+          "beta_dispersion": 0.32647513328583533,
+          "beta_noise": 0.00122588458620928,
+          "jaccard_vs_ols": 1.0,
+          "max_dollar_neutral": 4.524158825347513e-15,
+          "max_drawdown": -0.011304379248514946,
+          "max_model_beta": 9.916856405568211e-05,
+          "n_periods": 398,
+          "realized_beta": -0.002658909049981591,
+          "sharpe": -0.3163981405685591,
+          "spearman_vs_ols": 0.9996819784343238,
+          "total_return": -0.0031501745987605467,
+          "turnover": 0.011986418826521723,
+          "wealth": 0.9968498254012395
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 4.524158825347513e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.916856405568211e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.002658909049981591,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "intensity": 0.3,
+          "target": "cross_sectional_mean",
+          "window": 90
+        },
+        "seed": 20262129,
+        "seed_index": 1,
+        "status": "ok"
       },
       {
         "beta_window": 60,
-        "cell_key": "seed_2_bw60_error",
-        "error": "run_backtest() got an unexpected keyword argument 'benchmark'",
-        "estimator": "error",
-        "metrics": {},
-        "neutrality_checks": {},
-        "params": {},
+        "cell_key": "seed_2_rolling_ols_w60",
+        "estimator": "rolling_ols",
+        "metrics": {
+          "annualized_volatility": 0.006191987516692746,
+          "beta_dispersion": 0.46626031300485626,
+          "beta_noise": 0.002670629983505303,
+          "jaccard_vs_ols": null,
+          "max_dollar_neutral": 3.271688475692258e-15,
+          "max_drawdown": -0.004164704171052819,
+          "max_model_beta": 9.972071352958397e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0007347562897420906,
+          "sharpe": 0.9446996700426423,
+          "spearman_vs_ols": 1.0,
+          "total_return": 0.009250825506613491,
+          "turnover": 0.016378952986835765,
+          "wealth": 1.0092508255066135
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.271688475692258e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.972071352958397e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0007347562897420906,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "window": 60
+        },
         "seed": 20263138,
         "seed_index": 2,
-        "status": "error"
+        "status": "ok"
       },
       {
         "beta_window": 90,
-        "cell_key": "seed_2_bw90_error",
-        "error": "run_backtest() got an unexpected keyword argument 'benchmark'",
-        "estimator": "error",
-        "metrics": {},
-        "neutrality_checks": {},
-        "params": {},
+        "cell_key": "seed_2_rolling_ols_w90",
+        "estimator": "rolling_ols",
+        "metrics": {
+          "annualized_volatility": 0.00616302459920029,
+          "beta_dispersion": 0.46611710929821804,
+          "beta_noise": 0.0017087870677866786,
+          "jaccard_vs_ols": null,
+          "max_dollar_neutral": 4.010680676458378e-15,
+          "max_drawdown": -0.0038749116374002033,
+          "max_model_beta": 9.98672429303893e-05,
+          "n_periods": 398,
+          "realized_beta": -0.00023065186542819082,
+          "sharpe": 1.4180237787493233,
+          "spearman_vs_ols": 1.0,
+          "total_return": 0.013867690590217308,
+          "turnover": 0.009302657865486532,
+          "wealth": 1.0138676905902173
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 4.010680676458378e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.98672429303893e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.00023065186542819082,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "window": 90
+        },
         "seed": 20263138,
         "seed_index": 2,
-        "status": "error"
+        "status": "ok"
       },
       {
         "beta_window": 120,
-        "cell_key": "seed_2_bw120_error",
-        "error": "run_backtest() got an unexpected keyword argument 'benchmark'",
-        "estimator": "error",
-        "metrics": {},
-        "neutrality_checks": {},
-        "params": {},
+        "cell_key": "seed_2_rolling_ols_w120",
+        "estimator": "rolling_ols",
+        "metrics": {
+          "annualized_volatility": 0.006142829822512861,
+          "beta_dispersion": 0.4659629047424357,
+          "beta_noise": 0.0012793025753428898,
+          "jaccard_vs_ols": null,
+          "max_dollar_neutral": 2.7651492207070305e-15,
+          "max_drawdown": -0.0037633604234745626,
+          "max_model_beta": 9.918990159097576e-05,
+          "n_periods": 398,
+          "realized_beta": 7.233586763923953e-05,
+          "sharpe": 1.4495902039535151,
+          "spearman_vs_ols": 1.0,
+          "total_return": 0.014132556600122692,
+          "turnover": 0.007426259809809138,
+          "wealth": 1.0141325566001227
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 2.7651492207070305e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.918990159097576e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": 7.233586763923953e-05,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "window": 120
+        },
         "seed": 20263138,
         "seed_index": 2,
-        "status": "error"
+        "status": "ok"
+      },
+      {
+        "beta_window": null,
+        "cell_key": "seed_2_ewma_h20",
+        "estimator": "ewma",
+        "metrics": {
+          "annualized_volatility": 0.006139579953071343,
+          "beta_dispersion": 0.46486457291591016,
+          "beta_noise": 0.0034246160580960667,
+          "jaccard_vs_ols": 1.0,
+          "max_dollar_neutral": 2.9178048865929895e-15,
+          "max_drawdown": -0.0038655947694354225,
+          "max_model_beta": 9.942013054675762e-05,
+          "n_periods": 398,
+          "realized_beta": -0.00108409034621513,
+          "sharpe": 1.2447264308463148,
+          "spearman_vs_ols": 0.999526317959714,
+          "total_return": 0.01211255925637933,
+          "turnover": 0.0191865871726256,
+          "wealth": 1.0121125592563793
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 2.9178048865929895e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.942013054675762e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.00108409034621513,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "halflife": 20
+        },
+        "seed": 20263138,
+        "seed_index": 2,
+        "status": "ok"
+      },
+      {
+        "beta_window": null,
+        "cell_key": "seed_2_ewma_h40",
+        "estimator": "ewma",
+        "metrics": {
+          "annualized_volatility": 0.0061739160588586,
+          "beta_dispersion": 0.4575410317215058,
+          "beta_noise": 0.0019346300667274045,
+          "jaccard_vs_ols": 1.0,
+          "max_dollar_neutral": 2.7720881146109377e-15,
+          "max_drawdown": -0.0038160221625460167,
+          "max_model_beta": 9.99193036796762e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0007451945598790369,
+          "sharpe": 1.447895902533312,
+          "spearman_vs_ols": 0.9996510525122158,
+          "total_return": 0.014187671349646935,
+          "turnover": 0.009768893827897156,
+          "wealth": 1.014187671349647
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 2.7720881146109377e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.99193036796762e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0007451945598790369,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "halflife": 40
+        },
+        "seed": 20263138,
+        "seed_index": 2,
+        "status": "ok"
+      },
+      {
+        "beta_window": null,
+        "cell_key": "seed_2_ewma_h60",
+        "estimator": "ewma",
+        "metrics": {
+          "annualized_volatility": 0.006185739077261622,
+          "beta_dispersion": 0.44771479512052575,
+          "beta_noise": 0.001577595504777955,
+          "jaccard_vs_ols": 1.0,
+          "max_dollar_neutral": 2.7269853042355408e-15,
+          "max_drawdown": -0.003786797610386293,
+          "max_model_beta": 9.989412655950362e-05,
+          "n_periods": 398,
+          "realized_beta": -0.000868788996645898,
+          "sharpe": 1.4874853004550785,
+          "spearman_vs_ols": 0.9993933364946501,
+          "total_return": 0.01460730388917475,
+          "turnover": 0.007760881061546326,
+          "wealth": 1.0146073038891747
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 2.7269853042355408e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.989412655950362e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.000868788996645898,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "halflife": 60
+        },
+        "seed": 20263138,
+        "seed_index": 2,
+        "status": "ok"
+      },
+      {
+        "beta_window": 90,
+        "cell_key": "seed_2_shrinkage_i0.1_t1.0",
+        "estimator": "shrinkage",
+        "metrics": {
+          "annualized_volatility": 0.006163202868578229,
+          "beta_dispersion": 0.4195053983683964,
+          "beta_noise": 0.0015379083610080105,
+          "jaccard_vs_ols": 1.0,
+          "max_dollar_neutral": 3.337607967779377e-15,
+          "max_drawdown": -0.00387391096519085,
+          "max_model_beta": 9.983360555712283e-05,
+          "n_periods": 398,
+          "realized_beta": -0.00023652251637421053,
+          "sharpe": 1.4175219762813613,
+          "spearman_vs_ols": 1.0,
+          "total_return": 0.013863141529093292,
+          "turnover": 0.009302067921694038,
+          "wealth": 1.0138631415290933
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.337607967779377e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.983360555712283e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.00023652251637421053,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "intensity": 0.1,
+          "target": 1.0,
+          "window": 90
+        },
+        "seed": 20263138,
+        "seed_index": 2,
+        "status": "ok"
+      },
+      {
+        "beta_window": 90,
+        "cell_key": "seed_2_shrinkage_i0.1_csm",
+        "estimator": "shrinkage",
+        "metrics": {
+          "annualized_volatility": 0.006164375239535792,
+          "beta_dispersion": 0.4195053983683963,
+          "beta_noise": 0.0015427585188422218,
+          "jaccard_vs_ols": 1.0,
+          "max_dollar_neutral": 3.823330541052883e-15,
+          "max_drawdown": -0.003872710400749648,
+          "max_model_beta": 9.940856977472608e-05,
+          "n_periods": 398,
+          "realized_beta": -0.00044724493916846925,
+          "sharpe": 1.3999400896505223,
+          "spearman_vs_ols": 0.9999278395150816,
+          "total_return": 0.013692264570444701,
+          "turnover": 0.009306536249078744,
+          "wealth": 1.0136922645704447
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.823330541052883e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.940856977472608e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.00044724493916846925,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "intensity": 0.1,
+          "target": "cross_sectional_mean",
+          "window": 90
+        },
+        "seed": 20263138,
+        "seed_index": 2,
+        "status": "ok"
+      },
+      {
+        "beta_window": 90,
+        "cell_key": "seed_2_shrinkage_i0.3_t1.0",
+        "estimator": "shrinkage",
+        "metrics": {
+          "annualized_volatility": 0.006163235505541066,
+          "beta_dispersion": 0.3262819765087526,
+          "beta_noise": 0.001196150947450675,
+          "jaccard_vs_ols": 1.0,
+          "max_dollar_neutral": 3.972516759986888e-15,
+          "max_drawdown": -0.0038739109651907116,
+          "max_model_beta": 9.980135955096232e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0002482246724190636,
+          "sharpe": 1.4149809632762111,
+          "spearman_vs_ols": 1.0,
+          "total_return": 0.013838139350185186,
+          "turnover": 0.009302459650198432,
+          "wealth": 1.0138381393501852
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.972516759986888e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.980135955096232e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0002482246724190636,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "intensity": 0.3,
+          "target": 1.0,
+          "window": 90
+        },
+        "seed": 20263138,
+        "seed_index": 2,
+        "status": "ok"
+      },
+      {
+        "beta_window": 90,
+        "cell_key": "seed_2_shrinkage_i0.3_csm",
+        "estimator": "shrinkage",
+        "metrics": {
+          "annualized_volatility": 0.0061761533132012655,
+          "beta_dispersion": 0.3262819765087526,
+          "beta_noise": 0.0012125685236566725,
+          "jaccard_vs_ols": 1.0,
+          "max_dollar_neutral": 4.416605969836951e-15,
+          "max_drawdown": -0.003862043339361473,
+          "max_model_beta": 9.97893940185835e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0013076243610885944,
+          "sharpe": 1.3282491177936948,
+          "spearman_vs_ols": 0.9996531142403563,
+          "total_return": 0.01300992139455115,
+          "turnover": 0.009317728999277061,
+          "wealth": 1.0130099213945511
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 4.416605969836951e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.97893940185835e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0013076243610885944,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "intensity": 0.3,
+          "target": "cross_sectional_mean",
+          "window": 90
+        },
+        "seed": 20263138,
+        "seed_index": 2,
+        "status": "ok"
       },
       {
         "beta_window": 60,
-        "cell_key": "seed_3_bw60_error",
-        "error": "run_backtest() got an unexpected keyword argument 'benchmark'",
-        "estimator": "error",
-        "metrics": {},
-        "neutrality_checks": {},
-        "params": {},
+        "cell_key": "seed_3_rolling_ols_w60",
+        "estimator": "rolling_ols",
+        "metrics": {
+          "annualized_volatility": 0.006012249571251946,
+          "beta_dispersion": 0.46425150828537637,
+          "beta_noise": 0.0027091935360773257,
+          "jaccard_vs_ols": null,
+          "max_dollar_neutral": 2.5431046157819992e-15,
+          "max_drawdown": -0.01170844833820368,
+          "max_model_beta": 9.998917345361568e-05,
+          "n_periods": 398,
+          "realized_beta": 0.0003722856881088956,
+          "sharpe": -1.0057803071908271,
+          "spearman_vs_ols": 1.0,
+          "total_return": -0.009533284610417803,
+          "turnover": 0.02866539861743667,
+          "wealth": 0.9904667153895822
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 2.5431046157819992e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.998917345361568e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": 0.0003722856881088956,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "window": 60
+        },
         "seed": 20264147,
         "seed_index": 3,
-        "status": "error"
+        "status": "ok"
       },
       {
         "beta_window": 90,
-        "cell_key": "seed_3_bw90_error",
-        "error": "run_backtest() got an unexpected keyword argument 'benchmark'",
-        "estimator": "error",
-        "metrics": {},
-        "neutrality_checks": {},
-        "params": {},
+        "cell_key": "seed_3_rolling_ols_w90",
+        "estimator": "rolling_ols",
+        "metrics": {
+          "annualized_volatility": 0.006065981184482703,
+          "beta_dispersion": 0.46377353229652035,
+          "beta_noise": 0.0017270314861024306,
+          "jaccard_vs_ols": null,
+          "max_dollar_neutral": 3.587408148320037e-15,
+          "max_drawdown": -0.011054497494507104,
+          "max_model_beta": 9.999174674718801e-05,
+          "n_periods": 398,
+          "realized_beta": -0.00013069831622641772,
+          "sharpe": -0.6550935436450521,
+          "spearman_vs_ols": 1.0,
+          "total_return": -0.006285258204706823,
+          "turnover": 0.013645822812439663,
+          "wealth": 0.9937147417952932
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.587408148320037e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.999174674718801e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.00013069831622641772,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "window": 90
+        },
         "seed": 20264147,
         "seed_index": 3,
-        "status": "error"
+        "status": "ok"
       },
       {
         "beta_window": 120,
-        "cell_key": "seed_3_bw120_error",
-        "error": "run_backtest() got an unexpected keyword argument 'benchmark'",
-        "estimator": "error",
-        "metrics": {},
-        "neutrality_checks": {},
-        "params": {},
+        "cell_key": "seed_3_rolling_ols_w120",
+        "estimator": "rolling_ols",
+        "metrics": {
+          "annualized_volatility": 0.006076413681496134,
+          "beta_dispersion": 0.4634004017229515,
+          "beta_noise": 0.0012838195158090214,
+          "jaccard_vs_ols": null,
+          "max_dollar_neutral": 2.7009644520958886e-15,
+          "max_drawdown": -0.013670483072080254,
+          "max_model_beta": 9.98920455286454e-05,
+          "n_periods": 398,
+          "realized_beta": -0.00019711323960198068,
+          "sharpe": -0.8887944917175936,
+          "spearman_vs_ols": 1.0,
+          "total_return": -0.008522308218490093,
+          "turnover": 0.00921103093393914,
+          "wealth": 0.9914776917815099
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 2.7009644520958886e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.98920455286454e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.00019711323960198068,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "window": 120
+        },
         "seed": 20264147,
         "seed_index": 3,
-        "status": "error"
+        "status": "ok"
+      },
+      {
+        "beta_window": null,
+        "cell_key": "seed_3_ewma_h20",
+        "estimator": "ewma",
+        "metrics": {
+          "annualized_volatility": 0.006294201937804835,
+          "beta_dispersion": 0.46284946420282896,
+          "beta_noise": 0.0034737030239172283,
+          "jaccard_vs_ols": 1.0,
+          "max_dollar_neutral": 3.0878077872387166e-15,
+          "max_drawdown": -0.017699917511610583,
+          "max_model_beta": 9.983586877508064e-05,
+          "n_periods": 398,
+          "realized_beta": -0.00014734162165655552,
+          "sharpe": -1.6857257073573426,
+          "spearman_vs_ols": 0.9993222068738018,
+          "total_return": -0.01664894805380146,
+          "turnover": 0.038047189355296225,
+          "wealth": 0.9833510519461985
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.0878077872387166e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.983586877508064e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.00014734162165655552,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "halflife": 20
+        },
+        "seed": 20264147,
+        "seed_index": 3,
+        "status": "ok"
+      },
+      {
+        "beta_window": null,
+        "cell_key": "seed_3_ewma_h40",
+        "estimator": "ewma",
+        "metrics": {
+          "annualized_volatility": 0.006099381062836111,
+          "beta_dispersion": 0.4556621410823118,
+          "beta_noise": 0.001948941885001869,
+          "jaccard_vs_ols": 1.0,
+          "max_dollar_neutral": 2.9976021664879227e-15,
+          "max_drawdown": -0.014589846067533606,
+          "max_model_beta": 9.970421814712453e-05,
+          "n_periods": 398,
+          "realized_beta": 1.8457830718571968e-05,
+          "sharpe": -1.0816884410432854,
+          "spearman_vs_ols": 0.9995505432653653,
+          "total_return": -0.010395106403273346,
+          "turnover": 0.01743427457295307,
+          "wealth": 0.9896048935967267
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 2.9976021664879227e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.970421814712453e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": 1.8457830718571968e-05,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "halflife": 40
+        },
+        "seed": 20264147,
+        "seed_index": 3,
+        "status": "ok"
+      },
+      {
+        "beta_window": null,
+        "cell_key": "seed_3_ewma_h60",
+        "estimator": "ewma",
+        "metrics": {
+          "annualized_volatility": 0.0060844542083141225,
+          "beta_dispersion": 0.44592646685565623,
+          "beta_noise": 0.001583344513839523,
+          "jaccard_vs_ols": 1.0,
+          "max_dollar_neutral": 3.139849491518021e-15,
+          "max_drawdown": -0.011848788543825161,
+          "max_model_beta": 9.990246947489857e-05,
+          "n_periods": 398,
+          "realized_beta": -1.6099038005039582e-05,
+          "sharpe": -0.7399539276488949,
+          "spearman_vs_ols": 0.999338185266891,
+          "total_return": -0.007114443637061263,
+          "turnover": 0.008815468645952161,
+          "wealth": 0.9928855563629387
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.139849491518021e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.990246947489857e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -1.6099038005039582e-05,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "halflife": 60
+        },
+        "seed": 20264147,
+        "seed_index": 3,
+        "status": "ok"
+      },
+      {
+        "beta_window": 90,
+        "cell_key": "seed_3_shrinkage_i0.1_t1.0",
+        "estimator": "shrinkage",
+        "metrics": {
+          "annualized_volatility": 0.006065895087536106,
+          "beta_dispersion": 0.41739617906686827,
+          "beta_noise": 0.0015543283374921894,
+          "jaccard_vs_ols": 1.0,
+          "max_dollar_neutral": 3.642919299551295e-15,
+          "max_drawdown": -0.011054497494506686,
+          "max_model_beta": 9.954525718912343e-05,
+          "n_periods": 398,
+          "realized_beta": -0.00013938238933073517,
+          "sharpe": -0.6556720959829002,
+          "spearman_vs_ols": 1.0,
+          "total_return": -0.0062906767894430615,
+          "turnover": 0.01364576259981691,
+          "wealth": 0.9937093232105569
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.642919299551295e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.954525718912343e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.00013938238933073517,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "intensity": 0.1,
+          "target": 1.0,
+          "window": 90
+        },
+        "seed": 20264147,
+        "seed_index": 3,
+        "status": "ok"
+      },
+      {
+        "beta_window": 90,
+        "cell_key": "seed_3_shrinkage_i0.1_csm",
+        "estimator": "shrinkage",
+        "metrics": {
+          "annualized_volatility": 0.006067817027381684,
+          "beta_dispersion": 0.41739617906686827,
+          "beta_noise": 0.0015581570498215808,
+          "jaccard_vs_ols": 1.0,
+          "max_dollar_neutral": 3.649858193455202e-15,
+          "max_drawdown": -0.011131468640546526,
+          "max_model_beta": 9.967556363825748e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0003589296534957269,
+          "sharpe": -0.6710956528420232,
+          "spearman_vs_ols": 0.9998113518751418,
+          "total_return": -0.006439542814076771,
+          "turnover": 0.013650348405221334,
+          "wealth": 0.9935604571859232
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.649858193455202e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.967556363825748e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0003589296534957269,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "intensity": 0.1,
+          "target": "cross_sectional_mean",
+          "window": 90
+        },
+        "seed": 20264147,
+        "seed_index": 3,
+        "status": "ok"
+      },
+      {
+        "beta_window": 90,
+        "cell_key": "seed_3_shrinkage_i0.3_t1.0",
+        "estimator": "shrinkage",
+        "metrics": {
+          "annualized_volatility": 0.006064975462960588,
+          "beta_dispersion": 0.3246414726075642,
+          "beta_noise": 0.001208922040271701,
+          "jaccard_vs_ols": 1.0,
+          "max_dollar_neutral": 4.1945613649119196e-15,
+          "max_drawdown": -0.011054497494507758,
+          "max_model_beta": 9.941545805018865e-05,
+          "n_periods": 398,
+          "realized_beta": -0.000142497851608737,
+          "sharpe": -0.6561072666042065,
+          "spearman_vs_ols": 1.0,
+          "total_return": -0.006293863972548497,
+          "turnover": 0.0136450814183725,
+          "wealth": 0.9937061360274515
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 4.1945613649119196e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.941545805018865e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.000142497851608737,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "intensity": 0.3,
+          "target": 1.0,
+          "window": 90
+        },
+        "seed": 20264147,
+        "seed_index": 3,
+        "status": "ok"
+      },
+      {
+        "beta_window": 90,
+        "cell_key": "seed_3_shrinkage_i0.3_csm",
+        "estimator": "shrinkage",
+        "metrics": {
+          "annualized_volatility": 0.006083099158614572,
+          "beta_dispersion": 0.3246414726075642,
+          "beta_noise": 0.0012222667808928329,
+          "jaccard_vs_ols": 1.0,
+          "max_dollar_neutral": 5.457440055423035e-15,
+          "max_drawdown": -0.011436780711116116,
+          "max_model_beta": 9.819612430666047e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0012049349846446197,
+          "sharpe": -0.7342252801565838,
+          "spearman_vs_ols": 0.9996933179390969,
+          "total_return": -0.007058207628350077,
+          "turnover": 0.013661515071615268,
+          "wealth": 0.9929417923716499
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 5.457440055423035e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.819612430666047e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0012049349846446197,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "intensity": 0.3,
+          "target": "cross_sectional_mean",
+          "window": 90
+        },
+        "seed": 20264147,
+        "seed_index": 3,
+        "status": "ok"
       },
       {
         "beta_window": 60,
-        "cell_key": "seed_4_bw60_error",
-        "error": "run_backtest() got an unexpected keyword argument 'benchmark'",
-        "estimator": "error",
-        "metrics": {},
-        "neutrality_checks": {},
-        "params": {},
+        "cell_key": "seed_4_rolling_ols_w60",
+        "estimator": "rolling_ols",
+        "metrics": {
+          "annualized_volatility": 0.006356561069633459,
+          "beta_dispersion": 0.46588766106658186,
+          "beta_noise": 0.002732600378467795,
+          "jaccard_vs_ols": null,
+          "max_dollar_neutral": 3.0600522116230877e-15,
+          "max_drawdown": -0.013350635438137913,
+          "max_model_beta": 9.997874557878973e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0011255183048492696,
+          "sharpe": -1.2659015491181087,
+          "spearman_vs_ols": 1.0,
+          "total_return": -0.012660015375923206,
+          "turnover": 0.021671505580818054,
+          "wealth": 0.9873399846240768
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.0600522116230877e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.997874557878973e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0011255183048492696,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "window": 60
+        },
         "seed": 20265156,
         "seed_index": 4,
-        "status": "error"
+        "status": "ok"
       },
       {
         "beta_window": 90,
-        "cell_key": "seed_4_bw90_error",
-        "error": "run_backtest() got an unexpected keyword argument 'benchmark'",
-        "estimator": "error",
-        "metrics": {},
-        "neutrality_checks": {},
-        "params": {},
+        "cell_key": "seed_4_rolling_ols_w90",
+        "estimator": "rolling_ols",
+        "metrics": {
+          "annualized_volatility": 0.0062451192314554324,
+          "beta_dispersion": 0.465789987201823,
+          "beta_noise": 0.0017390450882866983,
+          "jaccard_vs_ols": null,
+          "max_dollar_neutral": 2.9108659926890823e-15,
+          "max_drawdown": -0.0113466874156713,
+          "max_model_beta": 9.944434018756469e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0006682890022059973,
+          "sharpe": -1.0554739066566932,
+          "spearman_vs_ols": 1.0,
+          "total_return": -0.010387017183838387,
+          "turnover": 0.012822526045005613,
+          "wealth": 0.9896129828161616
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 2.9108659926890823e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.944434018756469e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0006682890022059973,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "window": 90
+        },
         "seed": 20265156,
         "seed_index": 4,
-        "status": "error"
+        "status": "ok"
       },
       {
         "beta_window": 120,
-        "cell_key": "seed_4_bw120_error",
-        "error": "run_backtest() got an unexpected keyword argument 'benchmark'",
-        "estimator": "error",
-        "metrics": {},
-        "neutrality_checks": {},
-        "params": {},
+        "cell_key": "seed_4_rolling_ols_w120",
+        "estimator": "rolling_ols",
+        "metrics": {
+          "annualized_volatility": 0.0063258147495213295,
+          "beta_dispersion": 0.4656843086905215,
+          "beta_noise": 0.001293123298637959,
+          "jaccard_vs_ols": null,
+          "max_dollar_neutral": 3.247402347028583e-15,
+          "max_drawdown": -0.01214734462156303,
+          "max_model_beta": 9.861710414364603e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0008700583313341958,
+          "sharpe": -1.121696224413109,
+          "spearman_vs_ols": 1.0,
+          "total_return": -0.011175375476597083,
+          "turnover": 0.007580585051615683,
+          "wealth": 0.9888246245234029
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.247402347028583e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.861710414364603e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0008700583313341958,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "window": 120
+        },
         "seed": 20265156,
         "seed_index": 4,
-        "status": "error"
+        "status": "ok"
       },
       {
-        "beta_window": 60,
-        "cell_key": "seed_5_bw60_error",
-        "error": "run_backtest() got an unexpected keyword argument 'benchmark'",
-        "estimator": "error",
-        "metrics": {},
-        "neutrality_checks": {},
-        "params": {},
-        "seed": 20266165,
-        "seed_index": 5,
-        "status": "error"
+        "beta_window": null,
+        "cell_key": "seed_4_ewma_h20",
+        "estimator": "ewma",
+        "metrics": {
+          "annualized_volatility": 0.006284618491518202,
+          "beta_dispersion": 0.4645257639572947,
+          "beta_noise": 0.003465207936568032,
+          "jaccard_vs_ols": 1.0,
+          "max_dollar_neutral": 2.8206603719382883e-15,
+          "max_drawdown": -0.013369578319094143,
+          "max_model_beta": 9.918609775041588e-05,
+          "n_periods": 398,
+          "realized_beta": -0.00031081643018210803,
+          "sharpe": -1.3109700550964727,
+          "spearman_vs_ols": 0.999396944518896,
+          "total_return": -0.012958930377416689,
+          "turnover": 0.028045295004438267,
+          "wealth": 0.9870410696225833
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 2.8206603719382883e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.918609775041588e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.00031081643018210803,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "halflife": 20
+        },
+        "seed": 20265156,
+        "seed_index": 4,
+        "status": "ok"
+      },
+      {
+        "beta_window": null,
+        "cell_key": "seed_4_ewma_h40",
+        "estimator": "ewma",
+        "metrics": {
+          "annualized_volatility": 0.006307344209351119,
+          "beta_dispersion": 0.45721346573631816,
+          "beta_noise": 0.0019494322005243734,
+          "jaccard_vs_ols": 1.0,
+          "max_dollar_neutral": 2.7408630920433552e-15,
+          "max_drawdown": -0.010589471536512742,
+          "max_model_beta": 9.995948650996103e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0007449030056420701,
+          "sharpe": -0.9992115675559776,
+          "spearman_vs_ols": 0.9996794012741481,
+          "total_return": -0.0099355203915652,
+          "turnover": 0.011558927258265123,
+          "wealth": 0.9900644796084348
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 2.7408630920433552e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.995948650996103e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0007449030056420701,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "halflife": 40
+        },
+        "seed": 20265156,
+        "seed_index": 4,
+        "status": "ok"
+      },
+      {
+        "beta_window": null,
+        "cell_key": "seed_4_ewma_h60",
+        "estimator": "ewma",
+        "metrics": {
+          "annualized_volatility": 0.006360097641624657,
+          "beta_dispersion": 0.44739527497165404,
+          "beta_noise": 0.0015812381624904644,
+          "jaccard_vs_ols": 1.0,
+          "max_dollar_neutral": 3.823330541052883e-15,
+          "max_drawdown": -0.011730587500903309,
+          "max_model_beta": 9.253002424475221e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0009261893308676945,
+          "sharpe": -1.078302981248556,
+          "spearman_vs_ols": 0.9994943611735359,
+          "total_return": -0.01080467998998147,
+          "turnover": 0.007891351553564269,
+          "wealth": 0.9891953200100185
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.823330541052883e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.253002424475221e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0009261893308676945,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "halflife": 60
+        },
+        "seed": 20265156,
+        "seed_index": 4,
+        "status": "ok"
       },
       {
         "beta_window": 90,
-        "cell_key": "seed_5_bw90_error",
-        "error": "run_backtest() got an unexpected keyword argument 'benchmark'",
-        "estimator": "error",
-        "metrics": {},
-        "neutrality_checks": {},
-        "params": {},
-        "seed": 20266165,
-        "seed_index": 5,
-        "status": "error"
-      },
-      {
-        "beta_window": 120,
-        "cell_key": "seed_5_bw120_error",
-        "error": "run_backtest() got an unexpected keyword argument 'benchmark'",
-        "estimator": "error",
-        "metrics": {},
-        "neutrality_checks": {},
-        "params": {},
-        "seed": 20266165,
-        "seed_index": 5,
-        "status": "error"
-      },
-      {
-        "beta_window": 60,
-        "cell_key": "seed_6_bw60_error",
-        "error": "run_backtest() got an unexpected keyword argument 'benchmark'",
-        "estimator": "error",
-        "metrics": {},
-        "neutrality_checks": {},
-        "params": {},
-        "seed": 20267174,
-        "seed_index": 6,
-        "status": "error"
-      },
-      {
-        "beta_window": 90,
-        "cell_key": "seed_6_bw90_error",
-        "error": "run_backtest() got an unexpected keyword argument 'benchmark'",
-        "estimator": "error",
-        "metrics": {},
-        "neutrality_checks": {},
-        "params": {},
-        "seed": 20267174,
-        "seed_index": 6,
-        "status": "error"
-      },
-      {
-        "beta_window": 120,
-        "cell_key": "seed_6_bw120_error",
-        "error": "run_backtest() got an unexpected keyword argument 'benchmark'",
-        "estimator": "error",
-        "metrics": {},
-        "neutrality_checks": {},
-        "params": {},
-        "seed": 20267174,
-        "seed_index": 6,
-        "status": "error"
-      },
-      {
-        "beta_window": 60,
-        "cell_key": "seed_7_bw60_error",
-        "error": "run_backtest() got an unexpected keyword argument 'benchmark'",
-        "estimator": "error",
-        "metrics": {},
-        "neutrality_checks": {},
-        "params": {},
-        "seed": 20268183,
-        "seed_index": 7,
-        "status": "error"
+        "cell_key": "seed_4_shrinkage_i0.1_t1.0",
+        "estimator": "shrinkage",
+        "metrics": {
+          "annualized_volatility": 0.006244899239253235,
+          "beta_dispersion": 0.41921098848164073,
+          "beta_noise": 0.0015651405794580293,
+          "jaccard_vs_ols": 1.0,
+          "max_dollar_neutral": 3.271688475692258e-15,
+          "max_drawdown": -0.01134649494950006,
+          "max_model_beta": 9.908105700044791e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0006702429752266396,
+          "sharpe": -1.055064593060811,
+          "spearman_vs_ols": 1.0,
+          "total_return": -0.010382656887885755,
+          "turnover": 0.012822254511788492,
+          "wealth": 0.9896173431121142
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.271688475692258e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.908105700044791e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0006702429752266396,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "intensity": 0.1,
+          "target": 1.0,
+          "window": 90
+        },
+        "seed": 20265156,
+        "seed_index": 4,
+        "status": "ok"
       },
       {
         "beta_window": 90,
-        "cell_key": "seed_7_bw90_error",
-        "error": "run_backtest() got an unexpected keyword argument 'benchmark'",
-        "estimator": "error",
-        "metrics": {},
-        "neutrality_checks": {},
-        "params": {},
-        "seed": 20268183,
-        "seed_index": 7,
-        "status": "error"
+        "cell_key": "seed_4_shrinkage_i0.1_csm",
+        "estimator": "shrinkage",
+        "metrics": {
+          "annualized_volatility": 0.006246530755713852,
+          "beta_dispersion": 0.41921098848164073,
+          "beta_noise": 0.001570258314454026,
+          "jaccard_vs_ols": 1.0,
+          "max_dollar_neutral": 3.2890357104520263e-15,
+          "max_drawdown": -0.011522565903429332,
+          "max_model_beta": 9.791705069601701e-05,
+          "n_periods": 398,
+          "realized_beta": -0.000882630826300436,
+          "sharpe": -1.0731255771512669,
+          "spearman_vs_ols": 0.9999768055584191,
+          "total_return": -0.010561683355263196,
+          "turnover": 0.012827043107273521,
+          "wealth": 0.9894383166447368
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.2890357104520263e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.791705069601701e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.000882630826300436,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "intensity": 0.1,
+          "target": "cross_sectional_mean",
+          "window": 90
+        },
+        "seed": 20265156,
+        "seed_index": 4,
+        "status": "ok"
+      },
+      {
+        "beta_window": 90,
+        "cell_key": "seed_4_shrinkage_i0.3_t1.0",
+        "estimator": "shrinkage",
+        "metrics": {
+          "annualized_volatility": 0.0062445385914799085,
+          "beta_dispersion": 0.32605299104127605,
+          "beta_noise": 0.0012173315618006898,
+          "jaccard_vs_ols": 1.0,
+          "max_dollar_neutral": 4.180683577104105e-15,
+          "max_drawdown": -0.011350114161490621,
+          "max_model_beta": 9.997329500418415e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0006682786901771249,
+          "sharpe": -1.0558863424548752,
+          "spearman_vs_ols": 1.0,
+          "total_return": -0.01039007910775458,
+          "turnover": 0.012821651645865033,
+          "wealth": 0.9896099208922454
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 4.180683577104105e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.997329500418415e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0006682786901771249,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "intensity": 0.3,
+          "target": 1.0,
+          "window": 90
+        },
+        "seed": 20265156,
+        "seed_index": 4,
+        "status": "ok"
+      },
+      {
+        "beta_window": 90,
+        "cell_key": "seed_4_shrinkage_i0.3_csm",
+        "estimator": "shrinkage",
+        "metrics": {
+          "annualized_volatility": 0.0062606855571464256,
+          "beta_dispersion": 0.32605299104127605,
+          "beta_noise": 0.001235032498044726,
+          "jaccard_vs_ols": 1.0,
+          "max_dollar_neutral": 4.921410501346202e-15,
+          "max_drawdown": -0.012209001794871364,
+          "max_model_beta": 9.958604721614142e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0017150181361670594,
+          "sharpe": -1.139432383517975,
+          "spearman_vs_ols": 0.9995407500566977,
+          "total_return": -0.011234059369287452,
+          "turnover": 0.012838734863309678,
+          "wealth": 0.9887659406307125
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 4.921410501346202e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.958604721614142e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0017150181361670594,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "intensity": 0.3,
+          "target": "cross_sectional_mean",
+          "window": 90
+        },
+        "seed": 20265156,
+        "seed_index": 4,
+        "status": "ok"
+      },
+      {
+        "beta_window": 60,
+        "cell_key": "seed_5_rolling_ols_w60",
+        "estimator": "rolling_ols",
+        "metrics": {
+          "annualized_volatility": 0.006248384850234218,
+          "beta_dispersion": 0.46362647154494285,
+          "beta_noise": 0.0026594830247171305,
+          "jaccard_vs_ols": null,
+          "max_dollar_neutral": 3.490263633665336e-15,
+          "max_drawdown": -0.008794361419293037,
+          "max_model_beta": 9.983970398891583e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0009764069596905242,
+          "sharpe": -0.16181156347693107,
+          "spearman_vs_ols": 1.0,
+          "total_return": -0.00162626572602953,
+          "turnover": 0.019409963707243228,
+          "wealth": 0.9983737342739705
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.490263633665336e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.983970398891583e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0009764069596905242,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "window": 60
+        },
+        "seed": 20266165,
+        "seed_index": 5,
+        "status": "ok"
+      },
+      {
+        "beta_window": 90,
+        "cell_key": "seed_5_rolling_ols_w90",
+        "estimator": "rolling_ols",
+        "metrics": {
+          "annualized_volatility": 0.006252539939156496,
+          "beta_dispersion": 0.4636527274433125,
+          "beta_noise": 0.0017214022037920626,
+          "jaccard_vs_ols": null,
+          "max_dollar_neutral": 3.146788385421928e-15,
+          "max_drawdown": -0.008173772001912383,
+          "max_model_beta": 9.9981686386213e-05,
+          "n_periods": 398,
+          "realized_beta": -0.001025480869596511,
+          "sharpe": 0.5011322008379074,
+          "spearman_vs_ols": 1.0,
+          "total_return": 0.004929992119533155,
+          "turnover": 0.010290727580328967,
+          "wealth": 1.0049299921195332
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.146788385421928e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.9981686386213e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.001025480869596511,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "window": 90
+        },
+        "seed": 20266165,
+        "seed_index": 5,
+        "status": "ok"
       },
       {
         "beta_window": 120,
-        "cell_key": "seed_7_bw120_error",
-        "error": "run_backtest() got an unexpected keyword argument 'benchmark'",
-        "estimator": "error",
-        "metrics": {},
-        "neutrality_checks": {},
-        "params": {},
+        "cell_key": "seed_5_rolling_ols_w120",
+        "estimator": "rolling_ols",
+        "metrics": {
+          "annualized_volatility": 0.006173218721469612,
+          "beta_dispersion": 0.46363081787370314,
+          "beta_noise": 0.0012808926797885755,
+          "jaccard_vs_ols": null,
+          "max_dollar_neutral": 3.146788385421928e-15,
+          "max_drawdown": -0.008007500399980686,
+          "max_model_beta": 9.374084654651238e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0008007932465526746,
+          "sharpe": 0.7734214870059571,
+          "spearman_vs_ols": 1.0,
+          "total_return": 0.00753886778712598,
+          "turnover": 0.007548549786344182,
+          "wealth": 1.007538867787126
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.146788385421928e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.374084654651238e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0008007932465526746,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "window": 120
+        },
+        "seed": 20266165,
+        "seed_index": 5,
+        "status": "ok"
+      },
+      {
+        "beta_window": null,
+        "cell_key": "seed_5_ewma_h20",
+        "estimator": "ewma",
+        "metrics": {
+          "annualized_volatility": 0.006122343928604067,
+          "beta_dispersion": 0.46245315304532114,
+          "beta_noise": 0.0034316878431680446,
+          "jaccard_vs_ols": 1.0,
+          "max_dollar_neutral": 3.1953606427492787e-15,
+          "max_drawdown": -0.00879674809718083,
+          "max_model_beta": 9.973930069970316e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0008959896993407969,
+          "sharpe": -0.14502577429242272,
+          "spearman_vs_ols": 0.9993902439024392,
+          "total_return": -0.001430816950903857,
+          "turnover": 0.02762165828543184,
+          "wealth": 0.9985691830490961
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.1953606427492787e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.973930069970316e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0008959896993407969,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "halflife": 20
+        },
+        "seed": 20266165,
+        "seed_index": 5,
+        "status": "ok"
+      },
+      {
+        "beta_window": null,
+        "cell_key": "seed_5_ewma_h40",
+        "estimator": "ewma",
+        "metrics": {
+          "annualized_volatility": 0.006163660540281991,
+          "beta_dispersion": 0.4553068199386351,
+          "beta_noise": 0.0019262525510061364,
+          "jaccard_vs_ols": 1.0,
+          "max_dollar_neutral": 3.5388358909926865e-15,
+          "max_drawdown": -0.008299024531912823,
+          "max_model_beta": 9.883862820006756e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0006858718088350203,
+          "sharpe": 0.6125552033994002,
+          "spearman_vs_ols": 0.9996742469537967,
+          "total_return": 0.0059506916641316465,
+          "turnover": 0.009850091379229391,
+          "wealth": 1.0059506916641316
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.5388358909926865e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.883862820006756e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0006858718088350203,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "halflife": 40
+        },
+        "seed": 20266165,
+        "seed_index": 5,
+        "status": "ok"
+      },
+      {
+        "beta_window": null,
+        "cell_key": "seed_5_ewma_h60",
+        "estimator": "ewma",
+        "metrics": {
+          "annualized_volatility": 0.006163265193763817,
+          "beta_dispersion": 0.4455052046941158,
+          "beta_noise": 0.0015524238932949242,
+          "jaccard_vs_ols": 1.0,
+          "max_dollar_neutral": 3.1814828549414642e-15,
+          "max_drawdown": -0.007958677493436591,
+          "max_model_beta": 9.925522778475968e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0005199428972960257,
+          "sharpe": 0.7303700464088037,
+          "spearman_vs_ols": 0.9994660124116036,
+          "total_return": 0.007104592699141765,
+          "turnover": 0.007844746675660657,
+          "wealth": 1.0071045926991418
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.1814828549414642e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.925522778475968e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0005199428972960257,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "halflife": 60
+        },
+        "seed": 20266165,
+        "seed_index": 5,
+        "status": "ok"
+      },
+      {
+        "beta_window": 90,
+        "cell_key": "seed_5_shrinkage_i0.1_t1.0",
+        "estimator": "shrinkage",
+        "metrics": {
+          "annualized_volatility": 0.006252603941179341,
+          "beta_dispersion": 0.4172874546989812,
+          "beta_noise": 0.001549261983412857,
+          "jaccard_vs_ols": 1.0,
+          "max_dollar_neutral": 3.760880495917718e-15,
+          "max_drawdown": -0.008173772001912605,
+          "max_model_beta": 9.952970686994368e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0010259730869044098,
+          "sharpe": 0.5011991966055516,
+          "spearman_vs_ols": 1.0,
+          "total_return": 0.0049307072374713545,
+          "turnover": 0.010290743045178428,
+          "wealth": 1.0049307072374714
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.760880495917718e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.952970686994368e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0010259730869044098,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "intensity": 0.1,
+          "target": 1.0,
+          "window": 90
+        },
+        "seed": 20266165,
+        "seed_index": 5,
+        "status": "ok"
+      },
+      {
+        "beta_window": 90,
+        "cell_key": "seed_5_shrinkage_i0.1_csm",
+        "estimator": "shrinkage",
+        "metrics": {
+          "annualized_volatility": 0.006257792891492222,
+          "beta_dispersion": 0.4172874546989812,
+          "beta_noise": 0.001554121877838951,
+          "jaccard_vs_ols": 1.0,
+          "max_dollar_neutral": 2.896988204881268e-15,
+          "max_drawdown": -0.0082030198305097,
+          "max_model_beta": 9.960299324969633e-05,
+          "n_periods": 398,
+          "realized_beta": -0.001247164981032907,
+          "sharpe": 0.4838147606605833,
+          "spearman_vs_ols": 0.9999603117332949,
+          "total_return": 0.004762136289038876,
+          "turnover": 0.01029536526896722,
+          "wealth": 1.0047621362890389
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 2.896988204881268e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.960299324969633e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.001247164981032907,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "intensity": 0.1,
+          "target": "cross_sectional_mean",
+          "window": 90
+        },
+        "seed": 20266165,
+        "seed_index": 5,
+        "status": "ok"
+      },
+      {
+        "beta_window": 90,
+        "cell_key": "seed_5_shrinkage_i0.3_t1.0",
+        "estimator": "shrinkage",
+        "metrics": {
+          "annualized_volatility": 0.006254465666979992,
+          "beta_dispersion": 0.32455690921031866,
+          "beta_noise": 0.0012049815426544443,
+          "jaccard_vs_ols": 1.0,
+          "max_dollar_neutral": 5.006411951669065e-15,
+          "max_drawdown": -0.00817380397922232,
+          "max_model_beta": 9.984181539133286e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0010595651834230245,
+          "sharpe": 0.4960417571118294,
+          "spearman_vs_ols": 1.0,
+          "total_return": 0.004880974786595438,
+          "turnover": 0.01029152954928713,
+          "wealth": 1.0048809747865954
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 5.006411951669065e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.984181539133286e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0010595651834230245,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "intensity": 0.3,
+          "target": 1.0,
+          "window": 90
+        },
+        "seed": 20266165,
+        "seed_index": 5,
+        "status": "ok"
+      },
+      {
+        "beta_window": 90,
+        "cell_key": "seed_5_shrinkage_i0.3_csm",
+        "estimator": "shrinkage",
+        "metrics": {
+          "annualized_volatility": 0.006284274519836913,
+          "beta_dispersion": 0.32455690921031866,
+          "beta_noise": 0.0012215931646581359,
+          "jaccard_vs_ols": 1.0,
+          "max_dollar_neutral": 4.822531263215524e-15,
+          "max_drawdown": -0.008334500761369405,
+          "max_model_beta": 9.99600643003518e-05,
+          "n_periods": 398,
+          "realized_beta": -0.002153329526616011,
+          "sharpe": 0.41092029169924577,
+          "spearman_vs_ols": 0.9994526111786902,
+          "total_return": 0.004055526446343771,
+          "turnover": 0.010306652155600539,
+          "wealth": 1.0040555264463438
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 4.822531263215524e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.99600643003518e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.002153329526616011,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "intensity": 0.3,
+          "target": "cross_sectional_mean",
+          "window": 90
+        },
+        "seed": 20266165,
+        "seed_index": 5,
+        "status": "ok"
+      },
+      {
+        "beta_window": 60,
+        "cell_key": "seed_6_rolling_ols_w60",
+        "estimator": "rolling_ols",
+        "metrics": {
+          "annualized_volatility": 0.0064847089556310565,
+          "beta_dispersion": 0.46420646716204916,
+          "beta_noise": 0.0026846779834607277,
+          "jaccard_vs_ols": null,
+          "max_dollar_neutral": 3.2439329000766293e-15,
+          "max_drawdown": -0.022050546855312714,
+          "max_model_beta": 9.954233151990252e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0023114687843581215,
+          "sharpe": -1.95824170779847,
+          "spearman_vs_ols": 1.0,
+          "total_return": -0.01988895620907749,
+          "turnover": 0.01913700019082115,
+          "wealth": 0.9801110437909225
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.2439329000766293e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.954233151990252e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0023114687843581215,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "window": 60
+        },
+        "seed": 20267174,
+        "seed_index": 6,
+        "status": "ok"
+      },
+      {
+        "beta_window": 90,
+        "cell_key": "seed_6_rolling_ols_w90",
+        "estimator": "rolling_ols",
+        "metrics": {
+          "annualized_volatility": 0.0062621727043657375,
+          "beta_dispersion": 0.46391190038039354,
+          "beta_noise": 0.0017244966776596778,
+          "jaccard_vs_ols": null,
+          "max_dollar_neutral": 2.9629076969683865e-15,
+          "max_drawdown": -0.016122734014425655,
+          "max_model_beta": 9.992635395115498e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0019526611663583688,
+          "sharpe": -1.2007608357491564,
+          "spearman_vs_ols": 1.0,
+          "total_return": -0.01183629669138564,
+          "turnover": 0.009572103343217049,
+          "wealth": 0.9881637033086144
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 2.9629076969683865e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.992635395115498e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0019526611663583688,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "window": 90
+        },
+        "seed": 20267174,
+        "seed_index": 6,
+        "status": "ok"
+      },
+      {
+        "beta_window": 120,
+        "cell_key": "seed_6_rolling_ols_w120",
+        "estimator": "rolling_ols",
+        "metrics": {
+          "annualized_volatility": 0.006272509386372714,
+          "beta_dispersion": 0.463591338955887,
+          "beta_noise": 0.0012852134136244605,
+          "jaccard_vs_ols": null,
+          "max_dollar_neutral": 3.2508717939805365e-15,
+          "max_drawdown": -0.015956276087963128,
+          "max_model_beta": 9.925579310858985e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0018185425992957348,
+          "sharpe": -1.1002767446200672,
+          "spearman_vs_ols": 1.0,
+          "total_return": -0.010871598940996097,
+          "turnover": 0.007634520879860029,
+          "wealth": 0.9891284010590039
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.2508717939805365e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.925579310858985e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0018185425992957348,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "window": 120
+        },
+        "seed": 20267174,
+        "seed_index": 6,
+        "status": "ok"
+      },
+      {
+        "beta_window": null,
+        "cell_key": "seed_6_ewma_h20",
+        "estimator": "ewma",
+        "metrics": {
+          "annualized_volatility": 0.0064820951105966276,
+          "beta_dispersion": 0.4627144278182494,
+          "beta_noise": 0.0034517323471945794,
+          "jaccard_vs_ols": 1.0,
+          "max_dollar_neutral": 2.7547408798511697e-15,
+          "max_drawdown": -0.02283868397168387,
+          "max_model_beta": 9.94285957423225e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0017677817604105663,
+          "sharpe": -2.052807053408467,
+          "spearman_vs_ols": 0.9993216914417667,
+          "total_return": -0.020829470197317956,
+          "turnover": 0.02490431357256302,
+          "wealth": 0.979170529802682
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 2.7547408798511697e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.94285957423225e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0017677817604105663,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "halflife": 20
+        },
+        "seed": 20267174,
+        "seed_index": 6,
+        "status": "ok"
+      },
+      {
+        "beta_window": null,
+        "cell_key": "seed_6_ewma_h40",
+        "estimator": "ewma",
+        "metrics": {
+          "annualized_volatility": 0.006338352273086285,
+          "beta_dispersion": 0.4552734312611684,
+          "beta_noise": 0.0019382294286471595,
+          "jaccard_vs_ols": 1.0,
+          "max_dollar_neutral": 2.473715676742927e-15,
+          "max_drawdown": -0.01920743911360978,
+          "max_model_beta": 9.992948110630139e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0012015594522492017,
+          "sharpe": -1.464703876133852,
+          "spearman_vs_ols": 0.9995572438818219,
+          "total_return": -0.014587007032707322,
+          "turnover": 0.013275218976500299,
+          "wealth": 0.9854129929672927
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 2.473715676742927e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.992948110630139e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0012015594522492017,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "halflife": 40
+        },
+        "seed": 20267174,
+        "seed_index": 6,
+        "status": "ok"
+      },
+      {
+        "beta_window": null,
+        "cell_key": "seed_6_ewma_h60",
+        "estimator": "ewma",
+        "metrics": {
+          "annualized_volatility": 0.006277242064723035,
+          "beta_dispersion": 0.44539548399256784,
+          "beta_noise": 0.0015674848097684262,
+          "jaccard_vs_ols": 1.0,
+          "max_dollar_neutral": 2.9282132274488504e-15,
+          "max_drawdown": -0.017982975979728644,
+          "max_model_beta": 9.995750845967877e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0011071047821261334,
+          "sharpe": -1.3056507837988416,
+          "spearman_vs_ols": 0.9993551945240502,
+          "total_return": -0.012891729203595492,
+          "turnover": 0.010469379509462695,
+          "wealth": 0.9871082707964045
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 2.9282132274488504e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.995750845967877e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0011071047821261334,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "halflife": 60
+        },
+        "seed": 20267174,
+        "seed_index": 6,
+        "status": "ok"
+      },
+      {
+        "beta_window": 90,
+        "cell_key": "seed_6_shrinkage_i0.1_t1.0",
+        "estimator": "shrinkage",
+        "metrics": {
+          "annualized_volatility": 0.0062627537820701094,
+          "beta_dispersion": 0.4175207103423543,
+          "beta_noise": 0.0015520470098937097,
+          "jaccard_vs_ols": 1.0,
+          "max_dollar_neutral": 3.058317488147111e-15,
+          "max_drawdown": -0.01614940813246335,
+          "max_model_beta": 9.995482082987306e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0019643572770433413,
+          "sharpe": -1.2039090988749832,
+          "spearman_vs_ols": 1.0,
+          "total_return": -0.011868163174930446,
+          "turnover": 0.009571985614509516,
+          "wealth": 0.9881318368250696
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.058317488147111e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.995482082987306e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0019643572770433413,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "intensity": 0.1,
+          "target": 1.0,
+          "window": 90
+        },
+        "seed": 20267174,
+        "seed_index": 6,
+        "status": "ok"
+      },
+      {
+        "beta_window": 90,
+        "cell_key": "seed_6_shrinkage_i0.1_csm",
+        "estimator": "shrinkage",
+        "metrics": {
+          "annualized_volatility": 0.006268923629684768,
+          "beta_dispersion": 0.4175207103423543,
+          "beta_noise": 0.0015563080401168315,
+          "jaccard_vs_ols": 1.0,
+          "max_dollar_neutral": 3.842412499288628e-15,
+          "max_drawdown": -0.01629941393856149,
+          "max_model_beta": 9.989460325974736e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0021920823031687134,
+          "sharpe": -1.2230413221006582,
+          "spearman_vs_ols": 0.9999556728449787,
+          "total_return": -0.01206698007360929,
+          "turnover": 0.009576714937163458,
+          "wealth": 0.9879330199263907
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.842412499288628e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.989460325974736e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0021920823031687134,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "intensity": 0.1,
+          "target": "cross_sectional_mean",
+          "window": 90
+        },
+        "seed": 20267174,
+        "seed_index": 6,
+        "status": "ok"
+      },
+      {
+        "beta_window": 90,
+        "cell_key": "seed_6_shrinkage_i0.3_t1.0",
+        "estimator": "shrinkage",
+        "metrics": {
+          "annualized_volatility": 0.0062631875925610245,
+          "beta_dispersion": 0.32473833026627547,
+          "beta_noise": 0.0012071476743617745,
+          "jaccard_vs_ols": 1.0,
+          "max_dollar_neutral": 5.578870698741412e-15,
+          "max_drawdown": -0.016179655971411022,
+          "max_model_beta": 9.972907186653165e-05,
+          "n_periods": 398,
+          "realized_beta": -0.002005010242959434,
+          "sharpe": -1.2083804251842485,
+          "spearman_vs_ols": 1.0,
+          "total_return": -0.011912687623179874,
+          "turnover": 0.0095715230598618,
+          "wealth": 0.9880873123768201
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 5.578870698741412e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.972907186653165e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.002005010242959434,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "intensity": 0.3,
+          "target": 1.0,
+          "window": 90
+        },
+        "seed": 20267174,
+        "seed_index": 6,
+        "status": "ok"
+      },
+      {
+        "beta_window": 90,
+        "cell_key": "seed_6_shrinkage_i0.3_csm",
+        "estimator": "shrinkage",
+        "metrics": {
+          "annualized_volatility": 0.006298513500420041,
+          "beta_dispersion": 0.32473833026627547,
+          "beta_noise": 0.0012218342405626605,
+          "jaccard_vs_ols": 1.0,
+          "max_dollar_neutral": 4.912736883966318e-15,
+          "max_drawdown": -0.016901985756039184,
+          "max_model_beta": 9.771189794338009e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0030967952390772626,
+          "sharpe": -1.297304396992468,
+          "spearman_vs_ols": 0.9996737315217616,
+          "total_return": -0.012853277214943781,
+          "turnover": 0.009585973282344167,
+          "wealth": 0.9871467227850562
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 4.912736883966318e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.771189794338009e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0030967952390772626,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "intensity": 0.3,
+          "target": "cross_sectional_mean",
+          "window": 90
+        },
+        "seed": 20267174,
+        "seed_index": 6,
+        "status": "ok"
+      },
+      {
+        "beta_window": 60,
+        "cell_key": "seed_7_rolling_ols_w60",
+        "estimator": "rolling_ols",
+        "metrics": {
+          "annualized_volatility": 0.006261695156697132,
+          "beta_dispersion": 0.46266805325644034,
+          "beta_noise": 0.00269775396147002,
+          "jaccard_vs_ols": null,
+          "max_dollar_neutral": 3.563122019656362e-15,
+          "max_drawdown": -0.013632599139872359,
+          "max_model_beta": 9.982688993623324e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0011540500645005674,
+          "sharpe": -0.6198839386001077,
+          "spearman_vs_ols": 1.0,
+          "total_return": -0.00614233697230393,
+          "turnover": 0.02168366771580349,
+          "wealth": 0.9938576630276961
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.563122019656362e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.982688993623324e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0011540500645005674,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "window": 60
+        },
         "seed": 20268183,
         "seed_index": 7,
-        "status": "error"
+        "status": "ok"
+      },
+      {
+        "beta_window": 90,
+        "cell_key": "seed_7_rolling_ols_w90",
+        "estimator": "rolling_ols",
+        "metrics": {
+          "annualized_volatility": 0.006057028826984428,
+          "beta_dispersion": 0.46232303540879216,
+          "beta_noise": 0.0017296085822886744,
+          "jaccard_vs_ols": null,
+          "max_dollar_neutral": 2.8345381597461028e-15,
+          "max_drawdown": -0.010903175049335698,
+          "max_model_beta": 9.848401443634593e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0011089104433291434,
+          "sharpe": 0.0248696882754275,
+          "spearman_vs_ols": 1.0,
+          "total_return": 0.0002090311868863104,
+          "turnover": 0.010813839564814144,
+          "wealth": 1.0002090311868863
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 2.8345381597461028e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.848401443634593e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0011089104433291434,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "window": 90
+        },
+        "seed": 20268183,
+        "seed_index": 7,
+        "status": "ok"
+      },
+      {
+        "beta_window": 120,
+        "cell_key": "seed_7_rolling_ols_w120",
+        "estimator": "rolling_ols",
+        "metrics": {
+          "annualized_volatility": 0.006018495384873497,
+          "beta_dispersion": 0.4619355657938941,
+          "beta_noise": 0.0012837564549753428,
+          "jaccard_vs_ols": null,
+          "max_dollar_neutral": 2.761679773755077e-15,
+          "max_drawdown": -0.01021120727764585,
+          "max_model_beta": 9.991822193800758e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0008868836280416247,
+          "sharpe": 0.13601498782295737,
+          "spearman_vs_ols": 1.0,
+          "total_return": 0.0012651409521660106,
+          "turnover": 0.008835311162197873,
+          "wealth": 1.001265140952166
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 2.761679773755077e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.991822193800758e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0008868836280416247,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "window": 120
+        },
+        "seed": 20268183,
+        "seed_index": 7,
+        "status": "ok"
+      },
+      {
+        "beta_window": null,
+        "cell_key": "seed_7_ewma_h20",
+        "estimator": "ewma",
+        "metrics": {
+          "annualized_volatility": 0.006242661359084805,
+          "beta_dispersion": 0.4611932389352934,
+          "beta_noise": 0.003426817485611009,
+          "jaccard_vs_ols": 1.0,
+          "max_dollar_neutral": 3.3063829452117943e-15,
+          "max_drawdown": -0.01155038160235625,
+          "max_model_beta": 9.996843856299288e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0015286277971970528,
+          "sharpe": -0.2841425390891653,
+          "spearman_vs_ols": 0.9993835432859824,
+          "total_return": -0.0028281889285345363,
+          "turnover": 0.021507311566855106,
+          "wealth": 0.9971718110714655
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.3063829452117943e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.996843856299288e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0015286277971970528,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "halflife": 20
+        },
+        "seed": 20268183,
+        "seed_index": 7,
+        "status": "ok"
+      },
+      {
+        "beta_window": null,
+        "cell_key": "seed_7_ewma_h40",
+        "estimator": "ewma",
+        "metrics": {
+          "annualized_volatility": 0.00587364745667677,
+          "beta_dispersion": 0.4540023164481869,
+          "beta_noise": 0.0019258495726938482,
+          "jaccard_vs_ols": 1.0,
+          "max_dollar_neutral": 2.8622937353617317e-15,
+          "max_drawdown": -0.01057519770719771,
+          "max_model_beta": 9.989653776233212e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0012699654989837509,
+          "sharpe": 0.14238183221721976,
+          "spearman_vs_ols": 0.9996201265901079,
+          "total_return": 0.0012944826514396102,
+          "turnover": 0.01156982685459749,
+          "wealth": 1.0012944826514396
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 2.8622937353617317e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.989653776233212e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0012699654989837509,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "halflife": 40
+        },
+        "seed": 20268183,
+        "seed_index": 7,
+        "status": "ok"
+      },
+      {
+        "beta_window": null,
+        "cell_key": "seed_7_ewma_h60",
+        "estimator": "ewma",
+        "metrics": {
+          "annualized_volatility": 0.005975096213100952,
+          "beta_dispersion": 0.4443571952787023,
+          "beta_noise": 0.0015630818194246072,
+          "jaccard_vs_ols": 1.0,
+          "max_dollar_neutral": 2.4875934645507414e-15,
+          "max_drawdown": -0.010277477752174833,
+          "max_model_beta": 9.865410720351194e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0007344554892789667,
+          "sharpe": 0.19562490271735022,
+          "spearman_vs_ols": 0.9993314846504342,
+          "total_return": 0.0018196101051959346,
+          "turnover": 0.008280106947139126,
+          "wealth": 1.001819610105196
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 2.4875934645507414e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.865410720351194e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0007344554892789667,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "halflife": 60
+        },
+        "seed": 20268183,
+        "seed_index": 7,
+        "status": "ok"
+      },
+      {
+        "beta_window": 90,
+        "cell_key": "seed_7_shrinkage_i0.1_t1.0",
+        "estimator": "shrinkage",
+        "metrics": {
+          "annualized_volatility": 0.006057044988848128,
+          "beta_dispersion": 0.41609073186791296,
+          "beta_noise": 0.0015566477240598077,
+          "jaccard_vs_ols": 1.0,
+          "max_dollar_neutral": 3.635980405647388e-15,
+          "max_drawdown": -0.01089789608307736,
+          "max_model_beta": 9.940823034141296e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0011139793615317752,
+          "sharpe": 0.025062258599820794,
+          "spearman_vs_ols": 1.0,
+          "total_return": 0.0002108742356432547,
+          "turnover": 0.010813736818653986,
+          "wealth": 1.0002108742356433
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.635980405647388e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.940823034141296e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0011139793615317752,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "intensity": 0.1,
+          "target": 1.0,
+          "window": 90
+        },
+        "seed": 20268183,
+        "seed_index": 7,
+        "status": "ok"
+      },
+      {
+        "beta_window": 90,
+        "cell_key": "seed_7_shrinkage_i0.1_csm",
+        "estimator": "shrinkage",
+        "metrics": {
+          "annualized_volatility": 0.006062923234520972,
+          "beta_dispersion": 0.41609073186791296,
+          "beta_noise": 0.0015609421351908685,
+          "jaccard_vs_ols": 1.0,
+          "max_dollar_neutral": 3.039235529911366e-15,
+          "max_drawdown": -0.010972385419339405,
+          "max_model_beta": 9.978264431273721e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0013212233346237014,
+          "sharpe": 0.005596715786680604,
+          "spearman_vs_ols": 0.9999335092674682,
+          "total_return": 2.4635280429174955e-05,
+          "turnover": 0.010818877697384151,
+          "wealth": 1.0000246352804292
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.039235529911366e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.978264431273721e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0013212233346237014,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "intensity": 0.1,
+          "target": "cross_sectional_mean",
+          "window": 90
+        },
+        "seed": 20268183,
+        "seed_index": 7,
+        "status": "ok"
+      },
+      {
+        "beta_window": 90,
+        "cell_key": "seed_7_shrinkage_i0.3_t1.0",
+        "estimator": "shrinkage",
+        "metrics": {
+          "annualized_volatility": 0.006058314852172342,
+          "beta_dispersion": 0.32362612478615455,
+          "beta_noise": 0.0012107260076020725,
+          "jaccard_vs_ols": 1.0,
+          "max_dollar_neutral": 4.690692279041286e-15,
+          "max_drawdown": -0.010907217983308229,
+          "max_model_beta": 9.980715732234545e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0011378183198368429,
+          "sharpe": 0.021272088917618524,
+          "spearman_vs_ols": 1.0,
+          "total_return": 0.00017463996715139096,
+          "turnover": 0.010814876908996046,
+          "wealth": 1.0001746399671514
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 4.690692279041286e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.980715732234545e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0011378183198368429,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "intensity": 0.3,
+          "target": 1.0,
+          "window": 90
+        },
+        "seed": 20268183,
+        "seed_index": 7,
+        "status": "ok"
+      },
+      {
+        "beta_window": 90,
+        "cell_key": "seed_7_shrinkage_i0.3_csm",
+        "estimator": "shrinkage",
+        "metrics": {
+          "annualized_volatility": 0.006090837068847732,
+          "beta_dispersion": 0.32362612478615455,
+          "beta_noise": 0.0012258391696176574,
+          "jaccard_vs_ols": 1.0,
+          "max_dollar_neutral": 4.1147640850169864e-15,
+          "max_drawdown": -0.01124064217669519,
+          "max_model_beta": 9.996229237108431e-05,
+          "n_periods": 398,
+          "realized_beta": -0.0021635708480168166,
+          "sharpe": -0.06857686935323375,
+          "spearman_vs_ols": 0.9996366204152323,
+          "total_return": -0.0006886731433465298,
+          "turnover": 0.010828911143263486,
+          "wealth": 0.9993113268566535
+        },
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 4.1147640850169864e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.996229237108431e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0021635708480168166,
+            "tolerance": 0.15
+          }
+        },
+        "params": {
+          "intensity": 0.3,
+          "target": "cross_sectional_mean",
+          "window": 90
+        },
+        "seed": 20268183,
+        "seed_index": 7,
+        "status": "ok"
       }
     ]
   },

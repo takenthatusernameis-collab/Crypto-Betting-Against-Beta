@@ -36,7 +36,7 @@ _REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
-from strategies.betting_against_beta import BABStrategy  # noqa: E402
+from strategies.betting_against_beta.backtest import run_backtest  # noqa: E402
 from strategies.betting_against_beta.beta_estimators import (  # noqa: E402
     estimate_ewma_beta,
     estimate_rolling_ols_beta,
@@ -51,6 +51,11 @@ from strategies.betting_against_beta.metrics import (  # noqa: E402
     total_return,
     turnover,
 )
+from strategies.betting_against_beta.portfolio import (  # noqa: E402
+    construct_portfolio,
+    enforce_beta_neutrality,
+)
+from strategies.betting_against_beta.signals import generate_bab_signals  # noqa: E402
 
 # --- Constants matching P34 wide universe recipe ---
 SEED_BASE = 20261120
@@ -142,14 +147,14 @@ def _run_strategy_with_betas(
     quantile: float = QUANTILE,
     transaction_costs: float = TRANSACTION_COSTS,
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-    """Run BABStrategy using precomputed beta estimates.
+    """Run the BAB pipeline using precomputed beta estimates.
+
+    Mirrors BABStrategy's shipped default path (equal-weight, dollar-neutral,
+    beta-neutral) without recomputing rolling-OLS betas, so alternative
+    estimator families can be evaluated on the same causal footing.
 
     Returns (weights, returns_df_used, backtest_df)
     """
-    from strategies.betting_against_beta.signals import generate_bab_signals
-    from strategies.betting_against_beta.portfolio import construct_portfolio
-    from strategies.betting_against_beta.backtest import run_backtest
-
     signals = generate_bab_signals(
         beta_estimates,
         long_quantile=quantile,
@@ -160,6 +165,18 @@ def _run_strategy_with_betas(
         betas=beta_estimates,
         weighting="equal",
         dollar_neutral=True,
+    )
+    # BABStrategy enforces beta neutrality after portfolio construction when
+    # beta_neutral=True (the shipped default). The bake-off bypasses
+    # BABStrategy.run, so the same minimum-norm correction must be applied
+    # here; without it every cell would (correctly) fail model beta-neutrality.
+    weights = enforce_beta_neutrality(
+        weights,
+        beta_estimates,
+        target_beta=0.0,
+        tolerance=1e-4,
+        max_drift=1e-4,
+        correction=True,
     )
     backtest = run_backtest(
         returns_df,
@@ -318,6 +335,18 @@ def _compute_metrics(
         weights, ols_weights
     )
 
+    # Signal-stability diagnostics: period-to-period beta roughness (mean
+    # absolute change of the cross-sectional beta vector) and cross-sectional
+    # beta dispersion (mean per-period std). Both are estimator-intrinsic and
+    # do not depend on the portfolio run.
+    beta_cols = [c for c in betas.columns if c != "BTC"]
+    if beta_cols:
+        beta_noise = float(betas[beta_cols].diff().abs().mean(axis=1).mean())
+        beta_dispersion = float(betas[beta_cols].std(axis=1).mean())
+    else:
+        beta_noise = None
+        beta_dispersion = None
+
     return {
         "wealth": float(wealth) if np.isfinite(wealth) else None,
         "sharpe": float(sharpe) if np.isfinite(sharpe) else None,
@@ -332,15 +361,25 @@ def _compute_metrics(
         "realized_beta": float(realized_beta) if np.isfinite(realized_beta) else None,
         "spearman_vs_ols": float(spearman_corr) if np.isfinite(spearman_corr) else None,
         "jaccard_vs_ols": float(jaccard_overlap) if np.isfinite(jaccard_overlap) else None,
+        "beta_noise": beta_noise,
+        "beta_dispersion": beta_dispersion,
         "n_periods": len(strat_returns),
     }
 
 
 def _run_all_estimators_for_seed(
     returns_df: pd.DataFrame,
-    beta_window: int,
+    shrink_window: int = 90,
 ) -> dict:
-    """Run all estimator families for a given seed and beta_window.
+    """Run all estimator families once for a given seed.
+
+    Rolling-OLS is evaluated at every window in ``BETA_WINDOWS``; EWMA is
+    evaluated at every halflife in ``EWMA_HALFLIFES``; shrinkage is evaluated
+    at every ``SHRINKAGE_INTENSITIES`` x ``SHRINKAGE_TARGETS`` combination
+    using ``shrink_window`` (the shipped default window). Each estimator is
+    computed exactly once per seed -- the earlier per-window outer loop
+    recomputed the same OLS/EWMA cells three times and tripled both runtime
+    and artifact size.
 
     Returns dict with all estimator results keyed by estimator name.
     """
@@ -349,7 +388,9 @@ def _run_all_estimators_for_seed(
     # 1. Rolling-OLS (baseline)
     for window in BETA_WINDOWS:
         key = f"rolling_ols_w{window}"
-        ols_betas = estimate_rolling_ols_beta(returns_df, "BTC", window=window, min_obs=min(60, window))
+        ols_betas = estimate_rolling_ols_beta(
+            returns_df, "BTC", window=window, min_obs=min(60, window)
+        )
         weights, _, backtest = _run_strategy_with_betas(returns_df, ols_betas)
         results[key] = {
             "estimator": "rolling_ols",
@@ -389,7 +430,7 @@ def _run_all_estimators_for_seed(
             key = f"shrinkage_i{intensity}_{target_str}"
             shrink_betas = estimate_shrinkage_beta(
                 returns_df, "BTC",
-                window=beta_window,
+                window=shrink_window,
                 shrink_target=target,
                 shrink_intensity=intensity,
                 min_obs=60,
@@ -397,7 +438,7 @@ def _run_all_estimators_for_seed(
             weights, _, backtest = _run_strategy_with_betas(returns_df, shrink_betas)
             results[key] = {
                 "estimator": "shrinkage",
-                "params": {"window": beta_window, "intensity": intensity, "target": target},
+                "params": {"window": shrink_window, "intensity": intensity, "target": target},
                 "betas": shrink_betas,
                 "weights": weights,
                 "backtest": backtest,
@@ -411,7 +452,11 @@ def _run_all_estimators_for_seed(
 
 
 def _run_all_seeds_and_configs() -> dict:
-    """Run the full multi-seed, multi-config, multi-estimator grid and collect results."""
+    """Run the full multi-seed, multi-estimator grid and collect results.
+
+    Grid size: N_SEEDS x (len(BETA_WINDOWS) + len(EWMA_HALFLIFES)
+    + len(SHRINKAGE_INTENSITIES) * len(SHRINKAGE_TARGETS)) = 8 x 10 = 80 cells.
+    """
     all_cells = []
 
     for seed_idx in range(N_SEEDS):
@@ -421,76 +466,75 @@ def _run_all_seeds_and_configs() -> dict:
         # Convert to returns for strategy
         returns_df = prices.pct_change().iloc[1:][["BTC", *ASSET_COLUMNS]]
 
-        for beta_window in BETA_WINDOWS:
-            cell_key_base = f"seed_{seed_idx}_bw{beta_window}"
+        cell_key_base = f"seed_{seed_idx}"
 
-            try:
-                estimator_results = _run_all_estimators_for_seed(returns_df, beta_window)
+        try:
+            estimator_results = _run_all_estimators_for_seed(returns_df)
 
-                for est_key, est_result in estimator_results.items():
-                    cell_key = f"{cell_key_base}_{est_key}"
-                    metrics = est_result["metrics"]
+            for est_key, est_result in estimator_results.items():
+                cell_key = f"{cell_key_base}_{est_key}"
+                metrics = est_result["metrics"]
 
-                    # Neutrality checks
-                    model_beta_ok = (
-                        metrics["max_model_beta"] is not None
-                        and metrics["max_model_beta"] <= MODEL_BETA_NEUTRAL_TOL
-                    )
-                    dollar_neutral_ok = (
-                        metrics["max_dollar_neutral"] is not None
-                        and metrics["max_dollar_neutral"] <= DOLLAR_NEUTRAL_TOL
-                    )
-                    realized_beta_ok = (
-                        metrics["realized_beta"] is not None
-                        and abs(metrics["realized_beta"]) <= REALIZED_BETA_TOL
-                    )
+                # Neutrality checks
+                model_beta_ok = (
+                    metrics["max_model_beta"] is not None
+                    and metrics["max_model_beta"] <= MODEL_BETA_NEUTRAL_TOL
+                )
+                dollar_neutral_ok = (
+                    metrics["max_dollar_neutral"] is not None
+                    and metrics["max_dollar_neutral"] <= DOLLAR_NEUTRAL_TOL
+                )
+                realized_beta_ok = (
+                    metrics["realized_beta"] is not None
+                    and abs(metrics["realized_beta"]) <= REALIZED_BETA_TOL
+                )
 
-                    cell_result = {
-                        "cell_key": cell_key,
-                        "seed_index": seed_idx,
-                        "seed": seed,
-                        "beta_window": beta_window,
-                        "estimator": est_result["estimator"],
-                        "params": est_result["params"],
-                        "metrics": metrics,
-                        "neutrality_checks": {
-                            "model_beta_neutral": {
-                                "passed": bool(model_beta_ok),
-                                "max_model_beta": metrics["max_model_beta"],
-                                "tolerance": MODEL_BETA_NEUTRAL_TOL,
-                            },
-                            "dollar_neutral": {
-                                "passed": bool(dollar_neutral_ok),
-                                "max_dollar_neutral": metrics["max_dollar_neutral"],
-                                "tolerance": DOLLAR_NEUTRAL_TOL,
-                            },
-                            "realized_beta": {
-                                "passed": bool(realized_beta_ok),
-                                "realized_beta": metrics["realized_beta"],
-                                "tolerance": REALIZED_BETA_TOL,
-                            },
-                        },
-                        "status": "ok"
-                        if (model_beta_ok and dollar_neutral_ok and realized_beta_ok)
-                        else "neutrality_violation",
-                    }
-
-                    all_cells.append(cell_result)
-
-            except Exception as e:
                 cell_result = {
-                    "cell_key": f"{cell_key_base}_error",
+                    "cell_key": cell_key,
                     "seed_index": seed_idx,
                     "seed": seed,
-                    "beta_window": beta_window,
-                    "estimator": "error",
-                    "params": {},
-                    "metrics": {},
-                    "neutrality_checks": {},
-                    "status": "error",
-                    "error": str(e),
+                    "beta_window": est_result["params"].get("window"),
+                    "estimator": est_result["estimator"],
+                    "params": est_result["params"],
+                    "metrics": metrics,
+                    "neutrality_checks": {
+                        "model_beta_neutral": {
+                            "passed": bool(model_beta_ok),
+                            "max_model_beta": metrics["max_model_beta"],
+                            "tolerance": MODEL_BETA_NEUTRAL_TOL,
+                        },
+                        "dollar_neutral": {
+                            "passed": bool(dollar_neutral_ok),
+                            "max_dollar_neutral": metrics["max_dollar_neutral"],
+                            "tolerance": DOLLAR_NEUTRAL_TOL,
+                        },
+                        "realized_beta": {
+                            "passed": bool(realized_beta_ok),
+                            "realized_beta": metrics["realized_beta"],
+                            "tolerance": REALIZED_BETA_TOL,
+                        },
+                    },
+                    "status": "ok"
+                    if (model_beta_ok and dollar_neutral_ok and realized_beta_ok)
+                    else "neutrality_violation",
                 }
+
                 all_cells.append(cell_result)
+
+        except Exception as e:
+            cell_result = {
+                "cell_key": f"{cell_key_base}_error",
+                "seed_index": seed_idx,
+                "seed": seed,
+                "beta_window": None,
+                "estimator": "error",
+                "params": {},
+                "metrics": {},
+                "neutrality_checks": {},
+                "status": "error",
+                "error": str(e),
+            }
+            all_cells.append(cell_result)
 
     return {"cells": all_cells}
 
@@ -623,9 +667,13 @@ def main() -> int:
     print(f"  EWMA halflifes: {EWMA_HALFLIFES}")
     print(f"  Shrinkage intensities: {SHRINKAGE_INTENSITIES}")
     print(f"  Shrinkage targets: {SHRINKAGE_TARGETS}")
-    n_estimators = len(BETA_WINDOWS) + len(EWMA_HALFLIFES) + len(SHRINKAGE_INTENSITIES) * len(SHRINKAGE_TARGETS)
-    total_cells = N_SEEDS * len(BETA_WINDOWS) * n_estimators
-    print(f"  Total estimator configs per seed/window: {n_estimators}")
+    n_estimators = (
+        len(BETA_WINDOWS)
+        + len(EWMA_HALFLIFES)
+        + len(SHRINKAGE_INTENSITIES) * len(SHRINKAGE_TARGETS)
+    )
+    total_cells = N_SEEDS * n_estimators
+    print(f"  Total estimator configs per seed: {n_estimators}")
     print(f"  Total cells: {total_cells}")
 
     started = time.perf_counter()
