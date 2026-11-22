@@ -2,19 +2,19 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-22T10:31:08Z (refreshed this session; supersedes the 2026-11-22T10:05:00Z stamp)
+- **Timestamp (UTC):** 2026-11-22T10:31:32Z (refreshed this session; supersedes the 2026-11-22T10:31:08Z stamp)
 - **Git state:** HEAD `d6057a5` at write time (working tree clean; verified via `git rev-parse HEAD`). **P20–P34 are all COMPLETE and frozen.** The binding row is **Campaign P35 "Beta-Estimation Robustness & Signal-Stability Closure" — ACTIVE, agent-executable, HEAVY.** The post-P34 idle-wait directive is REMOVED: P35 is the first heavy, fully offline, zero-maintainer-dependency successor to P34, and idle-wait is FORBIDDEN while P35 is incomplete.
 - **Gate verified GREEN this session (fast inner loop + doc-pointer guard after the P35 binding switch):** `python3 -m ruff check .` PASS; `python3 -m pytest -q tests/test_bab_p34_doc_pointer_guard.py` → 7 passed, 1 skipped (guard now recognizes P35 as the successor binding); `python3 -m pytest -q tests/test_bab_p34_*.py tests/test_bab_p33_*.py tests/test_bab_p31_registry_completeness.py tests/test_bab_p32_*.py` → 83 passed, 2 skipped; `bash scripts/bab_quick.sh` → 104 + 195 tests PASS. The full gate (`BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh`, ~16 min) must be run once and its GREEN log attached before any P35 WP boundary is declared complete.
 
 ---
 
-# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-22T10:05:00Z)
+# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-22T10:31:32Z)
 
 **EXECUTE CAMPAIGN P35 — "Beta-Estimation Robustness & Signal-Stability Closure." THIS IS THE BINDING ROW. IDLE-WAIT IS FORBIDDEN WHILE P35 IS INCOMPLETE.**
 
 P20–P34 are fully landed and frozen. **Do NOT re-do them.** The prior handoff declared an "all agent-executable work is complete; idle-wait for the maintainer" state — that was the post-P34 idle cliff and it is REMOVED. There is a genuine, heavy, repo-name-relevant, fully-offline gap: **the shipped strategy estimates beta with rolling OLS only** (`calculate_rolling_beta`, fixed window 60/90/120) — there is **no EWMA beta, no shrinkage (James-Stein/Bayesian) beta, and no estimator-comparison / signal-stability study anywhere** in the repo (verified: `beta.py` has only rolling OLS; `vol_use_ewma` exists for *volatility* only, never for beta). The "beta" in **Crypto-Betting-Against-Beta** IS the signal driver; how it is estimated is the single most important unexplored research axis. P35 closes it.
 
-**Why this is the most repo-name-relevant next focus (2026-11-22T10:05:00Z):**
+**Why this is the most repo-name-relevant next focus (2026-11-22T10:31:32Z):**
 - The repository is **Crypto-Betting-Against-Beta** — a quant strategy whose entire premise is *betting on beta*. Beta estimation methodology (estimator family, window, shrinkage, decay) directly determines long/short selection, turnover, and realized-beta neutrality. It has never been stress-tested across estimator families.
 - P20–P34 hardened reproducibility, provenance, fidelity, honesty, and multi-seed robustness of the *shipped* rolling-OLS default — but always with the SAME estimator. P35 varies the estimator itself.
 - P35 is **fully offline, deterministic, zero maintainer dependency** (no `workflows:write`, no licensed CSV, no network). It is the exact antidote to the idle-wait.
@@ -34,7 +34,7 @@ A docs-only / handoff-only / gate-only / count-only commit is FORBIDDEN and coun
 
 ## CAMPAIGN P35 — BINDING ROW (ACTIVE, AGENT-EXECUTABLE, HEAVY)
 
-**Declared:** 2026-11-22T10:05:00Z · **Campaign:** P35 "Beta-Estimation Robustness & Signal-Stability Closure" · **Priority: HIGH** · **Status: ACTIVE — execute WP0→WP1→WP2→WP3 in order.**
+**Declared:** 2026-11-22T10:31:32Z · **Campaign:** P35 "Beta-Estimation Robustness & Signal-Stability Closure" · **Priority: HIGH** · **Status: ACTIVE — execute WP0→WP1→WP2→WP3 in order.**
 
 **Scope guardrails (read before coding):**
 - **Additive only.** Do NOT edit frozen `strategies/betting_against_beta/beta.py`, `config.py`, `strategy.py`, or any P20–P34 script/artifact. The new estimators delegate to the existing `calculate_rolling_beta` for the OLS parity anchor; do not modify it.
