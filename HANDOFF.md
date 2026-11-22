@@ -2,17 +2,24 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-22T10:33:26Z (refreshed this session; supersedes the 2026-11-22T10:31:50Z stamp)
-- **Git state:** HEAD `af5d1d0` at write time (working tree clean; verified via `git rev-parse HEAD`). **P20–P34 are all COMPLETE and frozen.** The binding row is **Campaign P35 "Beta-Estimation Robustness & Signal-Stability Closure" — ACTIVE, agent-executable, HEAVY.** The post-P34 idle-wait directive is REMOVED: P35 is the first heavy, fully offline, zero-maintainer-dependency successor to P34, and idle-wait is FORBIDDEN while P35 is incomplete.
+- **Timestamp (UTC):** 2026-11-22T10:33:50Z (refreshed this session; supersedes the 2026-11-22T10:33:26Z stamp)
+- **Git state:** HEAD `28e9698` at write time (working tree clean; verified via `git rev-parse HEAD`). **P20–P34 are all COMPLETE and frozen.** The binding row is **Campaign P35 "Beta-Estimation Robustness & Signal-Stability Closure" — ACTIVE, agent-executable, HEAVY.** The post-P34 idle-wait directive is REMOVED: P35 is the first heavy, fully offline, zero-maintainer-dependency successor to P34, and idle-wait is FORBIDDEN while P35 is incomplete.
 - **Gate verified GREEN this session (fast inner loop + doc-pointer guard after the P35 binding switch):** `python3 -m ruff check .` PASS; `python3 -m pytest -q tests/test_bab_p34_doc_pointer_guard.py` → 7 passed, 1 skipped (guard now recognizes P35 as the successor binding); `python3 -m pytest -q tests/test_bab_p34_*.py tests/test_bab_p33_*.py tests/test_bab_p31_registry_completeness.py tests/test_bab_p32_*.py` → 83 passed, 2 skipped; `bash scripts/bab_quick.sh` → 104 + 195 tests PASS. The full gate (`BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh`, ~16 min) must be run once and its GREEN log attached before any P35 WP boundary is declared complete.
 
 ---
 
-# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-22T10:33:26Z)
+# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-22T10:33:50Z)
 
 **EXECUTE CAMPAIGN P35 — "Beta-Estimation Robustness & Signal-Stability Closure." THIS IS THE BINDING ROW. IDLE-WAIT IS FORBIDDEN WHILE P35 IS INCOMPLETE.**
 
 P20–P34 are fully landed and frozen. **Do NOT re-do them.** The prior handoff declared an "all agent-executable work is complete; idle-wait for the maintainer" state — that was the post-P34 idle cliff and it is REMOVED. There is a genuine, heavy, repo-name-relevant, fully-offline gap: **the shipped strategy estimates beta with rolling OLS only** (`calculate_rolling_beta`, fixed window 60/90/120) — there is **no EWMA beta, no shrinkage (James-Stein/Bayesian) beta, and no estimator-comparison / signal-stability study anywhere** in the repo (verified: `beta.py` has only rolling OLS; `vol_use_ewma` exists for *volatility* only, never for beta). The "beta" in **Crypto-Betting-Against-Beta** IS the signal driver; how it is estimated is the single most important unexplored research axis. P35 closes it.
+
+**IMMEDIATE NEXT STEP — P35 WP0 is UNSTARTED (zero P35 files exist in the tree).** The next session must begin with **WP0 — Beta-estimator library + single-asset correctness**:
+1. Create `strategies/betting_against_beta/beta_estimators.py` exposing `estimate_rolling_ols_beta`, `estimate_ewma_beta`, `estimate_shrinkage_beta` (common contract: asset×date `DataFrame`, causal row t uses data ≤ t, NaN before `min_obs`, deterministic; `estimate_rolling_ols_beta` is a thin parity wrapper over existing `calculate_rolling_beta`; `intensity=0` shrinkage must equal OLS baseline).
+2. Create `tests/test_bab_p35_beta_estimators.py`: OLS parity vs `calculate_rolling_beta` (array equal); EWMA + shrinkage vs hand-computed small cases; no-lookahead; NaN-before-min_obs; determinism; degenerate/empty input.
+3. Run `bash scripts/bab_quick.sh` + `python3 -m ruff check .` + `python3 -m pytest -q tests/test_bab_p35_beta_estimators.py` + `python3 -m pytest -q tests/test_bab_p34_doc_pointer_guard.py` — all must PASS. Do NOT proceed to WP1 until WP0 tests pass.
+
+Do not assume P35 is "done" because the binding row is declared — the declaration is the *obligation to start*, not a landed artifact. Zero P35 files exist.
 
 **Why this is the most repo-name-relevant next focus (2026-11-22T10:31:32Z):**
 - The repository is **Crypto-Betting-Against-Beta** — a quant strategy whose entire premise is *betting on beta*. Beta estimation methodology (estimator family, window, shrinkage, decay) directly determines long/short selection, turnover, and realized-beta neutrality. It has never been stress-tested across estimator families.
@@ -26,7 +33,7 @@ P20–P34 are fully landed and frozen. **Do NOT re-do them.** The prior handoff 
 4. A deterministic decision doc + generator + replay registration + gate wiring + new acceptance tests.
 A docs-only / handoff-only / gate-only / count-only commit is FORBIDDEN and counts as automatic failure while P35 is incomplete.
 
-**Bottleneck status:** the post-P34 idle cliff (this session), the stale-HEAD pointer (`a885d24` → actual `a20a84c`, corrected this session), and the P34 doc-pointer guard's post-P34 `("P28","P34")` allow-list cap (which structurally forbade naming a heavy successor — extended to recognize P35 this session) are all REMOVED. `HANDOFF.md` is the single durable handoff — re-creating any `*HANDOFF*.md`, `NEXT_SESSION*.md`, or `AGENT_*.md` parallel task doc is forbidden.
+**Bottleneck status:** the post-P34 idle cliff (this session), the stale-HEAD pointer (`af5d1d0` → actual `28e9698`, corrected this session), and the P34 doc-pointer guard's post-P34 `("P28","P34")` allow-list cap (which structurally forbade naming a heavy successor — extended to recognize P35 this session) are all REMOVED. `HANDOFF.md` is the single durable handoff — re-creating any `*HANDOFF*.md`, `NEXT_SESSION*.md`, or `AGENT_*.md` parallel task doc is forbidden.
 
 **Inner loop while iterating on P35:** `bash scripts/bab_quick.sh` + `python3 -m ruff check .` + the new `tests/test_bab_p35_*.py` + `python3 -m pytest -q tests/test_bab_p34_doc_pointer_guard.py` (must stay green after any HANDOFF/README pointer edit) + `python3 -m pytest -q tests/test_bab_p31_registry_completeness.py tests/test_bab_p33_*.py` (so a new artifact/doc cannot escape its guard).
 
