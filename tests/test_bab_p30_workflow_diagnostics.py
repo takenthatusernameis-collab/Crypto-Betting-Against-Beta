@@ -122,6 +122,78 @@ class TestLedgerAnalyzer:
         assert sum(summary["by_conclusion"].values()) == summary["runs_total"]
 
 
+class TestAnalyzerHardening:
+    """Acceptance tests for P30 WP2 analyzer hardening flags."""
+
+    def test_summary_json_writes_deterministic_output(self, tmp_path: Path) -> None:
+        """--summary-json writes deterministic JSON (sorted keys, modulo timestamp)."""
+        out1 = tmp_path / "summary1.json"
+        out2 = tmp_path / "summary2.json"
+        r1 = _run("--summary-json", str(out1), "--since", "0")
+        r2 = _run("--summary-json", str(out2), "--since", "0")
+        assert r1.returncode == 0, r1.stderr
+        assert r2.returncode == 0, r2.stderr
+        assert out1.is_file()
+        assert out2.is_file()
+        s1 = json.loads(out1.read_text())
+        s2 = json.loads(out2.read_text())
+        # Deterministic modulo analyzed_at_utc
+        s1.pop("analyzed_at_utc", None)
+        s2.pop("analyzed_at_utc", None)
+        assert s1 == s2
+        # Expected values for the committed ledger
+        assert s1["runs_total"] == 50
+        assert s1["unique_run_ids"] == 50
+        assert s1["runs_with_errors"] == 50
+        assert s1["total_error_signals"] == 981
+        assert s1["by_conclusion"] == {"cancelled": 1, "success": 49}
+        assert s1["by_status"] == {"completed": 50}
+        assert s1["cancelled_run_ids"] == [43764777657]
+
+    def test_since_filters_records(self) -> None:
+        """--since RUN_ID filters to run_id >= RUN_ID."""
+        # Use a run_id that exists in the ledger to get a subset
+        result = _run("--analyze-ledger", "--since", "43764777657")
+        assert result.returncode == 0, result.stderr
+        summary = json.loads(result.stdout)
+        # Should include the cancelled run (run_id 43764777657)
+        assert summary["cancelled_run_ids"] == [43764777657]
+        assert summary["runs_total"] >= 1
+
+    def test_fail_on_cancelled_exits_nonzero(self) -> None:
+        """--fail-on-cancelled exits 2 when any run has conclusion=cancelled."""
+        result = _run("--analyze-ledger", "--fail-on-cancelled")
+        # The committed ledger has exactly 1 cancelled run
+        assert result.returncode == 2, f"expected 2, got {result.returncode}: {result.stdout}"
+        assert "--fail-on-cancelled" in result.stderr
+        assert "cancelled run" in result.stderr
+
+    def test_check_ledger_summary_passes_on_match(self, tmp_path: Path) -> None:
+        """--check-ledger-summary exits 0 when regenerated matches committed."""
+        committed = ROOT / "research_state" / "bab_p30" / "ledger_summary.json"
+        assert committed.is_file()
+        result = _run("--check-ledger-summary", str(committed))
+        assert result.returncode == 0, result.stderr
+        payload = json.loads(result.stdout)
+        assert payload["check_ledger_summary"] is True
+        assert payload["pass"] is True
+
+    def test_check_ledger_summary_fails_on_drift(self, tmp_path: Path) -> None:
+        """--check-ledger-summary exits non-zero when regenerated differs."""
+        # Corrupt a field value in the committed file (still valid JSON)
+        committed = ROOT / "research_state" / "bab_p30" / "ledger_summary.json"
+        original = committed.read_text(encoding="utf-8")
+        # Change a numeric field to create drift while keeping valid JSON
+        corrupted = original.replace('"runs_total": 50', '"runs_total": 999')
+        try:
+            committed.write_text(corrupted, encoding="utf-8")
+            result = _run("--check-ledger-summary", str(committed))
+            assert result.returncode != 0
+            assert "drift" in result.stderr.lower()
+        finally:
+            committed.write_text(original, encoding="utf-8")
+
+
 class TestDivergenceGuard:
     """Prove canonical redact() is a strict superset of the weak inline copy.
 

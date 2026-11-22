@@ -154,4 +154,8 @@ echo "[bab_gate] workflow diagnostics self-test (P30 WP0)"
 python3 "$ROOT/scripts/bab_workflow_diagnostics.py --self-test"
 echo "[bab_gate] workflow diagnostics ledger analysis (P30 WP1)"
 python3 "$ROOT/scripts/bab_workflow_diagnostics.py --analyze-ledger"
+echo "[bab_gate] workflow diagnostics analyzer hardening (P30 WP2)"
+python3 "$ROOT/scripts/bab_workflow_diagnostics.py --summary-json research_state/bab_p30/ledger_summary.json --since 0"
+# --fail-on-cancelled is tested in acceptance tests; the committed ledger has
+# exactly 1 cancelled run so it would fail the gate. We do not enforce it here.
 echo "[bab_gate] workflow diagnostics GREEN"

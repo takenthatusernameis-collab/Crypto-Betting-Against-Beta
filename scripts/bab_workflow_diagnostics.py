@@ -338,7 +338,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--summary-json",
         metavar="PATH",
-        help="Write the ledger analysis as deterministic JSON to PATH (e.g. research_state/bab_p30/ledger_summary.json)",
+        help=(
+            "Write the ledger analysis as deterministic JSON to PATH "
+            "(e.g. research_state/bab_p30/ledger_summary.json)"
+        ),
     )
     parser.add_argument(
         "--since",
@@ -381,7 +384,13 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps({"signals": signals, "count": len(signals)}, sort_keys=True))
         return 0
 
-    if args.analyze_ledger or args.summary_json or args.since is not None or args.fail_on_cancelled or args.check_ledger_summary:
+    if (
+        args.analyze_ledger
+        or args.summary_json
+        or args.since is not None
+        or args.fail_on_cancelled
+        or args.check_ledger_summary
+    ):
         path = Path(args.ledger)
         if not path.is_file():
             print(f"error: ledger not found: {path}", file=sys.stderr)
@@ -391,9 +400,10 @@ def main(argv: list[str] | None = None) -> int:
             records = filter_since(records, args.since)
         summary = analyze_ledger(records)
         if args.fail_on_cancelled and summary["cancelled_run_ids"]:
+            cancelled_ids = ", ".join(str(r) for r in summary["cancelled_run_ids"])
             print(
-                f"error: --fail-on-cancelled: {len(summary['cancelled_run_ids'])} cancelled run(s): "
-                + ", ".join(str(r) for r in summary["cancelled_run_ids"]),
+                f"error: --fail-on-cancelled: {len(summary['cancelled_run_ids'])} "
+                f"cancelled run(s): {cancelled_ids}",
                 file=sys.stderr,
             )
             return 2
