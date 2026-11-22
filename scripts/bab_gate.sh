@@ -159,3 +159,12 @@ python3 "$ROOT/scripts/bab_workflow_diagnostics.py --summary-json research_state
 # --fail-on-cancelled is tested in acceptance tests; the committed ledger has
 # exactly 1 cancelled run so it would fail the gate. We do not enforce it here.
 echo "[bab_gate] workflow diagnostics GREEN"
+
+# --- P33 WP0/WP1/WP2: fidelity consistency + doc registry completeness + summary ---
+echo "[bab_gate] P33 fidelity consistency (WP0)"
+python3 -m pytest -q tests/test_bab_p33_fidelity_consistency.py
+echo "[bab_gate] P33 doc registry completeness (WP1)"
+python3 -m pytest -q tests/test_bab_p33_doc_registry_completeness.py
+echo "[bab_gate] P33 doc consistency summary check (WP2)"
+python3 "$ROOT/scripts/bab_doc_consistency_summary.py" --check-doc-summary research_state/bab_p33/doc_consistency_summary.json
+echo "[bab_gate] P33 GREEN"

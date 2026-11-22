@@ -1,0 +1,70 @@
+{
+  "entries": [
+    {
+      "committed": "docs/BAB_FIDELITY.md",
+      "guard_class": "consistency-guarded",
+      "guard_status": "tests/test_bab_p33_fidelity_consistency.py"
+    },
+    {
+      "committed": "docs/BAB_P22_DECISION.md",
+      "guard_class": "allow-listed",
+      "guard_status": "hand-authored P22 decision doc; no generate_p22_decision.py generator exists, so there is no byte-replay entry point to register"
+    },
+    {
+      "committed": "docs/BAB_P22_KICKOFF.md",
+      "guard_class": "replay-gated",
+      "guard_status": "registered in scripts/bab_replay_decisions.py REGISTRY"
+    },
+    {
+      "committed": "docs/BAB_P23_DECISION.md",
+      "guard_class": "allow-listed",
+      "guard_status": "hand-authored P23 decision doc; no generate_p23_decision.py generator exists, so there is no byte-replay entry point to register"
+    },
+    {
+      "committed": "docs/BAB_P23_KICKOFF.md",
+      "guard_class": "replay-gated",
+      "guard_status": "registered in scripts/bab_replay_decisions.py REGISTRY"
+    },
+    {
+      "committed": "docs/BAB_P24_DECISION.md",
+      "guard_class": "replay-gated",
+      "guard_status": "registered in scripts/bab_replay_decisions.py REGISTRY"
+    },
+    {
+      "committed": "docs/BAB_P24_KICKOFF.md",
+      "guard_class": "replay-gated",
+      "guard_status": "registered in scripts/bab_replay_decisions.py REGISTRY"
+    },
+    {
+      "committed": "docs/BAB_P25_DECISION.md",
+      "guard_class": "replay-gated",
+      "guard_status": "registered in scripts/bab_replay_decisions.py REGISTRY"
+    },
+    {
+      "committed": "docs/BAB_P26_DECISION.md",
+      "guard_class": "replay-gated",
+      "guard_status": "registered in scripts/bab_replay_decisions.py REGISTRY"
+    },
+    {
+      "committed": "docs/BAB_P27_DECISION.md",
+      "guard_class": "replay-gated",
+      "guard_status": "registered in scripts/bab_replay_decisions.py REGISTRY"
+    },
+    {
+      "committed": "docs/BAB_RESEARCH_REPORT.md",
+      "guard_class": "consistency-guarded",
+      "guard_status": "tests/test_bab_p20_report_consistency.py"
+    },
+    {
+      "committed": "docs/BAB_SIGNAL_OR_NOISE.md",
+      "guard_class": "consistency-guarded",
+      "guard_status": "tests/test_bab_p21_report_consistency.py"
+    },
+    {
+      "committed": "docs/COVERAGE_NOTES.md",
+      "guard_class": "allow-listed",
+      "guard_status": "hand-authored coverage notes; no deterministic generator or report consistency test exists for it; intentionally outside the replay and consistency-guarded classes"
+    }
+  ],
+  "schema": "bab_p33.doc_consistency_summary/1"
+}

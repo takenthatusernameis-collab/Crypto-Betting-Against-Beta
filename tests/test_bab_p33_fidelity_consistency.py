@@ -334,13 +334,12 @@ def test_section4_every_published_cell_reproduces(prices, window, q):
     published = SECTION_4[(window, q)]
 
     for column, published_value in published.items():
-        got = _round_s4(recompute[column], column)
-        assert got == pytest.approx(published_value, rel=0.0, abs=1e-12), (
-            f"docs/BAB_FIDELITY.md §4 (beta_window={window}, q={q}) column "
-            f"{column!r}: published {published_value!r} but recompute rounds to "
-            f"{got!r} (raw {recompute[column]!r}). NEVER edit the doc; "
-            f"allow-list with a written reason if the published cell is "
-            f"irreproducible."
+        _assert_matches_published(
+            column,
+            recompute[column],
+            published_value,
+            f"docs/BAB_FIDELITY.md §4 (beta_window={window}, q={q})",
+            SECTION_4_ROUNDING,
         )
 
 
