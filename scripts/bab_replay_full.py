@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Read-only deterministic replay harness for EVERY committed research artifact.
 
-For each committed P25/P26/P27 JSON artifact this harness rebuilds the payload
-from the generator's pure ``build_*(fixture_path)`` entry point (in memory), then
+For each committed P20-P27 JSON artifact this harness rebuilds the payload
+from the generator's pure ``build_*()`` entry point (in memory), then
 byte-diffs the regenerated JSON against the committed file. It never calls
 ``write_artifacts`` and never writes to a committed path, so it is strictly
 read-only on ``research_state/**``.
@@ -17,6 +17,8 @@ Usage:
     python3 scripts/bab_replay_full.py --subset a,b    # replay named artifacts
     python3 scripts/bab_replay_full.py --list          # print registry names
     python3 scripts/bab_replay_full.py --self-test     # fast drift-detection proof
+    python3 scripts/bab_replay_full.py --xproc         # cross-process determinism
+    python3 scripts/bab_replay_full.py --check-provenance  # provenance audit regen-diff
 
 Exit code 0 when every selected artifact replays byte-identical (and, for
 ``--self-test``, when a deliberately corrupted copy is detected as drift);
@@ -41,6 +43,7 @@ ROOT = Path(__file__).resolve().parent.parent
 # stem, and whether the generator's main() injects a "determinism" block that a
 # byte-reproduction must reproduce (P27 only; P25/P26 committed JSON has none).
 REGISTRY: list[dict] = [
+    # P25/P26/P27 (8 artifacts) — original P29 WP0 registry.
     {"module": "bab_walk_forward_rank", "build": "build_walk_forward_rank",
      "dir": "bab_p25", "name": "walk_forward_rank", "inject_determinism": False},
     {"module": "bab_promotion_bakeoff", "build": "build_promotion_bakeoff",
@@ -57,11 +60,55 @@ REGISTRY: list[dict] = [
      "dir": "bab_p27", "name": "risk_controls", "inject_determinism": True},
     {"module": "bab_reconciliation_e2e", "build": "build_reconciliation_e2e",
      "dir": "bab_p27", "name": "reconciliation_e2e", "inject_determinism": True},
+    # P20-P24 (19 artifacts) — P31 WP0 replay coverage closure. Every build_*()
+    # has all-optional arguments defaulting to the committed fixture/upstream
+    # payloads, so calling it with no arguments reproduces the committed bytes
+    # byte-for-byte (read-only; nothing is written to research_state/**).
+    {"module": "bab_research_sweep", "build": "build_sweep",
+     "dir": "bab_p20", "name": "sweep", "inject_determinism": False},
+    {"module": "bab_breakeven", "build": "build_breakeven",
+     "dir": "bab_p20", "name": "breakeven", "inject_determinism": False},
+    {"module": "bab_walk_forward", "build": "build_walk_forward",
+     "dir": "bab_p20", "name": "walk_forward", "inject_determinism": False},
+    {"module": "bab_synthetic_universe", "build": "build_universe",
+     "dir": "bab_p21", "name": "universe", "inject_determinism": False},
+    {"module": "bab_cost_surface", "build": "build_cost_surface",
+     "dir": "bab_p21", "name": "cost_surface", "inject_determinism": False},
+    {"module": "bab_rank_eval", "build": "build_rank_eval",
+     "dir": "bab_p21", "name": "rank_eval", "inject_determinism": False},
+    {"module": "bab_significance", "build": "build_significance",
+     "dir": "bab_p21", "name": "significance", "inject_determinism": False},
+    {"module": "bab_p22_charter", "build": "build_charter",
+     "dir": "bab_p22", "name": "charter", "inject_determinism": False},
+    {"module": "bab_null_battery", "build": "build_null_battery",
+     "dir": "bab_p22", "name": "null_battery", "inject_determinism": False},
+    {"module": "bab_impact_surface", "build": "build_impact_surface",
+     "dir": "bab_p22", "name": "impact_surface", "inject_determinism": False},
+    {"module": "bab_capacity", "build": "build_capacity",
+     "dir": "bab_p22", "name": "capacity", "inject_determinism": False},
+    {"module": "bab_p23_charter", "build": "build_charter",
+     "dir": "bab_p23", "name": "charter", "inject_determinism": False},
+    {"module": "bab_beta_drift", "build": "build_beta_drift",
+     "dir": "bab_p23", "name": "beta_drift", "inject_determinism": False},
+    {"module": "bab_breadth_ladder", "build": "build_breadth_ladder",
+     "dir": "bab_p23", "name": "breadth_ladder", "inject_determinism": False},
+    {"module": "bab_short_haircut", "build": "build_short_haircut",
+     "dir": "bab_p23", "name": "short_haircut", "inject_determinism": False},
+    {"module": "bab_p24_charter", "build": "build_charter",
+     "dir": "bab_p24", "name": "charter", "inject_determinism": False},
+    {"module": "bab_licensed_adapter", "build": "build_adapter_dryrun",
+     "dir": "bab_p24", "name": "adapter_dryrun", "inject_determinism": False},
+    {"module": "bab_hysteresis_ladder", "build": "build_hysteresis_ladder",
+     "dir": "bab_p24", "name": "hysteresis", "inject_determinism": False},
+    {"module": "bab_regime_split", "build": "build_regime_split",
+     "dir": "bab_p24", "name": "regime_split", "inject_determinism": False},
 ]
 
-# Cheap subset (fast P27 generators) used by the drift self-test so it runs in
-# ~1s instead of regenerating the multi-minute P25/P26 sweeps.
-CHEAP_NAMES = ("risk_controls", "reconciliation_e2e")
+# Cheap subset (fast generators) used by the drift self-test so it runs in
+# ~1s instead of regenerating the multi-minute P25/P26/P27 sweeps. "charter"
+# matches all three P22/P23/P24 charters (pure JSON loads); "universe" is the
+# deterministic P21 synthetic-universe build.
+CHEAP_NAMES = ("risk_controls", "reconciliation_e2e", "universe", "charter")
 
 # P25 WP0 wide-universe fixture (SHA256 a6d390fc…163b). All 8 committed artifacts
 # are derived from this single read-only fixture.
@@ -236,16 +283,18 @@ def _check_xproc(entry: dict) -> tuple[bool, list[str], int | None]:
     return (not problems), problems, seed
 
 
-def _write_provenance_ledger(results: dict[str, dict]) -> None:
-    """Write research_state/bab_p29/provenance_audit.json.
+def _write_provenance_ledger_to(results: dict[str, dict], entries: list[dict],
+                                path: Path) -> None:
+    """Write a provenance-audit ledger for ``entries`` to ``path``.
 
-    One record per artifact: path, sha256, generator_module, seed, fixture_sha256,
+    One record per entry: path, sha256, generator_module, seed, fixture_sha256,
     replay_ok. Deterministic (sorted keys, stable path ordering) so the ledger
-    itself can be replay-checked in a later WP.
+    itself can be replay-checked. Never writes to a committed path unless the
+    caller passes one.
     """
-    PROVENANCE_DIR.mkdir(parents=True, exist_ok=True)
+    path.parent.mkdir(parents=True, exist_ok=True)
     records: list[dict] = []
-    for entry in REGISTRY:
+    for entry in entries:
         name = entry["name"]
         res = results.get(name, {})
         json_path = ROOT / "research_state" / entry["dir"] / f"{name}.json"
@@ -266,9 +315,52 @@ def _write_provenance_ledger(results: dict[str, dict]) -> None:
         )
     records.sort(key=lambda r: r["path"])
     audit = {"schema": "bab_p29.provenance_audit/1", "artifacts": records}
-    PROVENANCE_PATH.write_text(
+    path.write_text(
         json.dumps(audit, indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )
+
+
+def _write_provenance_ledger(results: dict[str, dict]) -> None:
+    """Write research_state/bab_p29/provenance_audit.json (P29 WP1).
+
+    Thin wrapper over _write_provenance_ledger_to targeting the committed path
+    and the full registry. Kept for the --xproc mode which is allowed to rewrite
+    the committed ledger (it is regenerated identically each run).
+    """
+    _write_provenance_ledger_to(results, REGISTRY, PROVENANCE_PATH)
+
+
+def _check_provenance() -> int:
+    """Regenerate the provenance audit to a temp path and byte-diff it against
+    the committed research_state/bab_p29/provenance_audit.json (modulo nothing —
+    it must be fully deterministic). Covers exactly the entries recorded in the
+    committed audit (the original P25/P26/P27 set); never writes to a committed
+    path."""
+    committed_bytes = PROVENANCE_PATH.read_bytes()
+    audit = json.loads(committed_bytes)
+    covered_paths = {record["path"] for record in audit["artifacts"]}
+    entries = [
+        entry for entry in REGISTRY
+        if f"research_state/{entry['dir']}/{entry['name']}.json" in covered_paths
+    ]
+    results: dict[str, dict] = {}
+    ok = True
+    for entry in entries:
+        good, problems, seed = _check_xproc(entry)
+        results[entry["name"]] = {"ok": good, "seed": seed, "problems": problems}
+        if not good:
+            ok = False
+            for problem in problems:
+                print(problem)
+    with tempfile.TemporaryDirectory() as tmp:
+        temp_path = Path(tmp) / "provenance_audit.json"
+        _write_provenance_ledger_to(results, entries, temp_path)
+        if temp_path.read_bytes() != committed_bytes:
+            ok = False
+            print("PROVENANCE DRIFT: regenerated audit differs from committed "
+                  f"{PROVENANCE_PATH}")
+    print(json.dumps({"check_provenance": True, "pass": ok}))
+    return 0 if ok else 1
 
 
 def _xproc_main() -> int:
@@ -299,6 +391,13 @@ def main(argv: list[str] | None = None) -> int:
         help="Cross-process determinism: rebuild each artifact in two fresh "
         "interpreters, assert byte-identical, and write the provenance ledger",
     )
+    parser.add_argument(
+        "--check-provenance",
+        action="store_true",
+        help="Regenerate the provenance audit to a temp path and byte-diff it "
+        "against the committed research_state/bab_p29/provenance_audit.json "
+        "(read-only determinism check)",
+    )
     args = parser.parse_args(argv)
 
     if args.list:
@@ -311,6 +410,9 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.xproc:
         return _xproc_main()
+
+    if args.check_provenance:
+        return _check_provenance()
 
     entries = _select(args.subset.split(","))
     if not entries:

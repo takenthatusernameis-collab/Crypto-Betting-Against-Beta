@@ -24,6 +24,9 @@ python3 scripts/bab_replay_full.py
 echo "== cross-process determinism + provenance ledger (P29 WP1) =="
 python3 scripts/bab_replay_full.py --xproc
 
+echo "== provenance-ledger regeneration-diff vs committed (P31 WP2) =="
+python3 scripts/bab_replay_full.py --check-provenance
+
 echo "== decision-doc + JSONL sidecar replay (P29 WP2) =="
 python3 scripts/bab_replay_decisions.py --self-test
 python3 scripts/bab_replay_decisions.py
