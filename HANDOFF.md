@@ -2,12 +2,12 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-22T20:14:50Z (refreshed this session after repairing a RED baseline; supersedes the 2026-11-22T19:31:11Z stamp)
+- **Timestamp (UTC):** 2026-11-22T20:17:33Z (refreshed this session; working tree clean, no new commits since baseline repair at 2026-11-22T20:14:50Z; supersedes the 2026-11-22T19:31:11Z stamp)
 - **Git state:** P20–P36 COMPLETE and frozen. **Baseline repaired this session (a real code fix, NOT a docs-only handoff):** the full gate was RED — `tests/test_bab_p29_replay_coverage.py` (a P31-era replay-coverage guard) had 3 failures because its hardcoded 25-name `EXPECTED_NAMES` set and its unconditional `.md`-existence assertion were never updated for the four P35/P36 `json_only` registry entries (`estimator_bakeoff_summary`, `signal_stability_summary`, `walk_forward_summary`, `rank_weighted_summary`; `json_only=True`, `no_xproc=True`, no `.md` sidecar). Fixed by guard maintenance: extended the exact set to 29 names and made the `.md` check skip `json_only` entries — the exact-equality contract is preserved (an unexpected 30th name still fails closed). Verified `9 passed` + ruff clean. The binding row remains **Campaign P37 "Cost-Aware Turnover & Capacity Closure"** — **NOT STARTED**, agent-executable, fully offline, zero maintainer dependency. P28 WP2–WP4 remain **maintainer-gated** (require `workflows:write` for CI and licensed CSV for real-market data).
 
 ---
 
-# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-22T20:14:50Z)
+# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-22T20:17:33Z)
 
 **BASELINE WAS RED — REPAIRED THIS SESSION.** The full gate (`BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh`) was failing on `tests/test_bab_p29_replay_coverage.py` (3 failures: `test_registry_covers_all_generated_artifacts`, `test_registry_entries_have_committed_files`, `test_list_prints_all_names`). Root cause: that P31-era guard hardcoded a 25-name `EXPECTED_NAMES` set and asserted *every* registry entry has a `.md` sidecar, but P35/P36 had legitimately registered four JSON-only summary artifacts (`estimator_bakeoff_summary`, `signal_stability_summary`, `walk_forward_summary`, `rank_weighted_summary`; `json_only=True`, `no_xproc=True`) that have no `.md`. This silently invalidated the prior "all green" claims and blocked every session's full gate. **Fixed** by guard maintenance — extended the exact set to 29 names and made the `.md` check respect `json_only` (exact-equality preserved; not a loosening). Verified `9 passed`, ruff clean. **First action for the next agent: run the HARD GATES below and confirm GREEN; if any gate is red, fix that before anything else.**
 
