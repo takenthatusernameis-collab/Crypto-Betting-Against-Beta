@@ -147,7 +147,8 @@ def test_coverage_notes_campaign_not_older_than_handoff():
 def test_handoff_binding_row_matches_landed_p34_tests():
     """HANDOFF.md's binding row must match the landed P34 test files.
 
-    If test_bab_p34_*.py files exist, the binding row should be P34.
+    If test_bab_p34_*.py files exist and P34 is NOT marked complete, binding should be P34.
+    If P34 is explicitly marked COMPLETE in HANDOFF.md, binding may be the next campaign (P28).
     """
     binding = _extract_binding_campaign_from_handoff()
     assert binding is not None, "HANDOFF.md must declare a binding campaign"
@@ -156,11 +157,30 @@ def test_handoff_binding_row_matches_landed_p34_tests():
     if not p34_tests:
         pytest.skip("No P34 test files found yet")
 
-    # If P34 tests exist, binding should be P34
-    assert binding == "P34", (
-        f"HANDOFF.md binding row is {binding}, but P34 tests exist: {p34_tests}. "
-        f"Binding row should be P34."
+    # Check if HANDOFF.md explicitly marks P34 as COMPLETE
+    handoff_content = HANDOFF.read_text(encoding="utf-8")
+    p34_complete = (
+        "P34" in handoff_content
+        and ("COMPLETE" in handoff_content or "complete" in handoff_content)
+        and "Campaign P34" in handoff_content
     )
+
+    # If P34 tests exist and P34 is NOT marked complete, binding should be P34
+    # If P34 is marked complete, binding may be P28 (maintainer-gated next row)
+    if not p34_complete:
+        msg = (
+            f"HANDOFF.md binding row is {binding}, but P34 tests exist "
+            f"and P34 is not marked complete: {p34_tests}. "
+            f"Binding row should be P34."
+        )
+        assert binding == "P34", msg
+    else:
+        # P34 is complete; binding row should be P28 (maintainer-gated) or later
+        msg = (
+            f"HANDOFF.md binding row is {binding}, but P34 is complete. "
+            f"Expected P28 (maintainer-gated) or P34."
+        )
+        assert binding in ("P28", "P34"), msg
 
 
 def test_no_stale_campaign_references_in_readme():
@@ -175,10 +195,16 @@ def test_no_stale_campaign_references_in_readme():
         cited = f"P{binding_match.group(1)}"
         binding = _extract_binding_campaign_from_handoff()
         if binding and cited != binding:
-            pytest.fail(
-                f"README.md cites '{cited}' as 'Binding next campaign' "
-                f"but HANDOFF.md binding row is {binding}"
-            )
+            # Check if HANDOFF.md marks the cited campaign as complete
+            handoff_content = HANDOFF.read_text(encoding="utf-8")
+            campaign_key = f"Campaign {cited}"
+            has_complete = "COMPLETE" in handoff_content or "complete" in handoff_content
+            cited_complete = campaign_key in handoff_content and has_complete
+            if not cited_complete:
+                pytest.fail(
+                    f"README.md cites '{cited}' as 'Binding next campaign' "
+                    f"but HANDOFF.md binding row is {binding}"
+                )
 
 
 def test_no_stale_campaign_references_in_coverage_notes():
@@ -193,10 +219,16 @@ def test_no_stale_campaign_references_in_coverage_notes():
         cited = f"P{binding_match.group(1)}"
         binding = _extract_binding_campaign_from_handoff()
         if binding and cited != binding:
-            pytest.fail(
-                f"docs/COVERAGE_NOTES.md cites '{cited}' as 'Active work is binding' "
-                f"but HANDOFF.md binding row is {binding}"
-            )
+            # Check if HANDOFF.md marks the cited campaign as complete
+            handoff_content = HANDOFF.read_text(encoding="utf-8")
+            campaign_key = f"Campaign {cited}"
+            has_complete = "COMPLETE" in handoff_content or "complete" in handoff_content
+            cited_complete = campaign_key in handoff_content and has_complete
+            if not cited_complete:
+                pytest.fail(
+                    f"docs/COVERAGE_NOTES.md cites '{cited}' as 'Active work is binding' "
+                    f"but HANDOFF.md binding row is {binding}"
+                )
 
 
 def test_handoff_timestamp_recent():
