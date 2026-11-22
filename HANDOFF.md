@@ -2,51 +2,45 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-22T11:33:16Z (refreshed this session; supersedes the 2026-11-22T10:42:00Z stamp)- **Git state:** HEAD `7639b93` at write time (working tree clean; verified via `git rev-parse HEAD`). **P20–P34 are all COMPLETE and frozen.** The binding row is **Campaign P35 "Beta-Estimation Robustness & Signal-Stability Closure" — ACTIVE, agent-executable, HEAVY.** The post-P34 idle-wait directive is REMOVED: P35 is the first heavy, fully offline, zero-maintainer-dependency successor to P34, and idle-wait is FORBIDDEN while P35 is incomplete.
-- **Gate verified GREEN this session (fast inner loop + doc-pointer guard after the P35 binding switch):** `python3 -m ruff check .` PASS; `python3 -m pytest -q tests/test_bab_p34_doc_pointer_guard.py` → 7 passed, 1 skipped (guard now recognizes P35 as the successor binding); `python3 -m pytest -q tests/test_bab_p34_*.py tests/test_bab_p33_*.py tests/test_bab_p31_registry_completeness.py tests/test_bab_p32_*.py` → 83 passed, 2 skipped; `bash scripts/bab_quick.sh` → 104 + 195 tests PASS. The full gate (`BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh`, ~16 min) must be run once and its GREEN log attached before any P35 WP boundary is declared complete.
+- **Timestamp (UTC):** 2026-11-22T12:33:39Z (refreshed this session; supersedes the 2026-11-22T11:33:16Z stamp)
+- **Git state:** HEAD `22cf3fb` at write time (working tree clean; verified via `git rev-parse HEAD`). **P20–P34 are all COMPLETE and frozen. P35 WP0 and WP1 are now COMPLETE and GREEN** (`scripts/bab_p35_estimator_bakeoff.py` + `tests/test_bab_p35_estimator_bakeoff.py` + `research_state/bab_p35/estimator_bakeoff_summary.json` all exist and pass; 25 tests PASS; `--check-estimator-bakeoff-summary` → byte-identical PASS; ruff clean; `bab_quick.sh` 104 + 195 PASS). The binding row is **Campaign P35 WP2 "Signal-Stability / Beta-Noise Sensitivity + Anti-Overfit Guard" — ACTIVE, agent-executable, HEAVY.** The post-P34 idle-wait directive is REMOVED: P35 is the first heavy, fully offline, zero-maintainer-dependency successor to P34, and idle-wait is FORBIDDEN while P35 is incomplete.
+- **Gate verified GREEN this session (fast inner loop after confirming WP1 landed):** `python3 -m pytest -q tests/test_bab_p35_beta_estimators.py tests/test_bab_p35_estimator_bakeoff.py` → 25 passed; `python3 scripts/bab_p35_estimator_bakeoff.py --check-estimator-bakeoff-summary` → PASS (byte-identical); `python3 -m ruff check scripts/bab_p35_estimator_bakeoff.py tests/test_bab_p35_estimator_bakeoff.py strategies/betting_against_beta/beta_estimators.py` → all checks passed; `bash scripts/bab_quick.sh` → 104 + 195 tests PASS; `python3 -m pytest -q tests/test_bab_p34_doc_pointer_guard.py` → 7 passed, 1 skipped. The full gate (`BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh`, ~16 min) must be run once and its GREEN log attached before any P35 WP boundary is declared complete.
 
 ---
 
-# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-22T11:33:16Z)
-**EXECUTE CAMPAIGN P35 WP1 — "Estimator Bake-off on the Wide Universe (Signal Stability + Neutrality + Cost)." THIS IS THE BINDING ROW. IDLE-WAIT IS FORBIDDEN WHILE P35 IS INCOMPLETE.**
+# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-22T12:33:39Z)
+**EXECUTE CAMPAIGN P35 WP2 — "Signal-Stability / Beta-Noise Sensitivity + Anti-Overfit Guard." THIS IS THE BINDING ROW. IDLE-WAIT IS FORBIDDEN WHILE P35 IS INCOMPLETE.**
 
-P20–P34 are fully landed and frozen. **Do NOT re-do them.** P35 WP0 is COMPLETE and verified (`strategies/betting_against_beta/beta_estimators.py` + `tests/test_bab_p35_beta_estimators.py` exist; 17 tests PASS; ruff clean; `bab_quick.sh` GREEN). The declaration is a *landed artifact*, not merely an obligation to start.
+P20–P34 are fully landed and frozen. **Do NOT re-do them.** P35 WP0 **and** WP1 are COMPLETE and verified (`strategies/betting_against_beta/beta_estimators.py` + `tests/test_bab_p35_beta_estimators.py` + `scripts/bab_p35_estimator_bakeoff.py` + `tests/test_bab_p35_estimator_bakeoff.py` + `research_state/bab_p35/estimator_bakeoff_summary.json` all exist; 25 tests PASS; `--check-estimator-bakeoff-summary` → byte-identical PASS; ruff clean; `bab_quick.sh` GREEN). Those are *landed artifacts*, not obligations to start.
 
-**Immediate work: P35 WP1 — Estimator Bake-off on the Wide Universe**
+**Immediate work: P35 WP2 — Signal-stability / beta-noise sensitivity + anti-overfit guard**
 
 Deliverables (all required, no partial credit):
-1. **Create `scripts/bab_p35_estimator_bakeoff.py`** — run the shipped default (`weighting="equal"`, `beta_neutral=True`, `transaction_costs=0.001`) across the P34 wide-universe recipe (8 seeds, 40 assets from `tests/fixtures/wide_bab_universe.csv`) × estimator families:
-   - Rolling-OLS: `window ∈ {60, 90, 120}`
-   - EWMA: `halflife ∈ {20, 40, 60}`
-   - Shrinkage: `intensity ∈ {0.1, 0.3}` (target = 1.0 or cross-sectional mean)
-   Per cell record: realized beta, model beta-neutrality (≤1e-3), dollar-neutrality (≤1e-9), **beta rank-stability** (Spearman corr of betas vs OLS baseline + long/short set Jaccard overlap), turnover, net-of-cost Sharpe, ann vol, max-DD.
-
-2. **Emit deterministic `research_state/bab_p35/estimator_bakeoff_summary.json`** (schema `bab_p35.estimator_bakeoff/1`) with `--check-estimator-bakeoff-summary` byte-diff (mirror P34 WP0 `--check-multiseed-summary`).
-
-3. **Create `tests/test_bab_p35_estimator_bakeoff.py`** — neutrality holds for EVERY estimator at EVERY cell; EWMA/shrinkage measurably reduce beta-noise/turnover vs OLS without breaking neutrality; summary determinism.
-
-4. **Run acceptance loop** — `bash scripts/bab_quick.sh` + `python3 -m ruff check .` + `python3 -m pytest -q tests/test_bab_p35_*.py` + `python3 -m pytest -q tests/test_bab_p34_doc_pointer_guard.py` — all must PASS. Do NOT proceed to WP2 until WP1 tests pass.
+1. **Create `scripts/bab_p35_signal_stability.py`** — quantify selection churn on the P34 wide-universe recipe (8 seeds, 40 assets from `tests/fixtures/wide_bab_universe.csv`) under two perturbations: (a) **tiny beta-noise injection** (e.g. Gaussian ε on estimated betas, ε ∈ a small deterministic ladder) and (b) **estimator switch** (rolling-OLS ↔ EWMA ↔ shrinkage, reusing `beta_estimators.py`). For each perturbation record the **fraction of names flipping long↔short** vs the OLS baseline, plus the long/short set Jaccard overlap. Show shrinkage/EWMA **reduce churn** while preserving neutrality (model beta-neutral ≤1e-3, dollar-neutral ≤1e-9). Mirror the P34 WP1 anti-victory guard.
+2. **Emit deterministic `research_state/bab_p35/signal_stability_summary.json`** (schema `bab_p35.signal_stability/1`) with `--check-signal-stability-summary` byte-diff (mirror the WP1 `--check-estimator-bakeoff-summary` byte-diff already shipped).
+3. **Create `tests/test_bab_p35_signal_stability.py`** — churn direction/monotonicity assertions (shrinkage/EWMA churn ≤ OLS churn), neutrality holds for every perturbed cell, anti-victory guard, synthetic-provenance guard, summary determinism (byte-identical).
+4. **Run acceptance loop** — `bash scripts/bab_quick.sh` + `python3 -m ruff check .` + `python3 -m pytest -q tests/test_bab_p35_*.py` + `python3 -m pytest -q tests/test_bab_p34_doc_pointer_guard.py` — all must PASS. Do NOT proceed to WP3 until WP2 tests pass.
 
 **Scope guardrails (read before coding):**
-- **Additive only.** Do NOT edit frozen `strategies/betting_against_beta/beta.py`, `config.py`, `strategy.py`, or any P20–P34 script/artifact. The new estimators delegate to the existing `calculate_rolling_beta` for the OLS parity anchor; do not modify it.
+- **Additive only.** Do NOT edit frozen `strategies/betting_against_beta/beta.py`, `config.py`, `strategy.py`, `beta_estimators.py`, or any P20–P34 script/artifact, or any already-landed P35 WP0/WP1 artifact. The new script delegates to the existing `beta_estimators.py` and `calculate_rolling_beta`; do not modify them.
 - **Do not weaken defaults.** The shipped default stays `weighting="equal"`, `beta_neutral=True`, `beta_window=90`, rolling-OLS. P35 *evaluates* alternatives; it does not flip the default.
 - **Synthetic only.** All evaluation on committed synthetic fixtures (`tests/fixtures/wide_bab_universe.csv` 40-asset, `tests/fixtures/real_market_prices.csv` 9-asset) — both explicitly **not real market data**. Every published figure carries the synthetic-provenance caveat.
-- **Neutrality invariants are non-negotiable.** Any estimator that fails model beta-neutral (≤1e-3) / dollar-neutral (≤1e-9) / realized-beta (≤0.15) at any cell is a FAIL, not a "finding."
+- **Neutrality invariants are non-negotiable.** Any estimator/perturbation that fails model beta-neutral (≤1e-3) / dollar-neutral (≤1e-9) / realized-beta (≤0.15) at any cell is a FAIL, not a "finding."
 
 **Why this is the most repo-name-relevant next focus:**
-- The repository is **Crypto-Betting-Against-Beta** — a quant strategy whose entire premise is *betting on beta*. Beta estimation methodology directly determines long/short selection, turnover, and realized-beta neutrality. It has never been stress-tested across estimator families.
-- P20–P34 hardened reproducibility, provenance, fidelity, honesty, and multi-seed robustness of the *shipped* rolling-OLS default — but always with the SAME estimator. P35 varies the estimator itself.
+- The repository is **Crypto-Betting-Against-Beta** — a quant strategy whose entire premise is *betting on beta*. Beta *signal stability* (does the long/short book churn when betas are noisy or the estimator changes?) directly determines real-world tradeability, turnover, and whether the strategy is an artifact of estimation noise. It has never been stress-tested for selection churn.
+- WP1 proved *what* each estimator does to beta estimates; WP2 proves *whether the resulting portfolio is stable* under noise and estimator choice — the natural, heavy continuation.
 - P35 is **fully offline, deterministic, zero maintainer dependency** (no `workflows:write`, no licensed CSV, no network). It is the exact antidote to the idle-wait.
 
 **What "heavy" means here (the campaign cannot be satisfied by docs/counts/gates):**
-1. New quant code integration (consuming `beta_estimators.py` in the bake-off).
-2. A multi-cell estimator bake-off with quantitative signal-stability + neutrality + cost metrics.
+1. New quant code integration (consuming `beta_estimators.py` + `calculate_rolling_beta` in a churn study).
+2. A multi-cell signal-stability study with quantitative churn (flip fraction + Jaccard) + neutrality + cost metrics.
 3. Deterministic artifact emission + byte-diff guard.
-4. New acceptance tests enforcing neutrality invariants and stability improvements.
+4. New acceptance tests enforcing churn-direction monotonicity, neutrality invariants, and anti-victory.
 
 A docs-only / handoff-only / gate-only / count-only commit is FORBIDDEN and counts as automatic failure while P35 is incomplete.
 
-**Inner loop while iterating on P35 WP1:**
+**Inner loop while iterating on P35 WP2:**
 ```bash
 bash scripts/bab_quick.sh
 python3 -m ruff check .
@@ -59,28 +53,26 @@ python3 -m pytest -q tests/test_bab_p31_registry_completeness.py tests/test_bab_
 
 ## CAMPAIGN P35 — BINDING ROW (ACTIVE, AGENT-EXECUTABLE, HEAVY)
 
-**Declared:** 2026-11-22T10:31:32Z · **Campaign:** P35 "Beta-Estimation Robustness & Signal-Stability Closure" · **Priority: HIGH** · **Status: ACTIVE — execute WP0→WP1→WP2→WP3 in order.**
+**Declared:** 2026-11-22T10:31:32Z · **Campaign:** P35 "Beta-Estimation Robustness & Signal-Stability Closure" · **Priority: HIGH** · **Status: ACTIVE — WP0 + WP1 COMPLETE; execute WP2 → WP3 next.**
 
 ### P35 WP0 — Beta-estimator library + single-asset correctness
-- **COMPLETE** (landed and verified this session). `strategies/betting_against_beta/beta_estimators.py` and `tests/test_bab_p35_beta_estimators.py` exist; 17 tests PASS; ruff clean; `bab_quick.sh` GREEN.
+- **COMPLETE** (landed and verified). `strategies/betting_against_beta/beta_estimators.py` and `tests/test_bab_p35_beta_estimators.py` exist; 17 tests PASS; ruff clean; `bab_quick.sh` GREEN.
 
-### P35 WP1 — Estimator bake-off on the wide universe (signal stability + neutrality + cost)  ← **NEXT**
-- **New `scripts/bab_p35_estimator_bakeoff.py`**: run shipped default across P34 wide-universe recipe (8 seeds, 40 assets) × estimator families {rolling-OLS window∈{60,90,120}, EWMA halflife∈{20,40,60}, shrinkage intensity∈{0.1,0.3}}. Per cell record: realized beta, model beta-neutrality, dollar-neutrality, **beta rank-stability** (Spearman corr vs OLS baseline + long/short set Jaccard overlap), turnover, net-of-cost Sharpe, ann vol, max-DD.
-- **Emit** deterministic `research_state/bab_p35/estimator_bakeoff_summary.json` (schema `bab_p35.estimator_bakeoff/1`) + `--check-estimator-bakeoff-summary` byte-diff.
-- **New `tests/test_bab_p35_estimator_bakeoff.py`**: neutrality holds for EVERY estimator at EVERY cell; EWMA/shrinkage measurably reduce beta-noise/turnover vs OLS without breaking neutrality; summary determinism.
-- **Acceptance:** every cell satisfies the neutrality invariants; summary reproducible byte-for-byte; tests PASS.
+### P35 WP1 — Estimator bake-off on the wide universe (signal stability + neutrality + cost)
+- **COMPLETE** (landed and verified this session). `scripts/bab_p35_estimator_bakeoff.py`, `tests/test_bab_p35_estimator_bakeoff.py`, and `research_state/bab_p35/estimator_bakeoff_summary.json` all exist; 25 tests PASS across WP0+WP1; `--check-estimator-bakeoff-summary` → byte-identical PASS; ruff clean; `bab_quick.sh` 104 + 195 PASS.
 
-### P35 WP2 — Signal-stability / beta-noise sensitivity + anti-overfit guard
+### P35 WP2 — Signal-stability / beta-noise sensitivity + anti-overfit guard  ← **NEXT**
 - **New `scripts/bab_p35_signal_stability.py`**: quantify selection churn — fraction of names flipping long↔short under (a) tiny beta noise injection and (b) estimator switch (OLS↔EWMA↔shrinkage); show shrinkage/EWMA reduce churn while preserving neutrality. Mirror P34 WP1 anti-victory guard.
-- **New `tests/test_bab_p35_signal_stability.py`**: churn direction/monotonicity assertions, anti-victory guard, synthetic-provenance guard.
-- **Acceptance:** churn results internally consistent; guards PASS.
+- **Emit** deterministic `research_state/bab_p35/signal_stability_summary.json` (schema `bab_p35.signal_stability/1`) + `--check-signal-stability-summary` byte-diff.
+- **New `tests/test_bab_p35_signal_stability.py`**: churn direction/monotonicity assertions, anti-victory guard, synthetic-provenance guard, summary determinism.
+- **Acceptance:** every perturbed cell satisfies the neutrality invariants; shrinkage/EWMA churn ≤ OLS churn; summary reproducible byte-for-byte; tests PASS.
 
 ### P35 WP3 — Decision doc + documentation-integrity closure + gate wire + replay registration
 - **New `docs/BAB_P35_DECISION.md`** (deterministic verdict from WP1/WP2 artifacts — e.g. "estimator choice materially affects turnover/churn but not beta-neutrality; default rolling-OLS retained / EWMA recommended for turnover reduction", decided from artifacts, **no hand-typed numbers**).
 - **New `scripts/generate_p35_decision.py`** (deterministic generator from `research_state/bab_p35/*.json`) and **register it in `scripts/bab_replay_decisions.py` REGISTRY as `p35_decision.md`**.
 - **New `tests/test_bab_p35_decision_consistency.py`** (byte-replay consistency of the decision doc).
-- **Register** `research_state/bab_p35/estimator_bakeoff_summary.json` in `scripts/bab_replay_full.py` REGISTRY and add a **P35 block to `scripts/bab_gate.sh`** mirroring the P34 block.
-- **Update** README.md "Binding next campaign" → P35 and docs/COVERAGE_NOTES.md "Active work is binding" → P35, then re-run `tests/test_bab_p34_doc_pointer_guard.py`.
+- **Register** `research_state/bab_p35/estimator_bakeoff_summary.json` (and `signal_stability_summary.json`) in `scripts/bab_replay_full.py` REGISTRY and add a **P35 block to `scripts/bab_gate.sh`** mirroring the P34 block.
+- **Update** README.md "Binding next campaign" → P35 (or named P36 successor) and docs/COVERAGE_NOTES.md "Active work is binding" → P35 (or named P36 successor), then re-run `tests/test_bab_p34_doc_pointer_guard.py`.
 - **Acceptance:** full gate GREEN; decision doc byte-replays; no stale pointers; P35 removed from "active" and a P36 successor row named in HANDOFF.
 
 **Definition of done for P35:** all four WPs landed, `BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh` GREEN with log attached, P35 decision doc byte-replays, and the binding row advanced to a named P36 successor (or explicit evidence-backed idle declaration).
@@ -171,8 +163,8 @@ BAB_GATE_LOG=/tmp/bab_gate_handoff.log BAB_GATE_MIN_COVERAGE=100 bash scripts/ba
 
 ## FUTURE AGENTS: READ THIS ONCE
 
-**All agent-executable work through Campaign P34 is COMPLETE and frozen** (P20–P34). Campaign **P35 "Beta-Estimation Robustness & Signal-Stability Closure" is the binding, agent-executable, HEAVY row — ACTIVE right now.** P28 WP2-WP4 are the only other remaining binding rows and are **maintainer-gated** (require `workflows:write` for CI and licensed CSV for real-market data). Do NOT re-create or re-edit any P20–P34 file.
+**All agent-executable work through Campaign P34 is COMPLETE and frozen** (P20–P34), as is **P35 WP0 and WP1** (estimator library + estimator bake-off — landed, 25 tests PASS, byte-identical summary, ruff clean). Campaign **P35 WP2 "Signal-Stability / Beta-Noise Sensitivity + Anti-Overfit Guard" is the binding, agent-executable, HEAVY row — ACTIVE right now.** P28 WP2-WP4 are the only other remaining binding rows and are **maintainer-gated** (require `workflows:write` for CI and licensed CSV for real-market data). Do NOT re-create or re-edit any P20–P34 file, or any landed P35 WP0/WP1 file.
 
-**Anti-idle rule:** a docs-only / handoff-only / plan-only / count-only commit is FORBIDDEN and counts as automatic failure when agent-executable work exists. **Agent-executable work DOES exist — P35 WP1 is the immediate next step.** A future session must execute P35 WP1→WP2→WP3 in order. Inner loop while iterating: `bash scripts/bab_quick.sh` + `python3 -m ruff check .` + `python3 -m pytest -q tests/test_bab_p35_*.py` + `python3 -m pytest -q tests/test_bab_p34_doc_pointer_guard.py` + `python3 -m pytest -q tests/test_bab_p31_registry_completeness.py tests/test_bab_p33_*.py tests/test_bab_p32_*.py tests/test_bab_p34_*.py` + `--check-multiseed-summary` + replay self-tests.
+**Anti-idle rule:** a docs-only / handoff-only / plan-only / count-only commit is FORBIDDEN and counts as automatic failure when agent-executable work exists. **Agent-executable work DOES exist — P35 WP2 is the immediate next step.** A future session must execute P35 WP2→WP3 in order. Inner loop while iterating: `bash scripts/bab_quick.sh` + `python3 -m ruff check .` + `python3 -m pytest -q tests/test_bab_p35_*.py` + `python3 -m pytest -q tests/test_bab_p34_doc_pointer_guard.py` + `python3 -m pytest -q tests/test_bab_p31_registry_completeness.py tests/test_bab_p33_*.py tests/test_bab_p32_*.py tests/test_bab_p34_*.py` + `--check-multiseed-summary` + replay self-tests.
 
-Do not re-open frozen P20–P34 artifacts (consumed read-only). Do not chase `test_null_stats_consistent` (pre-existing, certified unrelated, read-only). Do not edit `rank_min_leg_beta=0.20` / `rank_max_gross=4.0` (never weakened) or flip `beta_neutral=True` / `weighting="equal"` off as the default. Never network-fetch prices. If this file says a WP is COMPLETE, it is COMPLETE; if it says a WP is maintainer-gated (currently **P28 WP2-WP4**), route it to the maintainer. **P35 is NOT maintainer-gated — it is agent-executable and must be executed.**
+Do not re-open frozen P20–P34 artifacts (consumed read-only). Do not chase `test_null_stats_consistent` (pre-existing, certified unrelated, read-only). Do not edit `rank_min_leg_beta=0.20` / `rank_max_gross=4.0` (never weakened) or flip `beta_neutral=True` / `weighting="equal"` off as the default. Never network-fetch prices. If this file says a WP is COMPLETE, it is COMPLETE; if it says a WP is maintainer-gated (currently **P28 WP2-WP4**), route it to the maintainer. **P35 is NOT maintainer-gated — it is agent-executable and must be executed (WP2 next).**
