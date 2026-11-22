@@ -2,13 +2,13 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-22T14:36:10Z (refreshed this session; supersedes the 2026-11-22T13:42:18Z stamp)
-- **Git state:** HEAD `335f8c6` at write time (working tree clean; verified via `git rev-parse HEAD`). **P20–P35 are all COMPLETE and frozen.** The binding row is **Campaign P36 "Walk-Forward / Out-of-Sample Validation + Rank-Weighted Construction Closure"** — ACTIVE, agent-executable, HEAVY. The post-P35 idle-wait directive is REMOVED: P36 is the first heavy, fully offline, zero-maintainer-dependency successor to P35, and idle-wait is FORBIDDEN while P36 is incomplete.
+- **Timestamp (UTC):** 2026-11-22T14:52:24Z (refreshed this session; supersedes the 2026-11-22T14:36:10Z stamp)
+- **Git state:** HEAD `f52fb3b` at write time (working tree clean; verified via `git rev-parse HEAD`). **P20–P35 are all COMPLETE and frozen.** The binding row is **Campaign P36 "Walk-Forward / Out-of-Sample Validation + Rank-Weighted Construction Closure"** — ACTIVE, agent-executable, HEAVY. The post-P35 idle-wait directive is REMOVED: P36 is the first heavy, fully offline, zero-maintainer-dependency successor to P35, and idle-wait is FORBIDDEN while P36 is incomplete.
 - **Gate verified GREEN this session (2026-11-22T14:36:10Z, HEAD `335f8c6`):** `python3 -m pytest -q tests/test_bab_p35_beta_estimators.py tests/test_bab_p35_estimator_bakeoff.py tests/test_bab_p35_signal_stability.py tests/test_bab_p35_decision_consistency.py` → 52 passed; `python3 scripts/bab_p35_estimator_bakeoff.py --check-estimator-bakeoff-summary` → PASS (byte-identical); `python3 scripts/bab_p35_signal_stability.py --check-signal-stability-summary` → PASS (byte-identical); `python3 -m ruff check .` → all checks passed; `bash scripts/bab_quick.sh` → 104 + 195 tests PASS. The full gate (`BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh`, ~6 min parallel) must be run once and its GREEN log attached before any P36 WP boundary is declared complete.
 
 ---
 
-# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-22T14:36:10Z)
+# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-22T14:52:24Z)
 **EXECUTE CAMPAIGN P36 — "Walk-Forward / Out-of-Sample Validation + Rank-Weighted Construction Closure." THIS IS THE BINDING ROW. IDLE-WAIT IS FORBIDDEN WHILE P36 IS INCOMPLETE.**
 
 P20–P35 are fully landed and frozen. **Do NOT re-do them.** P35 WP0–WP3 are COMPLETE and verified GREEN this session (estimator library, estimator bake-off, signal-stability study, decision doc, replay registration, gate wire — all passing; 52 P35 tests PASS; ruff clean; `bab_quick.sh` 104 + 195 PASS). Those are *landed artifacts*, not obligations to start.
