@@ -386,10 +386,33 @@ def _build_summary_artifact(grid_results: dict) -> dict:
     return summary
 
 
+def _round_floats(obj, sig=12):
+    """Recursively round floats to `sig` significant digits for byte-reproducibility.
+
+    Realized-beta and related OLS-derived metrics differ in the final ULP (~1e-16
+    relative) across BLAS/platform/lib versions because the underlying dot-product
+    summation order is not bit-identical everywhere. The neutrality tolerances
+    (model beta 1e-3, dollar 1e-9, realized beta 0.15) are all many orders of
+    magnitude above 1e-12, so rounding to 12 significant figures cannot change any
+    pass/fail decision — it only makes the committed artifact byte-reproducible
+    across runners. This is a determinism fix, not a result change.
+    """
+    if isinstance(obj, float):
+        if obj == 0.0 or not np.isfinite(obj):
+            return obj
+        return float(f"{obj:.{sig}g}")
+    if isinstance(obj, dict):
+        return {k: _round_floats(v, sig) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_round_floats(v, sig) for v in obj]
+    return obj
+
+
 def write_summary(summary: dict, path: Path = SUMMARY_PATH) -> None:
     """Write summary artifact with deterministic JSON formatting."""
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    rounded = _round_floats(summary)
+    path.write_text(json.dumps(rounded, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
 def check_summary(path: Path = SUMMARY_PATH) -> bool:
@@ -400,7 +423,7 @@ def check_summary(path: Path = SUMMARY_PATH) -> bool:
 
     # Recompute
     grid_results = _run_all_seeds_and_configs()
-    fresh_summary = _build_summary_artifact(grid_results)
+    fresh_summary = _round_floats(_build_summary_artifact(grid_results))
 
     # Compare byte-identical
     expected_bytes = path.read_bytes()

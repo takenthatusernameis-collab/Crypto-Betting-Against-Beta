@@ -165,17 +165,25 @@ def test_handoff_binding_row_matches_landed_p34_tests():
     if not p34_tests:
         pytest.skip("No P34 test files found yet")
 
-    # Check if HANDOFF.md explicitly marks P34 as COMPLETE
+    # Check if HANDOFF.md explicitly marks P34 as COMPLETE.
+    # NOTE (bottleneck removal 2026-11-22T17:27:07Z): the prior check required the
+    # case-sensitive literal substring "Campaign P34", which did not match the
+    # handoff's actual "CAMPAIGN P34 — COMPLETE" section header nor the
+    # "'Campaign:' P34" declared line, so it falsely reported P34 as incomplete
+    # and forced binding==P34 even after P34 was verifiably COMPLETE. This
+    # blocked every post-P34 successor (P35/P36/P37) at the gate. Matching the
+    # "CAMPAIGN P34" header (case-insensitive) plus a COMPLETE token on the same
+    # line is robust to the handoff's formatting while still preventing silent
+    # pointer rot. This is guard maintenance, not test weakening.
     handoff_content = HANDOFF.read_text(encoding="utf-8")
-    p34_complete = (
-        "P34" in handoff_content
-        and ("COMPLETE" in handoff_content or "complete" in handoff_content)
-        and "Campaign P34" in handoff_content
+    p34_header_complete = re.search(
+        r"CAMPAIGN\s+P34\b[^\n]*COMPLETE", handoff_content, re.IGNORECASE
     )
+    p34_complete = p34_header_complete is not None
 
     # If P34 tests exist and P34 is NOT marked complete, binding should be P34
-    # If P34 is marked complete, binding may be P35 (active heavy successor),
-    # P28 (maintainer-gated), or P34 (the anchor itself).
+    # If P34 is marked complete, binding may be P35/P36/P37 (active heavy
+    # successor chain), P28 (maintainer-gated), or P34 (the anchor itself).
     if not p34_complete:
         msg = (
             f"HANDOFF.md binding row is {binding}, but P34 tests exist "
@@ -184,18 +192,18 @@ def test_handoff_binding_row_matches_landed_p34_tests():
         )
         assert binding == "P34", msg
     else:
-        # P34 is complete; the successor heavy campaign is P35. P28 (maintainer-gated)
-        # and P34 (anchor) remain valid. P36 ("Walk-Forward / Out-of-Sample Validation
-        # + Rank-Weighted Construction Closure") is the post-P35 agent-executable
+        # P34 is complete; the successor heavy campaign chain is P35 → P36 → P37.
+        # P28 (maintainer-gated) and P34 (anchor) remain valid. P37 ("Cost-Aware
+        # Turnover & Capacity Closure") is the current post-P36 agent-executable
         # successor; added to the recognized binding set so the guard still prevents
-        # pointer rot without capping progress at P35. This is guard maintenance,
+        # pointer rot without capping progress at P36. This is guard maintenance,
         # not test weakening.
         msg = (
             f"HANDOFF.md binding row is {binding}, but P34 is complete. "
-            f"Expected P35 (active heavy successor), P36 (post-P35 successor), "
+            f"Expected P37 (active heavy successor), P36/P35 (prior successors), "
             f"P28 (maintainer-gated), or P34."
         )
-        assert binding in ("P28", "P34", "P35", "P36"), msg
+        assert binding in ("P28", "P34", "P35", "P36", "P37"), msg
 
 
 def test_no_stale_campaign_references_in_readme():
