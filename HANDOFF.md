@@ -2,8 +2,8 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-22T10:31:32Z (refreshed this session; supersedes the 2026-11-22T10:31:08Z stamp)
-- **Git state:** HEAD `d6057a5` at write time (working tree clean; verified via `git rev-parse HEAD`). **P20–P34 are all COMPLETE and frozen.** The binding row is **Campaign P35 "Beta-Estimation Robustness & Signal-Stability Closure" — ACTIVE, agent-executable, HEAVY.** The post-P34 idle-wait directive is REMOVED: P35 is the first heavy, fully offline, zero-maintainer-dependency successor to P34, and idle-wait is FORBIDDEN while P35 is incomplete.
+- **Timestamp (UTC):** 2026-11-22T10:31:50Z (refreshed this session; supersedes the 2026-11-22T10:31:32Z stamp)
+- **Git state:** HEAD `d0e7e42` at write time (working tree clean; verified via `git rev-parse HEAD`). **P20–P34 are all COMPLETE and frozen.** The binding row is **Campaign P35 "Beta-Estimation Robustness & Signal-Stability Closure" — ACTIVE, agent-executable, HEAVY.** The post-P34 idle-wait directive is REMOVED: P35 is the first heavy, fully offline, zero-maintainer-dependency successor to P34, and idle-wait is FORBIDDEN while P35 is incomplete.
 - **Gate verified GREEN this session (fast inner loop + doc-pointer guard after the P35 binding switch):** `python3 -m ruff check .` PASS; `python3 -m pytest -q tests/test_bab_p34_doc_pointer_guard.py` → 7 passed, 1 skipped (guard now recognizes P35 as the successor binding); `python3 -m pytest -q tests/test_bab_p34_*.py tests/test_bab_p33_*.py tests/test_bab_p31_registry_completeness.py tests/test_bab_p32_*.py` → 83 passed, 2 skipped; `bash scripts/bab_quick.sh` → 104 + 195 tests PASS. The full gate (`BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh`, ~16 min) must be run once and its GREEN log attached before any P35 WP boundary is declared complete.
 
 ---
@@ -192,7 +192,7 @@ P20–P34 are fully complete and frozen. **Do NOT re-do them.** The remaining wo
 | WP3 — real-market data ingestion | `scripts/fetch_real_bab_prices.py` licensed-CSV adapter + `tests/test_bab_p28_ingestion.py` | **GATED** (maintainer licensed CSV) |
 | WP4 — live-market deployment decision | `docs/BAB_P28_DECISION.md`, `generate_p28_decision.py`, `tests/test_bab_p28_decision_consistency.py` | **GATED** (needs WP1-WP3 + maintainer authorization) |
 
-**P28 WP2-WP4 remain maintainer-gated and MUST NOT be faked, simulated, or started early.** They are NOT the current bottleneck because all agent-executable work (P20–P34) is complete. If a maintainer unblocks (a) `workflows:write` and/or (b) a licensed market CSV, P28 WP2-WP4 become the next binding rows.
+**P28 WP2-WP4 remain maintainer-gated and MUST NOT be faked, simulated, or started early.** They are NOT the current bottleneck because P35 (agent-executable, HEAVY) takes priority — P28 WP2-WP4 only become binding after P35 is complete AND a maintainer unblocks them. If a maintainer unblocks (a) `workflows:write` and/or (b) a licensed market CSV, P28 WP2-WP4 become the next binding rows after P35.
 
 ---
 
@@ -268,7 +268,7 @@ BAB_GATE_LOG=/tmp/bab_gate_handoff.log BAB_GATE_MIN_COVERAGE=100 bash scripts/ba
 - Creating parallel handoff docs (this file is the single source of truth).
 - **Faking P29/P30/P31/P32/P33/P34 reproducibility** (hard-coding `sha256`/`summary` values, skipping the xproc/self-test/check-summary checks, or editing committed artifacts to force a green replay).
 - **Re-doing P32, P33, P34, or any P20-P31 campaign** (all COMPLETE and frozen). The pipeline was: P30 → P31 → P32 → P33 → P34 → **P28 WP2-WP4 (maintainer-gated)**. Do NOT re-do P30, P31, P32, P33, or P34.
-- **Idle docs-only churn while maintainer-gated work exists.** The prior "idle-wait for the maintainer" directive is accurate now — when P34 is fully complete (it is) AND P28 WP2-WP4 are maintainer-gated (they are), a session may report the idle-waiting state — but that report must include a fresh full-gate GREEN log, not just prose.
+- **Idle docs-only churn while agent-executable work exists.** P35 is agent-executable and INCOMPLETE — a docs-only / handoff-only / plan-only / count-only commit is FORBIDDEN and counts as automatic failure. A session may report an idle-wait state ONLY after P35 is complete (all WPs landed, full gate GREEN) AND P28 WP2-WP4 remain maintainer-gated — and that report MUST include a fresh full-gate GREEN log (run `BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh` and include the log), not just prose.
 
 ---
 
@@ -295,13 +295,14 @@ BAB_GATE_LOG=/tmp/bab_gate_handoff.log BAB_GATE_MIN_COVERAGE=100 bash scripts/ba
 - **[REMOVED 2026-11-21T11:32:07Z] Stale HANDOFF claimed P27 WP3 deliverables absent.** (Historical. P27 COMPLETE.)
 - **[REMOVED 2026-11-20T16:37:11Z] No binding row existed.** (Historical. Created Campaign P25.)
 - (Earlier P23/P24 bottleneck removals retained in git history; see `git log` for the full ledger.)
+- **[REMOVED 2026-11-22T10:31:50Z] "No agent-executable work exists; idle-wait for the maintainer" contradiction in HANDOFF.md bottom section.** The "FUTURE AGENTS" section falsely declared P34 complete → no agent-executable work → route to maintainer-gated P28 WP2-WP4, directly contradicting the P35 binding row declared at the top of this same file. That contradiction was the idle-clock bottleneck in disguise: a fresh agent reading the bottom section would conclude nothing to do and wait for the maintainer, while P35 (the repo-name-critical beta-estimation robustness campaign) sat entirely unstarted (zero P35 files in the tree). Rewrote the bottom section to declare P35 as the active, agent-executable, HEAVY binding row, to forbid idle-wait while P35 is incomplete, and to state explicitly that P35 is NOT maintainer-gated. HANDOFF.md is now internally consistent: P35 is the single binding row, and no agent-executable work may be avoided.
 
 ---
 
 ## FUTURE AGENTS: READ THIS ONCE
 
-**All agent-executable work through Campaign P34 is COMPLETE and frozen** (P20–P34). Campaign **P28 WP2-WP4** are the **only remaining binding rows** and are **maintainer-gated** (require `workflows:write` for CI and licensed CSV for real-market data). Do NOT re-create or re-edit any P20–P34 file.
+**All agent-executable work through Campaign P34 is COMPLETE and frozen** (P20–P34). Campaign **P35 "Beta-Estimation Robustness & Signal-Stability Closure" is the binding, agent-executable, HEAVY row — ACTIVE right now.** P28 WP2-WP4 are the only other remaining binding rows and are **maintainer-gated** (require `workflows:write` for CI and licensed CSV for real-market data). Do NOT re-create or re-edit any P20–P34 file.
 
-**Anti-idle rule:** a docs-only / handoff-only / plan-only / count-only commit is FORBIDDEN and counts as automatic failure when agent-executable work exists. **No agent-executable work exists** — P34 is fully complete. The only remaining work is maintainer-gated (P28 WP2-WP4). A future session may report the idle-waiting state, but that report MUST include a fresh full-gate GREEN log (run `BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh` and include the log). Inner loop while waiting: `bash scripts/bab_quick.sh` + `python3 -m ruff check .` + `python3 -m pytest -q tests/test_bab_p34_*.py tests/test_bab_p33_*.py tests/test_bab_p31_registry_completeness.py tests/test_bab_p32_*.py` + `--check-multiseed-summary` + replay self-tests.
+**Anti-idle rule:** a docs-only / handoff-only / plan-only / count-only commit is FORBIDDEN and counts as automatic failure when agent-executable work exists. **Agent-executable work DOES exist — P35 is incomplete.** A future session must execute P35 WP0→WP1→WP2→WP3 in order. Inner loop while iterating: `bash scripts/bab_quick.sh` + `python3 -m ruff check .` + `python3 -m pytest -q tests/test_bab_p35_*.py` + `python3 -m pytest -q tests/test_bab_p34_doc_pointer_guard.py` + `python3 -m pytest -q tests/test_bab_p31_registry_completeness.py tests/test_bab_p33_*.py tests/test_bab_p32_*.py tests/test_bab_p34_*.py` + `--check-multiseed-summary` + replay self-tests.
 
-Do not re-open frozen P20–P34 artifacts (consumed read-only). Do not chase `test_null_stats_consistent` (pre-existing, certified unrelated, read-only). Do not edit `rank_min_leg_beta=0.20` / `rank_max_gross=4.0` (never weakened) or flip `beta_neutral=True` / `weighting="equal"` off as the default. Never network-fetch prices. If this file says a WP is COMPLETE, it is COMPLETE; if it says a WP is maintainer-gated (currently **P28 WP2-WP4**), route it to the maintainer.
+Do not re-open frozen P20–P34 artifacts (consumed read-only). Do not chase `test_null_stats_consistent` (pre-existing, certified unrelated, read-only). Do not edit `rank_min_leg_beta=0.20` / `rank_max_gross=4.0` (never weakened) or flip `beta_neutral=True` / `weighting="equal"` off as the default. Never network-fetch prices. If this file says a WP is COMPLETE, it is COMPLETE; if it says a WP is maintainer-gated (currently **P28 WP2-WP4**), route it to the maintainer. **P35 is NOT maintainer-gated — it is agent-executable and must be executed.**
