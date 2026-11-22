@@ -2,12 +2,12 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-22T15:49:26Z (refreshed this session; supersedes the 2026-11-22T15:45:00Z stamp)
+- **Timestamp (UTC):** 2026-11-22T17:26:31Z (refreshed this session; supersedes the 2026-11-22T15:49:26Z stamp)
 - **Git state:** working tree clean at HEAD (verified via `git rev-parse HEAD`); P20–P36 are all COMPLETE and frozen. The binding row is now **Campaign P37 "Cost-Aware Turnover & Capacity Closure"** — agent-executable, fully offline, zero maintainer dependency. P28 WP2–WP4 remain **maintainer-gated** (require `workflows:write` for CI and licensed CSV for real-market data).
 
 ---
 
-# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-22T15:49:26Z)
+# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-22T17:26:31Z)
 
 **CAMPAIGN P36 IS COMPLETE — ALL WPs LANDED AND GREEN.** P36 WP0 walk-forward/OOS harness, WP1 rank-weighted construction, WP2-WP3 decision doc + documentation-integrity closure + gate wire are all delivered, byte-identical, registered, and wired into `scripts/bab_gate.sh`. `tests/test_bab_p36_decision_consistency.py` → 14 PASS; `scripts/bab_p36_walk_forward.py --check-walk-forward-summary` → PASS; `scripts/bab_p36_rank_weighted.py --check-rank-weighted-summary` → PASS; `scripts/bab_replay_decisions.py --subset p36_decision.md` → PASS; `scripts/bab_replay_full.py --subset walk_forward_summary,rank_weighted_summary` → PASS; `scripts/bab_replay_decisions.py --check-doc-summary research_state/bab_p32/doc_replay_summary.json` → PASS; `tests/test_bab_p34_doc_pointer_guard.py` → 7 passed, 1 skipped; ruff clean on all new/modified files.
 
