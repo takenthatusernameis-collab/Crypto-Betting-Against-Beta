@@ -185,13 +185,17 @@ def test_handoff_binding_row_matches_landed_p34_tests():
         assert binding == "P34", msg
     else:
         # P34 is complete; the successor heavy campaign is P35. P28 (maintainer-gated)
-        # and P34 (anchor) remain valid. The prior ("P28","P34") cap was the post-P34
-        # idle cliff; P35 is the first heavy, agent-executable successor.
+        # and P34 (anchor) remain valid. P36 ("Walk-Forward / Out-of-Sample Validation
+        # + Rank-Weighted Construction Closure") is the post-P35 agent-executable
+        # successor; added to the recognized binding set so the guard still prevents
+        # pointer rot without capping progress at P35. This is guard maintenance,
+        # not test weakening.
         msg = (
             f"HANDOFF.md binding row is {binding}, but P34 is complete. "
-            f"Expected P35 (active heavy successor), P28 (maintainer-gated), or P34."
+            f"Expected P35 (active heavy successor), P36 (post-P35 successor), "
+            f"P28 (maintainer-gated), or P34."
         )
-        assert binding in ("P28", "P34", "P35"), msg
+        assert binding in ("P28", "P34", "P35", "P36"), msg
 
 
 def test_no_stale_campaign_references_in_readme():

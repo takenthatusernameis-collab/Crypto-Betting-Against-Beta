@@ -1,0 +1,3728 @@
+{
+  "provenance": {
+    "btc_source_sha256": "cf1472e154f38b062d8b40ffe9bddcc6a51286e41400acd51d64e12e9d585a77",
+    "config_grid": {
+      "beta_neutral": true,
+      "beta_window": 90,
+      "dollar_neutral": true,
+      "quantile": 0.3,
+      "step": 30,
+      "test_window": 30,
+      "train_window": 90,
+      "transaction_costs": 0.001,
+      "weighting": "equal"
+    },
+    "fixture_path": "/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta/tests/fixtures/wide_bab_universe.csv",
+    "fixture_recipe": "Deterministic synthetic wide universe (P35 wide-universe recipe). BTC prices from tests/fixtures/wide_bab_universe.csv. Asset returns = beta * BTC_return + idio, idio ~ N(0, 0.003), betas linspace(0.35, 1.9, 40). Walk-forward: train=90d, test=30d, step=30d. Not real market data; not market profitability evidence.",
+    "neutrality_tolerances": {
+      "dollar_neutral": 1e-09,
+      "model_beta_neutral": 0.001,
+      "realized_beta": 0.15
+    },
+    "returns_sha256": "892c5d59bcbf1a124be798e47b176aeef5199e9e431bef7230cabfdc6b4f3205",
+    "seeds": {
+      "base_seed": 20261120,
+      "increment": 1009,
+      "n_seeds": 8,
+      "seed_list": [
+        20261120,
+        20262129,
+        20263138,
+        20264147,
+        20265156,
+        20266165,
+        20267174,
+        20268183
+      ]
+    },
+    "walk_forward_stability": {
+      "description": "Spearman rank correlation between in-sample beta ranks (rolling-OLS at the rebalance point) and out-of-sample realized beta ranks (simple OLS over the test window). Measures whether the beta signal persists out of sample.",
+      "metric": "spearman_is_oos_beta"
+    }
+  },
+  "results": {
+    "cells": [
+      {
+        "cell_key": "seed_0_win_0",
+        "metrics": {
+          "annualized_volatility": 0.006575999232890489,
+          "max_dollar_neutral": 6.210310043996969e-16,
+          "max_drawdown": -0.0032524484664258058,
+          "max_model_beta": 5.0078717740118496e-05,
+          "n_periods": 30,
+          "realized_beta": 0.0037741238348396934,
+          "sharpe": -2.1234281239733397,
+          "total_return": -0.0016634900992908985,
+          "turnover": 0.0,
+          "wealth": 0.9983365099007091
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 6.210310043996969e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 5.0078717740118496e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": 0.0037741238348396934,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20261120,
+        "seed_index": 0,
+        "status": "ok",
+        "test_end": "2021-06-21",
+        "test_start": "2021-05-11",
+        "train_end": "2021-05-10",
+        "train_start": "2021-01-05",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9984990619136962
+        },
+        "window_index": 0
+      },
+      {
+        "cell_key": "seed_0_win_1",
+        "metrics": {
+          "annualized_volatility": 0.005328561351436038,
+          "max_dollar_neutral": 6.38378239159465e-16,
+          "max_drawdown": -0.0006154798774937196,
+          "max_model_beta": 3.335726737357484e-05,
+          "n_periods": 30,
+          "realized_beta": 0.0010261369700498158,
+          "sharpe": 7.387705672925976,
+          "total_return": 0.004695399579137893,
+          "turnover": 0.0,
+          "wealth": 1.004695399579138
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 6.38378239159465e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 3.335726737357484e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": 0.0010261369700498158,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20261120,
+        "seed_index": 0,
+        "status": "ok",
+        "test_end": "2021-08-02",
+        "test_start": "2021-06-22",
+        "train_end": "2021-06-21",
+        "train_start": "2021-02-16",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9984990619136962
+        },
+        "window_index": 1
+      },
+      {
+        "cell_key": "seed_0_win_2",
+        "metrics": {
+          "annualized_volatility": 0.007397105747477861,
+          "max_dollar_neutral": 2.706168622523819e-16,
+          "max_drawdown": -0.002645632395577106,
+          "max_model_beta": 7.829998795254512e-05,
+          "n_periods": 30,
+          "realized_beta": -0.0008749325421926243,
+          "sharpe": -0.25528764568489987,
+          "total_return": -0.00022793132825527085,
+          "turnover": 0.0,
+          "wealth": 0.9997720686717447
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 2.706168622523819e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 7.829998795254512e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0008749325421926243,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20261120,
+        "seed_index": 0,
+        "status": "ok",
+        "test_end": "2021-09-13",
+        "test_start": "2021-08-03",
+        "train_end": "2021-08-02",
+        "train_start": "2021-03-30",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9973733583489681
+        },
+        "window_index": 2
+      },
+      {
+        "cell_key": "seed_0_win_3",
+        "metrics": {
+          "annualized_volatility": 0.00591018760455469,
+          "max_dollar_neutral": 1.0182826803983858e-15,
+          "max_drawdown": -0.0009896003622502799,
+          "max_model_beta": 7.65097283658055e-05,
+          "n_periods": 30,
+          "realized_beta": 0.0033845059686918896,
+          "sharpe": 2.7383575606687813,
+          "total_return": 0.001926473059379985,
+          "turnover": 0.0,
+          "wealth": 1.00192647305938
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 1.0182826803983858e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 7.65097283658055e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": 0.0033845059686918896,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20261120,
+        "seed_index": 0,
+        "status": "ok",
+        "test_end": "2021-10-26",
+        "test_start": "2021-09-14",
+        "train_end": "2021-09-13",
+        "train_start": "2021-05-11",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9964352720450284
+        },
+        "window_index": 3
+      },
+      {
+        "cell_key": "seed_0_win_4",
+        "metrics": {
+          "annualized_volatility": 0.006407441750865523,
+          "max_dollar_neutral": 1.734723475976807e-17,
+          "max_drawdown": -0.0014002245459454109,
+          "max_model_beta": 9.733978381500116e-05,
+          "n_periods": 30,
+          "realized_beta": -0.0046214192865584175,
+          "sharpe": 2.010315978342095,
+          "total_return": 0.0015322214528081801,
+          "turnover": 0.0,
+          "wealth": 1.0015322214528082
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 1.734723475976807e-17,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.733978381500116e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0046214192865584175,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20261120,
+        "seed_index": 0,
+        "status": "ok",
+        "test_end": "2021-12-07",
+        "test_start": "2021-10-27",
+        "train_end": "2021-10-26",
+        "train_start": "2021-06-22",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9973733583489681
+        },
+        "window_index": 4
+      },
+      {
+        "cell_key": "seed_0_win_5",
+        "metrics": {
+          "annualized_volatility": 0.005516025902851968,
+          "max_dollar_neutral": 3.434752482434078e-16,
+          "max_drawdown": -0.0017430830623165188,
+          "max_model_beta": 5.012891069442523e-05,
+          "n_periods": 30,
+          "realized_beta": 0.009133434680816075,
+          "sharpe": 1.4522553512391299,
+          "total_return": 0.0009523394182224809,
+          "turnover": 0.0,
+          "wealth": 1.0009523394182225
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.434752482434078e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 5.012891069442523e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": 0.009133434680816075,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20261120,
+        "seed_index": 0,
+        "status": "ok",
+        "test_end": "2022-01-18",
+        "test_start": "2021-12-08",
+        "train_end": "2021-12-07",
+        "train_start": "2021-08-03",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9975609756097563
+        },
+        "window_index": 5
+      },
+      {
+        "cell_key": "seed_0_win_6",
+        "metrics": {
+          "annualized_volatility": 0.00687351625879779,
+          "max_dollar_neutral": 4.163336342344337e-16,
+          "max_drawdown": -0.0015047897096458287,
+          "max_model_beta": 9.274265024978636e-05,
+          "n_periods": 30,
+          "realized_beta": 0.0014725903495398129,
+          "sharpe": 0.3683125073476808,
+          "total_return": 0.00029870632955053544,
+          "turnover": 0.0,
+          "wealth": 1.0002987063295505
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 4.163336342344337e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.274265024978636e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": 0.0014725903495398129,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20261120,
+        "seed_index": 0,
+        "status": "ok",
+        "test_end": "2022-03-01",
+        "test_start": "2022-01-19",
+        "train_end": "2022-01-18",
+        "train_start": "2021-09-14",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9977485928705443
+        },
+        "window_index": 6
+      },
+      {
+        "cell_key": "seed_0_win_7",
+        "metrics": {
+          "annualized_volatility": 0.007621214194471411,
+          "max_dollar_neutral": 3.469446951953614e-18,
+          "max_drawdown": -0.004454843568914679,
+          "max_model_beta": 3.394114169727936e-05,
+          "n_periods": 30,
+          "realized_beta": -0.010856383662318331,
+          "sharpe": -4.91698743944898,
+          "total_return": -0.004454843568914679,
+          "turnover": 0.0,
+          "wealth": 0.9955451564310853
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.469446951953614e-18,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 3.394114169727936e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.010856383662318331,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20261120,
+        "seed_index": 0,
+        "status": "ok",
+        "test_end": "2022-04-12",
+        "test_start": "2022-03-02",
+        "train_end": "2022-03-01",
+        "train_start": "2021-10-27",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9984990619136962
+        },
+        "window_index": 7
+      },
+      {
+        "cell_key": "seed_0_win_8",
+        "metrics": {
+          "annualized_volatility": 0.005270363174374122,
+          "max_dollar_neutral": 4.371503159461554e-16,
+          "max_drawdown": -0.0011305667475187459,
+          "max_model_beta": 4.4942720218547444e-05,
+          "n_periods": 30,
+          "realized_beta": 0.0020032981506041304,
+          "sharpe": 2.8934439345987517,
+          "total_return": 0.0018154097089084775,
+          "turnover": 0.0,
+          "wealth": 1.0018154097089085
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 4.371503159461554e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 4.4942720218547444e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": 0.0020032981506041304,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20261120,
+        "seed_index": 0,
+        "status": "ok",
+        "test_end": "2022-05-24",
+        "test_start": "2022-04-13",
+        "train_end": "2022-04-12",
+        "train_start": "2021-12-08",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9973733583489681
+        },
+        "window_index": 8
+      },
+      {
+        "cell_key": "seed_0_win_9",
+        "metrics": {
+          "annualized_volatility": 0.006223840782568969,
+          "max_dollar_neutral": 2.931682674400804e-16,
+          "max_drawdown": -0.0020454181331053633,
+          "max_model_beta": 9.627415088842111e-05,
+          "n_periods": 30,
+          "realized_beta": 0.007960298581319646,
+          "sharpe": 3.297826121593412,
+          "total_return": 0.0024441235713819065,
+          "turnover": 0.0,
+          "wealth": 1.002444123571382
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 2.931682674400804e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.627415088842111e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": 0.007960298581319646,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20261120,
+        "seed_index": 0,
+        "status": "ok",
+        "test_end": "2022-07-05",
+        "test_start": "2022-05-25",
+        "train_end": "2022-05-24",
+        "train_start": "2022-01-19",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9949343339587244
+        },
+        "window_index": 9
+      },
+      {
+        "cell_key": "seed_1_win_0",
+        "metrics": {
+          "annualized_volatility": 0.0071433001140913535,
+          "max_dollar_neutral": 4.683753385137379e-16,
+          "max_drawdown": -0.002582056088576882,
+          "max_model_beta": 8.047092180215775e-05,
+          "n_periods": 30,
+          "realized_beta": -0.008944095562901325,
+          "sharpe": 1.2590900760143555,
+          "total_return": 0.0010683361066450292,
+          "turnover": 0.0,
+          "wealth": 1.001068336106645
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 4.683753385137379e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 8.047092180215775e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.008944095562901325,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20262129,
+        "seed_index": 1,
+        "status": "ok",
+        "test_end": "2021-06-21",
+        "test_start": "2021-05-11",
+        "train_end": "2021-05-10",
+        "train_start": "2021-01-05",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9990619136960602
+        },
+        "window_index": 0
+      },
+      {
+        "cell_key": "seed_1_win_1",
+        "metrics": {
+          "annualized_volatility": 0.006911912395313176,
+          "max_dollar_neutral": 5.238864897449957e-16,
+          "max_drawdown": -0.002786646165337971,
+          "max_model_beta": 3.6791984967523715e-05,
+          "n_periods": 30,
+          "realized_beta": -0.004407283856709487,
+          "sharpe": -0.7358790445509884,
+          "total_return": -0.0006080860491495255,
+          "turnover": 0.0,
+          "wealth": 0.9993919139508505
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 5.238864897449957e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 3.6791984967523715e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.004407283856709487,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20262129,
+        "seed_index": 1,
+        "status": "ok",
+        "test_end": "2021-08-02",
+        "test_start": "2021-06-22",
+        "train_end": "2021-06-21",
+        "train_start": "2021-02-16",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9977485928705443
+        },
+        "window_index": 1
+      },
+      {
+        "cell_key": "seed_1_win_2",
+        "metrics": {
+          "annualized_volatility": 0.006370303018675069,
+          "max_dollar_neutral": 5.429684479807406e-16,
+          "max_drawdown": -0.003103924789211903,
+          "max_model_beta": 3.94449682524142e-05,
+          "n_periods": 30,
+          "realized_beta": 0.004767021091120442,
+          "sharpe": -2.0863795194086436,
+          "total_return": -0.0015833680385399784,
+          "turnover": 0.0,
+          "wealth": 0.99841663196146
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 5.429684479807406e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 3.94449682524142e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": 0.004767021091120442,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20262129,
+        "seed_index": 1,
+        "status": "ok",
+        "test_end": "2021-09-13",
+        "test_start": "2021-08-03",
+        "train_end": "2021-08-02",
+        "train_start": "2021-03-30",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9977485928705443
+        },
+        "window_index": 2
+      },
+      {
+        "cell_key": "seed_1_win_3",
+        "metrics": {
+          "annualized_volatility": 0.0060842217572417475,
+          "max_dollar_neutral": 2.2724877535296173e-16,
+          "max_drawdown": -0.0010225419733905037,
+          "max_model_beta": 3.897853853896491e-05,
+          "n_periods": 30,
+          "realized_beta": -0.00581312640191334,
+          "sharpe": 3.4065235537779186,
+          "total_return": 0.0024681960077692633,
+          "turnover": 0.0,
+          "wealth": 1.0024681960077693
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 2.2724877535296173e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 3.897853853896491e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.00581312640191334,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20262129,
+        "seed_index": 1,
+        "status": "ok",
+        "test_end": "2021-10-26",
+        "test_start": "2021-09-14",
+        "train_end": "2021-09-13",
+        "train_start": "2021-05-11",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9986866791744841
+        },
+        "window_index": 3
+      },
+      {
+        "cell_key": "seed_1_win_4",
+        "metrics": {
+          "annualized_volatility": 0.006543291456538785,
+          "max_dollar_neutral": 4.85722573273506e-17,
+          "max_drawdown": -0.0042825753526476535,
+          "max_model_beta": 3.0774974757659036e-05,
+          "n_periods": 30,
+          "realized_beta": 0.001935885614489175,
+          "sharpe": -2.0330628847845302,
+          "total_return": -0.0015849295080793135,
+          "turnover": 0.0,
+          "wealth": 0.9984150704919207
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 4.85722573273506e-17,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 3.0774974757659036e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": 0.001935885614489175,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20262129,
+        "seed_index": 1,
+        "status": "ok",
+        "test_end": "2021-12-07",
+        "test_start": "2021-10-27",
+        "train_end": "2021-10-26",
+        "train_start": "2021-06-22",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9984990619136962
+        },
+        "window_index": 4
+      },
+      {
+        "cell_key": "seed_1_win_5",
+        "metrics": {
+          "annualized_volatility": 0.006584039399585552,
+          "max_dollar_neutral": 7.563394355258879e-16,
+          "max_drawdown": -0.00167555469184911,
+          "max_model_beta": 3.211266331655757e-05,
+          "n_periods": 30,
+          "realized_beta": -0.008012169468105117,
+          "sharpe": 2.1042684224240706,
+          "total_return": 0.0016481732669537674,
+          "turnover": 0.0,
+          "wealth": 1.0016481732669538
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 7.563394355258879e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 3.211266331655757e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.008012169468105117,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20262129,
+        "seed_index": 1,
+        "status": "ok",
+        "test_end": "2022-01-18",
+        "test_start": "2021-12-08",
+        "train_end": "2021-12-07",
+        "train_start": "2021-08-03",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9979362101313323
+        },
+        "window_index": 5
+      },
+      {
+        "cell_key": "seed_1_win_6",
+        "metrics": {
+          "annualized_volatility": 0.006301174038419374,
+          "max_dollar_neutral": 7.042977312465837e-16,
+          "max_drawdown": -0.00208136816353157,
+          "max_model_beta": 5.225670780226385e-05,
+          "n_periods": 30,
+          "realized_beta": -0.003957468665847751,
+          "sharpe": -0.8259336103427917,
+          "total_return": -0.0006216634823322797,
+          "turnover": 0.0,
+          "wealth": 0.9993783365176677
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 7.042977312465837e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 5.225670780226385e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.003957468665847751,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20262129,
+        "seed_index": 1,
+        "status": "ok",
+        "test_end": "2022-03-01",
+        "test_start": "2022-01-19",
+        "train_end": "2022-01-18",
+        "train_start": "2021-09-14",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9981238273921202
+        },
+        "window_index": 6
+      },
+      {
+        "cell_key": "seed_1_win_7",
+        "metrics": {
+          "annualized_volatility": 0.006636002415720355,
+          "max_dollar_neutral": 8.500145032286355e-16,
+          "max_drawdown": -0.0036918743376359586,
+          "max_model_beta": 4.685589825328029e-05,
+          "n_periods": 30,
+          "realized_beta": 0.006621811361395323,
+          "sharpe": -3.796911008248826,
+          "total_return": -0.002997742585358454,
+          "turnover": 0.0,
+          "wealth": 0.9970022574146415
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 8.500145032286355e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 4.685589825328029e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": 0.006621811361395323,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20262129,
+        "seed_index": 1,
+        "status": "ok",
+        "test_end": "2022-04-12",
+        "test_start": "2022-03-02",
+        "train_end": "2022-03-01",
+        "train_start": "2021-10-27",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9983114446529082
+        },
+        "window_index": 7
+      },
+      {
+        "cell_key": "seed_1_win_8",
+        "metrics": {
+          "annualized_volatility": 0.006098254548024122,
+          "max_dollar_neutral": 7.979727989493313e-17,
+          "max_drawdown": -0.0015707865769018549,
+          "max_model_beta": 3.526838658990085e-05,
+          "n_periods": 30,
+          "realized_beta": 0.0051857268276200305,
+          "sharpe": 0.720267179048642,
+          "total_return": 0.0005208928535345159,
+          "turnover": 0.0,
+          "wealth": 1.0005208928535345
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 7.979727989493313e-17,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 3.526838658990085e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": 0.0051857268276200305,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20262129,
+        "seed_index": 1,
+        "status": "ok",
+        "test_end": "2022-05-24",
+        "test_start": "2022-04-13",
+        "train_end": "2022-04-12",
+        "train_start": "2021-12-08",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9979362101313323
+        },
+        "window_index": 8
+      },
+      {
+        "cell_key": "seed_1_win_9",
+        "metrics": {
+          "annualized_volatility": 0.007899042922189658,
+          "max_dollar_neutral": 1.1518563880486e-15,
+          "max_drawdown": -0.0016191177914649235,
+          "max_model_beta": 8.832204927274428e-05,
+          "n_periods": 30,
+          "realized_beta": -0.00806735918142739,
+          "sharpe": 4.066040081556675,
+          "total_return": 0.0038270225504004607,
+          "turnover": 0.0,
+          "wealth": 1.0038270225504005
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 1.1518563880486e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 8.832204927274428e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.00806735918142739,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20262129,
+        "seed_index": 1,
+        "status": "ok",
+        "test_end": "2022-07-05",
+        "test_start": "2022-05-25",
+        "train_end": "2022-05-24",
+        "train_start": "2022-01-19",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9984990619136962
+        },
+        "window_index": 9
+      },
+      {
+        "cell_key": "seed_2_win_0",
+        "metrics": {
+          "annualized_volatility": 0.006262083157270153,
+          "max_dollar_neutral": 5.568462357885551e-16,
+          "max_drawdown": -0.0011788186808391547,
+          "max_model_beta": 6.975688701025932e-05,
+          "n_periods": 30,
+          "realized_beta": 0.001197854043491161,
+          "sharpe": 2.9062113223596926,
+          "total_return": 0.0021665493627931465,
+          "turnover": 0.0,
+          "wealth": 1.0021665493627931
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 5.568462357885551e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 6.975688701025932e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": 0.001197854043491161,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20263138,
+        "seed_index": 2,
+        "status": "ok",
+        "test_end": "2021-06-21",
+        "test_start": "2021-05-11",
+        "train_end": "2021-05-10",
+        "train_start": "2021-01-05",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9990619136960602
+        },
+        "window_index": 0
+      },
+      {
+        "cell_key": "seed_2_win_1",
+        "metrics": {
+          "annualized_volatility": 0.008297383350132477,
+          "max_dollar_neutral": 6.175615574477433e-16,
+          "max_drawdown": -0.0031434779447309675,
+          "max_model_beta": 4.860749437734364e-05,
+          "n_periods": 30,
+          "realized_beta": 0.003417149876453527,
+          "sharpe": 0.6071084955722763,
+          "total_return": 0.0005959024203163743,
+          "turnover": 0.0,
+          "wealth": 1.0005959024203164
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 6.175615574477433e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 4.860749437734364e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": 0.003417149876453527,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20263138,
+        "seed_index": 2,
+        "status": "ok",
+        "test_end": "2021-08-02",
+        "test_start": "2021-06-22",
+        "train_end": "2021-06-21",
+        "train_start": "2021-02-16",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9992495309568482
+        },
+        "window_index": 1
+      },
+      {
+        "cell_key": "seed_2_win_2",
+        "metrics": {
+          "annualized_volatility": 0.007270525310565884,
+          "max_dollar_neutral": 6.349087922075114e-16,
+          "max_drawdown": -0.0017165865188778513,
+          "max_model_beta": 9.942117854800605e-05,
+          "n_periods": 30,
+          "realized_beta": 0.001466957219924308,
+          "sharpe": 1.4997355503331864,
+          "total_return": 0.0012958481640497066,
+          "turnover": 0.0,
+          "wealth": 1.0012958481640497
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 6.349087922075114e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.942117854800605e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": 0.001466957219924308,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20263138,
+        "seed_index": 2,
+        "status": "ok",
+        "test_end": "2021-09-13",
+        "test_start": "2021-08-03",
+        "train_end": "2021-08-02",
+        "train_start": "2021-03-30",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9977485928705443
+        },
+        "window_index": 2
+      },
+      {
+        "cell_key": "seed_2_win_3",
+        "metrics": {
+          "annualized_volatility": 0.006841834488746945,
+          "max_dollar_neutral": 3.642919299551295e-16,
+          "max_drawdown": -0.0019329101011990903,
+          "max_model_beta": 9.519079858750125e-05,
+          "n_periods": 30,
+          "realized_beta": -0.0025664390879546403,
+          "sharpe": 2.460208338501867,
+          "total_return": 0.002003092740459067,
+          "turnover": 0.0,
+          "wealth": 1.002003092740459
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.642919299551295e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.519079858750125e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0025664390879546403,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20263138,
+        "seed_index": 2,
+        "status": "ok",
+        "test_end": "2021-10-26",
+        "test_start": "2021-09-14",
+        "train_end": "2021-09-13",
+        "train_start": "2021-05-11",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.998874296435272
+        },
+        "window_index": 3
+      },
+      {
+        "cell_key": "seed_2_win_4",
+        "metrics": {
+          "annualized_volatility": 0.006931558313512678,
+          "max_dollar_neutral": 1.0408340855860843e-16,
+          "max_drawdown": -0.002012359481789973,
+          "max_model_beta": 8.025876552358992e-05,
+          "n_periods": 30,
+          "realized_beta": -0.006183990027349694,
+          "sharpe": 0.35851524077382746,
+          "total_return": 0.00029311853901359264,
+          "turnover": 0.0,
+          "wealth": 1.0002931185390136
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 1.0408340855860843e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 8.025876552358992e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.006183990027349694,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20263138,
+        "seed_index": 2,
+        "status": "ok",
+        "test_end": "2021-12-07",
+        "test_start": "2021-10-27",
+        "train_end": "2021-10-26",
+        "train_start": "2021-06-22",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9981238273921202
+        },
+        "window_index": 4
+      },
+      {
+        "cell_key": "seed_2_win_5",
+        "metrics": {
+          "annualized_volatility": 0.006600843655591846,
+          "max_dollar_neutral": 5.793976409762536e-16,
+          "max_drawdown": -0.0019079034155305985,
+          "max_model_beta": 4.83599629144018e-05,
+          "n_periods": 30,
+          "realized_beta": -0.0010734211913302468,
+          "sharpe": 0.2078378636180236,
+          "total_return": 0.00016082800019123766,
+          "turnover": 0.0,
+          "wealth": 1.0001608280001912
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 5.793976409762536e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 4.83599629144018e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0010734211913302468,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20263138,
+        "seed_index": 2,
+        "status": "ok",
+        "test_end": "2022-01-18",
+        "test_start": "2021-12-08",
+        "train_end": "2021-12-07",
+        "train_start": "2021-08-03",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9990619136960602
+        },
+        "window_index": 5
+      },
+      {
+        "cell_key": "seed_2_win_6",
+        "metrics": {
+          "annualized_volatility": 0.0054798880773158035,
+          "max_dollar_neutral": 0.0,
+          "max_drawdown": -0.0008587449210515812,
+          "max_model_beta": 5.009274620419441e-05,
+          "n_periods": 30,
+          "realized_beta": -0.008040626776485942,
+          "sharpe": 5.884176094090508,
+          "total_return": 0.003844042475998455,
+          "turnover": 0.0,
+          "wealth": 1.0038440424759985
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 0.0,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 5.009274620419441e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.008040626776485942,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20263138,
+        "seed_index": 2,
+        "status": "ok",
+        "test_end": "2022-03-01",
+        "test_start": "2022-01-19",
+        "train_end": "2022-01-18",
+        "train_start": "2021-09-14",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9977485928705443
+        },
+        "window_index": 6
+      },
+      {
+        "cell_key": "seed_2_win_7",
+        "metrics": {
+          "annualized_volatility": 0.0065791945057760625,
+          "max_dollar_neutral": 1.6479873021779667e-16,
+          "max_drawdown": -0.0017415183592999037,
+          "max_model_beta": 7.869228285227098e-05,
+          "n_periods": 30,
+          "realized_beta": 0.005181881370642645,
+          "sharpe": 2.4007888759640426,
+          "total_return": 0.001879602532381952,
+          "turnover": 0.0,
+          "wealth": 1.001879602532382
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 1.6479873021779667e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 7.869228285227098e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": 0.005181881370642645,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20263138,
+        "seed_index": 2,
+        "status": "ok",
+        "test_end": "2022-04-12",
+        "test_start": "2022-03-02",
+        "train_end": "2022-03-01",
+        "train_start": "2021-10-27",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9975609756097563
+        },
+        "window_index": 7
+      },
+      {
+        "cell_key": "seed_2_win_8",
+        "metrics": {
+          "annualized_volatility": 0.006266737515573076,
+          "max_dollar_neutral": 3.400058012914542e-16,
+          "max_drawdown": -0.0015105484745915325,
+          "max_model_beta": 5.9066078823111056e-05,
+          "n_periods": 30,
+          "realized_beta": 0.004469233831301946,
+          "sharpe": 1.7102830125437547,
+          "total_return": 0.0012744651223224324,
+          "turnover": 0.0,
+          "wealth": 1.0012744651223224
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.400058012914542e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 5.9066078823111056e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": 0.004469233831301946,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20263138,
+        "seed_index": 2,
+        "status": "ok",
+        "test_end": "2022-05-24",
+        "test_start": "2022-04-13",
+        "train_end": "2022-04-12",
+        "train_start": "2021-12-08",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9984990619136962
+        },
+        "window_index": 8
+      },
+      {
+        "cell_key": "seed_2_win_9",
+        "metrics": {
+          "annualized_volatility": 0.006222800294160555,
+          "max_dollar_neutral": 2.0469737016526324e-16,
+          "max_drawdown": -0.0036721724273439493,
+          "max_model_beta": 6.323526536734886e-05,
+          "n_periods": 30,
+          "realized_beta": 0.005605826120037047,
+          "sharpe": -0.2526742548425239,
+          "total_return": -0.00018939435128650928,
+          "turnover": 0.0,
+          "wealth": 0.9998106056487135
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 2.0469737016526324e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 6.323526536734886e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": 0.005605826120037047,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20263138,
+        "seed_index": 2,
+        "status": "ok",
+        "test_end": "2022-07-05",
+        "test_start": "2022-05-25",
+        "train_end": "2022-05-24",
+        "train_start": "2022-01-19",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9983114446529082
+        },
+        "window_index": 9
+      },
+      {
+        "cell_key": "seed_3_win_0",
+        "metrics": {
+          "annualized_volatility": 0.005718753546645858,
+          "max_dollar_neutral": 2.0816681711721685e-16,
+          "max_drawdown": -0.0009399789027313318,
+          "max_model_beta": 3.2967473996156965e-05,
+          "n_periods": 30,
+          "realized_beta": 0.002936939074608016,
+          "sharpe": 0.29984016155559107,
+          "total_return": 0.0002022702002522081,
+          "turnover": 0.0,
+          "wealth": 1.0002022702002522
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 2.0816681711721685e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 3.2967473996156965e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": 0.002936939074608016,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20264147,
+        "seed_index": 3,
+        "status": "ok",
+        "test_end": "2021-06-21",
+        "test_start": "2021-05-11",
+        "train_end": "2021-05-10",
+        "train_start": "2021-01-05",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9977485928705443
+        },
+        "window_index": 0
+      },
+      {
+        "cell_key": "seed_3_win_1",
+        "metrics": {
+          "annualized_volatility": 0.007108988347614048,
+          "max_dollar_neutral": 5.447031714567174e-16,
+          "max_drawdown": -0.003941189521766027,
+          "max_model_beta": 3.024067303399982e-05,
+          "n_periods": 30,
+          "realized_beta": -0.0057911887120340785,
+          "sharpe": -4.079666376644638,
+          "total_return": -0.0034497979450563987,
+          "turnover": 0.0,
+          "wealth": 0.9965502020549436
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 5.447031714567174e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 3.024067303399982e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0057911887120340785,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20264147,
+        "seed_index": 3,
+        "status": "ok",
+        "test_end": "2021-08-02",
+        "test_start": "2021-06-22",
+        "train_end": "2021-06-21",
+        "train_start": "2021-02-16",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.998874296435272
+        },
+        "window_index": 1
+      },
+      {
+        "cell_key": "seed_3_win_2",
+        "metrics": {
+          "annualized_volatility": 0.005851615572412867,
+          "max_dollar_neutral": 8.708311849403572e-16,
+          "max_drawdown": -0.001418307620918138,
+          "max_model_beta": 7.224703066429409e-05,
+          "n_periods": 30,
+          "realized_beta": -0.003836590474971055,
+          "sharpe": 0.7992668286417237,
+          "total_return": 0.0005549637702968457,
+          "turnover": 0.0,
+          "wealth": 1.0005549637702968
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 8.708311849403572e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 7.224703066429409e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.003836590474971055,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20264147,
+        "seed_index": 3,
+        "status": "ok",
+        "test_end": "2021-09-13",
+        "test_start": "2021-08-03",
+        "train_end": "2021-08-02",
+        "train_start": "2021-03-30",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9973733583489681
+        },
+        "window_index": 2
+      },
+      {
+        "cell_key": "seed_3_win_3",
+        "metrics": {
+          "annualized_volatility": 0.005943915796025979,
+          "max_dollar_neutral": 7.216449660063518e-16,
+          "max_drawdown": -0.0015579381059919446,
+          "max_model_beta": 8.183676852159377e-05,
+          "n_periods": 30,
+          "realized_beta": -0.0010547065776849085,
+          "sharpe": 3.850599780357128,
+          "total_return": 0.0027262727192636227,
+          "turnover": 0.0,
+          "wealth": 1.0027262727192636
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 7.216449660063518e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 8.183676852159377e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0010547065776849085,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20264147,
+        "seed_index": 3,
+        "status": "ok",
+        "test_end": "2021-10-26",
+        "test_start": "2021-09-14",
+        "train_end": "2021-09-13",
+        "train_start": "2021-05-11",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9983114446529082
+        },
+        "window_index": 3
+      },
+      {
+        "cell_key": "seed_3_win_4",
+        "metrics": {
+          "annualized_volatility": 0.006232700788112389,
+          "max_dollar_neutral": 3.365363543395006e-16,
+          "max_drawdown": -0.00119135277427581,
+          "max_model_beta": 8.331819139196952e-05,
+          "n_periods": 30,
+          "realized_beta": 0.002527280351523996,
+          "sharpe": 5.895025177568197,
+          "total_return": 0.0043810543698783455,
+          "turnover": 0.0,
+          "wealth": 1.0043810543698783
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.365363543395006e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 8.331819139196952e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": 0.002527280351523996,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20264147,
+        "seed_index": 3,
+        "status": "ok",
+        "test_end": "2021-12-07",
+        "test_start": "2021-10-27",
+        "train_end": "2021-10-26",
+        "train_start": "2021-06-22",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9994371482176362
+        },
+        "window_index": 4
+      },
+      {
+        "cell_key": "seed_3_win_5",
+        "metrics": {
+          "annualized_volatility": 0.005610427539605434,
+          "max_dollar_neutral": 1.6306400674181987e-16,
+          "max_drawdown": -0.003313226991590563,
+          "max_model_beta": 7.94363163543867e-05,
+          "n_periods": 30,
+          "realized_beta": -0.0024254471753713974,
+          "sharpe": -4.036188813318299,
+          "total_return": -0.0026941001603573156,
+          "turnover": 0.0,
+          "wealth": 0.9973058998396427
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 1.6306400674181987e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 7.94363163543867e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0024254471753713974,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20264147,
+        "seed_index": 3,
+        "status": "ok",
+        "test_end": "2022-01-18",
+        "test_start": "2021-12-08",
+        "train_end": "2021-12-07",
+        "train_start": "2021-08-03",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.998874296435272
+        },
+        "window_index": 5
+      },
+      {
+        "cell_key": "seed_3_win_6",
+        "metrics": {
+          "annualized_volatility": 0.0058878875307595245,
+          "max_dollar_neutral": 4.85722573273506e-17,
+          "max_drawdown": -0.003338561025771347,
+          "max_model_beta": 5.1254829866983685e-05,
+          "n_periods": 30,
+          "realized_beta": -0.001123213045274765,
+          "sharpe": -3.841400423584486,
+          "total_return": -0.0026910758452051153,
+          "turnover": 0.0,
+          "wealth": 0.9973089241547949
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 4.85722573273506e-17,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 5.1254829866983685e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.001123213045274765,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20264147,
+        "seed_index": 3,
+        "status": "ok",
+        "test_end": "2022-03-01",
+        "test_start": "2022-01-19",
+        "train_end": "2022-01-18",
+        "train_start": "2021-09-14",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9964352720450284
+        },
+        "window_index": 6
+      },
+      {
+        "cell_key": "seed_3_win_7",
+        "metrics": {
+          "annualized_volatility": 0.0072660381104466204,
+          "max_dollar_neutral": 7.528699885739343e-16,
+          "max_drawdown": -0.004360839315979673,
+          "max_model_beta": 6.157551803209027e-05,
+          "n_periods": 30,
+          "realized_beta": 0.0034475869045598505,
+          "sharpe": -2.4639692028459015,
+          "total_return": -0.0021321822373137067,
+          "turnover": 0.0,
+          "wealth": 0.9978678177626863
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 7.528699885739343e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 6.157551803209027e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": 0.0034475869045598505,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20264147,
+        "seed_index": 3,
+        "status": "ok",
+        "test_end": "2022-04-12",
+        "test_start": "2022-03-02",
+        "train_end": "2022-03-01",
+        "train_start": "2021-10-27",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9969981238273923
+        },
+        "window_index": 7
+      },
+      {
+        "cell_key": "seed_3_win_8",
+        "metrics": {
+          "annualized_volatility": 0.006997862514286325,
+          "max_dollar_neutral": 4.961309141293668e-16,
+          "max_drawdown": -0.0019238382221574985,
+          "max_model_beta": 4.9567112952222975e-05,
+          "n_periods": 30,
+          "realized_beta": 0.0013157857582168201,
+          "sharpe": -0.6289748679746916,
+          "total_return": -0.0005266693459312632,
+          "turnover": 0.0,
+          "wealth": 0.9994733306540687
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 4.961309141293668e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 4.9567112952222975e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": 0.0013157857582168201,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20264147,
+        "seed_index": 3,
+        "status": "ok",
+        "test_end": "2022-05-24",
+        "test_start": "2022-04-13",
+        "train_end": "2022-04-12",
+        "train_start": "2021-12-08",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9981238273921202
+        },
+        "window_index": 8
+      },
+      {
+        "cell_key": "seed_3_win_9",
+        "metrics": {
+          "annualized_volatility": 0.0061334375620879875,
+          "max_dollar_neutral": 5.967448757360216e-16,
+          "max_drawdown": -0.0035140029145455153,
+          "max_model_beta": 5.540142455700594e-05,
+          "n_periods": 30,
+          "realized_beta": 0.004800874597129024,
+          "sharpe": -0.7701834389440796,
+          "total_return": -0.0005643767493515028,
+          "turnover": 0.0,
+          "wealth": 0.9994356232506485
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 5.967448757360216e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 5.540142455700594e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": 0.004800874597129024,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20264147,
+        "seed_index": 3,
+        "status": "ok",
+        "test_end": "2022-07-05",
+        "test_start": "2022-05-25",
+        "train_end": "2022-05-24",
+        "train_start": "2022-01-19",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9981238273921202
+        },
+        "window_index": 9
+      },
+      {
+        "cell_key": "seed_4_win_0",
+        "metrics": {
+          "annualized_volatility": 0.00549742593518391,
+          "max_dollar_neutral": 6.83481049534862e-16,
+          "max_drawdown": -0.0012287134241616186,
+          "max_model_beta": 8.358780771023933e-05,
+          "n_periods": 30,
+          "realized_beta": 0.0018281647359394298,
+          "sharpe": 1.5853012345827258,
+          "total_return": 0.0010362889950681353,
+          "turnover": 0.0,
+          "wealth": 1.0010362889950681
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 6.83481049534862e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 8.358780771023933e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": 0.0018281647359394298,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20265156,
+        "seed_index": 4,
+        "status": "ok",
+        "test_end": "2021-06-21",
+        "test_start": "2021-05-11",
+        "train_end": "2021-05-10",
+        "train_start": "2021-01-05",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9981238273921202
+        },
+        "window_index": 0
+      },
+      {
+        "cell_key": "seed_4_win_1",
+        "metrics": {
+          "annualized_volatility": 0.008088211655016947,
+          "max_dollar_neutral": 3.469446951953614e-16,
+          "max_drawdown": -0.0022396382823566263,
+          "max_model_beta": 6.43295287296348e-05,
+          "n_periods": 30,
+          "realized_beta": -0.00018836531640750457,
+          "sharpe": -1.7659658000736387,
+          "total_return": -0.0017027789129127058,
+          "turnover": 0.0,
+          "wealth": 0.9982972210870873
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.469446951953614e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 6.43295287296348e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.00018836531640750457,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20265156,
+        "seed_index": 4,
+        "status": "ok",
+        "test_end": "2021-08-02",
+        "test_start": "2021-06-22",
+        "train_end": "2021-06-21",
+        "train_start": "2021-02-16",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9969981238273923
+        },
+        "window_index": 1
+      },
+      {
+        "cell_key": "seed_4_win_2",
+        "metrics": {
+          "annualized_volatility": 0.006946401086275916,
+          "max_dollar_neutral": 5.724587470723463e-16,
+          "max_drawdown": -0.0023662309223577405,
+          "max_model_beta": 5.751308732354898e-05,
+          "n_periods": 30,
+          "realized_beta": -0.004476398766046007,
+          "sharpe": -1.8534922741737088,
+          "total_return": -0.0015343874840834104,
+          "turnover": 0.0,
+          "wealth": 0.9984656125159166
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 5.724587470723463e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 5.751308732354898e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.004476398766046007,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20265156,
+        "seed_index": 4,
+        "status": "ok",
+        "test_end": "2021-09-13",
+        "test_start": "2021-08-03",
+        "train_end": "2021-08-02",
+        "train_start": "2021-03-30",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.998874296435272
+        },
+        "window_index": 2
+      },
+      {
+        "cell_key": "seed_4_win_3",
+        "metrics": {
+          "annualized_volatility": 0.006785328614650785,
+          "max_dollar_neutral": 1.6653345369377348e-16,
+          "max_drawdown": -0.005037525605872965,
+          "max_model_beta": 6.030805248226507e-05,
+          "n_periods": 30,
+          "realized_beta": 0.0005286289860919372,
+          "sharpe": -2.991794483678439,
+          "total_return": -0.0024165252043731877,
+          "turnover": 0.0,
+          "wealth": 0.9975834747956268
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 1.6653345369377348e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 6.030805248226507e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": 0.0005286289860919372,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20265156,
+        "seed_index": 4,
+        "status": "ok",
+        "test_end": "2021-10-26",
+        "test_start": "2021-09-14",
+        "train_end": "2021-09-13",
+        "train_start": "2021-05-11",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9986866791744841
+        },
+        "window_index": 3
+      },
+      {
+        "cell_key": "seed_4_win_4",
+        "metrics": {
+          "annualized_volatility": 0.0057052857791733995,
+          "max_dollar_neutral": 3.608224830031759e-16,
+          "max_drawdown": -0.0017110520350524547,
+          "max_model_beta": 6.96294476087809e-05,
+          "n_periods": 30,
+          "realized_beta": 0.0013662028045647052,
+          "sharpe": -0.2281898543035358,
+          "total_return": -0.00015684750658140345,
+          "turnover": 0.0,
+          "wealth": 0.9998431524934186
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.608224830031759e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 6.96294476087809e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": 0.0013662028045647052,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20265156,
+        "seed_index": 4,
+        "status": "ok",
+        "test_end": "2021-12-07",
+        "test_start": "2021-10-27",
+        "train_end": "2021-10-26",
+        "train_start": "2021-06-22",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9986866791744841
+        },
+        "window_index": 4
+      },
+      {
+        "cell_key": "seed_4_win_5",
+        "metrics": {
+          "annualized_volatility": 0.006727003843409951,
+          "max_dollar_neutral": 6.869504964868156e-16,
+          "max_drawdown": -0.0008160332147991953,
+          "max_model_beta": 7.5673450527726e-05,
+          "n_periods": 30,
+          "realized_beta": 0.00021999370723892992,
+          "sharpe": 5.737064029022181,
+          "total_return": 0.004602037287280147,
+          "turnover": 0.0,
+          "wealth": 1.0046020372872801
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 6.869504964868156e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 7.5673450527726e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": 0.00021999370723892992,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20265156,
+        "seed_index": 4,
+        "status": "ok",
+        "test_end": "2022-01-18",
+        "test_start": "2021-12-08",
+        "train_end": "2021-12-07",
+        "train_start": "2021-08-03",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9979362101313323
+        },
+        "window_index": 5
+      },
+      {
+        "cell_key": "seed_4_win_6",
+        "metrics": {
+          "annualized_volatility": 0.006969253977279304,
+          "max_dollar_neutral": 5.100087019371813e-16,
+          "max_drawdown": -0.0015741130933926086,
+          "max_model_beta": 7.71102710225892e-05,
+          "n_periods": 30,
+          "realized_beta": -0.004630987861558033,
+          "sharpe": 2.4883192915411203,
+          "total_return": 0.002063752164273236,
+          "turnover": 0.0,
+          "wealth": 1.0020637521642732
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 5.100087019371813e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 7.71102710225892e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.004630987861558033,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20265156,
+        "seed_index": 4,
+        "status": "ok",
+        "test_end": "2022-03-01",
+        "test_start": "2022-01-19",
+        "train_end": "2022-01-18",
+        "train_start": "2021-09-14",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9971857410881801
+        },
+        "window_index": 6
+      },
+      {
+        "cell_key": "seed_4_win_7",
+        "metrics": {
+          "annualized_volatility": 0.00684371699894067,
+          "max_dollar_neutral": 6.38378239159465e-16,
+          "max_drawdown": -0.003842279623333167,
+          "max_model_beta": 8.716308338746508e-05,
+          "n_periods": 30,
+          "realized_beta": 0.0011680975473151852,
+          "sharpe": -4.421605205759829,
+          "total_return": -0.0035988277847069927,
+          "turnover": 0.0,
+          "wealth": 0.996401172215293
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 6.38378239159465e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 8.716308338746508e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": 0.0011680975473151852,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20265156,
+        "seed_index": 4,
+        "status": "ok",
+        "test_end": "2022-04-12",
+        "test_start": "2022-03-02",
+        "train_end": "2022-03-01",
+        "train_start": "2021-10-27",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9973733583489681
+        },
+        "window_index": 7
+      },
+      {
+        "cell_key": "seed_4_win_8",
+        "metrics": {
+          "annualized_volatility": 0.00650133365010998,
+          "max_dollar_neutral": 1.1449174941446927e-16,
+          "max_drawdown": -0.0030492750184628547,
+          "max_model_beta": 7.044605940527746e-05,
+          "n_periods": 30,
+          "realized_beta": 0.005019633819583768,
+          "sharpe": -1.8971368005275577,
+          "total_return": -0.001469710649177336,
+          "turnover": 0.0,
+          "wealth": 0.9985302893508227
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 1.1449174941446927e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 7.044605940527746e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": 0.005019633819583768,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20265156,
+        "seed_index": 4,
+        "status": "ok",
+        "test_end": "2022-05-24",
+        "test_start": "2022-04-13",
+        "train_end": "2022-04-12",
+        "train_start": "2021-12-08",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9966228893058163
+        },
+        "window_index": 8
+      },
+      {
+        "cell_key": "seed_4_win_9",
+        "metrics": {
+          "annualized_volatility": 0.005778164903723856,
+          "max_dollar_neutral": 4.718447854656915e-16,
+          "max_drawdown": -0.002241118675822954,
+          "max_model_beta": 4.5796687935144587e-05,
+          "n_periods": 30,
+          "realized_beta": 0.0022511979174019794,
+          "sharpe": -1.3645547718125959,
+          "total_return": -0.0009401390255587838,
+          "turnover": 0.0,
+          "wealth": 0.9990598609744412
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 4.718447854656915e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 4.5796687935144587e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": 0.0022511979174019794,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20265156,
+        "seed_index": 4,
+        "status": "ok",
+        "test_end": "2022-07-05",
+        "test_start": "2022-05-25",
+        "train_end": "2022-05-24",
+        "train_start": "2022-01-19",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9964352720450284
+        },
+        "window_index": 9
+      },
+      {
+        "cell_key": "seed_5_win_0",
+        "metrics": {
+          "annualized_volatility": 0.0070524919460603335,
+          "max_dollar_neutral": 9.471590178833367e-16,
+          "max_drawdown": -0.002607891561875709,
+          "max_model_beta": 5.736552966725781e-05,
+          "n_periods": 30,
+          "realized_beta": 0.0022380884255329765,
+          "sharpe": 1.200690690709043,
+          "total_return": 0.0010057057221564136,
+          "turnover": 0.0,
+          "wealth": 1.0010057057221564
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 9.471590178833367e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 5.736552966725781e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": 0.0022380884255329765,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20266165,
+        "seed_index": 5,
+        "status": "ok",
+        "test_end": "2021-06-21",
+        "test_start": "2021-05-11",
+        "train_end": "2021-05-10",
+        "train_start": "2021-01-05",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.998874296435272
+        },
+        "window_index": 0
+      },
+      {
+        "cell_key": "seed_5_win_1",
+        "metrics": {
+          "annualized_volatility": 0.005932378177895624,
+          "max_dollar_neutral": 6.938893903907228e-18,
+          "max_drawdown": -0.004356277782998352,
+          "max_model_beta": 5.897520540081528e-05,
+          "n_periods": 30,
+          "realized_beta": 0.0012271718184453729,
+          "sharpe": -3.2009928718320526,
+          "total_return": -0.002260206871856685,
+          "turnover": 0.0,
+          "wealth": 0.9977397931281433
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 6.938893903907228e-18,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 5.897520540081528e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": 0.0012271718184453729,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20266165,
+        "seed_index": 5,
+        "status": "ok",
+        "test_end": "2021-08-02",
+        "test_start": "2021-06-22",
+        "train_end": "2021-06-21",
+        "train_start": "2021-02-16",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9964352720450284
+        },
+        "window_index": 1
+      },
+      {
+        "cell_key": "seed_5_win_2",
+        "metrics": {
+          "annualized_volatility": 0.006691325759303584,
+          "max_dollar_neutral": 2.393918396847994e-16,
+          "max_drawdown": -0.005189828556789231,
+          "max_model_beta": 8.364515260564278e-05,
+          "n_periods": 30,
+          "realized_beta": 0.0029179458501904193,
+          "sharpe": -5.129580977798021,
+          "total_return": -0.004080660722978635,
+          "turnover": 0.0,
+          "wealth": 0.9959193392770214
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 2.393918396847994e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 8.364515260564278e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": 0.0029179458501904193,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20266165,
+        "seed_index": 5,
+        "status": "ok",
+        "test_end": "2021-09-13",
+        "test_start": "2021-08-03",
+        "train_end": "2021-08-02",
+        "train_start": "2021-03-30",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9964352720450284
+        },
+        "window_index": 2
+      },
+      {
+        "cell_key": "seed_5_win_3",
+        "metrics": {
+          "annualized_volatility": 0.00780219869790437,
+          "max_dollar_neutral": 5.030698080332741e-16,
+          "max_drawdown": -0.0010586025064610594,
+          "max_model_beta": 4.5987114994058084e-05,
+          "n_periods": 30,
+          "realized_beta": -0.0016631373404315964,
+          "sharpe": 4.6532568175128715,
+          "total_return": 0.004327624088557469,
+          "turnover": 0.0,
+          "wealth": 1.0043276240885575
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 5.030698080332741e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 4.5987114994058084e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0016631373404315964,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20266165,
+        "seed_index": 5,
+        "status": "ok",
+        "test_end": "2021-10-26",
+        "test_start": "2021-09-14",
+        "train_end": "2021-09-13",
+        "train_start": "2021-05-11",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9975609756097563
+        },
+        "window_index": 3
+      },
+      {
+        "cell_key": "seed_5_win_4",
+        "metrics": {
+          "annualized_volatility": 0.0053605556325694555,
+          "max_dollar_neutral": 1.4051260155412137e-16,
+          "max_drawdown": -0.0012714659284353623,
+          "max_model_beta": 4.644084211905735e-05,
+          "n_periods": 30,
+          "realized_beta": -0.0024988346522561377,
+          "sharpe": 3.3436279660868764,
+          "total_return": 0.0021343195079264188,
+          "turnover": 0.0,
+          "wealth": 1.0021343195079264
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 1.4051260155412137e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 4.644084211905735e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0024988346522561377,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20266165,
+        "seed_index": 5,
+        "status": "ok",
+        "test_end": "2021-12-07",
+        "test_start": "2021-10-27",
+        "train_end": "2021-10-26",
+        "train_start": "2021-06-22",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9986866791744841
+        },
+        "window_index": 4
+      },
+      {
+        "cell_key": "seed_5_win_5",
+        "metrics": {
+          "annualized_volatility": 0.006728908171647526,
+          "max_dollar_neutral": 3.8163916471489756e-17,
+          "max_drawdown": -0.0009497597968734518,
+          "max_model_beta": 2.9920174446179895e-05,
+          "n_periods": 30,
+          "realized_beta": -0.005021410653382239,
+          "sharpe": 4.295940389610774,
+          "total_return": 0.003444424235158783,
+          "turnover": 0.0,
+          "wealth": 1.0034444242351588
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.8163916471489756e-17,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 2.9920174446179895e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.005021410653382239,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20266165,
+        "seed_index": 5,
+        "status": "ok",
+        "test_end": "2022-01-18",
+        "test_start": "2021-12-08",
+        "train_end": "2021-12-07",
+        "train_start": "2021-08-03",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9984990619136962
+        },
+        "window_index": 5
+      },
+      {
+        "cell_key": "seed_5_win_6",
+        "metrics": {
+          "annualized_volatility": 0.006087022183248847,
+          "max_dollar_neutral": 1.700029006457271e-16,
+          "max_drawdown": -0.0019862629205509037,
+          "max_model_beta": 5.51681527355101e-05,
+          "n_periods": 30,
+          "realized_beta": 0.0009960980406027687,
+          "sharpe": 2.1470492577331277,
+          "total_return": 0.0015548851795417207,
+          "turnover": 0.0,
+          "wealth": 1.0015548851795417
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 1.700029006457271e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 5.51681527355101e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": 0.0009960980406027687,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20266165,
+        "seed_index": 5,
+        "status": "ok",
+        "test_end": "2022-03-01",
+        "test_start": "2022-01-19",
+        "train_end": "2022-01-18",
+        "train_start": "2021-09-14",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9977485928705443
+        },
+        "window_index": 6
+      },
+      {
+        "cell_key": "seed_5_win_7",
+        "metrics": {
+          "annualized_volatility": 0.007118115638892602,
+          "max_dollar_neutral": 4.579669976578771e-16,
+          "max_drawdown": -0.00200950458768253,
+          "max_model_beta": 4.7193059181083964e-05,
+          "n_periods": 30,
+          "realized_beta": 0.003993583085705112,
+          "sharpe": 4.3192747945343655,
+          "total_return": 0.0036636880789810977,
+          "turnover": 0.0,
+          "wealth": 1.003663688078981
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 4.579669976578771e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 4.7193059181083964e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": 0.003993583085705112,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20266165,
+        "seed_index": 5,
+        "status": "ok",
+        "test_end": "2022-04-12",
+        "test_start": "2022-03-02",
+        "train_end": "2022-03-01",
+        "train_start": "2021-10-27",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9984990619136962
+        },
+        "window_index": 7
+      },
+      {
+        "cell_key": "seed_5_win_8",
+        "metrics": {
+          "annualized_volatility": 0.006859711093585592,
+          "max_dollar_neutral": 4.371503159461554e-16,
+          "max_drawdown": -0.003201925749105149,
+          "max_model_beta": 4.8331502535291946e-05,
+          "n_periods": 30,
+          "realized_beta": -0.0059614162163721465,
+          "sharpe": -3.1640867431510786,
+          "total_return": -0.0025833719188490534,
+          "turnover": 0.0,
+          "wealth": 0.997416628081151
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 4.371503159461554e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 4.8331502535291946e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0059614162163721465,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20266165,
+        "seed_index": 5,
+        "status": "ok",
+        "test_end": "2022-05-24",
+        "test_start": "2022-04-13",
+        "train_end": "2022-04-12",
+        "train_start": "2021-12-08",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9971857410881801
+        },
+        "window_index": 8
+      },
+      {
+        "cell_key": "seed_5_win_9",
+        "metrics": {
+          "annualized_volatility": 0.00505353315015745,
+          "max_dollar_neutral": 3.5388358909926865e-16,
+          "max_drawdown": -0.002128929972629993,
+          "max_model_beta": 5.0997307426992276e-05,
+          "n_periods": 30,
+          "realized_beta": 0.0013318374717811413,
+          "sharpe": -0.9692286280597143,
+          "total_return": -0.0005844030229369412,
+          "turnover": 0.0,
+          "wealth": 0.9994155969770631
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.5388358909926865e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 5.0997307426992276e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": 0.0013318374717811413,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20266165,
+        "seed_index": 5,
+        "status": "ok",
+        "test_end": "2022-07-05",
+        "test_start": "2022-05-25",
+        "train_end": "2022-05-24",
+        "train_start": "2022-01-19",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9975609756097563
+        },
+        "window_index": 9
+      },
+      {
+        "cell_key": "seed_6_win_0",
+        "metrics": {
+          "annualized_volatility": 0.005705107679256465,
+          "max_dollar_neutral": 1.186550857568136e-15,
+          "max_drawdown": -0.002347574827212151,
+          "max_model_beta": 7.55300279285982e-05,
+          "n_periods": 30,
+          "realized_beta": -0.0021368562555693317,
+          "sharpe": 0.7409143590927889,
+          "total_return": 0.0005014626441359749,
+          "turnover": 0.0,
+          "wealth": 1.000501462644136
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 1.186550857568136e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 7.55300279285982e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0021368562555693317,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20267174,
+        "seed_index": 6,
+        "status": "ok",
+        "test_end": "2021-06-21",
+        "test_start": "2021-05-11",
+        "train_end": "2021-05-10",
+        "train_start": "2021-01-05",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9979362101313323
+        },
+        "window_index": 0
+      },
+      {
+        "cell_key": "seed_6_win_1",
+        "metrics": {
+          "annualized_volatility": 0.0069091702969579175,
+          "max_dollar_neutral": 4.753142324176451e-16,
+          "max_drawdown": -0.006466687521381921,
+          "max_model_beta": 6.351852311659187e-05,
+          "n_periods": 30,
+          "realized_beta": -0.008640171834469206,
+          "sharpe": -7.713644242329826,
+          "total_return": -0.006327941575845819,
+          "turnover": 0.0,
+          "wealth": 0.9936720584241542
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 4.753142324176451e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 6.351852311659187e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.008640171834469206,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20267174,
+        "seed_index": 6,
+        "status": "ok",
+        "test_end": "2021-08-02",
+        "test_start": "2021-06-22",
+        "train_end": "2021-06-21",
+        "train_start": "2021-02-16",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9983114446529082
+        },
+        "window_index": 1
+      },
+      {
+        "cell_key": "seed_6_win_2",
+        "metrics": {
+          "annualized_volatility": 0.0062460839486976815,
+          "max_dollar_neutral": 8.847089727481716e-16,
+          "max_drawdown": -0.001641284810098953,
+          "max_model_beta": 4.713148931817805e-05,
+          "n_periods": 30,
+          "realized_beta": -0.0008695518096356428,
+          "sharpe": 3.0313292527182125,
+          "total_return": 0.0022542476119717936,
+          "turnover": 0.0,
+          "wealth": 1.0022542476119718
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 8.847089727481716e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 4.713148931817805e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0008695518096356428,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20267174,
+        "seed_index": 6,
+        "status": "ok",
+        "test_end": "2021-09-13",
+        "test_start": "2021-08-03",
+        "train_end": "2021-08-02",
+        "train_start": "2021-03-30",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9975609756097563
+        },
+        "window_index": 2
+      },
+      {
+        "cell_key": "seed_6_win_3",
+        "metrics": {
+          "annualized_volatility": 0.006610847942324578,
+          "max_dollar_neutral": 3.7816971776294395e-16,
+          "max_drawdown": -0.002732765834789097,
+          "max_model_beta": 3.7062762733759756e-05,
+          "n_periods": 30,
+          "realized_beta": -0.0024899078786617605,
+          "sharpe": -3.4737574819104893,
+          "total_return": -0.002732765834789097,
+          "turnover": 0.0,
+          "wealth": 0.9972672341652109
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.7816971776294395e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 3.7062762733759756e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0024899078786617605,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20267174,
+        "seed_index": 6,
+        "status": "ok",
+        "test_end": "2021-10-26",
+        "test_start": "2021-09-14",
+        "train_end": "2021-09-13",
+        "train_start": "2021-05-11",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9983114446529082
+        },
+        "window_index": 3
+      },
+      {
+        "cell_key": "seed_6_win_4",
+        "metrics": {
+          "annualized_volatility": 0.0055878886396058414,
+          "max_dollar_neutral": 4.371503159461554e-16,
+          "max_drawdown": -0.003500850557730417,
+          "max_model_beta": 4.7338699583604805e-05,
+          "n_periods": 30,
+          "realized_beta": 0.0021356961009483645,
+          "sharpe": -4.951553108230875,
+          "total_return": -0.0032904484407204615,
+          "turnover": 0.0,
+          "wealth": 0.9967095515592795
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 4.371503159461554e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 4.7338699583604805e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": 0.0021356961009483645,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20267174,
+        "seed_index": 6,
+        "status": "ok",
+        "test_end": "2021-12-07",
+        "test_start": "2021-10-27",
+        "train_end": "2021-10-26",
+        "train_start": "2021-06-22",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9990619136960602
+        },
+        "window_index": 4
+      },
+      {
+        "cell_key": "seed_6_win_5",
+        "metrics": {
+          "annualized_volatility": 0.007564867670106158,
+          "max_dollar_neutral": 4.787836793695988e-16,
+          "max_drawdown": -0.002124674163995139,
+          "max_model_beta": 9.57072844076177e-05,
+          "n_periods": 30,
+          "realized_beta": -0.002146126713183857,
+          "sharpe": 1.6948275381093882,
+          "total_return": 0.0015241558622278717,
+          "turnover": 0.0,
+          "wealth": 1.0015241558622279
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 4.787836793695988e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 9.57072844076177e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.002146126713183857,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20267174,
+        "seed_index": 6,
+        "status": "ok",
+        "test_end": "2022-01-18",
+        "test_start": "2021-12-08",
+        "train_end": "2021-12-07",
+        "train_start": "2021-08-03",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9975609756097563
+        },
+        "window_index": 5
+      },
+      {
+        "cell_key": "seed_6_win_6",
+        "metrics": {
+          "annualized_volatility": 0.006833778647815627,
+          "max_dollar_neutral": 6.036837696399289e-16,
+          "max_drawdown": -0.004029783364954187,
+          "max_model_beta": 3.281955466363856e-05,
+          "n_periods": 30,
+          "realized_beta": -0.0025290102074430683,
+          "sharpe": -4.836259019153375,
+          "total_return": -0.003929718888172284,
+          "turnover": 0.0,
+          "wealth": 0.9960702811118277
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 6.036837696399289e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 3.281955466363856e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0025290102074430683,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20267174,
+        "seed_index": 6,
+        "status": "ok",
+        "test_end": "2022-03-01",
+        "test_start": "2022-01-19",
+        "train_end": "2022-01-18",
+        "train_start": "2021-09-14",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9977485928705443
+        },
+        "window_index": 6
+      },
+      {
+        "cell_key": "seed_6_win_7",
+        "metrics": {
+          "annualized_volatility": 0.006079434588772618,
+          "max_dollar_neutral": 8.777700788442644e-16,
+          "max_drawdown": -0.0008230268440236905,
+          "max_model_beta": 3.263564509392409e-05,
+          "n_periods": 30,
+          "realized_beta": -0.006367868067130581,
+          "sharpe": 3.2599385057163546,
+          "total_return": 0.0023599161049006057,
+          "turnover": 0.0,
+          "wealth": 1.0023599161049006
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 8.777700788442644e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 3.263564509392409e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.006367868067130581,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20267174,
+        "seed_index": 6,
+        "status": "ok",
+        "test_end": "2022-04-12",
+        "test_start": "2022-03-02",
+        "train_end": "2022-03-01",
+        "train_start": "2021-10-27",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9966228893058163
+        },
+        "window_index": 7
+      },
+      {
+        "cell_key": "seed_6_win_8",
+        "metrics": {
+          "annualized_volatility": 0.005118694864463932,
+          "max_dollar_neutral": 3.9898639947466563e-16,
+          "max_drawdown": -0.0011773686890514086,
+          "max_model_beta": 3.495602650244347e-05,
+          "n_periods": 30,
+          "realized_beta": 0.00578674469569496,
+          "sharpe": 3.7984342464002454,
+          "total_return": 0.002315726370264226,
+          "turnover": 0.0,
+          "wealth": 1.0023157263702642
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.9898639947466563e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 3.495602650244347e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": 0.00578674469569496,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20267174,
+        "seed_index": 6,
+        "status": "ok",
+        "test_end": "2022-05-24",
+        "test_start": "2022-04-13",
+        "train_end": "2022-04-12",
+        "train_start": "2021-12-08",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9962476547842404
+        },
+        "window_index": 8
+      },
+      {
+        "cell_key": "seed_6_win_9",
+        "metrics": {
+          "annualized_volatility": 0.006720960223426867,
+          "max_dollar_neutral": 3.8510861166685117e-16,
+          "max_drawdown": -0.003183627329305271,
+          "max_model_beta": 7.660439145797064e-05,
+          "n_periods": 30,
+          "realized_beta": 0.0007946904289529522,
+          "sharpe": 1.3829561022954648,
+          "total_return": 0.0011045130661799796,
+          "turnover": 0.0,
+          "wealth": 1.00110451306618
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.8510861166685117e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 7.660439145797064e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": 0.0007946904289529522,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20267174,
+        "seed_index": 6,
+        "status": "ok",
+        "test_end": "2022-07-05",
+        "test_start": "2022-05-25",
+        "train_end": "2022-05-24",
+        "train_start": "2022-01-19",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9969981238273923
+        },
+        "window_index": 9
+      },
+      {
+        "cell_key": "seed_7_win_0",
+        "metrics": {
+          "annualized_volatility": 0.0077296947461308755,
+          "max_dollar_neutral": 8.847089727481716e-16,
+          "max_drawdown": -0.0018015175490863073,
+          "max_model_beta": 8.302279773395434e-05,
+          "n_periods": 30,
+          "realized_beta": -0.00343644270004131,
+          "sharpe": 2.945906548308353,
+          "total_return": 0.0027109366056023987,
+          "turnover": 0.0,
+          "wealth": 1.0027109366056024
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 8.847089727481716e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 8.302279773395434e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.00343644270004131,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20268183,
+        "seed_index": 7,
+        "status": "ok",
+        "test_end": "2021-06-21",
+        "test_start": "2021-05-11",
+        "train_end": "2021-05-10",
+        "train_start": "2021-01-05",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9979362101313323
+        },
+        "window_index": 0
+      },
+      {
+        "cell_key": "seed_7_win_1",
+        "metrics": {
+          "annualized_volatility": 0.006515487269508088,
+          "max_dollar_neutral": 1.1032841307212493e-15,
+          "max_drawdown": -0.0037926789599141975,
+          "max_model_beta": 8.234141386890465e-05,
+          "n_periods": 30,
+          "realized_beta": 9.148818102456882e-05,
+          "sharpe": -4.895493547720405,
+          "total_return": -0.0037926789599141975,
+          "turnover": 0.0,
+          "wealth": 0.9962073210400858
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 1.1032841307212493e-15,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 8.234141386890465e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": 9.148818102456882e-05,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20268183,
+        "seed_index": 7,
+        "status": "ok",
+        "test_end": "2021-08-02",
+        "test_start": "2021-06-22",
+        "train_end": "2021-06-21",
+        "train_start": "2021-02-16",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9986866791744841
+        },
+        "window_index": 1
+      },
+      {
+        "cell_key": "seed_7_win_2",
+        "metrics": {
+          "annualized_volatility": 0.005724839335799076,
+          "max_dollar_neutral": 3.0878077872387166e-16,
+          "max_drawdown": -0.0033259684791664412,
+          "max_model_beta": 8.428925754466002e-05,
+          "n_periods": 30,
+          "realized_beta": -0.004908392271179035,
+          "sharpe": -4.8852556155132625,
+          "total_return": -0.0033259684791664412,
+          "turnover": 0.0,
+          "wealth": 0.9966740315208336
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.0878077872387166e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 8.428925754466002e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.004908392271179035,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20268183,
+        "seed_index": 7,
+        "status": "ok",
+        "test_end": "2021-09-13",
+        "test_start": "2021-08-03",
+        "train_end": "2021-08-02",
+        "train_start": "2021-03-30",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9971857410881801
+        },
+        "window_index": 2
+      },
+      {
+        "cell_key": "seed_7_win_3",
+        "metrics": {
+          "annualized_volatility": 0.006690807911765401,
+          "max_dollar_neutral": 4.649058915617843e-16,
+          "max_drawdown": -0.002576933540265462,
+          "max_model_beta": 3.853356479233186e-05,
+          "n_periods": 30,
+          "realized_beta": -0.0014518823317052577,
+          "sharpe": -1.3402964524739498,
+          "total_return": -0.0010696018203074642,
+          "turnover": 0.0,
+          "wealth": 0.9989303981796925
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 4.649058915617843e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 3.853356479233186e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0014518823317052577,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20268183,
+        "seed_index": 7,
+        "status": "ok",
+        "test_end": "2021-10-26",
+        "test_start": "2021-09-14",
+        "train_end": "2021-09-13",
+        "train_start": "2021-05-11",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9973733583489681
+        },
+        "window_index": 3
+      },
+      {
+        "cell_key": "seed_7_win_4",
+        "metrics": {
+          "annualized_volatility": 0.004921037488307704,
+          "max_dollar_neutral": 7.164407955784213e-16,
+          "max_drawdown": -0.0016189050611783555,
+          "max_model_beta": 5.361365771258186e-05,
+          "n_periods": 30,
+          "realized_beta": 0.0005549762663916351,
+          "sharpe": 2.251905247975016,
+          "total_return": 0.0013186977236641084,
+          "turnover": 0.0,
+          "wealth": 1.001318697723664
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 7.164407955784213e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 5.361365771258186e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": 0.0005549762663916351,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20268183,
+        "seed_index": 7,
+        "status": "ok",
+        "test_end": "2021-12-07",
+        "test_start": "2021-10-27",
+        "train_end": "2021-10-26",
+        "train_start": "2021-06-22",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.998874296435272
+        },
+        "window_index": 4
+      },
+      {
+        "cell_key": "seed_7_win_5",
+        "metrics": {
+          "annualized_volatility": 0.005519039053614056,
+          "max_dollar_neutral": 4.996003610813204e-16,
+          "max_drawdown": -0.0011604891794738473,
+          "max_model_beta": 5.979748376136531e-05,
+          "n_periods": 30,
+          "realized_beta": 0.0013872680632827977,
+          "sharpe": 0.5232702342852046,
+          "total_return": 0.0003421075243199567,
+          "turnover": 0.0,
+          "wealth": 1.00034210752432
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 4.996003610813204e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 5.979748376136531e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": 0.0013872680632827977,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20268183,
+        "seed_index": 7,
+        "status": "ok",
+        "test_end": "2022-01-18",
+        "test_start": "2021-12-08",
+        "train_end": "2021-12-07",
+        "train_start": "2021-08-03",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9986866791744841
+        },
+        "window_index": 5
+      },
+      {
+        "cell_key": "seed_7_win_6",
+        "metrics": {
+          "annualized_volatility": 0.0058906744699541,
+          "max_dollar_neutral": 7.979727989493313e-16,
+          "max_drawdown": -0.0012426147121882842,
+          "max_model_beta": 6.00384642839633e-05,
+          "n_periods": 30,
+          "realized_beta": -0.003012646333931742,
+          "sharpe": 1.5457833672460608,
+          "total_return": 0.0010825820529913877,
+          "turnover": 0.0,
+          "wealth": 1.0010825820529914
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 7.979727989493313e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 6.00384642839633e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.003012646333931742,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20268183,
+        "seed_index": 7,
+        "status": "ok",
+        "test_end": "2022-03-01",
+        "test_start": "2022-01-19",
+        "train_end": "2022-01-18",
+        "train_start": "2021-09-14",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9971857410881801
+        },
+        "window_index": 6
+      },
+      {
+        "cell_key": "seed_7_win_7",
+        "metrics": {
+          "annualized_volatility": 0.006265865475541249,
+          "max_dollar_neutral": 7.73686670285656e-16,
+          "max_drawdown": -0.0019125756269227079,
+          "max_model_beta": 4.3983782020195815e-05,
+          "n_periods": 30,
+          "realized_beta": -0.0058488135854763345,
+          "sharpe": 2.5946644870551507,
+          "total_return": 0.0019350029147038317,
+          "turnover": 0.0,
+          "wealth": 1.0019350029147038
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 7.73686670285656e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 4.3983782020195815e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.0058488135854763345,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20268183,
+        "seed_index": 7,
+        "status": "ok",
+        "test_end": "2022-04-12",
+        "test_start": "2022-03-02",
+        "train_end": "2022-03-01",
+        "train_start": "2021-10-27",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9960600375234522
+        },
+        "window_index": 7
+      },
+      {
+        "cell_key": "seed_7_win_8",
+        "metrics": {
+          "annualized_volatility": 0.006672135044134427,
+          "max_dollar_neutral": 5.551115123125783e-17,
+          "max_drawdown": -0.0016968789446368093,
+          "max_model_beta": 4.0470152717919654e-05,
+          "n_periods": 30,
+          "realized_beta": 0.00426740190466427,
+          "sharpe": 5.228741356804249,
+          "total_return": 0.004158974747768385,
+          "turnover": 0.0,
+          "wealth": 1.0041589747477684
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 5.551115123125783e-17,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 4.0470152717919654e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": 0.00426740190466427,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20268183,
+        "seed_index": 7,
+        "status": "ok",
+        "test_end": "2022-05-24",
+        "test_start": "2022-04-13",
+        "train_end": "2022-04-12",
+        "train_start": "2021-12-08",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9962476547842404
+        },
+        "window_index": 8
+      },
+      {
+        "cell_key": "seed_7_win_9",
+        "metrics": {
+          "annualized_volatility": 0.004272777197348117,
+          "max_dollar_neutral": 3.3306690738754696e-16,
+          "max_drawdown": -0.0006673956945875266,
+          "max_model_beta": 3.4566703136309736e-05,
+          "n_periods": 30,
+          "realized_beta": -0.001713293892679072,
+          "sharpe": 5.326612510399088,
+          "total_return": 0.002711953871813222,
+          "turnover": 0.0,
+          "wealth": 1.0027119538718132
+        },
+        "n_test": 30,
+        "n_train": 90,
+        "neutrality_checks": {
+          "dollar_neutral": {
+            "max_dollar_neutral": 3.3306690738754696e-16,
+            "passed": true,
+            "tolerance": 1e-09
+          },
+          "model_beta_neutral": {
+            "max_model_beta": 3.4566703136309736e-05,
+            "passed": true,
+            "tolerance": 0.001
+          },
+          "realized_beta": {
+            "passed": true,
+            "realized_beta": -0.001713293892679072,
+            "tolerance": 0.15
+          }
+        },
+        "seed": 20268183,
+        "seed_index": 7,
+        "status": "ok",
+        "test_end": "2022-07-05",
+        "test_start": "2022-05-25",
+        "train_end": "2022-05-24",
+        "train_start": "2022-01-19",
+        "walk_forward_stability": {
+          "n_common_assets": 40,
+          "spearman_is_oos_beta": 0.9979362101313323
+        },
+        "window_index": 9
+      }
+    ]
+  },
+  "schema": "bab_p36.walk_forward/1"
+}

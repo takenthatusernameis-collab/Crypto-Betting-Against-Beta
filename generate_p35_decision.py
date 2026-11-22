@@ -43,8 +43,11 @@ def _cell(value) -> str:
 def _render(columns, rows) -> str:
     lines = ["| " + " | ".join(columns) + " |"]
     lines.append("|" + "|".join("---" for _ in columns) + "|")
-    for row in rows:
-        lines.append("| " + " | ".join(_cell(row[column]) for column in columns) + " |")
+    row_lines = [
+        "| " + " | ".join(_cell(row[column]) for column in columns) + " |"
+        for row in rows
+    ]
+    lines.extend(row_lines)
     return "\n".join(lines)
 
 
@@ -175,7 +178,8 @@ for estimator, cells in sorted(estimator_groups.items()):
         elif estimator == "ewma":
             config_key = f"ewma_h{params['halflife']}"
         else:  # shrinkage
-            target_str = "csm" if params["target"] == "cross_sectional_mean" else f"t{params['target']}"
+            target_is_csm = params["target"] == "cross_sectional_mean"
+            target_str = "csm" if target_is_csm else f"t{params['target']}"
             config_key = f"shrinkage_i{params['intensity']}_{target_str}"
 
         config_rows.append({
@@ -278,9 +282,10 @@ for (perturbation, param_str), cells in perturbation_groups.items():
         avg_flip = sum(flip_vals) / len(cells) if flip_vals else 0.0
         noise_flip[eps] = avg_flip
 
-noise_ladder_rows = []
-for eps in sorted(noise_flip.keys()):
-    noise_ladder_rows.append({"Epsilon": eps, "Avg_Flip_Fraction": noise_flip[eps]})
+noise_ladder_rows = [
+    {"Epsilon": eps, "Avg_Flip_Fraction": noise_flip[eps]}
+    for eps in sorted(noise_flip.keys())
+]
 noise_ladder_table = _render(["Epsilon", "Avg_Flip_Fraction"], noise_ladder_rows)
 
 # --- Neutrality checks: all cells pass ---

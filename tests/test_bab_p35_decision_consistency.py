@@ -100,19 +100,37 @@ def provenance_table(bakeoff, stability) -> tuple[list[str], list[dict]]:
         {"Fact": "Synthetic universe", "Value": prov_b["fixture_recipe"]},
         {"Fact": "Fixture SHA256", "Value": "`" + prov_b["fixture_sha256"] + "`"},
         {"Fact": "BTC source SHA256", "Value": "`" + prov_b["btc_source_sha256"] + "`"},
-        {"Fact": "Seeds (base/inc/n)",
-         "Value": f"{prov_b['seeds']['base_seed']}/{prov_b['seeds']['increment']}/{prov_b['seeds']['n_seeds']}"},
+        {
+            "Fact": "Seeds (base/inc/n)",
+            "Value": (
+                f"{prov_b['seeds']['base_seed']}/"
+                f"{prov_b['seeds']['increment']}/"
+                f"{prov_b['seeds']['n_seeds']}"
+            ),
+        },
         {"Fact": "Beta windows (OLS)", "Value": str(prov_b["config_grid"]["beta_windows"])},
-        {"Fact": "EWMA halflifes", "Value": str(prov_b["config_grid"]["estimator_families"]["ewma"]["halflifes"])},
-        {"Fact": "Shrinkage intensities", "Value": str(prov_b["config_grid"]["estimator_families"]["shrinkage"]["intensities"])},
-        {"Fact": "Shrinkage targets", "Value": str(prov_b["config_grid"]["estimator_families"]["shrinkage"]["targets"])},
+        {
+            "Fact": "EWMA halflifes",
+            "Value": str(prov_b["config_grid"]["estimator_families"]["ewma"]["halflifes"]),
+        },
+        {
+            "Fact": "Shrinkage intensities",
+            "Value": str(prov_b["config_grid"]["estimator_families"]["shrinkage"]["intensities"]),
+        },
+        {
+            "Fact": "Shrinkage targets",
+            "Value": str(prov_b["config_grid"]["estimator_families"]["shrinkage"]["targets"]),
+        },
         {"Fact": "Quantile", "Value": prov_b["config_grid"]["quantile"]},
         {"Fact": "Transaction costs", "Value": prov_b["config_grid"]["transaction_costs"]},
         {"Fact": "Weighting", "Value": prov_b["config_grid"]["weighting"]},
         {"Fact": "Beta neutral", "Value": prov_b["config_grid"]["beta_neutral"]},
         {"Fact": "Dollar neutral", "Value": prov_b["config_grid"]["dollar_neutral"]},
         {"Fact": "Noise epsilons", "Value": str(prov_s["config_grid"]["noise_epsilons"])},
-        {"Fact": "Model beta-neutral tol", "Value": prov_b["neutrality_tolerances"]["model_beta_neutral"]},
+        {
+            "Fact": "Model beta-neutral tol",
+            "Value": prov_b["neutrality_tolerances"]["model_beta_neutral"],
+        },
         {"Fact": "Dollar-neutral tol", "Value": prov_b["neutrality_tolerances"]["dollar_neutral"]},
         {"Fact": "Realized beta tol", "Value": prov_b["neutrality_tolerances"]["realized_beta"]},
     ]
@@ -121,6 +139,7 @@ def provenance_table(bakeoff, stability) -> tuple[list[str], list[dict]]:
 
 def estimator_agg_table(bakeoff) -> tuple[list[str], list[dict]]:
     from collections import defaultdict
+
     cells = bakeoff["results"]["cells"]
     estimator_groups = defaultdict(list)
     for cell in cells:
@@ -139,41 +158,72 @@ def estimator_agg_table(bakeoff) -> tuple[list[str], list[dict]]:
         avg_realized_beta = sum(c["metrics"]["realized_beta"] for c in cell_list) / n
         avg_model_beta = sum(c["metrics"]["max_model_beta"] for c in cell_list) / n
         avg_dollar_neutral = sum(c["metrics"]["max_dollar_neutral"] for c in cell_list) / n
-        spearman_vals = [c["metrics"]["spearman_vs_ols"] for c in cell_list if c["metrics"]["spearman_vs_ols"] is not None]
+        spearman_vals = [
+            c["metrics"]["spearman_vs_ols"]
+            for c in cell_list
+            if c["metrics"]["spearman_vs_ols"] is not None
+        ]
         avg_spearman = sum(spearman_vals) / len(spearman_vals) if spearman_vals else None
-        jaccard_vals = [c["metrics"]["jaccard_vs_ols"] for c in cell_list if c["metrics"]["jaccard_vs_ols"] is not None]
+        jaccard_vals = [
+            c["metrics"]["jaccard_vs_ols"]
+            for c in cell_list
+            if c["metrics"]["jaccard_vs_ols"] is not None
+        ]
         avg_jaccard = sum(jaccard_vals) / len(jaccard_vals) if jaccard_vals else None
-        beta_noise_vals = [c["metrics"]["beta_noise"] for c in cell_list if c["metrics"]["beta_noise"] is not None]
+        beta_noise_vals = [
+            c["metrics"]["beta_noise"] for c in cell_list if c["metrics"]["beta_noise"] is not None
+        ]
         avg_beta_noise = sum(beta_noise_vals) / len(beta_noise_vals) if beta_noise_vals else None
-        beta_dispersion_vals = [c["metrics"]["beta_dispersion"] for c in cell_list if c["metrics"]["beta_dispersion"] is not None]
-        avg_beta_dispersion = sum(beta_dispersion_vals) / len(beta_dispersion_vals) if beta_dispersion_vals else None
+        beta_dispersion_vals = [
+            c["metrics"]["beta_dispersion"]
+            for c in cell_list
+            if c["metrics"]["beta_dispersion"] is not None
+        ]
+        avg_beta_dispersion = (
+            sum(beta_dispersion_vals) / len(beta_dispersion_vals) if beta_dispersion_vals else None
+        )
         avg_wealth = sum(c["metrics"]["wealth"] for c in cell_list) / n
 
-        agg_rows.append({
-            "Estimator": estimator,
-            "N_cells": n,
-            "Avg_Sharpe": avg_sharpe,
-            "Avg_Turnover": avg_turnover,
-            "Avg_Ann_Vol": avg_vol,
-            "Avg_Max_DD": avg_mdd,
-            "Avg_Realized_Beta": avg_realized_beta,
-            "Avg_Model_Beta_Neutral": avg_model_beta,
-            "Avg_Dollar_Neutral": avg_dollar_neutral,
-            "Avg_Spearman_vs_OLS": avg_spearman,
-            "Avg_Jaccard_vs_OLS": avg_jaccard,
-            "Avg_Beta_Noise": avg_beta_noise,
-            "Avg_Beta_Dispersion": avg_beta_dispersion,
-            "Avg_Wealth": avg_wealth,
-        })
+        agg_rows.append(
+            {
+                "Estimator": estimator,
+                "N_cells": n,
+                "Avg_Sharpe": avg_sharpe,
+                "Avg_Turnover": avg_turnover,
+                "Avg_Ann_Vol": avg_vol,
+                "Avg_Max_DD": avg_mdd,
+                "Avg_Realized_Beta": avg_realized_beta,
+                "Avg_Model_Beta_Neutral": avg_model_beta,
+                "Avg_Dollar_Neutral": avg_dollar_neutral,
+                "Avg_Spearman_vs_OLS": avg_spearman,
+                "Avg_Jaccard_vs_OLS": avg_jaccard,
+                "Avg_Beta_Noise": avg_beta_noise,
+                "Avg_Beta_Dispersion": avg_beta_dispersion,
+                "Avg_Wealth": avg_wealth,
+            }
+        )
 
-    return ["Estimator", "N_cells", "Avg_Sharpe", "Avg_Turnover", "Avg_Ann_Vol", "Avg_Max_DD",
-            "Avg_Realized_Beta", "Avg_Model_Beta_Neutral", "Avg_Dollar_Neutral",
-            "Avg_Spearman_vs_OLS", "Avg_Jaccard_vs_OLS", "Avg_Beta_Noise",
-            "Avg_Beta_Dispersion", "Avg_Wealth"], agg_rows
+    return [
+        "Estimator",
+        "N_cells",
+        "Avg_Sharpe",
+        "Avg_Turnover",
+        "Avg_Ann_Vol",
+        "Avg_Max_DD",
+        "Avg_Realized_Beta",
+        "Avg_Model_Beta_Neutral",
+        "Avg_Dollar_Neutral",
+        "Avg_Spearman_vs_OLS",
+        "Avg_Jaccard_vs_OLS",
+        "Avg_Beta_Noise",
+        "Avg_Beta_Dispersion",
+        "Avg_Wealth",
+    ], agg_rows
 
 
 def estimator_config_table(bakeoff) -> tuple[list[str], list[dict]]:
     from collections import defaultdict
+
     cells = bakeoff["results"]["cells"]
     config_rows = []
     for cell in cells:
@@ -185,43 +235,67 @@ def estimator_config_table(bakeoff) -> tuple[list[str], list[dict]]:
         elif cell["estimator"] == "ewma":
             config_key = f"ewma_h{params['halflife']}"
         else:  # shrinkage
-            target_str = "csm" if params["target"] == "cross_sectional_mean" else f"t{params['target']}"
+            target_str = (
+                "csm" if params["target"] == "cross_sectional_mean" else f"t{params['target']}"
+            )
             config_key = f"shrinkage_i{params['intensity']}_{target_str}"
 
-        config_rows.append({
-            "Config": config_key,
-            "Estimator": cell["estimator"],
-            "Seed_Idx": cell["seed_index"],
-            "Sharpe": cell["metrics"]["sharpe"],
-            "Turnover": cell["metrics"]["turnover"],
-            "Ann_Vol": cell["metrics"]["annualized_volatility"],
-            "Max_DD": cell["metrics"]["max_drawdown"],
-            "Realized_Beta": cell["metrics"]["realized_beta"],
-            "Model_Beta_Neutral": cell["metrics"]["max_model_beta"],
-            "Dollar_Neutral": cell["metrics"]["max_dollar_neutral"],
-            "Spearman_vs_OLS": cell["metrics"]["spearman_vs_ols"],
-            "Jaccard_vs_OLS": cell["metrics"]["jaccard_vs_ols"],
-            "Beta_Noise": cell["metrics"]["beta_noise"],
-            "Beta_Dispersion": cell["metrics"]["beta_dispersion"],
-            "Wealth": cell["metrics"]["wealth"],
-            "Model_Beta_Pass": cell["neutrality_checks"]["model_beta_neutral"]["passed"],
-            "Dollar_Pass": cell["neutrality_checks"]["dollar_neutral"]["passed"],
-            "Realized_Beta_Pass": cell["neutrality_checks"]["realized_beta"]["passed"],
-        })
+        config_rows.append(
+            {
+                "Config": config_key,
+                "Estimator": cell["estimator"],
+                "Seed_Idx": cell["seed_index"],
+                "Sharpe": cell["metrics"]["sharpe"],
+                "Turnover": cell["metrics"]["turnover"],
+                "Ann_Vol": cell["metrics"]["annualized_volatility"],
+                "Max_DD": cell["metrics"]["max_drawdown"],
+                "Realized_Beta": cell["metrics"]["realized_beta"],
+                "Model_Beta_Neutral": cell["metrics"]["max_model_beta"],
+                "Dollar_Neutral": cell["metrics"]["max_dollar_neutral"],
+                "Spearman_vs_OLS": cell["metrics"]["spearman_vs_ols"],
+                "Jaccard_vs_OLS": cell["metrics"]["jaccard_vs_ols"],
+                "Beta_Noise": cell["metrics"]["beta_noise"],
+                "Beta_Dispersion": cell["metrics"]["beta_dispersion"],
+                "Wealth": cell["metrics"]["wealth"],
+                "Model_Beta_Pass": cell["neutrality_checks"]["model_beta_neutral"]["passed"],
+                "Dollar_Pass": cell["neutrality_checks"]["dollar_neutral"]["passed"],
+                "Realized_Beta_Pass": cell["neutrality_checks"]["realized_beta"]["passed"],
+            }
+        )
 
-    return ["Config", "Estimator", "Seed_Idx", "Sharpe", "Turnover", "Ann_Vol", "Max_DD",
-            "Realized_Beta", "Model_Beta_Neutral", "Dollar_Neutral", "Spearman_vs_OLS",
-            "Jaccard_vs_OLS", "Beta_Noise", "Beta_Dispersion", "Wealth",
-            "Model_Beta_Pass", "Dollar_Pass", "Realized_Beta_Pass"], config_rows
+    return [
+        "Config",
+        "Estimator",
+        "Seed_Idx",
+        "Sharpe",
+        "Turnover",
+        "Ann_Vol",
+        "Max_DD",
+        "Realized_Beta",
+        "Model_Beta_Neutral",
+        "Dollar_Neutral",
+        "Spearman_vs_OLS",
+        "Jaccard_vs_OLS",
+        "Beta_Noise",
+        "Beta_Dispersion",
+        "Wealth",
+        "Model_Beta_Pass",
+        "Dollar_Pass",
+        "Realized_Beta_Pass",
+    ], config_rows
 
 
 def churn_table(stability) -> tuple[list[str], list[dict]]:
     from collections import defaultdict
+
     cells = stability["results"]["cells"]
     perturbation_groups = defaultdict(list)
     for cell in cells:
         if cell["status"] == "ok":
-            key = (cell["perturbation"], json.dumps(cell["param"], sort_keys=True) if cell["param"] else "baseline")
+            key = (
+                cell["perturbation"],
+                json.dumps(cell["param"], sort_keys=True) if cell["param"] else "baseline",
+            )
             perturbation_groups[key].append(cell)
 
     churn_rows = []
@@ -229,9 +303,17 @@ def churn_table(stability) -> tuple[list[str], list[dict]]:
         n = len(cell_list)
         if n == 0:
             continue
-        flip_vals = [c["churn"]["flip_fraction"] for c in cell_list if c["churn"]["flip_fraction"] is not None]
+        flip_vals = [
+            c["churn"]["flip_fraction"]
+            for c in cell_list
+            if c["churn"]["flip_fraction"] is not None
+        ]
         avg_flip = sum(flip_vals) / len(flip_vals) if flip_vals else None
-        jaccard_vals = [c["churn"]["jaccard_overlap"] for c in cell_list if c["churn"]["jaccard_overlap"] is not None]
+        jaccard_vals = [
+            c["churn"]["jaccard_overlap"]
+            for c in cell_list
+            if c["churn"]["jaccard_overlap"] is not None
+        ]
         avg_jaccard = sum(jaccard_vals) / len(jaccard_vals) if jaccard_vals else None
         avg_sharpe = sum(c["metrics"]["sharpe"] for c in cell_list) / n
         avg_turnover = sum(c["metrics"]["turnover"] for c in cell_list) / n
@@ -251,38 +333,57 @@ def churn_table(stability) -> tuple[list[str], list[dict]]:
                 target_str = "csm" if p["target"] == "cross_sectional_mean" else f"t{p['target']}"
                 label = f"shrinkage_i{p['intensity']}_{target_str}"
 
-        churn_rows.append({
-            "Perturbation": label,
-            "Type": perturbation,
-            "N_cells": n,
-            "Avg_Flip_Fraction": avg_flip,
-            "Avg_Jaccard": avg_jaccard,
-            "Avg_Sharpe": avg_sharpe,
-            "Avg_Turnover": avg_turnover,
-            "Avg_Realized_Beta": avg_realized_beta,
-            "Avg_Model_Beta_Neutral": avg_model_beta,
-            "Avg_Dollar_Neutral": avg_dollar_neutral,
-        })
+        churn_rows.append(
+            {
+                "Perturbation": label,
+                "Type": perturbation,
+                "N_cells": n,
+                "Avg_Flip_Fraction": avg_flip,
+                "Avg_Jaccard": avg_jaccard,
+                "Avg_Sharpe": avg_sharpe,
+                "Avg_Turnover": avg_turnover,
+                "Avg_Realized_Beta": avg_realized_beta,
+                "Avg_Model_Beta_Neutral": avg_model_beta,
+                "Avg_Dollar_Neutral": avg_dollar_neutral,
+            }
+        )
 
-    return ["Perturbation", "Type", "N_cells", "Avg_Flip_Fraction", "Avg_Jaccard",
-            "Avg_Sharpe", "Avg_Turnover", "Avg_Realized_Beta",
-            "Avg_Model_Beta_Neutral", "Avg_Dollar_Neutral"], churn_rows
+    return [
+        "Perturbation",
+        "Type",
+        "N_cells",
+        "Avg_Flip_Fraction",
+        "Avg_Jaccard",
+        "Avg_Sharpe",
+        "Avg_Turnover",
+        "Avg_Realized_Beta",
+        "Avg_Model_Beta_Neutral",
+        "Avg_Dollar_Neutral",
+    ], churn_rows
 
 
 def noise_ladder_table(stability) -> tuple[list[str], list[dict]]:
     from collections import defaultdict
+
     cells = stability["results"]["cells"]
     perturbation_groups = defaultdict(list)
     for cell in cells:
         if cell["status"] == "ok":
-            key = (cell["perturbation"], json.dumps(cell["param"], sort_keys=True) if cell["param"] else "baseline")
+            key = (
+                cell["perturbation"],
+                json.dumps(cell["param"], sort_keys=True) if cell["param"] else "baseline",
+            )
             perturbation_groups[key].append(cell)
 
     noise_flip = {}
     for (perturbation, param_str), cell_list in perturbation_groups.items():
         if perturbation == "noise":
             eps = json.loads(param_str)
-            flip_vals = [c["churn"]["flip_fraction"] for c in cell_list if c["churn"]["flip_fraction"] is not None]
+            flip_vals = [
+                c["churn"]["flip_fraction"]
+                for c in cell_list
+                if c["churn"]["flip_fraction"] is not None
+            ]
             avg_flip = sum(flip_vals) / len(flip_vals) if flip_vals else None
             noise_flip[eps] = avg_flip
 
@@ -305,33 +406,71 @@ def decision_table(bakeoff, stability) -> tuple[list[str], list[dict]]:
 
     bakeoff_fixture_sha = prov_b["fixture_sha256"]
     stability_fixture_sha = prov_s["fixture_sha256"]
-    fixture_shas_match = (bakeoff_fixture_sha == stability_fixture_sha)
+    fixture_shas_match = bakeoff_fixture_sha == stability_fixture_sha
 
     rows = [
-        {"Criterion": "All 176 cells (80 bakeoff + 96 stability) pass neutrality checks",
-         "Required": all_neutrality_pass},
-        {"Criterion": "Model beta-neutrality <= 1e-3 at every cell",
-         "Required": all(c["neutrality_checks"]["model_beta_neutral"]["passed"] for c in bakeoff_cells if c["status"] == "ok") and
-                     all(c["neutrality_checks"]["model_beta_neutral"]["passed"] for c in stability_cells if c["status"] == "ok")},
-        {"Criterion": "Dollar-neutrality <= 1e-9 at every cell",
-         "Required": all(c["neutrality_checks"]["dollar_neutral"]["passed"] for c in bakeoff_cells if c["status"] == "ok") and
-                     all(c["neutrality_checks"]["dollar_neutral"]["passed"] for c in stability_cells if c["status"] == "ok")},
-        {"Criterion": "Realized beta |beta| <= 0.15 at every cell",
-         "Required": all(c["neutrality_checks"]["realized_beta"]["passed"] for c in bakeoff_cells if c["status"] == "ok") and
-                     all(c["neutrality_checks"]["realized_beta"]["passed"] for c in stability_cells if c["status"] == "ok")},
-        {"Criterion": "Estimator choice affects turnover/churn but NOT beta-neutrality",
-         "Required": True},
-        {"Criterion": "Shipped default (rolling-OLS w90, equal-weight, beta-neutral) RETAINED",
-         "Required": True},
-        {"Criterion": "EWMA (h40/h60) and shrinkage are documented churn-reduction alternatives",
-         "Required": True},
-        {"Criterion": "Fixture SHA256 match across both artifacts",
-         "Required": fixture_shas_match},
-        {"Criterion": "Synthetic universe labelled controlled synthetic",
-         "Required": "Not real market data" in prov_b["fixture_recipe"] and
-                     "not market profitability evidence" in prov_b["fixture_recipe"]},
-        {"Criterion": "Not market evidence / no real alpha",
-         "Required": True},
+        {
+            "Criterion": "All 176 cells (80 bakeoff + 96 stability) pass neutrality checks",
+            "Required": all_neutrality_pass,
+        },
+        {
+            "Criterion": "Model beta-neutrality <= 1e-3 at every cell",
+            "Required": all(
+                c["neutrality_checks"]["model_beta_neutral"]["passed"]
+                for c in bakeoff_cells
+                if c["status"] == "ok"
+            )
+            and all(
+                c["neutrality_checks"]["model_beta_neutral"]["passed"]
+                for c in stability_cells
+                if c["status"] == "ok"
+            ),
+        },
+        {
+            "Criterion": "Dollar-neutrality <= 1e-9 at every cell",
+            "Required": all(
+                c["neutrality_checks"]["dollar_neutral"]["passed"]
+                for c in bakeoff_cells
+                if c["status"] == "ok"
+            )
+            and all(
+                c["neutrality_checks"]["dollar_neutral"]["passed"]
+                for c in stability_cells
+                if c["status"] == "ok"
+            ),
+        },
+        {
+            "Criterion": "Realized beta |beta| <= 0.15 at every cell",
+            "Required": all(
+                c["neutrality_checks"]["realized_beta"]["passed"]
+                for c in bakeoff_cells
+                if c["status"] == "ok"
+            )
+            and all(
+                c["neutrality_checks"]["realized_beta"]["passed"]
+                for c in stability_cells
+                if c["status"] == "ok"
+            ),
+        },
+        {
+            "Criterion": "Estimator choice affects turnover/churn but NOT beta-neutrality",
+            "Required": True,
+        },
+        {
+            "Criterion": "Shipped default (rolling-OLS w90, equal-weight, beta-neutral) RETAINED",
+            "Required": True,
+        },
+        {
+            "Criterion": "EWMA (h40/h60) and shrinkage are documented churn-reduction alternatives",
+            "Required": True,
+        },
+        {"Criterion": "Fixture SHA256 match across both artifacts", "Required": fixture_shas_match},
+        {
+            "Criterion": "Synthetic universe labelled controlled synthetic",
+            "Required": "Not real market data" in prov_b["fixture_recipe"]
+            and "not market profitability evidence" in prov_b["fixture_recipe"],
+        },
+        {"Criterion": "Not market evidence / no real alpha", "Required": True},
     ]
     return ["Criterion", "Required"], rows
 
@@ -412,8 +551,7 @@ def test_report_exists_and_declares_its_sources(bakeoff, stability, report) -> N
         assert name in report, f"report never names its source {name}"
 
 
-def test_every_published_number_matches_a_committed_json_field(
-        bakeoff, stability, report) -> None:
+def test_every_published_number_matches_a_committed_json_field(bakeoff, stability, report) -> None:
     allowed = _allowed_numeric(bakeoff, stability)
     published = []
     unmatched = []
@@ -428,40 +566,32 @@ def test_every_published_number_matches_a_committed_json_field(
     minimum = 100  # chartered minimum
     assert published, "report publishes no numeric table cells"
     assert len(published) >= minimum, (
-        f"report publishes {len(published)} machine-checked cells, below the "
-        f"chartered {minimum}"
+        f"report publishes {len(published)} machine-checked cells, below the chartered {minimum}"
     )
-    assert unmatched == [], f"published numbers absent from JSON: " \
-        f"{sorted(set(unmatched))}"
+    assert unmatched == [], f"published numbers absent from JSON: {sorted(set(unmatched))}"
 
 
-def test_zero_unmatched_cells_is_the_chartered_invariant(
-        bakeoff, stability, report) -> None:
+def test_zero_unmatched_cells_is_the_chartered_invariant(bakeoff, stability, report) -> None:
     allowed = _allowed_numeric(bakeoff, stability)
     unmatched = 0
     for body in _extract_tables(report).values():
         for row in _rows(body):
             for cell in row:
                 clean = cell.replace("`", "").strip()
-                if (NUMERIC_CELL.match(clean)
-                        and round(float(clean), DECIMALS) not in allowed):
+                if NUMERIC_CELL.match(clean) and round(float(clean), DECIMALS) not in allowed:
                     unmatched += 1
     assert unmatched == 0
 
 
-def test_tables_are_byte_identical_to_the_json_renderers(
-        bakeoff, stability, report) -> None:
+def test_tables_are_byte_identical_to_the_json_renderers(bakeoff, stability, report) -> None:
     published = _extract_tables(report)
-    assert set(published) == set(TABLE_BUILDERS), f"table anchors differ: " \
-        f"{sorted(published)}"
+    assert set(published) == set(TABLE_BUILDERS), f"table anchors differ: {sorted(published)}"
     for name in TABLE_BUILDERS:
         expected = "\n".join(_built(name, bakeoff, stability))
-        assert published[name] == expected, f"table {name} drifted from " \
-            f"its JSON artifact"
+        assert published[name] == expected, f"table {name} drifted from its JSON artifact"
 
 
-def test_prose_does_not_quote_unbacked_numbers(
-        bakeoff, stability, report) -> None:
+def test_prose_does_not_quote_unbacked_numbers(bakeoff, stability, report) -> None:
     allowed = _allowed_numeric(bakeoff, stability)
     text = re.sub(
         r"<!-- table:[a-z_]+:start -->.*?<!-- table:[a-z_]+:end -->",
@@ -477,16 +607,15 @@ def test_prose_does_not_quote_unbacked_numbers(
     text = re.sub(r"\bP\d+-\d+\b", " ", text)
     text = re.sub(r"\b(?:P|WP)\d+\b", " ", text)
     # Chartered prose numbers that are not table data
-    text = re.sub(r"\b6\b", " ", text)        # decimals
-    text = re.sub(r"\b403\b", " ", text)      # Coinbase returns 403
-    text = re.sub(r"\b2021\b", " ", text)     # year in dates
-    text = re.sub(r"\b2022\b", " ", text)     # year in dates
-    text = re.sub(r"\b0\.003\b", " ", text)   # idio vol (P25 concept)
-    text = re.sub(r"\b0\.35\b", " ", text)    # beta range min
-    text = re.sub(r"\b1\.90\b", " ", text)    # beta range max
+    text = re.sub(r"\b6\b", " ", text)  # decimals
+    text = re.sub(r"\b403\b", " ", text)  # Coinbase returns 403
+    text = re.sub(r"\b2021\b", " ", text)  # year in dates
+    text = re.sub(r"\b2022\b", " ", text)  # year in dates
+    text = re.sub(r"\b0\.003\b", " ", text)  # idio vol (P25 concept)
+    text = re.sub(r"\b0\.35\b", " ", text)  # beta range min
+    text = re.sub(r"\b1\.90\b", " ", text)  # beta range max
     token = re.compile(r"(?<![A-Za-z0-9_.])-?\d+(?:\.\d+)?(?![A-Za-z0-9_])")
-    stray = {tok for tok in token.findall(text)
-             if round(float(tok), DECIMALS) not in allowed}
+    stray = {tok for tok in token.findall(text) if round(float(tok), DECIMALS) not in allowed}
     assert stray == set(), f"prose numbers with no JSON field: {sorted(stray)}"
 
 
@@ -554,7 +683,7 @@ def test_stability_evidence_is_calibrated(stability) -> None:
 
     # Noise monotonicity
     noise_cells = [c for c in ok_cells if c["perturbation"] == "noise"]
-    epsilons = sorted(set(c["param"] for c in noise_cells))
+    epsilons = sorted({c["param"] for c in noise_cells})
     for eps in epsilons:
         eps_cells = [c for c in noise_cells if c["param"] == eps]
         avg_flip = sum(c["churn"]["flip_fraction"] for c in eps_cells) / len(eps_cells)
@@ -574,18 +703,15 @@ def test_report_consistency_never_executes_a_research_harness() -> None:
         if isinstance(node, ast.Call):
             func = node.func
             if isinstance(func, ast.Attribute):
-                assert not func.attr.startswith("build_"), f"harness call: " \
-                    f"{func.attr}"
+                assert not func.attr.startswith("build_"), f"harness call: {func.attr}"
             elif isinstance(func, ast.Name):
-                assert not func.id.startswith("build_"), f"harness call: " \
-                    f"{func.id}"
+                assert not func.id.startswith("build_"), f"harness call: {func.id}"
         if isinstance(node, ast.ImportFrom):
             module = node.module or ""
             assert not module.startswith(("scripts", "strategies")), module
         if isinstance(node, ast.Import):
             for alias in node.names:
-                assert not alias.name.startswith(("scripts", "strategies")), \
-                    alias.name
+                assert not alias.name.startswith(("scripts", "strategies")), alias.name
     start = time.perf_counter()
     _load("estimator_bakeoff_summary.json")
     _load("signal_stability_summary.json")
@@ -593,8 +719,7 @@ def test_report_consistency_never_executes_a_research_harness() -> None:
     assert time.perf_counter() - start < 2.0
 
 
-def test_decision_artifacts_are_byte_identical_after_the_suite(
-        bakeoff, stability) -> None:
+def test_decision_artifacts_are_byte_identical_after_the_suite(bakeoff, stability) -> None:
     for name in SOURCES:
         before = (RESEARCH_P35_DIR / name).read_bytes()
         _load(name)
@@ -608,6 +733,7 @@ def test_decision_artifacts_are_byte_identical_after_the_suite(
 def test_no_ruff_errors_on_new_files():
     import subprocess
     import sys
+
     GENERATE_SCRIPT = REPO_ROOT / "generate_p35_decision.py"
     result = subprocess.run(
         [
@@ -622,6 +748,4 @@ def test_no_ruff_errors_on_new_files():
         text=True,
         cwd=REPO_ROOT,
     )
-    assert result.returncode == 0, (
-        f"ruff must pass on new files: {result.stdout} {result.stderr}"
-    )
+    assert result.returncode == 0, f"ruff must pass on new files: {result.stdout} {result.stderr}"

@@ -179,3 +179,16 @@ python3 -m pytest -q tests/test_bab_p34_honesty_battery.py
 echo "[bab_gate] P34 doc pointer guard tests (WP2)"
 python3 -m pytest -q tests/test_bab_p34_doc_pointer_guard.py
 echo "[bab_gate] P34 GREEN"
+
+# --- P35 WP0/WP1/WP2/WP3: beta-estimator bakeoff + signal-stability + decision doc + gate wire ---
+echo "[bab_gate] P35 estimator bakeoff summary check (WP1)"
+python3 "$ROOT/scripts/bab_p35_estimator_bakeoff.py" --check-estimator-bakeoff-summary
+echo "[bab_gate] P35 signal-stability summary check (WP2)"
+python3 "$ROOT/scripts/bab_p35_signal_stability.py" --check-signal-stability-summary
+echo "[bab_gate] P35 beta-estimator tests (WP0+WP1)"
+python3 -m pytest -q tests/test_bab_p35_beta_estimators.py tests/test_bab_p35_estimator_bakeoff.py
+echo "[bab_gate] P35 signal-stability tests (WP2)"
+python3 -m pytest -q tests/test_bab_p35_signal_stability.py
+echo "[bab_gate] P35 decision-consistency tests (WP3)"
+python3 -m pytest -q tests/test_bab_p35_decision_consistency.py
+echo "[bab_gate] P35 GREEN"

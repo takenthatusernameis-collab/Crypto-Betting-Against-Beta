@@ -102,6 +102,15 @@ REGISTRY: list[dict] = [
      "dir": "bab_p24", "name": "hysteresis", "inject_determinism": False},
     {"module": "bab_regime_split", "build": "build_regime_split",
      "dir": "bab_p24", "name": "regime_split", "inject_determinism": False},
+    # P35 WP1/WP2 summary artifacts (JSON-only; no .md sidecar). Gated out of
+    # --xproc/--check-provenance so the frozen P29 provenance_audit.json ledger
+    # is never rewritten by P35 entries (see HANDOFF.md P35 WP3 bottleneck note).
+    {"module": "bab_p35_estimator_bakeoff", "build": "build_summary",
+     "dir": "bab_p35", "name": "estimator_bakeoff_summary",
+     "inject_determinism": False, "json_only": True, "no_xproc": True},
+    {"module": "bab_p35_signal_stability", "build": "build_summary",
+     "dir": "bab_p35", "name": "signal_stability_summary",
+     "inject_determinism": False, "json_only": True, "no_xproc": True},
 ]
 
 # Cheap subset (fast generators) used by the drift self-test so it runs in
@@ -156,12 +165,15 @@ def _check(entry: dict, committed_root: Path | None = None) -> tuple[bool, list[
     problems: list[str] = []
     if not json_path.is_file():
         return False, [f"MISSING {entry['name']}.json"]
-    if not md_path.is_file():
+    if not entry.get("json_only") and not md_path.is_file():
         return False, [f"MISSING {entry['name']}.md"]
     if json_path.read_bytes() != _json_bytes(payload):
         problems.append(f"DRIFT {entry['name']}.json")
-    if _md_norm(md_path.read_text(encoding="utf-8")) != _md_norm(module.render_markdown(payload)):
-        problems.append(f"DRIFT {entry['name']}.md")
+    if not entry.get("json_only"):
+        committed_md = _md_norm(md_path.read_text(encoding="utf-8"))
+        rendered_md = _md_norm(module.render_markdown(payload))
+        if committed_md != rendered_md:
+            problems.append(f"DRIFT {entry['name']}.md")
     return (not problems), problems
 
 
@@ -367,6 +379,8 @@ def _xproc_main() -> int:
     results: dict[str, dict] = {}
     ok = True
     for entry in REGISTRY:
+        if entry.get("no_xproc"):
+            continue
         good, problems, seed = _check_xproc(entry)
         results[entry["name"]] = {"ok": good, "seed": seed, "problems": problems}
         if good:

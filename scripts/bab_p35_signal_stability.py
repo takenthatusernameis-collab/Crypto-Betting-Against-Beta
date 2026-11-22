@@ -660,6 +660,18 @@ def check_summary(path: Path = SUMMARY_PATH) -> bool:
         return False
 
 
+def build_summary() -> dict:
+    """Build the deterministic summary artifact (read-only; does not write to disk).
+
+    Returns the same summary dict that ``write_summary`` persists. Used by the
+    replay gate (``scripts/bab_replay_full.py``) to byte-diff the committed
+    `research_state/bab_p35/signal_stability_summary.json` against a fresh
+    in-memory rebuild.
+    """
+    grid_results = _run_all_seeds_and_configs()
+    return _build_summary_artifact(grid_results)
+
+
 def main() -> int:
     import argparse
 

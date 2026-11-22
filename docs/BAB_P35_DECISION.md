@@ -1,16 +1,20 @@
-# BAB P35 Closing Decision — Beta-Estimation Robustness & Signal-Stability Closure
+# BAB P35 Closing Decision -- Beta-Estimation Robustness & Signal-Stability Closure
 
 **Campaign:** P35 "Beta-Estimation Robustness & Signal-Stability Closure"
-**Decision row:** P35 WP3 — Decision doc + documentation-integrity closure + gate wire
+**Decision row:** P35 WP3 -- Decision doc + documentation-integrity closure + gate wire
 **Artifacts consumed (read-only):**
-- `research_state/bab_p35/estimator_bakeoff_summary.json` (80 cells: 8 seeds × 10 estimator configs)
-- `research_state/bab_p35/signal_stability_summary.json` (96 cells: 8 seeds × 12 perturbations)
+- `research_state/bab_p35/estimator_bakeoff_summary.json` (80 cells: 8 seeds x 10 estimator configs)
+- `research_state/bab_p35/signal_stability_summary.json` (96 cells: 8 seeds x 12 perturbations)
 
 **Verdict strings verified:** `RETAIN`, `rolling-OLS`, `synthetic`, `not market evidence`
 
-**Decision:** **RETAIN the shipped default** (`weighting="equal"`, `beta_neutral=True`, `beta_window=90`, rolling-OLS).
-Estimator choice (rolling-OLS / EWMA / shrinkage) materially affects turnover and selection churn but **does not affect beta-neutrality** (all 176 cells satisfy model beta-neutral ≤ 1e-3, dollar-neutral ≤ 1e-9, |realized β| ≤ 0.15).
-EWMA (h40/h60) and shrinkage (intensity 0.1/0.3) are documented as churn-reduction alternatives at equal neutrality.
+**Decision:** **RETAIN the shipped default** (`weighting="equal"`, `beta_neutral=True`,
+`beta_window=90`, rolling-OLS).
+Estimator choice (rolling-OLS / EWMA / shrinkage) materially affects turnover and
+selection churn but **does not affect beta-neutrality** (all 176 cells satisfy model
+beta-neutral <= 1e-3, dollar-neutral <= 1e-9, |realized beta| <= 0.15).
+EWMA (h40/h60) and shrinkage (intensity 0.1/0.3) are documented as churn-reduction
+alternatives at equal neutrality.
 Every number traces to a committed JSON leaf; no hand-typed numbers.
 
 ---
@@ -45,7 +49,7 @@ Every number traces to a committed JSON leaf; no hand-typed numbers.
 
 ---
 
-## Estimator Bakeoff — Aggregated Summary (Averaged Over 8 Seeds)
+## Estimator Bakeoff -- Aggregated Summary (Averaged Over 8 Seeds)
 
 <!-- table:estimator_agg:start -->
 | Estimator | N_cells | Avg_Sharpe | Avg_Turnover | Avg_Ann_Vol | Avg_Max_DD | Avg_Realized_Beta | Avg_Model_Beta_Neutral | Avg_Dollar_Neutral | Avg_Spearman_vs_OLS | Avg_Jaccard_vs_OLS | Avg_Beta_Noise | Avg_Beta_Dispersion | Avg_Wealth |
@@ -57,7 +61,7 @@ Every number traces to a committed JSON leaf; no hand-typed numbers.
 
 ---
 
-## Estimator Bakeoff — Full Per-Cell Results (80 Cells)
+## Estimator Bakeoff -- Full Per-Cell Results (80 Cells)
 
 <!-- table:estimator_config:start -->
 | Config | Estimator | Seed_Idx | Sharpe | Turnover | Ann_Vol | Max_DD | Realized_Beta | Model_Beta_Neutral | Dollar_Neutral | Spearman_vs_OLS | Jaccard_vs_OLS | Beta_Noise | Beta_Dispersion | Wealth | Model_Beta_Pass | Dollar_Pass | Realized_Beta_Pass |
@@ -146,9 +150,10 @@ Every number traces to a committed JSON leaf; no hand-typed numbers.
 
 ---
 
-## Signal Stability — Churn Summary (Averaged Over 8 Seeds)
+## Signal Stability -- Churn Summary (Averaged Over 8 Seeds)
 
-Flip fraction = per-period fraction of names in baseline long/short book that change side (long↔short) or drop out entirely.
+Flip fraction = per-period fraction of names in baseline long/short book that
+change side (long<->short) or drop out entirely.
 Jaccard overlap = per-period Jaccard of baseline vs perturbed long/short selected sets.
 Baseline-vs-baseline: flip=0.0, Jaccard=1.0.
 
@@ -171,7 +176,7 @@ Baseline-vs-baseline: flip=0.0, Jaccard=1.0.
 
 ---
 
-## Noise Injection — Monotonicity Ladder
+## Noise Injection -- Monotonicity Ladder
 
 Noise ladder monotonicity verified: flip fraction increases with epsilon.
 
@@ -192,9 +197,9 @@ Noise ladder monotonicity verified: flip fraction increases with epsilon.
 | Criterion | Required |
 |---|---|
 | All 176 cells (80 bakeoff + 96 stability) pass neutrality checks | True |
-| Model beta-neutrality ≤ 1e-3 at every cell | True |
-| Dollar-neutrality ≤ 1e-9 at every cell | True |
-| Realized beta |β| ≤ 0.15 at every cell | True |
+| Model beta-neutrality <= 1e-3 at every cell | True |
+| Dollar-neutrality <= 1e-9 at every cell | True |
+| Realized beta |beta| <= 0.15 at every cell | True |
 | Estimator choice affects turnover/churn but NOT beta-neutrality | True |
 | Shipped default (rolling-OLS w90, equal-weight, beta-neutral) RETAINED | True |
 | EWMA (h40/h60) and shrinkage are documented churn-reduction alternatives | True |
@@ -207,24 +212,42 @@ Noise ladder monotonicity verified: flip fraction increases with epsilon.
 
 ## What This Does Not Prove
 
-- **No demonstrated real-world profitability.** The synthetic wide universe is a controlled synthetic stimulus: BTC prices from `tests/fixtures/real_market_prices.csv`, asset returns = `beta * BTC_return + idio`, `idio ~ N(0, 0.003)`, betas `linspace(0.35, 1.9, 40)`. It is **not real market data** and **not market profitability evidence**.
+- **No demonstrated real-world profitability.** The synthetic wide universe is a
+  controlled synthetic stimulus: BTC prices from
+  `tests/fixtures/real_market_prices.csv`, asset returns = `beta * BTC_return + idio`,
+  `idio ~ N(0, 0.003)`, betas `linspace(0.35, 1.9, 40)`. It is **not real market data**
+  and **not market profitability evidence**.
 - **No out-of-sample validation.** All results are in-sample on the synthetic fixture.
-- **No walk-forward / OOS harness.** Campaign P35 closes without a walk-forward/out-of-sample harness.
-- **No Frazzini-Pedersen rank weighting with beta scaling.** The rank path is documented in `docs/BAB_FIDELITY.md` §9 but is **not empirically evaluable** on the committed 9-asset synthetic fixture. The shipped default remains equal-weight.
-- **No live execution evidence.** The live adapter (`--adapter live`) is dry-run by default and requires explicit two-key opt-in. No network was used in this campaign.
+- **No walk-forward / OOS harness.** Campaign P35 closes without a walk-forward/
+  out-of-sample harness.
+- **No Frazzini-Pedersen rank weighting with beta scaling.** The rank path is documented
+  in `docs/BAB_FIDELITY.md` section 9 but is **not empirically evaluable** on the
+  committed 9-asset synthetic fixture. The shipped default remains equal-weight.
+- **No live execution evidence.** The live adapter (`--adapter live`) is dry-run by
+  default and requires explicit two-key opt-in. No network was used in this campaign.
 
 ---
 
 ## Next Steps
 
-Campaign P35 concludes here. The **RETAIN** verdict is grounded in the evidence from WP1 (estimator bakeoff) and WP2 (signal-stability study). All 176 cells satisfy the neutrality invariants. Estimator choice affects turnover/churn but not beta-neutrality. The shipped default `weighting="equal"`, `beta_neutral=True`, `beta_window=90`, rolling-OLS is retained. EWMA (h40/h60) and shrinkage are documented churn-reduction alternatives at equal neutrality.
+Campaign P35 concludes here. The **RETAIN** verdict is grounded in the evidence from
+WP1 (estimator bakeoff) and WP2 (signal-stability study). All 176 cells satisfy the
+neutrality invariants. Estimator choice affects turnover/churn but not beta-neutrality.
+The shipped default `weighting="equal"`, `beta_neutral=True`, `beta_window=90`,
+rolling-OLS is retained. EWMA (h40/h60) and shrinkage are documented churn-reduction
+alternatives at equal neutrality.
 
 **Future work (not in scope for P35):**
 - Walk-forward / out-of-sample harness
-- Real market data ingestion (maintainer-supplied licensed CSV; Coinbase public API returns 403)
-- CI enforcement of `ruff`, `scripts/bab_gate.sh`, `scripts/bab_reconcile_gate.sh` (P28 WP2, maintainer-only)
+- Real market data ingestion (maintainer-supplied licensed CSV; Coinbase public API
+  returns 403)
+- CI enforcement of `ruff`, `scripts/bab_gate.sh`, `scripts/bab_reconcile_gate.sh`
+  (P28 WP2, maintainer-only)
 - Frazzini-Pedersen rank-weighted / beta-scaled construction on a wider universe
 
 ---
 
-*This report is artifact-gated: every numeric table cell resolves to a committed JSON leaf at 6 dp. The acceptance test `tests/test_bab_p35_decision_consistency.py` verifies zero unmatched cells, table byte-identity, explicit verdict strings (`RETAIN`, `rolling-OLS`, `synthetic`, `not market evidence`), AST no-harness scan, and ruff clean.*
+*This report is artifact-gated: every numeric table cell resolves to a committed JSON
+leaf at 6 dp. The acceptance test `tests/test_bab_p35_decision_consistency.py` verifies
+zero unmatched cells, table byte-identity, explicit verdict strings (`RETAIN`,
+`rolling-OLS`, `synthetic`, `not market evidence`), AST no-harness scan, and ruff clean.*
