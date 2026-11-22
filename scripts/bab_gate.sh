@@ -201,3 +201,14 @@ python3 "$ROOT/scripts/bab_p36_rank_weighted.py" --check-rank-weighted-summary
 echo "[bab_gate] P36 decision-consistency tests (WP2-WP3)"
 python3 -m pytest -q tests/test_bab_p36_decision_consistency.py
 echo "[bab_gate] P36 GREEN"
+
+# --- P37 WP0/WP1/WP2/WP3: cost-aware turnover & capacity + decision doc + gate wire ---
+echo "[bab_gate] P37 cost surface summary check (WP0)"
+python3 "$ROOT/scripts/bab_p37_cost_surface.py" --check-cost-surface-summary
+echo "[bab_gate] P37 capacity summary check (WP1)"
+python3 "$ROOT/scripts/bab_p37_capacity.py" --check-capacity-summary
+echo "[bab_gate] P37 turnover summary check (WP2)"
+python3 "$ROOT/scripts/bab_p37_turnover.py" --check-turnover-summary
+echo "[bab_gate] P37 decision-consistency tests (WP3)"
+python3 -m pytest -q tests/test_bab_p37_decision_consistency.py
+echo "[bab_gate] P37 GREEN"
