@@ -2,8 +2,8 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, `NEXT_*.md`, or parallel task doc. If you find one, fold anything still true into this file and delete it.** Only `HANDOFF.md` is tracked; keep it that way.
 
-- **Timestamp (UTC):** 2026-11-23T01:21:03Z
-- **HEAD:** 6bb185b
+- **Timestamp (UTC):** 2026-11-23T01:21:44Z
+- **HEAD:** 862102b
 - **Git state:** P20–P37 are COMPLETE and frozen (do NOT re-do them). **The binding row is Campaign P38.** The provenance replay gate is **RED on a freshly bootstrapped runner** (verified firsthand this session — see VERIFIED BASELINE). No WP0 remediation has landed. Restoring an *honest* GREEN is the blocking first task (P38 WP0), not a victory lap.
 
 ---
