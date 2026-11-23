@@ -1,0 +1,2865 @@
+{
+  "campaign_verdict": "DOES_NOT_SURVIVE_DEFLATION_IN_SOME_REGIME",
+  "campaign_verdict_reason": "At least one well-populated (seed, regime) cell has DSR < 0.5 after deflation over n_trials_total=552, or neutrality fails at some cell; honest negative verdict.",
+  "provenance": {
+    "bootstrap": {
+      "block_length": 20,
+      "n_resamples": 2000,
+      "seed": 20261123
+    },
+    "btc_source_sha256": "cf1472e154f38b062d8b40ffe9bddcc6a51286e41400acd51d64e12e9d585a77",
+    "campaign": "P39 Regime-Conditional & Cross-Fixture Robustness Closure",
+    "config_grid": {
+      "beta_neutral": true,
+      "beta_window": 90,
+      "dollar_neutral": true,
+      "min_periods_per_regime": 30,
+      "quantile": 0.3,
+      "regime_labels": [
+        "bull_low_vol",
+        "bull_mid_vol",
+        "bull_high_vol",
+        "bear_low_vol",
+        "bear_mid_vol",
+        "bear_high_vol"
+      ],
+      "regime_lookback": 20,
+      "weighting": "equal"
+    },
+    "deflation": {
+      "n_trials_total": 552,
+      "note": "Deflate over the same n_trials_total read-only from P38 WP1; never re-enumerated or invented here.",
+      "source": "P38 deflated_summary.json (trial_enumeration.n_trials_total)"
+    },
+    "dsr_survive_threshold": 0.5,
+    "fixture_path": "/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta/tests/fixtures/wide_bab_universe.csv",
+    "generator": "scripts/bab_p39_regime_conditional.py",
+    "neutrality_tolerances": {
+      "dollar_neutral": 1e-09,
+      "model_beta_neutral": 0.001,
+      "realized_beta": 0.15
+    },
+    "note": "Deterministic synthetic wide universe (P35 wide-universe recipe). BTC prices from tests/fixtures/wide_bab_universe.csv. Asset returns = beta * BTC_return + idio, idio ~ N(0, 0.003), betas linspace(0.35, 1.9, 40). Regimes are causal and lagged: trailing BTC trend (bull/bear) x trailing realized-vol tercile (low/mid/high), computed only from data available at t-1, no lookahead. Not real market data; not market profitability evidence. The verdict is honest and may be negative (a thin regime can fail deflation).",
+    "returns_sha256": "892c5d59bcbf1a124be798e47b176aeef5199e9e431bef7230cabfdc6b4f3205",
+    "seeds": {
+      "base_seed": 20261120,
+      "increment": 1009,
+      "n_seeds": 8,
+      "seed_list": [
+        20261120,
+        20262129,
+        20263138,
+        20264147,
+        20265156,
+        20266165,
+        20267174,
+        20268183
+      ]
+    },
+    "synthetic": true,
+    "wp": "WP1 - Regime-conditional deflated significance + tail risk"
+  },
+  "results": {
+    "regimes": {
+      "bear_high_vol": {
+        "all_survive": true,
+        "any_survive": false,
+        "dsr": {
+          "max": null,
+          "mean": null,
+          "min": null,
+          "n": 0
+        },
+        "n_cells": 8,
+        "n_error": 0,
+        "n_insufficient": 8,
+        "n_ok_cells": 0,
+        "n_survive": 0,
+        "neutrality": {
+          "all_dollar_ok": true,
+          "all_model_beta_ok": true,
+          "all_realized_ok": true
+        },
+        "psr": {
+          "max": null,
+          "mean": null,
+          "min": null,
+          "n": 0
+        },
+        "sharpe": {
+          "max": null,
+          "mean": null,
+          "min": null,
+          "n": 0
+        },
+        "tail_metric_aggregates": {
+          "conditional_drawdown_95": {
+            "max": null,
+            "mean": null,
+            "min": null,
+            "n": 0
+          },
+          "cvar_95": {
+            "max": null,
+            "mean": null,
+            "min": null,
+            "n": 0
+          },
+          "cvar_99": {
+            "max": null,
+            "mean": null,
+            "min": null,
+            "n": 0
+          },
+          "excess_kurtosis": {
+            "max": null,
+            "mean": null,
+            "min": null,
+            "n": 0
+          },
+          "expected_shortfall_975": {
+            "max": null,
+            "mean": null,
+            "min": null,
+            "n": 0
+          },
+          "max_drawdown": {
+            "max": null,
+            "mean": null,
+            "min": null,
+            "n": 0
+          },
+          "skew": {
+            "max": null,
+            "mean": null,
+            "min": null,
+            "n": 0
+          },
+          "tail_asymmetry": {
+            "max": null,
+            "mean": null,
+            "min": null,
+            "n": 0
+          },
+          "worst_day_return": {
+            "max": null,
+            "mean": null,
+            "min": null,
+            "n": 0
+          }
+        }
+      },
+      "bear_low_vol": {
+        "all_survive": false,
+        "any_survive": true,
+        "dsr": {
+          "max": 0.971513,
+          "mean": 0.61346675,
+          "min": 0.030439,
+          "n": 8
+        },
+        "n_cells": 8,
+        "n_error": 0,
+        "n_insufficient": 0,
+        "n_ok_cells": 8,
+        "n_survive": 5,
+        "neutrality": {
+          "all_dollar_ok": true,
+          "all_model_beta_ok": true,
+          "all_realized_ok": true
+        },
+        "psr": {
+          "max": 1.0,
+          "mean": 0.626873,
+          "min": 0.0,
+          "n": 8
+        },
+        "sharpe": {
+          "max": 3.9050172358,
+          "mean": -0.0419743582028,
+          "min": -5.01064432474,
+          "n": 8
+        },
+        "tail_metric_aggregates": {
+          "conditional_drawdown_95": {
+            "max": -0.00131712005807,
+            "mean": -0.00305644332618,
+            "min": -0.00689155564839,
+            "n": 8
+          },
+          "cvar_95": {
+            "max": -0.0005922430809,
+            "mean": -0.000777010903041,
+            "min": -0.000960676997295,
+            "n": 8
+          },
+          "cvar_99": {
+            "max": -0.000691780677614,
+            "mean": -0.00092260514037,
+            "min": -0.00120635403948,
+            "n": 8
+          },
+          "excess_kurtosis": {
+            "max": -0.0229502410931,
+            "mean": -0.378538926212,
+            "min": -0.908906998082,
+            "n": 8
+          },
+          "expected_shortfall_975": {
+            "max": -0.000643350354552,
+            "mean": -0.00082284533562,
+            "min": -0.00102236793614,
+            "n": 8
+          },
+          "max_drawdown": {
+            "max": -0.00157832184826,
+            "mean": -0.00321316173978,
+            "min": -0.00705118775191,
+            "n": 8
+          },
+          "skew": {
+            "max": 0.35363224792,
+            "mean": 0.0815048325922,
+            "min": -0.120519342084,
+            "n": 8
+          },
+          "tail_asymmetry": {
+            "max": 0.139258448545,
+            "mean": -0.0141113206049,
+            "min": -0.164297823192,
+            "n": 8
+          },
+          "worst_day_return": {
+            "max": -0.000691780677614,
+            "mean": -0.00092260514037,
+            "min": -0.00120635403948,
+            "n": 8
+          }
+        }
+      },
+      "bear_mid_vol": {
+        "all_survive": true,
+        "any_survive": false,
+        "dsr": {
+          "max": null,
+          "mean": null,
+          "min": null,
+          "n": 0
+        },
+        "n_cells": 8,
+        "n_error": 0,
+        "n_insufficient": 8,
+        "n_ok_cells": 0,
+        "n_survive": 0,
+        "neutrality": {
+          "all_dollar_ok": true,
+          "all_model_beta_ok": true,
+          "all_realized_ok": true
+        },
+        "psr": {
+          "max": null,
+          "mean": null,
+          "min": null,
+          "n": 0
+        },
+        "sharpe": {
+          "max": null,
+          "mean": null,
+          "min": null,
+          "n": 0
+        },
+        "tail_metric_aggregates": {
+          "conditional_drawdown_95": {
+            "max": null,
+            "mean": null,
+            "min": null,
+            "n": 0
+          },
+          "cvar_95": {
+            "max": null,
+            "mean": null,
+            "min": null,
+            "n": 0
+          },
+          "cvar_99": {
+            "max": null,
+            "mean": null,
+            "min": null,
+            "n": 0
+          },
+          "excess_kurtosis": {
+            "max": null,
+            "mean": null,
+            "min": null,
+            "n": 0
+          },
+          "expected_shortfall_975": {
+            "max": null,
+            "mean": null,
+            "min": null,
+            "n": 0
+          },
+          "max_drawdown": {
+            "max": null,
+            "mean": null,
+            "min": null,
+            "n": 0
+          },
+          "skew": {
+            "max": null,
+            "mean": null,
+            "min": null,
+            "n": 0
+          },
+          "tail_asymmetry": {
+            "max": null,
+            "mean": null,
+            "min": null,
+            "n": 0
+          },
+          "worst_day_return": {
+            "max": null,
+            "mean": null,
+            "min": null,
+            "n": 0
+          }
+        }
+      },
+      "bull_high_vol": {
+        "all_survive": false,
+        "any_survive": true,
+        "dsr": {
+          "max": 0.94413,
+          "mean": 0.41221925,
+          "min": 0.059605,
+          "n": 8
+        },
+        "n_cells": 8,
+        "n_error": 0,
+        "n_insufficient": 0,
+        "n_ok_cells": 8,
+        "n_survive": 3,
+        "neutrality": {
+          "all_dollar_ok": true,
+          "all_model_beta_ok": true,
+          "all_realized_ok": true
+        },
+        "psr": {
+          "max": 1.0,
+          "mean": 0.375007125,
+          "min": 0.0,
+          "n": 8
+        },
+        "sharpe": {
+          "max": 3.22940606415,
+          "mean": 0.100131343636,
+          "min": -1.85806846906,
+          "n": 8
+        },
+        "tail_metric_aggregates": {
+          "conditional_drawdown_95": {
+            "max": -0.00226102430679,
+            "mean": -0.00433240515553,
+            "min": -0.0058691412365,
+            "n": 8
+          },
+          "cvar_95": {
+            "max": -0.000694828190535,
+            "mean": -0.000851045686468,
+            "min": -0.000959071515604,
+            "n": 8
+          },
+          "cvar_99": {
+            "max": -0.000779643415989,
+            "mean": -0.00105419444577,
+            "min": -0.00133135205678,
+            "n": 8
+          },
+          "excess_kurtosis": {
+            "max": 1.07873343647,
+            "mean": 0.0566364083195,
+            "min": -0.403336839683,
+            "n": 8
+          },
+          "expected_shortfall_975": {
+            "max": -0.000734501923902,
+            "mean": -0.000928254785226,
+            "min": -0.00108810238364,
+            "n": 8
+          },
+          "max_drawdown": {
+            "max": -0.00249174344582,
+            "mean": -0.00454914622943,
+            "min": -0.00601050855637,
+            "n": 8
+          },
+          "skew": {
+            "max": 0.273822496054,
+            "mean": -0.0616132283986,
+            "min": -0.40446295242,
+            "n": 8
+          },
+          "tail_asymmetry": {
+            "max": 0.147065731778,
+            "mean": 0.0112212608629,
+            "min": -0.17290579251,
+            "n": 8
+          },
+          "worst_day_return": {
+            "max": -0.000779643415989,
+            "mean": -0.00105419444577,
+            "min": -0.00133135205678,
+            "n": 8
+          }
+        }
+      },
+      "bull_low_vol": {
+        "all_survive": false,
+        "any_survive": true,
+        "dsr": {
+          "max": 0.969464,
+          "mean": 0.838955,
+          "min": 0.131747,
+          "n": 8
+        },
+        "n_cells": 8,
+        "n_error": 0,
+        "n_insufficient": 0,
+        "n_ok_cells": 8,
+        "n_survive": 7,
+        "neutrality": {
+          "all_dollar_ok": true,
+          "all_model_beta_ok": true,
+          "all_realized_ok": true
+        },
+        "psr": {
+          "max": 1.0,
+          "mean": 0.874266375,
+          "min": 0.0,
+          "n": 8
+        },
+        "sharpe": {
+          "max": 3.22487614516,
+          "mean": 1.23553081681,
+          "min": -1.46713850545,
+          "n": 8
+        },
+        "tail_metric_aggregates": {
+          "conditional_drawdown_95": {
+            "max": -0.00143535940188,
+            "mean": -0.00330225060041,
+            "min": -0.0050405589255,
+            "n": 8
+          },
+          "cvar_95": {
+            "max": -0.000694296162647,
+            "mean": -0.000768450183218,
+            "min": -0.000882234532737,
+            "n": 8
+          },
+          "cvar_99": {
+            "max": -0.000789863904604,
+            "mean": -0.000950769134753,
+            "min": -0.00148981361436,
+            "n": 8
+          },
+          "excess_kurtosis": {
+            "max": 0.759522967609,
+            "mean": 0.0283477653187,
+            "min": -0.591886406811,
+            "n": 8
+          },
+          "expected_shortfall_975": {
+            "max": -0.000747760779694,
+            "mean": -0.000830981660092,
+            "min": -0.00104736498483,
+            "n": 8
+          },
+          "max_drawdown": {
+            "max": -0.00150237830962,
+            "mean": -0.00351494508388,
+            "min": -0.00519008177222,
+            "n": 8
+          },
+          "skew": {
+            "max": 0.627960075851,
+            "mean": 0.0470390584096,
+            "min": -0.414106939603,
+            "n": 8
+          },
+          "tail_asymmetry": {
+            "max": 0.0264589818281,
+            "mean": -0.0531528116112,
+            "min": -0.196163929299,
+            "n": 8
+          },
+          "worst_day_return": {
+            "max": -0.000789863904604,
+            "mean": -0.000950769134753,
+            "min": -0.00148981361436,
+            "n": 8
+          }
+        }
+      },
+      "bull_mid_vol": {
+        "all_survive": false,
+        "any_survive": true,
+        "dsr": {
+          "max": 0.942615,
+          "mean": 0.6055035,
+          "min": 0.102371,
+          "n": 8
+        },
+        "n_cells": 8,
+        "n_error": 0,
+        "n_insufficient": 0,
+        "n_ok_cells": 8,
+        "n_survive": 5,
+        "neutrality": {
+          "all_dollar_ok": true,
+          "all_model_beta_ok": true,
+          "all_realized_ok": true
+        },
+        "psr": {
+          "max": 1.0,
+          "mean": 0.6224695,
+          "min": 0.0,
+          "n": 8
+        },
+        "sharpe": {
+          "max": 3.06112276318,
+          "mean": 0.330009761246,
+          "min": -3.24198874257,
+          "n": 8
+        },
+        "tail_metric_aggregates": {
+          "conditional_drawdown_95": {
+            "max": -0.00183530303174,
+            "mean": -0.00433008101711,
+            "min": -0.00664398752523,
+            "n": 8
+          },
+          "cvar_95": {
+            "max": -0.000620762295314,
+            "mean": -0.00085603823577,
+            "min": -0.00102685159063,
+            "n": 8
+          },
+          "cvar_99": {
+            "max": -0.000706990982145,
+            "mean": -0.0011223160386,
+            "min": -0.00140270936665,
+            "n": 8
+          },
+          "excess_kurtosis": {
+            "max": 4.41856678336,
+            "mean": 0.715733191576,
+            "min": -0.168592686704,
+            "n": 8
+          },
+          "expected_shortfall_975": {
+            "max": -0.000680685278315,
+            "mean": -0.00102670614803,
+            "min": -0.00123467001556,
+            "n": 8
+          },
+          "max_drawdown": {
+            "max": -0.00206230990967,
+            "mean": -0.00451441775797,
+            "min": -0.00682240814227,
+            "n": 8
+          },
+          "skew": {
+            "max": 0.522563754081,
+            "mean": 0.00878501620294,
+            "min": -0.507269159728,
+            "n": 8
+          },
+          "tail_asymmetry": {
+            "max": 0.219575429749,
+            "mean": -0.00256409544086,
+            "min": -0.154369019874,
+            "n": 8
+          },
+          "worst_day_return": {
+            "max": -0.000706990982145,
+            "mean": -0.0011223160386,
+            "min": -0.00140270936665,
+            "n": 8
+          }
+        }
+      }
+    },
+    "seeds": [
+      {
+        "cell_key": "seed_0",
+        "n_regimes": 6,
+        "regimes": {
+          "bear_high_vol": {
+            "cell_key": "seed_0",
+            "error": "regime has 9 periods, need >= 30",
+            "n_periods": 9,
+            "regime": "bear_high_vol",
+            "seed": 20261120,
+            "seed_index": 0,
+            "status": "insufficient_periods"
+          },
+          "bear_low_vol": {
+            "annualized_volatility": 0.00652404267881,
+            "cell_key": "seed_0",
+            "dsr": 0.971513,
+            "gamma": 0.108101,
+            "kappa": 2.113911,
+            "max_drawdown": -0.00157832184826,
+            "n_periods": 48,
+            "n_valid_beta_rows": 48,
+            "neutrality": {
+              "dollar_neutral": {
+                "passed": true,
+                "tolerance": 1e-09
+              },
+              "max_dollar_neutral": 1.93248195224e-15,
+              "max_model_beta": 9.85551037942e-05,
+              "model_beta_neutral": {
+                "passed": true,
+                "tolerance": 0.001
+              },
+              "realized_beta": 0.004118634379,
+              "realized_beta_check": {
+                "passed": true,
+                "tolerance": 0.15
+              }
+            },
+            "psr": 0.999483,
+            "realized_beta": 0.004118634379,
+            "regime": "bear_low_vol",
+            "seed": 20261120,
+            "seed_index": 0,
+            "sharpe": 3.9050172358,
+            "sigma0": 1.9999392956,
+            "status": "ok",
+            "survives_deflation": true,
+            "tail": {
+              "best_day_return": 0.000918213299185,
+              "conditional_drawdown_95": -0.00131712005807,
+              "cvar_95": -0.0005922430809,
+              "cvar_99": -0.000691780677614,
+              "drawdown_var_95": -0.00115562126572,
+              "excess_kurtosis": -0.886089129466,
+              "expected_shortfall_975": -0.000643350354552,
+              "left_tail_mean": -0.0005922430809,
+              "max_drawdown": -0.00157832184826,
+              "max_drawdown_canonical": -0.00157832184826,
+              "mean_return": 0.000101097218682,
+              "n_observations": 48,
+              "n_tail_obs_95": 3,
+              "n_tail_obs_99": 1,
+              "right_tail_mean": 0.000825111324379,
+              "sharpe": 3.9050172358,
+              "skew": 0.108101210032,
+              "std_return": 0.000406672526012,
+              "tail_asymmetry": -0.164297823192,
+              "var_95": -0.000484583759093,
+              "var_99": -0.000646256173936,
+              "worst_day_return": -0.000691780677614
+            },
+            "total_return": 0.00486022572161,
+            "turnover": 0.028465714698,
+            "verdict": "SURVIVES_DEFLATION",
+            "wealth": 1.00486022572
+          },
+          "bear_mid_vol": {
+            "cell_key": "seed_0",
+            "error": "regime has 29 periods, need >= 30",
+            "n_periods": 29,
+            "regime": "bear_mid_vol",
+            "seed": 20261120,
+            "seed_index": 0,
+            "status": "insufficient_periods"
+          },
+          "bull_high_vol": {
+            "annualized_volatility": 0.00673990852771,
+            "cell_key": "seed_0",
+            "dsr": 0.059605,
+            "gamma": -0.246229,
+            "kappa": 2.597034,
+            "max_drawdown": -0.00494559519144,
+            "n_periods": 91,
+            "n_valid_beta_rows": 91,
+            "neutrality": {
+              "dollar_neutral": {
+                "passed": true,
+                "tolerance": 1e-09
+              },
+              "max_dollar_neutral": 2.8380076067e-15,
+              "max_model_beta": 9.81433412635e-05,
+              "model_beta_neutral": {
+                "passed": true,
+                "tolerance": 0.001
+              },
+              "realized_beta": 0.003179820409,
+              "realized_beta_check": {
+                "passed": true,
+                "tolerance": 0.15
+              }
+            },
+            "psr": 0.0,
+            "realized_beta": 0.003179820409,
+            "regime": "bull_high_vol",
+            "seed": 20261120,
+            "seed_index": 0,
+            "sharpe": -1.85806846906,
+            "sigma0": 1.4318081881,
+            "status": "ok",
+            "survives_deflation": false,
+            "tail": {
+              "best_day_return": 0.000871954759739,
+              "conditional_drawdown_95": -0.00483233882864,
+              "cvar_95": -0.000919977784291,
+              "cvar_99": -0.000978314740597,
+              "drawdown_var_95": -0.0046978722472,
+              "excess_kurtosis": -0.402966313273,
+              "expected_shortfall_975": -0.000957020946954,
+              "left_tail_mean": -0.000919977784291,
+              "max_drawdown": -0.00494559519144,
+              "max_drawdown_canonical": -0.00494559519144,
+              "mean_return": -4.96952838083e-05,
+              "n_observations": 91,
+              "n_tail_obs_95": 5,
+              "n_tail_obs_99": 1,
+              "right_tail_mean": 0.000741215820276,
+              "sharpe": -1.85806846906,
+              "skew": -0.246228670774,
+              "std_return": 0.00042223505883,
+              "tail_asymmetry": 0.107610553956,
+              "var_95": -0.000819146267785,
+              "var_99": -0.000949848790457,
+              "worst_day_return": -0.000978314740597
+            },
+            "total_return": -0.00452024920172,
+            "turnover": 0.0222137727482,
+            "verdict": "DOES_NOT_SURVIVE_DEFLATION",
+            "wealth": 0.995479750798
+          },
+          "bull_low_vol": {
+            "annualized_volatility": 0.00606006766522,
+            "cell_key": "seed_0",
+            "dsr": 0.94637,
+            "gamma": 0.037903,
+            "kappa": 2.626106,
+            "max_drawdown": -0.00247600800452,
+            "n_periods": 92,
+            "n_valid_beta_rows": 92,
+            "neutrality": {
+              "dollar_neutral": {
+                "passed": true,
+                "tolerance": 1e-09
+              },
+              "max_dollar_neutral": 3.21791204794e-15,
+              "max_model_beta": 9.99545744846e-05,
+              "model_beta_neutral": {
+                "passed": true,
+                "tolerance": 0.001
+              },
+              "realized_beta": 0.001785312009,
+              "realized_beta_check": {
+                "passed": true,
+                "tolerance": 0.15
+              }
+            },
+            "psr": 1.0,
+            "realized_beta": 0.001785312009,
+            "regime": "bull_low_vol",
+            "seed": 20261120,
+            "seed_index": 0,
+            "sharpe": 2.29431733867,
+            "sigma0": 1.7050255656,
+            "status": "ok",
+            "survives_deflation": true,
+            "tail": {
+              "best_day_return": 0.000860790956537,
+              "conditional_drawdown_95": -0.00209910232592,
+              "cvar_95": -0.000708140789707,
+              "cvar_99": -0.000864977335428,
+              "drawdown_var_95": -0.00180143814297,
+              "excess_kurtosis": -0.373894239883,
+              "expected_shortfall_975": -0.000766533867372,
+              "left_tail_mean": -0.000708140789707,
+              "max_drawdown": -0.00247600800452,
+              "max_drawdown_canonical": -0.00247600800452,
+              "mean_return": 5.51734853881e-05,
+              "n_observations": 92,
+              "n_tail_obs_95": 5,
+              "n_tail_obs_99": 1,
+              "right_tail_mean": 0.000787092048746,
+              "sharpe": 2.29431733867,
+              "skew": 0.0379033837849,
+              "std_return": 0.000379667992115,
+              "tail_asymmetry": -0.0528019830822,
+              "var_95": -0.000566264156514,
+              "var_99": -0.000754411431599,
+              "worst_day_return": -0.000864977335428
+            },
+            "total_return": 0.00508206071213,
+            "turnover": 0.0256209107063,
+            "verdict": "SURVIVES_DEFLATION",
+            "wealth": 1.00508206071
+          },
+          "bull_mid_vol": {
+            "annualized_volatility": 0.0075999032467,
+            "cell_key": "seed_0",
+            "dsr": 0.942615,
+            "gamma": -0.273266,
+            "kappa": 2.938498,
+            "max_drawdown": -0.0047908328249,
+            "n_periods": 68,
+            "n_valid_beta_rows": 68,
+            "neutrality": {
+              "dollar_neutral": {
+                "passed": true,
+                "tolerance": 1e-09
+              },
+              "max_dollar_neutral": 2.79984369023e-15,
+              "max_model_beta": 9.87895875621e-05,
+              "model_beta_neutral": {
+                "passed": true,
+                "tolerance": 0.001
+              },
+              "realized_beta": -0.006871924856,
+              "realized_beta_check": {
+                "passed": true,
+                "tolerance": 0.15
+              }
+            },
+            "psr": 1.0,
+            "realized_beta": -0.006871924856,
+            "regime": "bull_mid_vol",
+            "seed": 20261120,
+            "seed_index": 0,
+            "sharpe": 1.44065407143,
+            "sigma0": 2.4176835747,
+            "status": "ok",
+            "survives_deflation": true,
+            "tail": {
+              "best_day_return": 0.00110370979852,
+              "conditional_drawdown_95": -0.00470299194165,
+              "cvar_95": -0.000973827336431,
+              "cvar_99": -0.00125497811057,
+              "drawdown_var_95": -0.00463900905475,
+              "excess_kurtosis": -0.0615024739539,
+              "expected_shortfall_975": -0.00115732653407,
+              "left_tail_mean": -0.000973827336431,
+              "max_drawdown": -0.0047908328249,
+              "max_drawdown_canonical": -0.0047908328249,
+              "mean_return": 4.34477442652e-05,
+              "n_observations": 68,
+              "n_tail_obs_95": 4,
+              "n_tail_obs_99": 1,
+              "right_tail_mean": 0.000929904144072,
+              "sharpe": 1.44065407143,
+              "skew": -0.273266139964,
+              "std_return": 0.000475215653726,
+              "tail_asymmetry": 0.0230721573965,
+              "var_95": -0.000721383185878,
+              "var_99": -0.00112412499806,
+              "worst_day_return": -0.00125497811057
+            },
+            "total_return": 0.00295105001305,
+            "turnover": 0.0295896025828,
+            "verdict": "SURVIVES_DEFLATION",
+            "wealth": 1.00295105001
+          }
+        },
+        "seed": 20261120,
+        "seed_index": 0,
+        "status": "ok"
+      },
+      {
+        "cell_key": "seed_1",
+        "n_regimes": 6,
+        "regimes": {
+          "bear_high_vol": {
+            "cell_key": "seed_1",
+            "error": "regime has 9 periods, need >= 30",
+            "n_periods": 9,
+            "regime": "bear_high_vol",
+            "seed": 20262129,
+            "seed_index": 1,
+            "status": "insufficient_periods"
+          },
+          "bear_low_vol": {
+            "annualized_volatility": 0.00680955234212,
+            "cell_key": "seed_1",
+            "dsr": 0.926652,
+            "gamma": 0.108662,
+            "kappa": 2.97705,
+            "max_drawdown": -0.00238914149355,
+            "n_periods": 48,
+            "n_valid_beta_rows": 48,
+            "neutrality": {
+              "dollar_neutral": {
+                "passed": true,
+                "tolerance": 1e-09
+              },
+              "max_dollar_neutral": 2.91086599269e-15,
+              "max_model_beta": 9.97329108714e-05,
+              "model_beta_neutral": {
+                "passed": true,
+                "tolerance": 0.001
+              },
+              "realized_beta": -0.004804674346,
+              "realized_beta_check": {
+                "passed": true,
+                "tolerance": 0.15
+              }
+            },
+            "psr": 0.999867,
+            "realized_beta": -0.004804674346,
+            "regime": "bear_low_vol",
+            "seed": 20262129,
+            "seed_index": 1,
+            "sharpe": 2.59708586615,
+            "sigma0": 1.8233231088,
+            "status": "ok",
+            "survives_deflation": true,
+            "tail": {
+              "best_day_return": 0.00102438042342,
+              "conditional_drawdown_95": -0.00227688665892,
+              "cvar_95": -0.000766192338905,
+              "cvar_99": -0.000943974023223,
+              "drawdown_var_95": -0.00215669708561,
+              "excess_kurtosis": -0.0229502410931,
+              "expected_shortfall_975": -0.000827769290243,
+              "left_tail_mean": -0.000766192338905,
+              "max_drawdown": -0.00238914149355,
+              "max_drawdown_canonical": -0.00238914149355,
+              "mean_return": 7.01785402481e-05,
+              "n_observations": 48,
+              "n_tail_obs_95": 3,
+              "n_tail_obs_99": 1,
+              "right_tail_mean": 0.000938438613581,
+              "sharpe": 2.59708586615,
+              "skew": 0.108661859914,
+              "std_return": 0.000424469610074,
+              "tail_asymmetry": -0.101046079461,
+              "var_95": -0.000624759125096,
+              "var_99": -0.000834741574222,
+              "worst_day_return": -0.000943974023223
+            },
+            "total_return": 0.00336979331904,
+            "turnover": 0.0282697796873,
+            "verdict": "SURVIVES_DEFLATION",
+            "wealth": 1.00336979332
+          },
+          "bear_mid_vol": {
+            "cell_key": "seed_1",
+            "error": "regime has 29 periods, need >= 30",
+            "n_periods": 29,
+            "regime": "bear_mid_vol",
+            "seed": 20262129,
+            "seed_index": 1,
+            "status": "insufficient_periods"
+          },
+          "bull_high_vol": {
+            "annualized_volatility": 0.00646616951664,
+            "cell_key": "seed_1",
+            "dsr": 0.145116,
+            "gamma": -0.175299,
+            "kappa": 4.078733,
+            "max_drawdown": -0.00600158311021,
+            "n_periods": 91,
+            "n_valid_beta_rows": 91,
+            "neutrality": {
+              "dollar_neutral": {
+                "passed": true,
+                "tolerance": 1e-09
+              },
+              "max_dollar_neutral": 2.40085729075e-15,
+              "max_model_beta": 9.91642495568e-05,
+              "model_beta_neutral": {
+                "passed": true,
+                "tolerance": 0.001
+              },
+              "realized_beta": -0.002419400348,
+              "realized_beta_check": {
+                "passed": true,
+                "tolerance": 0.15
+              }
+            },
+            "psr": 0.0,
+            "realized_beta": -0.002419400348,
+            "regime": "bull_high_vol",
+            "seed": 20262129,
+            "seed_index": 1,
+            "sharpe": -0.869880100947,
+            "sigma0": 1.5447019842,
+            "status": "ok",
+            "survives_deflation": false,
+            "tail": {
+              "best_day_return": 0.00107606937596,
+              "conditional_drawdown_95": -0.00563441162286,
+              "cvar_95": -0.000923725396018,
+              "cvar_99": -0.00133135205678,
+              "drawdown_var_95": -0.00525264216425,
+              "excess_kurtosis": 1.07873343647,
+              "expected_shortfall_975": -0.00108810238364,
+              "left_tail_mean": -0.000923725396018,
+              "max_drawdown": -0.00600158311021,
+              "max_drawdown_canonical": -0.00600158311021,
+              "mean_return": -2.2320603936e-05,
+              "n_observations": 91,
+              "n_tail_obs_95": 5,
+              "n_tail_obs_99": 1,
+              "right_tail_mean": 0.000849002624721,
+              "sharpe": -0.869880100947,
+              "skew": -0.175299342141,
+              "std_return": 0.000405086130627,
+              "tail_asymmetry": 0.0421512890997,
+              "var_95": -0.000607071788701,
+              "var_99": -0.00118593554146,
+              "worst_day_return": -0.00133135205678
+            },
+            "total_return": -0.00203658796324,
+            "turnover": 0.0115281966031,
+            "verdict": "DOES_NOT_SURVIVE_DEFLATION",
+            "wealth": 0.997963412037
+          },
+          "bull_low_vol": {
+            "annualized_volatility": 0.00650097393626,
+            "cell_key": "seed_1",
+            "dsr": 0.969464,
+            "gamma": 0.097001,
+            "kappa": 2.429268,
+            "max_drawdown": -0.00511317797999,
+            "n_periods": 92,
+            "n_valid_beta_rows": 92,
+            "neutrality": {
+              "dollar_neutral": {
+                "passed": true,
+                "tolerance": 1e-09
+              },
+              "max_dollar_neutral": 2.54136989231e-15,
+              "max_model_beta": 9.81483081759e-05,
+              "model_beta_neutral": {
+                "passed": true,
+                "tolerance": 0.001
+              },
+              "realized_beta": -0.002143288833,
+              "realized_beta_check": {
+                "passed": true,
+                "tolerance": 0.15
+              }
+            },
+            "psr": 0.999994,
+            "realized_beta": -0.002143288833,
+            "regime": "bull_low_vol",
+            "seed": 20262129,
+            "seed_index": 1,
+            "sharpe": 0.465126091305,
+            "sigma0": 2.0030643504,
+            "status": "ok",
+            "survives_deflation": true,
+            "tail": {
+              "best_day_return": 0.000977990015443,
+              "conditional_drawdown_95": -0.00502222035267,
+              "cvar_95": -0.000726668044331,
+              "cvar_99": -0.000830777322555,
+              "drawdown_var_95": -0.00493749356951,
+              "excess_kurtosis": -0.570732454247,
+              "expected_shortfall_975": -0.000760744580105,
+              "left_tail_mean": -0.000726668044331,
+              "max_drawdown": -0.00511317797999,
+              "max_drawdown_canonical": -0.00511317797999,
+              "mean_return": 1.19990976057e-05,
+              "n_observations": 92,
+              "n_tail_obs_95": 5,
+              "n_tail_obs_99": 1,
+              "right_tail_mean": 0.00080179648292,
+              "sharpe": 0.465126091305,
+              "skew": 0.0970014075438,
+              "std_return": 0.000407291115797,
+              "tail_asymmetry": -0.0491528833344,
+              "var_95": -0.000651835914938,
+              "var_99": -0.000750225725607,
+              "worst_day_return": -0.000830777322555
+            },
+            "total_return": 0.00109688111545,
+            "turnover": 0.0165427726167,
+            "verdict": "SURVIVES_DEFLATION",
+            "wealth": 1.00109688112
+          },
+          "bull_mid_vol": {
+            "annualized_volatility": 0.00750455254818,
+            "cell_key": "seed_1",
+            "dsr": 0.924634,
+            "gamma": 0.522564,
+            "kappa": 3.037547,
+            "max_drawdown": -0.00475629263319,
+            "n_periods": 68,
+            "n_valid_beta_rows": 68,
+            "neutrality": {
+              "dollar_neutral": {
+                "passed": true,
+                "tolerance": 1e-09
+              },
+              "max_dollar_neutral": 2.5708601914e-15,
+              "max_model_beta": 9.99135545053e-05,
+              "model_beta_neutral": {
+                "passed": true,
+                "tolerance": 0.001
+              },
+              "realized_beta": -0.001336561107,
+              "realized_beta_check": {
+                "passed": true,
+                "tolerance": 0.15
+              }
+            },
+            "psr": 1.0,
+            "realized_beta": -0.001336561107,
+            "regime": "bull_mid_vol",
+            "seed": 20262129,
+            "seed_index": 1,
+            "sharpe": 1.08345080589,
+            "sigma0": 1.7374064916,
+            "status": "ok",
+            "survives_deflation": true,
+            "tail": {
+              "best_day_return": 0.00140497846148,
+              "conditional_drawdown_95": -0.00453812795366,
+              "cvar_95": -0.000773412172454,
+              "cvar_99": -0.000887162703857,
+              "drawdown_var_95": -0.00434511892071,
+              "excess_kurtosis": 0.0375473663724,
+              "expected_shortfall_975": -0.000859546512676,
+              "left_tail_mean": -0.000773412172454,
+              "max_drawdown": -0.00475629263319,
+              "max_drawdown_canonical": -0.00475629263319,
+              "mean_return": 3.22651329609e-05,
+              "n_observations": 68,
+              "n_tail_obs_95": 4,
+              "n_tail_obs_99": 1,
+              "right_tail_mean": 0.0010557832819,
+              "sharpe": 1.08345080589,
+              "skew": 0.522563754081,
+              "std_return": 0.000469253453543,
+              "tail_asymmetry": -0.154369019874,
+              "var_95": -0.000606504920311,
+              "var_99": -0.000850157007675,
+              "worst_day_return": -0.000887162703857
+            },
+            "total_return": 0.00218890074493,
+            "turnover": 0.01547765399,
+            "verdict": "SURVIVES_DEFLATION",
+            "wealth": 1.00218890074
+          }
+        },
+        "seed": 20262129,
+        "seed_index": 1,
+        "status": "ok"
+      },
+      {
+        "cell_key": "seed_2",
+        "n_regimes": 6,
+        "regimes": {
+          "bear_high_vol": {
+            "cell_key": "seed_2",
+            "error": "regime has 9 periods, need >= 30",
+            "n_periods": 9,
+            "regime": "bear_high_vol",
+            "seed": 20263138,
+            "seed_index": 2,
+            "status": "insufficient_periods"
+          },
+          "bear_low_vol": {
+            "annualized_volatility": 0.00754255673201,
+            "cell_key": "seed_2",
+            "dsr": 0.936583,
+            "gamma": -0.120519,
+            "kappa": 2.840524,
+            "max_drawdown": -0.00219580195755,
+            "n_periods": 48,
+            "n_valid_beta_rows": 48,
+            "neutrality": {
+              "dollar_neutral": {
+                "passed": true,
+                "tolerance": 1e-09
+              },
+              "max_dollar_neutral": 2.36963226818e-15,
+              "max_model_beta": 8.68106579466e-05,
+              "model_beta_neutral": {
+                "passed": true,
+                "tolerance": 0.001
+              },
+              "realized_beta": -0.0069029604,
+              "realized_beta_check": {
+                "passed": true,
+                "tolerance": 0.15
+              }
+            },
+            "psr": 0.999986,
+            "realized_beta": -0.0069029604,
+            "regime": "bear_low_vol",
+            "seed": 20263138,
+            "seed_index": 2,
+            "sharpe": 2.361852632,
+            "sigma0": 1.5300040064,
+            "status": "ok",
+            "survives_deflation": true,
+            "tail": {
+              "best_day_return": 0.00127170938847,
+              "conditional_drawdown_95": -0.00216886803047,
+              "cvar_95": -0.000905375957,
+              "cvar_99": -0.000937393684878,
+              "drawdown_var_95": -0.00209250229432,
+              "excess_kurtosis": -0.159476399721,
+              "expected_shortfall_975": -0.000915765714423,
+              "left_tail_mean": -0.000905375957,
+              "max_drawdown": -0.00219580195755,
+              "max_drawdown_canonical": -0.00219580195755,
+              "mean_return": 7.0692093133e-05,
+              "n_observations": 48,
+              "n_tail_obs_95": 3,
+              "n_tail_obs_99": 1,
+              "right_tail_mean": 0.000937946012183,
+              "sharpe": 2.361852632,
+              "skew": -0.120519342084,
+              "std_return": 0.000470161025886,
+              "tail_asymmetry": -0.0176692166247,
+              "var_95": -0.000785360475025,
+              "var_99": -0.000917063392651,
+              "worst_day_return": -0.000937393684878
+            },
+            "total_return": 0.00339354091995,
+            "turnover": 0.0154638044044,
+            "verdict": "SURVIVES_DEFLATION",
+            "wealth": 1.00339354092
+          },
+          "bear_mid_vol": {
+            "cell_key": "seed_2",
+            "error": "regime has 29 periods, need >= 30",
+            "n_periods": 29,
+            "regime": "bear_mid_vol",
+            "seed": 20263138,
+            "seed_index": 2,
+            "status": "insufficient_periods"
+          },
+          "bull_high_vol": {
+            "annualized_volatility": 0.00637159215038,
+            "cell_key": "seed_2",
+            "dsr": 0.121675,
+            "gamma": -0.01545,
+            "kappa": 3.125974,
+            "max_drawdown": -0.00411695445096,
+            "n_periods": 91,
+            "n_valid_beta_rows": 91,
+            "neutrality": {
+              "dollar_neutral": {
+                "passed": true,
+                "tolerance": 1e-09
+              },
+              "max_dollar_neutral": 2.55351295664e-15,
+              "max_model_beta": 9.9421178548e-05,
+              "model_beta_neutral": {
+                "passed": true,
+                "tolerance": 0.001
+              },
+              "realized_beta": -0.000148180438,
+              "realized_beta_check": {
+                "passed": true,
+                "tolerance": 0.15
+              }
+            },
+            "psr": 6e-05,
+            "realized_beta": -0.000148180438,
+            "regime": "bull_high_vol",
+            "seed": 20263138,
+            "seed_index": 2,
+            "sharpe": -0.408188632424,
+            "sigma0": 1.2988972975,
+            "status": "ok",
+            "survives_deflation": false,
+            "tail": {
+              "best_day_return": 0.00102303289042,
+              "conditional_drawdown_95": -0.00382438109231,
+              "cvar_95": -0.000834460645456,
+              "cvar_99": -0.00118257060258,
+              "drawdown_var_95": -0.0035320903968,
+              "excess_kurtosis": 0.125973532885,
+              "expected_shortfall_975": -0.000922949655473,
+              "left_tail_mean": -0.000834460645456,
+              "max_drawdown": -0.00411695445096,
+              "max_drawdown_canonical": -0.00411695445096,
+              "mean_return": -1.03206805009e-05,
+              "n_observations": 91,
+              "n_tail_obs_95": 5,
+              "n_tail_obs_99": 1,
+              "right_tail_mean": 0.00080190228291,
+              "sharpe": -0.408188632424,
+              "skew": -0.0154501525834,
+              "std_return": 0.000399161142232,
+              "tail_asymmetry": 0.0198967857204,
+              "var_95": -0.000646428994317,
+              "var_99": -0.000884347372397,
+              "worst_day_return": -0.00118257060258
+            },
+            "total_return": -0.000945988721244,
+            "turnover": 0.011197322628,
+            "verdict": "DOES_NOT_SURVIVE_DEFLATION",
+            "wealth": 0.999054011279
+          },
+          "bull_low_vol": {
+            "annualized_volatility": 0.0065626764132,
+            "cell_key": "seed_2",
+            "dsr": 0.915079,
+            "gamma": 0.357378,
+            "kappa": 3.117818,
+            "max_drawdown": -0.00150237830962,
+            "n_periods": 92,
+            "n_valid_beta_rows": 92,
+            "neutrality": {
+              "dollar_neutral": {
+                "passed": true,
+                "tolerance": 1e-09
+              },
+              "max_dollar_neutral": 2.49453235845e-15,
+              "max_model_beta": 9.90360765451e-05,
+              "model_beta_neutral": {
+                "passed": true,
+                "tolerance": 0.001
+              },
+              "realized_beta": 0.001005857097,
+              "realized_beta_check": {
+                "passed": true,
+                "tolerance": 0.15
+              }
+            },
+            "psr": 0.999978,
+            "realized_beta": 0.001005857097,
+            "regime": "bull_low_vol",
+            "seed": 20263138,
+            "seed_index": 2,
+            "sharpe": 3.12275277422,
+            "sigma0": 1.4212498133,
+            "status": "ok",
+            "survives_deflation": true,
+            "tail": {
+              "best_day_return": 0.00123880779842,
+              "conditional_drawdown_95": -0.00143535940188,
+              "cvar_95": -0.000694296162647,
+              "cvar_99": -0.000805431149459,
+              "drawdown_var_95": -0.00138561784013,
+              "excess_kurtosis": 0.117818439832,
+              "expected_shortfall_975": -0.000747760779694,
+              "left_tail_mean": -0.000694296162647,
+              "max_drawdown": -0.00150237830962,
+              "max_drawdown_canonical": -0.00150237830962,
+              "mean_return": 8.1323872919e-05,
+              "n_observations": 92,
+              "n_tail_obs_95": 5,
+              "n_tail_obs_99": 1,
+              "right_tail_mean": 0.00103316093452,
+              "sharpe": 3.12275277422,
+              "skew": 0.357378342907,
+              "std_return": 0.00041115682437,
+              "tail_asymmetry": -0.196163929299,
+              "var_95": -0.000564396708816,
+              "var_99": -0.000762915322465,
+              "worst_day_return": -0.000805431149459
+            },
+            "total_return": 0.00750171576309,
+            "turnover": 0.0127374291379,
+            "verdict": "SURVIVES_DEFLATION",
+            "wealth": 1.00750171576
+          },
+          "bull_mid_vol": {
+            "annualized_volatility": 0.00652761747871,
+            "cell_key": "seed_2",
+            "dsr": 0.932615,
+            "gamma": 0.114464,
+            "kappa": 2.831407,
+            "max_drawdown": -0.00209534603308,
+            "n_periods": 68,
+            "n_valid_beta_rows": 68,
+            "neutrality": {
+              "dollar_neutral": {
+                "passed": true,
+                "tolerance": 1e-09
+              },
+              "max_dollar_neutral": 2.77902700851e-15,
+              "max_model_beta": 9.98672429304e-05,
+              "model_beta_neutral": {
+                "passed": true,
+                "tolerance": 0.001
+              },
+              "realized_beta": 0.001422706926,
+              "realized_beta_check": {
+                "passed": true,
+                "tolerance": 0.15
+              }
+            },
+            "psr": 0.999993,
+            "realized_beta": 0.001422706926,
+            "regime": "bull_mid_vol",
+            "seed": 20263138,
+            "seed_index": 2,
+            "sharpe": 2.71376202845,
+            "sigma0": 1.1957766393,
+            "status": "ok",
+            "survives_deflation": true,
+            "tail": {
+              "best_day_return": 0.001008051052,
+              "conditional_drawdown_95": -0.00194721136394,
+              "cvar_95": -0.000701792968686,
+              "cvar_99": -0.00100511003271,
+              "drawdown_var_95": -0.00178328227768,
+              "excess_kurtosis": -0.168592686704,
+              "expected_shortfall_975": -0.00085466415358,
+              "left_tail_mean": -0.000701792968686,
+              "max_drawdown": -0.00209534603308,
+              "max_drawdown_canonical": -0.00209534603308,
+              "mean_return": 7.02952398808e-05,
+              "n_observations": 68,
+              "n_tail_obs_95": 4,
+              "n_tail_obs_99": 1,
+              "right_tail_mean": 0.000877098317072,
+              "sharpe": 2.71376202845,
+              "skew": 0.114464243134,
+              "std_return": 0.00040816651301,
+              "tail_asymmetry": -0.111030664345,
+              "var_95": -0.000512390576111,
+              "var_99": -0.000803512554676,
+              "worst_day_return": -0.00100511003271
+            },
+            "total_return": 0.00478565975179,
+            "turnover": 0.0151463023178,
+            "verdict": "SURVIVES_DEFLATION",
+            "wealth": 1.00478565975
+          }
+        },
+        "seed": 20263138,
+        "seed_index": 2,
+        "status": "ok"
+      },
+      {
+        "cell_key": "seed_3",
+        "n_regimes": 6,
+        "regimes": {
+          "bear_high_vol": {
+            "cell_key": "seed_3",
+            "error": "regime has 9 periods, need >= 30",
+            "n_periods": 9,
+            "regime": "bear_high_vol",
+            "seed": 20264147,
+            "seed_index": 3,
+            "status": "insufficient_periods"
+          },
+          "bear_low_vol": {
+            "annualized_volatility": 0.00626100879669,
+            "cell_key": "seed_3",
+            "dsr": 0.030439,
+            "gamma": 0.064637,
+            "kappa": 2.091093,
+            "max_drawdown": -0.00593637963739,
+            "n_periods": 48,
+            "n_valid_beta_rows": 48,
+            "neutrality": {
+              "dollar_neutral": {
+                "passed": true,
+                "tolerance": 1e-09
+              },
+              "max_dollar_neutral": 2.76167977376e-15,
+              "max_model_beta": 8.24027471854e-05,
+              "model_beta_neutral": {
+                "passed": true,
+                "tolerance": 0.001
+              },
+              "realized_beta": -0.004533430393,
+              "realized_beta_check": {
+                "passed": true,
+                "tolerance": 0.15
+              }
+            },
+            "psr": 0.0023,
+            "realized_beta": -0.004533430393,
+            "regime": "bear_low_vol",
+            "seed": 20264147,
+            "seed_index": 3,
+            "sharpe": -4.60050851446,
+            "sigma0": 1.4615440344,
+            "status": "ok",
+            "survives_deflation": false,
+            "tail": {
+              "best_day_return": 0.000644115503441,
+              "conditional_drawdown_95": -0.00580934425306,
+              "cvar_95": -0.000768470382627,
+              "cvar_99": -0.000895203551569,
+              "drawdown_var_95": -0.00558359428121,
+              "excess_kurtosis": -0.908906998082,
+              "expected_shortfall_975": -0.000802571726609,
+              "left_tail_mean": -0.000768470382627,
+              "max_drawdown": -0.00593637963739,
+              "max_drawdown_canonical": -0.00593637963739,
+              "mean_return": -0.000114300889993,
+              "n_observations": 48,
+              "n_tail_obs_95": 3,
+              "n_tail_obs_99": 1,
+              "right_tail_mean": 0.000580600819976,
+              "sharpe": -4.60050851446,
+              "skew": 0.0646369352363,
+              "std_return": 0.000390276457112,
+              "tail_asymmetry": 0.139258448545,
+              "var_95": -0.00069265941647,
+              "var_99": -0.000808129636106,
+              "worst_day_return": -0.000895203551569
+            },
+            "total_return": -0.00547536787929,
+            "turnover": 0.021137522068,
+            "verdict": "DOES_NOT_SURVIVE_DEFLATION",
+            "wealth": 0.994524632121
+          },
+          "bear_mid_vol": {
+            "cell_key": "seed_3",
+            "error": "regime has 29 periods, need >= 30",
+            "n_periods": 29,
+            "regime": "bear_mid_vol",
+            "seed": 20264147,
+            "seed_index": 3,
+            "status": "insufficient_periods"
+          },
+          "bull_high_vol": {
+            "annualized_volatility": 0.00549922980499,
+            "cell_key": "seed_3",
+            "dsr": 0.092307,
+            "gamma": -0.404463,
+            "kappa": 2.792093,
+            "max_drawdown": -0.00348933116837,
+            "n_periods": 91,
+            "n_valid_beta_rows": 91,
+            "neutrality": {
+              "dollar_neutral": {
+                "passed": true,
+                "tolerance": 1e-09
+              },
+              "max_dollar_neutral": 2.1233015346e-15,
+              "max_model_beta": 9.99917467472e-05,
+              "model_beta_neutral": {
+                "passed": true,
+                "tolerance": 0.001
+              },
+              "realized_beta": 0.000193272547,
+              "realized_beta_check": {
+                "passed": true,
+                "tolerance": 0.15
+              }
+            },
+            "psr": 0.0,
+            "realized_beta": 0.000193272547,
+            "regime": "bull_high_vol",
+            "seed": 20264147,
+            "seed_index": 3,
+            "sharpe": -0.521891462237,
+            "sigma0": 1.5043823053,
+            "status": "ok",
+            "survives_deflation": false,
+            "tail": {
+              "best_day_return": 0.000661682808005,
+              "conditional_drawdown_95": -0.00344871358954,
+              "cvar_95": -0.000799442129185,
+              "cvar_99": -0.000925119724646,
+              "drawdown_var_95": -0.00337007247259,
+              "excess_kurtosis": -0.207907476792,
+              "expected_shortfall_975": -0.000841115084263,
+              "left_tail_mean": -0.000799442129185,
+              "max_drawdown": -0.00348933116837,
+              "max_drawdown_canonical": -0.00348933116837,
+              "mean_return": -1.13888931909e-05,
+              "n_observations": 91,
+              "n_tail_obs_95": 5,
+              "n_tail_obs_99": 1,
+              "right_tail_mean": 0.000594448573044,
+              "sharpe": -0.521891462237,
+              "skew": -0.40446295242,
+              "std_return": 0.000344510257177,
+              "tail_asymmetry": 0.147065731778,
+              "var_95": -0.000624410011467,
+              "var_99": -0.000820124130142,
+              "worst_day_return": -0.000925119724646
+            },
+            "total_return": -0.00104125359946,
+            "turnover": 0.0185513102938,
+            "verdict": "DOES_NOT_SURVIVE_DEFLATION",
+            "wealth": 0.998958746401
+          },
+          "bull_low_vol": {
+            "annualized_volatility": 0.00669981556096,
+            "cell_key": "seed_3",
+            "dsr": 0.906478,
+            "gamma": -0.251557,
+            "kappa": 3.759523,
+            "max_drawdown": -0.0035470245083,
+            "n_periods": 92,
+            "n_valid_beta_rows": 92,
+            "neutrality": {
+              "dollar_neutral": {
+                "passed": true,
+                "tolerance": 1e-09
+              },
+              "max_dollar_neutral": 2.57432963835e-15,
+              "max_model_beta": 9.60610530743e-05,
+              "model_beta_neutral": {
+                "passed": true,
+                "tolerance": 0.001
+              },
+              "realized_beta": 0.002127335425,
+              "realized_beta_check": {
+                "passed": true,
+                "tolerance": 0.15
+              }
+            },
+            "psr": 1.0,
+            "realized_beta": 0.002127335425,
+            "regime": "bull_low_vol",
+            "seed": 20264147,
+            "seed_index": 3,
+            "sharpe": 0.70469311248,
+            "sigma0": 1.4821689599,
+            "status": "ok",
+            "survives_deflation": true,
+            "tail": {
+              "best_day_return": 0.0009662247252,
+              "conditional_drawdown_95": -0.00317761714112,
+              "cvar_95": -0.000882234532737,
+              "cvar_99": -0.00148981361436,
+              "drawdown_var_95": -0.00274026541724,
+              "excess_kurtosis": 0.759522967609,
+              "expected_shortfall_975": -0.00104736498483,
+              "left_tail_mean": -0.000882234532737,
+              "max_drawdown": -0.0035470245083,
+              "max_drawdown_canonical": -0.0035470245083,
+              "mean_return": 1.87353725424e-05,
+              "n_observations": 92,
+              "n_tail_obs_95": 5,
+              "n_tail_obs_99": 1,
+              "right_tail_mean": 0.0008367519019,
+              "sharpe": 0.70469311248,
+              "skew": -0.251556940343,
+              "std_return": 0.000419748699535,
+              "tail_asymmetry": 0.0264589818281,
+              "var_95": -0.000551958594941,
+              "var_99": -0.000967655162312,
+              "worst_day_return": -0.00148981361436
+            },
+            "total_return": 0.00171700553417,
+            "turnover": 0.0163262977782,
+            "verdict": "SURVIVES_DEFLATION",
+            "wealth": 1.00171700553
+          },
+          "bull_mid_vol": {
+            "annualized_volatility": 0.00690935053492,
+            "cell_key": "seed_3",
+            "dsr": 0.789152,
+            "gamma": 0.105313,
+            "kappa": 7.418567,
+            "max_drawdown": -0.00206230990967,
+            "n_periods": 68,
+            "n_valid_beta_rows": 68,
+            "neutrality": {
+              "dollar_neutral": {
+                "passed": true,
+                "tolerance": 1e-09
+              },
+              "max_dollar_neutral": 2.52228793407e-15,
+              "max_model_beta": 9.90158739055e-05,
+              "model_beta_neutral": {
+                "passed": true,
+                "tolerance": 0.001
+              },
+              "realized_beta": -0.000113452877,
+              "realized_beta_check": {
+                "passed": true,
+                "tolerance": 0.15
+              }
+            },
+            "psr": 0.982127,
+            "realized_beta": -0.000113452877,
+            "regime": "bull_mid_vol",
+            "seed": 20264147,
+            "seed_index": 3,
+            "sharpe": 3.06112276318,
+            "sigma0": 1.4350768035,
+            "status": "ok",
+            "survives_deflation": true,
+            "tail": {
+              "best_day_return": 0.0018281048755,
+              "conditional_drawdown_95": -0.00183530303174,
+              "cvar_95": -0.000943559014421,
+              "cvar_99": -0.00140270936665,
+              "drawdown_var_95": -0.00144037535914,
+              "excess_kurtosis": 4.41856678336,
+              "expected_shortfall_975": -0.0012291494962,
+              "left_tail_mean": -0.000943559014421,
+              "max_drawdown": -0.00206230990967,
+              "max_drawdown_canonical": -0.00206230990967,
+              "mean_return": 8.3930040481e-05,
+              "n_observations": 68,
+              "n_tail_obs_95": 4,
+              "n_tail_obs_99": 1,
+              "right_tail_mean": 0.000987914684025,
+              "sharpe": 3.06112276318,
+              "skew": 0.105313312407,
+              "std_return": 0.00043203596476,
+              "tail_asymmetry": -0.0229646769923,
+              "var_95": -0.000523642043975,
+              "var_99": -0.00117013914025,
+              "worst_day_return": -0.00140270936665
+            },
+            "total_return": 0.00571693791467,
+            "turnover": 0.0247112986146,
+            "verdict": "SURVIVES_DEFLATION",
+            "wealth": 1.00571693791
+          }
+        },
+        "seed": 20264147,
+        "seed_index": 3,
+        "status": "ok"
+      },
+      {
+        "cell_key": "seed_4",
+        "n_regimes": 6,
+        "regimes": {
+          "bear_high_vol": {
+            "cell_key": "seed_4",
+            "error": "regime has 9 periods, need >= 30",
+            "n_periods": 9,
+            "regime": "bear_high_vol",
+            "seed": 20265156,
+            "seed_index": 4,
+            "status": "insufficient_periods"
+          },
+          "bear_low_vol": {
+            "annualized_volatility": 0.00737909939194,
+            "cell_key": "seed_4",
+            "dsr": 0.074273,
+            "gamma": -0.103349,
+            "kappa": 2.727058,
+            "max_drawdown": -0.00267050293361,
+            "n_periods": 48,
+            "n_valid_beta_rows": 48,
+            "neutrality": {
+              "dollar_neutral": {
+                "passed": true,
+                "tolerance": 1e-09
+              },
+              "max_dollar_neutral": 2.32106001086e-15,
+              "max_model_beta": 9.94443401875e-05,
+              "model_beta_neutral": {
+                "passed": true,
+                "tolerance": 0.001
+              },
+              "realized_beta": -0.001324384098,
+              "realized_beta_check": {
+                "passed": true,
+                "tolerance": 0.15
+              }
+            },
+            "psr": 0.0,
+            "realized_beta": -0.001324384098,
+            "regime": "bear_low_vol",
+            "seed": 20265156,
+            "seed_index": 4,
+            "sharpe": -1.23438079626,
+            "sigma0": 1.5969249021,
+            "status": "ok",
+            "survives_deflation": false,
+            "tail": {
+              "best_day_return": 0.000903520283537,
+              "conditional_drawdown_95": -0.00257939424982,
+              "cvar_95": -0.000960676997295,
+              "cvar_99": -0.00120635403948,
+              "drawdown_var_95": -0.00238600668908,
+              "excess_kurtosis": -0.272941768168,
+              "expected_shortfall_975": -0.00102236793614,
+              "left_tail_mean": -0.000960676997295,
+              "max_drawdown": -0.00267050293361,
+              "max_drawdown_canonical": -0.00267050293361,
+              "mean_return": -3.61453118378e-05,
+              "n_observations": 48,
+              "n_tail_obs_95": 3,
+              "n_tail_obs_99": 1,
+              "right_tail_mean": 0.000812040300113,
+              "sharpe": -1.23438079626,
+              "skew": -0.103349009057,
+              "std_return": 0.000459972004653,
+              "tail_asymmetry": 0.0838468138148,
+              "var_95": -0.000822463911307,
+              "var_99": -0.00103340710234,
+              "worst_day_return": -0.00120635403948
+            },
+            "total_return": -0.00173857156644,
+            "turnover": 0.0140608110333,
+            "verdict": "DOES_NOT_SURVIVE_DEFLATION",
+            "wealth": 0.998261428434
+          },
+          "bear_mid_vol": {
+            "cell_key": "seed_4",
+            "error": "regime has 29 periods, need >= 30",
+            "n_periods": 29,
+            "regime": "bear_mid_vol",
+            "seed": 20265156,
+            "seed_index": 4,
+            "status": "insufficient_periods"
+          },
+          "bull_high_vol": {
+            "annualized_volatility": 0.00707130149089,
+            "cell_key": "seed_4",
+            "dsr": 0.915578,
+            "gamma": 0.273822,
+            "kappa": 3.183177,
+            "max_drawdown": -0.00338521878159,
+            "n_periods": 91,
+            "n_valid_beta_rows": 91,
+            "neutrality": {
+              "dollar_neutral": {
+                "passed": true,
+                "tolerance": 1e-09
+              },
+              "max_dollar_neutral": 2.36269337428e-15,
+              "max_model_beta": 9.87995285339e-05,
+              "model_beta_neutral": {
+                "passed": true,
+                "tolerance": 0.001
+              },
+              "realized_beta": -0.001055341483,
+              "realized_beta_check": {
+                "passed": true,
+                "tolerance": 0.15
+              }
+            },
+            "psr": 1.0,
+            "realized_beta": -0.001055341483,
+            "regime": "bull_high_vol",
+            "seed": 20265156,
+            "seed_index": 4,
+            "sharpe": 2.05958080362,
+            "sigma0": 1.7896556612,
+            "status": "ok",
+            "survives_deflation": true,
+            "tail": {
+              "best_day_return": 0.00132015650528,
+              "conditional_drawdown_95": -0.00312942265098,
+              "cvar_95": -0.000810709948169,
+              "cvar_99": -0.00102520115671,
+              "drawdown_var_95": -0.00294327142945,
+              "excess_kurtosis": 0.183176681687,
+              "expected_shortfall_975": -0.000880490207941,
+              "left_tail_mean": -0.000810709948169,
+              "max_drawdown": -0.00338521878159,
+              "max_drawdown_canonical": -0.00338521878159,
+              "mean_return": 5.77933206638e-05,
+              "n_observations": 91,
+              "n_tail_obs_95": 5,
+              "n_tail_obs_99": 1,
+              "right_tail_mean": 0.00104736980453,
+              "sharpe": 2.05958080362,
+              "skew": 0.273822496054,
+              "std_return": 0.000442995834252,
+              "tail_asymmetry": -0.12736797547,
+              "var_95": -0.000681117861674,
+              "var_99": -0.000841460027233,
+              "worst_day_return": -0.00102520115671
+            },
+            "total_return": 0.00526391879543,
+            "turnover": 0.0149682832842,
+            "verdict": "SURVIVES_DEFLATION",
+            "wealth": 1.0052639188
+          },
+          "bull_low_vol": {
+            "annualized_volatility": 0.0060314930093,
+            "cell_key": "seed_4",
+            "dsr": 0.131747,
+            "gamma": 0.62796,
+            "kappa": 3.661485,
+            "max_drawdown": -0.00519008177222,
+            "n_periods": 92,
+            "n_valid_beta_rows": 92,
+            "neutrality": {
+              "dollar_neutral": {
+                "passed": true,
+                "tolerance": 1e-09
+              },
+              "max_dollar_neutral": 2.27248775353e-15,
+              "max_model_beta": 9.79282313786e-05,
+              "model_beta_neutral": {
+                "passed": true,
+                "tolerance": 0.001
+              },
+              "realized_beta": -6.5734984e-05,
+              "realized_beta_check": {
+                "passed": true,
+                "tolerance": 0.15
+              }
+            },
+            "psr": 0.0,
+            "realized_beta": -6.5734984e-05,
+            "regime": "bull_low_vol",
+            "seed": 20265156,
+            "seed_index": 4,
+            "sharpe": -1.46713850545,
+            "sigma0": 1.8288391384,
+            "status": "ok",
+            "survives_deflation": false,
+            "tail": {
+              "best_day_return": 0.00126146193302,
+              "conditional_drawdown_95": -0.0050405589255,
+              "cvar_95": -0.000713040921492,
+              "cvar_99": -0.000789863904604,
+              "drawdown_var_95": -0.00491740436578,
+              "excess_kurtosis": 0.661485014693,
+              "expected_shortfall_975": -0.000760412909521,
+              "left_tail_mean": -0.000713040921492,
+              "max_drawdown": -0.00519008177222,
+              "max_drawdown_canonical": -0.00519008177222,
+              "mean_return": -3.51152207909e-05,
+              "n_observations": 92,
+              "n_tail_obs_95": 5,
+              "n_tail_obs_99": 1,
+              "right_tail_mean": 0.000874880807331,
+              "sharpe": -1.46713850545,
+              "skew": 0.627960075851,
+              "std_return": 0.00037787776751,
+              "tail_asymmetry": -0.101919309309,
+              "var_95": -0.0005538840094,
+              "var_99": -0.00077207948671,
+              "worst_day_return": -0.000789863904604
+            },
+            "total_return": -0.00323199071062,
+            "turnover": 0.0163993546943,
+            "verdict": "DOES_NOT_SURVIVE_DEFLATION",
+            "wealth": 0.996768009289
+          },
+          "bull_mid_vol": {
+            "annualized_volatility": 0.00650035696766,
+            "cell_key": "seed_4",
+            "dsr": 0.102371,
+            "gamma": -0.507269,
+            "kappa": 3.515683,
+            "max_drawdown": -0.00682240814227,
+            "n_periods": 68,
+            "n_valid_beta_rows": 68,
+            "neutrality": {
+              "dollar_neutral": {
+                "passed": true,
+                "tolerance": 1e-09
+              },
+              "max_dollar_neutral": 2.4841240176e-15,
+              "max_model_beta": 9.70704663132e-05,
+              "model_beta_neutral": {
+                "passed": true,
+                "tolerance": 0.001
+              },
+              "realized_beta": -0.000371648192,
+              "realized_beta_check": {
+                "passed": true,
+                "tolerance": 0.15
+              }
+            },
+            "psr": 0.000635,
+            "realized_beta": -0.000371648192,
+            "regime": "bull_mid_vol",
+            "seed": 20265156,
+            "seed_index": 4,
+            "sharpe": -3.24198874257,
+            "sigma0": 1.373652483,
+            "status": "ok",
+            "survives_deflation": false,
+            "tail": {
+              "best_day_return": 0.00074971093012,
+              "conditional_drawdown_95": -0.00664398752523,
+              "cvar_95": -0.00102685159063,
+              "cvar_99": -0.00126907340642,
+              "drawdown_var_95": -0.00631407015869,
+              "excess_kurtosis": 0.515682888944,
+              "expected_shortfall_975": -0.00123467001556,
+              "left_tail_mean": -0.00102685159063,
+              "max_drawdown": -0.00682240814227,
+              "max_drawdown_canonical": -0.00682240814227,
+              "mean_return": -8.36273179042e-05,
+              "n_observations": 68,
+              "n_tail_obs_95": 4,
+              "n_tail_obs_99": 1,
+              "right_tail_mean": 0.000657097701199,
+              "sharpe": -3.24198874257,
+              "skew": -0.507269159728,
+              "std_return": 0.000406461935838,
+              "tail_asymmetry": 0.219575429749,
+              "var_95": -0.000758207862933,
+              "var_99": -0.00122297286266,
+              "worst_day_return": -0.00126907340642
+            },
+            "total_return": -0.00567634264942,
+            "turnover": 0.0293389624756,
+            "verdict": "DOES_NOT_SURVIVE_DEFLATION",
+            "wealth": 0.994323657351
+          }
+        },
+        "seed": 20265156,
+        "seed_index": 4,
+        "status": "ok"
+      },
+      {
+        "cell_key": "seed_5",
+        "n_regimes": 6,
+        "regimes": {
+          "bear_high_vol": {
+            "cell_key": "seed_5",
+            "error": "regime has 9 periods, need >= 30",
+            "n_periods": 9,
+            "regime": "bear_high_vol",
+            "seed": 20266165,
+            "seed_index": 5,
+            "status": "insufficient_periods"
+          },
+          "bear_low_vol": {
+            "annualized_volatility": 0.00634208326038,
+            "cell_key": "seed_5",
+            "dsr": 0.963351,
+            "gamma": 0.353632,
+            "kappa": 2.511215,
+            "max_drawdown": -0.00198770209964,
+            "n_periods": 48,
+            "n_valid_beta_rows": 48,
+            "neutrality": {
+              "dollar_neutral": {
+                "passed": true,
+                "tolerance": 1e-09
+              },
+              "max_dollar_neutral": 1.93942084614e-15,
+              "max_model_beta": 6.73922799712e-05,
+              "model_beta_neutral": {
+                "passed": true,
+                "tolerance": 0.001
+              },
+              "realized_beta": -0.000291377749,
+              "realized_beta_check": {
+                "passed": true,
+                "tolerance": 0.15
+              }
+            },
+            "psr": 0.992107,
+            "realized_beta": -0.000291377749,
+            "regime": "bear_low_vol",
+            "seed": 20266165,
+            "seed_index": 5,
+            "sharpe": 0.357105342689,
+            "sigma0": 1.4701826688,
+            "status": "ok",
+            "survives_deflation": true,
+            "tail": {
+              "best_day_return": 0.000963740865079,
+              "conditional_drawdown_95": -0.00186695822717,
+              "cvar_95": -0.000649860125122,
+              "cvar_99": -0.000730542647018,
+              "drawdown_var_95": -0.00171741063107,
+              "excess_kurtosis": -0.48878458359,
+              "expected_shortfall_975": -0.000682162986993,
+              "left_tail_mean": -0.000649860125122,
+              "max_drawdown": -0.00198770209964,
+              "max_drawdown_canonical": -0.00198770209964,
+              "mean_return": 8.98726911137e-06,
+              "n_observations": 48,
+              "n_tail_obs_95": 3,
+              "n_tail_obs_99": 1,
+              "right_tail_mean": 0.000814179862972,
+              "sharpe": 0.357105342689,
+              "skew": 0.35363224792,
+              "std_return": 0.000395330188145,
+              "tail_asymmetry": -0.112237192417,
+              "var_95": -0.000570302265348,
+              "var_99": -0.000685065766594,
+              "worst_day_return": -0.000730542647018
+            },
+            "total_return": 0.000427727981664,
+            "turnover": 0.0153245759642,
+            "verdict": "SURVIVES_DEFLATION",
+            "wealth": 1.00042772798
+          },
+          "bear_mid_vol": {
+            "cell_key": "seed_5",
+            "error": "regime has 29 periods, need >= 30",
+            "n_periods": 29,
+            "regime": "bear_mid_vol",
+            "seed": 20266165,
+            "seed_index": 5,
+            "status": "insufficient_periods"
+          },
+          "bull_high_vol": {
+            "annualized_volatility": 0.00692845304968,
+            "cell_key": "seed_5",
+            "dsr": 0.94413,
+            "gamma": 0.183141,
+            "kappa": 2.596663,
+            "max_drawdown": -0.00249174344582,
+            "n_periods": 91,
+            "n_valid_beta_rows": 91,
+            "neutrality": {
+              "dollar_neutral": {
+                "passed": true,
+                "tolerance": 1e-09
+              },
+              "max_dollar_neutral": 3.21964677141e-15,
+              "max_model_beta": 9.86853891781e-05,
+              "model_beta_neutral": {
+                "passed": true,
+                "tolerance": 0.001
+              },
+              "realized_beta": -0.003386380424,
+              "realized_beta_check": {
+                "passed": true,
+                "tolerance": 0.15
+              }
+            },
+            "psr": 0.999997,
+            "realized_beta": -0.003386380424,
+            "regime": "bull_high_vol",
+            "seed": 20266165,
+            "seed_index": 5,
+            "sharpe": 3.22940606415,
+            "sigma0": 1.5503901614,
+            "status": "ok",
+            "survives_deflation": true,
+            "tail": {
+              "best_day_return": 0.00125455609553,
+              "conditional_drawdown_95": -0.00226102430679,
+              "cvar_95": -0.000694828190535,
+              "cvar_99": -0.000779643415989,
+              "drawdown_var_95": -0.00204377508204,
+              "excess_kurtosis": -0.403336839683,
+              "expected_shortfall_975": -0.000734501923902,
+              "left_tail_mean": -0.000694828190535,
+              "max_drawdown": -0.00249174344582,
+              "max_drawdown_canonical": -0.00249174344582,
+              "mean_return": 8.87888424358e-05,
+              "n_observations": 91,
+              "n_tail_obs_95": 5,
+              "n_tail_obs_99": 1,
+              "right_tail_mean": 0.00098533879466,
+              "sharpe": 3.22940606415,
+              "skew": 0.183141225665,
+              "std_return": 0.000434046807758,
+              "tail_asymmetry": -0.17290579251,
+              "var_95": -0.00060691683745,
+              "var_99": -0.00072914258251,
+              "worst_day_return": -0.000779643415989
+            },
+            "total_return": 0.00810351306839,
+            "turnover": 0.0115119573955,
+            "verdict": "SURVIVES_DEFLATION",
+            "wealth": 1.00810351307
+          },
+          "bull_low_vol": {
+            "annualized_volatility": 0.00670954809114,
+            "cell_key": "seed_5",
+            "dsr": 0.946004,
+            "gamma": 0.107362,
+            "kappa": 3.1271,
+            "max_drawdown": -0.00376525994981,
+            "n_periods": 92,
+            "n_valid_beta_rows": 92,
+            "neutrality": {
+              "dollar_neutral": {
+                "passed": true,
+                "tolerance": 1e-09
+              },
+              "max_dollar_neutral": 2.68188249386e-15,
+              "max_model_beta": 9.99816863862e-05,
+              "model_beta_neutral": {
+                "passed": true,
+                "tolerance": 0.001
+              },
+              "realized_beta": -0.002457979222,
+              "realized_beta_check": {
+                "passed": true,
+                "tolerance": 0.15
+              }
+            },
+            "psr": 0.994177,
+            "realized_beta": -0.002457979222,
+            "regime": "bull_low_vol",
+            "seed": 20266165,
+            "seed_index": 5,
+            "sharpe": 0.265299155805,
+            "sigma0": 1.5086619794,
+            "status": "ok",
+            "survives_deflation": true,
+            "tail": {
+              "best_day_return": 0.0011452688601,
+              "conditional_drawdown_95": -0.00354896268867,
+              "cvar_95": -0.00083689619534,
+              "cvar_99": -0.000931410951901,
+              "drawdown_var_95": -0.00327503943296,
+              "excess_kurtosis": 0.127100335374,
+              "expected_shortfall_975": -0.000877498206415,
+              "left_tail_mean": -0.00083689619534,
+              "max_drawdown": -0.00376525994981,
+              "max_drawdown_canonical": -0.00376525994981,
+              "mean_return": 7.06364065244e-06,
+              "n_observations": 92,
+              "n_tail_obs_95": 5,
+              "n_tail_obs_99": 1,
+              "right_tail_mean": 0.000952669741512,
+              "sharpe": 0.265299155805,
+              "skew": 0.107361991992,
+              "std_return": 0.000420358450184,
+              "tail_asymmetry": -0.0646936465363,
+              "var_95": -0.000732627189675,
+              "var_99": -0.000891010504579,
+              "worst_day_return": -0.000931410951901
+            },
+            "total_return": 0.000641930694949,
+            "turnover": 0.0128391038492,
+            "verdict": "SURVIVES_DEFLATION",
+            "wealth": 1.00064193069
+          },
+          "bull_mid_vol": {
+            "annualized_volatility": 0.00603027226845,
+            "cell_key": "seed_5",
+            "dsr": 0.938602,
+            "gamma": 0.385482,
+            "kappa": 3.341554,
+            "max_drawdown": -0.00435839158805,
+            "n_periods": 68,
+            "n_valid_beta_rows": 68,
+            "neutrality": {
+              "dollar_neutral": {
+                "passed": true,
+                "tolerance": 1e-09
+              },
+              "max_dollar_neutral": 2.91260071617e-15,
+              "max_model_beta": 9.4873884374e-05,
+              "model_beta_neutral": {
+                "passed": true,
+                "tolerance": 0.001
+              },
+              "realized_beta": 0.003365749955,
+              "realized_beta_check": {
+                "passed": true,
+                "tolerance": 0.15
+              }
+            },
+            "psr": 0.997001,
+            "realized_beta": 0.003365749955,
+            "regime": "bull_mid_vol",
+            "seed": 20266165,
+            "seed_index": 5,
+            "sharpe": 0.340755670327,
+            "sigma0": 2.515336023,
+            "status": "ok",
+            "survives_deflation": true,
+            "tail": {
+              "best_day_return": 0.0011629067674,
+              "conditional_drawdown_95": -0.00403859070712,
+              "cvar_95": -0.000620762295314,
+              "cvar_99": -0.000706990982145,
+              "drawdown_var_95": -0.00383778596287,
+              "excess_kurtosis": 0.341553767271,
+              "expected_shortfall_975": -0.000680685278315,
+              "left_tail_mean": -0.000620762295314,
+              "max_drawdown": -0.00435839158805,
+              "max_drawdown_canonical": -0.00435839158805,
+              "mean_return": 8.1541645599e-06,
+              "n_observations": 68,
+              "n_tail_obs_95": 4,
+              "n_tail_obs_99": 1,
+              "right_tail_mean": 0.000816466881633,
+              "sharpe": 0.340755670327,
+              "skew": 0.385482232903,
+              "std_return": 0.000377067929048,
+              "tail_asymmetry": -0.13616797478,
+              "var_95": -0.000556121272038,
+              "var_99": -0.000671741339012,
+              "worst_day_return": -0.000706990982145
+            },
+            "total_return": 0.000549798431723,
+            "turnover": 0.0199759866329,
+            "verdict": "SURVIVES_DEFLATION",
+            "wealth": 1.00054979843
+          }
+        },
+        "seed": 20266165,
+        "seed_index": 5,
+        "status": "ok"
+      },
+      {
+        "cell_key": "seed_6",
+        "n_regimes": 6,
+        "regimes": {
+          "bear_high_vol": {
+            "cell_key": "seed_6",
+            "error": "regime has 9 periods, need >= 30",
+            "n_periods": 9,
+            "regime": "bear_high_vol",
+            "seed": 20267174,
+            "seed_index": 6,
+            "status": "insufficient_periods"
+          },
+          "bear_low_vol": {
+            "annualized_volatility": 0.00670417636666,
+            "cell_key": "seed_6",
+            "dsr": 0.072201,
+            "gamma": 0.13808,
+            "kappa": 2.801968,
+            "max_drawdown": -0.00705118775191,
+            "n_periods": 48,
+            "n_valid_beta_rows": 48,
+            "neutrality": {
+              "dollar_neutral": {
+                "passed": true,
+                "tolerance": 1e-09
+              },
+              "max_dollar_neutral": 2.41126563161e-15,
+              "max_model_beta": 8.28538535569e-05,
+              "model_beta_neutral": {
+                "passed": true,
+                "tolerance": 0.001
+              },
+              "realized_beta": -0.004531114866,
+              "realized_beta_check": {
+                "passed": true,
+                "tolerance": 0.15
+              }
+            },
+            "psr": 0.021241,
+            "realized_beta": -0.004531114866,
+            "regime": "bear_low_vol",
+            "seed": 20267174,
+            "seed_index": 6,
+            "sharpe": -5.01064432474,
+            "sigma0": 1.3582327175,
+            "status": "ok",
+            "survives_deflation": false,
+            "tail": {
+              "best_day_return": 0.000796257568917,
+              "conditional_drawdown_95": -0.00689155564839,
+              "cvar_95": -0.000901966094469,
+              "cvar_99": -0.00118432614032,
+              "drawdown_var_95": -0.00673029401705,
+              "excess_kurtosis": -0.198031969451,
+              "expected_shortfall_975": -0.000981164973109,
+              "left_tail_mean": -0.000901966094469,
+              "max_drawdown": -0.00705118775191,
+              "max_drawdown_canonical": -0.00705118775191,
+              "mean_return": -0.000133302552634,
+              "n_observations": 48,
+              "n_tail_obs_95": 3,
+              "n_tail_obs_99": 1,
+              "right_tail_mean": 0.00070238717684,
+              "sharpe": -5.01064432474,
+              "skew": 0.138080396556,
+              "std_return": 0.000417901057992,
+              "tail_asymmetry": 0.124398361133,
+              "var_95": -0.000723566377694,
+              "var_99": -0.000993354643142,
+              "worst_day_return": -0.00118432614032
+            },
+            "total_return": -0.00638268495776,
+            "turnover": 0.0155998323164,
+            "verdict": "DOES_NOT_SURVIVE_DEFLATION",
+            "wealth": 0.993617315042
+          },
+          "bear_mid_vol": {
+            "cell_key": "seed_6",
+            "error": "regime has 29 periods, need >= 30",
+            "n_periods": 29,
+            "regime": "bear_mid_vol",
+            "seed": 20267174,
+            "seed_index": 6,
+            "status": "insufficient_periods"
+          },
+          "bull_high_vol": {
+            "annualized_volatility": 0.00700911796314,
+            "cell_key": "seed_6",
+            "dsr": 0.935872,
+            "gamma": -0.191213,
+            "kappa": 3.145441,
+            "max_drawdown": -0.00601050855637,
+            "n_periods": 91,
+            "n_valid_beta_rows": 91,
+            "neutrality": {
+              "dollar_neutral": {
+                "passed": true,
+                "tolerance": 1e-09
+              },
+              "max_dollar_neutral": 2.77208811461e-15,
+              "max_model_beta": 9.99263539512e-05,
+              "model_beta_neutral": {
+                "passed": true,
+                "tolerance": 0.001
+              },
+              "realized_beta": -0.001603546985,
+              "realized_beta_check": {
+                "passed": true,
+                "tolerance": 0.15
+              }
+            },
+            "psr": 1.0,
+            "realized_beta": -0.001603546985,
+            "regime": "bull_high_vol",
+            "seed": 20267174,
+            "seed_index": 6,
+            "sharpe": 0.756743473786,
+            "sigma0": 1.9533598636,
+            "status": "ok",
+            "survives_deflation": true,
+            "tail": {
+              "best_day_return": 0.0010676671502,
+              "conditional_drawdown_95": -0.0058691412365,
+              "cvar_95": -0.000959071515604,
+              "cvar_99": -0.00117817388316,
+              "drawdown_var_95": -0.00557702137174,
+              "excess_kurtosis": 0.145441425874,
+              "expected_shortfall_975": -0.00105670189576,
+              "left_tail_mean": -0.000959071515604,
+              "max_drawdown": -0.00601050855637,
+              "max_drawdown_canonical": -0.00601050855637,
+              "mean_return": 2.10480328397e-05,
+              "n_observations": 91,
+              "n_tail_obs_95": 5,
+              "n_tail_obs_99": 1,
+              "right_tail_mean": 0.000898090767945,
+              "sharpe": 0.756743473786,
+              "skew": -0.191212591777,
+              "std_return": 0.000439100222703,
+              "tail_asymmetry": 0.03283544373,
+              "var_95": -0.000728549965671,
+              "var_99": -0.00105580675496,
+              "worst_day_return": -0.00117817388316
+            },
+            "total_return": 0.00190839657242,
+            "turnover": 0.0115037947817,
+            "verdict": "SURVIVES_DEFLATION",
+            "wealth": 1.00190839657
+          },
+          "bull_low_vol": {
+            "annualized_volatility": 0.00630697103438,
+            "cell_key": "seed_6",
+            "dsr": 0.963521,
+            "gamma": -0.185629,
+            "kappa": 2.408114,
+            "max_drawdown": -0.00381141994213,
+            "n_periods": 92,
+            "n_valid_beta_rows": 92,
+            "neutrality": {
+              "dollar_neutral": {
+                "passed": true,
+                "tolerance": 1e-09
+              },
+              "max_dollar_neutral": 2.33840724562e-15,
+              "max_model_beta": 9.97332083675e-05,
+              "model_beta_neutral": {
+                "passed": true,
+                "tolerance": 0.001
+              },
+              "realized_beta": -0.004106598001,
+              "realized_beta_check": {
+                "passed": true,
+                "tolerance": 0.15
+              }
+            },
+            "psr": 1.0,
+            "realized_beta": -0.004106598001,
+            "regime": "bull_low_vol",
+            "seed": 20267174,
+            "seed_index": 6,
+            "sharpe": 1.27432042227,
+            "sigma0": 1.4880210029,
+            "status": "ok",
+            "survives_deflation": true,
+            "tail": {
+              "best_day_return": 0.000867662964983,
+              "conditional_drawdown_95": -0.0034785611275,
+              "cvar_95": -0.000771895581841,
+              "cvar_99": -0.000929173201653,
+              "drawdown_var_95": -0.00317780785138,
+              "excess_kurtosis": -0.591886406811,
+              "expected_shortfall_975": -0.000811588779899,
+              "left_tail_mean": -0.000771895581841,
+              "max_drawdown": -0.00381141994213,
+              "max_drawdown_canonical": -0.00381141994213,
+              "mean_return": 3.18932618722e-05,
+              "n_observations": 92,
+              "n_tail_obs_95": 5,
+              "n_tail_obs_99": 1,
+              "right_tail_mean": 0.000732352745137,
+              "sharpe": 1.27432042227,
+              "skew": -0.185628854856,
+              "std_return": 0.000395136681839,
+              "tail_asymmetry": 0.0262874393773,
+              "var_95": -0.000654647333615,
+              "var_99": -0.000777827961674,
+              "worst_day_return": -0.000929173201653
+            },
+            "total_return": 0.00293123899486,
+            "turnover": 0.0126272648581,
+            "verdict": "SURVIVES_DEFLATION",
+            "wealth": 1.00293123899
+          },
+          "bull_mid_vol": {
+            "annualized_volatility": 0.006963213253,
+            "cell_key": "seed_6",
+            "dsr": 0.108902,
+            "gamma": -0.24321,
+            "kappa": 3.339019,
+            "max_drawdown": -0.00627751596172,
+            "n_periods": 68,
+            "n_valid_beta_rows": 68,
+            "neutrality": {
+              "dollar_neutral": {
+                "passed": true,
+                "tolerance": 1e-09
+              },
+              "max_dollar_neutral": 2.59861576701e-15,
+              "max_model_beta": 9.88818109232e-05,
+              "model_beta_neutral": {
+                "passed": true,
+                "tolerance": 0.001
+              },
+              "realized_beta": 0.002698685565,
+              "realized_beta_check": {
+                "passed": true,
+                "tolerance": 0.15
+              }
+            },
+            "psr": 0.0,
+            "realized_beta": 0.002698685565,
+            "regime": "bull_mid_vol",
+            "seed": 20267174,
+            "seed_index": 6,
+            "sharpe": -1.51221418832,
+            "sigma0": 2.6823117361,
+            "status": "ok",
+            "survives_deflation": false,
+            "tail": {
+              "best_day_return": 0.000976539571776,
+              "conditional_drawdown_95": -0.00616001769334,
+              "cvar_95": -0.00100210267203,
+              "cvar_99": -0.00134638893276,
+              "drawdown_var_95": -0.0060359677605,
+              "excess_kurtosis": 0.339019087191,
+              "expected_shortfall_975": -0.00115999474094,
+              "left_tail_mean": -0.00100210267203,
+              "max_drawdown": -0.00627751596172,
+              "max_drawdown_canonical": -0.00627751596172,
+              "mean_return": -4.17851979266e-05,
+              "n_observations": 68,
+              "n_tail_obs_95": 4,
+              "n_tail_obs_99": 1,
+              "right_tail_mean": 0.000799621148113,
+              "sharpe": -1.51221418832,
+              "skew": -0.243209983016,
+              "std_return": 0.000435403955898,
+              "tail_asymmetry": 0.112382109653,
+              "var_95": -0.00077923699199,
+              "var_99": -0.00109662071573,
+              "worst_day_return": -0.00134638893276
+            },
+            "total_return": -0.0028438480065,
+            "turnover": 0.0153910479206,
+            "verdict": "DOES_NOT_SURVIVE_DEFLATION",
+            "wealth": 0.997156151993
+          }
+        },
+        "seed": 20267174,
+        "seed_index": 6,
+        "status": "ok"
+      },
+      {
+        "cell_key": "seed_7",
+        "n_regimes": 6,
+        "regimes": {
+          "bear_high_vol": {
+            "cell_key": "seed_7",
+            "error": "regime has 9 periods, need >= 30",
+            "n_periods": 9,
+            "regime": "bear_high_vol",
+            "seed": 20268183,
+            "seed_index": 7,
+            "status": "insufficient_periods"
+          },
+          "bear_low_vol": {
+            "annualized_volatility": 0.00597031721805,
+            "cell_key": "seed_7",
+            "dsr": 0.932722,
+            "gamma": 0.102794,
+            "kappa": 2.90887,
+            "max_drawdown": -0.00189625619635,
+            "n_periods": 48,
+            "n_valid_beta_rows": 48,
+            "neutrality": {
+              "dollar_neutral": {
+                "passed": true,
+                "tolerance": 1e-09
+              },
+              "max_dollar_neutral": 2.83106871279e-15,
+              "max_model_beta": 9.60442559989e-05,
+              "model_beta_neutral": {
+                "passed": true,
+                "tolerance": 0.001
+              },
+              "realized_beta": -0.003204343821,
+              "realized_beta_check": {
+                "passed": true,
+                "tolerance": 0.15
+              }
+            },
+            "psr": 1.0,
+            "realized_beta": -0.003204343821,
+            "regime": "bear_low_vol",
+            "seed": 20268183,
+            "seed_index": 7,
+            "sharpe": 1.2886776932,
+            "sigma0": 1.2553757939,
+            "status": "ok",
+            "survives_deflation": true,
+            "tail": {
+              "best_day_return": 0.0010499815937,
+              "conditional_drawdown_95": -0.00154141948355,
+              "cvar_95": -0.00067130224801,
+              "cvar_99": -0.000791266358851,
+              "drawdown_var_95": -0.00130901958165,
+              "excess_kurtosis": -0.0911303201235,
+              "expected_shortfall_975": -0.000707609702894,
+              "left_tail_mean": -0.00067130224801,
+              "max_drawdown": -0.00189625619635,
+              "max_drawdown_canonical": -0.00189625619635,
+              "mean_return": 3.05310103978e-05,
+              "n_observations": 48,
+              "n_tail_obs_95": 3,
+              "n_tail_obs_99": 1,
+              "right_tail_mean": 0.000764859384211,
+              "sharpe": 1.2886776932,
+              "skew": 0.102794362221,
+              "std_return": 0.000372156361276,
+              "tail_asymmetry": -0.0651438766378,
+              "var_95": -0.000566724334166,
+              "var_99": -0.000712629102251,
+              "worst_day_return": -0.000791266358851
+            },
+            "total_return": 0.00146321185799,
+            "turnover": 0.0145874336634,
+            "verdict": "SURVIVES_DEFLATION",
+            "wealth": 1.00146321186
+          },
+          "bear_mid_vol": {
+            "cell_key": "seed_7",
+            "error": "regime has 29 periods, need >= 30",
+            "n_periods": 29,
+            "regime": "bear_mid_vol",
+            "seed": 20268183,
+            "seed_index": 7,
+            "status": "insufficient_periods"
+          },
+          "bull_high_vol": {
+            "annualized_volatility": 0.00659276201645,
+            "cell_key": "seed_7",
+            "dsr": 0.083471,
+            "gamma": 0.082784,
+            "kappa": 2.933977,
+            "max_drawdown": -0.0059522351307,
+            "n_periods": 91,
+            "n_valid_beta_rows": 91,
+            "neutrality": {
+              "dollar_neutral": {
+                "passed": true,
+                "tolerance": 1e-09
+              },
+              "max_dollar_neutral": 2.61596300177e-15,
+              "max_model_beta": 9.84840144363e-05,
+              "model_beta_neutral": {
+                "passed": true,
+                "tolerance": 0.001
+              },
+              "realized_beta": -5.3970207e-05,
+              "realized_beta_check": {
+                "passed": true,
+                "tolerance": 0.15
+              }
+            },
+            "psr": 0.0,
+            "realized_beta": -5.3970207e-05,
+            "regime": "bull_high_vol",
+            "seed": 20268183,
+            "seed_index": 7,
+            "sharpe": -1.5866509278,
+            "sigma0": 1.2477634125,
+            "status": "ok",
+            "survives_deflation": false,
+            "tail": {
+              "best_day_return": 0.00111192397088,
+              "conditional_drawdown_95": -0.00565980791661,
+              "cvar_95": -0.000866149882483,
+              "cvar_99": -0.00103317998572,
+              "drawdown_var_95": -0.00527882441932,
+              "excess_kurtosis": -0.0660231806104,
+              "expected_shortfall_975": -0.000945156183878,
+              "left_tail_mean": -0.000866149882483,
+              "max_drawdown": -0.0059522351307,
+              "max_drawdown_canonical": -0.0059522351307,
+              "mean_return": -4.15095713103e-05,
+              "n_observations": 91,
+              "n_tail_obs_95": 5,
+              "n_tail_obs_99": 1,
+              "right_tail_mean": 0.00079874806955,
+              "sharpe": -1.5866509278,
+              "skew": 0.0827841607874,
+              "std_return": 0.000413016771137,
+              "tail_asymmetry": 0.0404840505995,
+              "var_95": -0.000632040865348,
+              "var_99": -0.000923813718826,
+              "worst_day_return": -0.00103317998572
+            },
+            "total_return": -0.00377805649699,
+            "turnover": 0.0172694640863,
+            "verdict": "DOES_NOT_SURVIVE_DEFLATION",
+            "wealth": 0.996221943503
+          },
+          "bull_low_vol": {
+            "annualized_volatility": 0.0064256527457,
+            "cell_key": "seed_7",
+            "dsr": 0.932977,
+            "gamma": -0.414107,
+            "kappa": 3.097368,
+            "max_drawdown": -0.00271421020446,
+            "n_periods": 92,
+            "n_valid_beta_rows": 92,
+            "neutrality": {
+              "dollar_neutral": {
+                "passed": true,
+                "tolerance": 1e-09
+              },
+              "max_dollar_neutral": 2.41300035508e-15,
+              "max_model_beta": 9.59906319489e-05,
+              "model_beta_neutral": {
+                "passed": true,
+                "tolerance": 0.001
+              },
+              "realized_beta": -0.001557080447,
+              "realized_beta_check": {
+                "passed": true,
+                "tolerance": 0.15
+              }
+            },
+            "psr": 0.999982,
+            "realized_beta": -0.001557080447,
+            "regime": "bull_low_vol",
+            "seed": 20268183,
+            "seed_index": 7,
+            "sharpe": 3.22487614516,
+            "sigma0": 2.7072387639,
+            "status": "ok",
+            "survives_deflation": true,
+            "tail": {
+              "best_day_return": 0.00106687884876,
+              "conditional_drawdown_95": -0.00261562284,
+              "cvar_95": -0.000814429237652,
+              "cvar_99": -0.000964705598064,
+              "drawdown_var_95": -0.00237767051928,
+              "excess_kurtosis": 0.0973684659832,
+              "expected_shortfall_975": -0.000875949172901,
+              "left_tail_mean": -0.000814429237652,
+              "max_drawdown": -0.00271421020446,
+              "max_drawdown_canonical": -0.00271421020446,
+              "mean_return": 8.22298978439e-05,
+              "n_observations": 92,
+              "n_tail_obs_95": 5,
+              "n_tail_obs_99": 1,
+              "right_tail_mean": 0.000836279943378,
+              "sharpe": 3.22487614516,
+              "skew": -0.414106939603,
+              "std_return": 0.000402572184134,
+              "tail_asymmetry": -0.0132371625341,
+              "var_95": -0.000682082761049,
+              "var_99": -0.000882619480941,
+              "worst_day_return": -0.000964705598064
+            },
+            "total_return": 0.00758601412195,
+            "turnover": 0.0133104483915,
+            "verdict": "SURVIVES_DEFLATION",
+            "wealth": 1.00758601412
+          },
+          "bull_mid_vol": {
+            "annualized_volatility": 0.0061586297963,
+            "cell_key": "seed_7",
+            "dsr": 0.105137,
+            "gamma": -0.033798,
+            "kappa": 3.303591,
+            "max_drawdown": -0.0049522449709,
+            "n_periods": 68,
+            "n_valid_beta_rows": 68,
+            "neutrality": {
+              "dollar_neutral": {
+                "passed": true,
+                "tolerance": 1e-09
+              },
+              "max_dollar_neutral": 2.4910629115e-15,
+              "max_model_beta": 9.32123851755e-05,
+              "model_beta_neutral": {
+                "passed": true,
+                "tolerance": 0.001
+              },
+              "realized_beta": -0.000990424174,
+              "realized_beta_check": {
+                "passed": true,
+                "tolerance": 0.15
+              }
+            },
+            "psr": 0.0,
+            "realized_beta": -0.000990424174,
+            "regime": "bull_mid_vol",
+            "seed": 20268183,
+            "seed_index": 7,
+            "sharpe": -1.24546431841,
+            "sigma0": 1.4322316178,
+            "status": "ok",
+            "survives_deflation": false,
+            "tail": {
+              "best_day_return": 0.000973493628133,
+              "conditional_drawdown_95": -0.00477441792018,
+              "cvar_95": -0.000805997836196,
+              "cvar_99": -0.00110611477365,
+              "drawdown_var_95": -0.00453786398145,
+              "excess_kurtosis": 0.303590800122,
+              "expected_shortfall_975": -0.00103761245285,
+              "left_tail_mean": -0.000805997836196,
+              "max_drawdown": -0.0049522449709,
+              "max_drawdown_canonical": -0.0049522449709,
+              "mean_return": -3.04379113555e-05,
+              "n_observations": 68,
+              "n_tail_obs_95": 4,
+              "n_tail_obs_99": 1,
+              "right_tail_mean": 0.000730714490384,
+              "sharpe": -1.24546431841,
+              "skew": -0.033798130193,
+              "std_return": 0.000385094018924,
+              "tail_asymmetry": 0.0489898756648,
+              "var_95": -0.000564848592834,
+              "var_99": -0.00101432166378,
+              "worst_day_return": -0.00110611477365
+            },
+            "total_return": -0.00207270091899,
+            "turnover": 0.0177044294007,
+            "verdict": "DOES_NOT_SURVIVE_DEFLATION",
+            "wealth": 0.997927299081
+          }
+        },
+        "seed": 20268183,
+        "seed_index": 7,
+        "status": "ok"
+      }
+    ]
+  },
+  "schema": "bab_p39.regime_conditional/1",
+  "trial_enumeration": {
+    "n_trials_total": 552,
+    "source": "P38 deflated_summary.json"
+  }
+}
