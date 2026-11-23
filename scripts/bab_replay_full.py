@@ -141,6 +141,15 @@ REGISTRY: list[dict] = [
     {"module": "bab_p38_tail_risk", "build": "build_summary",
      "dir": "bab_p38", "name": "tail_risk_summary",
      "inject_determinism": False, "json_only": True, "no_xproc": True},
+    # P39 WP1/WP2 summary artifacts (JSON-only; no .md sidecar). Gated out of
+    # --xproc/--check-provenance so the frozen P29 provenance_audit.json ledger
+    # is never rewritten by P39 entries (mirrors the P35-P38 entries above).
+    {"module": "bab_p39_regime_conditional", "build": "build_summary",
+     "dir": "bab_p39", "name": "regime_summary",
+     "inject_determinism": False, "json_only": True, "no_xproc": True},
+    {"module": "bab_p39_cross_fixture", "build": "build_summary",
+     "dir": "bab_p39", "name": "cross_fixture_summary",
+     "inject_determinism": False, "json_only": True, "no_xproc": True},
 ]
 
 # Cheap subset (fast generators) used by the drift self-test so it runs in
