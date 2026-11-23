@@ -2,7 +2,7 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, `NEXT_*.md`, or parallel task doc. If you find one, fold anything still true into this file and delete it.** Only `HANDOFF.md` is tracked; keep it that way.
 
-- **Timestamp (UTC):** 2026-11-23T09:17:37Z (handoff refreshed; baseline re-verified firsthand at this timestamp)
+- **Timestamp (UTC):** 2026-11-23T09:19:45Z (handoff refreshed; baseline re-verified firsthand at this timestamp)
 - **HEAD:** `726d4bd` (last commit). **P38 is fully COMMITTED at `726d4bd`; there is no uncommitted P38 work.** (The only working-tree delta is this HANDOFF.md refresh itself — persist it via the normal session checkpoint; it is NOT work-to-do.) The P38 WP2 + WP3 close-out landed in commit `726d4bd` (`scripts/bab_p38_tail_risk.py`, `research_state/bab_p38/tail_risk_summary.{json,md}`, `docs/BAB_P38_DECISION.md`, `generate_p38_decision.py`, replay/gate wire, tests). Start P39 WP1 directly.
 - **Git state:** P20–P37 are COMPLETE and frozen (do NOT re-do them). **P38 is COMPLETE and committed (WP1–WP3).** The binding row is **Campaign P39 "Regime-Conditional & Cross-Fixture Robustness Closure"**. **P39 has NOT been started** — no `scripts/bab_p39_*`, `tests/test_bab_p39_*`, `research_state/bab_p39/`, or `docs/BAB_P39_*` exist yet.
   - **P38 WP1 (deflated significance) — DONE** (verdict `SURVIVES_DEFLATION` over `n_trials_total=552`; `--check-deflated-summary` byte-identical).
@@ -12,7 +12,7 @@
 
 ---
 
-# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-23T09:17:37Z)
+# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-23T09:19:45Z)
 
 **MINIMUM ACCEPTABLE OUTCOME (non-negotiable): land P39 WP1 (regime-conditional deflated significance + tail risk)** — create `scripts/bab_p39_regime_conditional.py` + `research_state/bab_p39/regime_summary.{json,md}` + `tests/test_bab_p39_regime_conditional.py`, with `--check-regime-summary` GREEN and `ruff check .` clean. **There is no uncommitted P38 work to commit — P38 is committed at `726d4bd` (the only working-tree delta is this handoff refresh, which is not work-to-do). A handoff-only / docs-only / verification-only / re-verification-only commit that substitutes for P39 work is a FAILED session while P39 WP1–WP2 are open.** If you catch yourself producing only a handoff refresh, a green re-run log, or a planning note without new `bab_p39_*` code + tests + a byte-identical `--check-*`, STOP — that is a failed session, not progress. (P39 WP0 — the full-gate run — is a large-time-budget close-out that does NOT block WP1; use the cheap inner loop while iterating.)
 
@@ -20,9 +20,9 @@
 
 **Prioritization by repo name:** the repo implements a *factor* strategy. P38 answered the two *pooled* questions — (1) is the Sharpe distinguishable from luck after multiple-testing deflation (`SURVIVES_DEFLATION`, WP1), and (2) what does the unconditional left tail look like (`ALL_NEUTRALITY_OK`, bounded, WP2). The decisive remaining scientific question for any factor is **stability**: do those conclusions hold (a) *within* causal market regimes (bull / bear / high-vol / low-vol) rather than only pooled, and (b) on a *second, independently parameterized* synthetic universe? P20–P38 answered neither. Therefore the binding heavy campaign is **P39 WP1 → WP2 → WP3**, in that order. Start WP1 immediately; do not drift into re-verification of frozen campaigns.
 
-## VERIFIED BASELINE — firsthand this session (working tree = CLEAN at P38 close-out, HEAD `726d4bd`, numpy 2.5.5 / pandas 3.1.1 / scipy 1.18.1, all UNPINNED; re-verified 2026-11-23T09:17:37Z)
+## VERIFIED BASELINE — firsthand this session (working tree = CLEAN at P38 close-out, HEAD `726d4bd`, numpy 2.5.5 / pandas 3.1.1 / scipy 1.18.1, all UNPINNED; re-verified 2026-11-23T09:19:45Z)
 
-**Re-verified firsthand at 2026-11-23T09:17:37Z:** `ruff check .` clean, `bab_quick.sh` = **299 passed**, `--check-deflated-summary` PASS (byte-identical), `--check-tail-risk-summary` PASS (byte-identical), both replay `--self-test` `pass:true`. The remaining bullets below were last confirmed at the P38 close-out (`726d4bd`) and are re-checked by the FIRST ACTION block.
+**Re-verified firsthand at 2026-11-23T09:19:45Z:** `ruff check .` clean, `bab_quick.sh` = **299 passed**, `--check-deflated-summary` PASS (byte-identical), `--check-tail-risk-summary` PASS (byte-identical), both replay `--self-test` `pass:true`. The remaining bullets below were last confirmed at the P38 close-out (`726d4bd`) and are re-checked by the FIRST ACTION block.
 
 - **GREEN (confirmed):**
   - `python3 -m ruff check .` → `All checks passed!` (exit 0).
@@ -96,7 +96,7 @@ python3 scripts/bab_replay_full.py --subset deflated_summary,tail_risk_summary,r
 
 # BINDING ROW = Campaign P39 — "Regime-Conditional & Cross-Fixture Robustness Closure" (+ P28 WP2–WP4 MAINTAINER-GATED)
 
-**Declared:** 2026-11-23T09:17:37Z (binding row re-declared at handoff refresh; originally drafted 2026-11-23T08:37:20Z) · **Campaign:** P39 "Regime-Conditional & Cross-Fixture Robustness Closure" · **Priority: HIGH** · **Status: ACTIVE — the sole agent-executable binding row.** P20–P38 COMPLETE and frozen; do NOT re-do them.
+**Declared:** 2026-11-23T09:19:45Z (binding row re-declared at handoff refresh; originally drafted 2026-11-23T08:37:20Z) · **Campaign:** P39 "Regime-Conditional & Cross-Fixture Robustness Closure" · **Priority: HIGH** · **Status: ACTIVE — the sole agent-executable binding row.** P20–P38 COMPLETE and frozen; do NOT re-do them.
 
 **Why P39 (prioritized by repo name):** P38 answered the two *pooled* factor questions (deflated significance + unconditional tail). The decisive remaining question is *stability*: (a) does `SURVIVES_DEFLATION` and the bounded tail hold *within* causal regimes (not only pooled — a factor can look fine in aggregate and blow up in one regime), and (b) does it *replicate* on a second, independently parameterized synthetic universe (guarding against a single-fixture artifact)? P39 closes (a) and (b), then binds them into a decision doc + gate.
 
