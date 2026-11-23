@@ -2,13 +2,13 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, `NEXT_*.md`, or parallel task doc. If you find one, fold anything still true into this file and delete it.** Only `HANDOFF.md` is tracked; keep it that way.
 
-- **Timestamp (UTC):** 2026-11-23T03:35:51Z
+- **Timestamp (UTC):** 2026-11-23T03:36:13Z
 - **HEAD:** 67a40cb
 - **Git state:** P20–P37 are COMPLETE and frozen (do NOT re-do them). **The binding row is Campaign P38.** **P38 WP0 (provenance reproducibility) is DONE this session — the replay gate is now GREEN** (verified firsthand — see VERIFIED BASELINE). The blocking first task is now **P38 WP1 (deflated/multiple-testing significance)**, then WP2→WP3.
 
 ---
 
-# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-23T03:35:51Z)
+# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-23T03:36:13Z)
 
 **Repo:** `Crypto-Betting-Against-Beta` — a market-neutral **Betting-Against-Beta** factor strategy for crypto (long low-beta, short high-beta, beta-neutral by construction). The repo's entire value proposition is *honest, reproducible, artifact-gated evidence*. **P38 WP0 (provenance reproducibility) is now GREEN** — a prior session landed a complete determinism fix (round-before-hash / signed-zero normalization across the P21/P25/P26/P27/P36/P37 generators + regenerated all affected artifacts + re-derived the P29 ledger). Do NOT redo WP0; verify it (commands below) and proceed to WP1.
 
