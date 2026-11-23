@@ -223,3 +223,16 @@ python3 -m pytest -q tests/test_bab_p38_tail_risk.py
 echo "[bab_gate] P38 decision-consistency tests (WP3)"
 python3 -m pytest -q tests/test_bab_p38_decision_consistency.py
 echo "[bab_gate] P38 GREEN"
+
+# --- P39 WP1/WP2/WP3: regime-conditional + cross-fixture closure + decision doc + gate wire ---
+echo "[bab_gate] P39 regime-conditional summary check (WP1)"
+python3 "$ROOT/scripts/bab_p39_regime_conditional.py" --check-regime-summary
+echo "[bab_gate] P39 cross-fixture summary check (WP2)"
+python3 "$ROOT/scripts/bab_p39_cross_fixture.py" --check-cross-fixture-summary
+echo "[bab_gate] P39 regime-conditional tests (WP1)"
+python3 -m pytest -q tests/test_bab_p39_regime_conditional.py
+echo "[bab_gate] P39 cross-fixture tests (WP2)"
+python3 -m pytest -q tests/test_bab_p39_cross_fixture.py
+echo "[bab_gate] P39 decision-consistency tests (WP3)"
+python3 -m pytest -q tests/test_bab_p39_decision_consistency.py
+echo "[bab_gate] P39 GREEN"
