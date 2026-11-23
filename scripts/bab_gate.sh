@@ -212,3 +212,14 @@ python3 "$ROOT/scripts/bab_p37_turnover.py" --check-turnover-summary
 echo "[bab_gate] P37 decision-consistency tests (WP3)"
 python3 -m pytest -q tests/test_bab_p37_decision_consistency.py
 echo "[bab_gate] P37 GREEN"
+
+# --- P38 WP1/WP2/WP3: deflated significance + tail-risk closure + decision doc + gate wire ---
+echo "[bab_gate] P38 deflated significance summary check (WP1)"
+python3 "$ROOT/scripts/bab_p38_deflated_significance.py" --check-deflated-summary
+echo "[bab_gate] P38 tail-risk summary check (WP2)"
+python3 "$ROOT/scripts/bab_p38_tail_risk.py" --check-tail-risk-summary
+echo "[bab_gate] P38 tail-risk tests (WP2)"
+python3 -m pytest -q tests/test_bab_p38_tail_risk.py
+echo "[bab_gate] P38 decision-consistency tests (WP3)"
+python3 -m pytest -q tests/test_bab_p38_decision_consistency.py
+echo "[bab_gate] P38 GREEN"

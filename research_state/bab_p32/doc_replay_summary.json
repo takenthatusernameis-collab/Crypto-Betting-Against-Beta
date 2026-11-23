@@ -76,6 +76,13 @@
       "module": "generate_p37_decision",
       "name": "p37_decision.md",
       "replay_ok": true
+    },
+    {
+      "committed": "docs/BAB_P38_DECISION.md",
+      "kind": "decision",
+      "module": "generate_p38_decision",
+      "name": "p38_decision.md",
+      "replay_ok": true
     }
   ],
   "schema": "bab_p32.doc_replay_summary/1"
