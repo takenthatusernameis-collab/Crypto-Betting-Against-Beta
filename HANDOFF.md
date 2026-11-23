@@ -2,21 +2,21 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, `NEXT_*.md`, or parallel task doc. If you find one, fold anything still true into this file and delete it.** Only `HANDOFF.md` is tracked; keep it that way.
 
-- **Timestamp (UTC):** 2026-11-23T03:36:31Z
-- **HEAD:** 677fb04
-- **Git state:** P20–P37 are COMPLETE and frozen (do NOT re-do them). **The binding row is Campaign P38.** **P38 WP0 (provenance reproducibility) is DONE and GREEN** (verified firsthand this session — `ruff check .` → All checks passed; `bab_replay_full.py --self-test` → pass:true). The blocking first task is now **P38 WP1 (deflated/multiple-testing significance)**, then WP2→WP3.
+- **Timestamp (UTC):** 2026-11-23T03:48:28Z
+- **HEAD:** 4c7f67f
+- **Git state:** P20–P37 are COMPLETE and frozen (do NOT re-do them). **The binding row is Campaign P38.** **P38 WP0 (provenance reproducibility) is DONE and GREEN** (verified firsthand this session — `ruff check .` → All checks passed; `bash scripts/bab_quick.sh` → quick preflight OK; `bab_replay_full.py --self-test` → pass:true). The blocking first task is now **P38 WP1 (deflated/multiple-testing significance)**, then WP2→WP3.
 
 ---
 
-# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-23T03:36:31Z)
+# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-23T03:48:28Z)
 
 **Repo:** `Crypto-Betting-Against-Beta` — a market-neutral **Betting-Against-Beta** factor strategy for crypto (long low-beta, short high-beta, beta-neutral by construction). The repo's entire value proposition is *honest, reproducible, artifact-gated evidence*. **P38 WP0 (provenance reproducibility) is now GREEN** — a prior session landed a complete determinism fix (round-before-hash / signed-zero normalization across the P21/P25/P26/P27/P36/P37 generators + regenerated all affected artifacts + re-derived the P29 ledger). Do NOT redo WP0; verify it (commands below) and proceed to WP1.
 
 **Prioritization by repo name:** the repo implements a *factor* strategy (Betting Against Beta). The decisive scientific questions for any factor are (1) *is the Sharpe statistically distinguishable from luck after accounting for how many configurations were tried?* and (2) *what does the left tail look like for a book that is structurally short high-beta / short volatility?* P20–P37 answered neither at the campaign level. Therefore the binding heavy campaign is **P38 "Deflated Significance & Tail-Risk Closure"**, and with WP0 green, **WP1 (deflated significance) is the blocking first task**.
 
-## VERIFIED BASELINE — firsthand this session (HEAD `50f6dd1`, numpy 2.5.5 / pandas 3.1.1 / scipy 1.18.1, all UNPINNED)
+## VERIFIED BASELINE — firsthand this session (HEAD `4c7f67f`, numpy 2.5.5 / pandas 3.1.1 / scipy 1.18.1, all UNPINNED)
 
-I landed the P38 WP0 determinism fix and re-ran the gates. Trust these results:
+WP0 is verified green this session. Trust these results:
 
 - **GREEN (confirmed):**
   - `python3 -m ruff check .` → `All checks passed!` (exit 0).
