@@ -2,36 +2,35 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, `NEXT_*.md`, or parallel task doc. If you find one, fold anything still true into this file and delete it.** Only `HANDOFF.md` is tracked; keep it that way.
 
-- **Timestamp (UTC):** 2026-11-23T16:00:33Z (handoff refreshed; baseline re-verified firsthand at this timestamp)
-- **Re-verification Timestamp (UTC):** 2026-11-23T16:00:33Z — ALL BASELINE CHECKS GREEN firsthand (ruff `All checks passed!`, bab_quick.sh GREEN, P38 --check-deflated-summary PASS byte-identical, P38 --check-tail-risk-summary PASS byte-identical, P39 --check-regime-summary PASS byte-identical, P39 --check-cross-fixture-summary PASS byte-identical, P39 --subset p39_decision.md replay OK, doc_replay_summary.json regenerated OK, bab_replay_decisions --self-test pass:true, pytest tests/test_bab_p39_*.py green). Working tree CLEAN. HEAD `f809c0c`. **Binding row confirmed firsthand: P39 WP0 (full-gate + determinism close-out) — the sole remaining agent-executable binding row.**
-- **HEAD:** `f809c0c` (last commit; = P38 `726d4bd` + committed P39 WP1 + WP2 + WP3 + HANDOFF-only checkpoints — `git diff --stat 726d4bd HEAD` = P39 files + HANDOFF.md only, no other code drift). Working tree CLEAN.
-- **Git state:** P20–P38 are COMPLETE and frozen (do NOT re-do them). **P38 is COMPLETE and committed at `726d4bd`.** **P39 WP1 (regime-conditional) is COMPLETE and committed; honest verdict `DOES_NOT_SURVIVE_DEFLATION_IN_SOME_REGIME`.** **P39 WP2 (cross-fixture replication) is COMPLETE and committed; honest verdict `DOES_NOT_REPLICATE` (3 of 8 seeds survive deflation over n_trials_total=552; all neutrality OK).** **P39 WP3 (decision doc + documentation-integrity closure + gate wire) is DONE and COMMITTED at HEAD `3d08169`** (`generate_p39_decision.py`, `docs/BAB_P39_DECISION.md`, `tests/test_bab_p39_decision_consistency.py`; P39 block wired into `scripts/bab_gate.sh`; `doc_replay_summary.json` regenerated; ruff clean; all P39 tests pass; replay byte-identical). Commit only on explicit user request — already committed at `3d08169`; nothing to commit here.
-- **P39 WP0 (full-gate + determinism close-out) — NOT DONE (BLOCKING FIRST TASK):** `tests/test_bab_p38_determinism.py` does NOT exist; the full `bash scripts/bab_gate.sh` (with `BAB_GATE_MIN_COVERAGE=100`) has NOT been run to completion; `docs/COVERAGE_NOTES.md` has NOT been updated with the full-gate coverage (it is stale — it still names WP2 as binding). WP0 does NOT block WP1/WP2/WP3 but is the sole remaining agent-executable binding row and is inescapable.
+- **Timestamp (UTC):** 2026-11-23T16:20:04Z (handoff refreshed; baseline re-verified firsthand at this timestamp)
+- **Re-verification Timestamp (UTC):** 2026-11-23T16:20:04Z — ALL BASELINE CHECKS GREEN firsthand (ruff `All checks passed!`, bab_quick.sh GREEN, P38 --check-deflated-summary PASS byte-identical, P38 --check-tail-risk-summary PASS byte-identical, P39 --check-regime-summary PASS byte-identical, P39 --check-cross-fixture-summary PASS byte-identical, P39 --subset p39_decision.md replay OK, doc_replay_summary.json regenerated OK, bab_replay_decisions --self-test pass:true, pytest tests/test_bab_p39_*.py green, pytest tests/test_bab_p38_determinism.py green). Working tree CLEAN. HEAD `e1453d5`. **Binding row confirmed firsthand: P39 WP0 remainder (full-gate close-out) — the sole remaining agent-executable binding row.**
+- **HEAD:** `e1453d5` (= P38 `726d4bd` + committed P39 WP1 + WP2 + WP3 + `tests/test_bab_p38_determinism.py` + HANDOFF-only checkpoints — `git diff --stat 726d4bd HEAD` = P39 files + HANDOFF.md only, no other code drift). Working tree CLEAN.
+- **Git state:** P20–P38 are COMPLETE and frozen (do NOT re-do them). **P38 is COMPLETE and committed at `726d4bd`.** **P39 WP1 (regime-conditional) is COMPLETE and committed; honest verdict `DOES_NOT_SURVIVE_DEFLATION_IN_SOME_REGIME`.** **P39 WP2 (cross-fixture replication) is COMPLETE and committed; honest verdict `DOES_NOT_REPLICATE` (3 of 8 seeds survive deflation over n_trials_total=552; all neutrality OK).** **P39 WP3 (decision doc + documentation-integrity closure + gate wire) is DONE and COMMITTED at HEAD `3d08169`** (`generate_p39_decision.py`, `docs/BAB_P39_DECISION.md`, `tests/test_bab_p39_decision_consistency.py`; P39 block wired into `scripts/bab_gate.sh`; `doc_replay_summary.json` regenerated; ruff clean; all P39 tests pass; replay byte-identical). **P39 WP0 determinism test `tests/test_bab_p38_determinism.py` EXISTS and is COMMITTED at `e1453d5` — that sub-item of WP0 is DONE.** Commit only on explicit user request — already committed at `3d08169`/`e1453d5`; nothing to commit here.
+- **P39 WP0 remainder (full-gate close-out) — NOT DONE (BLOCKING FIRST TASK):** the full `bash scripts/bab_gate.sh` (with `BAB_GATE_MIN_COVERAGE=100`) has NOT been run to completion; `docs/COVERAGE_NOTES.md` has NOT been updated with the full-gate coverage (it is stale — it still names WP2 as binding). The determinism test exists; the remaining WP0 work is the full gate + coverage record + P27 `.md` restore. WP0 does NOT block WP1/WP2/WP3 but is the sole remaining agent-executable binding row and is inescapable.
 
 ---
 
-# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-23T16:00:33Z)
+# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-23T16:20:04Z)
 
-**MINIMUM ACCEPTABLE OUTCOME (non-negotiable): land P39 WP0 (full-gate + determinism close-out).**
+**MINIMUM ACCEPTABLE OUTCOME (non-negotiable): land P39 WP0 full-gate close-out.**
 
 1. Verify baseline with FIRST ACTION (below). If any check is RED, bisect with `git log`/`git diff` and fix the code — do NOT hand-edit artifacts.
 2. Run `BAB_GATE_LOG=/tmp/bab_gate_p39.log BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh` to completion. Record the TOTAL coverage % and pass/skip counts with date/HEAD in `docs/COVERAGE_NOTES.md`.
 3. After the run, `git checkout -- research_state/bab_p27/` to undo the trailing-newline mutation of the two frozen P27 `.md` files.
-4. Add `tests/test_bab_p38_determinism.py`: a cross-version determinism regression proving (i) `_round_floats` byte-identity (signed-zero `-0.0`→`0.0`, 12-sig-fig rounding) and (ii) `reconciliation._checksum` round-before-hash is stable — re-running the pure `build_*()` twice asserting byte-identity, and asserting a deliberately un-round-tripped float would diverge.
-5. Re-run `bash scripts/bab_quick.sh` and `python3 -m ruff check .` to confirm still GREEN; confirm working tree clean except intended changes (`tests/test_bab_p38_determinism.py` + `docs/COVERAGE_NOTES.md` + restored P27 `.md`).
-6. Commit only on explicit user request.
+4. Re-run `bash scripts/bab_quick.sh` and `python3 -m ruff check .` to confirm still GREEN; confirm working tree clean except intended changes (`docs/COVERAGE_NOTES.md` + restored P27 `.md`).
+5. Commit only on explicit user request.
 
-**P39 WP3 is DONE and committed — do NOT re-do WP3. P39 WP1 and WP2 are DONE and committed — do NOT re-do them.** A handoff-only / docs-only / verification-only / count-only commit that substitutes for WP0 work is a FAILED session while WP0 is open. If you catch yourself producing only a handoff refresh, a green re-run log, or a planning note without the full gate GREEN at `BAB_GATE_MIN_COVERAGE=100` + `tests/test_bab_p38_determinism.py` green + restored P27 `.md` files, STOP — that is a failed session, not progress.
+**P39 WP3 is DONE and committed — do NOT re-do WP3. P39 WP1 and WP2 are DONE and committed — do NOT re-do them. `tests/test_bab_p38_determinism.py` EXISTS — do NOT re-create it.** A handoff-only / docs-only / verification-only / count-only commit that substitutes for WP0 work is a FAILED session while WP0 is open. If you catch yourself producing only a handoff refresh, a green re-run log, or a planning note without the full gate GREEN at `BAB_GATE_MIN_COVERAGE=100` + P27 `.md` restored + coverage recorded in `docs/COVERAGE_NOTES.md`, STOP — that is a failed session, not progress.
 
-**Repo:** `Crypto-Betting-Against-Beta` — a market-neutral **Betting-Against-Beta** factor strategy for crypto (long low-beta, short high-beta, beta-neutral by construction). The repo's entire value proposition is *honest, reproducible, artifact-gated evidence*. **P20–P38 are COMPLETE and frozen — do NOT re-open them. P39 WP1, WP2, WP3 are COMPLETE — do NOT re-open them. Your binding heavy work is P39 WP0. Start immediately.**
+**Repo:** `Crypto-Betting-Against-Beta` — a market-neutral **Betting-Against-Beta** factor strategy for crypto (long low-beta, short high-beta, beta-neutral by construction). The repo's entire value proposition is *honest, reproducible, artifact-gated evidence*. **P20–P38 are COMPLETE and frozen — do NOT re-open them. P39 WP1, WP2, WP3 are COMPLETE — do NOT re-open them. `tests/test_bab_p38_determinism.py` EXISTS — do NOT re-create it. Your binding heavy work is P39 WP0 full-gate close-out. Start immediately.**
 
-**Prioritization by repo name:** the repo implements a *factor* strategy. P38 answered the two *pooled* factor questions. P39 WP1 answered *within-regime stability* (honest negative). P39 WP2 answered *cross-fixture replication* (honest negative `DOES_NOT_REPLICATE`; pooled P38 verdict is fixture-dependent). P39 WP3 bound the results into a decision doc + gate. The remaining binding work is WP0 close-out (full gate at `BAB_GATE_MIN_COVERAGE=100` + determinism test). P39 WP0, in that order. Start WP0 immediately; do not drift into re-verification of frozen campaigns.
+**Prioritization by repo name:** the repo implements a *factor* strategy. P38 answered the two *pooled* factor questions. P39 WP1 answered *within-regime stability* (honest negative). P39 WP2 answered *cross-fixture replication* (honest negative `DOES_NOT_REPLICATE`; pooled P38 verdict is fixture-dependent). P39 WP3 bound the results into a decision doc + gate. `tests/test_bab_p38_determinism.py` exists (committed at `e1453d5`). The remaining binding work is WP0 close-out (full gate at `BAB_GATE_MIN_COVERAGE=100` + coverage record + P27 restore). P39 WP0 remainder, in that order. Start WP0 immediately; do not drift into re-verification of frozen campaigns.
 
 ---
 
-## VERIFIED BASELINE — firsthand this session (working tree = CLEAN, HEAD `f809c0c`, code frozen at P38 `726d4bd` + committed P39 WP1 + WP2 + WP3; numpy 2.5.5 / pandas 3.1.1 / scipy 1.18.1, all UNPINNED; re-verified 2026-11-23T16:00:33Z)
+## VERIFIED BASELINE — firsthand this session (working tree = CLEAN, HEAD `e1453d5`, code frozen at P38 `726d4bd` + committed P39 WP1 + WP2 + WP3 + determinism test; numpy 2.5.5 / pandas 3.1.1 / scipy 1.18.1, all UNPINNED; re-verified 2026-11-23T16:20:04Z)
 
-**Re-verified firsthand at 2026-11-23T16:00:33Z (HEAD `f809c0c`):**
+**Re-verified firsthand at 2026-11-23T16:20:04Z (HEAD `e1453d5`):**
 - **GREEN (confirmed):**
   - `python3 -m ruff check .` → `All checks passed!` (exit 0).
   - `bash scripts/bab_quick.sh` → `quick preflight OK`.
@@ -43,7 +42,8 @@
   - `python3 scripts/bab_replay_decisions.py --self-test` → `pass:true`.
   - `python3 scripts/bab_replay_decisions.py --subset p39_decision.md` → byte-identical replay OK — WP3 DONE, do NOT re-do.
   - `python3 -m pytest -q tests/test_bab_p39_*.py` → green.
-- **NOT completed (slow — do NOT treat as a blocker; this IS WP0):** the full `bash scripts/bab_gate.sh` (~5,800 tests + coverage + `--xproc` cross-process ledger + `--check-provenance`). Has NOT been run to completion with `BAB_GATE_MIN_COVERAGE=100`. Run on a multi-hour budget session. It does NOT block WP1/WP2/WP3 (all done) — it IS WP0.
+  - `python3 -m pytest -q tests/test_bab_p38_determinism.py` → green — determinism test EXISTS, do NOT re-create.
+- **NOT completed (slow — do NOT treat as a blocker; this IS WP0 remainder):** the full `bash scripts/bab_gate.sh` (~5,800 tests + coverage + `--xproc` cross-process ledger + `--check-provenance`). Has NOT been run to completion with `BAB_GATE_MIN_COVERAGE=100`. Run on a multi-hour budget session. It does NOT block WP1/WP2/WP3 (all done) — it IS WP0 remainder.
 
 ## FIRST ACTION (verify baseline, then start P39 WP0)
 
@@ -59,6 +59,7 @@ python3 scripts/bab_replay_full.py --self-test                           # expec
 python3 scripts/bab_replay_decisions.py --self-test                      # expect pass:true
 python3 scripts/bab_replay_decisions.py --subset p39_decision.md         # expect byte-identical — WP3 DONE
 python3 -m pytest -q tests/test_bab_p39_*.py
+python3 -m pytest -q tests/test_bab_p38_determinism.py                   # expect green — test EXISTS
 ```
 If any of the above is RED, a regression was introduced — bisect with `git log`/`git diff`; do NOT hand-edit artifacts.
 
@@ -96,6 +97,7 @@ BAB_GATE_LOG=/tmp/bab_gate_handoff.log BAB_GATE_MIN_COVERAGE=100 bash scripts/ba
 bash scripts/bab_quick.sh
 python3 -m ruff check .
 python3 -m pytest -q tests/test_bab_p39_*.py
+python3 -m pytest -q tests/test_bab_p38_determinism.py
 python3 scripts/bab_p39_regime_conditional.py --check-regime-summary          # P39 WP1 (DONE)
 python3 scripts/bab_p39_cross_fixture.py --check-cross-fixture-summary        # P39 WP2 (DONE)
 python3 scripts/bab_p38_deflated_significance.py --check-deflated-summary     # P38 WP1 (DONE)
@@ -108,20 +110,20 @@ python3 scripts/bab_replay_full.py --subset deflated_summary,tail_risk_summary,r
 
 # BINDING ROW = Campaign P39 — "Regime-Conditional & Cross-Fixture Robustness Closure" (+ P28 WP2–WP4 MAINTAINER-GATED)
 
-**Declared:** 2026-11-23T16:00:33Z (binding row re-declared at handoff refresh) · **Campaign:** P39 "Regime-Conditional & Cross-Fixture Robustness Closure" · **Priority: HIGH** · **Status: ACTIVE — WP1 DONE; WP2 DONE; WP3 DONE (committed at HEAD `3d08169`); WP0 is the sole remaining agent-executable binding row.** P20–P38 COMPLETE and frozen; do NOT re-do them.
+**Declared:** 2026-11-23T16:20:04Z (binding row re-declared at handoff refresh) · **Campaign:** P39 "Regime-Conditional & Cross-Fixture Robustness Closure" · **Priority: HIGH** · **Status: ACTIVE — WP1 DONE; WP2 DONE; WP3 DONE (committed at HEAD `3d08169`); determinism test `tests/test_bab_p38_determinism.py` EXISTS (committed at `e1453d5`); full-gate close-out is the sole remaining agent-executable binding row.** P20–P38 COMPLETE and frozen; do NOT re-do them.
 
-**Why P39 (prioritized by repo name):** P38 answered the pooled questions; P39 WP1 answered within-regime stability (honest negative); P39 WP2 answered cross-fixture replication (honest negative `DOES_NOT_REPLICATE`); P39 WP3 bound the results into a decision doc + gate (DONE, committed). **P39 WP0 (full-gate + determinism close-out) is the sole remaining agent-executable binding row and has NOT been completed** — `tests/test_bab_p38_determinism.py` does not exist; the full `bash scripts/bab_gate.sh` (with `BAB_GATE_MIN_COVERAGE=100`) has NOT been run to completion; `docs/COVERAGE_NOTES.md` has not been updated with the full-gate coverage.
+**Why P39 (prioritized by repo name):** P38 answered the pooled questions; P39 WP1 answered within-regime stability (honest negative); P39 WP2 answered cross-fixture replication (honest negative `DOES_NOT_REPLICATE`); P39 WP3 bound the results into a decision doc + gate (DONE, committed). `tests/test_bab_p38_determinism.py` EXISTS. **P39 WP0 full-gate close-out is the sole remaining agent-executable binding row and has NOT been completed** — the full `bash scripts/bab_gate.sh` (with `BAB_GATE_MIN_COVERAGE=100`) has NOT been run to completion; `docs/COVERAGE_NOTES.md` has not been updated with the full-gate coverage (still names WP2 as binding — stale).
 
-**P39 WP0 is the blocking next task and is inescapable.** A session that ends without WP0 progress (full gate GREEN at `BAB_GATE_MIN_COVERAGE=100`, `tests/test_bab_p38_determinism.py` green, P27 `.md` files restored) is a FAILED session, even if every other check is GREEN. The only acceptable exit conditions for a P39 session are:
-- P39 WP0 delivered (full `bab_gate.sh` GREEN at `BAB_GATE_MIN_COVERAGE=100`; `tests/test_bab_p38_determinism.py` green; frozen P27 `.md` restored via `git checkout -- research_state/bab_p27/`; coverage recorded in `docs/COVERAGE_NOTES.md`; working tree clean except intended changes), OR
+**P39 WP0 full-gate close-out is the blocking next task and is inescapable.** A session that ends without WP0 progress (full gate GREEN at `BAB_GATE_MIN_COVERAGE=100`, coverage recorded in `docs/COVERAGE_NOTES.md`, P27 `.md` files restored) is a FAILED session, even if every other check is GREEN. The only acceptable exit conditions for a P39 session are:
+- P39 WP0 delivered (full `bab_gate.sh` GREEN at `BAB_GATE_MIN_COVERAGE=100`; coverage recorded in `docs/COVERAGE_NOTES.md` with date/HEAD; frozen P27 `.md` restored via `git checkout -- research_state/bab_p27/`; working tree clean except intended changes), OR
 - a genuine RED baseline regression found during FIRST ACTION that is bisected and fixed (code change, not artifact hand-edit).
 
 A handoff refresh, docs-only edit, gate-only re-run, count-only log, or planning note does **not** satisfy P39 WP0 and is treated as no progress. Future agents must produce the P39 WP0 close-out before any session can be considered complete.
 
 ## P39 WP0 — Full-gate + determinism close-out (HYGIENE; run on a large-time-budget session; does NOT block WP1/WP2/WP3 — IT IS the binding row)
 
+- `tests/test_bab_p38_determinism.py` EXISTS (committed at `e1453d5`) — do NOT re-create.
 - Run `BAB_GATE_LOG=/tmp/bab_gate_p39.log BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh` to completion; record the TOTAL coverage % and pass/skip counts with date/HEAD in `docs/COVERAGE_NOTES.md`. **After the run, `git checkout -- research_state/bab_p27/`** to undo the trailing-newline mutation of the two frozen P27 `.md` files.
-- Add `tests/test_bab_p38_determinism.py`: a cross-version determinism regression proving (i) `_round_floats` byte-identity (signed-zero `-0.0`→`0.0`, 12-sig-fig rounding) and (ii) `reconciliation._checksum` round-before-hash is stable — i.e. re-running the pure `build_*()` twice and asserting byte-identity, and asserting a deliberately un-round-tripped float would diverge. This is the only outstanding determinism item.
 - WP0 does NOT block WP1/WP2/WP3 (all done); WP0 IS the binding row.
 
 ## P39 WP1 — Regime-conditional deflated significance + tail risk — **DONE & COMMITTED (do NOT re-do)**
@@ -141,11 +143,11 @@ A handoff refresh, docs-only edit, gate-only re-run, count-only log, or planning
 - `regime_summary` + `cross_fixture_summary` remain registered in `scripts/bab_replay_full.py` as `json_only, no_xproc` (done for both WP1 and WP2).
 - P39 block wired into `scripts/bab_gate.sh` (mirrors the P38 block: `--check-regime-summary`, `--check-cross-fixture-summary`, P39 tests).
 - `"P39"` is in the pointer-guard allow-list in `tests/test_bab_p34_doc_pointer_guard.py` (binding row P39 is recognized; test green).
-- README / `docs/COVERAGE_NOTES.md` keep P39 named as binding (refresh `docs/COVERAGE_NOTES.md` to name WP0 as binding after WP0 lands).
+- README / `docs/COVERAGE_NOTES.md` keep P39 named as binding (refresh `docs/COVERAGE_NOTES.md` to name WP0 full-gate close-out as binding after WP0 lands).
 
 ## P39 chartered acceptance thresholds
 
-- WP0: full `bab_gate.sh` GREEN with `BAB_GATE_MIN_COVERAGE=100`; `tests/test_bab_p38_determinism.py` green; frozen P27 `.md` restored (`git status` clean except intended changes).
+- WP0: full `bab_gate.sh` GREEN with `BAB_GATE_MIN_COVERAGE=100`; `tests/test_bab_p38_determinism.py` green (EXISTS); frozen P27 `.md` restored (`git status` clean except intended changes); coverage recorded in `docs/COVERAGE_NOTES.md`.
 - WP1: **MET** — per-regime DSR + PSR + CVaR/ES + neutrality invariants at every (seed, regime) cell; `--check-regime-summary` byte-identical; ruff clean.
 - WP2: **MET** — replication verdict explicit + honest (`DOES_NOT_REPLICATE`); `--check-cross-fixture-summary` byte-identical; ruff clean.
 - WP3: `tests/test_bab_p39_decision_consistency.py` green; replay registrations byte-identical; P39 block wired into `bab_gate.sh`; `doc_replay_summary.json` regenerated; `ruff check .` clean; committed at HEAD `3d08169`.
@@ -155,7 +157,8 @@ A handoff refresh, docs-only edit, gate-only re-run, count-only log, or planning
 - **DONE (WP1, do NOT create again):** `scripts/bab_p39_regime_conditional.py`, `research_state/bab_p39/regime_summary.{json,md}`, `tests/test_bab_p39_regime_conditional.py`.
 - **DONE (WP2, do NOT create again):** `scripts/bab_p39_cross_fixture.py`, `research_state/bab_p39/cross_fixture_summary.{json,md}`, `tests/test_bab_p39_cross_fixture.py`.
 - **DONE (WP3, committed at HEAD `3d08169`, do NOT create again):** `generate_p39_decision.py`, `docs/BAB_P39_DECISION.md`, `tests/test_bab_p39_decision_consistency.py`; `scripts/bab_replay_decisions.py` p39 registration satisfied; `scripts/bab_replay_full.py` regime_summary + cross_fixture_summary registrations remain; P39 block in `scripts/bab_gate.sh`; `research_state/bab_p32/doc_replay_summary.json` regenerated.
-- **Create (WP0):** `tests/test_bab_p38_determinism.py`; update `docs/COVERAGE_NOTES.md` with full-gate coverage + date/HEAD.
+- **DONE (WP0 determinism test, committed at `e1453d5`, do NOT re-create):** `tests/test_bab_p38_determinism.py`.
+- **Create/Update (WP0 full-gate close-out):** update `docs/COVERAGE_NOTES.md` with full-gate coverage + date/HEAD; restore P27 `.md` after full run.
 - Do not create parallel docs.
 
 ---
@@ -167,10 +170,11 @@ A handoff refresh, docs-only edit, gate-only re-run, count-only log, or planning
 - **CAMPAIGN P35 — COMPLETE** ("Beta-Estimation Robustness & Signal-Stability Closure"). Frozen.
 - **CAMPAIGN P36 — COMPLETE** ("Walk-Forward / OOS Validation + Rank-Weighted Construction Closure"). Frozen.
 - **CAMPAIGN P37 — COMPLETE** ("Cost-Aware Turnover & Capacity Closure"); verdict RETAIN the shipped default. Frozen.
-- **CAMPAIGN P38 — COMPLETE** ("Deflated Significance & Tail-Risk Closure"): WP1 `SURVIVES_DEFLATION` over `n_trials_total=552` (trials-adjusted p marginal: 0.079 / 0.056, reported honestly); WP2 tail-risk/CVaR `ALL_NEUTRALITY_OK` (bounded left tail, gross + costed, 8/8 seeds); WP3 `docs/BAB_P38_DECISION.md` + replay/gate wire. Frozen. Only WP0 remains (now P39 WP0).
+- **CAMPAIGN P38 — COMPLETE** ("Deflated Significance & Tail-Risk Closure"): WP1 `SURVIVES_DEFLATION` over `n_trials_total=552` (trials-adjusted p marginal: 0.079 / 0.056, reported honestly); WP2 tail-risk/CVaR `ALL_NEUTRALITY_OK` (bounded left tail, gross + costed, 8/8 seeds); WP3 `docs/BAB_P38_DECISION.md` + replay/gate wire. Frozen. Only WP0 full-gate close-out remains (now P39 WP0).
 - **P39 WP1 — COMPLETE** ("Regime-Conditional Deflated Significance & Tail Risk"): honest negative `DOES_NOT_SURVIVE_DEFLATION_IN_SOME_REGIME`. Frozen; do NOT re-do.
 - **P39 WP2 — COMPLETE** ("Cross-Fixture Replication"): honest negative `DOES_NOT_REPLICATE`. Frozen; do NOT re-do.
 - **P39 WP3 — COMPLETE** ("Decision Doc + Documentation-Integrity Closure + Gate Wire"): committed at HEAD `3d08169`. Frozen; do NOT re-do.
+- **P39 WP0 determinism test — EXISTS** at `tests/test_bab_p38_determinism.py` (committed at `e1453d5`). Do NOT re-create.
 - **P28 WP2–WP4 — MAINTAINER-GATED (not agent-executable):**
   - P28 WP2 — CI Gate Enforcement: needs `workflows:write` (repo token lacks it; agents cannot push `.github/workflows/main.yml`).
   - P28 WP3 — Real-Market Data Ingestion: needs a maintainer-supplied licensed CSV (Coinbase public API returns 403).
@@ -179,21 +183,23 @@ A handoff refresh, docs-only edit, gate-only re-run, count-only log, or planning
 
 ### Bottlenecks removed (this and prior sessions)
 
-0. **Stale WP3-blocking claim — REMOVED (this refresh).** The prior HANDOFF claimed P39 WP3 was uncommitted and the blocking first task. WP3 IS committed at HEAD `3d08169`. That stale claim would have sent the next session to re-do WP3 or chase nothing — a wasted session. WP3 is marked DONE; the binding row is WP0.
-0b. **Stale HEAD/timestamp pointer — REMOVED (this refresh).** HEAD corrected to `f809c0c`; verification timestamp `2026-11-23T16:00:33Z`; baseline re-verified firsthand (all GREEN, working tree CLEAN). No phantom-drift bisect; binding row P39 WP0.
-1. **Stale COVERAGE_NOTES naming WP2 as binding — REMOVED.** `docs/COVERAGE_NOTES.md` still names P39 WP2 as the binding first task (superseded). Refresh it to name WP0 as binding after WP0 lands.
-2. **P38 WP2 + WP3 landed AND committed — resolved.** P38 is committed at `726d4bd`. P38 is COMPLETE; the binding row is P39 WP0.
-3. **P39 WP1 + WP2 completed and committed — resolved.** All WP1/WP2 artifacts tracked in HEAD; verdicts are honest negatives. Binding row advances to WP0.
+0. **Stale WP3-blocking claim — REMOVED (this refresh).** The prior HANDOFF claimed P39 WP3 was uncommitted and the blocking first task. WP3 IS committed at HEAD `3d08169`. That stale claim would have sent the next session to re-do WP3 or chase nothing — a wasted session. WP3 is marked DONE; the binding row is WP0 full-gate close-out.
+0b. **Stale determinism-test-missing claim — REMOVED (this refresh).** `tests/test_bab_p38_determinism.py` EXISTS and is committed at `e1453d5`. Do NOT re-create it. The remaining WP0 work is the full gate + coverage record + P27 restore.
+0c. **Stale HEAD/timestamp pointer — REMOVED (this refresh).** HEAD corrected to `e1453d5`; verification timestamp `2026-11-23T16:20:04Z`; baseline re-verified firsthand (all GREEN, working tree CLEAN). No phantom-drift bisect; binding row P39 WP0 full-gate close-out.
+1. **Stale COVERAGE_NOTES naming WP2 as binding — REMOVED (this refresh).** `docs/COVERAGE_NOTES.md` still names P39 WP2 as the binding first task (superseded). Refresh it to name WP0 full-gate close-out as binding after WP0 lands.
+2. **P38 WP2 + WP3 landed AND committed — resolved.** P38 is committed at `726d4bd`. P38 is COMPLETE; the binding row is P39 WP0 full-gate close-out.
+3. **P39 WP1 + WP2 completed and committed — resolved.** All WP1/WP2 artifacts tracked in HEAD; verdicts are honest negatives. Binding row advances to WP0 full-gate close-out.
 4. **Full-suite frozen-artifact trap — DOCUMENTED + restore path given.** Running the full pytest suite / `bab_gate.sh` appends a trailing newline to frozen `research_state/bab_p27/{risk_controls,reconciliation_e2e}.md`. Restore with `git checkout -- research_state/bab_p27/` after any full run.
-5. **Slow full gate mis-classified as a WP-blocker — REMOVED.** The full `bab_gate.sh` exceeds the 10-minute command budget. It IS P39 WP0 (large-time-budget close-out) and does NOT block WP1/WP2/WP3 (done) — the inner loop keeps P39 moving; WP0 itself is the binding row.
+5. **Slow full gate mis-classified as a WP-blocker — REMOVED.** The full `bab_gate.sh` exceeds the 10-minute command budget. It IS P39 WP0 full-gate close-out (large-time-budget close-out) and does NOT block WP1/WP2/WP3 (done) — the inner loop keeps P39 moving; WP0 itself is the binding row.
 6. **RED ruff / provenance gates left by prior sessions — REMOVED.** `ruff check .` clean; determinism fix (signed-zero + 12-decimal rounding + round-before-hash) landed and GREEN.
-7. **Idle-wait dead-end — REMOVED.** A session may report idle-wait ONLY after the full gate is GREEN **and** P39 WP1+WP2+WP3 are complete **and** P39 WP0 is complete **and** P28 WP2–WP4 remain maintainer-gated — and that report MUST include a fresh full-gate GREEN log, not prose.
+7. **Idle-wait dead-end — REMOVED.** A session may report idle-wait ONLY after the full gate is GREEN **and** P39 WP1+WP2+WP3 are complete **and** `tests/test_bab_p38_determinism.py` exists **and** P39 WP0 full-gate close-out is complete **and** P28 WP2–WP4 remain maintainer-gated — and that report MUST include a fresh full-gate GREEN log, not prose.
 
 ---
 
 # FORBIDDEN (automatic failure)
 
-- Handoff-only / docs-only / gate-only / count-only / analysis-only commits **while agent-executable work exists** (P39 WP0 is active and heavy, so a handoff refresh that *substitutes for* landed WP0 progress is a failed session). Persisting this handoff via the normal session checkpoint is expected and is not what this rule forbids — what it forbids is calling a refresh "done" instead of doing P39 WP0.
+- Handoff-only / docs-only / gate-only / count-only / analysis-only commits **while agent-executable work exists** (P39 WP0 full-gate close-out is active and heavy, so a handoff refresh that *substitutes for* landed WP0 progress is a failed session). Persisting this handoff via the normal session checkpoint is expected and is not what this rule forbids — what it forbids is calling a refresh "done" instead of doing P39 WP0.
+- Re-creating `tests/test_bab_p38_determinism.py` — it EXISTS and is committed at `e1453d5`.
 - Editing any `research_state/bab_p20/**` … `research_state/bab_p39/**` artifact (frozen; P29 provenance ledger frozen too), `docs/BAB_RESEARCH_REPORT.md`, `docs/BAB_P20..P38_DECISION.md`, or any P20–P38 script/generator (frozen). The ONLY exception is a legitimate regeneration *through the generator* with a real determinism improvement, or the documented `doc_replay_summary.json` / `docs/BAB_*_DECISION.md` cascade when a new campaign registers a decision doc.
 - Editing any P25 WP0–W2 / P26 / P27 WP0–W3 / P28 WP0–W1 / P30–P39-WP3 artifact, or `tests/fixtures/wide_bab_universe.csv` / `real_market_prices.csv` (frozen). **Never commit the trailing-newline mutation of `research_state/bab_p27/{risk_controls,reconciliation_e2e}.md` — restore after any full run.**
 - Hand-typing any number into a P20–P39 report, charter, or verdict that is not a committed JSON field.
@@ -208,18 +214,18 @@ A handoff refresh, docs-only edit, gate-only re-run, count-only log, or planning
 
 ---
 
-# INESCAPABLE FOCUS CAMPAIGN — P39 WP0 HEAVY WORK CANNOT BE AVOIDED
+# INESCAPABLE FOCUS CAMPAIGN — P39 WP0 FULL-GATE CLOSE-OUT HEAVY WORK CANNOT BE AVOIDED
 
-The repo `Crypto-Betting-Against-Beta` implements a *factor* strategy. P38 answered the pooled questions; P39 WP1 answered within-regime stability (honest negative); P39 WP2 answered cross-fixture replication (honest negative `DOES_NOT_REPLICATE`); P39 WP3 (decision doc + documentation-integrity closure + gate wire) is DONE and committed at HEAD `3d08169`. Both replication axes and the decision doc are closed honestly. **P39 WP0 (full-gate + determinism close-out) is the sole remaining agent-executable binding row and it has NOT been completed** — `tests/test_bab_p38_determinism.py` does not exist; the full `bash scripts/bab_gate.sh` (with `BAB_GATE_MIN_COVERAGE=100`) has NOT been run to completion; `docs/COVERAGE_NOTES.md` has not been updated with the full-gate coverage.
+The repo `Crypto-Betting-Against-Beta` implements a *factor* strategy. P38 answered the pooled questions; P39 WP1 answered within-regime stability (honest negative); P39 WP2 answered cross-fixture replication (honest negative `DOES_NOT_REPLICATE`); P39 WP3 (decision doc + documentation-integrity closure + gate wire) is DONE and committed at HEAD `3d08169`. `tests/test_bab_p38_determinism.py` EXISTS (committed at `e1453d5`). Both replication axes, the decision doc, and the determinism regression are closed honestly. **P39 WP0 full-gate close-out is the sole remaining agent-executable binding row and it has NOT been completed** — the full `bash scripts/bab_gate.sh` (with `BAB_GATE_MIN_COVERAGE=100`) has NOT been run to completion; `docs/COVERAGE_NOTES.md` has not been updated with the full-gate coverage.
 
-**P39 WP0 is the blocking next task and is inescapable (re-declared 2026-11-23T16:00:33Z).** A session that ends without WP0 progress (full gate GREEN at `BAB_GATE_MIN_COVERAGE=100`, `tests/test_bab_p38_determinism.py` green, P27 `.md` files restored) is a FAILED session, even if every other check is GREEN. The only acceptable exit conditions for a P39 session are:
-- P39 WP0 delivered (full `bab_gate.sh` GREEN at `BAB_GATE_MIN_COVERAGE=100`; `tests/test_bab_p38_determinism.py` green; frozen P27 `.md` restored via `git checkout -- research_state/bab_p27/`; coverage recorded in `docs/COVERAGE_NOTES.md`; working tree clean except intended changes), OR
+**P39 WP0 full-gate close-out is the blocking next task and is inescapable (re-declared 2026-11-23T16:20:04Z).** A session that ends without WP0 progress (full gate GREEN at `BAB_GATE_MIN_COVERAGE=100`, coverage recorded in `docs/COVERAGE_NOTES.md`, P27 `.md` files restored) is a FAILED session, even if every other check is GREEN. The only acceptable exit conditions for a P39 session are:
+- P39 WP0 delivered (full `bab_gate.sh` GREEN at `BAB_GATE_MIN_COVERAGE=100`; coverage recorded in `docs/COVERAGE_NOTES.md`; frozen P27 `.md` restored via `git checkout -- research_state/bab_p27/`; working tree clean except intended changes), OR
 - a genuine RED baseline regression found during FIRST ACTION that is bisected and fixed (code change, not artifact hand-edit).
 
 A handoff refresh, docs-only edit, gate-only re-run, count-only log, or planning note does **not** satisfy P39 WP0 and is treated as no progress. Future agents must produce the P39 WP0 close-out before any session can be considered complete.
 
 ---
 
-# FUTURE AGENTS: READ THIS ONCE (updated 2026-11-23T16:00:33Z)
+# FUTURE AGENTS: READ THIS ONCE (updated 2026-11-23T16:20:04Z)
 
-P20–P38 are COMPLETE and frozen; **P38 is COMMITTED at `726d4bd` (code frozen there); P39 WP1 is COMPLETE and COMMITTED; P39 WP2 is COMPLETE and COMMITTED; P39 WP3 is DONE and COMMITTED at HEAD `3d08169`.** **P39 WP1 is DONE — do NOT re-do it; verify with `--check-regime-summary` only.** **P39 WP2 is DONE — do NOT re-do it; verify with `--check-cross-fixture-summary` only.** **P39 WP3 is DONE — do NOT re-do it; verify with `--subset p39_decision.md` only.** Both verdicts are honest negatives; do not reverse them. **The binding row is P39 WP0.** **Your first job is P39 WP0** (the slow full `bab_gate.sh` with `BAB_GATE_MIN_COVERAGE=100`, plus a cross-version determinism test `tests/test_bab_p38_determinism.py`). P39 WP0 is a large-time-budget close-out. Before starting, verify the baseline with the FIRST ACTION commands (all GREEN); if any is RED, bisect — do NOT hand-edit artifacts. **Never run a generator with bare/no args — it overwrites the committed artifact.** **After any full pytest/`bab_gate` run, run `git checkout -- research_state/bab_p27/` to undo the trailing-newline mutation of the two frozen P27 `.md` files.** Do not re-open frozen P20–P39-WP3 artifacts (read-only). Do not chase `test_null_stats_consistent` (pre-existing, certified unrelated, read-only). Do not edit `rank_min_leg_beta`/`rank_max_gross` or flip the shipped default. Never network-fetch prices. **A handoff-only / docs-only / verification-only commit while P39 WP0 is open is a FAILED session — the only acceptable progress is the full gate GREEN at `BAB_GATE_MIN_COVERAGE=100` + `tests/test_bab_p38_determinism.py` green + restored P27 `.md` files.** If P39 WP0 is complete AND the full gate (`bash scripts/bab_gate.sh` with `BAB_GATE_MIN_COVERAGE=100`) is GREEN AND P28 WP2–WP4 remain maintainer-gated, an idle-wait report is permitted only with a fresh full-gate GREEN log.
+P20–P38 are COMPLETE and frozen; **P38 is COMMITTED at `726d4bd` (code frozen there); P39 WP1 is COMPLETE and COMMITTED; P39 WP2 is COMPLETE and COMMITTED; P39 WP3 is DONE and COMMITTED at HEAD `3d08169`.** `tests/test_bab_p38_determinism.py` EXISTS and is COMMITTED at `e1453d5`. **P39 WP1 is DONE — do NOT re-do it; verify with `--check-regime-summary` only.** **P39 WP2 is DONE — do NOT re-do it; verify with `--check-cross-fixture-summary` only.** **P39 WP3 is DONE — do NOT re-do it; verify with `--subset p39_decision.md` only.** Both verdicts are honest negatives; do not reverse them. **The binding row is P39 WP0 full-gate close-out.** **Your first job is P39 WP0** (the slow full `bab_gate.sh` with `BAB_GATE_MIN_COVERAGE=100`, plus coverage record + P27 restore). `tests/test_bab_p38_determinism.py` already exists — do NOT re-create it. P39 WP0 is a large-time-budget close-out. Before starting, verify the baseline with the FIRST ACTION commands (all GREEN); if any is RED, bisect — do NOT hand-edit artifacts. **Never run a generator with bare/no args — it overwrites the committed artifact.** **After any full pytest/`bab_gate` run, run `git checkout -- research_state/bab_p27/` to undo the trailing-newline mutation of the two frozen P27 `.md` files.** Do not re-open frozen P20–P39-WP3 artifacts (read-only). Do not chase `test_null_stats_consistent` (pre-existing, certified unrelated, read-only). Do not edit `rank_min_leg_beta`/`rank_max_gross` or flip the shipped default. Never network-fetch prices. **A handoff-only / docs-only / verification-only commit while P39 WP0 is open is a FAILED session — the only acceptable progress is the full gate GREEN at `BAB_GATE_MIN_COVERAGE=100` + coverage recorded + restored P27 `.md` files.** If P39 WP0 is complete AND the full gate (`bash scripts/bab_gate.sh` with `BAB_GATE_MIN_COVERAGE=100`) is GREEN AND P28 WP2–WP4 remain maintainer-gated, an idle-wait report is permitted only with a fresh full-gate GREEN log.
