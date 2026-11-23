@@ -60,7 +60,8 @@ CONFIG = dict(
 
 
 def _clean(value: float) -> float:
-    return round(float(value), 6)
+    # + 0.0 normalizes -0.0 to 0.0 so the artifact is byte-stable across libraries.
+    return round(float(value), 6) + 0.0
 
 
 def _panel_sha(panel) -> str:
@@ -163,11 +164,11 @@ def _book_metrics(variant: str, weighting: str, payload: dict) -> dict:
         "weighting": weighting,
         "active_rows": active_rows,
         "total_rows": total_rows,
-        "gross_mean_active": float(gross_active.mean()),
+        "gross_mean_active": round(float(gross_active.mean()), 12),
         "gross_max": float(gross_active.max()),
         "long_leg_beta_mean": float(long_betas.mean()),
-        "short_leg_beta_mean": float(short_betas.mean()),
-        "min_leg_beta": float(min_leg_betas.min()),
+        "short_leg_beta_mean": round(float(short_betas.mean()), 12),
+        "min_leg_beta": round(float(min_leg_betas.min()), 12),
         "dollar_imbalance_max": dollar_imbalance_max,
         "beta_exposure_max": beta_exposure_max,
         "recovery_mean": _clean(recovery_mean),

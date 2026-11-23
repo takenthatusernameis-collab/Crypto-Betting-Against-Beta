@@ -72,7 +72,8 @@ def _clean(value) -> float | None:
     number = float(value)
     if not math.isfinite(number):
         return None
-    return round(number, DECIMALS)
+    # + 0.0 normalizes -0.0 to 0.0 so the artifact is byte-stable across libraries.
+    return round(number, DECIMALS) + 0.0
 
 
 def _sha256(path: Path) -> str:

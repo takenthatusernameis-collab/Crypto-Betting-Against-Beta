@@ -61,6 +61,11 @@
       "guard_status": "registered in scripts/bab_replay_decisions.py REGISTRY"
     },
     {
+      "committed": "docs/BAB_P37_DECISION.md",
+      "guard_class": "replay-gated",
+      "guard_status": "registered in scripts/bab_replay_decisions.py REGISTRY"
+    },
+    {
       "committed": "docs/BAB_RESEARCH_REPORT.md",
       "guard_class": "consistency-guarded",
       "guard_status": "tests/test_bab_p20_report_consistency.py"

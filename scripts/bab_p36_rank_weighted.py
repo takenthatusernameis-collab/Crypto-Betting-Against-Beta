@@ -246,17 +246,19 @@ def _compute_metrics(
     turn = turnover(weights)
 
     return {
-        "wealth": float(wealth) if np.isfinite(wealth) else None,
-        "sharpe": float(sharpe) if np.isfinite(sharpe) else None,
-        "annualized_volatility": float(ann_vol) if np.isfinite(ann_vol) else None,
-        "max_drawdown": float(max_dd) if np.isfinite(max_dd) else None,
-        "total_return": float(tr) if np.isfinite(tr) else None,
-        "turnover": float(turn) if np.isfinite(turn) else None,
-        "max_model_beta": float(max_model_beta) if np.isfinite(max_model_beta) else None,
+        # Round floats to 12 decimals so the summary is byte-reproducible across
+        # numpy/pandas/scipy versions (raw values differ by ~1 ULP otherwise).
+        "wealth": round(float(wealth), 12) if np.isfinite(wealth) else None,
+        "sharpe": round(float(sharpe), 12) if np.isfinite(sharpe) else None,
+        "annualized_volatility": round(float(ann_vol), 12) if np.isfinite(ann_vol) else None,
+        "max_drawdown": round(float(max_dd), 12) if np.isfinite(max_dd) else None,
+        "total_return": round(float(tr), 12) if np.isfinite(tr) else None,
+        "turnover": round(float(turn), 12) if np.isfinite(turn) else None,
+        "max_model_beta": round(float(max_model_beta), 12) if np.isfinite(max_model_beta) else None,
         "max_dollar_neutral": (
-            float(max_dollar_neutral) if np.isfinite(max_dollar_neutral) else None
+            round(float(max_dollar_neutral), 12) if np.isfinite(max_dollar_neutral) else None
         ),
-        "realized_beta": float(realized_beta) if np.isfinite(realized_beta) else None,
+        "realized_beta": round(float(realized_beta), 12) if np.isfinite(realized_beta) else None,
         "n_periods": len(strat_returns),
     }
 

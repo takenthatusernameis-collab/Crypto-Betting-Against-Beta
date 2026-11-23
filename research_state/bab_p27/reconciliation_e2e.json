@@ -19,7 +19,7 @@
       "n_mismatches": 338,
       "n_periods": 398
     },
-    "costs_checksum": "c2a90a7060ad8895e4662d4e772a9bfb856b4a0f16677791a8258fca87aff814",
+    "costs_checksum": "61b540d25e65dfda4f0cb2933f255b550784f195e030612ef0783aba09019b59",
     "fills_aggregate": {
       "delta_final": -0.0,
       "max_delta_abs": 0.0,
@@ -28,7 +28,7 @@
       "n_periods": 398,
       "realized_final_equity": 1.001215
     },
-    "fills_checksum": "560baed34c45dc0523d95f9078f280ee5b64938efd561f9c833262a9eec3a56e",
+    "fills_checksum": "aed3d60af961df23468ffbccb3009275370ff1bb9197b110302db4304d01c58a",
     "gate_drift_exact_ok": true,
     "gate_drift_exact_violations": 0,
     "gate_drift_zero_ok": false,

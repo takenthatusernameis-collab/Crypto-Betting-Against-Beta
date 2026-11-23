@@ -50,7 +50,7 @@
           "oos_turnover": 0.005719,
           "oos_vol": 0.042264,
           "oos_wealth": 1.001581,
-          "portfolio_beta": -0.0,
+          "portfolio_beta": 0.0,
           "short_leg_beta": 1.677713
         },
         "test_end": 220,
@@ -92,7 +92,7 @@
           "oos_turnover": 0.030547,
           "oos_vol": 0.027043,
           "oos_wealth": 1.00226,
-          "portfolio_beta": -0.0,
+          "portfolio_beta": 0.0,
           "short_leg_beta": 1.676581
         },
         "test_end": 260,
@@ -218,7 +218,7 @@
           "oos_turnover": 0.008843,
           "oos_vol": 0.030755,
           "oos_wealth": 1.006119,
-          "portfolio_beta": -0.0,
+          "portfolio_beta": 0.0,
           "short_leg_beta": 1.679709
         },
         "test_end": 380,
@@ -284,7 +284,7 @@
         "oos_turnover": 0.005719,
         "oos_vol": 0.042264,
         "oos_wealth": 1.001581,
-        "portfolio_beta": -0.0,
+        "portfolio_beta": 0.0,
         "short_leg_beta": 1.677713
       },
       "test_end": 220,
@@ -326,7 +326,7 @@
         "oos_turnover": 0.030547,
         "oos_vol": 0.027043,
         "oos_wealth": 1.00226,
-        "portfolio_beta": -0.0,
+        "portfolio_beta": 0.0,
         "short_leg_beta": 1.676581
       },
       "test_end": 260,
@@ -452,7 +452,7 @@
         "oos_turnover": 0.008843,
         "oos_vol": 0.030755,
         "oos_wealth": 1.006119,
-        "portfolio_beta": -0.0,
+        "portfolio_beta": 0.0,
         "short_leg_beta": 1.679709
       },
       "test_end": 380,

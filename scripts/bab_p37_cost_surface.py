@@ -238,7 +238,10 @@ def _compute_metrics(
         "max_drawdown": float(max_dd) if np.isfinite(max_dd) else None,
         "total_return": float(tr) if np.isfinite(tr) else None,
         "turnover": float(turn) if np.isfinite(turn) else None,
-        "realized_beta": float(realized_beta) if np.isfinite(realized_beta) else None,
+        # Round the one library-sensitive diagnostic (strategy_beta differs by
+        # ~1 ULP across numpy/pandas/scipy versions) so the committed artifact is
+        # byte-reproducible on any runner. All other metrics are version-stable.
+        "realized_beta": round(float(realized_beta), 12) if np.isfinite(realized_beta) else None,
         "n_periods": len(strat_returns),
     }
 

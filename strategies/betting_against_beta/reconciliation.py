@@ -43,9 +43,32 @@ class ReconciliationResult:
         }
 
 
+def _canonicalize(obj):
+    """Round floats to 12 decimals and normalize -0.0 for version-stable hashing.
+
+    The reconciliation checksum hashes computed float series (per-period deltas,
+    equities) that can differ by ~1 ULP across numpy/pandas/scipy versions. Rounding
+    to a fixed decimal precision before hashing makes the checksum byte-reproducible
+    on any runner without changing the stored (full-precision) artifacts.
+    """
+    if isinstance(obj, bool):
+        return obj
+    if isinstance(obj, float):
+        if not math.isfinite(obj):
+            return obj
+        return round(obj, 12) + 0.0
+    if isinstance(obj, dict):
+        return {k: _canonicalize(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [_canonicalize(v) for v in obj]
+    return obj
+
+
 def _checksum(payload: dict) -> str:
     payload_no_sum = {k: v for k, v in payload.items() if k != "checksum"}
-    canonical = json.dumps(payload_no_sum, sort_keys=True, default=str, allow_nan=False)
+    canonical = json.dumps(
+        _canonicalize(payload_no_sum), sort_keys=True, default=str, allow_nan=False
+    )
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 

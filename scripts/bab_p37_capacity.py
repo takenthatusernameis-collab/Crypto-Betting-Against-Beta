@@ -296,7 +296,10 @@ def _run_capacity_for_seed(returns_df: pd.DataFrame, seed: int, seed_idx: int) -
         "censoring_reason": None if bracket is not None else reason,
         "bisection": bisection,
         "neutrality_ok": neutrality_ok,
-        "realized_beta": float(realized_beta) if np.isfinite(realized_beta) else None,
+        # Round the one library-sensitive diagnostic (strategy_beta differs by
+        # ~1 ULP across numpy/pandas/scipy versions) so the committed artifact is
+        # byte-reproducible on any runner. All other metrics are version-stable.
+        "realized_beta": round(float(realized_beta), 12) if np.isfinite(realized_beta) else None,
         "status": "ok" if neutrality_ok else "neutrality_violation",
     }
 

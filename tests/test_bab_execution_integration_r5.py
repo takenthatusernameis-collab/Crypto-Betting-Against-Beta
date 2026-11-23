@@ -32,6 +32,8 @@ from strategies.betting_against_beta.execution import (
 )
 from strategies.betting_against_beta.reconciliation import (
     ReconciliationResult,
+    _canonicalize,
+    _checksum,
     reconcile_costs,
     reconcile_fills_to_backtest,
 )
@@ -381,6 +383,35 @@ def test_reconcile_fills_empty_weights():
     rf = reconcile_fills_to_backtest(pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), fills=None)
     assert rf.n_periods == 0
     assert rf.per_period == []
+
+
+# --------------------------------------------------------------------------- #
+# P38 WP0: cross-version determinism (round-before-hash + signed-zero)
+# --------------------------------------------------------------------------- #
+def test_canonicalize_normalizes_signed_zero():
+    """-0.0 and 0.0 canonicalize to the same value (byte-stable across libraries)."""
+    assert _canonicalize(-0.0) == _canonicalize(0.0)
+    assert repr(_canonicalize(-0.0)) == "0.0"
+    # A tiny negative that rounds to -0.0 at 12 decimals also normalizes.
+    assert _canonicalize(-1e-15) == 0.0
+
+
+def test_checksum_stable_under_one_ulp_perturbation():
+    """A ~1-ULP float perturbation does not change the reconciliation checksum.
+
+    This is the invariant that makes P27 reconciliation_e2e.json fills_checksum
+    byte-reproducible across numpy/pandas/scipy versions (P38 WP0).
+    """
+    base = {"a": 0.1 + 0.2, "b": [1.0, -0.0, 3.141592653589793]}
+    perturbed = {"a": np.nextafter(0.1 + 0.2, 1.0), "b": [1.0, 0.0, 3.141592653589793]}
+    assert _checksum(base) == _checksum(perturbed)
+
+
+def test_checksum_distinguishes_material_changes():
+    """A material (non-ULP) change still changes the checksum."""
+    a = {"x": 1.0}
+    b = {"x": 1.000001}
+    assert _checksum(a) != _checksum(b)
 
 
 # --------------------------------------------------------------------------- #

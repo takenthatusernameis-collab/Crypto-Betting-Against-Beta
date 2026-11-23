@@ -2116,7 +2116,7 @@
           "oos_turnover": 0.005719,
           "oos_vol": 0.042264,
           "oos_wealth": 1.001581,
-          "portfolio_beta": -0.0,
+          "portfolio_beta": 0.0,
           "test_end": 220,
           "test_start": 180
         },
@@ -2129,7 +2129,7 @@
           "oos_turnover": 0.030547,
           "oos_vol": 0.027043,
           "oos_wealth": 1.00226,
-          "portfolio_beta": -0.0,
+          "portfolio_beta": 0.0,
           "test_end": 260,
           "test_start": 220
         },
@@ -2168,7 +2168,7 @@
           "oos_turnover": 0.008843,
           "oos_vol": 0.030755,
           "oos_wealth": 1.006119,
-          "portfolio_beta": -0.0,
+          "portfolio_beta": 0.0,
           "test_end": 380,
           "test_start": 340
         }

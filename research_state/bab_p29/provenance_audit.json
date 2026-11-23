@@ -38,7 +38,7 @@
       "path": "research_state/bab_p21/rank_eval.json",
       "replay_ok": true,
       "seed": null,
-      "sha256": "7db9bddad4acffe9adc6079e43b7df15046fa06a88968d232705550872308baf"
+      "sha256": "6396606c6011223268411750eaf301f37d872bf28b2dd315b1ef7145d5824bff"
     },
     {
       "fixture_sha256": "a6d390fc755641ea28d14b8204615786fdc9a95733a87e4c3b63d66be64c163b",
@@ -158,7 +158,7 @@
       "path": "research_state/bab_p25/promotion_bakeoff.json",
       "replay_ok": true,
       "seed": 20261120,
-      "sha256": "153d28babc3b88d6539499968cb550ad96a816ca24dd84c7037270c3bdb3266b"
+      "sha256": "65dd8ce0514b635454a515cfa2de3fcedf9bc68ad58b1a6f24aa7f5d21f13994"
     },
     {
       "fixture_sha256": "a6d390fc755641ea28d14b8204615786fdc9a95733a87e4c3b63d66be64c163b",
@@ -166,7 +166,7 @@
       "path": "research_state/bab_p25/walk_forward_rank.json",
       "replay_ok": true,
       "seed": 20261120,
-      "sha256": "1bad6e81ccb33094251747f5e40482625515e0e74f3d51c3378ca4032291290f"
+      "sha256": "389db9b5c99dbf27b9ad5588a5ebb2ce1b5b182267b7c014e20b284cce5488b2"
     },
     {
       "fixture_sha256": "a6d390fc755641ea28d14b8204615786fdc9a95733a87e4c3b63d66be64c163b",
@@ -174,7 +174,7 @@
       "path": "research_state/bab_p26/rank_capacity.json",
       "replay_ok": true,
       "seed": 20261120,
-      "sha256": "9097a06d680f86cb9acff72ee23a02e1b82cac9ca295680dadb1ec8d2ae82372"
+      "sha256": "f54d6630b9e6b14ba7362c70ac3e198e145bf90194db7575b5fe3e79c23b4ba9"
     },
     {
       "fixture_sha256": "a6d390fc755641ea28d14b8204615786fdc9a95733a87e4c3b63d66be64c163b",
@@ -182,7 +182,7 @@
       "path": "research_state/bab_p26/regime_stress.json",
       "replay_ok": true,
       "seed": 20261120,
-      "sha256": "140c153837924358b8d434d00f1887b464e68323fbff480037f5a491996c9e0c"
+      "sha256": "07dc2b5f13939865381ea278aa873b40d5306b7ff41aa99b8d15c5faef4e3032"
     },
     {
       "fixture_sha256": "a6d390fc755641ea28d14b8204615786fdc9a95733a87e4c3b63d66be64c163b",
@@ -190,7 +190,7 @@
       "path": "research_state/bab_p26/signal_null_battery.json",
       "replay_ok": true,
       "seed": 20261120,
-      "sha256": "5a0f81561c5f2a524d7f78c95b704320238ae315b2647f3bc3085966b357d9e8"
+      "sha256": "bb4be22943b98cf0993bf94c5671971461512c9263a9c35a430f9fb2fb2541b0"
     },
     {
       "fixture_sha256": "a6d390fc755641ea28d14b8204615786fdc9a95733a87e4c3b63d66be64c163b",
@@ -198,7 +198,7 @@
       "path": "research_state/bab_p27/execution_hardening.json",
       "replay_ok": true,
       "seed": 20261121,
-      "sha256": "dac4b5808f91720676bed4a4fa617b0846e4ac1b8141b024fed8eef268c94957"
+      "sha256": "7739d69fd87a7efe2c56413ef773e8999258dec66ad0f6b139ca42d3325abbde"
     },
     {
       "fixture_sha256": "a6d390fc755641ea28d14b8204615786fdc9a95733a87e4c3b63d66be64c163b",
@@ -206,7 +206,7 @@
       "path": "research_state/bab_p27/reconciliation_e2e.json",
       "replay_ok": true,
       "seed": 20261121,
-      "sha256": "aad24cf6536ba94e14ae09c15ed404631ce6782ec880b62e042fbf90ca439b9a"
+      "sha256": "3eedf19fb0a3eefe1681d2347eb1ce67219ec5655b7fe006598d1f5f0f42249a"
     },
     {
       "fixture_sha256": "a6d390fc755641ea28d14b8204615786fdc9a95733a87e4c3b63d66be64c163b",
