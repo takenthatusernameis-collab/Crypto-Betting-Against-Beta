@@ -2,8 +2,8 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, `NEXT_*.md`, or parallel task doc. If you find one, fold anything still true into this file and delete it.** Only `HANDOFF.md` is tracked; keep it that way.
 
-- **Timestamp (UTC):** 2026-11-23T12:50:09Z (handoff refreshed; baseline re-verified firsthand at this timestamp)
-- **Re-verification Timestamp (UTC):** 2026-11-23T12:53:44Z — ALL BASELINE CHECKS GREEN (ruff, bab_quick.sh, P38 --check-deflated-summary, P38 --check-tail-risk-summary, P39 --check-regime-summary, bab_replay_full --self-test, bab_replay_decisions --self-test, pytest test_bab_p39_regime_conditional.py). Working tree CLEAN. HEAD `23ca0a8`. **Binding row confirmed: P39 WP2 (Cross-fixture replication) — NOT STARTED.**
+- **Timestamp (UTC):** 2026-11-23T12:56:09Z (handoff refreshed; baseline re-verified firsthand at this timestamp)
+- **Re-verification Timestamp (UTC):** 2026-11-23T12:56:09Z — ALL BASELINE CHECKS GREEN (ruff, bab_quick.sh, P38 --check-deflated-summary, P38 --check-tail-risk-summary, P39 --check-regime-summary, bab_replay_full --self-test, bab_replay_decisions --self-test, pytest test_bab_p39_regime_conditional.py). Working tree CLEAN. HEAD `23ca0a8`. **Binding row confirmed: P39 WP2 (Cross-fixture replication) — NOT STARTED.**
 - **HEAD:** `23ca0a8` (last commit; `2026-11-23T10:34:03Z`). **P38 is fully COMMITTED at `726d4bd` (code frozen there). P39 WP1 is now DONE AND COMMITTED — the WP1 artifacts (`scripts/bab_p39_regime_conditional.py`, `research_state/bab_p39/regime_summary.{json,md}`, `tests/test_bab_p39_regime_conditional.py`) are tracked in HEAD; they landed in the checkpoint commits `2e5a336..23ca0a8` (`git diff --stat 726d4bd HEAD` = those P39-WP1 files + HANDOFF.md only — no other code drift).** Working tree is CLEAN. There is **no uncommitted work to commit** — the old claim of "uncommitted P38/P39-WP1 work" is stale and REMOVED.
 - **Git state:** P20–P37 are COMPLETE and frozen (do NOT re-do them). **P38 is COMPLETE and committed (WP1–WP3).** **P39 WP1 (regime-conditional) is COMPLETE and committed; its honest verdict is `DOES_NOT_SURVIVE_DEFLATION_IN_SOME_REGIME` (see below). The binding row is now P39 WP2 "Cross-Fixture Replication" → then WP3 (decision doc + gate wire) → then WP0 close-out. P39 WP2 has NOT been started** — no `scripts/bab_p39_cross_fixture.py`, `tests/test_bab_p39_cross_fixture.py`, `research_state/bab_p39/cross_fixture_summary.{json,md}`, or `cross_fixture_summary` registration exist yet.
   - **P39 WP0 (full-gate + determinism close-out) — NOT DONE:** `tests/test_bab_p38_determinism.py` does not exist; the full `bash scripts/bab_gate.sh` (with `BAB_GATE_MIN_COVERAGE=100`) has NOT been run to completion. This is a large-time-budget hygiene task that does **NOT** block WP2/WP3.
@@ -13,7 +13,7 @@
 
 ---
 
-# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-23T12:50:09Z)
+# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-23T12:56:09Z)
 
 **MINIMUM ACCEPTABLE OUTCOME (non-negotiable): land P39 WP2 (cross-fixture replication)** — create `scripts/bab_p39_cross_fixture.py` + `research_state/bab_p39/cross_fixture_summary.{json,md}` + `tests/test_bab_p39_cross_fixture.py`, with `--check-cross-fixture-summary` GREEN (byte-identical) and `ruff check .` clean. **P39 WP1 is DONE and committed — do NOT re-do it. A handoff-only / docs-only / verification-only / re-verification-only commit that substitutes for WP2 work is a FAILED session while WP2–WP3 are open.** If you catch yourself producing only a handoff refresh, a green re-run log, or a planning note without new `bab_p39_cross_fixture.*` code + tests + a byte-identical `--check-cross-fixture-summary`, STOP — that is a failed session, not progress.
 
@@ -23,7 +23,7 @@
 
 ## VERIFIED BASELINE — firsthand this session (working tree = CLEAN, HEAD `23ca0a8`, code frozen at P38 `726d4bd` + committed P39 WP1; numpy 2.5.5 / pandas 3.1.1 / scipy 1.18.1, all UNPINNED; re-verified 2026-11-23T12:48Z)
 
-**Re-verified firsthand at 2026-11-23T12:48Z (HEAD `23ca0a8`):**
+**Re-verified firsthand at 2026-11-23T12:56Z (HEAD `23ca0a8`):**
 - **GREEN (confirmed):**
   - `python3 -m ruff check .` → `All checks passed!` (exit 0).
   - `bash scripts/bab_quick.sh` → `quick preflight OK` (299 passed: 104 targeted trio + 195 smoke).
@@ -97,7 +97,7 @@ python3 scripts/bab_replay_full.py --subset deflated_summary,tail_risk_summary,r
 
 # BINDING ROW = Campaign P39 — "Regime-Conditional & Cross-Fixture Robustness Closure" (+ P28 WP2–WP4 MAINTAINER-GATED)
 
-**Declared:** 2026-11-23T12:50:09Z (binding row re-declared at handoff refresh; originally drafted 2026-11-23T08:37:20Z) · **Campaign:** P39 "Regime-Conditional & Cross-Fixture Robustness Closure" · **Priority: HIGH** · **Status: ACTIVE — WP1 DONE; WP2 is the sole next agent-executable binding row.** P20–P38 COMPLETE and frozen; do NOT re-do them.
+**Declared:** 2026-11-23T12:56:09Z (binding row re-declared at handoff refresh; originally drafted 2026-11-23T08:37:20Z) · **Campaign:** P39 "Regime-Conditional & Cross-Fixture Robustness Closure" · **Priority: HIGH** · **Status: ACTIVE — WP1 DONE; WP2 is the sole next agent-executable binding row.** P20–P38 COMPLETE and frozen; do NOT re-do them.
 
 **Why P39 (prioritized by repo name):** P38 answered the two *pooled* factor questions (deflated significance + unconditional tail). P39 WP1 answered the *within-regime stability* question and returned an **honest negative** (`DOES_NOT_SURVIVE_DEFLATION_IN_SOME_REGIME`; high-vol regimes fail). The decisive remaining question is *cross-fixture replication*: does the pooled P38 verdict replicate on a second, independently parameterized synthetic universe — i.e. is the pooled result a property of the factor or an artifact of the single committed fixture? P39 WP2 closes that, then WP3 binds it into a decision doc + gate.
 
