@@ -2,7 +2,7 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, `NEXT_*.md`, or parallel task doc. If you find one, fold anything still true into this file and delete it.** Only `HANDOFF.md` is tracked; keep it that way.
 
-- **Timestamp (UTC):** 2026-11-23T05:38:44Z
+- **Timestamp (UTC):** 2026-11-23T05:39:59Z
 - **HEAD:** `c14381b` (working tree clean; this handoff refresh only — no new campaign work landed since WP1 `a768c8b`).
 - **Git state:** P20–P37 are COMPLETE and frozen (do NOT re-do them). **The binding row is Campaign P38.**
   - **P38 WP0 (provenance reproducibility) — DONE, GREEN.**
@@ -12,7 +12,7 @@
 
 ---
 
-# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-23T05:38:44Z)
+# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-23T05:39:59Z)
 
 **Repo:** `Crypto-Betting-Against-Beta` — a market-neutral **Betting-Against-Beta** factor strategy for crypto (long low-beta, short high-beta, beta-neutral by construction). The repo's entire value proposition is *honest, reproducible, artifact-gated evidence*. **P38 WP0 is GREEN and WP1 is DONE** — do NOT redo either. **Your binding heavy work is WP2 (tail-risk / CVaR) → WP3 (decision doc + gate wire).** P20–P37 are COMPLETE and frozen; do NOT re-open them.
 
