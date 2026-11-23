@@ -2,8 +2,8 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, `NEXT_*.md`, or parallel task doc. If you find one, fold anything still true into this file and delete it.** Only `HANDOFF.md` is tracked; keep it that way.
 
-- **Timestamp (UTC):** 2026-11-23T07:14:41Z
-- **HEAD:** `eca1d6e` (working tree clean; this handoff refresh only — no new campaign work landed since WP1 `a768c8b`).
+- **Timestamp (UTC):** 2026-11-23T07:19:16Z
+- **HEAD:** `d71af73` (working tree clean; this handoff refresh only — no new campaign work landed since WP1 `a768c8b`).
 - **Git state:** P20–P37 are COMPLETE and frozen (do NOT re-do them). **The binding row is Campaign P38.**
   - **P38 WP0 (provenance reproducibility) — DONE, GREEN.**
   - **P38 WP1 (deflated / multiple-testing-adjusted significance) — DONE** (landed in commit `a768c8b`: `scripts/bab_p38_deflated_significance.py` + `research_state/bab_p38/deflated_summary.{json,md}`; `--check-deflated-summary` is byte-identical).
@@ -12,11 +12,11 @@
 
 ---
 
-# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-23T07:14:41Z)
+# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-23T07:19:16Z)
 
 **Repo:** `Crypto-Betting-Against-Beta` — a market-neutral **Betting-Against-Beta** factor strategy for crypto (long low-beta, short high-beta, beta-neutral by construction). The repo's entire value proposition is *honest, reproducible, artifact-gated evidence*. **P38 WP0 is GREEN and WP1 is DONE** — do NOT redo either. **Your binding heavy work is WP2 (tail-risk / CVaR) → WP3 (decision doc + gate wire).** P20–P37 are COMPLETE and frozen; do NOT re-open them.
 
-**Prioritization by repo name:** the repo implements a *factor* strategy (Betting Against Beta). The two decisive scientific questions for any factor are (1) *is the Sharpe statistically distinguishable from luck after accounting for how many configurations were tried?* — **answered by WP1** (verdict `SURVIVES_DEFLATION` over `n_trials_total=552`), and (2) *what does the left tail look like for a book that is structurally short high-beta / short volatility?* — **NOT yet answered; this is WP2**. P20–P37 never measured tail risk (zero `CVaR`/expected-shortfall anywhere). Therefore the remaining binding heavy campaign is **P38 WP2 → WP3**, in that order.
+**Prioritization by repo name:** the repo implements a *factor* strategy (Betting Against Beta). The two decisive scientific questions for any factor are (1) *is the Sharpe statistically distinguishable from luck after accounting for how many configurations were tried?* — **answered by WP1** (verdict `SURVIVES_DEFLATION` over `n_trials_total=552`), and (2) *what does the left tail look like for a book that is structurally short high-beta / short volatility?* — **NOT yet answered; this is WP2**. P20–P37 never measured tail risk (zero `CVaR`/expected-shortfall anywhere). Therefore the remaining binding heavy campaign is **P38 WP2 → WP3**, in that order. Start WP2 immediately; do not drift into re-verification of frozen campaigns.
 
 ## VERIFIED BASELINE — firsthand this session (HEAD `a768c8b`, numpy 2.5.5 / pandas 3.1.1 / scipy 1.18.1, all UNPINNED)
 
