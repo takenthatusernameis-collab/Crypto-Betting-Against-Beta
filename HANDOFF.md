@@ -2,13 +2,13 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, `NEXT_*.md`, or parallel task doc. If you find one, fold anything still true into this file and delete it.** Only `HANDOFF.md` is tracked; keep it that way.
 
-- **Timestamp (UTC):** 2026-11-23T00:31:37Z
-- **HEAD:** d00d776
+- **Timestamp (UTC):** 2026-11-23T01:21:03Z
+- **HEAD:** 6bb185b
 - **Git state:** P20–P37 are COMPLETE and frozen (do NOT re-do them). **The binding row is Campaign P38.** The provenance replay gate is **RED on a freshly bootstrapped runner** (verified firsthand this session — see VERIFIED BASELINE). No WP0 remediation has landed. Restoring an *honest* GREEN is the blocking first task (P38 WP0), not a victory lap.
 
 ---
 
-# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-23T00:31:37Z)
+# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-23T01:21:03Z)
 
 **Repo:** `Crypto-Betting-Against-Beta` — a market-neutral **Betting-Against-Beta** factor strategy for crypto (long low-beta, short high-beta, beta-neutral by construction). The repo's entire value proposition is *honest, reproducible, artifact-gated evidence*. A RED provenance gate therefore undermines the repo's core claim and is the single most relevant thing to fix first.
 
@@ -179,4 +179,4 @@ Make the ENTIRE provenance layer honestly GREEN on a clean bootstrap: `bab_repla
 ---
 
 ## FUTURE AGENTS: READ THIS ONCE
-P20–P37 are COMPLETE and frozen. **The binding row is P38.** On a clean bootstrap the ENTIRE provenance layer is **RED** — I re-verified this firsthand on HEAD `d00d776` with unpinned numpy 2.5.5 / pandas 3.1.1 / scipy 1.18.1: `reconciliation_e2e.json` self-test `pass:false`, all three P37 `--check-*-summary` FAIL (byte drift), and both P32/P33 `--check-doc-summary` DRIFT (P33 is genuinely missing the `BAB_P37_DECISION.md` entry). Your first job is P38 WP0: restore an *honest* GREEN — pin deps (verified to reproduce the *whole* replay layer, not just P37) **or** regenerate the derived manifests + canonicalize float/fill serialization + regression test. **Never hand-edit an artifact to fake green**, and **never run a generator with bare/no args — it overwrites the committed artifact**. Remember: P27's `fills_checksum` is a raw hash over 13,858 fills, so JSON float-rounding alone will NOT fix it — plan for a real version pin or a round-before-hash generator change. Then execute P38 WP1 (deflated/multiple-testing significance over the full search) → WP2 (tail-risk/CVaR characterization) → WP3 (decision doc + gate wire). Do not re-open frozen P20–P37 artifacts (read-only). Do not chase `test_null_stats_consistent` (pre-existing, certified unrelated, read-only). Do not edit `rank_min_leg_beta`/`rank_max_gross` or flip the shipped default. Never network-fetch prices. If P38 is complete AND the full gate is GREEN AND P28 WP2–WP4 remain maintainer-gated, you may report idle-wait — but only with a fresh full-gate GREEN log attached.
+P20–P37 are COMPLETE and frozen. **The binding row is P38.** On a clean bootstrap the ENTIRE provenance layer is **RED** — I re-verified this firsthand on HEAD `6bb185b` with unpinned numpy 2.5.5 / pandas 3.1.1 / scipy 1.18.1: `reconciliation_e2e.json` self-test `pass:false`, all three P37 `--check-*-summary` FAIL (byte drift), and both P32/P33 `--check-doc-summary` DRIFT (P33 is genuinely missing the `BAB_P37_DECISION.md` entry). Your first job is P38 WP0: restore an *honest* GREEN — pin deps (verified to reproduce the *whole* replay layer, not just P37) **or** regenerate the derived manifests + canonicalize float/fill serialization + regression test. **Never hand-edit an artifact to fake green**, and **never run a generator with bare/no args — it overwrites the committed artifact**. Remember: P27's `fills_checksum` is a raw hash over 13,858 fills, so JSON float-rounding alone will NOT fix it — plan for a real version pin or a round-before-hash generator change. Then execute P38 WP1 (deflated/multiple-testing significance over the full search) → WP2 (tail-risk/CVaR characterization) → WP3 (decision doc + gate wire). Do not re-open frozen P20–P37 artifacts (read-only). Do not chase `test_null_stats_consistent` (pre-existing, certified unrelated, read-only). Do not edit `rank_min_leg_beta`/`rank_max_gross` or flip the shipped default. Never network-fetch prices. If P38 is complete AND the full gate is GREEN AND P28 WP2–WP4 remain maintainer-gated, you may report idle-wait — but only with a fresh full-gate GREEN log attached.
