@@ -4,7 +4,7 @@
 Deterministic, offline runner that:
 
   1. Enumerates the total effective number of trials (n_trials_total) searched
-     across the campaign lineage (P20 grid + P21–P37 variant cells + P36 folds),
+      across the campaign lineage (P20 grid + P21-P37 variant cells + P36 folds),
      derived read-only from committed artifacts — never invented.
   2. Runs the shipped default (weighting="equal", beta_neutral=True,
      beta_window=90) and the best in-sample config (highest-Sharpe row of the
@@ -409,7 +409,7 @@ def _significance_for_config(
             1.0 + 0.5 * gamma * sr_obs ** 2 + 0.25 * (kappa - 1.0) * sr_obs ** 4
         )
         if numerator > 0:
-            t_min = int(math.ceil(numerator / sr_obs ** 2)) + 1
+            t_min = math.ceil(numerator / sr_obs ** 2) + 1
 
     survives = bool(dsr >= DSR_SURVIVE_THRESHOLD)
 
@@ -471,7 +471,7 @@ def enumerate_n_trials_total() -> dict:
     n_p20 = int(p20.get("grid", {}).get("configurations", 0))
     breakdown["P20_in_sample_grid"] = n_p20
 
-    # P21–P37 variant cells from committed artifacts (read-only).
+    # P21-P37 variant cells from committed artifacts (read-only).
     for path in TRIAL_ARTIFACTS:
         label = path.parent.name + "/" + path.stem
         payload = _load_json(path)
@@ -485,8 +485,8 @@ def enumerate_n_trials_total() -> dict:
         "n_trials_total": n_trials_total,
         "breakdown": breakdown,
         "note": (
-            "Derived read-only from committed P20–P37 artifacts: P20 grid "
-            "configurations plus distinct config cells evaluated across P25–P37 "
+            "Derived read-only from committed P20-P37 artifacts: P20 grid "
+            "configurations plus distinct config cells evaluated across P25-P37 "
             "variant artifacts. Not invented; each term traces to a committed "
             "JSON leaf."
         ),
@@ -668,7 +668,6 @@ def build_summary() -> dict:
 
 
 def render_markdown(payload: dict) -> str:
-    prov = payload["provenance"]
     trial = payload["trial_enumeration"]
     best_cfg = payload["best_insample_config"]
     campaign = payload["campaign_verdict"]
@@ -704,7 +703,7 @@ def render_markdown(payload: dict) -> str:
     lines += [
         "",
         "Each term traces to a committed JSON leaf (P20 grid configurations plus "
-        "distinct config cells evaluated across P25–P37 variant artifacts). "
+        "distinct config cells evaluated across P25-P37 variant artifacts). "
         "Nothing is invented.",
         "",
         "## Best in-sample config (from committed P20 sweep)",
@@ -741,7 +740,10 @@ def render_markdown(payload: dict) -> str:
         lines.append(f"- DSR: {_fmt_num(r.get('dsr'))}")
         lines.append(f"- PSR: {_fmt_num(r.get('psr'))}")
         lines.append(f"- trials-adjusted p-value: {_fmt_num(r.get('trials_adjusted_p_value'))}")
-        lines.append(f"- min backtest length for PSR=0.50: {r.get('min_backtest_length_for_psr_0_50')}")
+        lines.append(
+            f"- min backtest length for PSR=0.50: "
+            f"{r.get('min_backtest_length_for_psr_0_50')}"
+        )
         lines.append(f"- survives_deflation: {r.get('survives_deflation')}")
         lines.append(f"- verdict: **{r.get('verdict')}**")
         lines.append("")
@@ -756,7 +758,7 @@ def render_markdown(payload: dict) -> str:
         "DSR >= 0.50 means more likely than not genuine skill.",
         "- PSR = Probabilistic Sharpe Ratio: probability the Sharpe exceeds zero "
         "(analytical, Bailey & Lopez de Prado).",
-        "- trials-adjusted p-value = 1 − DSR: probability the result is noise given "
+        "- trials-adjusted p-value = 1 - DSR: probability the result is noise given "
         "the number of trials.",
         "- min backtest length for PSR=0.50: approximate backtest length T at which "
         "the standard error of Sharpe equals the observed Sharpe (PSR = 0.50 "

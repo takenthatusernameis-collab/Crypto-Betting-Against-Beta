@@ -25,7 +25,7 @@ Total effective number of trials searched across the campaign lineage: **552**.
 | bab_p37/cost_surface_summary | 192 |
 | bab_p37/turnover_summary | 8 |
 
-Each term traces to a committed JSON leaf (P20 grid configurations plus distinct config cells evaluated across P25–P37 variant artifacts). Nothing is invented.
+Each term traces to a committed JSON leaf (P20 grid configurations plus distinct config cells evaluated across P25-P37 variant artifacts). Nothing is invented.
 
 ## Best in-sample config (from committed P20 sweep)
 
@@ -82,7 +82,7 @@ Each term traces to a committed JSON leaf (P20 grid configurations plus distinct
 
 - DSR = Deflated Sharpe Ratio: probability the observed Sharpe is genuine skill after correcting for the multiple trials searched (n_trials_total). DSR >= 0.50 means more likely than not genuine skill.
 - PSR = Probabilistic Sharpe Ratio: probability the Sharpe exceeds zero (analytical, Bailey & Lopez de Prado).
-- trials-adjusted p-value = 1 − DSR: probability the result is noise given the number of trials.
+- trials-adjusted p-value = 1 - DSR: probability the result is noise given the number of trials.
 - min backtest length for PSR=0.50: approximate backtest length T at which the standard error of Sharpe equals the observed Sharpe (PSR = 0.50 boundary).
 
 Synthetic-provenance caveat: results are on the committed synthetic wide universe (BTC prices + seeded idiosyncratic noise), not real market data. Never market alpha.

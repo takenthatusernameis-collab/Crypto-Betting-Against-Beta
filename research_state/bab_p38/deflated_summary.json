@@ -112,6 +112,6 @@
       "bab_p37/turnover_summary": 8
     },
     "n_trials_total": 552,
-    "note": "Derived read-only from committed P20\u2013P37 artifacts: P20 grid configurations plus distinct config cells evaluated across P25\u2013P37 variant artifacts. Not invented; each term traces to a committed JSON leaf."
+    "note": "Derived read-only from committed P20-P37 artifacts: P20 grid configurations plus distinct config cells evaluated across P25-P37 variant artifacts. Not invented; each term traces to a committed JSON leaf."
   }
 }
