@@ -2,13 +2,13 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-23T00:23:04Z
-- **HEAD:** `1863cba`
+- **Timestamp (UTC):** 2026-11-23T00:23:59Z
+- **HEAD:** `62289c9`
 - **Git state:** P20–P37 are COMPLETE and frozen (do NOT re-do them). **The binding row is Campaign P38.** The provenance replay gate remains **RED on a freshly bootstrapped runner** (see INITIAL TASK); no WP0 remediation has landed yet. Restoring an *honest* GREEN is the blocking first task (P38 WP0), not a victory lap.
 
 ---
 
-# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-23T00:23:04Z)
+# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-23T00:23:59Z)
 
 **Repo:** `Crypto-Betting-Against-Beta` — a market-neutral **Betting-Against-Beta** factor strategy for crypto (long low-beta, short high-beta, beta-neutral by construction). The repo's entire value proposition is *honest, reproducible, artifact-gated evidence*. A RED provenance gate therefore undermines the repo's core claim and is the single most relevant thing to fix first.
 
