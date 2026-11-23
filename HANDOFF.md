@@ -2,23 +2,25 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, `NEXT_*.md`, or parallel task doc. If you find one, fold anything still true into this file and delete it.** Only `HANDOFF.md` is tracked; keep it that way.
 
-- **Timestamp (UTC):** 2026-11-23T07:19:16Z
-- **HEAD:** `d71af73` (working tree clean; this handoff refresh only — no new campaign work landed since WP1 `a768c8b`).
+- **Timestamp (UTC):** 2026-11-23T07:21:55Z
+- **HEAD:** `86cd7d4` (working tree clean). Commit chain since the last real work: `a768c8b` (WP1 script + artifacts) → `586a2f7` (WP1 ruff fix + cosmetic artifact regen) → handoff-only refreshes `c14381b`, `c996300`, `eca1d6e`, `d71af73`, `86cd7d4`. **No campaign work has landed since the WP1 ruff fix (`586a2f7`); the binding row is still P38 WP2.**
 - **Git state:** P20–P37 are COMPLETE and frozen (do NOT re-do them). **The binding row is Campaign P38.**
   - **P38 WP0 (provenance reproducibility) — DONE, GREEN.**
   - **P38 WP1 (deflated / multiple-testing-adjusted significance) — DONE** (landed in commit `a768c8b`: `scripts/bab_p38_deflated_significance.py` + `research_state/bab_p38/deflated_summary.{json,md}`; `--check-deflated-summary` is byte-identical).
-  - **This session removed a hard-gate bottleneck WP1 left behind:** `ruff check .` was RED (9 errors in the new WP1 script — EN-DASH / MINUS-SIGN / unused `prov` / redundant `int(math.ceil(...))` / one long line). Fixed at the source and the two P38 artifacts regenerated (diff is purely cosmetic dash normalization). `ruff check .` is now **clean**.
+  - **The WP1 ruff fix (commit `586a2f7`) removed a hard-gate bottleneck WP1 left behind:** `ruff check .` was RED (9 errors in the new WP1 script — EN-DASH / MINUS-SIGN / unused `prov` / redundant `int(math.ceil(...))` / one long line). Fixed at the source and the two P38 artifacts regenerated (diff is purely cosmetic dash normalization). `ruff check .` is now **clean**.
   - **The blocking first task is now P38 WP2 (tail-risk / CVaR), then WP3 (decision doc + gate wire).** WP1 must NOT be redone — verify it and move on.
 
 ---
 
-# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-23T07:19:16Z)
+# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-23T07:21:55Z)
+
+**MINIMUM ACCEPTABLE OUTCOME (non-negotiable): land P38 WP2** — create `scripts/bab_p38_tail_risk.py` + `research_state/bab_p38/tail_risk_summary.{json,md}` + `tests/test_bab_p38_tail_risk.py`, with `--check-tail-risk-summary` GREEN and `ruff check .` clean. A handoff-only / docs-only / verification-only commit is a FAILED session while WP2 is open.
 
 **Repo:** `Crypto-Betting-Against-Beta` — a market-neutral **Betting-Against-Beta** factor strategy for crypto (long low-beta, short high-beta, beta-neutral by construction). The repo's entire value proposition is *honest, reproducible, artifact-gated evidence*. **P38 WP0 is GREEN and WP1 is DONE** — do NOT redo either. **Your binding heavy work is WP2 (tail-risk / CVaR) → WP3 (decision doc + gate wire).** P20–P37 are COMPLETE and frozen; do NOT re-open them.
 
 **Prioritization by repo name:** the repo implements a *factor* strategy (Betting Against Beta). The two decisive scientific questions for any factor are (1) *is the Sharpe statistically distinguishable from luck after accounting for how many configurations were tried?* — **answered by WP1** (verdict `SURVIVES_DEFLATION` over `n_trials_total=552`), and (2) *what does the left tail look like for a book that is structurally short high-beta / short volatility?* — **NOT yet answered; this is WP2**. P20–P37 never measured tail risk (zero `CVaR`/expected-shortfall anywhere). Therefore the remaining binding heavy campaign is **P38 WP2 → WP3**, in that order. Start WP2 immediately; do not drift into re-verification of frozen campaigns.
 
-## VERIFIED BASELINE — firsthand this session (HEAD `a768c8b`, numpy 2.5.5 / pandas 3.1.1 / scipy 1.18.1, all UNPINNED)
+## VERIFIED BASELINE — firsthand this session (HEAD `86cd7d4`, numpy 2.5.5 / pandas 3.1.1 / scipy 1.18.1, all UNPINNED; re-run 2026-11-23T07:21:55Z)
 
 Confirmed GREEN this session — trust these:
 
@@ -29,6 +31,8 @@ Confirmed GREEN this session — trust these:
   - `python3 scripts/bab_replay_full.py --self-test` → `{"self_test": true, "clean_ok": true, "drift_detected": true, "pass": true}`.
   - `python3 scripts/bab_replay_decisions.py --self-test` → `pass:true`.
 - **NOT YET RUN this session (slow — do NOT treat as a blocker for WP2/WP3):** the full `bash scripts/bab_gate.sh` (runs ~5,800 tests + `--xproc` cross-process ledger check, ~hours for 27 artifacts × 2 subprocess builds). This is the **WP0 close-out** item; run it to completion on a session with a large time budget *after* WP2/WP3 land. It does NOT block progress on WP2/WP3 — use the cheap inner loop below while iterating.
+
+**Re-verified firsthand at 2026-11-23T07:21:55Z (handoff-refresh session, HEAD `86cd7d4`):** `ruff check .` → All checks passed (rc 0); `--check-deflated-summary` → PASS byte-identical; `bab_replay_full.py --self-test` → `pass:true`; `bab_replay_decisions.py --self-test` → `pass:true`; P37 cost-surface/capacity/turnover + P36 rank-weighted `--check-*` → PASS byte-identical; `bab_quick.sh` → `quick preflight OK` (104 + 195 = 299 passed). No regression, no new bottleneck — proceed straight to WP2.
 
 ## FIRST ACTION (verify baseline, then start WP2)
 
@@ -149,6 +153,7 @@ The entire provenance layer is GREEN on a clean bootstrap. Fix was route 2 (cano
   - Agents must NOT spin on, re-push, or re-edit CI workflows, licensed data, or live deployment. Route these to the maintainer.
 
 ### Bottlenecks removed (this and prior sessions)
+0. **Stale HEAD pointer + unverified-refresh risk — REMOVED (2026-11-23T07:21:55Z).** The prior handoff named HEAD `d71af73`; the true HEAD is now `86cd7d4` (five handoff-only refreshes past the WP1 ruff fix `586a2f7`). Rather than trust prose, this session re-ran the full cheap baseline (ruff, WP1 `--check-deflated-summary`, both replay `--self-test`, P36/P37 `--check-*`, `bab_quick.sh`) — ALL GREEN, no regression. The next session inherits a verified-green tree and a corrected HEAD pointer. README's stale "blocking first task is now P38 WP1" clause was also corrected to point at WP2.
 1. **RED ruff gate left by WP1 (primary bottleneck this session) — REMOVED.** The WP1 commit (`a768c8b`) landed the deflated script + artifacts but left `ruff check .` RED with 9 errors (EN-DASH `–`/MINUS-SIGN `−` in strings/comments/docstrings, an unused `prov` local, a redundant `int(math.ceil(...))`, and one E501 long line). Because `ruff check .` is the first hard gate, the next session would have been blocked before doing any work. Fixed at the source in `scripts/bab_p38_deflated_significance.py` (ASCII hyphens, removed dead `prov`, removed redundant `int()`, wrapped the long line) and regenerated `research_state/bab_p38/deflated_summary.{json,md}` through the generator — the artifact diff is purely cosmetic dash normalization, and `--check-deflated-summary` is byte-identical again. `ruff check .` is now clean.
 2. **Stale handoff misdirecting to WP1 — REMOVED.** The prior handoff named WP1 as the blocking first task, but WP1 is now done. This handoff advances the binding row to WP2 → WP3 so the next session starts on real work instead of redoing WP1.
 3. **RED provenance gate (prior) — REMOVED.** On a clean bootstrap the entire replay layer was RED; a prior session landed the full determinism fix (signed-zero `+0.0`, 12-decimal rounding, round-before-hash). Now GREEN.
