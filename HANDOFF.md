@@ -2,13 +2,13 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, or parallel task doc. If you find one, delete it and fold anything still true into this file.**
 
-- **Timestamp (UTC):** 2026-11-23T00:23:59Z
-- **HEAD:** `62289c9`
+- **Timestamp (UTC):** 2026-11-23T00:24:21Z
+- **HEAD:** `3f81df0`
 - **Git state:** P20–P37 are COMPLETE and frozen (do NOT re-do them). **The binding row is Campaign P38.** The provenance replay gate remains **RED on a freshly bootstrapped runner** (see INITIAL TASK); no WP0 remediation has landed yet. Restoring an *honest* GREEN is the blocking first task (P38 WP0), not a victory lap.
 
 ---
 
-# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-23T00:23:59Z)
+# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-23T00:24:21Z)
 
 **Repo:** `Crypto-Betting-Against-Beta` — a market-neutral **Betting-Against-Beta** factor strategy for crypto (long low-beta, short high-beta, beta-neutral by construction). The repo's entire value proposition is *honest, reproducible, artifact-gated evidence*. A RED provenance gate therefore undermines the repo's core claim and is the single most relevant thing to fix first.
 
@@ -42,6 +42,8 @@ Do **not** claim GREEN until `bab_replay_gate.sh` exits 0 AND every `--check-*-s
 - `doc_consistency_summary.json`: stale — missing the `BAB_P37_DECISION.md` replay-gated entry (a deterministic manifest-registration gap, independent of library versions).
 
 Both are **library-version / derived-manifest reproducibility gaps, not logic regressions**. The prior "baseline GREEN" was true only on the machine that generated the artifacts; it is false on a clean runner.
+
+**Route-1 probe already attempted this session:** adjacent older patches (`numpy==2.5.4` / `pandas==3.1.0` / `scipy==1.18.0`) were installed and re-tested — `bab_p37_cost_surface.py --check-cost-surface-summary` still FAILS and `bab_replay_full.py --self-test` still `pass:false`. Adjacent-patch pinning does **not** reproduce the artifacts; do not re-probe adjacent versions. Either bisect further for an exact historical match, or (preferred) take route 2.
 
 **P38 WP0 (BLOCKING) — restore honest provenance reproducibility.** Never hand-edit a committed artifact to fake green (automatic failure per FORBIDDEN). Do it in two legitimate moves:
 1. **Pin runtime deps (primary).** Bisect `numpy`/`pandas`/`scipy` in a scratch venv until `bab_replay_full.py --self-test` is `pass:true` AND all three P37 `--check-*-summary` are PASS, then pin those exact versions in `requirements.txt` + `pyproject.toml` and record the pinned set + verified date/HEAD in `docs/COVERAGE_NOTES.md`. This edits packaging metadata (not a frozen artifact) and makes the committed artifacts reproduce as-is.
