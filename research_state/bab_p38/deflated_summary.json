@@ -1,0 +1,117 @@
+{
+  "best_insample_config": {
+    "beta_neutral": true,
+    "beta_window": 180,
+    "insample_sharpe": 1.21678,
+    "insample_wealth": 1.778458,
+    "long_quantile": 0.2,
+    "short_quantile": 0.2,
+    "transaction_costs": 0.0,
+    "weighting": "equal"
+  },
+  "campaign_verdict": "SURVIVES_DEFLATION",
+  "campaign_verdict_reason": "Shipped default and best in-sample config both have DSR >= 0.5 after deflation over n_trials_total=552.",
+  "provenance": {
+    "bootstrap": {
+      "block_length": 20,
+      "n_resamples": 2000,
+      "seed": 20261123
+    },
+    "btc_source_sha256": "cf1472e154f38b062d8b40ffe9bddcc6a51286e41400acd51d64e12e9d585a77",
+    "campaign": "P38 Deflated Significance & Tail-Risk Closure",
+    "config_grid": {
+      "beta_neutral": true,
+      "beta_window": 90,
+      "dollar_neutral": true,
+      "quantile": 0.3,
+      "weighting": "equal"
+    },
+    "dsr_survive_threshold": 0.5,
+    "fixture_path": "/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta/tests/fixtures/wide_bab_universe.csv",
+    "generator": "scripts/bab_p38_deflated_significance.py",
+    "neutrality_tolerances": {
+      "dollar_neutral": 1e-09,
+      "model_beta_neutral": 0.001,
+      "realized_beta": 0.15
+    },
+    "note": "Deterministic synthetic wide universe (P35 wide-universe recipe). BTC prices from tests/fixtures/wide_bab_universe.csv. Asset returns = beta * BTC_return + idio, idio ~ N(0, 0.003), betas linspace(0.35, 1.9, 40). Not real market data; not market profitability evidence. The verdict is honest and may be negative.",
+    "returns_sha256": "892c5d59bcbf1a124be798e47b176aeef5199e9e431bef7230cabfdc6b4f3205",
+    "seeds": {
+      "base_seed": 20261120,
+      "increment": 1009,
+      "n_seeds": 8,
+      "seed_list": [
+        20261120,
+        20262129,
+        20263138,
+        20264147,
+        20265156,
+        20266165,
+        20267174,
+        20268183
+      ]
+    },
+    "synthetic": true,
+    "wp": "WP1 - Deflated / multiple-testing-adjusted significance"
+  },
+  "results": {
+    "best_insample_config": {
+      "beta_window": 180,
+      "dsr": 0.944379,
+      "gamma": -0.040693,
+      "kappa": 2.892648,
+      "mean_sharpe": 0.128445,
+      "min_backtest_length_for_psr_0_50": 62,
+      "n_ok_cells": 8,
+      "n_seed_cells": 8,
+      "n_trials": 552,
+      "psr": 1.0,
+      "quantile": 0.2,
+      "sigma0": 0.3267936648,
+      "status": "ok",
+      "survives_deflation": true,
+      "total_periods": 2712,
+      "trials_adjusted_p_value": 0.055621,
+      "verdict": "SURVIVES_DEFLATION"
+    },
+    "shipped_default": {
+      "beta_window": 90,
+      "dsr": 0.92093,
+      "gamma": -0.011292,
+      "kappa": 3.163111,
+      "mean_sharpe": 0.367434,
+      "min_backtest_length_for_psr_0_50": 9,
+      "n_ok_cells": 8,
+      "n_seed_cells": 8,
+      "n_trials": 552,
+      "psr": 1.0,
+      "quantile": 0.3,
+      "sigma0": 0.3380294313,
+      "status": "ok",
+      "survives_deflation": true,
+      "total_periods": 2712,
+      "trials_adjusted_p_value": 0.07907,
+      "verdict": "SURVIVES_DEFLATION"
+    }
+  },
+  "schema": "bab_p38.deflated_significance/1",
+  "trial_enumeration": {
+    "breakdown": {
+      "P20_in_sample_grid": 80,
+      "bab_p25/promotion_bakeoff": 0,
+      "bab_p25/walk_forward_rank": 0,
+      "bab_p26/rank_capacity": 0,
+      "bab_p26/regime_stress": 0,
+      "bab_p26/signal_null_battery": 0,
+      "bab_p35/estimator_bakeoff_summary": 80,
+      "bab_p35/signal_stability_summary": 96,
+      "bab_p36/rank_weighted_summary": 8,
+      "bab_p36/walk_forward_summary": 80,
+      "bab_p37/capacity_summary": 8,
+      "bab_p37/cost_surface_summary": 192,
+      "bab_p37/turnover_summary": 8
+    },
+    "n_trials_total": 552,
+    "note": "Derived read-only from committed P20\u2013P37 artifacts: P20 grid configurations plus distinct config cells evaluated across P25\u2013P37 variant artifacts. Not invented; each term traces to a committed JSON leaf."
+  }
+}
