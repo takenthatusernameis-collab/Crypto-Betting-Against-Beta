@@ -12,7 +12,7 @@
 
 ---
 
-# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-23T10:24:42Z)
+# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-23T10:25:55Z)
 
 **MINIMUM ACCEPTABLE OUTCOME (non-negotiable): land P39 WP1 (regime-conditional deflated significance + tail risk)** — create `scripts/bab_p39_regime_conditional.py` + `research_state/bab_p39/regime_summary.{json,md}` + `tests/test_bab_p39_regime_conditional.py`, with `--check-regime-summary` GREEN and `ruff check .` clean. **There is no uncommitted P38 work to commit — P38 is committed at `726d4bd` (the only working-tree delta is this handoff refresh, which is not work-to-do). A handoff-only / docs-only / verification-only / re-verification-only commit that substitutes for P39 work is a FAILED session while P39 WP1–WP2 are open.** If you catch yourself producing only a handoff refresh, a green re-run log, or a planning note without new `bab_p39_*` code + tests + a byte-identical `--check-*`, STOP — that is a failed session, not progress. (P39 WP0 — the full-gate run — is a large-time-budget close-out that does NOT block WP1; use the cheap inner loop while iterating.)
 
