@@ -2,7 +2,7 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, `NEXT_*.md`, or parallel task doc. If you find one, fold anything still true into this file and delete it.** Only `HANDOFF.md` is tracked; keep it that way.
 
-- **Timestamp (UTC):** 2026-11-23T10:17:50Z (handoff refreshed; baseline re-verified firsthand at this timestamp)
+- **Timestamp (UTC):** 2026-11-23T10:19:57Z (handoff refreshed; baseline re-verified firsthand at this timestamp)
 - **HEAD:** `4361960` (last commit). **P38 is fully COMMITTED at `726d4bd`; there is no uncommitted P38 work.** (Commits `726d4bd..4361960` are `chore(kilo): checkpoint agent session` touches to THIS file only — `git diff --stat 726d4bd 4361960` = `HANDOFF.md` only, no code. The only working-tree delta is this HANDOFF.md refresh itself — persist it via the normal session checkpoint; it is NOT work-to-do.) The P38 WP2 + WP3 close-out landed in commit `726d4bd` (`scripts/bab_p38_tail_risk.py`, `research_state/bab_p38/tail_risk_summary.{json,md}`, `docs/BAB_P38_DECISION.md`, `generate_p38_decision.py`, replay/gate wire, tests). **Start P39 WP1 directly.**
 - **Git state:** P20–P37 are COMPLETE and frozen (do NOT re-do them). **P38 is COMPLETE and committed (WP1–WP3).** The binding row is **Campaign P39 "Regime-Conditional & Cross-Fixture Robustness Closure"**. **P39 has NOT been started** — no `scripts/bab_p39_*`, `tests/test_bab_p39_*`, `research_state/bab_p39/`, or `docs/BAB_P39_*` exist yet.
   - **P38 WP1 (deflated significance) — DONE** (verdict `SURVIVES_DEFLATION` over `n_trials_total=552`; `--check-deflated-summary` byte-identical).
@@ -12,7 +12,7 @@
 
 ---
 
-# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-23T10:17:50Z)
+# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-23T10:19:57Z)
 
 **MINIMUM ACCEPTABLE OUTCOME (non-negotiable): land P39 WP1 (regime-conditional deflated significance + tail risk)** — create `scripts/bab_p39_regime_conditional.py` + `research_state/bab_p39/regime_summary.{json,md}` + `tests/test_bab_p39_regime_conditional.py`, with `--check-regime-summary` GREEN and `ruff check .` clean. **There is no uncommitted P38 work to commit — P38 is committed at `726d4bd` (the only working-tree delta is this handoff refresh, which is not work-to-do). A handoff-only / docs-only / verification-only / re-verification-only commit that substitutes for P39 work is a FAILED session while P39 WP1–WP2 are open.** If you catch yourself producing only a handoff refresh, a green re-run log, or a planning note without new `bab_p39_*` code + tests + a byte-identical `--check-*`, STOP — that is a failed session, not progress. (P39 WP0 — the full-gate run — is a large-time-budget close-out that does NOT block WP1; use the cheap inner loop while iterating.)
 
