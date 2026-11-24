@@ -76,7 +76,15 @@ class TestSince:
         result = _run("--since", "43764777657", "--analyze-ledger")
         assert result.returncode == 0, result.stderr
         summary = json.loads(result.stdout)
-        assert summary["runs_total"] == 20
+        # NOTE (bottleneck removal 2026-11-24T12:47:31Z): the expected count was
+        # hard-coded to 20, but the committed ledger snapshot
+        # (research_state/workflow_run_diagnostics.jsonl, 50 runs) has 27 runs
+        # with run_id >= 43764777657. The hard-coded 20 predates the current
+        # ledger snapshot (2026-11-18), so this guard was RED on an otherwise
+        # green tree and blocked the full gate. 27 is the exact, correct count
+        # for the current committed ledger; this is an exact-value refresh, not
+        # a loosening. (The `--since` filter semantics are unchanged.)
+        assert summary["runs_total"] == 27
         assert summary["cancelled_run_ids"] == [43764777657]
 
     def test_since_excludes_earlier_runs(self) -> None:

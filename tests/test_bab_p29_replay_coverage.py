@@ -32,21 +32,33 @@ RESEARCH = REPO_ROOT / "research_state"
 # artifacts after P31 WP0 added the 19 P20-P24 entries, then to 31 (dir, name)
 # entries after P35 WP1/WP2 and P36 WP0/WP1 registered their four JSON-only
 # summary artifacts (estimator_bakeoff_summary, signal_stability_summary,
-# walk_forward_summary, rank_weighted_summary; json_only=True, no_xproc=True).
-# The registry is the single source of truth for "every committed JSON research
-# artifact is replayed", so this exact set is the complete set of registry
-# artifact names. ("charter" appears once each under bab_p22/bab_p23/bab_p24;
-# --list prints the bare name, so the set of distinct names has 29 elements
-# across the 31 (dir, name) entries.) The assertion below stays an EXACT
-# equality -- it is not loosened -- so a 30th artifact added to the registry
-# still fails closed here, while tests/test_bab_p31_registry_completeness.py
-# independently guards the "no committed JSON escapes replay" direction.
+# walk_forward_summary, rank_weighted_summary; json_only=True, no_xproc=True),
+# then to 38 (dir, name) entries after P37/P38/P39 registered their seven
+# JSON-only summary artifacts (cost_surface_summary, capacity_summary,
+# turnover_summary, deflated_summary, tail_risk_summary, regime_summary,
+# cross_fixture_summary; json_only=True, no_xproc=True). The registry is the
+# single source of truth for "every committed JSON research artifact is
+# replayed", so this exact set is the complete set of registry artifact names.
+# ("charter" appears once each under bab_p22/bab_p23/bab_p24; --list prints the
+# bare name, so the set of distinct names has 36 elements across the 38
+# (dir, name) entries.) The assertion below stays an EXACT equality -- it is not
+# loosened -- so a 37th artifact added to the registry still fails closed here,
+# while tests/test_bab_p31_registry_completeness.py independently guards the
+# "no committed JSON escapes replay" direction.
 # NOTE (bottleneck removal 2026-11-22T19:41:19Z): this set was last extended at
 # P31 and never updated for the P35/P36 json-only registrations, so the guard
 # was RED on an otherwise-green tree (3 failures in this file) and blocked every
 # session's full gate. Adding the four legitimately-registered json-only names
 # restores the EXACT-equality contract without weakening it. This is guard
 # maintenance, not test loosening.
+# NOTE (bottleneck removal 2026-11-24T11:24:33Z): the same rot recurred for the
+# P37/P38/P39 json-only summary registrations (cost_surface_summary,
+# capacity_summary, turnover_summary, deflated_summary, tail_risk_summary,
+# regime_summary, cross_fixture_summary), leaving this guard RED again on an
+# otherwise-green tree and contributing to the full-gate failure set that
+# blocked P39 WP0. Adding the seven legitimately-registered json-only names
+# restores the EXACT-equality contract without weakening it. Guard maintenance,
+# not test loosening.
 EXPECTED_NAMES = {
     # P25 / P26 / P27 (P29 WP0 scope)
     "walk_forward_rank",
@@ -86,6 +98,17 @@ EXPECTED_NAMES = {
     "signal_stability_summary",
     "walk_forward_summary",
     "rank_weighted_summary",
+    # P37 (WP0/WP1/WP2) + P38 (WP1/WP2) + P39 (WP1/WP2) JSON-only summary
+    # artifacts (json_only=True, no_xproc=True in bab_replay_full.py REGISTRY;
+    # no .md sidecar by design). Registered legitimately; added here to restore
+    # the EXACT-equality contract (see the 2026-11-24 bottleneck-removal note).
+    "cost_surface_summary",
+    "capacity_summary",
+    "turnover_summary",
+    "deflated_summary",
+    "tail_risk_summary",
+    "regime_summary",
+    "cross_fixture_summary",
 }
 
 

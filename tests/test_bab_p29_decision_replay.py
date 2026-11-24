@@ -35,6 +35,23 @@ EXPECTED_NAMES = {
     "p27_decision",
     "paper_orders.jsonl",
     "paper_diagnostics.jsonl",
+    # P22/P23/P24 kickoff sidecars + P24 decision, and P35-P39 decision docs.
+    # These were registered legitimately in scripts/bab_replay_decisions.py
+    # (each has a committed, byte-replayable output) but were never added to
+    # this EXACT-equality guard, so it went RED on an otherwise-green tree and
+    # contributed to the full-gate failure set that blocked P39 WP0.
+    # NOTE (bottleneck removal 2026-11-24T11:24:33Z): adding the nine
+    # legitimately-registered names restores the EXACT-equality contract
+    # without weakening it. Guard maintenance, not test loosening.
+    "p22_kickoff.md",
+    "p23_kickoff.md",
+    "p24_kickoff.md",
+    "p24_decision.md",
+    "p35_decision.md",
+    "p36_decision.md",
+    "p37_decision.md",
+    "p38_decision.md",
+    "p39_decision.md",
 }
 
 COMMITTED_FILES = [
