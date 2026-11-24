@@ -2,21 +2,19 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, `NEXT_*.md`, or parallel task doc. If you find one, fold anything still true into this file and delete it. Only `HANDOFF.md` is tracked at repo root; keep it that way.**
 
-- **Timestamp (UTC):** 2026-11-24T15:44:22Z (single durable handoff refreshed — P39 WP0 full gate is STILL RUNNING; pytest is at 99% and the `--xproc` + `--check-provenance` subprocesses are still alive).
-- **HEAD:** `6d05e066e226c65405ef24f148a7dc88c18143dd` (a `chore(kilo): checkpoint agent session` commit; campaign code is frozen at its campaign commits — P38 at `726d4bd`, P39 WP3 at ancestor `3d08169`. Do NOT cite `3d08169` as HEAD; it is an ancestor.)
-- **Working tree:** CLEAN (`git status --short` empty at 2026-11-24T15:44:22Z; the frozen P27 `.md` files have NOT been mutated yet).
+- **Timestamp (UTC):** 2026-11-24T20:44:33Z (single durable handoff refreshed — P39 WP0 full gate RELAUNCHED as persistent background process pid 2818 (id `bgp_20f515c52001ZS0OqmbHVvbYcM`), log at `/tmp/bab_gate_p39.log`; toolchain bootstrapped; ruff GREEN; `bab_quick.sh` GREEN).
+- **HEAD:** `73c2684f3c06da806b4624780e3839499b41a558` (a `chore(kilo): checkpoint agent session` commit; campaign code is frozen at its campaign commits — P38 at `726d4bd`, P39 WP3 at ancestor `3d08169`. Do NOT cite `3d08169` as HEAD; it is an ancestor.)
+- **Working tree:** CLEAN (`git status --short` empty at 2026-11-24T20:44:33Z; the frozen P27 `.md` files have NOT been mutated yet).
 - **Repo:** `Crypto-Betting-Against-Beta` — a market-neutral **Betting-Against-Beta** factor strategy for crypto (long low-beta, short high-beta, beta-neutral by construction). The repo's entire value proposition is *honest, reproducible, artifact-gated evidence*. Synthetic fixtures are NOT real market data — never present them as evidence of real profitability.
 
 ---
 
-# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-24T15:44:22Z)
+# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-24T20:44:33Z)
 
 **MINIMUM ACCEPTABLE OUTCOME (non-negotiable): land P39 WP0 full-gate close-out — a GREEN `bash scripts/bab_gate.sh` at `BAB_GATE_MIN_COVERAGE=100`, TOTAL coverage recorded in `docs/COVERAGE_NOTES.md`, and the frozen P27 `.md` files restored.**
 
-**State you inherit (verified 2026-11-24T15:44:22Z):** the prior baseline was GREEN (ruff, `bab_quick.sh`, all P38/P39 `--check-*` byte-identical, replay self-tests pass). The full gate is ALREADY RUNNING as a persistent background process:
-`BAB_GATE_LOG=/tmp/bab_gate_p39.log BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh` (pids 21396/21403 bash, 21419 pytest, 25029 `--xproc`, 25842 `--check-provenance`; started ~14:41Z). At 15:44Z the main pytest suite was at 99% with only skips, the log had no `TOTAL` line yet, and both long-pole subprocesses were alive. After pytest exits, only the fast P34–P39 summary checks + coverage-floor check remain (~1–2 min).
-
-**The 6 spurious guard failures that once had the gate RED were FIXED in a prior session — do NOT re-fix, do NOT revert them** (details in *Bottlenecks removed* #8): `tests/test_bab_p29_replay_coverage.py` `EXPECTED_NAMES` extended (+7 json-only summaries); `tests/test_bab_p29_decision_replay.py` `EXPECTED_NAMES` extended (+9 docs); `docs/COVERAGE_NOTES.md` line 7 reworded; `tests/test_bab_p30_ledger_analyzer.py` count refreshed 20→27.
+**State you inherit (verified 2026-11-24T20:44:33Z):** the prior baseline was GREEN (ruff, `bab_quick.sh`, all P38/P39 `--check-*` byte-identical, replay self-tests pass). The full gate is ALREADY RUNNING as a persistent background process:
+`BAB_GATE_LOG=/tmp/bab_gate_p39.log BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh` (pid 2818; started ~20:44Z). The gate covers pytest (all test files) + coverage floor + `--check-provenance`/`--xproc` replay gate + P30–P39 summary checks (~80 min for the long poles, +~2 min for P34–P39 checks + coverage floor).
 
 **FIRST ACTION — poll the already-running gate only (do NOT rerun the baseline, do NOT launch a second gate, and do NOT wrap the poll in a blocking call; parallel runs create the resource contention that stalled prior sessions):**
 ```bash
@@ -113,7 +111,8 @@ python3 -m pytest -q tests/test_bab_p39_*.py tests/test_bab_p38_determinism.py
 - **#8 Stale exact-equality guards → RED gate on a green tree — REMOVED (do NOT revert/re-fix).** `tests/test_bab_p29_replay_coverage.py` `EXPECTED_NAMES` += 7 json-only summaries (`cost_surface_summary`, `capacity_summary`, `turnover_summary`, `deflated_summary`, `tail_risk_summary`, `regime_summary`, `cross_fixture_summary`); `tests/test_bab_p29_decision_replay.py` `EXPECTED_NAMES` += 9 docs (`p22_kickoff.md`, `p23_kickoff.md`, `p24_kickoff.md`, `p24_decision.md`, `p35_decision.md`, `p36_decision.md`, `p37_decision.md`, `p38_decision.md`, `p39_decision.md`); `docs/COVERAGE_NOTES.md` line 7 reworded; `tests/test_bab_p30_ledger_analyzer.py` count 20→27. Exact-equality preserved (a 37th artifact still fails closed). This is the documented guard-maintenance pattern.
 - **#9 Structural RUNTIME bottleneck — DOCUMENTED, not a correctness problem.** `--check-provenance` and `--xproc` (also via `tests/test_bab_p31_provenance_replay.py`, `tests/test_bab_p29_xproc_determinism.py`) rebuild ~8 heavy Monte-Carlo artifacts twice each in fresh interpreters (~80 min). **Mitigation:** run the gate as a background/persistent process and poll the log across turns; do NOT wrap in one blocking call. If the runner cannot keep a background process alive, run the fast 95% first, then `--check-provenance` and `--xproc` once on a large uninterrupted budget. The provenance math is a legitimate determinism proof — do NOT delete, skip, or weaken it.
 - **#10 Frozen P27 `.md` trailing-newline trap — DOCUMENTED + restore path given** (`git checkout -- research_state/bab_p27/` after any full run).
-- **Stale HEAD pointer — REMOVED.** Always cite the current `git rev-parse HEAD` (`6d05e066e226c65405ef24f148a7dc88c18143dd` at 2026-11-24T15:44:22Z); treat `3d08169` as an ancestor, never as HEAD.
+- **#11 Dead gate + missing toolchain — REMOVED in this session (2026-11-24T20:44:33Z).** Prior session's background gate process was dead (no pids, no `/tmp/bab_gate_p39.log`); `numpy`/`pandas`/`scipy`/`pytest`/`pytest-cov`/`xdist`/`hypothesis`/`coverage`/`ccxt`/`ruff` were all missing. Fixed by running `CI=true bash scripts/bab_bootstrap.sh` (toolchain ready) then relaunching `BAB_GATE_LOG=/tmp/bab_gate_p39.log BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh` as a persistent background process (pid 2818). Baseline re-verified GREEN: `ruff check .` → All checks passed; `bab_quick.sh` → quick preflight OK (195 passed).
+- **Stale HEAD pointer — REMOVED.** Always cite the current `git rev-parse HEAD` (`73c2684f3c06da806b4624780e3839499b41a558` at 2026-11-24T20:44:33Z); treat `3d08169` as an ancestor, never as HEAD.
 - **Idle-wait dead-end — REMOVED.** A session may report idle-wait ONLY after the full gate is GREEN **and** P39 WP0 is complete **and** P40 is either complete or explicitly maintainer-gated — and that report MUST include a fresh full-gate GREEN log, not prose.
 
 ---
