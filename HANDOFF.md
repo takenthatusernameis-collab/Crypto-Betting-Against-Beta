@@ -2,9 +2,9 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, `NEXT_*.md`, or parallel task doc. If you find one, fold anything still true into this file and delete it. Only `HANDOFF.md` is tracked at repo root; keep it that way.**
 
-- **Timestamp (UTC):** 2026-11-24T22:19:39Z (single durable handoff refreshed — P39 WP0 full gate STILL RUNNING as persistent background process pid 2818, log at `/tmp/bab_gate_p39.log`; pytest reached ~99% with **`F.FF` failures observed at ~52%, ~67%, ~92%, and ~99%** — provenance (`--check-provenance`, pid 6208) still active after pytest; xproc pid 5452 phase complete; wait for the gate to exit, then bisect if RED; toolchain bootstrapped; ruff GREEN; `bab_quick.sh` GREEN).
-- **HEAD:** `e1f9c2c49b626136482db17ea7e71e07893bd422` (a `chore(kilo): checkpoint agent session` commit — only HANDOFF.md refreshed; campaign code frozen at its campaign commits — P38 at `726d4bd`, P39 WP3 at ancestor `3d08169`. Do NOT cite `3d08169` as HEAD; it is an ancestor. Re-derive with `git rev-parse HEAD` at session start — the checkpoint commit hash advances every session.)
-- **Working tree:** `research_state/bab_p30/ledger_summary.json` MODIFIED (only `analyzed_at_utc` timestamp bumped by provenance replay — expected, will be re-normalized by the gate; the frozen P27 `.md` files have NOT yet been mutated — the running gate appends one trailing newline to each; restore with `git checkout -- research_state/bab_p27/` after it exits).
+- **Timestamp (UTC):** 2026-11-24T22:45:09Z (single durable handoff refreshed — P39 WP0 full gate pid 2818 EXITED RED, log at `/tmp/bab_gate_p39.log` complete: **7 failed, 7658 passed, 39 skipped (~59 min)**; provenance pid 6208 and xproc pid 5452 phases done; background pid 12490 (`--xproc` ledger regen) GONE. Toolchain bootstrapped; ruff GREEN; `bab_quick.sh` GREEN.)
+- **HEAD:** `76fe65a402b676de3a75012ee029ab639bf3fb03` (a `chore(kilo): checkpoint agent session` commit — campaign code frozen at its campaign commits — P38 at `726d4bd`, P39 WP3 at ancestor `3d08169`. Do NOT cite `3d08169` as HEAD; re-derive with `git rev-parse HEAD` at session start — the checkpoint commit hash advances every session.)
+- **Working tree:** CLEAN at `76fe65a`. Group A code fixes are COMMITTED in `scripts/bab_replay_full.py` (`no_xproc: True` for `bab_hysteresis_ladder`/`bab_regime_split`; `_write_provenance_ledger_to` writes only the 8 seeded `ok=True` P25-P27 records). BUT `research_state/bab_p29/provenance_audit.json` is STALE with **38 records** (needs exactly 8: P25-P27 seeded set, seeds 20261120/20261121) — regenerate with `python3 scripts/bab_replay_full.py --xproc`, then `--check-provenance` must pass. Frozen `research_state/bab_p27/` `.md` files NOT yet mutated this session (restore with `git checkout -- research_state/bab_p27/` after any full gate run).
 - **Repo:** `Crypto-Betting-Against-Beta` — a market-neutral **Betting-Against-Beta** factor strategy for crypto (long low-beta, short high-beta, beta-neutral by construction). The repo's entire value proposition is *honest, reproducible, artifact-gated evidence*. Synthetic fixtures are NOT real market data — never present them as evidence of real profitability.
 
 ---
@@ -13,27 +13,27 @@
 
 **MINIMUM ACCEPTABLE OUTCOME (non-negotiable): land P39 WP0 full-gate close-out — a GREEN `bash scripts/bab_gate.sh` at `BAB_GATE_MIN_COVERAGE=100`, TOTAL coverage recorded in `docs/COVERAGE_NOTES.md`, and the frozen P27 `.md` files restored. Nothing short of that is a completed session.**
 
-**State you inherit (verified 2026-11-24T22:55:00Z):** baseline CONFIRMED GREEN (ruff `All checks passed!`, `bab_quick.sh` quick preflight OK, P38/P39 determinism 145 passed). The P39 WP0 full gate EXITED RED (pid 2818 done, log `/tmp/bab_gate_p39.log`): **7 failed, 7658 passed, 39 skipped** (~59 min). The 7 failures split into two groups:
+**State you inherit (verified 2026-11-24T22:45:09Z):** baseline CONFIRMED GREEN (ruff `All checks passed!`, `bab_quick.sh` quick preflight OK). The P39 WP0 full gate EXITED RED (pid 2818 done, log `/tmp/bab_gate_p39.log`): **7 failed, 7658 passed, 39 skipped** (~59 min). No background processes remain (pid 2818 done, pid 12490 gone). The 7 failures split into two groups:
 
-**Group A — xproc/provenance (code fixes applied, ledger regeneration in flight):**
-- `test_bab_p29_xproc_determinism.py::test_provenance_ledger_covers_all_artifacts` — ledger has 38 records, expected 8 (P25-P27 seeded set).
-- `test_bab_p29_xproc_determinism.py::test_provenance_ledger_hashes_match_live_files` — breakeven.json not on disk (live-hashes only covers bab_p25-27).
-- `test_bab_p29_xproc_determinism.py::test_xproc_exits_zero_all_artifacts_ok` — xproc must exit 0 (hysteresis 600s subprocess timeout).
-- `test_bab_p31_provenance_replay.py::test_check_provenance_exits_zero_and_is_read_only` --check-provenance non-zero (timeouts + PROVENANCE DRIFT on `research_state/bab_p29/provenance_audit.json`).
-Code fixes applied (uncommitted): `scripts/bab_replay_full.py` — gated `bab_hysteresis_ladder`/`bab_regime_split` out of xproc as `no_xproc: True` (they exceed the 600s subprocess budget, like P35-P39), and `_write_provenance_ledger_to` now writes only seeded `ok=True` records (the 8 P25-P27 set) so the frozen ledger stays at 8. `BAB_GATE_LOG=/tmp/bab_gate_p39.log python3 scripts/bab_replay_full.py --xproc` is running as **background process pid 12490** to regenerate `research_state/bab_p29/provenance_audit.json` to exactly 8 records — **wait for pid 12490 to finish before running the provenance tests.**
+**Group A — xproc/provenance (code fixes COMMITTED; ledger regeneration pending):**
+- `test_bab_p29_xproc_determinism.py::test_provenance_ledger_covers_all_artifacts` — ledger has 38 records, expected 8 (P25-P27 seeded set). FIX: run `python3 scripts/bab_replay_full.py --xproc` (rewrites ledger to exactly 8 records via `no_xproc` + seed filter), then `--check-provenance`.
+- `test_bab_p29_xproc_determinism.py::test_provenance_ledger_hashes_match_live_files` — breakeven.json IS on disk now; ledger sha256 must match after regen.
+- `test_bab_p29_xproc_determinism.py::test_xproc_exits_zero_all_artifacts_ok` — xproc must exit 0; hysteresis/regime_split now `no_xproc` (skipped, no 600s timeout).
+- `test_bab_p31_provenance_replay.py::test_check_provenance_exits_zero_and_is_read_only` --check-provenance must exit 0; passes once ledger is 8 records.
 
-**Group B — P30/P35 exact-value/drift (P30 fixed, P35 NOT yet investigated):**
-- `tests/test_bab_p30_ledger_analyzer.py::TestSince::test_since_filters_runs` — committed ledger has 28 runs ≥ 43764777657, test expected 27 (FIXED: updated expected to 28, exact-value refresh).
-- `tests/test_bab_p35_signal_stability.py::test_summary_byte_determinism` — committed summary byte-mismatch vs fresh recompute (NOT yet investigated — drift in P35 summary generation).
-- `tests/test_bab_p35_estimator_bakeoff.py::test_summary_byte_determinism` — same for `estimator_bakeoff_summary` (NOT yet investigated).
+**Group B — P30/P35 exact-value/drift (P30 FIXED in tree; P35 open):**
+- `tests/test_bab_p30_ledger_analyzer.py::TestSince::test_since_filters_runs` — tree already expects 28 (FIXED: exact-value refresh, committed). Re-confirm GREEN.
+- `tests/test_bab_p35_signal_stability.py::test_summary_byte_determinism` — committed `signal_stability_summary.json` byte-mismatch vs fresh recompute (OPEN — drift in P35 summary generation).
+- `tests/test_bab_p35_estimator_bakeoff.py::test_summary_byte_determinism` — same for `estimator_bakeoff_summary` (OPEN).
 
 **FIRST ACTION:**
-1. Wait for background `--xproc` pid 12490 to exit, then confirm `research_state/bab_p29/provenance_audit.json` has exactly 8 records (P25-P27, all `replay_ok:true`, seeds 20261120/20261121).
-2. Run the fast path: `bash scripts/bab_quick.sh && python3 -m ruff check . && python3 -m pytest -q tests/test_bab_p39_*.py tests/test_bab_p38_determinism.py` (expect GREEN).
-3. Investigate/fix Group B (P35 byte-determinism): run `python3 scripts/bab_p35_signal_stability.py --check-signal-stability-summary` and `python3 scripts/bab_p35_estimator_bakeoff.py --check-estimator-bakeoff-summary`, classify any drift (signed-zero / ~1-ULP float → `_round_floats` → regenerate via generator → cascade `doc_replay_summary.json`), never hand-edit frozen artifacts or loosen tests.
-4. Re-run the 7 previously-failing tests in isolation until all pass.
-5. Re-launch `BAB_GATE_LOG=/tmp/bab_gate_p39.log BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh` as a background process and poll until GREEN (TOTAL 100%), then `git checkout -- research_state/bab_p27/`, record coverage in `docs/COVERAGE_NOTES.md`, verify tree clean except intended changes.
-6. Then Campaign P40 (charter below) — inescapable heavy work.
+1. Regenerate the provenance ledger: `python3 scripts/bab_replay_full.py --xproc` (rewrites `research_state/bab_p29/provenance_audit.json` to exactly 8 P25-P27 records; hysteresis/regime_split/P35-P39 are `no_xproc` so no 600s timeouts). Confirm exactly 8 records, all `replay_ok:true`, seeds 20261120/20261121.
+2. `python3 scripts/bab_replay_full.py --check-provenance` → expect exit 0, `pass:true`, committed audit unmodified.
+3. Run the fast path: `bash scripts/bab_quick.sh && python3 -m ruff check . && python3 -m pytest -q tests/test_bab_p39_*.py tests/test_bab_p38_determinism.py` (expect GREEN).
+4. Investigate/fix Group B P35 byte-determinism: run `python3 scripts/bab_p35_signal_stability.py --check-signal-stability-summary` and `python3 scripts/bab_p35_estimator_bakeoff.py --check-estimator-bakeoff-summary`, classify drift (signed-zero / ~1-ULP float → `_round_floats` → regenerate via generator → cascade `doc_replay_summary.json`), never hand-edit frozen artifacts or loosen tests.
+5. Re-run the 7 previously-failing tests in isolation until all pass.
+6. Re-launch `BAB_GATE_LOG=/tmp/bab_gate_p39.log BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh` as a background process and poll until GREEN (TOTAL 100%), then `git checkout -- research_state/bab_p27/`, record coverage in `docs/COVERAGE_NOTES.md`, verify tree clean except intended changes.
+7. Then Campaign P40 (charter below) — inescapable heavy work.
 
 **Gate-exit handling:** when the gate exits:
 - If exit 0 and `TOTAL 100% >= 100%` → record TOTAL coverage % + pass/skip counts with date/HEAD in `docs/COVERAGE_NOTES.md`, then `git checkout -- research_state/bab_p27/` to undo the trailing-newline mutation of the two frozen P27 `.md` files, re-run `bash scripts/bab_quick.sh` and `python3 -m ruff check .` to confirm still GREEN, confirm working tree clean except intended changes (`docs/COVERAGE_NOTES.md` + restored P27 `.md`).
