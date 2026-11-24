@@ -602,6 +602,25 @@ def _build_summary_artifact(grid_results: dict) -> dict:
     return summary
 
 
+def _round_floats(obj, sig: int = 12):
+    """Recursively round floats to ``sig`` significant digits (byte-reproducibility).
+
+    Cross-version BLAS / numpy differences perturb trailing ULPs; the neutrality
+    tolerances and tail magnitudes are many orders above 1e-12, so this cannot
+    change any decision -- it only makes the committed artifact reproducible.
+    Signed zero is normalized to ``0.0`` so ``json.dumps`` bytes are stable.
+    """
+    if isinstance(obj, float):
+        if obj == 0.0 or not np.isfinite(obj):
+            return 0.0 if obj == 0.0 else obj
+        return float(f"{obj:.{sig}g}")
+    if isinstance(obj, dict):
+        return {k: _round_floats(v, sig) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_round_floats(v, sig) for v in obj]
+    return obj
+
+
 def write_summary(summary: dict, path: Path = SUMMARY_PATH) -> None:
     """Write summary artifact with deterministic JSON formatting."""
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -617,7 +636,7 @@ def build_summary() -> dict:
     in-memory rebuild.
     """
     grid_results = _run_all_seeds_and_configs()
-    return _build_summary_artifact(grid_results)
+    return _round_floats(_build_summary_artifact(grid_results))
 
 
 def check_summary(path: Path = SUMMARY_PATH) -> bool:
@@ -628,7 +647,7 @@ def check_summary(path: Path = SUMMARY_PATH) -> bool:
 
     # Recompute
     grid_results = _run_all_seeds_and_configs()
-    fresh_summary = _build_summary_artifact(grid_results)
+    fresh_summary = _round_floats(_build_summary_artifact(grid_results))
 
     # Compare byte-identical
     expected_bytes = path.read_bytes()
@@ -690,7 +709,7 @@ def main() -> int:
 
     started = time.perf_counter()
     grid_results = _run_all_seeds_and_configs()
-    summary = _build_summary_artifact(grid_results)
+    summary = _round_floats(_build_summary_artifact(grid_results))
     write_summary(summary, args.output)
     elapsed = time.perf_counter() - started
 
