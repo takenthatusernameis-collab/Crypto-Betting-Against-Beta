@@ -140,7 +140,7 @@
       "fixture_sha256": "a6d390fc755641ea28d14b8204615786fdc9a95733a87e4c3b63d66be64c163b",
       "generator_module": "bab_hysteresis_ladder",
       "path": "research_state/bab_p24/hysteresis.json",
-      "replay_ok": true,
+      "replay_ok": false,
       "seed": null,
       "sha256": "9c7d4280fa79575923fd6e62c9ef9716e29815a2cf3794c3bde7c17f11729fd3"
     },
@@ -148,7 +148,7 @@
       "fixture_sha256": "a6d390fc755641ea28d14b8204615786fdc9a95733a87e4c3b63d66be64c163b",
       "generator_module": "bab_regime_split",
       "path": "research_state/bab_p24/regime_split.json",
-      "replay_ok": true,
+      "replay_ok": false,
       "seed": null,
       "sha256": "3b9f94325edd95ebc057b5f7f55892818b51e9d83fc8ad5393bca4661a6847b5"
     },
@@ -188,8 +188,8 @@
       "fixture_sha256": "a6d390fc755641ea28d14b8204615786fdc9a95733a87e4c3b63d66be64c163b",
       "generator_module": "bab_signal_null_battery",
       "path": "research_state/bab_p26/signal_null_battery.json",
-      "replay_ok": true,
-      "seed": 20261120,
+      "replay_ok": false,
+      "seed": null,
       "sha256": "bb4be22943b98cf0993bf94c5671971461512c9263a9c35a430f9fb2fb2541b0"
     },
     {
@@ -215,6 +215,94 @@
       "replay_ok": true,
       "seed": 20261121,
       "sha256": "fc520cb8af80bc5d10917e522353625e3321988e5939dbe632109c8739473214"
+    },
+    {
+      "fixture_sha256": "a6d390fc755641ea28d14b8204615786fdc9a95733a87e4c3b63d66be64c163b",
+      "generator_module": "bab_p35_estimator_bakeoff",
+      "path": "research_state/bab_p35/estimator_bakeoff_summary.json",
+      "replay_ok": false,
+      "seed": null,
+      "sha256": "d50dae68ddd2fa7d27d02129f6dd1bd20d2f81d059d7e7a9cc973e0a2b2fb51d"
+    },
+    {
+      "fixture_sha256": "a6d390fc755641ea28d14b8204615786fdc9a95733a87e4c3b63d66be64c163b",
+      "generator_module": "bab_p35_signal_stability",
+      "path": "research_state/bab_p35/signal_stability_summary.json",
+      "replay_ok": false,
+      "seed": null,
+      "sha256": "cbdf976ba47ac49a910cb85778c625db87682573f12c08b507490e11fe04998f"
+    },
+    {
+      "fixture_sha256": "a6d390fc755641ea28d14b8204615786fdc9a95733a87e4c3b63d66be64c163b",
+      "generator_module": "bab_p36_rank_weighted",
+      "path": "research_state/bab_p36/rank_weighted_summary.json",
+      "replay_ok": false,
+      "seed": null,
+      "sha256": "abebaa692c2460aabbe0ec4ce4364c471229efed7c8156c1d27a2f2987030b3e"
+    },
+    {
+      "fixture_sha256": "a6d390fc755641ea28d14b8204615786fdc9a95733a87e4c3b63d66be64c163b",
+      "generator_module": "bab_p36_walk_forward",
+      "path": "research_state/bab_p36/walk_forward_summary.json",
+      "replay_ok": false,
+      "seed": null,
+      "sha256": "4e01b542c2ea1e701b2c711bbd09695d30b99030e0a83d01c39dd6496f78a97b"
+    },
+    {
+      "fixture_sha256": "a6d390fc755641ea28d14b8204615786fdc9a95733a87e4c3b63d66be64c163b",
+      "generator_module": "bab_p37_capacity",
+      "path": "research_state/bab_p37/capacity_summary.json",
+      "replay_ok": false,
+      "seed": null,
+      "sha256": "3c473a415d4fe5c10cc5fbb774026bafef62462ff0a488da9921cf6384e95c71"
+    },
+    {
+      "fixture_sha256": "a6d390fc755641ea28d14b8204615786fdc9a95733a87e4c3b63d66be64c163b",
+      "generator_module": "bab_p37_cost_surface",
+      "path": "research_state/bab_p37/cost_surface_summary.json",
+      "replay_ok": false,
+      "seed": null,
+      "sha256": "6169f693db9d45ac23be8f7c94959175e6939ad76194dce159e10e67ea7a5afb"
+    },
+    {
+      "fixture_sha256": "a6d390fc755641ea28d14b8204615786fdc9a95733a87e4c3b63d66be64c163b",
+      "generator_module": "bab_p37_turnover",
+      "path": "research_state/bab_p37/turnover_summary.json",
+      "replay_ok": false,
+      "seed": null,
+      "sha256": "ede657a81a65d6f7a82d08a9744b3aac43b8717853775f176e81dd008ea7477f"
+    },
+    {
+      "fixture_sha256": "a6d390fc755641ea28d14b8204615786fdc9a95733a87e4c3b63d66be64c163b",
+      "generator_module": "bab_p38_deflated_significance",
+      "path": "research_state/bab_p38/deflated_summary.json",
+      "replay_ok": false,
+      "seed": null,
+      "sha256": "2a0c242e45b9a98438a3f6f0145253df0ad7b49717f438b79ea9dd772417c06c"
+    },
+    {
+      "fixture_sha256": "a6d390fc755641ea28d14b8204615786fdc9a95733a87e4c3b63d66be64c163b",
+      "generator_module": "bab_p38_tail_risk",
+      "path": "research_state/bab_p38/tail_risk_summary.json",
+      "replay_ok": false,
+      "seed": null,
+      "sha256": "c33b696b89167dd3d2dc7cc06a33d109b2adab9c40bb392d64c047069725e3f9"
+    },
+    {
+      "fixture_sha256": "a6d390fc755641ea28d14b8204615786fdc9a95733a87e4c3b63d66be64c163b",
+      "generator_module": "bab_p39_cross_fixture",
+      "path": "research_state/bab_p39/cross_fixture_summary.json",
+      "replay_ok": false,
+      "seed": null,
+      "sha256": "48b97bfd562fdff16e29862b528a600cb5834edaf3662cf222a62d04768724a4"
+    },
+    {
+      "fixture_sha256": "a6d390fc755641ea28d14b8204615786fdc9a95733a87e4c3b63d66be64c163b",
+      "generator_module": "bab_p39_regime_conditional",
+      "path": "research_state/bab_p39/regime_summary.json",
+      "replay_ok": false,
+      "seed": null,
+      "sha256": "6ba411c7e88a32350193af293cab41c42081a5ab77d326b2e73d342a442fb795"
     }
   ],
   "schema": "bab_p29.provenance_audit/1"
