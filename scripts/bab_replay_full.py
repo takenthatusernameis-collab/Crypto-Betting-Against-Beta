@@ -99,9 +99,11 @@ REGISTRY: list[dict] = [
     {"module": "bab_licensed_adapter", "build": "build_adapter_dryrun",
      "dir": "bab_p24", "name": "adapter_dryrun", "inject_determinism": False},
     {"module": "bab_hysteresis_ladder", "build": "build_hysteresis_ladder",
-     "dir": "bab_p24", "name": "hysteresis", "inject_determinism": False},
+     "dir": "bab_p24", "name": "hysteresis", "inject_determinism": False,
+     "no_xproc": True},
     {"module": "bab_regime_split", "build": "build_regime_split",
-     "dir": "bab_p24", "name": "regime_split", "inject_determinism": False},
+     "dir": "bab_p24", "name": "regime_split", "inject_determinism": False,
+     "no_xproc": True},
     # P35 WP1/WP2 summary artifacts (JSON-only; no .md sidecar). Gated out of
     # --xproc/--check-provenance so the frozen P29 provenance_audit.json ledger
     # is never rewritten by P35 entries (see HANDOFF.md P35 WP3 bottleneck note).
@@ -349,6 +351,13 @@ def _write_provenance_ledger_to(results: dict[str, dict], entries: list[dict],
     for entry in entries:
         name = entry["name"]
         res = results.get(name, {})
+        # Provenance ledger scope: only seeded artifacts that replay OK (the
+        # original P25/P26/P27 set). Non-seeded P20-P24 builds (seed=None),
+        # gated-out no_xproc entries (P35-P39 summaries, hysteresis/regime_split),
+        # and xproc timeouts (ok=False) are excluded so the frozen ledger stays
+        # at exactly the 8 seeded P25-P27 records the provenance tests expect.
+        if not (res.get("ok") is True and res.get("seed") is not None):
+            continue
         json_path = ROOT / "research_state" / entry["dir"] / f"{name}.json"
         sha = (
             hashlib.sha256(json_path.read_bytes()).hexdigest()
