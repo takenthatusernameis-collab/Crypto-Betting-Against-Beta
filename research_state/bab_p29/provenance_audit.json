@@ -188,8 +188,8 @@
       "fixture_sha256": "a6d390fc755641ea28d14b8204615786fdc9a95733a87e4c3b63d66be64c163b",
       "generator_module": "bab_signal_null_battery",
       "path": "research_state/bab_p26/signal_null_battery.json",
-      "replay_ok": false,
-      "seed": null,
+      "replay_ok": true,
+      "seed": 20261120,
       "sha256": "bb4be22943b98cf0993bf94c5671971461512c9263a9c35a430f9fb2fb2541b0"
     },
     {
