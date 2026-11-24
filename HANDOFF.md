@@ -2,31 +2,31 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, `NEXT_*.md`, or parallel task doc. If you find one, fold anything still true into this file and delete it. Only `HANDOFF.md` is tracked at repo root; keep it that way.**
 
-- **Timestamp (UTC):** 2026-11-24T20:56:39Z (single durable handoff refreshed — P39 WP0 full gate STILL RUNNING as persistent background process pid 2818 (id `bgp_20f515c52001ZS0OqmbHVvbYcM`), log at `/tmp/bab_gate_p39.log`; pytest ~35% complete at 20:55Z, no `TOTAL` line yet, log actively growing; toolchain bootstrapped; ruff GREEN; `bab_quick.sh` GREEN).
-- **HEAD:** `69b4266fc4121ab7c3d6710a5765a9f5d3116e06` (a `chore(kilo): checkpoint agent session` commit — only HANDOFF.md refreshed; campaign code frozen at its campaign commits — P38 at `726d4bd`, P39 WP3 at ancestor `3d08169`. Do NOT cite `3d08169` as HEAD; it is an ancestor. Re-derive with `git rev-parse HEAD` at session start — the checkpoint commit hash advances every session.)
-- **Working tree:** CLEAN (`git status --short` empty at 2026-11-24T20:56:39Z; the frozen P27 `.md` files have NOT been mutated yet — the running gate will append one trailing newline to each; restore with `git checkout -- research_state/bab_p27/` after it exits).
+- **Timestamp (UTC):** 2026-11-24T20:58:00Z (single durable handoff refreshed — P39 WP0 full gate STILL RUNNING as persistent background process pid 2818 (id `bgp_20f515c52001ZS0OqmbHVvbYcM`), log at `/tmp/bab_gate_p39.log`; pytest ~66% and growing at ~20:57Z, **a test failure (`F`) was observed at ~52%** — wait for the gate to exit, then bisect if RED; toolchain bootstrapped; ruff GREEN; `bab_quick.sh` GREEN).
+- **HEAD:** `e46773985b37e3351fd1628f4aaa5867c3eb81ee` (a `chore(kilo): checkpoint agent session` commit — only HANDOFF.md refreshed; campaign code frozen at its campaign commits — P38 at `726d4bd`, P39 WP3 at ancestor `3d08169`. Do NOT cite `3d08169` as HEAD; it is an ancestor. Re-derive with `git rev-parse HEAD` at session start — the checkpoint commit hash advances every session.)
+- **Working tree:** CLEAN (`git status --short` empty at 2026-11-24T20:58:00Z; the frozen P27 `.md` files have NOT been mutated yet — the running gate appends one trailing newline to each; restore with `git checkout -- research_state/bab_p27/` after it exits).
 - **Repo:** `Crypto-Betting-Against-Beta` — a market-neutral **Betting-Against-Beta** factor strategy for crypto (long low-beta, short high-beta, beta-neutral by construction). The repo's entire value proposition is *honest, reproducible, artifact-gated evidence*. Synthetic fixtures are NOT real market data — never present them as evidence of real profitability.
 
 ---
 
-# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-24T20:56:39Z)
+# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-24T20:58:00Z)
 
 **MINIMUM ACCEPTABLE OUTCOME (non-negotiable): land P39 WP0 full-gate close-out — a GREEN `bash scripts/bab_gate.sh` at `BAB_GATE_MIN_COVERAGE=100`, TOTAL coverage recorded in `docs/COVERAGE_NOTES.md`, and the frozen P27 `.md` files restored. Nothing short of that is a completed session.**
 
-**State you inherit (verified 2026-11-24T20:56:39Z):** the prior baseline was GREEN (ruff, `bab_quick.sh`, all P38/P39 `--check-*` byte-identical, replay self-tests pass). The full gate is ALREADY RUNNING as a persistent background process:
-`BAB_GATE_LOG=/tmp/bab_gate_p39.log BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh` (pid 2818; started ~20:48Z; ~35% through the pytest suite per `/tmp/bab_gate_p39.log` at 20:55Z, no `TOTAL` line yet, log actively growing, ~60 min remaining on the long poles). The gate covers pytest (all test files) + coverage floor + `--check-provenance`/`--xproc` replay gate + P30–P39 summary checks (~80 min for the long poles, +~2 min for P34–P39 checks + coverage floor).
+**State you inherit (verified 2026-11-24T20:58:00Z):** the prior baseline was GREEN (ruff, `bab_quick.sh`, all P38/P39 `--check-*` byte-identical, replay self-tests pass). The full gate is ALREADY RUNNING as a persistent background process:
+`BAB_GATE_LOG=/tmp/bab_gate_p39.log BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh` (pid 2818; started ~20:48Z; ~66% through the pytest suite per `/tmp/bab_gate_p39.log` at ~20:57Z, **an `F` failure was observed at ~52%**, no `TOTAL` line yet, log actively growing). The gate covers pytest (all test files) + coverage floor + `--check-provenance`/`--xproc` replay gate + P30–P39 summary checks (~80 min for the long poles, +~2 min for P34–P39 checks + coverage floor).
 
 **FIRST ACTION — poll the already-running gate only (do NOT rerun the baseline, do NOT launch a second gate, and do NOT wrap the poll in a blocking call; parallel runs create the resource contention that stalled prior sessions):**
 ```bash
 tail -n 40 /tmp/bab_gate_p39.log        # expect pytest output + a coverage TOTAL line
 ps -eo pid,ppid,stat,etime,args | grep -E 'bab_gate|bab_replay' | grep -v grep
 ```
-If the pids are alive and no `TOTAL` line exists, leave the gate running and poll again on the next turn. If the gate has DIED without `TOTAL`, relaunch it as a background process and poll; a dead gate is a real blocker, not a reason to idle. When the gate exits:
-1. If exit 0 and `TOTAL 100% >= 100%` → record TOTAL coverage % + pass/skip counts with date/HEAD in `docs/COVERAGE_NOTES.md`.
-2. Run `git checkout -- research_state/bab_p27/` to undo the trailing-newline mutation of the two frozen P27 `.md` files.
-3. Re-run `bash scripts/bab_quick.sh` and `python3 -m ruff check .` to confirm still GREEN.
-4. Confirm working tree clean except intended changes (`docs/COVERAGE_NOTES.md` + restored P27 `.md`).
-5. Commit ONLY on explicit user request.
+If the pids are alive and no `TOTAL` line exists, leave the gate running and poll again on the next turn.
+
+**Gate-exit handling:** when the gate exits:
+- If exit 0 and `TOTAL 100% >= 100%` → record TOTAL coverage % + pass/skip counts with date/HEAD in `docs/COVERAGE_NOTES.md`, then `git checkout -- research_state/bab_p27/` to undo the trailing-newline mutation of the two frozen P27 `.md` files, re-run `bash scripts/bab_quick.sh` and `python3 -m ruff check .` to confirm still GREEN, confirm working tree clean except intended changes (`docs/COVERAGE_NOTES.md` + restored P27 `.md`).
+- If the gate is RED (pytest failures, coverage floor miss, or any non-zero exit) → **this is a real blocker**. Bisect the failure using the fast path first: run `bash scripts/bab_quick.sh` + `python3 -m ruff check .` + `python3 -m pytest -q tests/test_bab_p39_*.py tests/test_bab_p38_determinism.py` to confirm the baseline is still GREEN, then rerun the failing test module(s) in isolation to reproduce. Fix with a **code change**, never a hand-edit of a frozen artifact or a test looseness. Re-launch the gate as a background process and poll until GREEN. A dead gate (pids gone, no `TOTAL`) is also a blocker — relaunch it and poll.
+- Do NOT commit unless explicitly requested by the user.
 
 **Do NOT re-do (all COMPLETE & frozen):** P20–P38; P39 WP1 (`--check-regime-summary` byte-identical); P39 WP2 (`--check-cross-fixture-summary` byte-identical, verdict `DOES_NOT_REPLICATE`); P39 WP3 (committed at ancestor `3d08169`, `--subset p39_decision.md` byte-identical); `tests/test_bab_p38_determinism.py` (EXISTS, committed). Both P39 verdicts are honest negatives — report them, never reverse them.
 
