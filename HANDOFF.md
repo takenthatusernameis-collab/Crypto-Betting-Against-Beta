@@ -2,7 +2,7 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, `NEXT_*.md`, or parallel task doc. If you find one, fold anything still true into this file and delete it. Only `HANDOFF.md` is tracked at repo root; keep it that way.**
 
-- **Timestamp (UTC):** 2026-11-24T15:35:11Z (handoff refreshed — P39 WP0 full gate STILL RUNNING as a persistent background process; see status below).
+- **Timestamp (UTC):** 2026-11-24T15:40:29Z (handoff refreshed — P39 WP0 full gate STILL RUNNING as a persistent background process; pytest at 99%, now in `--xproc` + `--check-provenance` phase).
 - **HEAD:** `439b684d11e59e6977ffa0452654d311e024271e` (a `chore(kilo): checkpoint agent session` commit; campaign code is frozen at its campaign commits — P38 at `726d4bd`, P39 WP3 at ancestor `3d08169`. Do NOT cite `3d08169` as HEAD; it is an ancestor.)
 - **Working tree:** CLEAN (`git status --short` empty at 15:35:11Z).
 - **Repo:** `Crypto-Betting-Against-Beta` — a market-neutral **Betting-Against-Beta** factor strategy for crypto (long low-beta, short high-beta, beta-neutral by construction). The repo's entire value proposition is *honest, reproducible, artifact-gated evidence*. Synthetic fixtures are NOT real market data — never present them as evidence of real profitability.
