@@ -2,14 +2,14 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, `NEXT_*.md`, or parallel task doc. If you find one, fold anything still true into this file and delete it. Only `HANDOFF.md` is tracked at repo root; keep it that way.**
 
-- **Timestamp (UTC):** 2026-11-25T07:03:12Z — single durable handoff refreshed this session (user-directed refresh; it does NOT close WP0). **A full gate is now RUNNING** (pid 27219, log `/tmp/bab_gate_p41_w1.log`, launched this session at ~07:01Z) — this refresh records the live run so the next session RECONCILES it instead of re-launching blindly or waiting on a phantom.
+- **Timestamp (UTC):** 2026-11-25T07:05:03Z — single durable handoff refreshed this session (user-directed refresh; it does NOT close WP0). **A full gate is now RUNNING** (pid 27219, log `/tmp/bab_gate_p41_w1.log`, launched this session at ~07:01Z) — this refresh records the live run so the next session RECONCILES it instead of re-launching blindly or waiting on a phantom.
 - **HEAD:** `b784187ff65eed49c2b30e818eb3ca8d708d85a1` (`docs(kilo): refresh single durable handoff`). The checkpoint hash advances every session — re-derive with `git rev-parse HEAD` at session start; never cite a stale hash. Campaign code is frozen at its campaign commits (P38 at `726d4bd`, P39 WP3 at ancestor `3d08169`); treat those as ancestors, never as HEAD.
 - **Working tree (verified 2026-11-25T07:03:12Z):** clean apart from the **expected in-flight P27 trailing-newline mutation** the running gate is producing right now (`research_state/bab_p27/{risk_controls,reconciliation_e2e}.md`, +1 line each). That mutation is the documented frozen-artifact trap — do NOT commit it; restore with `git checkout -- research_state/bab_p27/` after the gate goes GREEN (step 3). Nothing else uncommitted to preserve or reapply.
 - **Repo:** `Crypto-Betting-Against-Beta` — a market-neutral **Betting-Against-Beta factor strategy** for crypto (long low-beta, short high-beta, beta-neutral by construction). The repo's entire value proposition is *honest, reproducible, artifact-gated evidence about a factor strategy*. Synthetic fixtures are NOT real market data — never present them as evidence of real profitability.
 
 ---
 
-# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-25T07:03:12Z)
+# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-25T07:05:03Z)
 
 **PRIORITIZATION BY REPO NAME (binding & inescapable):** this is a *factor strategy* repo (`Crypto-Betting-Against-Beta`). The highest-value next heavy work is **factor robustness** — does the BAB factor's apparent edge survive across independently parameterized synthetic universes, under a pre-registered multiplicity correction, and net of costs — NOT docs, NOT handoff churn, NOT CI plumbing (maintainer-gated). That work is **Campaign P40** (charter below). It is inescapable and ordered WP1→WP4. Any session that does not execute P40 after P39 WP0 lands GREEN has FAILED its binding obligation.
 
