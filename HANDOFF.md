@@ -2,25 +2,25 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, `NEXT_*.md`, or parallel task doc. If you find one, fold anything still true into this file and delete it. Only `HANDOFF.md` is tracked at repo root; keep it that way.**
 
-- **Timestamp (UTC):** 2026-11-25T04:56:46Z (single durable handoff refreshed this session). **The P39 WP0 blocker is FIXED and COMMITTED** — the last full gate's single failure (`test_since_filters_runs`, `assert 29 == 28`) was resolved by an independent dynamic recomputation from the ledger. The full gate has **NOT** been re-run since the fix; that GREEN run is the binding next action. This handoff refresh does **not** close WP0.
-- **HEAD:** `cff863e4721b5c235896daccd637553816220b4f` (`chore(kilo): checkpoint agent session`). The checkpoint hash advances every session — re-derive with `git rev-parse HEAD` at session start; never cite a stale hash. Campaign code is frozen at its campaign commits (P38 at `726d4bd`, P39 WP3 at ancestor `3d08169`).
-- **Working tree (verified 2026-11-25T04:56:46Z):** clean (`git status --porcelain` empty). The WP0 test fix is committed in `cff863e` (`tests/test_bab_p30_ledger_analyzer.py`), not an uncommitted change to preserve or reapply. No frozen `research_state/**` artifact is mutated. Do NOT commit unless the user explicitly asks.
-- **Gate status:** last full gate COMPLETED at 2026-11-25T04:30Z — exit 1, `TOTAL 100% >= 100%` coverage GREEN (6730 stmts, 0 miss), **1 test RED**: `tests/test_bab_p30_ledger_analyzer.py::TestSince::test_since_filters_runs` (`assert 29 == 28`). Logs: `/tmp/bab_gate_run4.log` (full), `/tmp/bab_gate_p39_new.log` (structured). **That single failure is now FIXED and COMMITTED** (see below). No `bab_gate`, `pytest`, or replay process was active at 2026-11-25T04:56:46Z, so the next session must launch exactly one fresh gate rather than wait for or duplicate an existing run.
+- **Timestamp (UTC):** 2026-11-25T04:57:42Z (single durable handoff refreshed this session). **The P39 WP0 blocker is FIXED and COMMITTED** at `cff863e` — `tests/test_bab_p30_ledger_analyzer.py::TestSince::test_since_filters_runs` now recomputes the expected count independently from the ledger (exact recomputation, not a loosening). The full gate has **NOT** been re-run GREEN since the fix; that GREEN run is the binding next action. This handoff refresh does **not** close WP0.
+- **HEAD:** `7996a2ccd438f7235ed6b7b2c1bc71c3d6ba2873` (`chore(kilo): checkpoint agent session`, only refreshed HANDOFF.md). The checkpoint hash advances every session — re-derive with `git rev-parse HEAD` at session start; never cite a stale hash. Campaign code is frozen at its campaign commits (P38 at `726d4bd`, P39 WP3 at ancestor `3d08169`).
+- **Working tree (verified 2026-11-25T04:57:42Z):** clean (`git status --porcelain` empty). The WP0 test fix is committed in `cff863e` (`tests/test_bab_p30_ledger_analyzer.py`), not an uncommitted change to preserve or reapply. No frozen `research_state/**` artifact is mutated. Do NOT commit unless the user explicitly asks.
+- **Gate status:** last full gate COMPLETED at 2026-11-25T04:30Z — exit 1, `TOTAL 100% >= 100%` coverage GREEN (6730 stmts, 0 miss), **1 test RED**: `tests/test_bab_p30_ledger_analyzer.py::TestSince::test_since_filters_runs` (`assert 29 == 28`). Logs: `/tmp/bab_gate_run4.log` (full), `/tmp/bab_gate_p39_new.log` (structured). **That single failure is now FIXED and COMMITTED** (see above). **A fresh full gate is NOW RUNNING as a persistent background process (pid 13240, `BAB_GATE_LOG=/tmp/bab_gate_p40_w0.log`, `BAB_GATE_MIN_COVERAGE=100`) — poll `/tmp/bab_gate_p40_w0.log` for the `TOTAL` line; do NOT launch a second concurrent gate (the #9 xdist contention trap). Actual runtime ~33 min; budget a 60-min window.**
 - **Repo:** `Crypto-Betting-Against-Beta` — a market-neutral **Betting-Against-Beta** factor strategy for crypto (long low-beta, short high-beta, beta-neutral by construction). The repo's entire value proposition is *honest, reproducible, artifact-gated evidence*. Synthetic fixtures are NOT real market data — never present them as evidence of real profitability.
 
 ---
 
-# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-25T04:56:46Z)
+# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-25T04:57:42Z)
 
 **MINIMUM ACCEPTABLE OUTCOME (non-negotiable): land P39 WP0 full-gate close-out — a GREEN `BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh` (TOTAL 100%, exit 0), TOTAL coverage recorded in `docs/COVERAGE_NOTES.md`, and the frozen P27 `.md` files restored. Nothing short of that is a completed session.**
 
-**State you inherit (verified firsthand 2026-11-25T04:56:46Z):**
+**State you inherit (verified firsthand 2026-11-25T04:57:42Z):**
 - The WP0 blocker is **removed and committed at `cff863e`**. Root cause was NOT a gate-append artifact: the committed 50-run ledger (`research_state/workflow_run_diagnostics.jsonl`) genuinely has **29** records with `run_id >= 43764777657`; the test's hard-coded `28` was stale. Fix applied: `test_since_filters_runs` now recomputes the expected count independently from the ledger (exact recomputation, not a loosening).
 - Inherited verification from 2026-11-25T04:55:08Z, now committed: `pytest tests/test_bab_p30_ledger_analyzer.py` → **11 passed**; targeted campaign set (`test_bab_p39_*`, `test_bab_p38_determinism.py`, `test_bab_p35_*`, `test_bab_reconciliation_p11_coverage.py`) → **215 passed**; `bash scripts/bab_quick.sh` → **quick preflight OK** (ruff clean, trio 104, smoke 195); `python3 -m ruff check .` → **All checks passed!**
 - Both structural WP0 blockers from prior sessions remain fixed and must NOT be re-touched: xproc per-artifact `timeout=3600` in `scripts/bab_replay_full.py`; the 8-record P29 provenance ledger (`--check-provenance` → `pass:true`).
 
 **FIRST ACTION (do this before anything else):**
-1. Launch exactly one fresh full gate as a background/persistent process and poll to GREEN (do NOT run it in one blocking call; do NOT launch a second concurrent gate — that is the #9 xdist contention trap). No gate was active at 2026-11-25T04:56:46Z.
+1.    Launch exactly one fresh full gate as a background/persistent process and poll to GREEN (do NOT run it in one blocking call; do NOT launch a second concurrent gate — that is the #9 xdist contention trap). No gate was active at 2026-11-25T04:57:42Z.
    ```bash
    BAB_GATE_LOG=/tmp/bab_gate_p40_w0.log BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh
    ```
