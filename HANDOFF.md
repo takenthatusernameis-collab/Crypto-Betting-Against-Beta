@@ -1,6 +1,6 @@
 # HANDOFF: Crypto-Betting-Against-Beta — Next Agentic Session
 
-**Timestamp:** 2026-11-25T19:05:32Z
+**Timestamp:** 2026-11-25T19:05:54Z
 **Repository:** Crypto-Betting-Against-Beta
 **Branch:** main (clean)
 **Status:** Tests pass (3,700+), ruff clean. **P39 WP0 full-gate close-out: COMPLETE / GREEN** — verified per committed `docs/COVERAGE_NOTES.md` (2026-11-25T18:15:00Z, HEAD `098a3a4`): `BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh` exit 0, pytest TOTAL **100%** (0 missed / 6730 statements), `7675 passed / 39 skipped` in 3360.6s, replay gate + P30 + P33–P39 all GREEN. HEAD `5da4bcd` introduces **no source/test changes** since `098a3a4` (only the committed `scripts/bab_gate.sh` P30 quoting fix), so the green state holds. Campaign **P40** is now the binding row — **not yet started** (`docs/BAB_P40_DECISION.md` and `tests/test_bab_p4_decision_consistency.py` do not exist).
