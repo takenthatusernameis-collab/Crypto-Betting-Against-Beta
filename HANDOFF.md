@@ -2,32 +2,39 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, `NEXT_*.md`, or parallel task doc. If you find one, fold anything still true into this file and delete it. Only `HANDOFF.md` is tracked at repo root; keep it that way.**
 
-- **Timestamp (UTC):** 2026-11-25T06:59:53Z — single durable handoff refreshed this session (user-directed refresh; it does NOT close WP0).
-- **HEAD:** `f36a12884515280ebaf67283a7ad98d82fc31963` (`chore(kilo): checkpoint agent session`). The checkpoint hash advances every session — re-derive with `git rev-parse HEAD` at session start; never cite a stale hash. Campaign code is frozen at its campaign commits (P38 at `726d4bd`, P39 WP3 at ancestor `3d08169`); treat those as ancestors, never as HEAD.
-- **Working tree (verified 2026-11-25T06:59:53Z):** clean (`git status --porcelain` empty). Nothing uncommitted to preserve or reapply.
+- **Timestamp (UTC):** 2026-11-25T07:03:12Z — single durable handoff refreshed this session (user-directed refresh; it does NOT close WP0). **A full gate is now RUNNING** (pid 27219, log `/tmp/bab_gate_p41_w1.log`, launched this session at ~07:01Z) — this refresh records the live run so the next session RECONCILES it instead of re-launching blindly or waiting on a phantom.
+- **HEAD:** `b784187ff65eed49c2b30e818eb3ca8d708d85a1` (`docs(kilo): refresh single durable handoff`). The checkpoint hash advances every session — re-derive with `git rev-parse HEAD` at session start; never cite a stale hash. Campaign code is frozen at its campaign commits (P38 at `726d4bd`, P39 WP3 at ancestor `3d08169`); treat those as ancestors, never as HEAD.
+- **Working tree (verified 2026-11-25T07:03:12Z):** clean apart from the **expected in-flight P27 trailing-newline mutation** the running gate is producing right now (`research_state/bab_p27/{risk_controls,reconciliation_e2e}.md`, +1 line each). That mutation is the documented frozen-artifact trap — do NOT commit it; restore with `git checkout -- research_state/bab_p27/` after the gate goes GREEN (step 3). Nothing else uncommitted to preserve or reapply.
 - **Repo:** `Crypto-Betting-Against-Beta` — a market-neutral **Betting-Against-Beta factor strategy** for crypto (long low-beta, short high-beta, beta-neutral by construction). The repo's entire value proposition is *honest, reproducible, artifact-gated evidence about a factor strategy*. Synthetic fixtures are NOT real market data — never present them as evidence of real profitability.
 
 ---
 
-# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-25T06:59:53Z)
+# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-25T07:03:12Z)
 
 **PRIORITIZATION BY REPO NAME (binding & inescapable):** this is a *factor strategy* repo (`Crypto-Betting-Against-Beta`). The highest-value next heavy work is **factor robustness** — does the BAB factor's apparent edge survive across independently parameterized synthetic universes, under a pre-registered multiplicity correction, and net of costs — NOT docs, NOT handoff churn, NOT CI plumbing (maintainer-gated). That work is **Campaign P40** (charter below). It is inescapable and ordered WP1→WP4. Any session that does not execute P40 after P39 WP0 lands GREEN has FAILED its binding obligation.
 
 **MINIMUM ACCEPTABLE OUTCOME (non-negotiable): land P39 WP0 full-gate close-out — reconcile to a GREEN `BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh` (TOTAL 100%, exit 0), record TOTAL coverage in `docs/COVERAGE_NOTES.md`, and restore the frozen P27 `.md` files. Then start P40 WP1 in the same session. A handoff-only / docs-only / gate-only / count-only / planning commit that substitutes for WP0 is a FAILED session while WP0 is open.**
 
-**State you inherit (verified firsthand 2026-11-25T06:59:53Z):**
-- **No gate is running** (`ps` for `bab_gate|pytest|bab_replay_full` → empty, verified 2026-11-25T06:59:53Z). Do NOT wait for a phantom active gate, and do NOT preserve/reapply a phantom diff.
-- The inherited run `/tmp/bab_gate_p40_w0.log` is **DEAD, not GREEN-complete**: pytest finished GREEN — `TOTAL 6730 0 100%` and `7675 passed, 39 skipped in 1996.52s` — but the log **lacks** the `[bab_gate] coverage floor met` line, the replay-gate block, and every P33–P39 post-pytest phase (verified by grep: only `TOTAL`/`passed` lines present, no `coverage floor`/`replay`/`xproc`/`provenance` phase lines). So WP0 is NOT closed. (The earlier `/tmp/bab_gate_p39_new.log` and `/tmp/bab_gate_run4.log` are older RED runs from before the P30 fix — ignore them.)
+**State you inherit (verified firsthand 2026-11-25T07:03:12Z):**
+- **A gate IS running right now** (pid 27219, persistent background process, log `/tmp/bab_gate_p41_w1.log`, launched this session ~07:01Z; at 07:03:12Z pytest was ~33% with ruff already GREEN). This is the ONE authoritative run — do NOT launch a second concurrent gate (that is the #9 xdist contention trap). RECONCILE FIRST: `ps -p 27219` / `ps -eo pid,cmd | grep -E 'bab_gate|pytest' | grep -v grep`. If alive → poll `/tmp/bab_gate_p41_w1.log` to GREEN across turns (never wrap in one blocking call). If the PID is GONE and the log lacks `[bab_gate] coverage floor met` → relaunch exactly one gate (command below). Never trust a "running" claim without checking the PID.
+- The inherited run `/tmp/bab_gate_p40_w0.log` is **DEAD, not GREEN-complete**: pytest finished GREEN — `TOTAL 6730 0 100%` and `7675 passed, 39 skipped in 1996.52s` — but the log **lacks** the `[bab_gate] coverage floor met` line, the replay-gate block, and every P33–P39 post-pytest phase. That is exactly why WP0 is still open and why this session launched a fresh full gate. (The earlier `/tmp/bab_gate_p39_new.log` and `/tmp/bab_gate_run4.log` are older RED runs from before the P30 fix — ignore them.)
 - Baseline is GREEN firsthand (2026-11-25T06:59:53Z): `ruff check .` → All checks passed; `bash scripts/bab_quick.sh` → quick preflight OK (targeted trio 104 passed, smoke 195 passed); `pytest tests/test_bab_p30_ledger_analyzer.py` → 11 passed; P37/P38/P39 `--check-*` summaries all `PASS (byte-identical)`; `research_state/bab_p27/` clean (no trailing-newline mutation).
 - The WP0 test blocker is already FIXED and COMMITTED (`cff863e`): `tests/test_bab_p30_ledger_analyzer.py::TestSince::test_since_filters_runs` recomputes the expected count independently from the 50-run ledger (exact recomputation, not a loosening). Do NOT re-touch it or re-introduce a hard-coded count.
 
-**FIRST ACTION (before anything else) — reconcile, do not duplicate:**
-1. Confirm no gate is active, then launch **exactly one** gate and poll it to GREEN (background/persistent + poll the log across turns; never wrap in one blocking call, never run a second concurrent gate — that is the #9 xdist contention trap):
+**FIRST ACTION (before anything else) — reconcile the live run, do not duplicate:**
+1. Check whether this session's gate (pid 27219) is still alive, then act:
    ```bash
-   ps -eo pid,ppid,stat,etime,cmd | grep -E 'bab_gate|pytest|bab_replay_full' | grep -v grep || echo NO_GATE
-   BAB_GATE_LOG=/tmp/bab_gate_p41_w1.log BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh
+   ps -p 27219 -o pid,stat,etime,cmd 2>/dev/null || echo PID_GONE
+   ps -eo pid,cmd | grep -E 'bab_gate|pytest|bab_replay_full' | grep -v grep || echo NO_GATE
+   tail -5 /tmp/bab_gate_p41_w1.log 2>/dev/null || echo NO_LOG
    ```
-   Budget ~60 min uninterrupted (pytest phase alone was 1996 s; the post-pytest replay/`--xproc`/`--check-provenance` rebuild adds more). If the runner cannot keep a background process alive, run the fast 95% first, then `--check-provenance` and `--xproc` once on a large uninterrupted budget.
+   - PID alive → poll `/tmp/bab_gate_p41_w1.log` to GREEN across turns (background/persistent + poll; never wrap in one blocking call, never launch a second concurrent gate).
+   - PID gone AND log has `[bab_gate] coverage floor met` + all P33–P39 GREEN → WP0 is DONE, go to step 2.
+   - PID gone AND log incomplete → relaunch **exactly one** gate:
+     ```bash
+     BAB_GATE_LOG=/tmp/bab_gate_p41_w1.log BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh
+     ```
+     Budget ~60 min uninterrupted (pytest phase alone was 1996 s; the post-pytest replay/`--xproc`/`--check-provenance` rebuild adds more). If the runner cannot keep a background process alive, run the fast 95% first, then `--check-provenance` and `--xproc` once on a large uninterrupted budget.
 2. On GREEN (`TOTAL 100% >= 100%`, exit 0): record TOTAL coverage % + pass/skip counts with date/HEAD in `docs/COVERAGE_NOTES.md`.
 3. `git checkout -- research_state/bab_p27/` to undo the trailing-newline mutation the full run makes to the two frozen P27 `.md` files (`risk_controls.md`, `reconciliation_e2e.md`). (If the P30 ledger test ran, also `git checkout -- research_state/bab_p30/ledger_summary.json`.)
 4. Re-run `bash scripts/bab_quick.sh` + `python3 -m ruff check .`; confirm `git status --porcelain` shows only intended changes.
@@ -73,7 +80,7 @@
 
 ## BOTTLENECKS REMOVED (condensed — load-bearing items kept; do NOT revert/re-fix)
 
-- **#16 Stale handoff vs. checkpoint/gate state — REMOVED (refreshed 2026-11-25T06:59:53Z).** The prior handoff pointed at a still-running replay PID and an older HEAD; both are now false (no gate runs; HEAD `f36a128`; tree clean; inherited p40_w0 log dead at pytest-GREEN with post-pytest phases absent — re-verified by grep this session). The next session starts from a clean tree, launches exactly ONE gate, and proceeds to P40 — no phantom diff, no waiting on a nonexistent gate, no parallel handoff.
+- **#16 Stale handoff vs. checkpoint/gate state — REMOVED (refreshed 2026-11-25T07:03:12Z).** The prior handoff pointed at a dead inherited log and a pre-refresh HEAD; both are now corrected (HEAD `b784187`; tree clean; a fresh full gate is RUNNING this session at pid 27219 / `/tmp/bab_gate_p41_w1.log`). The next session starts by RECONCILING that live PID (poll if alive, relaunch once if dead-and-incomplete) and then proceeds to P40 — no phantom diff, no waiting on a nonexistent gate, no parallel handoff. The recurring failure mode this repo must avoid is *refreshing this file instead of running the gate*: a handoff-only commit while the gate is unstarted/unfinished is a FAILED session.
 - **#8 Stale exact-equality guards → RED gate on a green tree — REMOVED.** `tests/test_bab_p29_replay_coverage.py` `EXPECTED_NAMES` += 7 json-only summaries; `tests/test_bab_p29_decision_replay.py` `EXPECTED_NAMES` += 9 docs; `docs/COVERAGE_NOTES.md` line 7 reworded; `tests/test_bab_p30_ledger_analyzer.py` count corrected. Exact-equality preserved (a new artifact still fails closed). This is the documented guard-maintenance pattern.
 - **#9 Structural RUNTIME bottleneck — DOCUMENTED, not a correctness problem.** `--check-provenance`/`--xproc` rebuild ~8 heavy Monte-Carlo artifacts in fresh interpreters. **Mitigation:** run the gate as a background/persistent process and poll the log across turns; do NOT wrap in one blocking call and do NOT launch a second concurrent gate. The provenance math is a legitimate determinism proof — do NOT delete, skip, or weaken it.
 - **#10 Frozen P27 `.md` trailing-newline trap — DOCUMENTED + restore path** (`git checkout -- research_state/bab_p27/` after any full run; JSON artifacts unaffected).
