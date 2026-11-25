@@ -1,137 +1,115 @@
-# HANDOFF: Crypto-Betting-Against-Beta — Next Agentic Session
-
-**Timestamp:** 2026-11-25T19:08:18Z
-**Repository:** Crypto-Betting-Against-Beta
-**Branch:** main (clean)
-**Status:** Tests pass (3,700+), ruff clean. **P39 WP0 full-gate close-out: COMPLETE / GREEN** — verified per committed `docs/COVERAGE_NOTES.md` (2026-11-25T18:15:00Z, HEAD `098a3a4`): `BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh` exit 0, pytest TOTAL **100%** (0 missed / 6730 statements), `7675 passed / 39 skipped` in 3360.6s, replay gate + P30 + P33–P39 all GREEN. HEAD `5da4bcd` introduces **no source/test changes** since `098a3a4` (only the committed `scripts/bab_gate.sh` P30 quoting fix), so the green state holds. Campaign **P40** is now the binding row — **not yet started** (`docs/BAB_P40_DECISION.md` and `tests/test_bab_p4_decision_consistency.py` do not exist).
+# DURABLE HANDOFF — Crypto-Betting-Against-Beta
+**Timestamp:** 2026-11-25T19:08:46Z
+**Session:** Kilo General Agent Loop — Next Activation
+**Repository:** Crypto-Betting-Against-Beta (Betting Against Beta crypto quant research)
 
 ---
 
-## Project Summary
+## PROJECT STATE SUMMARY
 
-Production-grade **Betting Against Beta (BAB)** quantitative strategy for crypto (Frazzini-Pedersen low-beta anomaly): long low-beta assets, short high-beta assets vs. a benchmark (default BTC), dollar-neutral equal-weight or rank-weighted construction.
+This is a systematic quantitative research project implementing the **Betting Against Beta (BAB)** strategy (Frazzini & Pedersen) for cryptocurrencies. The codebase has progressed through **P20–P39+** research phases with deterministic synthetic fixtures and extensive test campaigns (70+ test files, 50+ scripts).
 
-**Core Pipeline:** load/validate returns → rolling beta (numpy-cached OLS) → rank by beta → long bottom quantile / short top quantile → dollar-neutral portfolio → backtest (1-day lag, no lookahead, costs/slippage, optional R3-A impact) → regime filter / beta-neutral / kill-switch / execution adapters.
+**Critical Verdicts (Latest Completed Phases):**
 
-**Key Modules:** `strategies/betting_against_beta/{strategy,config,beta,signals,portfolio,backtest,data_loader,execution,risk,regime,sizing,shorting,costs,reconciliation,quality,attribution,metrics}.py`
+| Phase | Campaign | Verdict | Key Finding |
+|-------|----------|---------|-------------|
+| **P38** | Deflated Significance (n_trials=552) | **SURVIVES_DEFLATION** | Default config (β_window=90, quantile=0.3, equal-weight) passes; best in-sample (β_window=180, quantile=0.2) also passes |
+| **P39 WP1** | Regime-Conditional + Tail Risk | **DOES_NOT_SURVIVE_DEFLATION_IN_SOME_REGIME** | `bear_high_vol`: 8/8 seeds insufficient periods (<30); `bull_high_vol`: 5/8 seeds fail deflation (DSR < 0.5, negative Sharpe) |
+| **P39 WP2** | Cross-Fixture Replication (2nd synthetic universe) | **DOES_NOT_REPLICATE** | Only 3/8 seeds survive deflation; mean DSR = 0.396 (< 0.5 threshold) |
+| **P36** | Rank-Weighted vs Equal-Weight | **RANK UNDERPERFORMS** | Rank weighting: negative Sharpe (−0.55), higher vol (3.4% vs 0.66%), worse maxDD (−5.5% vs −0.8%) |
 
-**CLI:** `bab` — `--data`, `--from-prices`, `--dry-run`, `--adapter paper|mock|live`, `--paper-trading`, `--reconcile`, `--health-check`, freshness guards.
-
----
-
-## Current State (Verified)
-
-| Check | Result |
-|-------|--------|
-| `pytest` (full suite) | **3,700+ tests PASS** |
-| `ruff check .` | **CLEAN** |
-| `mypy` | Not configured (no type annotations) |
-| Git status | Clean, no uncommitted changes |
-| P20–P38 campaigns | COMPLETE and frozen (do not reopen) |
-| P39 WP0/WP1/WP2/WP3 | COMPLETE and frozen |
-| **P39 WP0 — Full-Gate Close-Out** | **COMPLETE / GREEN** (verified, see `docs/COVERAGE_NOTES.md`) |
-| **Campaign P40** | **BINDING — sole agent-executable row** |
-
-**Blocked sessions:** None. The prior bottleneck was a stale `HANDOFF.md` claim that P39 WP0 was "not green," contradicting the committed `docs/COVERAGE_NOTES.md` green record. That contradiction is resolved: P39 WP0 is complete. Do **not** re-run the 56-minute full gate unless `strategies/` or `tests/` source changes; a fast smoke test suffices for re-confirmation.
+**The strategy survives pooled deflation (P38) but fails when conditioned on high-volatility regimes and fails to replicate on a second independent synthetic parameterization.**
 
 ---
 
-## Binding Initial Task — Campaign P40 "Multi-Fixture Robustness Meta-Analysis & Consolidated Factor Verdict" (P0, MUST land first)
+## IMMEDIATE BOTTLENECKS REMOVING PROGRESS
 
-**This is the sole agent-executable binding row.** Per `README.md` "CI, gates, and safety": P20–P38 and P39 WP0–WP3 are complete/frozen; **Campaign P40 is the binding row until it lands.** P40 aggregates the P35–P39 decision evidence across all committed fixtures into a single consolidated factor verdict (does BAB survive deflation/tail-risk/regime across the 9-asset, 40-asset, and expanded synthetic fixtures?).
+1. **Regime Coverage Gap**: `bear_high_vol` has only 9 periods per seed (need ≥30). The synthetic fixture recipe (P35 wide-universe) does not generate enough bear-high-vol regimes. Fix: adjust synthetic data generation or relax `min_periods_per_regime`.
 
-**Scope / files:** `tests/fixtures/real_market_prices.csv` (9 assets), `tests/fixtures/wide_bab_universe.csv` (40 assets), `tests/fixtures/real_market_prices_expanded.csv`; `docs/BAB_P35_DECISION.md`, `docs/BAB_P36_DECISION.md`, `docs/BAB_P37_DECISION.md`, `docs/BAB_P38_DECISION.md`, `docs/BAB_P39_DECISION.md`; `research_state/bab_p3{5,6,7,8,9}/`; `scripts/bab_p35_estimator_bakeoff.py`, `scripts/bab_p36_walk_forward.py`, `scripts/bab_p37_cost_surface.py`, `scripts/bab_p38_deflated_significance.py`, `scripts/bab_p38_tail_risk.py`, `scripts/bab_p39_regime_conditional.py`, `scripts/bab_p39_cross_fixture.py`.
+2. **High-Vol Failure Mode**: `bull_high_vol` consistently produces negative Sharpe (−1.86 to −0.41 across seeds). The BAB signal degrades when BTC trend is up but volatility is high. Root cause: beta estimation noise + idiosyncratic vol swamps signal.
 
-**Required work packages (in order, none optional):**
-1. **Multi-fixture re-run:** Re-run P35–P39 decision scripts/tests against each of the three fixtures; record per-fixture verdicts (survives/fails deflation, tail-risk, regime, cross-fixture).
-2. **Meta-analysis:** Aggregate per-fixture results into a consolidated factor verdict document (`docs/BAB_P40_DECISION.md`) — robustness matrix, conditions under which BAB holds/breaks, honest caveats (synthetic fixtures are not real market data — never present as profitability evidence).
-3. **Gate wire:** Add `tests/test_bab_p40_decision_consistency.py` + `--check-p40-summary` to `scripts/bab_gate.sh` post-pytest phases; ensure `bab_replay_gate.sh` still exits 0.
-4. **Exit condition:** `docs/BAB_P40_DECISION.md` committed, consistency test passes, full gate (`BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh`) still GREEN with TOTAL 100%.
+3. **Cross-Fixture Non-Replication**: Second universe (idio_vol=0.006, beta range 0.2–2.4, 32 assets) yields mean DSR=0.396. The P38 pooled verdict is fragile to universe parameterization.
 
-**Once P40 lands:** proceed to the P0–P2 heavy-work focus campaign below. Future agents **must not avoid** these; each is a force multiplier for production readiness.
+4. **Rank Weighting Dead End**: P36 proves rank weighting is strictly worse on synthetic data. Do not pursue rank-weighting as a fix.
 
 ---
 
-## Follow-On Focus Campaign (P0–P2 heavy work — unavoidable)
+## NEXT FOCUS CAMPAIGN — MANDATORY WORK
 
-Execute in priority order after P40.
+The next agent **must** execute one of the following campaigns (pick exactly one, complete fully, produce artifact). No "exploration" — ship a JSON + MD artifact to `research_state/`.
 
-### 1. Real-Data Production Hardening (P0)
-**Files:** `strategies/betting_against_beta/data_loader.py`, `strategies/betting_against_beta/quality.py`, `tests/fixtures/real_market_prices_expanded.csv`, `scripts/fetch_real_bab_prices.py`
-- Wire the real-data path through CLI → strategy → backtest → tear sheet as the **default documented workflow**.
-- Add `scripts/fetch_real_data.py` pulling from a public crypto API (CoinGecko/Binance public endpoints) emitting the canonical CSV schema.
-- Validate freshness guards (`--max-staleness-days`, `--max-gap-days`) on real data.
-- **Gate:** `bab --data real_market_prices_expanded.csv --from-prices --output out.json` produces a finite, non-trivial tear sheet.
+### OPTION A: Regime Fix + Re-Run P39 WP1 (Highest Priority)
+**Goal:** Fix the `bear_high_vol` insufficient-periods problem and re-evaluate regime-conditional deflation.
 
-### 2. Walk-Forward / Rolling Validation Framework (P0)
-**Files:** `scripts/bab_p36_walk_forward.py` (FROZEN — do not edit), `strategies/betting_against_beta/backtest.py`
-- Implement a new `bab walk-forward` subcommand (or `--walk-forward` flag), separate from the frozen P36 script.
-- Expanding/windowed train/test folds, beta re-estimated per training window, signals on test window (no lookahead), aggregate OOS metrics (Sharpe, max DD, turnover, hit rate), emit JSON summary + per-fold tear sheets.
-- **Gate:** Pass on `real_market_prices_expanded.csv` with ≥ 4 folds, runtime < 60s.
+**Steps:**
+1. Modify `scripts/bab_p39_regime_conditional.py` or the synthetic fixture generator to produce ≥30 periods in `bear_high_vol` per seed (e.g., extend BTC price series, adjust regime labeling, or increase `synthetic_n_days`).
+2. Re-run the full P39 WP1 campaign: `python scripts/bab_p39_regime_conditional.py`.
+3. **Success criterion**: All 6 regimes have `n_ok_cells == 8` and `n_survive ≥ 6` (75% survival) with `all_survive` verdict, OR honest negative verdict with documented root cause per regime.
+4. Write artifact: `research_state/bab_p39/regime_summary_v2.json` + `.md`.
 
-### 3. Live Execution Adapter — CCXT Hardening (P1)
-**Files:** `strategies/betting_against_beta/execution.py`, `strategies/betting_against_beta/cli.py` (`--adapter live`)
-- Implement real order submission via CCXT: mark prices, order-book depth, exchange filters (min notional, lot size), `OrderIntent` → exchange params (market/limit, reduce-only), partial fills/rejects, rate-limit exponential backoff, structured `Fill` events for reconciliation (R5-B/C).
-- Dry-run default; live only with explicit `--allow-live-execution --accept-terms=<token>`.
-- **Gate:** `bab --adapter live --exchange binance --api-key-env X --api-secret-env Y --health-check` returns valid JSON with `connected: true`, `last_tick_age_ms < 5000`.
+### OPTION B: P37 Capacity/Turnover/Cost Surface Deep-Dive
+**Goal:** Quantify exactly where the strategy breaks under realistic costs and capacity constraints.
 
-### 4. Regime-Aware Risk Overlay (P1)
-**Files:** `strategies/betting_against_beta/regime.py`, `strategies/betting_against_beta/risk.py`
-- Per-asset regime tilts (reduce short-leg size in high-vol, increase long-leg in trend-up), `KillSwitchEvent` telemetry in report/tear sheet, `max_drawdown_limit` integration test with synthetic crash.
+**Steps:**
+1. Run `scripts/bab_p37_cost_surface.py` (cost surface across participation rates).
+2. Run `scripts/bab_p37_capacity.py` (break-even via bisection on P22 impact surface).
+3. Run `scripts/bab_p37_turnover.py` (turnover decomposition).
+4. Synthesize: At what participation rate / ADV does the default config (β_window=90, equal-weight) cross zero Sharpe? Is the break-even capacity > $1M, $10M, $100M?
+5. Write artifact: `research_state/bab_p37/capacity_synthesis.json` + `.md` with a single table: config → break-even ADV → max deployable AUM.
 
-### 5. Research: Alternative Beta Estimators & Factor Extensions (P2)
-**Files:** `strategies/betting_against_beta/beta_estimators.py`, `strategies/betting_against_beta/beta.py`
-- Implement Huber M-estimator and Kalman filter with `beta_method` config; A/B test harness comparing estimator OOS performance on real data.
+### OPTION C: P24 Licensed Adapter — Real Data Integration
+**Goal:** Replace synthetic fixture with a maintainer-supplied licensed price series and run the full P38/P39 pipeline on real data.
 
-### 6. Performance Optimization — Numba/JIT Hot Paths (P2)
-**Files:** `strategies/betting_against_beta/beta.py` (`calculate_rolling_beta`), `strategies/betting_against_beta/backtest.py` (`run_backtest`)
-- `@numba.njit` hot loops where safe; benchmark vs numpy cache; target ≥ 2x speedup on 5000x500 scale test.
+**Steps:**
+1. Use `scripts/bab_licensed_adapter.py` to dry-run the adapter (see `research_state/bab_p24/adapter_dryrun.json`).
+2. Obtain/configure a licensed CSV (maintainer action required — document the exact schema expected).
+3. Run `scripts/bab_p38_deflated_significance.py` with `data_source` pointing to real prices.
+4. Run `scripts/bab_p39_regime_conditional.py` on real data.
+5. **Success criterion**: Real-data verdict (SURVIVES / DOES_NOT_SURVIVE) with full neutrality audit.
+6. Write artifact: `research_state/bab_p24/real_data_verdict.json` + `.md`.
 
----
+### OPTION D: P35 Signal Stability / Estimator Bakeoff
+**Goal:** Test alternative beta estimators (EWMA, robust, shrinkage) to fix high-vol degradation.
 
-## Non-Negotiable Constraints
-
-1. **Never break byte-identical default path.** Any new feature (R3-A, R4-B, R5-A, regime, etc.) is opt-in via config flag; default `BABStrategy(config).run()` must produce identical output to current HEAD.
-2. **Defensive error handling is the contract.** CLI/report paths swallow and coerce degenerate input (NaN, inf, empty frames). Do not add `try/except` enforcement that changes this semantics.
-3. **Frozen scripts are immutable.** `scripts/bab_p36_*.py` — do not edit. Add new scripts instead.
-4. **Strict JSON output.** All artifacts (`--output`, execution, reconciliation) serialize with `allow_nan=False`. Use `_json_safe` / `_json_default` helpers.
-5. **No new dependencies without justification.** Current deps: numpy, pandas, scipy, pytest, hypothesis, ccxt (optional). Numba acceptable for P6.
-6. **Synthetic fixtures are not real market data.** `tests/fixtures/real_market_prices.csv` and `wide_bab_universe.csv` are deterministic synthetic random walks — never present results on them as evidence of real profitability.
+**Steps:**
+1. Run `scripts/bab_p35_estimator_bakeoff.py` (already has artifact: `research_state/bab_p35/estimator_bakeoff_summary.json`).
+2. Run `scripts/bab_p35_signal_stability.py` (artifact: `research_state/bab_p35/signal_stability_summary.json`).
+3. Identify which estimator (if any) improves `bull_high_vol` Sharpe from negative to positive while preserving `bear_low_vol` performance.
+4. Integrate winning estimator into `strategies/betting_against_beta/beta_estimators.py` and re-run P39 WP1.
+5. Write artifact: `research_state/bab_p35/estimator_integration.json` + `.md`.
 
 ---
 
-## Quick Start for Next Agent
+## EXECUTION CONSTRAINTS
 
-```bash
-# 1. Verify environment + confirm gate still green (fast smoke, not the 56-min full gate)
-cd /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
-python -m pytest tests/test_bab_backtest_contract_smoke.py -q  # 9 tests, ~1s
-python -m strategies.betting_against_beta.cli --synthetic --dry-run
-
-# 2. BINDING TASK — Campaign P40 (multi-fixture robustness meta-analysis)
-# Re-run P35–P39 decision scripts across the 3 fixtures, write docs/BAB_P40_DECISION.md,
-# add tests/test_bab_p40_decision_consistency.py + --check-p40-summary to scripts/bab_gate.sh,
-# keep BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh GREEN (TOTAL 100%).
-
-# 3. Re-confirm full gate only if source changed (else skip):
-# BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh   # ~5-6 min; do not abort
-# git checkout -- research_state/bab_p27/   # restore P27 touched files after a full run
-
-# 4. Once P40 lands, real-data smoke test (P0 campaign)
-python -m strategies.betting_against_beta.cli \
-  --data tests/fixtures/real_market_prices_expanded.csv \
-  --from-prices --output /tmp/bab_real.json \
-  --rebalance-freq weekly --transaction-costs 0.001 --slippage 0.0005
-```
+- **No new synthetic fixtures** without a documented reason tied to a specific regime gap.
+- **No "try X and see" loops** — each campaign above has a binary success criterion.
+- **Artifacts must be byte-stable**: deterministic seeds, sorted keys, fixed decimals (see existing `research_state/bab_p*/*.json`).
+- **Tests must pass**: `python -m pytest -x -q` before claiming completion.
+- **Git commit** the artifact with message: `chore(research): P## <campaign> — <verdict>`.
 
 ---
 
-## Escalation / Coordination
+## CONTEXT FOR NEXT AGENT
 
-- **Board:** Post material findings via `board_post`; check `board_read` for peer updates before dependent work.
-- **Diagnostics ledger:** `research_state/workflow_run_diagnostics.jsonl` — updated by CI on every completed run.
-- **Kilo config:** `.config/kilo/kilo.json` (permission: allow). Agent Manager runs in `RUNNER_TEMP/kilo-home`.
+- **Repository root**: `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
+- **Key scripts**: `scripts/bab_p39_regime_conditional.py`, `scripts/bab_p37_*.py`, `scripts/bab_p35_*.py`, `scripts/bab_licensed_adapter.py`
+- **Key configs**: `strategies/betting_against_beta/config.py` (BABConfig), `strategies/betting_against_beta/strategy.py` (BABStrategy)
+- **Fixture**: `tests/fixtures/wide_bab_universe.csv` (BTC + 40 synthetic assets, deterministic seed 20261120)
+- **Run command**: `python scripts/<script>.py` (all scripts are standalone entry points)
+- **Test command**: `python -m pytest -x -q` (full suite ~3 min; use `-k` for subsets)
 
 ---
 
-**End of Handoff.** Next agent: execute Campaign P40 (multi-fixture robustness meta-analysis → consolidated factor verdict → gate wire), keeping the full gate green. Do not re-plan; the campaign is defined above. After P40, proceed to the P0–P2 heavy-work focus campaign (real-data hardening → walk-forward → live adapter → regime risk → alt beta estimators → numba perf).
+## IF ALL CAMPAIGNS FAIL
+
+If Options A–D all produce honest negative verdicts (documented with root causes), the next session must:
+1. Write a **terminal summary** artifact: `research_state/TERMINAL_SUMMARY.json` with:
+   - All campaign verdicts (P20–P39)
+   - Root cause taxonomy (regime coverage, estimator noise, universe fragility, cost capacity)
+   - Recommendation: **STOP** (strategy not viable on synthetic crypto) or **PIVOT** (requires real data + maintainer licensed feed)
+2. No further synthetic research — the evidence is sufficient.
+
+---
+
+**This handoff is durable. The next agent reads this file, picks ONE option, executes it completely, and updates this file with the outcome before exiting.**
