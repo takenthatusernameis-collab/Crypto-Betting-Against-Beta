@@ -2,20 +2,20 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, `NEXT_*.md`, or parallel task doc. If you find one, fold anything still true into this file and delete it. Only `HANDOFF.md` is tracked at repo root; keep it that way.**
 
-- **Timestamp (UTC):** 2026-11-25T06:51:54Z — single durable handoff refreshed this session (user-directed refresh; it does NOT close WP0).
-- **HEAD:** `74c40cc79ec1ffc8d306277826a9a6d11296c100` (`chore(kilo): checkpoint agent session`). The checkpoint hash advances every session — re-derive with `git rev-parse HEAD` at session start; never cite a stale hash. Campaign code is frozen at its campaign commits (P38 at `726d4bd`, P39 WP3 at ancestor `3d08169`); treat those as ancestors, never as HEAD.
-- **Working tree (verified 2026-11-25T06:50:25Z):** clean (`git status --porcelain` empty). Nothing uncommitted to preserve or reapply.
+- **Timestamp (UTC):** 2026-11-25T06:54:50Z — single durable handoff refreshed this session (user-directed refresh; it does NOT close WP0).
+- **HEAD:** `7340aca52a3142e5e3df7dfd85bf4ec10dd79fd0` (`chore(kilo): checkpoint agent session`). The checkpoint hash advances every session — re-derive with `git rev-parse HEAD` at session start; never cite a stale hash. Campaign code is frozen at its campaign commits (P38 at `726d4bd`, P39 WP3 at ancestor `3d08169`); treat those as ancestors, never as HEAD.
+- **Working tree (verified 2026-11-25T06:54:50Z):** clean (`git status --porcelain` empty). Nothing uncommitted to preserve or reapply.
 - **Repo:** `Crypto-Betting-Against-Beta` — a market-neutral **Betting-Against-Beta factor strategy** for crypto (long low-beta, short high-beta, beta-neutral by construction). The repo's entire value proposition is *honest, reproducible, artifact-gated evidence about a factor strategy*. Synthetic fixtures are NOT real market data — never present them as evidence of real profitability.
 
 ---
 
-# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-25T06:51:54Z)
+# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-25T06:54:50Z)
 
 **PRIORITIZATION BY REPO NAME (binding & inescapable):** this is a *factor strategy* repo (`Crypto-Betting-Against-Beta`). The highest-value next heavy work is **factor robustness** — does the BAB factor's apparent edge survive across independently parameterized synthetic universes, under a pre-registered multiplicity correction, and net of costs — NOT docs, NOT handoff churn, NOT CI plumbing (maintainer-gated). That work is **Campaign P40** (charter below). It is inescapable and ordered WP1→WP4. Any session that does not execute P40 after P39 WP0 lands GREEN has FAILED its binding obligation.
 
 **MINIMUM ACCEPTABLE OUTCOME (non-negotiable): land P39 WP0 full-gate close-out — reconcile to a GREEN `BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh` (TOTAL 100%, exit 0), record TOTAL coverage in `docs/COVERAGE_NOTES.md`, and restore the frozen P27 `.md` files. Then start P40 WP1 in the same session. A handoff-only / docs-only / gate-only / count-only / planning commit that substitutes for WP0 is a FAILED session while WP0 is open.**
 
-**State you inherit (verified firsthand 2026-11-25T06:50:25Z):**
+**State you inherit (verified firsthand 2026-11-25T06:54:50Z):**
 - **No gate is running** (`ps` for `bab_gate|pytest|bab_replay_full` → empty). Do NOT wait for a phantom active gate, and do NOT preserve/reapply a phantom diff.
 - The inherited run `/tmp/bab_gate_p40_w0.log` is **DEAD, not GREEN-complete**: pytest finished GREEN — `TOTAL 6730 0 100%` and `7675 passed, 39 skipped in 1996.52s` — but the log **lacks** the `[bab_gate] coverage floor met` line, the replay-gate block, and every P33–P39 post-pytest phase. So WP0 is NOT closed. (The earlier `/tmp/bab_gate_p39_new.log` and `/tmp/bab_gate_run4.log` are older RED runs from before the P30 fix — ignore them.)
 - Baseline is GREEN firsthand: `ruff check .` → All checks passed; `bash scripts/bab_quick.sh` → quick preflight OK (smoke 195 passed); `pytest tests/test_bab_p30_ledger_analyzer.py` → 11 passed; P37/P38/P39 `--check-*` summaries all `PASS (byte-identical)`; `bab_replay_decisions.py --subset p39_decision.md` → byte-identical.
@@ -73,7 +73,7 @@
 
 ## BOTTLENECKS REMOVED (condensed — load-bearing items kept; do NOT revert/re-fix)
 
-- **#16 Stale handoff vs. checkpoint/gate state — REMOVED (refreshed 2026-11-25T06:51:00Z).** The prior handoff pointed at a still-running replay PID and an older HEAD; both are now false (no gate runs; HEAD `74c40cc`; tree clean; inherited p40_w0 log dead at pytest-GREEN with post-pytest phases absent). The next session starts from a clean tree, launches exactly ONE gate, and proceeds to P40 — no phantom diff, no waiting on a nonexistent gate, no parallel handoff.
+- **#16 Stale handoff vs. checkpoint/gate state — REMOVED (refreshed 2026-11-25T06:54:50Z).** The prior handoff pointed at a still-running replay PID and an older HEAD; both are now false (no gate runs; HEAD `7340aca`; tree clean; inherited p40_w0 log dead at pytest-GREEN with post-pytest phases absent). The next session starts from a clean tree, launches exactly ONE gate, and proceeds to P40 — no phantom diff, no waiting on a nonexistent gate, no parallel handoff.
 - **#8 Stale exact-equality guards → RED gate on a green tree — REMOVED.** `tests/test_bab_p29_replay_coverage.py` `EXPECTED_NAMES` += 7 json-only summaries; `tests/test_bab_p29_decision_replay.py` `EXPECTED_NAMES` += 9 docs; `docs/COVERAGE_NOTES.md` line 7 reworded; `tests/test_bab_p30_ledger_analyzer.py` count corrected. Exact-equality preserved (a new artifact still fails closed). This is the documented guard-maintenance pattern.
 - **#9 Structural RUNTIME bottleneck — DOCUMENTED, not a correctness problem.** `--check-provenance`/`--xproc` rebuild ~8 heavy Monte-Carlo artifacts in fresh interpreters. **Mitigation:** run the gate as a background/persistent process and poll the log across turns; do NOT wrap in one blocking call and do NOT launch a second concurrent gate. The provenance math is a legitimate determinism proof — do NOT delete, skip, or weaken it.
 - **#10 Frozen P27 `.md` trailing-newline trap — DOCUMENTED + restore path** (`git checkout -- research_state/bab_p27/` after any full run; JSON artifacts unaffected).
