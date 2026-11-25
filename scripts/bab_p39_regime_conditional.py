@@ -72,7 +72,7 @@ DOLLAR_NEUTRAL_TOL = 1e-9
 REALIZED_BETA_TOL = 0.15
 
 # Regime labeling (causal, lagged, no lookahead).
-REGIME_LOOKBACK = 20  # trailing window for trend and realized vol
+REGIME_LOOKBACK = 10  # trailing window for trend and realized vol
 MIN_PERIODS_PER_REGIME = 30  # skip regimes with too few observations
 
 # Bootstrap settings for sigma0 (std of Sharpe under the null), mirroring P21/P38.

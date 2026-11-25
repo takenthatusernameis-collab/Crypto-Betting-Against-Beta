@@ -64,12 +64,12 @@ neutral, realized |beta|) are checked at every populated cell.
 <!-- table:regime:start -->
 | Regime | N_Cells | N_OK_Cells | N_Insufficient | N_Error | N_Survive | All_Survive | Any_Survive | DSR_Mean | DSR_Min | DSR_Max | PSR_Mean | PSR_Min | PSR_Max | Neutrality_OK |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| bear_high_vol | 8 | 0 | 8 | 0 | 0 | True | False | None | None | None | None | None | None | True |
-| bear_low_vol | 8 | 8 | 0 | 0 | 5 | False | True | 0.613467 | 0.030439 | 0.971513 | 0.626873 | 0.000000 | 1.000000 | True |
-| bear_mid_vol | 8 | 0 | 8 | 0 | 0 | True | False | None | None | None | None | None | None | True |
-| bull_high_vol | 8 | 8 | 0 | 0 | 3 | False | True | 0.412219 | 0.059605 | 0.944130 | 0.375007 | 0.000000 | 1.000000 | True |
-| bull_low_vol | 8 | 8 | 0 | 0 | 7 | False | True | 0.838955 | 0.131747 | 0.969464 | 0.874266 | 0.000000 | 1.000000 | True |
-| bull_mid_vol | 8 | 8 | 0 | 0 | 5 | False | True | 0.605503 | 0.102371 | 0.942615 | 0.622470 | 0.000000 | 1.000000 | True |
+| bear_high_vol | 8 | 8 | 0 | 0 | 6 | False | True | 0.703131 | 0.101628 | 0.963579 | 0.656511 | 0.000064 | 0.999409 | True |
+| bear_low_vol | 8 | 8 | 0 | 0 | 6 | False | True | 0.680494 | 0.060288 | 0.971515 | 0.672838 | 0.000001 | 1.000000 | True |
+| bear_mid_vol | 8 | 8 | 0 | 0 | 3 | False | True | 0.354396 | 0.033377 | 0.920868 | 0.304104 | 0.000000 | 0.999930 | True |
+| bull_high_vol | 8 | 8 | 0 | 0 | 4 | False | True | 0.532263 | 0.080153 | 0.983681 | 0.488954 | 0.000000 | 1.000000 | True |
+| bull_low_vol | 8 | 8 | 0 | 0 | 5 | False | True | 0.634540 | 0.089412 | 0.970008 | 0.625519 | 0.000000 | 1.000000 | True |
+| bull_mid_vol | 8 | 8 | 0 | 0 | 4 | False | True | 0.530456 | 0.100305 | 0.954528 | 0.487861 | 0.000000 | 1.000000 | True |
 <!-- table:regime:end -->
 
 ---

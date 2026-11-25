@@ -10,13 +10,13 @@ Schema `bab_p39.regime_conditional/1`. Controlled synthetic stimulus: not real m
 - Seeds: 8 (base=20261120, increment=1009)
 - beta_window: 90d, quantile: 0.300000
 - weighting: equal, beta_neutral: True, dollar_neutral: True
-- regime lookback: 20d, min periods per regime: 30
+- regime lookback: 10d, min periods per regime: 30
 - regime labels: bull_low_vol, bull_mid_vol, bull_high_vol, bear_low_vol, bear_mid_vol, bear_high_vol
 
 ## Regime definition (causal, lagged, no lookahead)
 
-- trend[t]: sign of mean BTC return over the trailing 20d window ending at t-1 (bull if > 0, else bear).
-- vol[t]: std of BTC return over the trailing 20d window ending at t-1.
+- trend[t]: sign of mean BTC return over the trailing 10d window ending at t-1 (bull if > 0, else bear).
+- vol[t]: std of BTC return over the trailing 10d window ending at t-1.
 - vol tercile[t]: expanding percentile of vol[t] within vol[0:t+1] (low / mid / high).
 - regime[t] = trend[t] x vol tercile[t]; the label at t uses only data strictly before t.
 
@@ -28,12 +28,12 @@ Deflation over n_trials_total = **552**, read-only from research_state/bab_p38/d
 
 | Regime | N cells | N OK | N survive | DSR mean | PSR mean | Survive all |
 |---|---|---|---|---|---|---|
-| bull_low_vol | 8 | 8 | 7 | 0.838955 | 0.874266 | False |
-| bull_mid_vol | 8 | 8 | 5 | 0.605503 | 0.622470 | False |
-| bull_high_vol | 8 | 8 | 3 | 0.412219 | 0.375007 | False |
-| bear_low_vol | 8 | 8 | 5 | 0.613467 | 0.626873 | False |
-| bear_mid_vol | 8 | 0 | 0 | None | None | True |
-| bear_high_vol | 8 | 0 | 0 | None | None | True |
+| bull_low_vol | 8 | 8 | 5 | 0.634540 | 0.625519 | False |
+| bull_mid_vol | 8 | 8 | 4 | 0.530456 | 0.487861 | False |
+| bull_high_vol | 8 | 8 | 4 | 0.532263 | 0.488954 | False |
+| bear_low_vol | 8 | 8 | 6 | 0.680494 | 0.672838 | False |
+| bear_mid_vol | 8 | 8 | 3 | 0.354396 | 0.304104 | False |
+| bear_high_vol | 8 | 8 | 6 | 0.703131 | 0.656511 | False |
 
 ## Neutrality (every cell)
 
