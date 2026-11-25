@@ -2,16 +2,16 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, `NEXT_*.md`, or parallel task doc. If you find one, fold anything still true into this file and delete it. Only `HANDOFF.md` is tracked at repo root; keep it that way.**
 
-- **Timestamp (UTC):** 2026-11-25T06:51:00Z — single durable handoff refreshed this session (user-directed refresh; it does NOT close WP0).
+- **Timestamp (UTC):** 2026-11-25T06:51:54Z — single durable handoff refreshed this session (user-directed refresh; it does NOT close WP0).
 - **HEAD:** `74c40cc79ec1ffc8d306277826a9a6d11296c100` (`chore(kilo): checkpoint agent session`). The checkpoint hash advances every session — re-derive with `git rev-parse HEAD` at session start; never cite a stale hash. Campaign code is frozen at its campaign commits (P38 at `726d4bd`, P39 WP3 at ancestor `3d08169`); treat those as ancestors, never as HEAD.
 - **Working tree (verified 2026-11-25T06:50:25Z):** clean (`git status --porcelain` empty). Nothing uncommitted to preserve or reapply.
 - **Repo:** `Crypto-Betting-Against-Beta` — a market-neutral **Betting-Against-Beta factor strategy** for crypto (long low-beta, short high-beta, beta-neutral by construction). The repo's entire value proposition is *honest, reproducible, artifact-gated evidence about a factor strategy*. Synthetic fixtures are NOT real market data — never present them as evidence of real profitability.
 
 ---
 
-# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-25T06:51:00Z)
+# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-25T06:51:54Z)
 
-**PRIORITIZATION BY REPO NAME (binding):** this is a *factor* strategy repo. The highest-value next heavy work is therefore **factor robustness** — does the BAB factor's apparent edge survive across independently parameterized synthetic universes, under a pre-registered multiplicity correction, and net of costs — NOT docs, NOT handoff churn, NOT CI plumbing (maintainer-gated). That work is **Campaign P40** (charter below). It is inescapable and ordered WP1→WP4.
+**PRIORITIZATION BY REPO NAME (binding & inescapable):** this is a *factor strategy* repo (`Crypto-Betting-Against-Beta`). The highest-value next heavy work is **factor robustness** — does the BAB factor's apparent edge survive across independently parameterized synthetic universes, under a pre-registered multiplicity correction, and net of costs — NOT docs, NOT handoff churn, NOT CI plumbing (maintainer-gated). That work is **Campaign P40** (charter below). It is inescapable and ordered WP1→WP4. Any session that does not execute P40 after P39 WP0 lands GREEN has FAILED its binding obligation.
 
 **MINIMUM ACCEPTABLE OUTCOME (non-negotiable): land P39 WP0 full-gate close-out — reconcile to a GREEN `BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh` (TOTAL 100%, exit 0), record TOTAL coverage in `docs/COVERAGE_NOTES.md`, and restore the frozen P27 `.md` files. Then start P40 WP1 in the same session. A handoff-only / docs-only / gate-only / count-only / planning commit that substitutes for WP0 is a FAILED session while WP0 is open.**
 
