@@ -2,49 +2,40 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, `NEXT_*.md`, or parallel task doc. If you find one, fold anything still true into this file and delete it. Only `HANDOFF.md` is tracked at repo root; keep it that way.**
 
-- **Timestamp (UTC):** 2026-11-25T07:51:17Z — single durable handoff refreshed this session. The full gate **RAN AND FAILED** (log `/tmp/bab_gate_p41_w1.log`): pytest phase GREEN (TOTAL 100%, 7670 passed, 39 skipped) but **5 doc pointer guard tests FAILED** because HANDOFF.md's secondary extraction pattern matched P40 while `test_handoff_binding_row_matches_landed_p34_tests` only allows P28/P34–P39. Since P39 WP0 has NOT completed, the binding row MUST be P39.
-- **HEAD:** `0f417a43ff3812fbbbc72bc1b7306de201ab4b07` (`chore(kilo): checkpoint agent session`). The checkpoint hash advances every session — re-derive with `git rev-parse HEAD` at session start; never cite a stale hash. Campaign code is frozen at its campaign commits (P38 at `726d4bd`, P39 WP3 at ancestor `3d08169`); treat those as ancestors, never as HEAD.
-- **Working tree (verified 2026-11-25T07:51:17Z):** clean. The gate run completed (PID gone); no background process to reconcile.
+- **Timestamp (UTC):** 2026-11-25T07:58:29Z — single durable handoff refreshed this session. **The doc-pointer bottleneck is RESOLVED and verified firsthand this session:** `python3 -m pytest -q tests/test_bab_p34_doc_pointer_guard.py` → **7 passed, 1 skipped**. HANDOFF.md's primary pattern `BINDING ROW = Campaign P39` (line 10) matches first, so the extractor returns P39 and never reaches the secondary pattern; README.md (line 246) and docs/COVERAGE_NOTES.md (line 7) both cite P39 as binding. The prior "gate FAILED on 5 doc pointer tests" state is STALE — do not re-fix it. The remaining binding work is the **full-gate close-out** (P39 WP0): the pytest phase is GREEN (TOTAL 100%) but the post-pytest replay/coverage-floor/provenance phases have not yet been observed GREEN end-to-end.
+- **HEAD:** `d50387d7036335805e5bc3a70fd8b354b1866abb` (`chore(kilo): checkpoint agent session`). The checkpoint hash advances every session — re-derive with `git rev-parse HEAD` at session start; never cite a stale hash. Campaign code is frozen at its campaign commits (P38 at `726d4bd`, P39 WP3 at ancestor `3d08169`); treat those as ancestors, never as HEAD.
+- **Working tree (verified 2026-11-25T07:58:29Z):** clean (`git status --porcelain` empty; `research_state/bab_p27/` and `bab_p30/` clean). No background process running; no gate PID to reconcile. Do NOT start a background gate and leave it running — that recreates the stale-PID bottleneck.
 - **Repo:** `Crypto-Betting-Against-Beta` — a market-neutral **Betting-Against-Beta factor strategy** for crypto (long low-beta, short high-beta, beta-neutral by construction). The repo's entire value proposition is *honest, reproducible, artifact-gated evidence about a factor strategy*. Synthetic fixtures are NOT real market data — never present them as evidence of real profitability.
 
 **BINDING ROW = Campaign P39**
 
 ---
 
-# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-25T07:51:17Z)
+# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-25T07:58:29Z)
 
 **PRIORITIZATION BY REPO NAME (binding & inescapable):** this is a *factor strategy* repo (`Crypto-Betting-Against-Beta`). The highest-value next heavy work is **factor robustness** — does the BAB factor's apparent edge survive across independently parameterized synthetic universes, under a pre-registered multiplicity correction, and net of costs — NOT docs, NOT handoff churn, NOT CI plumbing (maintainer-gated). That work is **Campaign P40** (charter below). It is inescapable and ordered WP1→WP4. Any session that does not execute P40 after P39 WP0 lands GREEN has FAILED its binding obligation.
 
 **MINIMUM ACCEPTABLE OUTCOME (non-negotiable): land P39 WP0 full-gate close-out — reconcile to a GREEN `BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh` (TOTAL 100%, exit 0), record TOTAL coverage in `docs/COVERAGE_NOTES.md`, and restore the frozen P27 `.md` files. Then start P40 WP1 in the same session. A handoff-only / docs-only / gate-only / count-only / planning commit that substitutes for WP0 is a FAILED session while WP0 is open.**
 
-**State you inherit (verified firsthand 2026-11-25T07:51:17Z):**
-- **The gate RUN COMPLETED BUT FAILED** (log `/tmp/bab_gate_p41_w1.log`): pytest phase GREEN — `TOTAL 6730 0 100%` and `7670 passed, 39 skipped in 1978.51s` — but **5 doc pointer guard tests FAILED**:
-  - `test_readme_campaign_not_older_than_handoff` — README.md names P39 as binding, HANDOFF.md extracted P40
-  - `test_coverage_notes_campaign_not_older_than_handoff` — COVERAGE_NOTES.md names P39 as binding, HANDOFF.md extracted P40
-  - `test_handoff_binding_row_matches_landed_p34_tests` — HANDOFF.md binding row extracted as P40, but allowed set is P28/P34–P39
-  - `test_no_stale_campaign_references_in_readme` — README.md cites 'P39' as 'Binding next campaign' but HANDOFF.md binding row is P40
-  - `test_no_stale_campaign_references_in_coverage_notes` — COVERAGE_NOTES.md cites 'P39' as 'Active work is binding' but HANDOFF.md binding row is P40
-- **Root cause:** HANDOFF.md's secondary extraction pattern `(?:binding|active).*?Campaign\s+P(\d+)` matched "(binding & inescapable):** this is a *factor strategy* repo... That work is **Campaign P40**" and returned P40. The test `test_handoff_binding_row_matches_landed_p34_tests` only allows binding row ∈ {P28, P34, P35, P36, P37, P38, P39} — P40 is NOT allowed because P39 WP0 is not yet complete.
-- **Baseline is GREEN firsthand (2026-11-25T06:59:53Z):** `ruff check .` → All checks passed; `bash scripts/bab_quick.sh` → quick preflight OK (targeted trio 104 passed, smoke 195 passed); `pytest tests/test_bab_p30_ledger_analyzer.py` → 11 passed; P37/P38/P39 `--check-*` summaries all `PASS (byte-identical)`; `research_state/bab_p27/` clean (no trailing-newline mutation).
+**State you inherit (verified firsthand 2026-11-25T07:58:29Z):**
+- **Doc-pointer guard is GREEN:** `python3 -m pytest -q tests/test_bab_p34_doc_pointer_guard.py` → **7 passed, 1 skipped**. The previously-reported 5 doc-pointer failures are GONE — HANDOFF.md's primary `BINDING ROW = Campaign P39` pattern matches first and returns P39 before the secondary pattern is consulted; README.md and docs/COVERAGE_NOTES.md both cite P39 as binding. Do NOT re-fix the doc mismatch; it is resolved.
+- **The remaining binding work is the full-gate close-out (P39 WP0):** the pytest phase is GREEN (`TOTAL 6730 0 100%`, ~7670 passed / 39 skipped) but the post-pytest phases (replay gate, `--check-provenance`/`--xproc`, decision replay, doc consistency, P34–P39 `--check-*`) have NOT been observed GREEN end-to-end in a single `bab_gate.sh` run. That end-to-end GREEN is the sole remaining P39 WP0 deliverable.
+- **Baseline is GREEN firsthand (2026-11-25T07:58:29Z):** `ruff check .` → All checks passed; working tree clean; doc-pointer guard 7 passed / 1 skipped. (P37/P38/P39 `--check-*` were byte-identical at 06:59:53Z and their artifacts are frozen — re-verify with `--check-*` only.)
 - **The WP0 test blocker is already FIXED and COMMITTED (`cff863e`):** `tests/test_bab_p30_ledger_analyzer.py::TestSince::test_since_filters_runs` recomputes the expected count independently from the 50-run ledger (exact recomputation, not a loosening). Do NOT re-touch it or re-introduce a hard-coded count.
 
-**FIRST ACTION (before anything else) — fix the doc pointer mismatch, then re-run the gate:**
-1. **Fix the three docs to declare P39 as the binding row** (since P39 WP0 is not yet complete):
-   - HANDOFF.md: Ensure primary pattern `BINDING ROW = Campaign P39` exists (this file now has it at line 60)
-   - README.md: Change "Binding next campaign: Campaign **P39**..." to explicitly reference **P39 WP0 full-gate close-out**
-   - docs/COVERAGE_NOTES.md: Change "Active work is binding: Campaign **P39 WP0 full-gate close-out**, then **Campaign P40**" (already correct but verify)
-2. **Re-run the full gate** (exactly one concurrent run):
+**FIRST ACTION (doc mismatch already resolved — go straight to the gate close-out):**
+1. **Run the full gate to GREEN end-to-end** (exactly one concurrent run; do NOT leave it running across sessions):
    ```bash
-   BAB_GATE_LOG=/tmp/bab_gate_p41_w2.log BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh
+   BAB_GATE_LOG=/tmp/bab_gate_p39w0.log BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh
    ```
-   Budget ~60 min uninterrupted (pytest phase alone was ~1978 s; the post-pytest replay/`--xproc`/`--check-provenance` rebuild adds more). If the runner cannot keep a background process alive, run the fast 95% first, then `--check-provenance` and `--xproc` once on a large uninterrupted budget.
-3. **On GREEN (`TOTAL 100% >= 100%`, exit 0):** record TOTAL coverage % + pass/skip counts with date/HEAD in `docs/COVERAGE_NOTES.md`.
-4. **Restore frozen P27 artifacts:** `git checkout -- research_state/bab_p27/` to undo the trailing-newline mutation the full run makes to `risk_controls.md` and `reconciliation_e2e.md`. (If the P30 ledger test ran, also `git checkout -- research_state/bab_p30/ledger_summary.json`.)
-5. **Re-run baseline:** `bash scripts/bab_quick.sh` + `python3 -m ruff check .`; confirm `git status --porcelain` shows only intended changes.
-6. **Then Campaign P40 WP1 immediately** (charter below). Stopping after WP0 with P40 unstarted and no maintainer-gate is a FAILED session.
+   Budget ~60+ min uninterrupted (pytest phase alone was ~1978 s; the post-pytest replay/`--xproc`/`--check-provenance` rebuild adds more). If the runner cannot keep a background process alive, run the fast 95% first, then `--check-provenance` and `--xproc` once on a large uninterrupted budget. Do NOT start it and abandon it — a live PID with no reader is the stale-PID bottleneck this handoff just removed.
+2. **On GREEN (`TOTAL 100% >= 100%`, exit 0):** record TOTAL coverage % + pass/skip counts with date/HEAD in `docs/COVERAGE_NOTES.md`.
+3. **Restore frozen P27 artifacts:** `git checkout -- research_state/bab_p27/` to undo the trailing-newline mutation the full run makes to `risk_controls.md` and `reconciliation_e2e.md`. (If the P30 ledger test ran, also `git checkout -- research_state/bab_p30/ledger_summary.json`.)
+4. **Re-run baseline:** `bash scripts/bab_quick.sh` + `python3 -m ruff check .`; confirm `git status --porcelain` shows only intended changes.
+5. **Then Campaign P40 WP1 immediately** (charter below). Stopping after WP0 with P40 unstarted and no maintainer-gate is a FAILED session.
 
 **Gate-exit handling:**
-- Exit 0 + `TOTAL 100% >= 100%` → WP0 DONE; proceed to steps 3–6.
+- Exit 0 + `TOTAL 100% >= 100%` → WP0 DONE; proceed to steps 2–5.
 - Exit 1 with a real test failure → bisect to a **code change** (never an artifact hand-edit, never a loosened/`xfail`ed test); re-run the fast inner loop, then the gate.
 - Exit 1 with `COVERAGE FLOOR NOT MET` → inspect the `Missing` column, add targeted tests (mirror P35 `TestValidationErrors` / reconciliation non-finite pattern), re-run. Coverage is saturated at 100%; do not lower the floor.
 - Do NOT commit unless the user explicitly asks.
@@ -83,7 +74,7 @@
 
 ## BOTTLENECKS REMOVED (condensed — load-bearing items kept; do NOT revert/re-fix)
 
-- **#16 Stale handoff vs. checkpoint/gate state — REMOVED (refreshed 2026-11-25T07:51:17Z).** The prior handoff pointed at a running gate PID; that gate has now completed (FAILED on doc pointer tests). This refresh records the actual gate outcome so the next session FIXES the doc mismatch and re-runs — no phantom diff, no waiting on a nonexistent gate.
+- **#16 Stale handoff vs. checkpoint/gate state — REMOVED (refreshed 2026-11-25T07:58:29Z).** The prior handoff described a gate that FAILED on 5 doc-pointer tests; verified firsthand this session that the doc-pointer guard is now GREEN (7 passed / 1 skipped) and the tree is clean at HEAD `d50387d`. This refresh records the true state so the next session goes straight to the full-gate close-out — no phantom doc fix, no waiting on a nonexistent gate. Do NOT start a background gate and leave it running; that recreates the stale-PID problem.
 - **#8 Stale exact-equality guards → RED gate on a green tree — REMOVED.** `tests/test_bab_p29_replay_coverage.py` `EXPECTED_NAMES` += 7 json-only summaries; `tests/test_bab_p29_decision_replay.py` `EXPECTED_NAMES` += 9 docs; `docs/COVERAGE_NOTES.md` line 7 reworded; `tests/test_bab_p30_ledger_analyzer.py` count corrected. Exact-equality preserved (a new artifact still fails closed). This is the documented guard-maintenance pattern.
 - **#9 Structural RUNTIME bottleneck — DOCUMENTED, not a correctness problem.** `--check-provenance`/`--xproc` rebuild ~8 heavy Monte-Carlo artifacts in fresh interpreters. **Mitigation:** run the gate as a background/persistent process and poll the log across turns; do NOT wrap in one blocking call and do NOT launch a second concurrent gate. The provenance math is a legitimate determinism proof — do NOT delete, skip, or weaken it.
 - **#10 Frozen P27 `.md` trailing-newline trap — DOCUMENTED + restore path** (`git checkout -- research_state/bab_p27/` after any full run; JSON artifacts unaffected).
