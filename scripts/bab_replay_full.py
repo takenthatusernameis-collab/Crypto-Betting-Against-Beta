@@ -301,7 +301,7 @@ def _run_build_once(entry: dict) -> bytes:
         cwd=str(ROOT),
         capture_output=True,
         env=_subprocess_env(),
-        timeout=600,
+        timeout=3600,
     )
     if proc.returncode != 0:
         raise RuntimeError(

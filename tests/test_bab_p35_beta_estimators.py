@@ -246,3 +246,62 @@ class TestShrinkageBeta:
         res = estimate_shrinkage_beta(df, BENCH, min_obs=5, shrink_intensity=0.3)
         assert res.empty
         assert (res[BENCH] == 1.0).all()
+
+
+class TestValidationErrors:
+    def test_returns_none(self):
+        with pytest.raises(ValueError):
+            estimate_rolling_ols_beta(None, BENCH)
+        with pytest.raises(ValueError):
+            estimate_ewma_beta(None, BENCH)
+        with pytest.raises(ValueError):
+            estimate_shrinkage_beta(None, BENCH)
+
+    def test_returns_not_dataframe(self):
+        with pytest.raises(ValueError):
+            estimate_rolling_ols_beta([1, 2, 3], BENCH)
+        with pytest.raises(ValueError):
+            estimate_ewma_beta([1, 2, 3], BENCH)
+        with pytest.raises(ValueError):
+            estimate_shrinkage_beta([1, 2, 3], BENCH)
+
+    def test_benchmark_missing(self):
+        df = _make_returns()
+        with pytest.raises(ValueError):
+            estimate_rolling_ols_beta(df, "NOTABENCH")
+        with pytest.raises(ValueError):
+            estimate_ewma_beta(df, "NOTABENCH")
+        with pytest.raises(ValueError):
+            estimate_shrinkage_beta(df, "NOTABENCH")
+
+    def test_rolling_ols_window_invalid(self):
+        df = _make_returns()
+        with pytest.raises(ValueError):
+            estimate_rolling_ols_beta(df, BENCH, window=0)
+
+    def test_rolling_ols_min_obs_none(self):
+        df = _make_returns()
+        res = estimate_rolling_ols_beta(df, BENCH, min_obs=None)
+        assert res[BENCH].eq(1.0).all()
+
+    def test_ewma_min_obs_none(self):
+        df = _make_returns()
+        res = estimate_ewma_beta(df, BENCH, min_obs=None)
+        assert res[BENCH].eq(1.0).all()
+
+    def test_shrinkage_window_invalid(self):
+        df = _make_returns()
+        with pytest.raises(ValueError):
+            estimate_shrinkage_beta(df, BENCH, window=0)
+
+    def test_shrinkage_min_obs_none(self):
+        df = _make_returns()
+        res = estimate_shrinkage_beta(df, BENCH, min_obs=None, shrink_intensity=0.3)
+        assert res[BENCH].eq(1.0).all()
+
+    def test_shrink_target_not_finite(self):
+        df = _make_returns()
+        with pytest.raises(ValueError):
+            estimate_shrinkage_beta(
+                df, BENCH, shrink_target=float("inf"), shrink_intensity=0.3
+            )

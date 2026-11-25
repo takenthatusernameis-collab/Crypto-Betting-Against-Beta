@@ -13,6 +13,7 @@ import pandas as pd
 
 from strategies.betting_against_beta.reconciliation import (
     ReconciliationResult,
+    _canonicalize,
     _checksum,
     _date_key,
     _fill_cost,
@@ -188,3 +189,12 @@ def test_reconcile_fills_nonfinite_returns_and_backtest_missing():
     res = reconcile_fills_to_backtest(weights, returns, backtest, fills=None)
     assert res.n_periods == 2
     assert res.aggregate["model_final_equity"] == 1.0
+
+
+def test_canonicalize_bool_and_floats():
+    assert _canonicalize(True) is True
+    assert _canonicalize(False) is False
+    assert _canonicalize(1.5) == 1.5
+    assert _canonicalize(float("inf")) == float("inf")
+    assert math.isnan(_canonicalize(float("nan")))
+    assert _canonicalize({"a": 1.25, "b": True}) == {"a": 1.25, "b": True}
