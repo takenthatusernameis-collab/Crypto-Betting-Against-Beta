@@ -2,46 +2,54 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, `NEXT_*.md`, or parallel task doc. If you find one, fold anything still true into this file and delete it. Only `HANDOFF.md` is tracked at repo root; keep it that way.**
 
-- **Timestamp (UTC):** 2026-11-25T04:52:00Z (single durable handoff refreshed this session. P39 WP0 full-gate close-out is the binding row. Gate COMPLETED at 2026-11-25T04:30:XXZ — `TOTAL 100%` coverage achieved but 1 test FAILED: `tests/test_bab_p30_ledger_analyzer.py::TestSince::test_since_filters_runs` (assert 29 == 28). Root cause: gate run appended a 50th ledger entry; hard-coded expected count 28 → actual 29 for `run_id >= 43764777657`. Coverage 100% (6730 stmts, 0 miss). Structural blockers remain removed: xproc timeout 3600s, 8-record provenance ledger verified, 100% coverage gap closed. Working tree clean at checkpoint `db2de34` — `git status --porcelain` empty, `research_state/bab_p27/` diff empty.)
-- **HEAD:** `db2de3442e6bed0578b38b404c709ecd904d52c0` (`chore(kilo): checkpoint agent session`; campaign code frozen at its campaign commits — P38 at `726d4bd`, P39 WP3 at ancestor `3d08169`. Do NOT cite `3d08169` as HEAD; re-derive with `git rev-parse HEAD` at session start — the checkpoint commit hash advances every session.)
-- **Working tree clean (intended fixes committed):** `scripts/bab_replay_full.py` (xproc `timeout=3600`), `research_state/bab_p29/provenance_audit.json` (exactly 8 records, seeds 20261120/20261121, all `replay_ok:true`), `tests/test_bab_p35_beta_estimators.py` (+`TestValidationErrors`) and `tests/test_bab_reconciliation_p11_coverage.py` (+non-finite `_canonicalize`, `math.isnan`). Frozen `research_state/bab_p27/` `.md` files clean right now but any full gate run WILL append a trailing newline to `risk_controls.md`/`reconciliation_e2e.md` — restore with `git checkout -- research_state/bab_p27/` after the gate exits. **Multi-session note:** coordinate by re-reading `git status`/`git diff` before editing; never blindly revert another session's in-flight fix; never launch a second concurrent gate (#9 xdist contention trap).
-- **Gate status:** full gate COMPLETED — exit 1, `TOTAL 100% >= 100%` coverage GREEN but 1 test RED (`test_since_filters_runs`: expected 28, actual 29). Logs `/tmp/bab_gate_run4.log` (full), `/tmp/bab_gate_p39_new.log` (structured). The single failure is a deterministic ledger-count drift: the gate run itself adds a ledger entry, so the hard-coded expected value in `tests/test_bab_p30_ledger_analyzer.py:87` is stale. Fix: make the test compute the expected count dynamically from `research_state/workflow_run_diagnostics.jsonl` (read-only, not a hand-edit of frozen artifact).
+- **Timestamp (UTC):** 2026-11-25T04:55:08Z (single durable handoff refreshed this session). **The P39 WP0 blocker is FIXED this session** — the last full gate's single failure (`test_since_filters_runs`, `assert 29 == 28`) is resolved by an independent dynamic recomputation from the ledger. The full gate has **NOT** been re-run since the fix; that GREEN run is the binding next action.
+- **HEAD:** `61f306955f7e725c278c8ae333e4ee5a36d3b49f` (`chore(kilo): checkpoint agent session`). The checkpoint hash advances every session — re-derive with `git rev-parse HEAD` at session start; never cite a stale hash. Campaign code is frozen at its campaign commits (P38 at `726d4bd`, P39 WP3 at ancestor `3d08169`).
+- **Working tree (verified 2026-11-25T04:55:08Z):** exactly one intended, uncommitted change — `tests/test_bab_p30_ledger_analyzer.py` (the WP0 test fix). `git status --porcelain` shows only that file. No frozen `research_state/**` artifact is mutated (the transient `research_state/bab_p30/ledger_summary.json` timestamp side-effect from running the test was reverted with `git checkout --`). Do NOT commit unless the user explicitly asks.
+- **Gate status:** last full gate COMPLETED at 2026-11-25T04:30Z — exit 1, `TOTAL 100% >= 100%` coverage GREEN (6730 stmts, 0 miss), **1 test RED**: `tests/test_bab_p30_ledger_analyzer.py::TestSince::test_since_filters_runs` (`assert 29 == 28`). Logs: `/tmp/bab_gate_run4.log` (full), `/tmp/bab_gate_p39_new.log` (structured). **That single failure is now FIXED and verified GREEN this session** (see below). The gate must be re-run to confirm end-to-end GREEN.
 - **Repo:** `Crypto-Betting-Against-Beta` — a market-neutral **Betting-Against-Beta** factor strategy for crypto (long low-beta, short high-beta, beta-neutral by construction). The repo's entire value proposition is *honest, reproducible, artifact-gated evidence*. Synthetic fixtures are NOT real market data — never present them as evidence of real profitability.
 
 ---
 
-# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-25T04:52:00Z)
+# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-25T04:55:08Z)
 
-**MINIMUM ACCEPTABLE OUTCOME (non-negotiable): land P39 WP0 full-gate close-out — a GREEN `bash scripts/bab_gate.sh` at `BAB_GATE_MIN_COVERAGE=100` (TOTAL 100%), TOTAL coverage recorded in `docs/COVERAGE_NOTES.md`, and the frozen P27 `.md` files restored. Nothing short of that is a completed session.**
+**MINIMUM ACCEPTABLE OUTCOME (non-negotiable): land P39 WP0 full-gate close-out — a GREEN `BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh` (TOTAL 100%, exit 0), TOTAL coverage recorded in `docs/COVERAGE_NOTES.md`, and the frozen P27 `.md` files restored. Nothing short of that is a completed session.**
 
-**State you inherit (verified 2026-11-25T04:52:00Z):** the two structural WP0 blockers are GONE. (1) The xproc `signal_null_battery` 600 s timeout — the true root cause of the old "7 failed" gate — is fixed by `timeout=3600` in `scripts/bab_replay_full.py`; `--xproc` exits `{"xproc": true, "pass": true}` and writes exactly 8 seeded P25-P27 ledger records. (2) `--check-provenance` exits `{"check_provenance": true, "pass": true}` against that 8-record ledger (verified firsthand). Group B (P30 `test_since_filters_runs`, P35 `test_summary_byte_determinism` ×2) was GREEN but the ledger-count test `test_since_filters_runs` now fails because the gate run itself appended a 50th ledger entry — expected 28, actual 29. The 99 %→100 % coverage gap is closed by `TestValidationErrors` + the reconciliation non-finite test (37 targeted tests GREEN; a `nan==nan` bug fixed to `math.isnan`). **A full gate COMPLETED** (logs `/tmp/bab_gate_run4.log`, exit 1, `TOTAL 100%` coverage, 1 failed / 7674 passed / 39 skipped in 2009.64s).
+**State you inherit (verified firsthand 2026-11-25T04:55:08Z):**
+- The WP0 blocker is **removed**. Root cause was NOT a gate-append artifact: the committed 50-run ledger (`research_state/workflow_run_diagnostics.jsonl`) genuinely has **29** records with `run_id >= 43764777657`; the test's hard-coded `28` was stale. Fix applied: `test_since_filters_runs` now recomputes the expected count independently from the ledger (exact recomputation, not a loosening).
+- Verified GREEN this session: `pytest tests/test_bab_p30_ledger_analyzer.py` → **11 passed**; targeted campaign set (`test_bab_p39_*`, `test_bab_p38_determinism.py`, `test_bab_p35_*`, `test_bab_reconciliation_p11_coverage.py`) → **215 passed**; `bash scripts/bab_quick.sh` → **quick preflight OK** (ruff clean, trio 104, smoke 195); `python3 -m ruff check .` → **All checks passed!**
+- Both structural WP0 blockers from prior sessions remain fixed and must NOT be re-touched: xproc per-artifact `timeout=3600` in `scripts/bab_replay_full.py`; the 8-record P29 provenance ledger (`--check-provenance` → `pass:true`).
 
-**FIRST ACTION:**
-1. Fix the single failing test: edit `tests/test_bab_p30_ledger_analyzer.py::TestSince::test_since_filters_runs` to compute the expected `runs_total` dynamically from `research_state/workflow_run_diagnostics.jsonl` (count records with `run_id >= 43764777657`) instead of the hard-coded `28`. This is a **code change**, not a hand-edit of a frozen artifact or a test looseness.
-2. Verify the fix locally with the fast path: `bash scripts/bab_quick.sh` + `python3 -m ruff check .` + `python3 -m pytest -q tests/test_bab_p30_ledger_analyzer.py::TestSince::test_since_filters_runs tests/test_bab_p39_*.py tests/test_bab_p38_determinism.py tests/test_bab_p35_*.py tests/test_bab_reconciliation_p11_coverage.py`.
-3. Re-launch the full gate as a background process and poll to GREEN: `BAB_GATE_LOG=/tmp/bab_gate_p39_new.log BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh` (background + poll; do NOT launch a second gate).
-4. On GREEN (`TOTAL 100% >= 100%`, exit 0): record TOTAL coverage % + pass/skip counts with date/HEAD in `docs/COVERAGE_NOTES.md`, then `git checkout -- research_state/bab_p27/` to undo the trailing-newline mutation of the two frozen P27 `.md` files, re-run `bash scripts/bab_quick.sh` + `python3 -m ruff check .` to confirm still GREEN, and confirm the working tree is clean except the intended committed fixes (replay timeout, 8-record ledger, two test files) + the test fix + `docs/COVERAGE_NOTES.md`.
+**FIRST ACTION (do this before anything else):**
+1. Re-launch the full gate as a background/persistent process and poll to GREEN (do NOT run it in one blocking call; do NOT launch a second concurrent gate — that is the #9 xdist contention trap):
+   ```bash
+   BAB_GATE_LOG=/tmp/bab_gate_p40_w0.log BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh
+   ```
+   Actual runtime is ~33 min (last run: 2009.64 s, 7674 passed / 39 skipped); budget a 60-min uninterrupted window. A dead gate (pids gone, no `TOTAL` line) is a blocker — relaunch and poll.
+2. On GREEN (`TOTAL 100% >= 100%`, exit 0): record TOTAL coverage % + pass/skip counts with date/HEAD in `docs/COVERAGE_NOTES.md`.
+3. `git checkout -- research_state/bab_p27/` to undo the trailing-newline mutation the full run makes to the two frozen P27 `.md` files (`risk_controls.md`, `reconciliation_e2e.md`).
+4. Re-run `bash scripts/bab_quick.sh` + `python3 -m ruff check .` to confirm still GREEN; confirm `git status --porcelain` shows only the intended changes (the P30 test fix + `docs/COVERAGE_NOTES.md`).
 5. Then Campaign P40 (charter below) — inescapable heavy work.
 
-**Gate-exit handling:** the gate has exited (see logs `/tmp/bab_gate_run4.log`):
-- Exit 1, `TOTAL 100% >= 100%` coverage GREEN but 1 test RED (`test_since_filters_runs`: expected 28, actual 29) — **this is the blocker to fix**.
-- The failure is a deterministic ledger-count drift: the gate run itself adds a ledger entry, so the hard-coded expected value in `tests/test_bab_p30_ledger_analyzer.py:87` is stale.
-- **Fix:** make the test compute the expected count dynamically from `research_state/workflow_run_diagnostics.jsonl` (read-only, not a hand-edit of a frozen artifact). Do NOT weaken the assertion or hand-edit the expected value.
-- After the fix, re-launch the gate as a background process and poll until GREEN. A dead gate (pids gone, no `TOTAL`) is also a blocker — relaunch it and poll.
+**Gate-exit handling:**
+- Exit 0 + `TOTAL 100% >= 100%` → WP0 DONE; proceed to step 2–5.
+- Exit 1 with a real test failure → bisect to a **code change** (never an artifact hand-edit, never a loosened/`xfail`ed test); re-run the fast inner loop, then the gate.
+- Exit 1 with `COVERAGE FLOOR NOT MET` → inspect the `Missing` column in the log, add targeted tests (mirror the P35 `TestValidationErrors` / reconciliation non-finite pattern), re-run.
 - Do NOT commit unless explicitly requested by the user.
 
-**Do NOT re-do (all COMPLETE & frozen):** P20–P38; P39 WP1 (`--check-regime-summary` byte-identical); P39 WP2 (`--check-cross-fixture-summary` byte-identical, verdict `DOES_NOT_REPLICATE`); P39 WP3 (committed at ancestor `3d08169`, `--subset p39_decision.md` byte-identical); `tests/test_bab_p38_determinism.py` (EXISTS, committed). Both P39 verdicts are honest negatives — report them, never reverse them. **Do NOT re-fix the xproc timeout (now 3600), the 8-record ledger, or the P35/P30 tests — all verified GREEN this session.**
+**Do NOT re-do (all COMPLETE & frozen):** P20–P38; P39 WP1 (`--check-regime-summary` byte-identical); P39 WP2 (`--check-cross-fixture-summary` byte-identical, verdict `DOES_NOT_REPLICATE`); P39 WP3 (committed at ancestor `3d08169`, `--subset p39_decision.md` byte-identical); `tests/test_bab_p38_determinism.py` (EXISTS, committed). Both P39 verdicts are honest negatives — report them, never reverse them. **Do NOT re-fix the xproc timeout (now 3600), the 8-record ledger, the P35 tests, or the P30 ledger-count test — all verified GREEN this session.**
 
-**A handoff-only / docs-only / gate-only / count-only / planning commit that substitutes for WP0 work is a FAILED session while WP0 is open.** If you catch yourself producing only a handoff refresh, a green re-run log, or a planning note without the full gate GREEN at `BAB_GATE_MIN_COVERAGE=100` + P27 `.md` restored + coverage recorded, STOP — that is a failed session, not progress.
+**A handoff-only / docs-only / gate-only / count-only / planning commit that substitutes for WP0 work is a FAILED session while WP0 is open.** If you catch yourself producing only a handoff refresh, a green re-run log, or a planning note without the full gate GREEN at `BAB_GATE_MIN_COVERAGE=100` + P27 `.md` restored + coverage recorded, STOP — that is a failed session, not progress. (Persisting this handoff via the normal session checkpoint is expected and is NOT what this forbids.)
 
 **After WP0 lands, the next binding heavy work is Campaign P40 (charter below) — it is inescapable and defined so no future session can idle.**
 
 ---
 
-## VERIFIED BASELINE (firsthand 2026-11-24T14:38:15Z; re-confirmed GREEN at 15:35:11Z for ruff/quick/tree)
+## VERIFIED BASELINE (firsthand 2026-11-25T04:55:08Z)
 
 - `python3 -m ruff check .` → `All checks passed!`
-- `bash scripts/bab_quick.sh` → `quick preflight OK` (targeted trio 104 passed; smoke 195 passed)
+- `bash scripts/bab_quick.sh` → `quick preflight OK` (trio 104 passed; smoke 195 passed)
+- `python3 -m pytest -q tests/test_bab_p30_ledger_analyzer.py` → 11 passed (WP0 fix verified)
+- Targeted campaign set → 215 passed (P35/P38/P39/reconciliation)
 - `python3 scripts/bab_p38_deflated_significance.py --check-deflated-summary` → `PASS (byte-identical)`
 - `python3 scripts/bab_p38_tail_risk.py --check-tail-risk-summary` → `PASS (byte-identical)`
 - `python3 scripts/bab_p39_regime_conditional.py --check-regime-summary` → `PASS (byte-identical)` — WP1 DONE
@@ -51,7 +59,7 @@
 - Replay/registry/doc-pointer layer GREEN (152 passed / 2 skipped) after guard fixes.
 - Only `HANDOFF.md` at repo root — no stray parallel doc to fold in.
 
-### FIRST ACTION ONLY IF THE GATE IS DEAD OR A BASELINE REGRESSION IS FOUND (otherwise poll first; do NOT duplicate the active gate)
+### FIRST ACTION ONLY IF A BASELINE REGRESSION IS FOUND (otherwise go straight to the gate; do NOT duplicate an active gate)
 ```bash
 bash scripts/bab_bootstrap.sh
 python3 -m ruff check .                                                  # GREEN
@@ -68,15 +76,14 @@ python3 -m pytest -q tests/test_bab_p39_*.py tests/test_bab_p38_determinism.py
 
 > **CRITICAL GUARDRAIL — NEVER run a generator with bare/no args or an unrecognized flag** (e.g. `python3 scripts/bab_p37_cost_surface.py`, or `--summary-json` where unsupported). Many generators **write to the committed artifact path by default**, silently overwriting frozen `research_state/**` and turning a RED gate falsely GREEN. Verify with `--check-*` flags ONLY. To intentionally regenerate during a fix, run the generator (writes the active campaign path only), `git diff` to confirm the change is intentional, and `git checkout -- research_state/` any accidental frozen-artifact mutation immediately.
 
-> **FROZEN-ARTIFACT TRAP — running the FULL pytest suite / `bab_gate.sh` appends one trailing newline to frozen `research_state/bab_p27/{risk_controls,reconciliation_e2e}.md`** (the `run_*()` P27 tests write to the committed path). After ANY full run, `git checkout -- research_state/bab_p27/`. JSON artifacts are unaffected — only those two `.md` files.
+> **FROZEN-ARTIFACT TRAP — running the FULL pytest suite / `bab_gate.sh` appends one trailing newline to frozen `research_state/bab_p27/{risk_controls,reconciliation_e2e}.md`** (the `run_*()` P27 tests write to the committed path). After ANY full run, `git checkout -- research_state/bab_p27/`. JSON artifacts are unaffected — only those two `.md` files. (Running the P30 ledger test also rewrites `research_state/bab_p30/ledger_summary.json`'s `analyzed_at_utc`; revert with `git checkout -- research_state/bab_p30/ledger_summary.json` if it appears.)
 
 ---
 
 ## BINDING ROW = Campaign P39 — WP0 full-gate close-out (the ONLY remaining agent-executable P39 row; inescapable)
 
-- `tests/test_bab_p38_determinism.py` EXISTS (committed) — do NOT re-create.
-- **Gate completed, 1 failure:** `test_since_filters_runs` (hard-coded ledger count stale). Fix the test to compute expected count dynamically from the ledger, then re-run gate to GREEN.
-- Run `BAB_GATE_LOG=/tmp/bab_gate_p39_new.log BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh` to a GREEN completion (background + poll; ~80 min for `--xproc`/`--check-provenance`, +~2 min for the P34–P39 checks + coverage floor).
+- The WP0 test blocker is FIXED (working tree). The remaining WP0 work is the GREEN full-gate run + coverage record + P27 restore.
+- Run `BAB_GATE_LOG=/tmp/bab_gate_p40_w0.log BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh` to a GREEN completion (background + poll; ~33 min actual).
 - Record TOTAL coverage % + pass/skip counts with date/HEAD in `docs/COVERAGE_NOTES.md`.
 - `git checkout -- research_state/bab_p27/` to restore the two frozen P27 `.md` files.
 - **Acceptable exits ONLY:** (a) WP0 delivered GREEN at `BAB_GATE_MIN_COVERAGE=100` + coverage recorded + P27 restored + tree clean; or (b) a genuine RED baseline regression found in FIRST ACTION, bisected and fixed with a code change (not an artifact hand-edit).
@@ -112,13 +119,14 @@ python3 -m pytest -q tests/test_bab_p39_*.py tests/test_bab_p38_determinism.py
 ### Bottlenecks removed (condensed — load-bearing items kept)
 
 - **#8 Stale exact-equality guards → RED gate on a green tree — REMOVED (do NOT revert/re-fix).** `tests/test_bab_p29_replay_coverage.py` `EXPECTED_NAMES` += 7 json-only summaries (`cost_surface_summary`, `capacity_summary`, `turnover_summary`, `deflated_summary`, `tail_risk_summary`, `regime_summary`, `cross_fixture_summary`); `tests/test_bab_p29_decision_replay.py` `EXPECTED_NAMES` += 9 docs (`p22_kickoff.md`, `p23_kickoff.md`, `p24_kickoff.md`, `p24_decision.md`, `p35_decision.md`, `p36_decision.md`, `p37_decision.md`, `p38_decision.md`, `p39_decision.md`); `docs/COVERAGE_NOTES.md` line 7 reworded; `tests/test_bab_p30_ledger_analyzer.py` count 20→27. Exact-equality preserved (a 37th artifact still fails closed). This is the documented guard-maintenance pattern.
-- **#9 Structural RUNTIME bottleneck — DOCUMENTED, not a correctness problem.** `--check-provenance` and `--xproc` (also via `tests/test_bab_p31_provenance_replay.py`, `tests/test_bab_p29_xproc_determinism.py`) rebuild ~8 heavy Monte-Carlo artifacts twice each in fresh interpreters (~80 min). **Mitigation:** run the gate as a background/persistent process and poll the log across turns; do NOT wrap in one blocking call. If the runner cannot keep a background process alive, run the fast 95% first, then `--check-provenance` and `--xproc` once on a large uninterrupted budget. The provenance math is a legitimate determinism proof — do NOT delete, skip, or weaken it.
+- **#9 Structural RUNTIME bottleneck — DOCUMENTED, not a correctness problem.** `--check-provenance` and `--xproc` (also via `tests/test_bab_p31_provenance_replay.py`, `tests/test_bab_p29_xproc_determinism.py`) rebuild ~8 heavy Monte-Carlo artifacts twice each in fresh interpreters (~80 min worst case; actual full gate ~33 min). **Mitigation:** run the gate as a background/persistent process and poll the log across turns; do NOT wrap in one blocking call. If the runner cannot keep a background process alive, run the fast 95% first, then `--check-provenance` and `--xproc` once on a large uninterrupted budget. The provenance math is a legitimate determinism proof — do NOT delete, skip, or weaken it.
 - **#10 Frozen P27 `.md` trailing-newline trap — DOCUMENTED + restore path given** (`git checkout -- research_state/bab_p27/` after any full run).
 - **#11 Dead gate + missing toolchain — REMOVED (2026-11-24T20:44:33Z; toolchain re-verified ALIVE 2026-11-25T02:18:21Z).** Fixed by `CI=true bash scripts/bab_bootstrap.sh`; `numpy`/`pandas`/`scipy`/`pytest`/`pytest-cov`/`xdist`/`hypothesis`/`coverage`/`ccxt`/`ruff` all import. Baseline re-verified GREEN: `ruff check .` → All checks passed.
 - **#12 xproc `signal_null_battery` 600 s timeout under xdist load — REMOVED (2026-11-25T02:18:21Z).** Root cause of the old "7 failed / 3 failed" gates: the `signal_null_battery` build exceeds 600 s when the gate runs xproc + check-provenance concurrently on 4 xdist workers, so `_run_build_once` raised `TimeoutExpired`, xproc wrote a **7-record** ledger, and `test_provenance_ledger_covers_all_artifacts` + `test_check_provenance_exits_zero_and_is_read_only` failed. FIX: `scripts/bab_replay_full.py` per-artifact `timeout` raised 600→3600 s (a runtime guard, NOT a weakening of the determinism proof). Verified: `--xproc` → `{"xproc": true, "pass": true}` (8 records); `--check-provenance` → `{"check_provenance": true, "pass": true}`. Do NOT lower it back.
 - **#13 Coverage 99 %→100 % gap (11 defensive lines) — REMOVED (2026-11-25T02:18:21Z).** The full gate measured TOTAL 99 % (11 missed: `beta_estimators.py` 27,29,31,46,48,64,110,115,130 + `reconciliation.py` 55,58 — all defensive `raise ValueError`/non-finite branches). Closed by `TestValidationErrors` in `tests/test_bab_p35_beta_estimators.py` + a non-finite `_canonicalize` test in `tests/test_bab_reconciliation_p11_coverage.py` (37 targeted tests GREEN). A `nan == nan` assertion bug in that test was corrected to `math.isnan(...)`. The full-gate 100 % confirmation is the running gate's job (see INITIAL TASK MESSAGE).
 - **#14 Concurrent-session edits — DOCUMENTED (2026-11-25T02:18:21Z).** A second agent session was observed editing the same working tree (raised the timeout to 3600, added the coverage tests). Always `git status`/`git diff` before editing; never blindly revert another session's in-flight fix. Do NOT launch a second concurrent gate (that is the #9 contention trap that turned a 34-min gate into a 2-hour run).
-- **Stale HEAD pointer — REMOVED.** Always cite the current `git rev-parse HEAD` (a `chore(kilo): checkpoint agent session` commit that advances every session — `69b4266` at 2026-11-24T20:56:39Z); treat `3d08169` as an ancestor, never as HEAD.
+- **#15 Stale hard-coded ledger count → RED gate on a green tree — REMOVED (2026-11-25T04:55:08Z).** `tests/test_bab_p30_ledger_analyzer.py::TestSince::test_since_filters_runs` asserted `runs_total == 28`, but the committed 50-run ledger has **29** records with `run_id >= 43764777657` (the "gate appended a 50th entry" theory was a misdiagnosis; total is 50 and the `== 50` tests pass). FIX: the test now recomputes the expected count independently from `research_state/workflow_run_diagnostics.jsonl` (exact recomputation, not a loosening; `--since` semantics unchanged). Verified: 11/11 ledger tests pass, 215 targeted tests pass, quick preflight OK, ruff clean. Do NOT re-introduce a hard-coded count.
+- **Stale HEAD pointer — REMOVED.** Always cite the current `git rev-parse HEAD` (a `chore(kilo): checkpoint agent session` commit that advances every session); treat `3d08169` as an ancestor, never as HEAD.
 - **Idle-wait dead-end — REMOVED.** A session may report idle-wait ONLY after the full gate is GREEN **and** P39 WP0 is complete **and** P40 is either complete or explicitly maintainer-gated — and that report MUST include a fresh full-gate GREEN log, not prose.
 
 ---
@@ -148,7 +156,7 @@ BAB_GATE_LOG=/tmp/bab_gate_handoff.log BAB_GATE_MIN_COVERAGE=100 bash scripts/ba
 ```bash
 bash scripts/bab_quick.sh
 python3 -m ruff check .
-python3 -m pytest -q tests/test_bab_p39_*.py tests/test_bab_p38_determinism.py
+python3 -m pytest -q tests/test_bab_p30_ledger_analyzer.py tests/test_bab_p39_*.py tests/test_bab_p38_determinism.py
 python3 scripts/bab_p39_regime_conditional.py --check-regime-summary          # P39 WP1 (DONE)
 python3 scripts/bab_p39_cross_fixture.py --check-cross-fixture-summary        # P39 WP2 (DONE)
 python3 scripts/bab_p38_deflated_significance.py --check-deflated-summary     # P38 WP1 (DONE)
