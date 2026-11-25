@@ -2,38 +2,40 @@
 
 **This is the ONLY durable handoff. Do not create any other `*HANDOFF*.md`, `NEXT_SESSION*.md`, `AGENT_*.md`, `NEXT_*.md`, or parallel task doc. If you find one, fold anything still true into this file and delete it. Only `HANDOFF.md` is tracked at repo root; keep it that way.**
 
-- **Timestamp (UTC):** 2026-11-25T05:07:06Z (single durable handoff refreshed this session). **The P39 WP0 blocker is FIXED and COMMITTED** at `cff863e` — `tests/test_bab_p30_ledger_analyzer.py::TestSince::test_since_filters_runs` now recomputes the expected count independently from the ledger (exact recomputation, not a loosening). The full gate has **NOT** yet completed GREEN since the fix; that GREEN run is the binding next action. This handoff refresh does **not** close WP0.
-- **HEAD:** `4ab264046bb3817266e79e4522b0f9145412fae6` (`chore(kilo): checkpoint agent session`, only refreshed HANDOFF.md). The checkpoint hash advances every session — re-derive with `git rev-parse HEAD` at session start; never cite a stale hash. Campaign code is frozen at its campaign commits (P38 at `726d4bd`, P39 WP3 at ancestor `3d08169`).
-- **Working tree (verified 2026-11-25T05:07:06Z):** clean (`git status --porcelain` empty). The WP0 test fix is committed in `cff863e` (`tests/test_bab_p30_ledger_analyzer.py`), not an uncommitted change to preserve or reapply. No frozen `research_state/**` artifact is mutated. Do NOT commit unless the user explicitly asks.
-- **Gate status:** last completed full gate was RED only on the now-fixed P30 ledger-count test (exit 1, `TOTAL 100% >= 100%`, 6730 stmts / 0 miss; logs `/tmp/bab_gate_run4.log` and `/tmp/bab_gate_p39_new.log`). **A fresh full gate is ACTIVE at 2026-11-25T05:07:06Z** as persistent background runner pid `13240` (gate shell `13279`, pytest `13292`, four xdist workers), writing `/tmp/bab_gate_p40_w0.log` with `BAB_GATE_MIN_COVERAGE=100`; the log was at 35% with no `TOTAL` line. **Poll that log to GREEN; do NOT launch a second concurrent gate (the #9 xdist contention trap).** If those processes are gone and no `TOTAL` line exists, relaunch exactly one gate with the command below. Actual runtime ~33 min; budget a 60-min window.
+- **Timestamp (UTC):** 2026-11-25T05:52:48Z (single durable handoff refreshed this session). **The P39 WP0 blocker is FIXED and COMMITTED** at `cff863e` — `tests/test_bab_p30_ledger_analyzer.py::TestSince::test_since_filters_runs` now recomputes the expected count independently from the ledger (exact recomputation, not a loosening). The full gate has **NOT** yet completed GREEN since the fix; reconciling the active gate to a final GREEN is the binding next action. This handoff refresh does **not** close WP0.
+- **HEAD:** `60f00056a7ccbba6a007f99ed68f144acba05010` (`chore(kilo): checkpoint agent session`). The checkpoint hash advances every session — re-derive with `git rev-parse HEAD` at session start; never cite a stale hash. Campaign code is frozen at its campaign commits (P38 at `726d4bd`, P39 WP3 at ancestor `3d08169`).
+- **Working tree (verified 2026-11-25T05:52:48Z):** clean apart from this `HANDOFF.md` refresh (`git status --porcelain` otherwise empty). The WP0 test fix is committed in `cff863e` (`tests/test_bab_p30_ledger_analyzer.py`), not an uncommitted change to preserve or reapply. No frozen `research_state/**` artifact is mutated. Do NOT commit unless the user explicitly asks.
+- **Gate status:** the active full gate is in the **post-pytest phase**. Its log `/tmp/bab_gate_p40_w0.log` already records `TOTAL 6730 0 100%` and `7675 passed, 39 skipped in 1996.52s`, but the gate process is still running `scripts/bab_replay_full.py` and has not emitted the final coverage-floor/replay-GREEN lines. **Do NOT launch a second concurrent gate (the #9 xdist contention trap).** Reconcile the inherited run first; only relaunch exactly one gate if the process is dead and the final GREEN lines are absent. Actual runtime ~33 min plus post-pytest replay; budget a 60-min window.
 - **Repo:** `Crypto-Betting-Against-Beta` — a market-neutral **Betting-Against-Beta** factor strategy for crypto (long low-beta, short high-beta, beta-neutral by construction). The repo's entire value proposition is *honest, reproducible, artifact-gated evidence*. Synthetic fixtures are NOT real market data — never present them as evidence of real profitability.
 
 ---
 
-# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-25T05:07:06Z)
+# INITIAL TASK MESSAGE — NEXT AGENTIC WORK SESSION (2026-11-25T05:52:48Z)
 
-**MINIMUM ACCEPTABLE OUTCOME (non-negotiable): land P39 WP0 full-gate close-out — a GREEN `BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh` (TOTAL 100%, exit 0), TOTAL coverage recorded in `docs/COVERAGE_NOTES.md`, and the frozen P27 `.md` files restored. Nothing short of that is a completed session.**
+**MINIMUM ACCEPTABLE OUTCOME (non-negotiable): land P39 WP0 full-gate close-out — reconcile the inherited gate to a GREEN `BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh` (TOTAL 100%, exit 0), record TOTAL coverage in `docs/COVERAGE_NOTES.md`, and restore the frozen P27 `.md` files. Nothing short of that is a completed session.**
 
-**State you inherit (verified firsthand 2026-11-25T05:07:06Z):**
+**State you inherit (verified firsthand 2026-11-25T05:52:48Z):**
 - The WP0 blocker is **removed and committed at `cff863e`**. Root cause was NOT a gate-append artifact: the committed 50-run ledger (`research_state/workflow_run_diagnostics.jsonl`) genuinely has **29** records with `run_id >= 43764777657`; the test's hard-coded `28` was stale. Fix applied: `test_since_filters_runs` now recomputes the expected count independently from the ledger (exact recomputation, not a loosening).
+- The inherited full gate is **still active in post-pytest replay**, not dead and not GREEN-complete. `/tmp/bab_gate_p40_w0.log` already has `TOTAL 6730 0 100%` and `7675 passed, 39 skipped in 1996.52s`; `scripts/bab_replay_full.py` is still running and the final coverage-floor/replay lines are absent. Do not relaunch or start a second gate.
 - Inherited verification from 2026-11-25T04:55:08Z, now committed: `pytest tests/test_bab_p30_ledger_analyzer.py` → **11 passed**; targeted campaign set (`test_bab_p39_*`, `test_bab_p38_determinism.py`, `test_bab_p35_*`, `test_bab_reconciliation_p11_coverage.py`) → **215 passed**; `bash scripts/bab_quick.sh` → **quick preflight OK** (ruff clean, trio 104, smoke 195); `python3 -m ruff check .` → **All checks passed!**
 - Both structural WP0 blockers from prior sessions remain fixed and must NOT be re-touched: xproc per-artifact `timeout=3600` in `scripts/bab_replay_full.py`; the 8-record P29 provenance ledger (`--check-provenance` → `pass:true`).
 
 **FIRST ACTION (do this before anything else):**
 1. **Do not launch a second gate.** Reconcile the inherited run first:
    ```bash
-   ps -eo pid,ppid,stat,etime,cmd
+   ps -eo pid,ppid,stat,etime,cmd | grep -E 'bab_gate|pytest|bab_replay_full' | grep -v grep || true
    wc -l /tmp/bab_gate_p40_w0.log
+   tail -n 20 /tmp/bab_gate_p40_w0.log
    ```
-   If `bab_gate.sh` or its `pytest` process is still active, poll `/tmp/bab_gate_p40_w0.log` until the process exits and a `TOTAL` line appears. Only if the process is dead **and** no `TOTAL` line exists, launch exactly one fresh gate as a background/persistent process and poll it to GREEN:
+   If `bab_gate.sh` or `scripts/bab_replay_full.py` is still active, poll the log until the process exits and the final `[bab_gate] coverage floor met` / replay-GREEN lines appear. Only if the process is dead **and** those final GREEN lines are absent, launch exactly one fresh gate as a background/persistent process and poll it to GREEN:
    ```bash
    BAB_GATE_LOG=/tmp/bab_gate_p40_w0.log BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh
    ```
-   Do not run the gate in one blocking call and do not run another gate concurrently; that is the #9 xdist contention trap. Actual runtime is ~33 min (last completed run: 2009.64 s, 7674 passed / 39 skipped); budget a 60-minute uninterrupted window. A dead gate with no `TOTAL` line is a blocker — relaunch once and poll.
+   Do not run the gate in one blocking call and do not run another gate concurrently; that is the #9 xdist contention trap. Actual runtime is ~33 min plus post-pytest replay (the inherited pytest phase took 1996.52 s); budget a 60-minute uninterrupted window. A dead gate with no final GREEN lines is a blocker — relaunch once and poll.
 2. On GREEN (`TOTAL 100% >= 100%`, exit 0): record TOTAL coverage % + pass/skip counts with date/HEAD in `docs/COVERAGE_NOTES.md`.
 3. `git checkout -- research_state/bab_p27/` to undo the trailing-newline mutation the full run makes to the two frozen P27 `.md` files (`risk_controls.md`, `reconciliation_e2e.md`).
 4. Re-run `bash scripts/bab_quick.sh` + `python3 -m ruff check .` to confirm still GREEN; confirm `git status --porcelain` shows only the intended changes (`docs/COVERAGE_NOTES.md`, plus this handoff if the normal checkpoint has not yet persisted it). The P30 test fix is already committed at `cff863e`.
-5. Then Campaign P40 (charter below) — inescapable heavy work.
+5. Then Campaign P40 (charter below) — inescapable heavy work, starting with WP1 immediately.
 
 **Gate-exit handling:**
 - Exit 0 + `TOTAL 100% >= 100%` → WP0 DONE; proceed to step 2–5.
