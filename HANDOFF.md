@@ -1,5 +1,5 @@
 # DURABLE HANDOFF — Crypto-Betting-Against-Beta
-**Timestamp:** 2026-11-25T19:08:46Z
+**Timestamp:** 2026-11-25T19:16:05Z
 **Session:** Kilo General Agent Loop — Next Activation
 **Repository:** Crypto-Betting-Against-Beta (Betting Against Beta crypto quant research)
 
@@ -22,94 +22,79 @@ This is a systematic quantitative research project implementing the **Betting Ag
 
 ---
 
-## IMMEDIATE BOTTLENECKS REMOVING PROGRESS
+## IMMEDIATE BOTTLENOCKS REMOVING PROGRESS
 
-1. **Regime Coverage Gap**: `bear_high_vol` has only 9 periods per seed (need ≥30). The synthetic fixture recipe (P35 wide-universe) does not generate enough bear-high-vol regimes. Fix: adjust synthetic data generation or relax `min_periods_per_regime`.
+**Bottleneck 1 (PRIMARY — must fix first): Regime Coverage Gap**
+`bear_high_vol` has only 9 periods per seed across all 8 seeds (need ≥30). `bear_mid_vol` has 29 periods per seed (need ≥30). Both regimes are completely unevaluable (`n_ok_cells = 0`). The synthetic fixture recipe (P35 wide-universe) does not generate enough bear-high-vol periods.
 
-2. **High-Vol Failure Mode**: `bull_high_vol` consistently produces negative Sharpe (−1.86 to −0.41 across seeds). The BAB signal degrades when BTC trend is up but volatility is high. Root cause: beta estimation noise + idiosyncratic vol swamps signal.
+**Fix (mandatory step 1):** Modify `scripts/bab_p39_regime_conditional.py` to produce ≥30 periods in `bear_high_vol` per seed. Options: extend the BTC price series in `tests/fixtures/wide_bab_universe.csv`, adjust `REGIME_LOOKBACK` / regime labeling boundaries, or reduce `MIN_PERIODS_PER_REGIME` with documented justification. Do not create new synthetic fixtures without a documented reason tied to this regime gap.
 
-3. **Cross-Fixture Non-Replication**: Second universe (idio_vol=0.006, beta range 0.2–2.4, 32 assets) yields mean DSR=0.396. The P38 pooled verdict is fragile to universe parameterization.
+**Bottleneck 2 (secondary): High-Vol Failure Mode**
+`bull_high_vol` consistently produces negative Sharpe (−1.86 to −0.41 across seeds; mean DSR = 0.412, only 3/8 survive). Beta estimation noise + idiosyncratic vol swamps signal in high-vol regimes.
 
-4. **Rank Weighting Dead End**: P36 proves rank weighting is strictly worse on synthetic data. Do not pursue rank-weighting as a fix.
+**Bottleneck 3 (blocked, do not pursue): Cross-Fixture Non-Replication**
+Second universe yields mean DSR = 0.396. P38 pooled verdict is fragile to universe parameterization. Defer until Bottleneck 1 is resolved.
+
+**Bottleneck 4 (dead end, closed): Rank Weighting Dead End**
+P36 proves rank weighting is strictly worse. Do not pursue rank-weighting as a fix.
 
 ---
 
-## NEXT FOCUS CAMPAIGN — MANDATORY WORK
+## NEXT FOCUS CAMPAIGN — MANDATORY, SINGLE TASK
 
-The next agent **must** execute one of the following campaigns (pick exactly one, complete fully, produce artifact). No "exploration" — ship a JSON + MD artifact to `research_state/`.
+The next agent **must** execute the following campaign as the initial task. No "exploration," no picking among options. Complete fully and produce a JSON + MD artifact in `research_state/`. Update this HANDOFF.md with the outcome before exiting.
 
-### OPTION A: Regime Fix + Re-Run P39 WP1 (Highest Priority)
-**Goal:** Fix the `bear_high_vol` insufficient-periods problem and re-evaluate regime-conditional deflation.
+### CAMPAIGN A (MANDATORY): Regime Fix + Re-Run P39 WP1
 
-**Steps:**
-1. Modify `scripts/bab_p39_regime_conditional.py` or the synthetic fixture generator to produce ≥30 periods in `bear_high_vol` per seed (e.g., extend BTC price series, adjust regime labeling, or increase `synthetic_n_days`).
-2. Re-run the full P39 WP1 campaign: `python scripts/bab_p39_regime_conditional.py`.
-3. **Success criterion**: All 6 regimes have `n_ok_cells == 8` and `n_survive ≥ 6` (75% survival) with `all_survive` verdict, OR honest negative verdict with documented root cause per regime.
-4. Write artifact: `research_state/bab_p39/regime_summary_v2.json` + `.md`.
+**Goal:** Fix the `bear_high_vol` insufficient-periods bottleneck and re-evaluate regime-conditional deflation on the BAB strategy for crypto.
 
-### OPTION B: P37 Capacity/Turnover/Cost Surface Deep-Dive
-**Goal:** Quantify exactly where the strategy breaks under realistic costs and capacity constraints.
+**Steps (execute in order, do not skip):**
 
-**Steps:**
-1. Run `scripts/bab_p37_cost_surface.py` (cost surface across participation rates).
-2. Run `scripts/bab_p37_capacity.py` (break-even via bisection on P22 impact surface).
-3. Run `scripts/bab_p37_turnover.py` (turnover decomposition).
-4. Synthesize: At what participation rate / ADV does the default config (β_window=90, equal-weight) cross zero Sharpe? Is the break-even capacity > $1M, $10M, $100M?
-5. Write artifact: `research_state/bab_p37/capacity_synthesis.json` + `.md` with a single table: config → break-even ADV → max deployable AUM.
+1. **Remove the regime coverage bottleneck.** Inspect `scripts/bab_p39_regime_conditional.py` lines 74-76 (`REGIME_LOOKBACK = 20`, `MIN_PERIODS_PER_REGIME = 30`) and `_regime_labels()` (lines 221-275). Modify the script so that `bear_high_vol` produces ≥30 periods per seed across all 8 seeds. Verify by running the script and confirming `n_ok_cells == 8` for `bear_high_vol` in the output artifact.
 
-### OPTION C: P24 Licensed Adapter — Real Data Integration
-**Goal:** Replace synthetic fixture with a maintainer-supplied licensed price series and run the full P38/P39 pipeline on real data.
+2. **Re-run the full P39 WP1 campaign:** `python scripts/bab_p39_regime_conditional.py`
 
-**Steps:**
-1. Use `scripts/bab_licensed_adapter.py` to dry-run the adapter (see `research_state/bab_p24/adapter_dryrun.json`).
-2. Obtain/configure a licensed CSV (maintainer action required — document the exact schema expected).
-3. Run `scripts/bab_p38_deflated_significance.py` with `data_source` pointing to real prices.
-4. Run `scripts/bab_p39_regime_conditional.py` on real data.
-5. **Success criterion**: Real-data verdict (SURVIVES / DOES_NOT_SURVIVE) with full neutrality audit.
-6. Write artifact: `research_state/bab_p24/real_data_verdict.json` + `.md`.
+3. **Success criterion:** All 6 regimes have `n_ok_cells == 8` and `n_survive ≥ 6` (75% survival) with `all_survive` verdict, **OR** an honest negative verdict with a documented root cause per regime. The verdict may be negative — report it honestly, do not overclaim.
 
-### OPTION D: P35 Signal Stability / Estimator Bakeoff
-**Goal:** Test alternative beta estimators (EWMA, robust, shrinkage) to fix high-vol degradation.
+4. **Write artifact:** `research_state/bab_p39/regime_summary_v2.json` + `.md` (byte-stable: deterministic seeds, sorted keys, fixed decimals).
 
-**Steps:**
-1. Run `scripts/bab_p35_estimator_bakeoff.py` (already has artifact: `research_state/bab_p35/estimator_bakeoff_summary.json`).
-2. Run `scripts/bab_p35_signal_stability.py` (artifact: `research_state/bab_p35/signal_stability_summary.json`).
-3. Identify which estimator (if any) improves `bull_high_vol` Sharpe from negative to positive while preserving `bear_low_vol` performance.
-4. Integrate winning estimator into `strategies/betting_against_beta/beta_estimators.py` and re-run P39 WP1.
-5. Write artifact: `research_state/bab_p35/estimator_integration.json` + `.md`.
+5. **Verify tests pass:** `python -m pytest -x -q` before claiming completion.
+
+6. **Commit:** `git commit` the artifact with message: `chore(research): P39 regime fix + re-run WP1 — <verdict>`
+
+7. **Update this HANDOFF.md** with the outcome (verdict, root cause, next steps) before exiting.
+
+**Why this campaign is mandatory (repo-name prioritization):** The repository is `Crypto-Betting-Against-Beta` — its core deliverable is the BAB strategy for crypto. P38 showed the strategy survives pooled deflation, but P39 WP1 exposed that it fails in high-volatility regimes and cannot be evaluated in bear-high-vol due to insufficient data. Fixing the regime coverage gap is the highest-leverage, most repo-aligned work because it unblocks the entire regime-conditional validity assessment. Without it, no campaign can credibly claim the strategy is (or isn't) viable for crypto.
 
 ---
 
 ## EXECUTION CONSTRAINTS
 
-- **No new synthetic fixtures** without a documented reason tied to a specific regime gap.
-- **No "try X and see" loops** — each campaign above has a binary success criterion.
+- **No new synthetic fixtures** without a documented reason tied to the `bear_high_vol` regime gap.
+- **No "try X and see" loops** — the campaign above has a binary success criterion.
 - **Artifacts must be byte-stable**: deterministic seeds, sorted keys, fixed decimals (see existing `research_state/bab_p*/*.json`).
 - **Tests must pass**: `python -m pytest -x -q` before claiming completion.
-- **Git commit** the artifact with message: `chore(research): P## <campaign> — <verdict>`.
+- **Git commit** the artifact with message: `chore(research): P39 regime fix + re-run WP1 — <verdict>`.
+- **Update this HANDOFF.md** with the outcome before exiting.
 
 ---
 
 ## CONTEXT FOR NEXT AGENT
 
 - **Repository root**: `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
-- **Key scripts**: `scripts/bab_p39_regime_conditional.py`, `scripts/bab_p37_*.py`, `scripts/bab_p35_*.py`, `scripts/bab_licensed_adapter.py`
-- **Key configs**: `strategies/betting_against_beta/config.py` (BABConfig), `strategies/betting_against_beta/strategy.py` (BABStrategy)
+- **Key script**: `scripts/bab_p39_regime_conditional.py` (entry point for Campaign A)
+- **Key config**: `strategies/betting_against_beta/config.py` (BABConfig), `strategies/betting_against_beta/strategy.py` (BABStrategy)
 - **Fixture**: `tests/fixtures/wide_bab_universe.csv` (BTC + 40 synthetic assets, deterministic seed 20261120)
 - **Run command**: `python scripts/<script>.py` (all scripts are standalone entry points)
 - **Test command**: `python -m pytest -x -q` (full suite ~3 min; use `-k` for subsets)
+- **Current artifact**: `research_state/bab_p39/regime_summary.json` (shows `bear_high_vol` = 8/8 insufficient, `n_ok_cells = 0`)
 
 ---
 
-## IF ALL CAMPAIGNS FAIL
+## IF CAMPAIGN A FARES NEGATIVELY
 
-If Options A–D all produce honest negative verdicts (documented with root causes), the next session must:
-1. Write a **terminal summary** artifact: `research_state/TERMINAL_SUMMARY.json` with:
-   - All campaign verdicts (P20–P39)
-   - Root cause taxonomy (regime coverage, estimator noise, universe fragility, cost capacity)
-   - Recommendation: **STOP** (strategy not viable on synthetic crypto) or **PIVOT** (requires real data + maintainer licensed feed)
-2. No further synthetic research — the evidence is sufficient.
+If Campaign A produces an honest negative verdict (documented with root cause per regime), proceed to **Campaign B** (P37 Capacity/Turnover/Cost Surface Deep-Dive) as the next mandatory task, then **Campaign D** (P35 Signal Stability / Estimator Bakeoff) to address the high-vol failure mode. Only if A, B, and D all produce honest negative verdicts should the next session write a terminal summary artifact (`research_state/TERMINAL_SUMMARY.json`) and stop further synthetic research.
 
 ---
 
-**This handoff is durable. The next agent reads this file, picks ONE option, executes it completely, and updates this file with the outcome before exiting.**
+**This handoff is durable. The next agent reads this file, executes Campaign A as the initial task, completes it fully, and updates this file with the outcome before exiting.**
