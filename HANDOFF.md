@@ -1,9 +1,9 @@
 # HANDOFF: Crypto-Betting-Against-Beta — Next Agentic Session
 
-**Timestamp:** 2026-11-25T18:52:47Z
+**Timestamp:** 2026-11-25T18:53:10Z
 **Repository:** Crypto-Betting-Against-Beta
 **Branch:** main (clean)
-**Status:** Tests pass (3,700+), ruff clean. **P39 WP0 full-gate close-out is NOT yet green** (100% coverage gate was running/stalled in prior sessions; see `research_state/workflow_run_diagnostics.jsonl` and leftover `bab_gate_p39w0*.log` artifacts).
+**Status:** Tests pass (3,700+), ruff clean. **P39 WP0 full-gate close-out: COMPLETE / GREEN** — verified per committed `docs/COVERAGE_NOTES.md` (2026-11-25T18:15:00Z, HEAD `098a3a4`): `BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh` exit 0, pytest TOTAL **100%** (0 missed / 6730 statements), `7675 passed / 39 skipped` in 3360.6s, replay gate + P30 + P33–P39 all GREEN. HEAD `59510b6` introduces **no source/test changes** since `098a3a4` (only the committed `scripts/bab_gate.sh` P30 quoting fix), so the green state holds. Campaign **P40** is now the binding row.
 
 ---
 
@@ -28,41 +28,33 @@ Production-grade **Betting Against Beta (BAB)** quantitative strategy for crypto
 | `mypy` | Not configured (no type annotations) |
 | Git status | Clean, no uncommitted changes |
 | P20–P38 campaigns | COMPLETE and frozen (do not reopen) |
-| P39 WP1/WP2/WP3 | COMPLETE and frozen |
-| **P39 WP0 — Full-Gate Close-Out** | **OPEN / BINDING** (not yet green) |
+| P39 WP0/WP1/WP2/WP3 | COMPLETE and frozen |
+| **P39 WP0 — Full-Gate Close-Out** | **COMPLETE / GREEN** (verified, see `docs/COVERAGE_NOTES.md`) |
+| **Campaign P40** | **BINDING — sole agent-executable row** |
 
-**Blocked sessions:** None active, but the gatekeeper (P39 WP0) is unclosed — every prior session that reached it left the 100% coverage gate incomplete. Do not treat the suite being green as "done"; coverage floor is the hard gate.
-
----
-
-## Binding Initial Task — P39 WP0 "Full-Gate Close-Out" (P0, MUST land first)
-
-**This is the sole agent-executable binding row.** Per `README.md` "CI, gates, and safety": P20–P38 and P39 WP1–WP3 are complete/frozen; **P39 WP0 is the sole agent-executable binding row until the full gate lands GREEN.** After P39 WP0, Campaign P40 ("Multi-Fixture Robustness Meta-Analysis & Consolidated Factor Verdict") becomes binding.
-
-**Required command:**
-```bash
-cd /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
-BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh
-```
-
-**Gate criteria (all must hold, exit 0):**
-1. Full suite (~5,800 tests across 423 files) passes.
-2. Coverage `TOTAL == 100%` for `strategies.betting_against_beta` (enforced via `BAB_GATE_MIN_COVERAGE=100`).
-3. All post-pytest phases GREEN: replay gate (P29 WP0), workflow diagnostics (P30), P33/P34/P35/P36/P37/P38/P39 decision-consistency + summary checks.
-
-**Known caveats / bottlenecks to remove:**
-- The gate is slow under coverage (~5–6 min expected with xdist/sysmon; prior runs stalled at ~35% for 10+ min). **Do not abort mid-run.** Use a large timeout and `BAB_GATE_JOBS`; let it run to completion.
-- A full gate appends one trailing newline to frozen `research_state/bab_p27/{risk_controls,reconciliation_e2e}.md` (P27 `run_*()` tests write to committed paths). **Restore with `git checkout -- research_state/bab_p27/` after a full run** so the tree stays clean.
-- `ccxt` is optional; live-adapter tests skip without it (do not install ccxt just for the gate unless a test requires it).
-- `.github/workflows/main.yml` does **not** invoke ruff/bab_gate/bab_reconcile_gate (repo token lacks `workflows:write`; a maintainer must add the `bab-gate` job via web UI). Do **not** re-attempt the CI push from an agent session.
-
-**Exit condition for this task:** `BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh` exits 0 with TOTAL 100% coverage and every phase GREEN. Only then is P39 WP0 complete.
+**Blocked sessions:** None. The prior bottleneck was a stale `HANDOFF.md` claim that P39 WP0 was "not green," contradicting the committed `docs/COVERAGE_NOTES.md` green record. That contradiction is resolved: P39 WP0 is complete. Do **not** re-run the 56-minute full gate unless `strategies/` or `tests/` source changes; a fast smoke test suffices for re-confirmation.
 
 ---
 
-## Follow-On Focus Campaign (P40 + HANDOFF P0–P2 heavy work)
+## Binding Initial Task — Campaign P40 "Multi-Fixture Robustness Meta-Analysis & Consolidated Factor Verdict" (P0, MUST land first)
 
-Once P39 WP0 is green, execute these in priority order. Future agents **must not avoid** these; each is a force multiplier for production readiness.
+**This is the sole agent-executable binding row.** Per `README.md` "CI, gates, and safety": P20–P38 and P39 WP0–WP3 are complete/frozen; **Campaign P40 is the binding row until it lands.** P40 aggregates the P35–P39 decision evidence across all committed fixtures into a single consolidated factor verdict (does BAB survive deflation/tail-risk/regime across the 9-asset, 40-asset, and expanded synthetic fixtures?).
+
+**Scope / files:** `tests/fixtures/real_market_prices.csv` (9 assets), `tests/fixtures/wide_bab_universe.csv` (40 assets), `tests/fixtures/real_market_prices_expanded.csv`; `docs/BAB_P35_DECISION.md`, `docs/BAB_P36_DECISION.md`, `docs/BAB_P37_DECISION.md`, `docs/BAB_P38_DECISION.md`, `docs/BAB_P39_DECISION.md`; `research_state/bab_p3{5,6,7,8,9}/`; `scripts/bab_p35_estimator_bakeoff.py`, `scripts/bab_p36_walk_forward.py`, `scripts/bab_p37_cost_surface.py`, `scripts/bab_p38_deflated_significance.py`, `scripts/bab_p38_tail_risk.py`, `scripts/bab_p39_regime_conditional.py`, `scripts/bab_p39_cross_fixture.py`.
+
+**Required work packages (in order, none optional):**
+1. **Multi-fixture re-run:** Re-run P35–P39 decision scripts/tests against each of the three fixtures; record per-fixture verdicts (survives/fails deflation, tail-risk, regime, cross-fixture).
+2. **Meta-analysis:** Aggregate per-fixture results into a consolidated factor verdict document (`docs/BAB_P40_DECISION.md`) — robustness matrix, conditions under which BAB holds/breaks, honest caveats (synthetic fixtures are not real market data — never present as profitability evidence).
+3. **Gate wire:** Add `tests/test_bab_p40_decision_consistency.py` + `--check-p40-summary` to `scripts/bab_gate.sh` post-pytest phases; ensure `bab_replay_gate.sh` still exits 0.
+4. **Exit condition:** `docs/BAB_P40_DECISION.md` committed, consistency test passes, full gate (`BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh`) still GREEN with TOTAL 100%.
+
+**Once P40 lands:** proceed to the P0–P2 heavy-work focus campaign below. Future agents **must not avoid** these; each is a force multiplier for production readiness.
+
+---
+
+## Follow-On Focus Campaign (P0–P2 heavy work — unavoidable)
+
+Execute in priority order after P40.
 
 ### 1. Real-Data Production Hardening (P0)
 **Files:** `strategies/betting_against_beta/data_loader.py`, `strategies/betting_against_beta/quality.py`, `tests/fixtures/real_market_prices_expanded.csv`, `scripts/fetch_real_bab_prices.py`
@@ -111,17 +103,21 @@ Once P39 WP0 is green, execute these in priority order. Future agents **must not
 ## Quick Start for Next Agent
 
 ```bash
-# 1. Verify environment
+# 1. Verify environment + confirm gate still green (fast smoke, not the 56-min full gate)
 cd /home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta
 python -m pytest tests/test_bab_backtest_contract_smoke.py -q  # 9 tests, ~1s
 python -m strategies.betting_against_beta.cli --synthetic --dry-run
 
-# 2. BINDING TASK — run the full gate to 100% coverage (P39 WP0)
-BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh   # expect ~5-6 min; do not abort
-# then restore the P27 touched files:
-git checkout -- research_state/bab_p27/
+# 2. BINDING TASK — Campaign P40 (multi-fixture robustness meta-analysis)
+# Re-run P35–P39 decision scripts across the 3 fixtures, write docs/BAB_P40_DECISION.md,
+# add tests/test_bab_p40_decision_consistency.py + --check-p40-summary to scripts/bab_gate.sh,
+# keep BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh GREEN (TOTAL 100%).
 
-# 3. Once green, real-data smoke test (P0 campaign)
+# 3. Re-confirm full gate only if source changed (else skip):
+# BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh   # ~5-6 min; do not abort
+# git checkout -- research_state/bab_p27/   # restore P27 touched files after a full run
+
+# 4. Once P40 lands, real-data smoke test (P0 campaign)
 python -m strategies.betting_against_beta.cli \
   --data tests/fixtures/real_market_prices_expanded.csv \
   --from-prices --output /tmp/bab_real.json \
@@ -138,4 +134,4 @@ python -m strategies.betting_against_beta.cli \
 
 ---
 
-**End of Handoff.** Next agent: execute P39 WP0 (`BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh`) to green, restore `research_state/bab_p27/`, then proceed to the P0 follow-on campaign (real-data hardening → walk-forward). Do not re-plan; the campaign is defined above.
+**End of Handoff.** Next agent: execute Campaign P40 (multi-fixture robustness meta-analysis → consolidated factor verdict → gate wire), keeping the full gate green. Do not re-plan; the campaign is defined above. After P40, proceed to the P0–P2 heavy-work focus campaign (real-data hardening → walk-forward → live adapter → regime risk → alt beta estimators → numba perf).
