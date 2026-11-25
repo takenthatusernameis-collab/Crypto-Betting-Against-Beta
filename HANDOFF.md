@@ -1,6 +1,6 @@
 # HANDOFF: Crypto-Betting-Against-Beta — Next Agentic Session
 
-**Timestamp:** 2026-11-25T18:52:24Z
+**Timestamp:** 2026-11-25T18:52:47Z
 **Repository:** Crypto-Betting-Against-Beta
 **Branch:** main (clean)
 **Status:** Tests pass (3,700+), ruff clean. **P39 WP0 full-gate close-out is NOT yet green** (100% coverage gate was running/stalled in prior sessions; see `research_state/workflow_run_diagnostics.jsonl` and leftover `bab_gate_p39w0*.log` artifacts).
