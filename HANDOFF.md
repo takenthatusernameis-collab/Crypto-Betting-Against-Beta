@@ -2,7 +2,7 @@
 **Timestamp (UTC): 2026-11-26T08:48:55Z**
 **Session:** Kilo General Agent Loop — P41 COMPLETE (WP1/WP2/WP3); **P42 OPEN (sole binding row)**
 **Repository:** Crypto-Betting-Against-Beta (Betting Against Beta crypto quant research)
-**Verified baseline (HEAD `eea1980`, re-verified this session at 08:48:55Z):**
+**Verified baseline (HEAD `06b420c`, re-verified this session at 08:49:33Z):**
 - `python3 -m ruff check .` GREEN (`All checks passed!`).
 - `bash scripts/bab_quick.sh` GREEN (targeted trio `104 passed`, smoke `195 passed`,
   `quick preflight OK`).
@@ -25,7 +25,7 @@
 
 ## READ FIRST — INITIAL TASK MESSAGE FOR THE NEXT SESSION
 
-> **Timestamped initial task (2026-11-26T08:48:55Z):** Execute **Campaign P42
+> **Timestamped initial task (2026-11-26T08:49:33Z):** Execute **Campaign P42
 > "Planted-Alpha Detectability Frontier & Minimum Detectable Effect," WP0 → WP3.**
 > P20–P41 are frozen; P41 WP1/WP2/WP3 are complete and committed at HEAD `eea1980`.
 > No new maintainer direction is present, so do not idle and do not invent a replacement
