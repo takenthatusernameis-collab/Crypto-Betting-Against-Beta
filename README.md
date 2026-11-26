@@ -2,6 +2,13 @@
 
 Controller infrastructure plus an implementation of the **Betting Against Beta (BAB)** strategy for crypto.
 
+## Forward MEXC paper simulation
+
+The independent MEXC USDT-perpetual paper account is documented in [docs/BAB_MEXC_PAPER_SIMULATION.md](docs/BAB_MEXC_PAPER_SIMULATION.md). Its [five-minute-intended GitHub Actions workflow](.github/workflows/bab-paper-cycle.yml) uses the repository's 90-day BTC beta signal, equal-notional primary path, and inverse-volatility shadow equity path. It is paper-only and does not submit exchange orders.
+
+The complete tracked-file listing is in [docs/REPOSITORY_FILE_INVENTORY.md](docs/REPOSITORY_FILE_INVENTORY.md).
+
+
 ## Betting Against Beta (Crypto)
 
 A market-neutral strategy that goes long low-beta crypto assets and short high-beta assets, measured against a market benchmark (default BTC), following the Frazzini-Pedersen BAB approach.
