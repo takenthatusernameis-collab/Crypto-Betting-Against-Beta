@@ -1,10 +1,11 @@
 # DURABLE HANDOFF — Crypto-Betting-Against-Beta
-**Timestamp (UTC): 2026-11-26T08:44:59Z**
+**Timestamp (UTC): 2026-11-26T08:48:55Z**
 **Session:** Kilo General Agent Loop — P41 COMPLETE (WP1/WP2/WP3); **P42 OPEN (sole binding row)**
 **Repository:** Crypto-Betting-Against-Beta (Betting Against Beta crypto quant research)
-**Verified baseline (HEAD `f7c0cc0`, re-verified this session at 08:44:59Z):**
+**Verified baseline (HEAD `eea1980`, re-verified this session at 08:48:55Z):**
 - `python3 -m ruff check .` GREEN (`All checks passed!`).
-- `bash scripts/bab_quick.sh` GREEN (smoke stage `195 passed`, `quick preflight OK`).
+- `bash scripts/bab_quick.sh` GREEN (targeted trio `104 passed`, smoke `195 passed`,
+  `quick preflight OK`).
 - `python3 scripts/bab_replay_decisions.py --subset p41_decision.md` GREEN (`OK p41_decision.md -> BAB_P41_DECISION.md`).
 - `python3 -m pytest -q tests/test_bab_p41_decision_consistency.py` GREEN (13 passed).
 - P32/P33 doc ledgers GREEN: `--check-doc-summary` returns `OK` for both
@@ -13,6 +14,8 @@
 - P42 charter `docs/BAB_P42_KICKOFF.md` is classified in the doc registry
   (`scripts/bab_doc_consistency_summary.py`, `tests/test_bab_p33_doc_registry_completeness.py`)
   and P42 is the allow-listed successor in `tests/test_bab_p34_doc_pointer_guard.py`.
+- P42 artifacts (`scripts/bab_p42_power.py`, `research_state/bab_p42/`,
+  `generate_p42_decision.py`, `tests/test_bab_p42_*`) are **absent** — P42 is genuinely open.
 - **Full gate still owed this campaign:** `BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh`
   must be run to completion (~39 min, 4 cores) before P42 is declared done. It is a
   long/background job — never under a 120 s foreground timeout.
@@ -20,13 +23,15 @@
 
 ---
 
-## READ FIRST — INITIAL TASK FOR THE NEXT SESSION
+## READ FIRST — INITIAL TASK MESSAGE FOR THE NEXT SESSION
 
-Execute **Campaign P42 "Planted-Alpha Detectability Frontier & Minimum Detectable
-Effect," WP0 → WP3.** P20–P41 are frozen; P41 WP1/WP2/WP3 are complete and committed.
-No new maintainer direction is present, so do not idle and do not invent a replacement
-campaign: P42 is a concrete, multi-file, verifiable, heavy workload. Real-data ingestion,
-CI workflow changes, and live deployment remain maintainer-gated and out of scope.
+> **Timestamped initial task (2026-11-26T08:48:55Z):** Execute **Campaign P42
+> "Planted-Alpha Detectability Frontier & Minimum Detectable Effect," WP0 → WP3.**
+> P20–P41 are frozen; P41 WP1/WP2/WP3 are complete and committed at HEAD `eea1980`.
+> No new maintainer direction is present, so do not idle and do not invent a replacement
+> campaign: P42 is a concrete, multi-file, verifiable, heavy workload (810-cell factorial
+> grid + frontier meta-analysis + decision doc + gate wiring). Real-data ingestion, CI
+> workflow changes, and live deployment remain maintainer-gated and out of scope.
 
 The campaign charter is [`docs/BAB_P42_KICKOFF.md`](docs/BAB_P42_KICKOFF.md); read it
 end-to-end before editing. It declares every constant (grid, seeds, planted-alpha
@@ -37,7 +42,7 @@ P20–P41 to chase a result, and do not flip the shipped default (`weighting="eq
 **BINDING ROW = Campaign P42**
 
 ### Step 0 — confirm the baseline and clear the doc ledgers
-The P32/P33 ledgers were regenerated this session; confirm they are still fresh, and
+The P32/P33 ledgers were regenerated in a prior session; confirm they are still fresh, and
 regenerate if not (never hand-edit JSON):
 
 ```bash
@@ -138,7 +143,7 @@ start maintainer-gated work.
 | P41 WP1 | COMPLETE | `estimator_bakeoff.json` + `.md`; byte-check PASS |
 | P41 WP2 | COMPLETE | `stress_summary.json` + `.md`; 160 cells, 79 survive, 0/5 DGPs fully replicate, neutrality holds |
 | P41 WP3 | COMPLETE | `generate_p41_decision.py`, `docs/BAB_P41_DECISION.md`, `tests/test_bab_p41_decision_consistency.py`, replay/gate registration all committed and GREEN |
-| P42 WP0 | COMPLETE | `docs/BAB_P42_KICKOFF.md` (this session) |
+| P42 WP0 | COMPLETE | `docs/BAB_P42_KICKOFF.md` |
 | P42 WP1/WP2/WP3 | **OPEN — binding** | Power grid, frontier meta-analysis, decision doc + gate wire |
 
 **Scientific finding (P41):** BAB survives pooled deflation on the primary Gaussian
@@ -155,9 +160,10 @@ negative results can be attributed to power vs. genuine absence.
 | Bottleneck | Status / next action |
 |---|---|
 | Stale handoff (declared P41 WP3 open, artifacts "absent") | **REMOVED** — P41 WP3 is complete; handoff rewritten to P42 |
+| Stale HEAD hash in handoff (`f7c0cc0` vs actual `eea1980`) | **REMOVED** — handoff re-verified at HEAD `eea1980` this session |
 | Full gate RED on 5 doc-pointer/registry guards | **REMOVED** — README/COVERAGE_NOTES repointed to P42; P34 successor allow-list extended to P40/P41/P42; P42 charter allow-listed; P33 ledger regenerated |
 | P34-complete marker absent from handoff | **REMOVED** — `CAMPAIGN P34 — COMPLETE` present below |
-| P32/P33 committed ledgers stale | **RESOLVED** — regenerated from registry this session; never hand-edit |
+| P32/P33 committed ledgers stale | **RESOLVED** — regenerated from registry; never hand-edit |
 | Full gate exceeds one short tool window (~39 min) | **CONTAINED** — quick inner loop; full gate runs in background/long budget |
 | Expensive P42 grid recompute | **CONTAINED** — once in final full replay, never in quick loop |
 | Rank weighting | **CLOSED** — P36 proved worse; never reopen |
