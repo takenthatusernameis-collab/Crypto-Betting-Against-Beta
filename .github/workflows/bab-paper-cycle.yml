@@ -28,9 +28,9 @@ jobs:
     env:
       MARKET_DATA_DIR: ../market-data
       PAPER_STATE_DIR: ../state
-      # Resume universe bootstrap in bounded chunks; do not block snapshots
-      # or daily decisions on one oversized invocation.
-      BOOTSTRAP_BATCH_SIZE: "150"
+      # BAB uses its complete USDT-settled universe in one daily ranking.
+      # The runner refreshes only the rolling 90-day beta window, not lifetime history.
+      BOOTSTRAP_BATCH_SIZE: "0"
       PYTHONUNBUFFERED: "1"
       PAPER_STATE_WRITE_ENABLED: "true"
       GITHUB_REPOSITORY: ${{ github.repository }}
