@@ -54,6 +54,10 @@ markdown = (
     .replace("High-Low", "BAB")
     .replace("high-low-paper-cycle.yml", "bab-paper-cycle.yml")
     .replace("ATH/ATL", "BAB low-beta/high-beta")
+    .replace(
+        "The daily-candle watermark is not advanced by this report. Only the paper workflow can consume a completed candle after full-history and execution gates pass. A blocked or incomplete run remains visible.",
+        "The daily decision watermark is maintained by the persistent paper state. A new ranking is performed only after the next completed UTC daily candle and a passing rolling-window and execution-data gate."
+    )
 )
 
 
