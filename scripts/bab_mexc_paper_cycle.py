@@ -1,14 +1,11 @@
 #!/usr/bin/env python3
-"""Run the BAB signal through the proven MEXC public-data paper engine.
-
-The engine is checked out beside this repository at ../engine. Only the signal
-ranking is replaced: the engine retains its MEXC data capture, execution-cost,
-funding, immutable state, reconciliation, snapshot and risk machinery.
-"""
+"""Run the BAB signal through the proven MEXC public-data paper engine."""
 from __future__ import annotations
 
 import importlib.util
+import json
 import math
+import os
 import sys
 import time
 from decimal import Decimal
@@ -20,13 +17,12 @@ ENGINE_ROOT = ROOT.parent / "engine"
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ENGINE_ROOT / "src"))
 
-from high_vs_low.mexc_paper import Candidate, MEXCRankings
 from high_vs_low.github_state import GitHubStateError, GitHubStatePublisher
+from high_vs_low.mexc_paper import Candidate, MEXCRankings
 from strategies.betting_against_beta.beta import calculate_beta
 
 BETA_WINDOW = 90
 MIN_BETA_OBSERVATIONS = 60
-DAY_MS = 86_400_000
 ACCOUNT_ID = "mexc-usdt-forward-bab-100usdt-v1"
 STRATEGY_ID = "crypto-bab-low-beta-long-high-beta-short-v1"
 
@@ -62,13 +58,7 @@ def rank_bab_mexc_universe(
     as_of_timestamp_ms: int,
     **_: Any,
 ) -> MEXCRankings:
-    """Rank all eligible USDT perps by 90d OLS beta to BTC; lowest long, highest short.
-
-    The completed daily bar is the as-of boundary. A candidate must have that
-    exact bar, at least 60 aligned daily returns, a valid ticker and USDT
-    settlement eligibility. Only the single best long and single worst short
-    are sent to the execution engine.
-    """
+    """Rank eligible USDT perps by 90d OLS beta to BTC: low beta long, high beta short."""
     del nav
     normalized = {int(row["instrument_id"]): row for row in instruments}
     benchmark_id = None
@@ -81,8 +71,8 @@ def rank_bab_mexc_universe(
     if benchmark_id is None:
         raise RuntimeError("BAB ranking blocked: no eligible BTC-USDT benchmark contract")
 
-    benchmark_returns = _daily_returns(histories.get(benchmark_id, []), as_of_timestamp_ms)
     benchmark_rows = histories.get(benchmark_id, [])
+    benchmark_returns = _daily_returns(benchmark_rows, as_of_timestamp_ms)
     benchmark_closes = _close_map(benchmark_rows, as_of_timestamp_ms)
     if not benchmark_closes or max(benchmark_closes) != as_of_timestamp_ms:
         raise RuntimeError("BAB ranking blocked: BTC benchmark lacks the latest completed daily candle")
@@ -91,19 +81,17 @@ def rank_bab_mexc_universe(
     excluded: list[str] = []
     for iid, instrument in normalized.items():
         symbol = str(instrument.get("symbol", iid))
-        if iid == benchmark_id:
+        if iid == benchmark_id or not bool(instrument.get("usdt_account_eligible")):
             continue
-        if not bool(instrument.get("usdt_account_eligible")):
-            continue
-        ticker = tickers.get(iid)
-        if ticker is None:
+        if tickers.get(iid) is None:
             excluded.append(f"{symbol}:MISSING_TICKER")
             continue
-        asset_closes = _close_map(histories.get(iid, []), as_of_timestamp_ms)
+        asset_rows = histories.get(iid, [])
+        asset_closes = _close_map(asset_rows, as_of_timestamp_ms)
         if not asset_closes or max(asset_closes) != as_of_timestamp_ms:
             excluded.append(f"{symbol}:MISSING_DECISION_CANDLE")
             continue
-        asset_returns = _daily_returns(histories.get(iid, []), as_of_timestamp_ms)
+        asset_returns = _daily_returns(asset_rows, as_of_timestamp_ms)
         common = sorted(set(asset_returns) & set(benchmark_returns))[-BETA_WINDOW:]
         if len(common) < MIN_BETA_OBSERVATIONS:
             excluded.append(f"{symbol}:INSUFFICIENT_ALIGNED_BETA_HISTORY:{len(common)}")
@@ -125,33 +113,34 @@ def rank_bab_mexc_universe(
             f"{MIN_BETA_OBSERVATIONS}+ aligned observations; eligible={len(ranked)}"
         )
 
-    research_longs: list[Candidate] = []
-    research_shorts: list[Candidate] = []
+    low_beta_first: list[Candidate] = []
+    high_beta_first: list[Candidate] = []
     instruments_by_key: dict[str, dict[str, Any]] = {}
     for beta, key, instrument, close in ranked:
         instruments_by_key[key] = dict(instrument)
-        research_longs.append(Candidate(
-            symbol=key, distance_pct=beta, extreme_price=beta,
+        low_beta_first.append(Candidate(
+            symbol=key, distance_pct=beta, extreme_price=None,
             direction="long", close_price=close,
             decision_timestamp_ms=as_of_timestamp_ms,
         ))
-        research_shorts.append(Candidate(
-            symbol=key, distance_pct=beta, extreme_price=beta,
+        high_beta_first.append(Candidate(
+            symbol=key, distance_pct=beta, extreme_price=None,
             direction="short", close_price=close,
             decision_timestamp_ms=as_of_timestamp_ms,
         ))
 
-    # Academic BAB direction: buy low beta, short high beta. Do not reverse this.
-    best_long = research_longs[0]
-    worst_short = research_shorts[-1]
-    if best_long.symbol == worst_short.symbol:
+    # The engine tests the top ten ranked candidates for executable pair fills.
+    # It therefore keeps the best-ranked candidate first and falls back only
+    # when public depth/lot-size/shortfall gates make that pair unavailable.
+    high_beta_first.reverse()
+    if low_beta_first[0].symbol == high_beta_first[0].symbol:
         raise RuntimeError("BAB ranking blocked: long and short candidates are not distinct")
 
     return MEXCRankings(
-        research_longs=research_longs,
-        research_shorts=list(reversed(research_shorts)),
-        executable_longs=[best_long],
-        executable_shorts=[worst_short],
+        research_longs=low_beta_first,
+        research_shorts=high_beta_first,
+        executable_longs=low_beta_first,
+        executable_shorts=high_beta_first,
         instruments_by_key=instruments_by_key,
         excluded=excluded,
     )
@@ -165,16 +154,14 @@ def main() -> int:
         ENGINE_ROOT / "scripts" / "high_low_paper_cycle.py",
     )
     if spec is None or spec.loader is None:
-        raise RuntimeError("Unable to load the verified MEXC paper-cycle engine")
+        raise RuntimeError("Unable to load the MEXC paper-cycle engine")
     engine = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = engine
     spec.loader.exec_module(engine)
 
-    # Keep the engine's tested execution, funding, ledger and snapshot logic.
-    # Only its strategy ranking and account namespace are changed.
     # GitHub's Git Data endpoints can briefly return a stale ref/tree immediately
-    # after a successful ref update. Retry only the precise eventual-consistency
-    # symptom; preserve all integrity and fork checks as hard failures.
+    # after a successful ref update. Retry only that eventual-consistency symptom;
+    # all integrity, fork and content checks remain hard failures.
     original_verify = GitHubStatePublisher._verify_remote_batch
 
     def verify_remote_batch_with_retry(self, *args, **kwargs):
@@ -193,11 +180,51 @@ def main() -> int:
         raise last_error
 
     GitHubStatePublisher._verify_remote_batch = verify_remote_batch_with_retry
+
     engine.ACCOUNT_ID = ACCOUNT_ID
     engine.STRATEGY_ID = STRATEGY_ID
     engine.INITIAL_CAPITAL = Decimal("100")
     engine.rank_mexc_universe = rank_bab_mexc_universe
-    return int(engine._run())
+
+    original_report_rows = engine._ranking_report_rows
+
+    def bab_ranking_report_rows(candidates, instruments_by_key):
+        rows = original_report_rows(candidates, instruments_by_key)
+        for row in rows:
+            row["beta_vs_btc_90d"] = row.get("distance_pct")
+            row["distance_metric"] = "rolling_90d_ols_beta_vs_btc"
+            row["extreme_price"] = None
+            row["extreme_timestamp_ms"] = None
+            row.pop("all_time_history_verified", None)
+            row.pop("history_observed_daily_gap_count", None)
+        return rows
+
+    engine._ranking_report_rows = bab_ranking_report_rows
+    result = int(engine._run())
+
+    # A clean bounded history-bootstrap batch is normal progress. Keep it green
+    # while the full universe is being collected; API errors and stale/missing
+    # current bars still fail the run and remain visible in latest_cycle.json.
+    report_path = (
+        Path(os.environ.get("MARKET_DATA_DIR", "../market-data"))
+        / "data" / "reports" / "mexc" / "latest_cycle.json"
+    )
+    if result != 0 and report_path.is_file():
+        report = json.loads(report_path.read_text(encoding="utf-8"))
+        expected_bootstrap = (
+            report.get("paper_decision_status") == "BLOCKED_INCOMPLETE_MARKET_DATA"
+            and int(report.get("bootstrap_remaining", 0)) > 0
+            and int(report.get("api_failure_count", 0)) == 0
+            and int(report.get("missing_ticker_count", 0)) == 0
+            and int(report.get("missing_latest_bar_count", 0)) == 0
+        )
+        if expected_bootstrap:
+            print(
+                "[bab-bootstrap] Full-universe history is still being collected; "
+                "portfolio changes remain blocked. This is normal resumable progress."
+            )
+            return 0
+    return result
 
 
 if __name__ == "__main__":
