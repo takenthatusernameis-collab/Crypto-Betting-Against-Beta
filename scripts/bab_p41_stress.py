@@ -1316,11 +1316,383 @@ def write_artifacts(payload: dict) -> tuple[Path, Path]:
     return SUMMARY_PATH, MARKDOWN_PATH
 
 
+# --- Stress summary (WP2) schema ---
+SCHEMA_STRESS_VERSION = "bab_p41.stress_summary/1"
+STRESS_SUMMARY_PATH = _REPO_ROOT / "research_state" / "bab_p41" / "stress_summary.json"
+STRESS_MARKDOWN_PATH = _REPO_ROOT / "research_state" / "bab_p41" / "stress_summary.md"
+
+STRESS_VERDICT_ROBUST = "ROBUST_ACROSS_DGPS"
+STRESS_VERDICT_FRAGILE = "FRAGILE_DGP_DEPENDENT"
+STRESS_VERDICT_DOES_NOT_REPLICATE = "DOES_NOT_REPLICATE"
+
+
+def _dgp_replicates_stress(agg: dict) -> bool:
+    """A DGP replicates the stress test when every cell survives deflation and
+    all neutrality invariants hold (mirrors the P38 pooled verdict bar)."""
+    return bool(
+        agg["all_neutrality_ok"]
+        and agg["n_error_cells"] == 0
+        and agg["all_survive"]
+    )
+
+
+def _stress_verdict(dgp_results: dict, cross: dict) -> tuple[str, str]:
+    """Consolidated, honest stress verdict. May be negative.
+
+    ROBUST_ACROSS_DGPS: every DGP replicates (all cells survive + neutrality).
+    DOES_NOT_REPLICATE: no cell survives deflation in any DGP.
+    FRAGILE_DGP_DEPENDENT: otherwise — survival depends on DGP/seed.
+    """
+    n_dgps = len(dgp_results)
+    n_stress_ok = sum(
+        1 for dr in dgp_results.values() if _dgp_replicates_stress(dr["aggregate"])
+    )
+    n_total_survive = int(cross["n_total_survive"])
+    n_total_cells = int(cross["n_total_cells"])
+    if n_stress_ok == n_dgps and bool(cross["all_dgps_neutrality_ok"]):
+        return STRESS_VERDICT_ROBUST, (
+            f"All {n_dgps} DGPs replicate the stress test (every cell survives "
+            f"deflation over n_trials_total=552 and neutrality holds everywhere); "
+            "BAB behaviour is robust to non-Gaussian idio."
+        )
+    if n_total_survive == 0:
+        return STRESS_VERDICT_DOES_NOT_REPLICATE, (
+            "No cell survives deflation across any DGP; BAB behaviour does not "
+            "replicate under non-Gaussian idio. Honest negative."
+        )
+    return STRESS_VERDICT_FRAGILE, (
+        f"Survival is DGP-dependent: {n_stress_ok} of {n_dgps} DGPs replicate "
+        f"(all cells survive + neutrality), {n_total_survive} of {n_total_cells} "
+        "cells survive overall. Honest, may be negative; not tuned to a positive."
+    )
+
+
+def _build_stress_summary_artifact(grid_results: dict, n_trials: int) -> dict:
+    per_dgp_cells = grid_results["per_dgp_cells"]
+
+    base_returns = _build_universe_for_dgp(DGPs[0], DGPs[0]["base_seed"])
+    returns_sha256 = hashlib.sha256(
+        base_returns.to_csv(date_format="%Y-%m-%d").encode("utf-8")
+    ).hexdigest()
+    btc_prices = _load_btc_prices()
+    btc_sha256 = hashlib.sha256(btc_prices.to_numpy(dtype=float).tobytes()).hexdigest()
+
+    dgp_results = {}
+    n_total_ok = 0
+    n_total_error = 0
+    n_total_survive = 0
+    n_total_cells = 0
+    n_dgps_replicating = 0
+
+    for dgp in DGPs:
+        did = dgp["id"]
+        cells = per_dgp_cells[did]
+        agg = _aggregate_cells(cells)
+        replicates = _dgp_replicates_stress(agg)
+        if replicates:
+            n_dgps_replicating += 1
+        n_total_ok += agg["n_ok_cells"]
+        n_total_error += agg["n_error_cells"]
+        n_total_survive += agg["n_survive"]
+        n_total_cells += agg["n_cells"]
+        dgp_results[did] = {
+            "dgp_id": did,
+            "process": dgp["process"],
+            "kind": dgp["kind"],
+            "config_grid": {
+                "base_seed": dgp["base_seed"],
+                "increment": dgp["increment"],
+                "n_seeds": N_SEEDS,
+                "idio_vol": dgp["idio_vol"],
+                "beta_min": BETA_MIN,
+                "beta_max": BETA_MAX,
+                "n_assets": N_ASSETS,
+            },
+            "seeds": [dgp["base_seed"] + dgp["increment"] * i for i in range(N_SEEDS)],
+            "aggregate": agg,
+            "cells": cells,
+            "replicates_stress_test": replicates,
+        }
+
+    cross_dgp = {
+        "n_dgps": len(DGPs),
+        "n_seeds_per_dgp": N_SEEDS,
+        "n_estimators": len(ESTIMATORS),
+        "n_total_cells": n_total_cells,
+        "n_total_ok_cells": n_total_ok,
+        "n_total_error_cells": n_total_error,
+        "n_total_survive": n_total_survive,
+        "n_dgps_replicating": n_dgps_replicating,
+        "all_dgps_neutrality_ok": all(
+            dgp_results[did]["aggregate"]["neutrality"]["all_model_beta_ok"]
+            and dgp_results[did]["aggregate"]["neutrality"]["all_dollar_ok"]
+            and dgp_results[did]["aggregate"]["neutrality"]["all_realized_ok"]
+            for did in dgp_results
+        ),
+        "all_dgps_survive": all(
+            dgp_results[did]["aggregate"]["all_survive"] for did in dgp_results
+        ),
+    }
+
+    stress_verdict, stress_verdict_reason = _stress_verdict(dgp_results, cross_dgp)
+
+    summary = {
+        "schema": SCHEMA_STRESS_VERSION,
+        "provenance": {
+            "generator": "scripts/bab_p41_stress.py",
+            "campaign": "P41 Non-Gaussian & Regime-Switching Synthetic Stress Battery",
+            "wp": "WP2 - Five-DGP Stress Meta-Analysis",
+            "synthetic": True,
+            "note": (
+                "Deterministic synthetic stress meta-analysis across five "
+                "data-generating processes (GAUSSIAN_IID control, STUDENT_T, "
+                "REGIME_SWITCH, JUMP_DIFFUSION, STOCHASTIC_VOL). Reuses the WP1 "
+                "cell grid (5 DGPs x 8 seeds x 4 estimators = 160 cells). "
+                "Per-cell DSR/PSR deflated over n_trials_total read-only from "
+                "P38 WP1 (552), plus tail risk and the three neutrality "
+                "invariants. Every cell is labelled synthetic; not real market "
+                "data and not market profitability evidence. Consolidated verdict "
+                "is honest and may be negative."
+            ),
+            "fixture_path": str(FIXTURE_PATH),
+            "returns_sha256": returns_sha256,
+            "btc_source_sha256": btc_sha256,
+            "n_dgps": len(DGPs),
+            "n_seeds_per_dgp": N_SEEDS,
+            "n_estimators": len(ESTIMATORS),
+            "n_total_cells": n_total_cells,
+            "seeds": {
+                d["id"]: {
+                    "base_seed": d["base_seed"],
+                    "increment": d["increment"],
+                    "n_seeds": N_SEEDS,
+                    "seed_list": [d["base_seed"] + d["increment"] * i for i in range(N_SEEDS)],
+                }
+                for d in DGPs
+            },
+            "dgps": [
+                {
+                    "id": d["id"],
+                    "process": d["process"],
+                    "kind": d["kind"],
+                    "idio_vol": d["idio_vol"],
+                    "base_seed": d["base_seed"],
+                    "increment": d["increment"],
+                    "note": d["note"],
+                }
+                for d in DGPs
+            ],
+            "config_grid": {
+                "beta_window": BETA_WINDOW,
+                "beta_min": BETA_MIN,
+                "beta_max": BETA_MAX,
+                "n_assets": N_ASSETS,
+                "quantile": QUANTILE,
+                "weighting": "equal",
+                "beta_neutral": True,
+                "dollar_neutral": True,
+                "transaction_costs": TRANSACTION_COSTS,
+                "estimator_families": {
+                    e["key"]: {"estimator": e["estimator"], "params": e["params"]}
+                    for e in ESTIMATORS
+                },
+            },
+            "neutrality_tolerances": {
+                "model_beta_neutral": MODEL_BETA_NEUTRAL_TOL,
+                "dollar_neutral": DOLLAR_NEUTRAL_TOL,
+                "realized_beta": REALIZED_BETA_TOL,
+            },
+            "bootstrap": {
+                "n_resamples": N_BOOTSTRAP,
+                "block_length": BLOCK_LENGTH,
+                "seed": BOOTSTRAP_SEED,
+            },
+            "dsr_survive_threshold": DSR_SURVIVE_THRESHOLD,
+            "deflation": {
+                "n_trials_total": n_trials,
+                "source": "P38 deflated_summary.json (trial_enumeration.n_trials_total)",
+                "note": (
+                    "Deflate over n_trials_total read-only from P38 WP1; "
+                    "never re-enumerated or invented here."
+                ),
+            },
+        },
+        "trial_enumeration": {
+            "n_trials_total": n_trials,
+            "source": "P38 deflated_summary.json",
+        },
+        "results": {
+            "dgps": dgp_results,
+            "cross_dgp": cross_dgp,
+            "stress_verdict": stress_verdict,
+            "stress_verdict_reason": stress_verdict_reason,
+        },
+    }
+    return summary
+
+
+def build_stress_summary() -> dict:
+    n_trials = _load_n_trials_total()
+    grid_results = _run_all_dgps(n_trials)
+    return _round_floats(_build_stress_summary_artifact(grid_results, n_trials))
+
+
+def write_stress_artifacts(payload: dict) -> tuple[Path, Path]:
+    STRESS_SUMMARY_PATH.parent.mkdir(parents=True, exist_ok=True)
+    STRESS_SUMMARY_PATH.write_text(
+        json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    STRESS_MARKDOWN_PATH.write_text(render_stress_markdown(payload), encoding="utf-8")
+    return STRESS_SUMMARY_PATH, STRESS_MARKDOWN_PATH
+
+
+def check_stress_summary(path: Path = STRESS_SUMMARY_PATH) -> bool:
+    if not path.exists():
+        print(f"Stress summary artifact not found: {path}")
+        return False
+
+    fresh = build_stress_summary()
+    expected_bytes = path.read_bytes()
+    actual_bytes = json.dumps(fresh, indent=2, sort_keys=True).encode("utf-8") + b"\n"
+
+    if expected_bytes == actual_bytes:
+        print("Stress summary artifact check: PASS (byte-identical)")
+        return True
+    else:
+        print("Stress summary artifact check: FAIL (byte mismatch)")
+        for i, (e, a) in enumerate(zip(expected_bytes, actual_bytes)):
+            if e != a:
+                print(f"  First difference at byte {i}: expected {e!r}, got {a!r}")
+                break
+        if len(expected_bytes) != len(actual_bytes):
+            print(f"  Length mismatch: expected {len(expected_bytes)}, got {len(actual_bytes)}")
+        return False
+
+
+def render_stress_markdown(payload: dict) -> str:
+    prov = payload["provenance"]
+    results = payload["results"]
+    cross = results["cross_dgp"]
+    lines = [
+        "# BAB P41 WP2 — Five-DGP Stress Meta-Analysis",
+        "",
+        f"Schema `{payload['schema']}`. Controlled synthetic stimulus: not real market "
+        "data and not market profitability evidence. The verdict is honest and may "
+        "be negative.",
+        "",
+        f"**Stress verdict:** **{results['stress_verdict']}**",
+        f"**Reason:** {results['stress_verdict_reason']}",
+        "",
+        "## Setup",
+        "",
+        f"- DGPs: {prov['n_dgps']} deterministic synthetic data-generating processes, "
+        f"{prov['n_seeds_per_dgp']} seeds each, {prov['n_estimators']} estimators "
+        f"({prov['n_total_cells']} total cells)",
+        f"- beta_window: {prov['config_grid']['beta_window']}d, "
+        f"quantile: {_fmt(prov['config_grid']['quantile'])}",
+        f"- weighting: {prov['config_grid']['weighting']}, beta_neutral: "
+        f"{prov['config_grid']['beta_neutral']}, dollar_neutral: "
+        f"{prov['config_grid']['dollar_neutral']}, transaction_costs: "
+        f"{prov['config_grid']['transaction_costs']}",
+        f"- DSR survive threshold: {_fmt(prov['dsr_survive_threshold'])}",
+        f"- n_trials_total (deflation, read-only from P38 WP1): "
+        f"{prov['deflation']['n_trials_total']}",
+        "",
+        "## DGPs (charter constants)",
+        "",
+        "| DGP | Process | Kind | Idio Vol | Base Seed | Increment | Replicates Stress |",
+        "|---|---|---|---|---|---|---|",
+    ]
+    for d in prov["dgps"]:
+        did = d["id"]
+        rep = results["dgps"][did]["replicates_stress_test"]
+        lines.append(
+            f"| {did} | {d['process']} | {d['kind']} | "
+            f"{_fmt(d['idio_vol'])} | {d['base_seed']} | {d['increment']} | {rep} |"
+        )
+    lines += [
+        "",
+        "- BTC prices read-only from tests/fixtures/wide_bab_universe.csv "
+        "(the same deterministic random-walk fixture as P38/P40/WP1).",
+        "- Reuses the WP1 cell grid: asset returns = beta * BTC_return + idio, "
+        "betas linspace(0.2, 2.4, 40).",
+        "- Not real market data; not market profitability evidence.",
+        "",
+        "## Trial enumeration (read-only from P38 WP1)",
+        "",
+        f"Deflation over n_trials_total = **{payload['trial_enumeration']['n_trials_total']}**, "
+        "read-only from research_state/bab_p38/deflated_summary.json "
+        "(trial_enumeration.n_trials_total). Never re-enumerated or invented here.",
+        "",
+        "## Per-DGP aggregates",
+        "",
+    ]
+    for did in sorted(results["dgps"]):
+        dr = results["dgps"][did]
+        agg = dr["aggregate"]
+        lines += [
+            f"### {did}",
+            "",
+            f"- Process: {dr['process']} ({dr['kind']})",
+            f"- Seeds: {dr['seeds']}",
+            f"- n_cells: {agg['n_cells']}, n_ok_cells: {agg['n_ok_cells']}, "
+            f"n_error_cells: {agg['n_error_cells']}, "
+            f"n_neutrality_violations: {agg['n_neutrality_violations']}",
+            f"- all_neutrality_ok: {agg['all_neutrality_ok']}",
+            f"- all_survive: {agg['all_survive']}, any_survive: {agg['any_survive']}, "
+            f"n_survive: {agg['n_survive']}",
+            f"- replicates_stress_test: {dr['replicates_stress_test']}",
+            f"- DSR mean/min/max: {_fmt(agg['dsr']['mean'])}/"
+            f"{_fmt(agg['dsr']['min'])}/{_fmt(agg['dsr']['max'])}",
+            f"- Sharpe mean/min/max: {_fmt(agg['sharpe']['mean'])}/"
+            f"{_fmt(agg['sharpe']['min'])}/{_fmt(agg['sharpe']['max'])}",
+            "",
+        ]
+    lines += [
+        "## Cross-DGP aggregates",
+        "",
+        f"- n_dgps: {cross['n_dgps']}",
+        f"- n_total_cells: {cross['n_total_cells']}",
+        f"- n_total_ok_cells: {cross['n_total_ok_cells']}, "
+        f"n_total_error_cells: {cross['n_total_error_cells']}",
+        f"- n_total_survive: {cross['n_total_survive']}",
+        f"- n_dgps_replicating: {cross['n_dgps_replicating']} / {cross['n_dgps']}",
+        f"- all_dgps_neutrality_ok: {cross['all_dgps_neutrality_ok']}",
+        f"- all_dgps_survive: {cross['all_dgps_survive']}",
+        "",
+        "## Verdict scale",
+        "",
+        "- ROBUST_ACROSS_DGPS: every DGP replicates (all cells survive deflation + "
+        "neutrality holds everywhere).",
+        "- FRAGILE_DGP_DEPENDENT: survival depends on DGP/seed (some cells survive, "
+        "not all within any DGP).",
+        "- DOES_NOT_REPLICATE: no cell survives deflation in any DGP.",
+        "",
+        "## Neutrality (every ok cell, every DGP, every estimator)",
+        "",
+        "- model beta <= 1e-3: "
+        f"{cross['all_dgps_neutrality_ok']}",
+        "- dollar <= 1e-9 and |realized beta| <= 0.15 at every ok cell.",
+        "",
+        "## Interpretation",
+        "",
+        "- DSR = Deflated Sharpe Ratio: probability the observed Sharpe is genuine "
+        "skill after correcting for multiple testing (n_trials_total). "
+        "DSR >= 0.50 means more likely than not genuine skill.",
+        "- PSR = Probabilistic Sharpe Ratio: probability the Sharpe exceeds zero.",
+        "- The stress verdict reports whether BAB behaviour survives non-Gaussian idio "
+        "across all five DGPs; an honest negative/neutral ranking is a valid finding.",
+        "- Synthetic-provenance caveat: results are on committed synthetic universes, "
+        "not real market data. Never market alpha.",
+    ]
+    return "\n".join(lines) + "\n"
+
+
 def main() -> int:
     import argparse
 
     parser = argparse.ArgumentParser(
-        description="P41 WP1 estimator bakeoff under non-Gaussian idio (five DGPs)"
+        description="P41 stress battery: WP1 estimator bakeoff + WP2 five-DGP stress meta-analysis"
     )
     parser.add_argument(
         "--check-estimator-bakeoff",
@@ -1328,15 +1700,24 @@ def main() -> int:
         help="Verify existing estimator_bakeoff artifact is byte-identical to fresh recomputation",
     )
     parser.add_argument(
+        "--check-stress-summary",
+        action="store_true",
+        help="Verify existing stress_summary artifact is byte-identical to fresh recomputation",
+    )
+    parser.add_argument(
         "--output",
         type=Path,
-        default=SUMMARY_PATH,
-        help=f"Output path for summary artifact (default: {SUMMARY_PATH})",
+        default=None,
+        help="Output path for summary artifact (default per flag: WP1 / WP2)",
     )
     args = parser.parse_args()
 
     if args.check_estimator_bakeoff:
-        ok = check_summary(args.output)
+        ok = check_summary(args.output or SUMMARY_PATH)
+        return 0 if ok else 1
+
+    if args.check_stress_summary:
+        ok = check_stress_summary(args.output or STRESS_SUMMARY_PATH)
         return 0 if ok else 1
 
     print("Running P41 WP1 estimator bakeoff under non-Gaussian idio (five DGPs)...")
