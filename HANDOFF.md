@@ -1,8 +1,8 @@
 # DURABLE HANDOFF — Crypto-Betting-Against-Beta
-**Timestamp:** 2026-11-26T04:20:00Z
+**Timestamp:** 2026-11-26T04:21:00Z
 **Session:** Kilo General Agent Loop — P40 COMPLETE/FROZEN; **P41 binding campaign OPENED**
 **Repository:** Crypto-Betting-Against-Beta (Betting Against Beta crypto quant research)
-**Verified baseline:** HEAD `febfeb4`, working tree clean. P20–P40 COMPLETE and FROZEN.
+**Verified baseline:** HEAD `86893fc`, working tree clean. P20–P40 COMPLETE and FROZEN.
 P40 artifacts landed and verified: `research_state/bab_p40/meta_summary.json` + `.md`,
 `scripts/bab_p40_meta_analysis.py`, `generate_p40_decision.py`, `docs/BAB_P40_DECISION.md`,
 `tests/test_bab_p40_meta_analysis.py`, `tests/test_bab_p40_decision_consistency.py`.
