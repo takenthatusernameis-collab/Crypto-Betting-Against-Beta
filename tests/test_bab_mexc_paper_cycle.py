@@ -2,9 +2,11 @@ from __future__ import annotations
 
 from decimal import Decimal
 
+from high_vs_low.mexc_paper import Candidate, MEXCRankings
 from scripts.bab_mexc_paper_cycle import (
     rank_bab_mexc_universe,
     refresh_bab_rolling_history,
+    filter_bab_positive_stop_longs,
 )
 
 DAY = 86_400_000
@@ -276,3 +278,54 @@ def test_bab_keeps_research_rank_but_skips_nonpositive_atr_long_stop() -> None:
     assert result.research_longs[0].symbol == "mexc:2"
     assert result.executable_longs[0].symbol == "mexc:3"
     assert any("NONPOSITIVE_OR_UNAVAILABLE_3X_ATR_LONG_STOP" in item for item in result.excluded)
+
+
+
+def test_bab_retry_filter_removes_stale_invalid_long_from_frozen_ranking() -> None:
+    start = 1_700_000_000_000
+    returns = [0.01 * ((i % 7) - 3) for i in range(100)]
+    unsafe_history = _history(returns, start)
+    safe_history = _history(returns, start)
+    for row in unsafe_history:
+        close = float(row["close"])
+        row["high"] = str(close * 2.0)
+        row["low"] = str(close * 0.1)
+
+    unsafe = Candidate(
+        symbol="mexc:2", distance_pct=-1.0, extreme_price=None,
+        direction="long", close_price=None,
+    )
+    safe = Candidate(
+        symbol="mexc:3", distance_pct=-0.5, extreme_price=None,
+        direction="long", close_price=None,
+    )
+    rankings = MEXCRankings(
+        research_longs=[unsafe, safe],
+        research_shorts=[],
+        executable_longs=[unsafe, safe],
+        executable_shorts=[],
+        instruments_by_key={
+            "mexc:2": {"instrument_id": 2, "symbol": "UNSAFE_USDT"},
+            "mexc:3": {"instrument_id": 3, "symbol": "SAFE_USDT"},
+        },
+        excluded=[],
+    )
+    filtered = filter_bab_positive_stop_longs(
+        rankings,
+        {2: unsafe_history, 3: safe_history},
+        {
+            2: {"ask_price": "100"},
+            3: {"ask_price": "100"},
+        },
+    )
+
+    assert [candidate.symbol for candidate in filtered.research_longs] == [
+        "mexc:2", "mexc:3"
+    ]
+    assert [candidate.symbol for candidate in filtered.executable_longs] == [
+        "mexc:3"
+    ]
+    assert any(
+        "UNSAFE_USDT:NONPOSITIVE_OR_UNAVAILABLE_3X_ATR_LONG_STOP" in item
+        for item in filtered.excluded
+    )
