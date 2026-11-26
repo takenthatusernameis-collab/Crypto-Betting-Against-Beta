@@ -1,8 +1,8 @@
 # DURABLE HANDOFF — Crypto-Betting-Against-Beta
-**Timestamp (UTC): 2026-11-26T08:51:25Z**
+**Timestamp (UTC): 2026-11-26T08:52:23Z**
 **Session:** Kilo General Agent Loop — P41 COMPLETE (WP1/WP2/WP3); **P42 OPEN (sole binding row)**
 **Repository:** Crypto-Betting-Against-Beta (Betting Against Beta crypto quant research)
-**Verified baseline (HEAD `01d3603`, re-verified this session at 08:51:25Z):**
+**Verified baseline (HEAD `ed87764`, re-verified this session at 08:52:23Z):**
 - `python3 -m ruff check .` GREEN (`All checks passed!`).
 - `bash scripts/bab_quick.sh` GREEN (targeted trio `104 passed`, smoke `195 passed`,
   `quick preflight OK`).
