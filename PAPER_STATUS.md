@@ -8,10 +8,10 @@
 - Strategy generation: `crypto-bab-low-beta-long-high-beta-short-v1`
 - Starting capital: **100.00000000 USDT**
 - Account state: **INITIALIZED — FORWARD PAPER**
-- Last report build: 2026-11-26 22:25:06 UTC
-- Latest workflow run: [45904582977](https://github.com/takenthatusernameis-collab/Crypto-Betting-Against-Beta/actions/runs/45904582977) · run #12, attempt 1 · failure · push
+- Last report build: 2026-11-26 22:27:19 UTC
+- Latest workflow run: [45904798401](https://github.com/takenthatusernameis-collab/Crypto-Betting-Against-Beta/actions/runs/45904798401) · run #13, attempt 1 · success · push
 - Latest processed daily candle: —
-- Latest account event: 2026-11-26 22:22:23 UTC
+- Latest account event: 2026-11-26 22:27:06 UTC
 - Primary execution journal: [PAPER_TRADE_JOURNAL.md](PAPER_TRADE_JOURNAL.md)
 
 
@@ -22,7 +22,7 @@
 - Contracts with at least 60 aligned daily beta returns: 988
 - Contracts excluded for insufficient rolling history: 99
 - Latest completed daily bar (UTC ms): 1795564800000
-- Portfolio decision status: `UNAVAILABLE_STALE_OR_MISSING_POSITION_MARK`
+- Portfolio decision status: `MONITORING_ONLY_NO_STRATEGY_DECISIONS`
 
 The complete eligible USDT universe is evaluated through the rolling-history gate at each daily decision. Snapshot-only runs reuse the last verified daily gate and do not recompute the ranking.
 The portfolio remains a paper simulation; all fills are simulated and no exchange orders are submitted.
@@ -31,17 +31,17 @@ The portfolio remains a paper simulation; all fills are simulated and no exchang
 | Metric | Value |
 |---|---:|
 | Initial capital | 100.00000000 USDT |
-| **NAV** | **99.86839680 USDT** |
-| Total return | -0.132% |
+| **NAV** | **99.78739680 USDT** |
+| Total return | -0.213% |
 | Cash | 99.96939680 USDT |
-| Unrealized P&L | -0.10100000 USDT |
+| Unrealized P&L | -0.18200000 USDT |
 | Fees paid | 0.03060320 USDT |
 | Confirmed funding | +0.00000000 USDT |
 | Gross exposure | 1.533× NAV |
-| Net exposure | 0.370× NAV |
-| Current drawdown from risk-window peak | +0.000% |
-| Lifetime / cross-session maximum drawdown | +0.000% |
-| Worst risk-session maximum drawdown | +0.000% |
+| Net exposure | 0.371× NAV |
+| Current drawdown from risk-window peak | -0.081% |
+| Lifetime / cross-session maximum drawdown | -0.213% |
+| Worst risk-session maximum drawdown | -0.081% |
 | Sharpe ratio | Unavailable — sample gate not met |
 | Sortino ratio | Unavailable — sample gate not met |
 | Annualized daily volatility | Unavailable — sample gate not met |
@@ -51,13 +51,14 @@ The portfolio remains a paper simulation; all fills are simulated and no exchang
 | Session start (UTC) | Starting NAV | Latest NAV | Max drawdown | Marks |
 |---|---:|---:|---:|---:|
 | 2026-11-26 00:00:00 UTC | 100.00000000 | 100.00000000 | +0.000% | 9 |
+| 2026-11-26 22:22:32 UTC | 99.86839680 | 99.78739680 | -0.081% | 1 |
 
 ## Open positions
 
 | Symbol | Side | Quantity | Entry price | Mark | Notional (USDT) |
 |---|---|---:|---:|---:|---:|
-| SOXS_USDT | long | 1 | 58.09 | 58.08 | 58.080000 |
-| USELESS_USDT | short | 1300 | 0.07302 | 0.07309 | 95.017000 |
+| SOXS_USDT | long | 1 | 58.09 | 57.96 | 57.960000 |
+| USELESS_USDT | short | 1300 | 0.07302 | 0.07306 | 94.978000 |
 
 ## Primary path — equal exposure
 
@@ -84,7 +85,7 @@ At each rebalance, the quieter leg receives the larger share using inverse 30-co
 
 The latest daily decision has already been processed. Intervening five-minute runs only mark the existing paper positions and update equity, funding and risk; the next ranking occurs after a new completed UTC daily candle.
 
-The daily-candle watermark is not advanced by this report. Only the paper workflow can consume a completed candle after full-history and execution gates pass. A blocked or incomplete run remains visible.
+The daily decision watermark is maintained by the persistent paper state. A new ranking is performed only after the next completed UTC daily candle and a passing rolling-window and execution-data gate.
 
 ## Historical separation
 
