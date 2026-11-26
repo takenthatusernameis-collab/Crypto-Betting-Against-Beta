@@ -1,5 +1,5 @@
 # DURABLE HANDOFF — Crypto-Betting-Against-Beta
-**Timestamp:** 2026-11-25T23:22:47Z
+**Timestamp:** 2026-11-26T00:24:30Z
 **Session:** Kilo General Agent Loop — Next Activation (Campaign B initial task)
 **Repository:** Crypto-Betting-Against-Beta (Betting Against Beta crypto quant research)
 
@@ -51,41 +51,46 @@ P36 proves rank weighting is strictly worse. Do not pursue rank-weighting as a f
 
 ---
 
+## EXISTING P37 ARTIFACTS (NOT REGIME-CONDITIONAL — NEED EXTENSION)
+
+The `research_state/bab_p37/` directory already contains three summary artifacts, but they analyze the **full sample without regime conditioning**:
+
+1. **`capacity_summary.json`** — Market-impact participation-rate break-even across 8 seeds (break-even impacts range 0.7–5.6bp; seeds 3, 4, 6 have negative costed Sharpe even at zero impact)
+2. **`turnover_summary.json`** — Hysteresis no-trade band validation (turnover reduction confirmed, monotonicity holds)
+3. **`cost_surface_summary.json`** — Cost x turnover surface (monotonicity verified across cost grid)
+
+**These are necessary but insufficient.** They do not break down by P39 regimes (`bull_high_vol`, `bear_mid_vol`, etc.). The high-vol failure mode requires a **regime-conditional** P37 analysis.
+
+---
+
 ## NEXT FOCUS CAMPAIGN — MANDATORY, SINGLE TASK
 
 The next agent **must** execute the following campaign as the initial task. No "exploration," no picking among options. Complete fully and produce a JSON + MD artifact in `research_state/`. Update this HANDOFF.md with the outcome before exiting.
 
-### CAMPAIGN B (MANDATORY): P37 Capacity/Turnover/Cost Surface Deep-Dive — Diagnose & Mitigate High-Vol Failure
+### CAMPAIGN B (MANDATORY): P37 Capacity/Turnover/Cost Surface Deep-Dive — Diagnose & Mitigate High-Vol Failure (REGIME-CONDITIONAL)
 
-**Goal:** Diagnose *why* the BAB signal collapses in high-volatility regimes (`bull_high_vol`, `bear_mid_vol`) and test whether capacity constraints, turnover, or transaction costs explain the failure. This is the direct follow-on from P39 WP1's honest negative verdict.
+**Goal:** Diagnose *why* the BAB signal collapses in high-volatility regimes (`bull_high_vol`, `bear_mid_vol`) by extending the existing P37 analyses to be **regime-conditional**, using the same regime labels, seeds, and fixture as P39 WP1.
 
 **Steps (execute in order, do not skip):**
 
-1. **Run the P37 capacity/turnover/cost surface script** (or create it if missing) to measure:
-   - Per-regime turnover, gross leverage, and transaction cost drag at varying cost levels (0bp, 1bp, 5bp, 10bp, 20bp)
-   - Whether the high-vol regimes have systematically higher turnover/costs that erode alpha
-   - Capacity limits: at what AUM does the strategy's own flow impact returns in each regime?
-   - Use the same 8 seeds, same P35 wide-universe fixture, same regime labels as P39 WP1
+1. **Create a new regime-conditional P37 script** (e.g., `scripts/bab_p37_regime_capacity.py`) that:
+   - Uses the same 8 seeds, same P35 wide-universe fixture, same regime labels as P39 WP1 (`scripts/bab_p39_regime_conditional.py`)
+   - For each (seed, regime) cell: computes turnover, gross leverage, transaction cost drag at varying cost levels (0bp, 1bp, 5bp, 10bp, 20bp)
+   - Computes capacity limits: at what AUM does the strategy's own flow impact returns in each regime?
+   - Analyzes beta estimation stability in high-vol regimes: rolling beta estimation error (vs true beta) per regime; tests if `BETA_WINDOW=90` is too short (noisy) or too long (stale) for high-vol; tests alternative estimators (shrinkage, EWMA, Kalman) within high-vol regimes only
 
-2. **Analyze beta estimation stability in high-vol regimes:**
-   - Compute rolling beta estimation error (vs true beta) per regime
-   - Test if `BETA_WINDOW=90` is too short for high-vol (noisy estimates) or too long (stale estimates)
-   - Test alternative estimators (shrinkage, EWMA, Kalman) within high-vol regimes only
-
-3. **Success criterion:** Produce a diagnostic artifact `research_state/bab_p37/capacity_cost_surface_v2.json` + `.md` that:
+2. **Produce diagnostic artifact:** `research_state/bab_p37/capacity_cost_surface_v2.json` + `.md` (byte-stable: deterministic seeds, sorted keys, fixed decimals) that:
    - Identifies the primary driver of high-vol failure (turnover? beta noise? cost drag? idiosyncratic vol?)
    - Recommends a *specific, testable* mitigation (e.g., "increase beta_window to 180 in high_vol", "add vol-targeting", "widen quantile to 0.4 in high_vol", "add minimum holding period")
    - OR honestly documents that no simple fix exists within current architecture
 
-4. **Write artifact:** `research_state/bab_p37/capacity_cost_surface_v2.json` + `.md` (byte-stable: deterministic seeds, sorted keys, fixed decimals).
+3. **Verify tests pass:** `python -m pytest -x -q` before claiming completion.
 
-5. **Verify tests pass:** `python -m pytest -x -q` before claiming completion.
+4. **Commit:** `git commit` the artifact with message: `chore(research): P37 regime-conditional capacity/cost surface deep-dive — <finding>`
 
-6. **Commit:** `git commit` the artifact with message: `chore(research): P37 capacity/cost surface deep-dive — <finding>`
+5. **Update this HANDOFF.md** with the outcome (root cause, recommended mitigation, next steps) before exiting.
 
-7. **Update this HANDOFF.md** with the outcome (root cause, recommended mitigation, next steps) before exiting.
-
-**Why this campaign is mandatory (repo-name prioritization):** The repository is `Crypto-Betting-Against-Beta` — its core deliverable is the BAB strategy for crypto. P39 WP1 proved the strategy fails in high-vol regimes. P37 (Capacity/Turnover/Cost Surface) is the *only* existing campaign designed to diagnose execution/structural drivers of failure. Without this diagnosis, no mitigation can be credibly designed. This is the highest-leverage, most repo-aligned work.
+**Why this campaign is mandatory (repo-name prioritization):** The repository is `Crypto-Betting-Against-Beta` — its core deliverable is the BAB strategy for crypto. P39 WP1 proved the strategy fails in high-vol regimes. P37 (Capacity/Turnover/Cost Surface) is the *only* existing campaign designed to diagnose execution/structural drivers of failure. Without this **regime-conditional** diagnosis, no mitigation can be credibly designed. This is the highest-leverage, most repo-aligned work.
 
 ---
 
@@ -95,7 +100,7 @@ The next agent **must** execute the following campaign as the initial task. No "
 - **No "try X and see" loops** — the campaign above has a binary success criterion (diagnostic artifact with root cause + testable mitigation).
 - **Artifacts must be byte-stable**: deterministic seeds, sorted keys, fixed decimals (see existing `research_state/bab_p*/*.json`).
 - **Tests must pass**: `python -m pytest -x -q` before claiming completion.
-- **Git commit** the artifact with message: `chore(research): P37 capacity/cost surface deep-dive — <finding>`.
+- **Git commit** the artifact with message: `chore(research): P37 regime-conditional capacity/cost surface deep-dive — <finding>`.
 - **Update this HANDOFF.md** with the outcome before exiting.
 
 ---
@@ -104,12 +109,13 @@ The next agent **must** execute the following campaign as the initial task. No "
 
 - **Repository root**: `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
 - **Key prior script**: `scripts/bab_p39_regime_conditional.py` (produced current regime_summary.json)
-- **Target script**: `scripts/bab_p37_capacity_turnover.py` (may need creation/adaptation from P37 campaign)
+- **Reference scripts**: `scripts/bab_p37_capacity.py`, `scripts/bab_p37_turnover.py`, `scripts/bab_p37_cost_surface.py` (adapt for regime-conditioning)
 - **Key config**: `strategies/betting_against_beta/config.py` (BABConfig), `strategies/betting_against_beta/strategy.py` (BABStrategy)
 - **Fixture**: `tests/fixtures/wide_bab_universe.csv` (BTC + 40 synthetic assets, deterministic seed 20261120)
 - **Run command**: `python scripts/<script>.py` (all scripts are standalone entry points)
 - **Test command**: `python -m pytest -x -q` (full suite ~3 min; use `-k` for subsets)
 - **Current artifact**: `research_state/bab_p39/regime_summary.json` (shows high-vol failure mode with full per-seed, per-regime breakdown)
+- **Existing P37 artifacts**: `research_state/bab_p37/capacity_summary.json`, `turnover_summary.json`, `cost_surface_summary.json` (full-sample, NOT regime-conditional)
 
 ---
 
