@@ -5,8 +5,8 @@
 - Account: `mexc-usdt-forward-bab-100usdt-v1`
 - Strategy generation: `crypto-bab-low-beta-long-high-beta-short-v1`
 - Starting capital: **100.00000000 USDT**
-- Generated: 2026-11-26 22:07:03 UTC
-- Latest workflow: [45902126190](https://github.com/takenthatusernameis-collab/Crypto-Betting-Against-Beta/actions/runs/45902126190)
+- Generated: 2026-11-26 22:11:30 UTC
+- Latest workflow: [45902130869](https://github.com/takenthatusernameis-collab/Crypto-Betting-Against-Beta/actions/runs/45902130869)
 - Recorded primary events: **0**
 
 | Timestamp (UTC) | Symbol | Side | Action | Quantity | Price | Fee (USDT) | Realized net P&L (USDT) | Funding (USDT) | Event ID |

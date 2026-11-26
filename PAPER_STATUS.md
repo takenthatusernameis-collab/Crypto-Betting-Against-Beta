@@ -1,6 +1,6 @@
 # ACTIVE PAPER STATUS — BAB $100 USDT
 
-**BOOTSTRAPPING · PAPER ONLY · NO LIVE ORDERS**
+**🟢 ACTIVE · PAPER ONLY · NO LIVE ORDERS**
 
 **Correct workflow:** [Open active workflow](https://github.com/takenthatusernameis-collab/Crypto-Betting-Against-Beta/actions/workflows/bab-paper-cycle.yml)
 
@@ -8,23 +8,23 @@
 - Strategy generation: `crypto-bab-low-beta-long-high-beta-short-v1`
 - Starting capital: **100.00000000 USDT**
 - Account state: **INITIALIZED — FORWARD PAPER**
-- Last report build: 2026-11-26 22:07:03 UTC
-- Latest workflow run: [45902126190](https://github.com/takenthatusernameis-collab/Crypto-Betting-Against-Beta/actions/runs/45902126190) · run #8, attempt 1 · success · workflow_dispatch
+- Last report build: 2026-11-26 22:11:30 UTC
+- Latest workflow run: [45902130869](https://github.com/takenthatusernameis-collab/Crypto-Betting-Against-Beta/actions/runs/45902130869) · run #9, attempt 1 · failure · workflow_dispatch
 - Latest processed daily candle: —
-- Latest account event: 2026-11-26 22:06:43 UTC
+- Latest account event: 2026-11-26 22:10:57 UTC
 - Primary execution journal: [PAPER_TRADE_JOURNAL.md](PAPER_TRADE_JOURNAL.md)
 
 
 ## MEXC market-data coverage
 
-- Coverage state: **BOOTSTRAPPING**
+- Coverage state: **READY**
 - Active cross-margin contracts: 1169
 - USDT-settled eligible contracts: 1087
-- New histories completed this run: 150
-- Histories remaining: 119
+- New histories completed this run: 119
+- Histories remaining: 0
 - API failures: 0
 - Latest completed daily bar (UTC ms): 1795564800000
-- Portfolio decision status: `BLOCKED_INCOMPLETE_MARKET_DATA`
+- Portfolio decision status: `DAILY_REFRESH_BLOCKED:ValueError:Initial stop price is non-positive`
 
 Portfolio changes remain blocked until the full active cross-section has the required current daily history.
 
@@ -38,7 +38,7 @@ Not execution-approved until full-universe coverage passes.
 - SKDD_USDT: β(BTC)=-1.7142559678544846
 
 **Highest-beta short candidates**
-- SI_USDT: β(BTC)=4.3222668131466095
+- SI_USDT: β(BTC)=4.322266813146608
 - MSTU_USDT: β(BTC)=3.8421547490514065
 - CATE_USDT: β(BTC)=3.253992605505298
 ## Current performance
@@ -65,7 +65,7 @@ Not execution-approved until full-universe coverage passes.
 
 | Session start (UTC) | Starting NAV | Latest NAV | Max drawdown | Marks |
 |---|---:|---:|---:|---:|
-| 2026-11-26 00:00:00 UTC | 100.00000000 | 100.00000000 | +0.000% | 7 |
+| 2026-11-26 00:00:00 UTC | 100.00000000 | 100.00000000 | +0.000% | 8 |
 
 ## Open positions
 
