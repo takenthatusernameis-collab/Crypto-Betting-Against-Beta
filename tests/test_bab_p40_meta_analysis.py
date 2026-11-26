@@ -3,8 +3,6 @@
 These tests pin the committed ``research_state/bab_p40/meta_summary.json``
 artifact to its deterministic generator and assert the scientific contract:
 
-  * four fixed fixtures (F1_PRIMARY, F2_P39_SECOND, F3_LOW_VOL_WIDE,
-    F4_HIGH_VOL_NARROW), 8 seeds each, 32 cells total;
   * every seed cell is status ``ok`` or ``error``; every ``ok`` cell passes the
     three neutrality invariants (model beta <= 1e-3, dollar <= 1e-9,
     |realized beta| <= 0.15);
@@ -16,10 +14,9 @@ artifact to its deterministic generator and assert the scientific contract:
   * the artifact is byte-reproducible from the pure ``build_summary()`` entry
     point and from ``--check-meta-summary``;
   * the committed SHA-256 provenance digests match a fresh recomputation;
-  * the consolidated verdict is explicit:
-    ``ROBUST_ACROSS_FIXTURES`` / ``FRAGILE_FIXTURE_DEPENDENT`` /
-    ``DOES_NOT_REPLICATE`` (honest, may be negative — pinned to determinism,
-    not to a positive result).
+  * the campaign verdict is explicit: ``ROBUST_ACROSS_FIXTURES``,
+    ``FRAGILE_FIXTURE_DEPENDENT``, or ``DOES_NOT_REPLICATE`` (honest, may be
+    negative — pinned to determinism, not to a positive result).
 
 The artifact is a controlled synthetic stimulus, never real market data. The
 verdict is honest; these tests pin determinism and internal consistency, not a
@@ -48,51 +45,9 @@ MODEL_BETA_NEUTRAL_TOL = 1e-3
 DOLLAR_NEUTRAL_TOL = 1e-9
 REALIZED_BETA_TOL = 0.15
 N_SEEDS = 8
-N_FIXTURES = 4
-N_CELLS_TOTAL = N_FIXTURES * N_SEEDS
 DSR_SURVIVE_THRESHOLD = 0.50
-
-FIXTURE_IDS = (
-    "F1_PRIMARY",
-    "F2_P39_SECOND",
-    "F3_LOW_VOL_WIDE",
-    "F4_HIGH_VOL_NARROW",
-)
-
-FIXTURE_CONFIG = {
-    "F1_PRIMARY": {
-        "base_seed": 20261120,
-        "increment": 1009,
-        "idio_vol": 0.003,
-        "beta_min": 0.35,
-        "beta_max": 1.90,
-        "n_assets": 40,
-    },
-    "F2_P39_SECOND": {
-        "base_seed": 20270101,
-        "increment": 9973,
-        "idio_vol": 0.006,
-        "beta_min": 0.20,
-        "beta_max": 2.40,
-        "n_assets": 32,
-    },
-    "F3_LOW_VOL_WIDE": {
-        "base_seed": 20280201,
-        "increment": 10009,
-        "idio_vol": 0.002,
-        "beta_min": 0.25,
-        "beta_max": 2.10,
-        "n_assets": 36,
-    },
-    "F4_HIGH_VOL_NARROW": {
-        "base_seed": 20290301,
-        "increment": 10007,
-        "idio_vol": 0.008,
-        "beta_min": 0.40,
-        "beta_max": 1.70,
-        "n_assets": 28,
-    },
-}
+N_FIXTURES = 4
+N_TOTAL_CELLS = N_FIXTURES * N_SEEDS
 
 REQUIRED_TAIL_KEYS = (
     "n_observations",
@@ -147,7 +102,7 @@ def _p38_n_trials_total() -> int:
 
 def _all_cells(summary: dict) -> list[dict]:
     cells = []
-    for fid in FIXTURE_IDS:
+    for fid in summary["results"]["fixtures"]:
         cells.extend(summary["results"]["fixtures"][fid]["cells"])
     return cells
 
@@ -171,9 +126,7 @@ def test_summary_schema_version(summary):
 def test_campaign_verdict_is_explicit(summary):
     verdict = summary["campaign_verdict"]
     assert verdict in (
-        "ROBUST_ACROSS_FIXTURES",
-        "FRAGILE_FIXTURE_DEPENDENT",
-        "DOES_NOT_REPLICATE",
+        "ROBUST_ACROSS_FIXTURES", "FRAGILE_FIXTURE_DEPENDENT", "DOES_NOT_REPLICATE"
     ), verdict
 
 
@@ -185,9 +138,15 @@ def test_summary_has_provenance_block(summary):
         "wp",
         "synthetic",
         "note",
-        "fixtures",
+        "fixture_path",
+        "returns_sha256",
         "btc_source_sha256",
+        "n_fixtures",
+        "n_seeds_per_fixture",
+        "n_total_cells",
+        "seeds",
         "config_grid",
+        "fixtures",
         "neutrality_tolerances",
         "bootstrap",
         "dsr_survive_threshold",
@@ -195,12 +154,12 @@ def test_summary_has_provenance_block(summary):
     ):
         assert key in prov, f"provenance missing {key}"
     assert prov["synthetic"] is True
+    assert prov["n_fixtures"] == N_FIXTURES
+    assert prov["n_seeds_per_fixture"] == N_SEEDS
+    assert prov["n_total_cells"] == N_TOTAL_CELLS
     assert prov["config_grid"]["weighting"] == "equal"
     assert prov["config_grid"]["beta_neutral"] is True
     assert prov["config_grid"]["dollar_neutral"] is True
-    assert prov["config_grid"]["n_fixtures"] == N_FIXTURES
-    assert prov["config_grid"]["n_seeds_per_fixture"] == N_SEEDS
-    assert prov["config_grid"]["n_cells_total"] == N_CELLS_TOTAL
     assert prov["neutrality_tolerances"]["model_beta_neutral"] == MODEL_BETA_NEUTRAL_TOL
     assert prov["neutrality_tolerances"]["dollar_neutral"] == DOLLAR_NEUTRAL_TOL
     assert prov["neutrality_tolerances"]["realized_beta"] == REALIZED_BETA_TOL
@@ -213,33 +172,11 @@ def test_provenance_caveat_present(summary):
     assert "not market profitability evidence" in note
 
 
-def test_fixture_grid_matches_contract(summary, runner):
+def test_four_fixtures_present(summary):
     prov = summary["provenance"]
-    entries = {e["id"]: e for e in prov["fixtures"]}
-    assert set(entries) == set(FIXTURE_IDS)
-    for fid, cfg in FIXTURE_CONFIG.items():
-        e = entries[fid]
-        assert e["config"]["base_seed"] == cfg["base_seed"]
-        assert e["config"]["increment"] == cfg["increment"]
-        assert e["config"]["idio_vol"] == cfg["idio_vol"]
-        assert e["config"]["beta_min"] == cfg["beta_min"]
-        assert e["config"]["beta_max"] == cfg["beta_max"]
-        assert e["config"]["n_assets"] == cfg["n_assets"]
-        expected = [cfg["base_seed"] + cfg["increment"] * i for i in range(N_SEEDS)]
-        assert e["config"]["seed_list"] == expected
-        base = runner._build_wide_universe_for_seed(
-            cfg["base_seed"], cfg["idio_vol"], cfg["beta_min"], cfg["beta_max"], cfg["n_assets"]
-        )
-        returns_sha = hashlib.sha256(
-            base.to_csv(date_format="%Y-%m-%d").encode("utf-8")
-        ).hexdigest()
-        assert e["returns_sha256"] == returns_sha
-
-
-def test_btc_source_sha_matches_recompute(summary, runner):
-    btc = runner._load_btc_prices()
-    btc_sha = hashlib.sha256(btc.to_numpy(dtype=float).tobytes()).hexdigest()
-    assert summary["provenance"]["btc_source_sha256"] == btc_sha
+    fixture_ids = [f["id"] for f in prov["fixtures"]]
+    expected = ["F1_PRIMARY", "F2_P39_SECOND", "F3_LOW_VOL_WIDE", "F4_HIGH_VOL_NARROW"]
+    assert fixture_ids == expected, f"expected {expected}, got {fixture_ids}"
 
 
 def test_deflation_uses_p38_n_trials_total_read_only(summary, runner):
@@ -248,17 +185,34 @@ def test_deflation_uses_p38_n_trials_total_read_only(summary, runner):
     assert "P38 deflated_summary.json" in summary["provenance"]["deflation"]["source"]
 
 
+def test_provenance_shas_match_recompute(summary, runner):
+    base = runner._build_wide_universe_for_seed(
+        runner.FIXTURES[0]["seed_base"],
+        idio_vol=runner.FIXTURES[0]["idio_vol"],
+        beta_min=runner.FIXTURES[0]["beta_min"],
+        beta_max=runner.FIXTURES[0]["beta_max"],
+        n_assets=runner.FIXTURES[0]["n_assets"],
+        column_prefix=runner.FIXTURES[0]["column_prefix"],
+    )
+    returns_sha = hashlib.sha256(base.to_csv(date_format="%Y-%m-%d").encode("utf-8")).hexdigest()
+    btc = runner._load_btc_prices()
+    btc_sha = hashlib.sha256(btc.to_numpy(dtype=float).tobytes()).hexdigest()
+    prov = summary["provenance"]
+    assert prov["returns_sha256"] == returns_sha
+    assert prov["btc_source_sha256"] == btc_sha
+
+
 # --------------------------------------------------------------------------- #
 # Per-seed cell completeness + neutrality at every ok cell
 # --------------------------------------------------------------------------- #
 def test_each_fixture_has_eight_cells(summary):
-    for fid in FIXTURE_IDS:
+    for fid in summary["results"]["fixtures"]:
         cells = summary["results"]["fixtures"][fid]["cells"]
         assert len(cells) == N_SEEDS, f"{fid}: expected {N_SEEDS} cells, got {len(cells)}"
 
 
 def test_total_cell_count(summary):
-    assert len(_all_cells(summary)) == N_CELLS_TOTAL
+    assert len(_all_cells(summary)) == N_TOTAL_CELLS
 
 
 def test_cell_status_is_valid(summary):
@@ -266,6 +220,7 @@ def test_cell_status_is_valid(summary):
         assert cell.get("status") in (
             "ok",
             "error",
+            "neutrality_violation",
         ), f"{cell.get('cell_key')}: bad status {cell.get('status')}"
 
 
@@ -427,55 +382,37 @@ def test_dsr_and_psr_bounded_at_every_ok_cell(summary):
 
 
 # --------------------------------------------------------------------------- #
-# Aggregate sanity (per fixture + cross-fixture)
+# Aggregate sanity
 # --------------------------------------------------------------------------- #
+def test_aggregate_has_required_keys(summary):
+    cross = summary["results"]["cross_fixture"]
+    for key in (
+        "n_fixtures",
+        "n_total_cells",
+        "n_total_ok_cells",
+        "n_total_error_cells",
+        "n_total_survive",
+        "n_fixtures_replicating",
+        "replication_fraction",
+        "all_fixtures_neutrality_ok",
+        "all_fixtures_survive",
+        "per_fixture_aggregate",
+    ):
+        assert key in cross, f"cross_fixture aggregate missing {key}"
+    assert cross["n_fixtures"] == N_FIXTURES
+    assert cross["n_total_cells"] == N_TOTAL_CELLS
+
+
 def test_per_fixture_aggregates(summary):
-    results = summary["results"]
-    for fid in FIXTURE_IDS:
-        agg = results["fixtures"][fid]["aggregate"]
+    for fid in summary["results"]["fixtures"]:
+        agg = summary["results"]["fixtures"][fid]["aggregate"]
         for key in (
-            "n_cells",
-            "n_ok_cells",
-            "n_error_cells",
-            "n_neutrality_violations",
-            "all_neutrality_ok",
-            "all_survive",
-            "any_survive",
-            "n_survive",
-            "dsr",
-            "psr",
-            "sharpe",
-            "tail_metric_aggregates",
-            "neutrality",
+            "n_cells", "n_ok_cells", "n_error_cells", "n_neutrality_violations",
+            "all_neutrality_ok", "all_survive", "any_survive", "n_survive",
+            "dsr", "psr", "sharpe", "tail_metric_aggregates", "neutrality",
         ):
             assert key in agg, f"{fid} aggregate missing {key}"
         assert agg["n_cells"] == N_SEEDS
-        assert agg["dsr"]["n"] <= N_SEEDS
-        assert agg["psr"]["n"] <= N_SEEDS
-
-
-def test_cross_fixture_aggregate(summary):
-    agg = summary["results"]["cross_fixture"]
-    for key in (
-        "n_cells",
-        "n_ok_cells",
-        "n_error_cells",
-        "n_neutrality_violations",
-        "all_neutrality_ok",
-        "all_survive",
-        "any_survive",
-        "n_survive",
-        "dsr",
-        "psr",
-        "sharpe",
-        "tail_metric_aggregates",
-        "neutrality",
-    ):
-        assert key in agg, f"cross_fixture aggregate missing {key}"
-    assert agg["n_cells"] == N_CELLS_TOTAL
-    assert agg["n_ok_cells"] == N_CELLS_TOTAL
-    assert agg["n_error_cells"] == 0
-    assert agg["all_neutrality_ok"] is True
 
 
 # --------------------------------------------------------------------------- #

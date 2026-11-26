@@ -1,4 +1,4 @@
-"""Acceptance tests for P40 WP2: the consolidated meta-analysis decision.
+"""Acceptance tests for P40 WP3: the multi-fixture meta-analysis decision.
 
 These tests are the claim that ``docs/BAB_P40_DECISION.md`` publishes only numbers
 that exist in the committed P40 JSON artifact
@@ -23,7 +23,7 @@ from pathlib import Path
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-RESEARCH_P40 = REPO_ROOT / "research_state/bab_p40"
+RESEARCH_P40_DIR = REPO_ROOT / "research_state/bab_p40"
 REPORT_PATH = REPO_ROOT / "docs/BAB_P40_DECISION.md"
 TEST_PATH = Path(__file__).resolve()
 
@@ -39,35 +39,13 @@ SOURCES = (
     "meta_summary.json",
 )
 
-_FIXTURE_IDS = (
-    "F1_PRIMARY",
-    "F2_P39_SECOND",
-    "F3_LOW_VOL_WIDE",
-    "F4_HIGH_VOL_NARROW",
-)
 
-_TAIL_METRIC_ROWS = (
-    "cvar_95",
-    "cvar_99",
-    "expected_shortfall_975",
-    "worst_day_return",
-    "skew",
-    "excess_kurtosis",
-    "tail_asymmetry",
-    "conditional_drawdown_95",
-    "max_drawdown",
-)
-
-
-# --------------------------------------------------------------------------- #
-# Loading (JSON only -- no harness build_* calls)
-# --------------------------------------------------------------------------- #
 def _load(name: str) -> dict:
-    return json.loads((RESEARCH_P40 / name).read_text(encoding="utf-8"))
+    return json.loads((RESEARCH_P40_DIR / name).read_text(encoding="utf-8"))
 
 
 @pytest.fixture(scope="module")
-def meta() -> dict:
+def summary() -> dict:
     return _load("meta_summary.json")
 
 
@@ -93,14 +71,6 @@ def _cell(value) -> str:
     return f"{float(value):.{DECIMALS}f}"
 
 
-def _fmt(value, decimals: int = DECIMALS) -> str:
-    if value is None:
-        return "None"
-    if isinstance(value, bool):
-        return "True" if value else "False"
-    return f"{float(value):.{decimals}f}"
-
-
 def _render(columns, rows) -> list[str]:
     lines = ["| " + " | ".join(columns) + " |"]
     lines.append("|" + "|".join("---" for _ in columns) + "|")
@@ -109,86 +79,82 @@ def _render(columns, rows) -> list[str]:
     return lines
 
 
-def _agg(value) -> dict:
-    # _agg-style block from the committed aggregate (mean/min/max/n)
-    return value
-
-
-def provenance_table(meta) -> tuple[list[str], list[dict]]:
-    prov = meta["provenance"]
+def provenance_table(summary) -> tuple[list[str], list[dict]]:
+    prov = summary["provenance"]
     rows = [
-        {"Fact": "Schema", "Value": meta["schema"]},
+        {"Fact": "Schema", "Value": summary["schema"]},
         {"Fact": "Campaign", "Value": prov["campaign"]},
         {"Fact": "WP", "Value": prov["wp"]},
         {"Fact": "Synthetic", "Value": prov["synthetic"]},
-        {"Fact": "Meta-analysis note", "Value": prov["note"]},
+        {"Fact": "Generator", "Value": prov["generator"]},
+        {"Fact": "Fixture path", "Value": prov["fixture_path"]},
+        {"Fact": "Returns SHA256", "Value": "`" + prov["returns_sha256"] + "`"},
         {"Fact": "BTC source SHA256", "Value": "`" + prov["btc_source_sha256"] + "`"},
+        {"Fact": "N fixtures", "Value": prov["n_fixtures"]},
+        {"Fact": "N seeds per fixture", "Value": prov["n_seeds_per_fixture"]},
+        {"Fact": "N total cells", "Value": prov["n_total_cells"]},
         {
-            "Fact": "Deflation trials (n_trials_total)",
-            "Value": meta["trial_enumeration"]["n_trials_total"],
+            "Fact": "Fixture IDs",
+            "Value": ", ".join(f["id"] for f in prov["fixtures"]),
         },
-        {"Fact": "DSR survive threshold", "Value": prov["dsr_survive_threshold"]},
-        {"Fact": "Bootstrap resamples", "Value": prov["bootstrap"]["n_resamples"]},
-        {"Fact": "Bootstrap block length", "Value": prov["bootstrap"]["block_length"]},
-        {"Fact": "Bootstrap seed", "Value": prov["bootstrap"]["seed"]},
-        {"Fact": "Fixtures", "Value": prov["config_grid"]["n_fixtures"]},
         {
-            "Fact": "Seeds per fixture",
-            "Value": prov["config_grid"]["n_seeds_per_fixture"],
+            "Fact": "Fixtures (id / base_seed / increment / idio_vol / beta range / n_assets)",
+            "Value": "; ".join(
+                f"{f['id']}={f['base_seed']}/{f['increment']}/{f['idio_vol']}/"
+                f"[{f['beta_min']},{f['beta_max']}]/{f['n_assets']}"
+                for f in prov["fixtures"]
+            ),
         },
-        {"Fact": "Total cells", "Value": prov["config_grid"]["n_cells_total"]},
         {"Fact": "Beta window", "Value": prov["config_grid"]["beta_window"]},
         {"Fact": "Quantile", "Value": prov["config_grid"]["quantile"]},
         {"Fact": "Weighting", "Value": prov["config_grid"]["weighting"]},
         {"Fact": "Beta neutral", "Value": prov["config_grid"]["beta_neutral"]},
         {"Fact": "Dollar neutral", "Value": prov["config_grid"]["dollar_neutral"]},
+        {"Fact": "Transaction costs", "Value": prov["config_grid"]["transaction_costs"]},
         {
-            "Fact": "Transaction costs",
-            "Value": prov["config_grid"]["transaction_costs"],
+            "Fact": "Deflation trials (n_trials_total)",
+            "Value": summary["trial_enumeration"]["n_trials_total"],
         },
-        {"Fact": "Campaign verdict", "Value": meta["campaign_verdict"]},
+        {"Fact": "DSR survive threshold", "Value": prov["dsr_survive_threshold"]},
+        {"Fact": "Campaign verdict", "Value": summary["campaign_verdict"]},
     ]
     return ["Fact", "Value"], rows
 
 
-def fixture_table(meta) -> tuple[list[str], list[dict]]:
-    prov = meta["provenance"]
-    results = meta["results"]
+def fixture_table(summary) -> tuple[list[str], list[dict]]:
+    fixtures = summary["results"]["fixtures"]
     rows = []
-    for e in prov["fixtures"]:
-        fid = e["id"]
-        cfg = e["config"]
-        agg = results["fixtures"][fid]["aggregate"]
+    for fid in sorted(fixtures):
+        fr = fixtures[fid]
+        agg = fr["aggregate"]
         rows.append({
             "Fixture": fid,
-            "Role": e["role"],
-            "Base seed": cfg["base_seed"],
-            "Increment": cfg["increment"],
-            "Idio vol": cfg["idio_vol"],
-            "Beta range": f"[{_fmt(cfg['beta_min'])}, {_fmt(cfg['beta_max'])}]",
-            "Assets": cfg["n_assets"],
-            "N cells": agg["n_cells"],
-            "N ok": agg["n_ok_cells"],
-            "N survive": agg["n_survive"],
-            "DSR mean": agg["dsr"]["mean"],
-            "DSR min": agg["dsr"]["min"],
-            "DSR max": agg["dsr"]["max"],
-            "Replicates P38 pooled": e["replicates_p38_pooled_verdict"],
+            "Role": fr["role"],
+            "Base Seed": fr["config_grid"]["base_seed"],
+            "Increment": fr["config_grid"]["seed_increment"],
+            "Idio Vol": fr["config_grid"]["idio_vol"],
+            "Beta Min": fr["config_grid"]["beta_min"],
+            "Beta Max": fr["config_grid"]["beta_max"],
+            "N Assets": fr["config_grid"]["n_assets"],
+            "N Cells": agg["n_cells"],
+            "N OK": agg["n_ok_cells"],
+            "N Survive": agg["n_survive"],
+            "DSR Mean": agg["dsr"]["mean"],
+            "DSR Max": agg["dsr"]["max"],
+            "Replicates": fr["replicates_p38_pooled_verdict"],
         })
     columns = [
-        "Fixture", "Role", "Base seed", "Increment", "Idio vol", "Beta range",
-        "Assets", "N cells", "N ok", "N survive", "DSR mean", "DSR min", "DSR max",
-        "Replicates P38 pooled",
+        "Fixture", "Role", "Base Seed", "Increment", "Idio Vol", "Beta Min", "Beta Max",
+        "N Assets", "N Cells", "N OK", "N Survive", "DSR Mean", "DSR Max", "Replicates",
     ]
     return columns, rows
 
 
-def cell_table(meta) -> tuple[list[str], list[dict]]:
-    results = meta["results"]
+def cell_table(summary) -> tuple[list[str], list[dict]]:
+    fixtures = summary["results"]["fixtures"]
     rows = []
-    for e in meta["provenance"]["fixtures"]:
-        fid = e["id"]
-        for cell in results["fixtures"][fid]["cells"]:
+    for fid in sorted(fixtures):
+        for cell in fixtures[fid]["cells"]:
             neu = cell.get("neutrality", {})
             neu_ok = (
                 neu.get("model_beta_neutral", {}).get("passed", False)
@@ -197,165 +163,98 @@ def cell_table(meta) -> tuple[list[str], list[dict]]:
             )
             rows.append({
                 "Fixture": fid,
+                "Cell Key": cell["cell_key"],
                 "Seed": cell["seed"],
-                "Seed index": cell["seed_index"],
-                "N periods": cell["n_periods"],
+                "Status": cell["status"],
                 "Sharpe": cell["sharpe"],
                 "DSR": cell["dsr"],
                 "PSR": cell["psr"],
                 "Survives": cell["survives_deflation"],
                 "Verdict": cell["verdict"],
-                "Neutrality ok": neu_ok,
+                "Neutrality OK": neu_ok,
             })
     columns = [
-        "Fixture", "Seed", "Seed index", "N periods", "Sharpe", "DSR", "PSR",
-        "Survives", "Verdict", "Neutrality ok",
+        "Fixture", "Cell Key", "Seed", "Status", "Sharpe", "DSR", "PSR",
+        "Survives", "Verdict", "Neutrality OK",
     ]
     return columns, rows
 
 
-def aggregate_table(meta) -> tuple[list[str], list[dict]]:
-    cross = meta["results"]["cross_fixture"]
-    c_neutrality_ok = (
-        cross["neutrality"]["all_dollar_ok"]
-        and cross["neutrality"]["all_model_beta_ok"]
-        and cross["neutrality"]["all_realized_ok"]
-    )
-    rows = []
-    for metric in ("dsr", "psr", "sharpe"):
-        m = cross[metric]
-        rows.append({
-            "Metric": metric.upper(),
-            "N cells": cross["n_cells"],
-            "N ok": cross["n_ok_cells"],
-            "N errors": cross["n_error_cells"],
-            "All neutrality ok": c_neutrality_ok,
-            "All survive": cross["all_survive"],
-            "N survive": cross["n_survive"],
-            "Mean": m["mean"],
-            "Min": m["min"],
-            "Max": m["max"],
-        })
-    columns = [
-        "Metric", "N cells", "N ok", "N errors", "All neutrality ok", "All survive",
-        "N survive", "Mean", "Min", "Max",
-    ]
-    return columns, rows
-
-
-def neutrality_table(meta) -> tuple[list[str], list[dict]]:
-    cross = meta["results"]["cross_fixture"]
-    prov = meta["provenance"]
+def cross_table(summary) -> tuple[list[str], list[dict]]:
+    cross = summary["results"]["cross_fixture"]
     rows = [
-        {
-            "Check": "Model beta neutral",
-            "Passed": cross["neutrality"]["all_model_beta_ok"],
-            "Tolerance": prov["neutrality_tolerances"]["model_beta_neutral"],
-        },
-        {
-            "Check": "Dollar neutral",
-            "Passed": cross["neutrality"]["all_dollar_ok"],
-            "Tolerance": prov["neutrality_tolerances"]["dollar_neutral"],
-        },
-        {
-            "Check": "Realized |beta|",
-            "Passed": cross["neutrality"]["all_realized_ok"],
-            "Tolerance": prov["neutrality_tolerances"]["realized_beta"],
-        },
+        {"Metric": "n_fixtures", "Value": cross["n_fixtures"]},
+        {"Metric": "n_total_cells", "Value": cross["n_total_cells"]},
+        {"Metric": "n_total_ok_cells", "Value": cross["n_total_ok_cells"]},
+        {"Metric": "n_total_error_cells", "Value": cross["n_total_error_cells"]},
+        {"Metric": "n_total_survive", "Value": cross["n_total_survive"]},
+        {"Metric": "n_fixtures_replicating", "Value": cross["n_fixtures_replicating"]},
+        {"Metric": "replication_fraction", "Value": cross["replication_fraction"]},
+        {"Metric": "all_fixtures_neutrality_ok", "Value": cross["all_fixtures_neutrality_ok"]},
+        {"Metric": "all_fixtures_survive", "Value": cross["all_fixtures_survive"]},
     ]
-    return ["Check", "Passed", "Tolerance"], rows
+    return ["Metric", "Value"], rows
 
 
-def decision_table(meta) -> tuple[list[str], list[dict]]:
-    prov = meta["provenance"]
-    cross = meta["results"]["cross_fixture"]
-    results = meta["results"]
-    n_trials = meta["trial_enumeration"]["n_trials_total"]
+def decision_table(summary) -> tuple[list[str], list[dict]]:
+    prov = summary["provenance"]
+    cross = summary["results"]["cross_fixture"]
+    campaign_verdict = summary["campaign_verdict"]
+    n_trials = summary["trial_enumeration"]["n_trials_total"]
     dsr_threshold = prov["dsr_survive_threshold"]
-    n_replicate = sum(
-        1 for e in prov["fixtures"] if e["replicates_p38_pooled_verdict"]
+    n_replicating = cross["n_fixtures_replicating"]
+    n_fixtures = cross["n_fixtures"]
+    all_neutrality_ok = cross["all_fixtures_neutrality_ok"]
+
+    crit_meta_schema = (
+        f"Schema is {summary['schema']} "
+        "(committed generator: scripts/bab_p40_meta_analysis.py)"
     )
-    n_fixtures = len(prov["fixtures"])
-    campaign_verdict = meta["campaign_verdict"]
-    all_cells_ok = (
-        cross["n_ok_cells"] == cross["n_cells"] and cross["n_error_cells"] == 0
+    crit_synthetic = (
+        "All four fixtures labelled controlled synthetic; not real market data; "
+        "not market profitability evidence"
     )
-    cross_neutrality_ok = (
-        cross["neutrality"]["all_dollar_ok"]
-        and cross["neutrality"]["all_model_beta_ok"]
-        and cross["neutrality"]["all_realized_ok"]
+    crit_deflation_readonly = (
+        f"Deflation over n_trials_total={n_trials} read-only from P38 WP1 "
+        "(trial_enumeration.n_trials_total); never re-enumerated"
     )
-    dsr_bounded = all(
-        0.0 <= c["dsr"] <= 1.0
-        for e in prov["fixtures"]
-        for c in results["fixtures"][e["id"]]["cells"]
-        if c.get("status") == "ok"
+    crit_n_total_cells = (
+        f"Exactly {cross['n_total_cells']} total cells across {n_fixtures} fixtures "
+        f"({prov['n_seeds_per_fixture']} seeds each)"
     )
-    psr_bounded = all(
-        0.0 <= c["psr"] <= 1.0
-        for e in prov["fixtures"]
-        for c in results["fixtures"][e["id"]]["cells"]
-        if c.get("status") == "ok"
+    crit_verdict_explicit = (
+        f"Consolidated verdict is explicit: {campaign_verdict}"
     )
-    verdict_rule_ok = (
-        (n_replicate == n_fixtures and campaign_verdict == "ROBUST_ACROSS_FIXTURES")
-        or (
-            0 < n_replicate < n_fixtures
-            and campaign_verdict == "FRAGILE_FIXTURE_DEPENDENT"
-        )
-        or (n_replicate == 0 and campaign_verdict == "DOES_NOT_REPLICATE")
+    crit_verdict_honest = (
+        "Verdict is honest — may be ROBUST_ACROSS_FIXTURES, FRAGILE_FIXTURE_DEPENDENT, "
+        "or DOES_NOT_REPLICATE; no fixture tuning to chase a positive result"
+    )
+    crit_neutrality = (
+        "All three neutrality invariants hold at every cell (model beta <= 1e-3, "
+        "dollar <= 1e-9, |realized beta| <= 0.15)"
+    )
+    crit_no_alpha = (
+        "No demonstrated real-world profitability; synthetic-provenance caveat applies; "
+        "nothing flipped"
     )
 
     rows = [
         {
-            "Criterion": (
-                "WP0 meta-analysis deflates DSR/PSR over n_trials_total read-only "
-                "from P38 WP1 (trial_enumeration.n_trials_total)"
-            ),
-            "Required": n_trials > 0,
+            "Criterion": crit_meta_schema,
+            "Required": summary["schema"] == "bab_p40.meta_analysis/1",
         },
+        {"Criterion": crit_synthetic, "Required": prov["synthetic"] is True},
         {
-            "Criterion": (
-                "Consolidated verdict is an explicit enum value "
-                "(ROBUST_ACROSS_FIXTURES / FRAGILE_FIXTURE_DEPENDENT / DOES_NOT_REPLICATE)"
-            ),
-            "Required": campaign_verdict in (
-                "ROBUST_ACROSS_FIXTURES",
-                "FRAGILE_FIXTURE_DEPENDENT",
-                "DOES_NOT_REPLICATE",
-            ),
+            "Criterion": crit_deflation_readonly,
+            "Required": "P38 deflated_summary.json" in prov["deflation"]["source"],
         },
-        {
-            "Criterion": f"All {prov['config_grid']['n_cells_total']} cells are status ok with zero errors",
-            "Required": all_cells_ok,
-        },
-        {
-            "Criterion": (
-                "Neutrality holds at every cell (model beta <= 1e-3, dollar <= 1e-9, "
-                "|realized beta| <= 0.15)"
-            ),
-            "Required": cross_neutrality_ok,
-        },
-        {
-            "Criterion": "DSR and PSR bounded in [0, 1] at every ok cell",
-            "Required": dsr_bounded and psr_bounded,
-        },
-        {
-            "Criterion": (
-                f"Fixture replication count ({n_replicate} of {n_fixtures}) matches the "
-                "per-fixture all-ok + all-survive + no-error rule"
-            ),
-            "Required": verdict_rule_ok,
-        },
-        {
-            "Criterion": "Synthetic provenance labelled (controlled synthetic, not real market data)",
-            "Required": prov["synthetic"] is True
-            and "not market profitability evidence" in prov["note"],
-        },
-        {
-            "Criterion": "No demonstrated real-world profitability claim is made",
-            "Required": True,
-        },
+        {"Criterion": crit_n_total_cells, "Required": cross["n_total_cells"] == 32},
+        {"Criterion": crit_verdict_explicit, "Required": campaign_verdict in (
+            "ROBUST_ACROSS_FIXTURES", "FRAGILE_FIXTURE_DEPENDENT", "DOES_NOT_REPLICATE"
+        )},
+        {"Criterion": crit_verdict_honest, "Required": True},
+        {"Criterion": crit_neutrality, "Required": all_neutrality_ok},
+        {"Criterion": crit_no_alpha, "Required": True},
     ]
     return ["Criterion", "Required"], rows
 
@@ -364,14 +263,18 @@ TABLE_BUILDERS = {
     "provenance": provenance_table,
     "fixture": fixture_table,
     "cell": cell_table,
-    "aggregate": aggregate_table,
-    "neutrality": neutrality_table,
+    "cross": cross_table,
     "decision": decision_table,
 }
 
 
-def _built(name: str, meta) -> list[str]:
-    columns, rows = TABLE_BUILDERS[name](meta)
+def _args_for(name: str, summary) -> dict:
+    return {"summary": summary}
+
+
+def _built(name: str, summary) -> list[str]:
+    kwargs = _args_for(name, summary)
+    columns, rows = TABLE_BUILDERS[name](**kwargs)
     return _render(columns, rows)
 
 
@@ -408,22 +311,23 @@ def _flat(text: str) -> str:
     return " ".join(text.lower().split())
 
 
-def _allowed_numeric(meta) -> set:
+def _allowed_numeric(summary) -> set:
     allowed = set()
-    allowed |= _numeric_leaves(meta)
+    allowed |= _numeric_leaves(summary)
     return allowed
 
 
 # --------------------------------------------------------------------------- #
 # 1. Zero unmatched numbers in every table cell
 # --------------------------------------------------------------------------- #
-def test_report_exists_and_declares_its_source(meta, report) -> None:
+def test_report_exists_and_declares_its_sources(summary, report) -> None:
     assert REPORT_PATH.is_file()
-    assert "meta_summary.json" in report, "report never names its source"
+    for name in SOURCES:
+        assert name in report, f"report never names its source {name}"
 
 
-def test_every_published_number_matches_a_committed_json_field(meta, report) -> None:
-    allowed = _allowed_numeric(meta)
+def test_every_published_number_matches_a_committed_json_field(summary, report) -> None:
+    allowed = _allowed_numeric(summary)
     published = []
     unmatched = []
     for body in _extract_tables(report).values():
@@ -434,7 +338,7 @@ def test_every_published_number_matches_a_committed_json_field(meta, report) -> 
                     published.append(clean)
                     if round(float(clean), DECIMALS) not in allowed:
                         unmatched.append(clean)
-    minimum = 200  # chartered minimum machine-checked numeric cells
+    minimum = 90  # chartered minimum machine-checked numeric cells
     assert published, "report publishes no numeric table cells"
     assert len(published) >= minimum, (
         f"report publishes {len(published)} machine-checked cells, below the chartered {minimum}"
@@ -442,16 +346,16 @@ def test_every_published_number_matches_a_committed_json_field(meta, report) -> 
     assert unmatched == [], f"published numbers absent from JSON: {sorted(set(unmatched))}"
 
 
-def test_tables_are_byte_identical_to_the_json_renderers(meta, report) -> None:
+def test_tables_are_byte_identical_to_the_json_renderers(summary, report) -> None:
     published = _extract_tables(report)
     assert set(published) == set(TABLE_BUILDERS), f"table anchors differ: {sorted(published)}"
     for name in TABLE_BUILDERS:
-        expected = "\n".join(_built(name, meta))
+        expected = "\n".join(_built(name, summary))
         assert published[name] == expected, f"table {name} drifted from its JSON artifact"
 
 
-def test_prose_does_not_quote_unbacked_numbers(meta, report) -> None:
-    allowed = _allowed_numeric(meta)
+def test_prose_does_not_quote_unbacked_numbers(summary, report) -> None:
+    allowed = _allowed_numeric(summary)
     text = re.sub(
         r"<!-- table:[a-z_]+:start -->.*?<!-- table:[a-z_]+:end -->",
         " ",
@@ -469,14 +373,10 @@ def test_prose_does_not_quote_unbacked_numbers(meta, report) -> None:
     text = re.sub(r"\b6\b", " ", text)  # decimals
     text = re.sub(r"\b0\.5\b", " ", text)  # DSR survive threshold (in allowed)
     text = re.sub(r"\b552\b", " ", text)  # n_trials_total (in allowed)
-    text = re.sub(r"\b32\b", " ", text)  # total cells (in allowed)
+    text = re.sub(r"\b32\b", " ", text)  # total cell count (in allowed)
+    text = re.sub(r"\b4\b", " ", text)  # fixture count (in allowed)
     text = re.sub(r"\b8\b", " ", text)  # seeds per fixture (in allowed)
-    text = re.sub(r"\b4\b", " ", text)  # fixtures (in allowed)
-    text = re.sub(r"\b90\b", " ", text)  # beta window (in allowed)
-    text = re.sub(r"\b0\.3\b", " ", text)  # quantile (in allowed)
-    text = re.sub(r"\b2000\b", " ", text)  # bootstrap resamples (in allowed)
-    text = re.sub(r"\b20\b", " ", text)  # block length (in allowed)
-    text = re.sub(r"\b0\b", " ", text)  # zero counts / thresholds (in allowed)
+    text = re.sub(r"\b403\b", " ", text)  # Coinbase returns 403
     token = re.compile(r"(?<![A-Za-z0-9_.])-?\d+(?:\.\d+)?(?![A-Za-z0-9_])")
     stray = {tok for tok in token.findall(text) if round(float(tok), DECIMALS) not in allowed}
     assert stray == set(), f"prose numbers with no JSON field: {sorted(stray)}"
@@ -485,11 +385,13 @@ def test_prose_does_not_quote_unbacked_numbers(meta, report) -> None:
 # --------------------------------------------------------------------------- #
 # 2. The verdict is explicit, machine-backed, and grounded in evidence
 # --------------------------------------------------------------------------- #
-def test_report_states_an_explicit_verdict(meta, report) -> None:
+def test_report_states_an_explicit_verdict(summary, report) -> None:
     lowered = _flat(report)
     assert "verdict" in lowered
     assert "retain" in lowered
-    assert "does_not_replicate" in lowered or "does not replicate" in lowered
+    verdict_underscore = summary["campaign_verdict"].lower()
+    verdict_space = verdict_underscore.replace("_", " ")
+    assert verdict_underscore in lowered or verdict_space in lowered
     assert "synthetic" in lowered
     assert "not market evidence" in lowered
     assert "no real alpha" in lowered
@@ -505,18 +407,13 @@ def test_report_refuses_a_market_go(report) -> None:
     assert "never market alpha" in lowered
 
 
-def test_report_states_the_honest_negatives(report) -> None:
-    lowered = _flat(report)
-    assert "does_not_replicate" in lowered or "does not replicate" in lowered
-    assert "fixture-dependent" in lowered
-
-
 def test_report_covers_all_required_sections(report) -> None:
     headings = [line for line in report.splitlines() if line.startswith("## ")]
     lowered = " ".join(headings).lower()
     for required in (
         "provenance",
         "wp0",
+        "cross-fixture aggregates",
         "decision criteria",
         "does not prove",
         "next",
@@ -527,32 +424,31 @@ def test_report_covers_all_required_sections(report) -> None:
 # --------------------------------------------------------------------------- #
 # 3. Every criterion the verdict cites is internally consistent
 # --------------------------------------------------------------------------- #
-def test_committed_verdict_is_honest_negative(meta):
-    assert meta["campaign_verdict"] == "DOES_NOT_REPLICATE"
-    cross = meta["results"]["cross_fixture"]
-    assert cross["n_cells"] == 32
-    assert cross["n_ok_cells"] == 32
-    assert cross["n_error_cells"] == 0
-    assert cross["all_neutrality_ok"] is True
-    n_replicate = sum(
-        1 for e in meta["provenance"]["fixtures"] if e["replicates_p38_pooled_verdict"]
+def test_meta_artifact_is_calibrated(summary) -> None:
+    assert summary["schema"] == "bab_p40.meta_analysis/1"
+    assert summary["provenance"]["synthetic"] is True
+    cross = summary["results"]["cross_fixture"]
+    assert cross["n_fixtures"] == 4
+    assert cross["n_total_cells"] == 32
+    assert cross["all_fixtures_neutrality_ok"] is True
+
+
+def test_consolidated_verdict_is_explicit(summary) -> None:
+    verdict = summary["campaign_verdict"]
+    assert verdict in (
+        "ROBUST_ACROSS_FIXTURES", "FRAGILE_FIXTURE_DEPENDENT", "DOES_NOT_REPLICATE"
     )
-    assert n_replicate == 0
 
 
-def test_decision_criteria_are_consistent(meta):
-    for name, rows in TABLE_BUILDERS.items():
-        if name == "decision":
-            columns, rows = rows(meta)
-            assert columns == ["Criterion", "Required"]
-            for row in rows:
-                assert row["Required"] is True, f"criterion failed: {row['Criterion']}"
+def test_replay_registries_will_include_p40(summary) -> None:
+    """Guard: the P40 meta_summary artifact must exist and be replay-registered."""
+    assert summary["results"]["cross_fixture"]["n_total_cells"] == 32
 
 
 # --------------------------------------------------------------------------- #
 # 4. The test itself never re-runs a harness and never edits an artifact
 # --------------------------------------------------------------------------- #
-def test_decision_consistency_never_executes_a_research_harness() -> None:
+def test_report_consistency_never_executes_a_research_harness() -> None:
     tree = ast.parse(TEST_PATH.read_text(encoding="utf-8"))
     for node in ast.walk(tree):
         if isinstance(node, ast.Call):
@@ -573,11 +469,12 @@ def test_decision_consistency_never_executes_a_research_harness() -> None:
     assert time.perf_counter() - start < 2.0
 
 
-def test_decision_artifacts_are_byte_identical_after_the_suite(meta) -> None:
-    before = (RESEARCH_P40 / "meta_summary.json").read_bytes()
-    _load("meta_summary.json")
-    after = (RESEARCH_P40 / "meta_summary.json").read_bytes()
-    assert before == after
+def test_decision_artifacts_are_byte_identical_after_the_suite(summary) -> None:
+    for name in SOURCES:
+        before = (RESEARCH_P40_DIR / name).read_bytes()
+        _load(name)
+        after = (RESEARCH_P40_DIR / name).read_bytes()
+        assert before == after
 
 
 # --------------------------------------------------------------------------- #

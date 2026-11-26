@@ -1,11 +1,11 @@
 {
   "campaign_verdict": "DOES_NOT_REPLICATE",
-  "campaign_verdict_reason": "0 of 4 fixtures replicate the P38 pooled verdict (SURVIVES_DEFLATION + ALL_NEUTRALITY_OK) after deflation over n_trials_total=552; consolidated verdict DOES_NOT_REPLICATE.",
+  "campaign_verdict_reason": "0 of 4 fixtures replicate the P38 pooled verdict (SURVIVES_DEFLATION + ALL_NEUTRALITY_OK) after deflation over n_trials_total=552; DSR survive threshold=0.5. No fixture replicates \u2014 the P38 pooled verdict does not replicate (DOES_NOT_REPLICATE). Honest negative.",
   "provenance": {
     "bootstrap": {
       "block_length": 20,
       "n_resamples": 2000,
-      "seed": 20261123
+      "seed": 20270102
     },
     "btc_source_sha256": "cf1472e154f38b062d8b40ffe9bddcc6a51286e41400acd51d64e12e9d585a77",
     "campaign": "P40 Multi-Fixture Robustness Meta-Analysis & Consolidated Factor Verdict",
@@ -13,9 +13,6 @@
       "beta_neutral": true,
       "beta_window": 90,
       "dollar_neutral": true,
-      "n_cells_total": 32,
-      "n_fixtures": 4,
-      "n_seeds_per_fixture": 8,
       "quantile": 0.3,
       "transaction_costs": 0.0,
       "weighting": "equal"
@@ -26,207 +23,498 @@
       "source": "P38 deflated_summary.json (trial_enumeration.n_trials_total)"
     },
     "dsr_survive_threshold": 0.5,
+    "fixture_path": "/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta/tests/fixtures/wide_bab_universe.csv",
     "fixtures": [
       {
-        "config": {
-          "base_seed": 20261120,
-          "beta_max": 1.9,
-          "beta_min": 0.35,
-          "idio_vol": 0.003,
-          "increment": 1009,
-          "n_assets": 40,
-          "n_seeds": 8,
-          "seed_list": [
-            20261120,
-            20262129,
-            20263138,
-            20264147,
-            20265156,
-            20266165,
-            20267174,
-            20268183
-          ]
-        },
+        "base_seed": 20261120,
+        "beta_max": 1.9,
+        "beta_min": 0.35,
+        "column_prefix": "A",
         "id": "F1_PRIMARY",
-        "replicates_p38_pooled_verdict": false,
-        "returns_sha256": "892c5d59bcbf1a124be798e47b176aeef5199e9e431bef7230cabfdc6b4f3205",
+        "idio_vol": 0.003,
+        "increment": 1009,
+        "n_assets": 40,
         "role": "P38/P39 WP1 primary parameterization"
       },
       {
-        "config": {
-          "base_seed": 20270101,
-          "beta_max": 2.4,
-          "beta_min": 0.2,
-          "idio_vol": 0.006,
-          "increment": 9973,
-          "n_assets": 32,
-          "n_seeds": 8,
-          "seed_list": [
-            20270101,
-            20280074,
-            20290047,
-            20300020,
-            20309993,
-            20319966,
-            20329939,
-            20339912
-          ]
-        },
+        "base_seed": 20270101,
+        "beta_max": 2.4,
+        "beta_min": 0.2,
+        "column_prefix": "X",
         "id": "F2_P39_SECOND",
-        "replicates_p38_pooled_verdict": false,
-        "returns_sha256": "49f25959227ae79c11ce74b14362dd6103e1a21869fd05b4d1cb037df2168914",
+        "idio_vol": 0.006,
+        "increment": 9973,
+        "n_assets": 32,
         "role": "P39 WP2 second parameterization"
       },
       {
-        "config": {
-          "base_seed": 20280201,
-          "beta_max": 2.1,
-          "beta_min": 0.25,
-          "idio_vol": 0.002,
-          "increment": 10009,
-          "n_assets": 36,
-          "n_seeds": 8,
-          "seed_list": [
-            20280201,
-            20290210,
-            20300219,
-            20310228,
-            20320237,
-            20330246,
-            20340255,
-            20350264
-          ]
-        },
+        "base_seed": 20280201,
+        "beta_max": 2.1,
+        "beta_min": 0.25,
+        "column_prefix": "Y",
         "id": "F3_LOW_VOL_WIDE",
-        "replicates_p38_pooled_verdict": false,
-        "returns_sha256": "bef93ae1bd9c1d4216e6420fcbf8302080263d89aa9beab0cdd64854c1bbf21a",
+        "idio_vol": 0.002,
+        "increment": 10009,
+        "n_assets": 36,
         "role": "Low-idio, wider beta cross-section"
       },
       {
-        "config": {
-          "base_seed": 20290301,
-          "beta_max": 1.7,
-          "beta_min": 0.4,
-          "idio_vol": 0.008,
-          "increment": 10007,
-          "n_assets": 28,
-          "n_seeds": 8,
-          "seed_list": [
-            20290301,
-            20300308,
-            20310315,
-            20320322,
-            20330329,
-            20340336,
-            20350343,
-            20360350
-          ]
-        },
+        "base_seed": 20290301,
+        "beta_max": 1.7,
+        "beta_min": 0.4,
+        "column_prefix": "Z",
         "id": "F4_HIGH_VOL_NARROW",
-        "replicates_p38_pooled_verdict": false,
-        "returns_sha256": "099d1d1d44045e75d0c2089375c46a2007cb5f485e03facb0892bfa1ee21ccac",
+        "idio_vol": 0.008,
+        "increment": 10007,
+        "n_assets": 28,
         "role": "High-idio, narrower beta cross-section"
       }
     ],
     "generator": "scripts/bab_p40_meta_analysis.py",
+    "n_fixtures": 4,
+    "n_seeds_per_fixture": 8,
+    "n_total_cells": 32,
     "neutrality_tolerances": {
       "dollar_neutral": 1e-09,
       "model_beta_neutral": 0.001,
       "realized_beta": 0.15
     },
-    "note": "Four deterministic synthetic wide universes built from the same read-only BTC price fixture (tests/fixtures/wide_bab_universe.csv). Asset returns = beta * BTC_return + seeded idiosyncratic noise. Not real market data; not market profitability evidence. Pooled per-seed cells (no regime split): deflated significance (DSR/PSR over n_trials_total read-only from P38 WP1) plus tail risk (CVaR/expected shortfall/drawdown/skew/kurtosis) and neutrality invariants. Campaign verdict reports whether the P38 pooled verdict (SURVIVES_DEFLATION + ALL_NEUTRALITY_OK) replicates across fixtures.",
+    "note": "Deterministic synthetic multi-fixture meta-analysis \u2014 four independent parameterizations of the same BTC price fixture (tests/fixtures/wide_bab_universe.csv). Asset returns = beta * BTC_return + idio, idio ~ N(0, idio_vol), betas linspace(beta_min, beta_max, n_assets). Not real market data; not market profitability evidence. Pooled per-seed cells (no regime split): deflated significance (DSR/PSR over n_trials_total read-only from P38 WP1) plus tail risk (CVaR/expected shortfall/drawdown/skew/kurtosis). Campaign verdict reports whether the P38 pooled verdict (SURVIVES_DEFLATION + ALL_NEUTRALITY_OK) replicates across fixtures.",
+    "returns_sha256": "892c5d59bcbf1a124be798e47b176aeef5199e9e431bef7230cabfdc6b4f3205",
+    "seeds": {
+      "F1_PRIMARY": {
+        "base_seed": 20261120,
+        "increment": 1009,
+        "n_seeds": 8,
+        "seed_list": [
+          20261120,
+          20262129,
+          20263138,
+          20264147,
+          20265156,
+          20266165,
+          20267174,
+          20268183
+        ]
+      },
+      "F2_P39_SECOND": {
+        "base_seed": 20270101,
+        "increment": 9973,
+        "n_seeds": 8,
+        "seed_list": [
+          20270101,
+          20280074,
+          20290047,
+          20300020,
+          20309993,
+          20319966,
+          20329939,
+          20339912
+        ]
+      },
+      "F3_LOW_VOL_WIDE": {
+        "base_seed": 20280201,
+        "increment": 10009,
+        "n_seeds": 8,
+        "seed_list": [
+          20280201,
+          20290210,
+          20300219,
+          20310228,
+          20320237,
+          20330246,
+          20340255,
+          20350264
+        ]
+      },
+      "F4_HIGH_VOL_NARROW": {
+        "base_seed": 20290301,
+        "increment": 10007,
+        "n_seeds": 8,
+        "seed_list": [
+          20290301,
+          20300308,
+          20310315,
+          20320322,
+          20330329,
+          20340336,
+          20350343,
+          20360350
+        ]
+      }
+    },
     "synthetic": true,
-    "wp": "WP0 - Deterministic meta-analysis generator (four fixtures, 32 cells)"
+    "wp": "WP0 - Deterministic meta-analysis generator (four synthetic fixtures)"
   },
   "results": {
     "cross_fixture": {
-      "all_neutrality_ok": true,
-      "all_survive": false,
-      "any_survive": true,
-      "dsr": {
-        "max": 0.958546,
-        "mean": 0.5212565,
-        "min": 0.069944,
-        "n": 32
-      },
-      "n_cells": 32,
-      "n_error_cells": 0,
-      "n_neutrality_violations": 0,
-      "n_ok_cells": 32,
-      "n_survive": 16,
-      "neutrality": {
-        "all_dollar_ok": true,
-        "all_model_beta_ok": true,
-        "all_realized_ok": true
-      },
-      "psr": {
-        "max": 1.0,
-        "mean": 0.4810525625,
-        "min": 0.0,
-        "n": 32
-      },
-      "sharpe": {
-        "max": 2.17645827187,
-        "mean": 0.0414846868473,
-        "min": -1.35918081025,
-        "n": 32
-      },
-      "tail_metric_aggregates": {
-        "conditional_drawdown_95": {
-          "max": -0.00288106786016,
-          "mean": -0.0167716597064,
-          "min": -0.0403664256438,
-          "n": 32
+      "all_fixtures_neutrality_ok": true,
+      "all_fixtures_survive": false,
+      "n_fixtures": 4,
+      "n_fixtures_replicating": 0,
+      "n_total_cells": 32,
+      "n_total_error_cells": 0,
+      "n_total_ok_cells": 32,
+      "n_total_survive": 16,
+      "per_fixture_aggregate": {
+        "F1_PRIMARY": {
+          "all_neutrality_ok": true,
+          "all_survive": false,
+          "any_survive": true,
+          "dsr": {
+            "max": 0.94399,
+            "mean": 0.636728,
+            "min": 0.081475,
+            "n": 8
+          },
+          "n_cells": 8,
+          "n_error_cells": 0,
+          "n_neutrality_violations": 0,
+          "n_ok_cells": 8,
+          "n_survive": 5,
+          "neutrality": {
+            "all_dollar_ok": true,
+            "all_model_beta_ok": true,
+            "all_realized_ok": true
+          },
+          "psr": {
+            "max": 1.0,
+            "mean": 0.62607025,
+            "min": 0.0,
+            "n": 8
+          },
+          "sharpe": {
+            "max": 1.86552480988,
+            "mean": 0.36743438997,
+            "min": -0.845875245222,
+            "n": 8
+          },
+          "tail_metric_aggregates": {
+            "conditional_drawdown_95": {
+              "max": -0.00288106786016,
+              "mean": -0.00780334267108,
+              "min": -0.0132604277584,
+              "n": 8
+            },
+            "cvar_95": {
+              "max": -0.000784050155707,
+              "mean": -0.000862891123799,
+              "min": -0.000936008066628,
+              "n": 8
+            },
+            "cvar_99": {
+              "max": -0.00093220227771,
+              "mean": -0.00110044451309,
+              "min": -0.00125230168683,
+              "n": 8
+            },
+            "excess_kurtosis": {
+              "max": 1.23881479823,
+              "mean": 0.160747308498,
+              "min": -0.216510965937,
+              "n": 8
+            },
+            "expected_shortfall_975": {
+              "max": -0.000858175100632,
+              "mean": -0.000971949660785,
+              "min": -0.00108286658246,
+              "n": 8
+            },
+            "max_drawdown": {
+              "max": -0.00372180442705,
+              "mean": -0.00856435043093,
+              "min": -0.0138931159342,
+              "n": 8
+            },
+            "skew": {
+              "max": 0.22665356403,
+              "mean": -0.0154980603284,
+              "min": -0.191856130856,
+              "n": 8
+            },
+            "tail_asymmetry": {
+              "max": 0.0842343127836,
+              "mean": -0.000493440056245,
+              "min": -0.105366493017,
+              "n": 8
+            },
+            "worst_day_return": {
+              "max": -0.00100757440427,
+              "mean": -0.00126328375881,
+              "min": -0.00148981361436,
+              "n": 8
+            }
+          }
         },
-        "cvar_95": {
-          "max": -0.000552225871234,
-          "mean": -0.00164703265271,
-          "min": -0.00324118291823,
-          "n": 32
+        "F2_P39_SECOND": {
+          "all_neutrality_ok": true,
+          "all_survive": false,
+          "any_survive": true,
+          "dsr": {
+            "max": 0.928788,
+            "mean": 0.3957805,
+            "min": 0.070183,
+            "n": 8
+          },
+          "n_cells": 8,
+          "n_error_cells": 0,
+          "n_neutrality_violations": 0,
+          "n_ok_cells": 8,
+          "n_survive": 3,
+          "neutrality": {
+            "all_dollar_ok": true,
+            "all_model_beta_ok": true,
+            "all_realized_ok": true
+          },
+          "psr": {
+            "max": 1.0,
+            "mean": 0.375,
+            "min": 0.0,
+            "n": 8
+          },
+          "sharpe": {
+            "max": 2.17645827187,
+            "mean": -0.218329469071,
+            "min": -1.35918081025,
+            "n": 8
+          },
+          "tail_metric_aggregates": {
+            "conditional_drawdown_95": {
+              "max": -0.00734041693642,
+              "mean": -0.0246014249031,
+              "min": -0.0403664256438,
+              "n": 8
+            },
+            "cvar_95": {
+              "max": -0.00176370970179,
+              "mean": -0.00203694655031,
+              "min": -0.00220423209803,
+              "n": 8
+            },
+            "cvar_99": {
+              "max": -0.00218158422664,
+              "mean": -0.0025034447918,
+              "min": -0.00276998426057,
+              "n": 8
+            },
+            "excess_kurtosis": {
+              "max": 0.30987530845,
+              "mean": -0.0608522510081,
+              "min": -0.313390204461,
+              "n": 8
+            },
+            "expected_shortfall_975": {
+              "max": -0.00193855463637,
+              "mean": -0.0022655859093,
+              "min": -0.00244632604535,
+              "n": 8
+            },
+            "max_drawdown": {
+              "max": -0.00909578521167,
+              "mean": -0.0262612247809,
+              "min": -0.0417040787161,
+              "n": 8
+            },
+            "skew": {
+              "max": 0.170186323642,
+              "mean": 0.0674726239902,
+              "min": -0.110048977773,
+              "n": 8
+            },
+            "tail_asymmetry": {
+              "max": 0.0318776894052,
+              "mean": -0.0109026572548,
+              "min": -0.107094523455,
+              "n": 8
+            },
+            "worst_day_return": {
+              "max": -0.00251141142031,
+              "mean": -0.00290587691543,
+              "min": -0.00382045881243,
+              "n": 8
+            }
+          }
         },
-        "cvar_99": {
-          "max": -0.000688321748835,
-          "mean": -0.00204183217567,
-          "min": -0.00444482044813,
-          "n": 32
+        "F3_LOW_VOL_WIDE": {
+          "all_neutrality_ok": true,
+          "all_survive": false,
+          "any_survive": true,
+          "dsr": {
+            "max": 0.958728,
+            "mean": 0.630724,
+            "min": 0.095354,
+            "n": 8
+          },
+          "n_cells": 8,
+          "n_error_cells": 0,
+          "n_neutrality_violations": 0,
+          "n_ok_cells": 8,
+          "n_survive": 5,
+          "neutrality": {
+            "all_dollar_ok": true,
+            "all_model_beta_ok": true,
+            "all_realized_ok": true
+          },
+          "psr": {
+            "max": 1.0,
+            "mean": 0.603885625,
+            "min": 0.0,
+            "n": 8
+          },
+          "sharpe": {
+            "max": 1.05166510091,
+            "mean": 0.182513320874,
+            "min": -0.535429074751,
+            "n": 8
+          },
+          "tail_metric_aggregates": {
+            "conditional_drawdown_95": {
+              "max": -0.00312728451752,
+              "mean": -0.00485034247749,
+              "min": -0.00626269813658,
+              "n": 8
+            },
+            "cvar_95": {
+              "max": -0.000552225871234,
+              "mean": -0.000615543086534,
+              "min": -0.000650948236068,
+              "n": 8
+            },
+            "cvar_99": {
+              "max": -0.000688321748835,
+              "mean": -0.000781862120246,
+              "min": -0.000882010073112,
+              "n": 8
+            },
+            "excess_kurtosis": {
+              "max": 0.371349261594,
+              "mean": -0.000294265761497,
+              "min": -0.188796450735,
+              "n": 8
+            },
+            "expected_shortfall_975": {
+              "max": -0.000616947727617,
+              "mean": -0.00069537902281,
+              "min": -0.000753688423741,
+              "n": 8
+            },
+            "max_drawdown": {
+              "max": -0.00379596882859,
+              "mean": -0.00531872068033,
+              "min": -0.00689882769443,
+              "n": 8
+            },
+            "skew": {
+              "max": 0.26245258496,
+              "mean": -0.019109407141,
+              "min": -0.316276506883,
+              "n": 8
+            },
+            "tail_asymmetry": {
+              "max": 0.105814783893,
+              "mean": -0.000573903059479,
+              "min": -0.0725053199944,
+              "n": 8
+            },
+            "worst_day_return": {
+              "max": -0.00073509764758,
+              "mean": -0.000878654183455,
+              "min": -0.000988631561756,
+              "n": 8
+            }
+          }
         },
-        "excess_kurtosis": {
-          "max": 1.23881479823,
-          "mean": 0.0114309679422,
-          "min": -0.382414165238,
-          "n": 32
-        },
-        "expected_shortfall_975": {
-          "max": -0.000616947727617,
-          "mean": -0.00183670740049,
-          "min": -0.00378484629772,
-          "n": 32
-        },
-        "max_drawdown": {
-          "max": -0.00372180442705,
-          "mean": -0.0180607859207,
-          "min": -0.0423586027832,
-          "n": 32
-        },
-        "skew": {
-          "max": 0.26245258496,
-          "mean": 0.00200186140143,
-          "min": -0.316276506883,
-          "n": 32
-        },
-        "tail_asymmetry": {
-          "max": 0.105814783893,
-          "mean": -0.000345551727268,
-          "min": -0.107094523455,
-          "n": 32
-        },
-        "worst_day_return": {
-          "max": -0.00073509764758,
-          "mean": -0.00234321803019,
-          "min": -0.00544876469628,
-          "n": 32
+        "F4_HIGH_VOL_NARROW": {
+          "all_neutrality_ok": true,
+          "all_survive": false,
+          "any_survive": true,
+          "dsr": {
+            "max": 0.952693,
+            "mean": 0.41991775,
+            "min": 0.072676,
+            "n": 8
+          },
+          "n_cells": 8,
+          "n_error_cells": 0,
+          "n_neutrality_violations": 0,
+          "n_ok_cells": 8,
+          "n_survive": 3,
+          "neutrality": {
+            "all_dollar_ok": true,
+            "all_model_beta_ok": true,
+            "all_realized_ok": true
+          },
+          "psr": {
+            "max": 1.0,
+            "mean": 0.319254375,
+            "min": 0.0,
+            "n": 8
+          },
+          "sharpe": {
+            "max": 1.31390407282,
+            "mean": -0.165679494385,
+            "min": -1.04395179944,
+            "n": 8
+          },
+          "tail_metric_aggregates": {
+            "conditional_drawdown_95": {
+              "max": -0.0142889948457,
+              "mean": -0.029831528774,
+              "min": -0.0401791592025,
+              "n": 8
+            },
+            "cvar_95": {
+              "max": -0.00277318240486,
+              "mean": -0.00307274985018,
+              "min": -0.00324118291823,
+              "n": 8
+            },
+            "cvar_99": {
+              "max": -0.00337971433052,
+              "mean": -0.00378157727753,
+              "min": -0.00444482044813,
+              "n": 8
+            },
+            "excess_kurtosis": {
+              "max": 0.705924126037,
+              "mean": -0.05387691996,
+              "min": -0.382414165238,
+              "n": 8
+            },
+            "expected_shortfall_975": {
+              "max": -0.00304173428879,
+              "mean": -0.00341391500907,
+              "min": -0.00378484629772,
+              "n": 8
+            },
+            "max_drawdown": {
+              "max": -0.0170105783327,
+              "mean": -0.0320988477907,
+              "min": -0.0423586027832,
+              "n": 8
+            },
+            "skew": {
+              "max": 0.153905403358,
+              "mean": -0.0248577109151,
+              "min": -0.207356811763,
+              "n": 8
+            },
+            "tail_asymmetry": {
+              "max": 0.0767669313422,
+              "mean": 0.0105877934614,
+              "min": -0.0429636289168,
+              "n": 8
+            },
+            "worst_day_return": {
+              "max": -0.00376603500313,
+              "mean": -0.00432505726307,
+              "min": -0.00544876469628,
+              "n": 8
+            }
+          }
         }
-      }
+      },
+      "replication_fraction": 0.0
     },
     "fixtures": {
       "F1_PRIMARY": {
@@ -235,9 +523,9 @@
           "all_survive": false,
           "any_survive": true,
           "dsr": {
-            "max": 0.944013,
-            "mean": 0.637205625,
-            "min": 0.081837,
+            "max": 0.94399,
+            "mean": 0.636728,
+            "min": 0.081475,
             "n": 8
           },
           "n_cells": 8,
@@ -323,7 +611,7 @@
           {
             "annualized_volatility": 0.00657852127122,
             "cell_key": "seed_0",
-            "dsr": 0.944013,
+            "dsr": 0.94399,
             "gamma": -0.132458,
             "kappa": 2.783489,
             "max_drawdown": -0.00748252751628,
@@ -351,7 +639,7 @@
             "seed": 20261120,
             "seed_index": 0,
             "sharpe": 0.760517795443,
-            "sigma0": 1.0415303614,
+            "sigma0": 1.0390717389,
             "status": "ok",
             "survives_deflation": true,
             "tail": {
@@ -386,7 +674,7 @@
           {
             "annualized_volatility": 0.00670958359244,
             "cell_key": "seed_1",
-            "dsr": 0.933528,
+            "dsr": 0.933048,
             "gamma": 0.157882,
             "kappa": 3.166895,
             "max_drawdown": -0.0076408523486,
@@ -414,7 +702,7 @@
             "seed": 20262129,
             "seed_index": 1,
             "sharpe": 0.320261389955,
-            "sigma0": 0.9734281314,
+            "sigma0": 0.9432212617,
             "status": "ok",
             "survives_deflation": true,
             "tail": {
@@ -449,7 +737,7 @@
           {
             "annualized_volatility": 0.00667606196135,
             "cell_key": "seed_2",
-            "dsr": 0.926111,
+            "dsr": 0.926165,
             "gamma": 0.039151,
             "kappa": 2.965668,
             "max_drawdown": -0.00372180442705,
@@ -477,7 +765,7 @@
             "seed": 20263138,
             "seed_index": 2,
             "sharpe": 1.86552480988,
-            "sigma0": 0.7070238068,
+            "sigma0": 0.7204354438,
             "status": "ok",
             "survives_deflation": true,
             "tail": {
@@ -512,7 +800,7 @@
           {
             "annualized_volatility": 0.00649513031452,
             "cell_key": "seed_3",
-            "dsr": 0.238889,
+            "dsr": 0.236171,
             "gamma": -0.165355,
             "kappa": 4.238815,
             "max_drawdown": -0.0095601616916,
@@ -540,7 +828,7 @@
             "seed": 20264147,
             "seed_index": 3,
             "sharpe": -0.129599012824,
-            "sigma0": 0.9848117968,
+            "sigma0": 0.9641571136,
             "status": "ok",
             "survives_deflation": false,
             "tail": {
@@ -575,7 +863,7 @@
           {
             "annualized_volatility": 0.00673802777713,
             "cell_key": "seed_4",
-            "dsr": 0.109034,
+            "dsr": 0.108773,
             "gamma": 0.108446,
             "kappa": 3.257785,
             "max_drawdown": -0.00859922984509,
@@ -603,7 +891,7 @@
             "seed": 20265156,
             "seed_index": 4,
             "sharpe": -0.531830755396,
-            "sigma0": 0.8452689668,
+            "sigma0": 0.8338488125,
             "status": "ok",
             "survives_deflation": false,
             "tail": {
@@ -638,7 +926,7 @@
           {
             "annualized_volatility": 0.00671895196168,
             "cell_key": "seed_5",
-            "dsr": 0.925842,
+            "dsr": 0.925786,
             "gamma": 0.226654,
             "kappa": 3.03113,
             "max_drawdown": -0.00765577524151,
@@ -666,7 +954,7 @@
             "seed": 20266165,
             "seed_index": 5,
             "sharpe": 0.967764607966,
-            "sigma0": 0.9255862874,
+            "sigma0": 0.916127769,
             "status": "ok",
             "survives_deflation": true,
             "tail": {
@@ -701,7 +989,7 @@
           {
             "annualized_volatility": 0.00675722471273,
             "cell_key": "seed_6",
-            "dsr": 0.081837,
+            "dsr": 0.081475,
             "gamma": -0.166448,
             "kappa": 2.879256,
             "max_drawdown": -0.0138931159342,
@@ -729,7 +1017,7 @@
             "seed": 20267174,
             "seed_index": 6,
             "sharpe": -0.845875245222,
-            "sigma0": 0.9916216501,
+            "sigma0": 0.957605847,
             "status": "ok",
             "survives_deflation": false,
             "tail": {
@@ -764,7 +1052,7 @@
           {
             "annualized_volatility": 0.00645599743523,
             "cell_key": "seed_7",
-            "dsr": 0.938391,
+            "dsr": 0.938416,
             "gamma": -0.191856,
             "kappa": 2.962942,
             "max_drawdown": -0.00996133644309,
@@ -792,7 +1080,7 @@
             "seed": 20268183,
             "seed_index": 7,
             "sharpe": 0.532711529966,
-            "sigma0": 0.9715511088,
+            "sigma0": 0.9734445206,
             "status": "ok",
             "survives_deflation": true,
             "tail": {
@@ -824,6 +1112,29 @@
             "verdict": "SURVIVES_DEFLATION",
             "wealth": 1.00460912693
           }
+        ],
+        "config_grid": {
+          "base_seed": 20261120,
+          "beta_max": 1.9,
+          "beta_min": 0.35,
+          "column_prefix": "A",
+          "idio_vol": 0.003,
+          "n_assets": 40,
+          "n_seeds": 8,
+          "seed_increment": 1009
+        },
+        "fixture_id": "F1_PRIMARY",
+        "replicates_p38_pooled_verdict": false,
+        "role": "P38/P39 WP1 primary parameterization",
+        "seeds": [
+          20261120,
+          20262129,
+          20263138,
+          20264147,
+          20265156,
+          20266165,
+          20267174,
+          20268183
         ]
       },
       "F2_P39_SECOND": {
@@ -832,9 +1143,9 @@
           "all_survive": false,
           "any_survive": true,
           "dsr": {
-            "max": 0.928768,
-            "mean": 0.395857875,
-            "min": 0.069944,
+            "max": 0.928788,
+            "mean": 0.3957805,
+            "min": 0.070183,
             "n": 8
           },
           "n_cells": 8,
@@ -920,7 +1231,7 @@
           {
             "annualized_volatility": 0.015542292565,
             "cell_key": "seed_0",
-            "dsr": 0.069944,
+            "dsr": 0.070183,
             "gamma": 0.03237,
             "kappa": 2.68661,
             "max_drawdown": -0.0270398048889,
@@ -948,7 +1259,7 @@
             "seed": 20270101,
             "seed_index": 0,
             "sharpe": -0.861581676732,
-            "sigma0": 0.7791145923,
+            "sigma0": 0.8000737946,
             "status": "ok",
             "survives_deflation": false,
             "tail": {
@@ -983,7 +1294,7 @@
           {
             "annualized_volatility": 0.016341232042,
             "cell_key": "seed_1",
-            "dsr": 0.923431,
+            "dsr": 0.923269,
             "gamma": -0.110049,
             "kappa": 3.28473,
             "max_drawdown": -0.0231366868196,
@@ -1011,7 +1322,7 @@
             "seed": 20280074,
             "seed_index": 1,
             "sharpe": 0.487880058808,
-            "sigma0": 0.9369044376,
+            "sigma0": 0.9260146939,
             "status": "ok",
             "survives_deflation": true,
             "tail": {
@@ -1046,7 +1357,7 @@
           {
             "annualized_volatility": 0.0160390704879,
             "cell_key": "seed_2",
-            "dsr": 0.082488,
+            "dsr": 0.08251,
             "gamma": 0.048817,
             "kappa": 2.809519,
             "max_drawdown": -0.0350563477517,
@@ -1074,7 +1385,7 @@
             "seed": 20290047,
             "seed_index": 2,
             "sharpe": -0.641188847025,
-            "sigma0": 0.9089128365,
+            "sigma0": 0.9101468909,
             "status": "ok",
             "survives_deflation": false,
             "tail": {
@@ -1109,7 +1420,7 @@
           {
             "annualized_volatility": 0.016998716058,
             "cell_key": "seed_3",
-            "dsr": 0.923706,
+            "dsr": 0.923094,
             "gamma": 0.054905,
             "kappa": 3.309875,
             "max_drawdown": -0.0194878538433,
@@ -1137,7 +1448,7 @@
             "seed": 20300020,
             "seed_index": 3,
             "sharpe": 0.327766488134,
-            "sigma0": 0.750797533,
+            "sigma0": 0.7195991949,
             "status": "ok",
             "survives_deflation": true,
             "tail": {
@@ -1172,7 +1483,7 @@
           {
             "annualized_volatility": 0.015688120585,
             "cell_key": "seed_4",
-            "dsr": 0.073579,
+            "dsr": 0.073291,
             "gamma": 0.119136,
             "kappa": 2.774282,
             "max_drawdown": -0.0309032235944,
@@ -1200,7 +1511,7 @@
             "seed": 20309993,
             "seed_index": 4,
             "sharpe": -1.10702916144,
-            "sigma0": 0.7634266167,
+            "sigma0": 0.7335819544,
             "status": "ok",
             "survives_deflation": false,
             "tail": {
@@ -1235,7 +1546,7 @@
           {
             "annualized_volatility": 0.0161227391985,
             "cell_key": "seed_5",
-            "dsr": 0.08426,
+            "dsr": 0.084453,
             "gamma": 0.170186,
             "kappa": 2.843848,
             "max_drawdown": -0.0236660174213,
@@ -1263,7 +1574,7 @@
             "seed": 20319966,
             "seed_index": 5,
             "sharpe": -0.769760075924,
-            "sigma0": 0.9908162665,
+            "sigma0": 1.0032760679,
             "status": "ok",
             "survives_deflation": false,
             "tail": {
@@ -1298,7 +1609,7 @@
           {
             "annualized_volatility": 0.0161261025736,
             "cell_key": "seed_6",
-            "dsr": 0.080687,
+            "dsr": 0.080656,
             "gamma": 0.101447,
             "kappa": 2.908561,
             "max_drawdown": -0.0417040787161,
@@ -1326,7 +1637,7 @@
             "seed": 20329939,
             "seed_index": 6,
             "sharpe": -1.35918081025,
-            "sigma0": 0.8913726317,
+            "sigma0": 0.8875428183,
             "status": "ok",
             "survives_deflation": false,
             "tail": {
@@ -1361,7 +1672,7 @@
           {
             "annualized_volatility": 0.0155724333622,
             "cell_key": "seed_7",
-            "dsr": 0.928768,
+            "dsr": 0.928788,
             "gamma": 0.122969,
             "kappa": 2.895757,
             "max_drawdown": -0.00909578521167,
@@ -1389,7 +1700,7 @@
             "seed": 20339912,
             "seed_index": 7,
             "sharpe": 2.17645827187,
-            "sigma0": 0.7076602573,
+            "sigma0": 0.7151598331,
             "status": "ok",
             "survives_deflation": true,
             "tail": {
@@ -1421,6 +1732,29 @@
             "verdict": "SURVIVES_DEFLATION",
             "wealth": 1.04647584578
           }
+        ],
+        "config_grid": {
+          "base_seed": 20270101,
+          "beta_max": 2.4,
+          "beta_min": 0.2,
+          "column_prefix": "X",
+          "idio_vol": 0.006,
+          "n_assets": 32,
+          "n_seeds": 8,
+          "seed_increment": 9973
+        },
+        "fixture_id": "F2_P39_SECOND",
+        "replicates_p38_pooled_verdict": false,
+        "role": "P39 WP2 second parameterization",
+        "seeds": [
+          20270101,
+          20280074,
+          20290047,
+          20300020,
+          20309993,
+          20319966,
+          20329939,
+          20339912
         ]
       },
       "F3_LOW_VOL_WIDE": {
@@ -1429,9 +1763,9 @@
           "all_survive": false,
           "any_survive": true,
           "dsr": {
-            "max": 0.958546,
-            "mean": 0.630584625,
-            "min": 0.095286,
+            "max": 0.958728,
+            "mean": 0.630724,
+            "min": 0.095354,
             "n": 8
           },
           "n_cells": 8,
@@ -1517,7 +1851,7 @@
           {
             "annualized_volatility": 0.00459500569154,
             "cell_key": "seed_0",
-            "dsr": 0.095286,
+            "dsr": 0.095354,
             "gamma": 0.262453,
             "kappa": 2.969318,
             "max_drawdown": -0.00505572201258,
@@ -1545,7 +1879,7 @@
             "seed": 20280201,
             "seed_index": 0,
             "sharpe": -0.535429074751,
-            "sigma0": 0.8593664354,
+            "sigma0": 0.8622141731,
             "status": "ok",
             "survives_deflation": false,
             "tail": {
@@ -1580,7 +1914,7 @@
           {
             "annualized_volatility": 0.00497787526898,
             "cell_key": "seed_1",
-            "dsr": 0.958546,
+            "dsr": 0.958728,
             "gamma": -0.063411,
             "kappa": 2.879355,
             "max_drawdown": -0.00689882769443,
@@ -1608,7 +1942,7 @@
             "seed": 20290210,
             "seed_index": 1,
             "sharpe": 0.0521399209382,
-            "sigma0": 0.8726854847,
+            "sigma0": 0.8626068631,
             "status": "ok",
             "survives_deflation": true,
             "tail": {
@@ -1643,7 +1977,7 @@
           {
             "annualized_volatility": 0.00444758947039,
             "cell_key": "seed_2",
-            "dsr": 0.108983,
+            "dsr": 0.109025,
             "gamma": -0.316277,
             "kappa": 3.371349,
             "max_drawdown": -0.0068659541837,
@@ -1671,7 +2005,7 @@
             "seed": 20300219,
             "seed_index": 2,
             "sharpe": -0.533620227508,
-            "sigma0": 0.7081595,
+            "sigma0": 0.7104043896,
             "status": "ok",
             "survives_deflation": false,
             "tail": {
@@ -1706,7 +2040,7 @@
           {
             "annualized_volatility": 0.00482051051337,
             "cell_key": "seed_3",
-            "dsr": 0.943269,
+            "dsr": 0.943538,
             "gamma": -0.114115,
             "kappa": 2.811204,
             "max_drawdown": -0.00379596882859,
@@ -1734,7 +2068,7 @@
             "seed": 20310228,
             "seed_index": 3,
             "sharpe": 0.49437852318,
-            "sigma0": 0.7637832057,
+            "sigma0": 0.7840600507,
             "status": "ok",
             "survives_deflation": true,
             "tail": {
@@ -1769,7 +2103,7 @@
           {
             "annualized_volatility": 0.00453254611162,
             "cell_key": "seed_4",
-            "dsr": 0.122799,
+            "dsr": 0.123886,
             "gamma": 0.08498,
             "kappa": 3.290628,
             "max_drawdown": -0.0057674658111,
@@ -1797,7 +2131,7 @@
             "seed": 20320237,
             "seed_index": 4,
             "sharpe": -0.288504081051,
-            "sigma0": 0.7453058701,
+            "sigma0": 0.7685939041,
             "status": "ok",
             "survives_deflation": false,
             "tail": {
@@ -1832,7 +2166,7 @@
           {
             "annualized_volatility": 0.0048631416227,
             "cell_key": "seed_5",
-            "dsr": 0.936855,
+            "dsr": 0.93683,
             "gamma": 0.055965,
             "kappa": 2.814387,
             "max_drawdown": -0.00502920154527,
@@ -1860,7 +2194,7 @@
             "seed": 20330246,
             "seed_index": 5,
             "sharpe": 1.00515054236,
-            "sigma0": 0.7797380153,
+            "sigma0": 0.7761115798,
             "status": "ok",
             "survives_deflation": true,
             "tail": {
@@ -1895,7 +2229,7 @@
           {
             "annualized_volatility": 0.00494580758252,
             "cell_key": "seed_6",
-            "dsr": 0.930727,
+            "dsr": 0.930717,
             "gamma": 0.016579,
             "kappa": 2.956777,
             "max_drawdown": -0.00524883612552,
@@ -1923,7 +2257,7 @@
             "seed": 20340255,
             "seed_index": 6,
             "sharpe": 1.05166510091,
-            "sigma0": 0.9445545873,
+            "sigma0": 0.9430736165,
             "status": "ok",
             "survives_deflation": true,
             "tail": {
@@ -1958,7 +2292,7 @@
           {
             "annualized_volatility": 0.00468865391446,
             "cell_key": "seed_7",
-            "dsr": 0.948212,
+            "dsr": 0.947714,
             "gamma": -0.079049,
             "kappa": 2.904629,
             "max_drawdown": -0.00388778924146,
@@ -1986,7 +2320,7 @@
             "seed": 20350264,
             "seed_index": 7,
             "sharpe": 0.214325862917,
-            "sigma0": 0.7288383675,
+            "sigma0": 0.7048858555,
             "status": "ok",
             "survives_deflation": true,
             "tail": {
@@ -2018,6 +2352,29 @@
             "verdict": "SURVIVES_DEFLATION",
             "wealth": 1.00133797809
           }
+        ],
+        "config_grid": {
+          "base_seed": 20280201,
+          "beta_max": 2.1,
+          "beta_min": 0.25,
+          "column_prefix": "Y",
+          "idio_vol": 0.002,
+          "n_assets": 36,
+          "n_seeds": 8,
+          "seed_increment": 10009
+        },
+        "fixture_id": "F3_LOW_VOL_WIDE",
+        "replicates_p38_pooled_verdict": false,
+        "role": "Low-idio, wider beta cross-section",
+        "seeds": [
+          20280201,
+          20290210,
+          20300219,
+          20310228,
+          20320237,
+          20330246,
+          20340255,
+          20350264
         ]
       },
       "F4_HIGH_VOL_NARROW": {
@@ -2026,9 +2383,9 @@
           "all_survive": false,
           "any_survive": true,
           "dsr": {
-            "max": 0.952911,
-            "mean": 0.421377875,
-            "min": 0.073224,
+            "max": 0.952693,
+            "mean": 0.41991775,
+            "min": 0.072676,
             "n": 8
           },
           "n_cells": 8,
@@ -2114,7 +2471,7 @@
           {
             "annualized_volatility": 0.024187620064,
             "cell_key": "seed_0",
-            "dsr": 0.92973,
+            "dsr": 0.929818,
             "gamma": 0.024789,
             "kappa": 2.930491,
             "max_drawdown": -0.0170105783327,
@@ -2142,7 +2499,7 @@
             "seed": 20290301,
             "seed_index": 0,
             "sharpe": 1.31390407282,
-            "sigma0": 0.7838489113,
+            "sigma0": 0.7991555371,
             "status": "ok",
             "survives_deflation": true,
             "tail": {
@@ -2177,7 +2534,7 @@
           {
             "annualized_volatility": 0.0239073930751,
             "cell_key": "seed_1",
-            "dsr": 0.952911,
+            "dsr": 0.952693,
             "gamma": -0.207357,
             "kappa": 2.836208,
             "max_drawdown": -0.029998108446,
@@ -2205,7 +2562,7 @@
             "seed": 20300308,
             "seed_index": 1,
             "sharpe": 0.210269204576,
-            "sigma0": 0.7662086228,
+            "sigma0": 0.755077916,
             "status": "ok",
             "survives_deflation": true,
             "tail": {
@@ -2240,7 +2597,7 @@
           {
             "annualized_volatility": 0.0222578936682,
             "cell_key": "seed_2",
-            "dsr": 0.318851,
+            "dsr": 0.311295,
             "gamma": 0.153905,
             "kappa": 2.828768,
             "max_drawdown": -0.0283285793986,
@@ -2268,7 +2625,7 @@
             "seed": 20310315,
             "seed_index": 2,
             "sharpe": -0.0694049144803,
-            "sigma0": 0.9434951961,
+            "sigma0": 0.9200277552,
             "status": "ok",
             "survives_deflation": false,
             "tail": {
@@ -2303,7 +2660,7 @@
           {
             "annualized_volatility": 0.0238789149252,
             "cell_key": "seed_3",
-            "dsr": 0.073224,
+            "dsr": 0.072676,
             "gamma": -0.051482,
             "kappa": 2.617586,
             "max_drawdown": -0.0372525189988,
@@ -2331,7 +2688,7 @@
             "seed": 20320322,
             "seed_index": 3,
             "sharpe": -0.45664709099,
-            "sigma0": 0.7768612707,
+            "sigma0": 0.7530347723,
             "status": "ok",
             "survives_deflation": false,
             "tail": {
@@ -2366,7 +2723,7 @@
           {
             "annualized_volatility": 0.0241717836519,
             "cell_key": "seed_4",
-            "dsr": 0.073906,
+            "dsr": 0.074221,
             "gamma": 0.088213,
             "kappa": 2.771641,
             "max_drawdown": -0.0423586027832,
@@ -2394,7 +2751,7 @@
             "seed": 20330329,
             "seed_index": 4,
             "sharpe": -1.04395179944,
-            "sigma0": 0.7943977894,
+            "sigma0": 0.8258768999,
             "status": "ok",
             "survives_deflation": false,
             "tail": {
@@ -2429,7 +2786,7 @@
           {
             "annualized_volatility": 0.0236128994961,
             "cell_key": "seed_5",
-            "dsr": 0.794795,
+            "dsr": 0.79264,
             "gamma": -0.037151,
             "kappa": 3.065693,
             "max_drawdown": -0.0233599097651,
@@ -2457,7 +2814,7 @@
             "seed": 20340336,
             "seed_index": 5,
             "sharpe": -0.00641376535261,
-            "sigma0": 0.8820924527,
+            "sigma0": 0.8468897565,
             "status": "ok",
             "survives_deflation": true,
             "tail": {
@@ -2492,7 +2849,7 @@
           {
             "annualized_volatility": 0.0236837288815,
             "cell_key": "seed_6",
-            "dsr": 0.151619,
+            "dsr": 0.150112,
             "gamma": -0.07318,
             "kappa": 3.705924,
             "max_drawdown": -0.0370521314289,
@@ -2520,7 +2877,7 @@
             "seed": 20350343,
             "seed_index": 6,
             "sharpe": -0.268372198996,
-            "sigma0": 0.8968923803,
+            "sigma0": 0.8678231194,
             "status": "ok",
             "survives_deflation": false,
             "tail": {
@@ -2555,7 +2912,7 @@
           {
             "annualized_volatility": 0.0226467782369,
             "cell_key": "seed_7",
-            "dsr": 0.075987,
+            "dsr": 0.075887,
             "gamma": -0.096599,
             "kappa": 2.812674,
             "max_drawdown": -0.041430353172,
@@ -2583,7 +2940,7 @@
             "seed": 20360350,
             "seed_index": 7,
             "sharpe": -1.00481946322,
-            "sigma0": 0.8963279622,
+            "sigma0": 0.8849461262,
             "status": "ok",
             "survives_deflation": false,
             "tail": {
@@ -2615,6 +2972,29 @@
             "verdict": "DOES_NOT_SURVIVE_DEFLATION",
             "wealth": 0.969516713548
           }
+        ],
+        "config_grid": {
+          "base_seed": 20290301,
+          "beta_max": 1.7,
+          "beta_min": 0.4,
+          "column_prefix": "Z",
+          "idio_vol": 0.008,
+          "n_assets": 28,
+          "n_seeds": 8,
+          "seed_increment": 10007
+        },
+        "fixture_id": "F4_HIGH_VOL_NARROW",
+        "replicates_p38_pooled_verdict": false,
+        "role": "High-idio, narrower beta cross-section",
+        "seeds": [
+          20290301,
+          20300308,
+          20310315,
+          20320322,
+          20330329,
+          20340336,
+          20350343,
+          20360350
         ]
       }
     }

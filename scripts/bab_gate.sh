@@ -236,3 +236,14 @@ python3 -m pytest -q tests/test_bab_p39_cross_fixture.py
 echo "[bab_gate] P39 decision-consistency tests (WP3)"
 python3 -m pytest -q tests/test_bab_p39_decision_consistency.py
 echo "[bab_gate] P39 GREEN"
+
+# --- P40 WP0/WP3: multi-fixture meta-analysis + decision doc + gate wire ---
+echo "[bab_gate] P40 meta-analysis summary check (WP0)"
+python3 "$ROOT/scripts/bab_p40_meta_analysis.py" --check-meta-summary
+echo "[bab_gate] P40 meta-analysis tests (WP0)"
+python3 -m pytest -q tests/test_bab_p40_meta_analysis.py
+echo "[bab_gate] P40 decision-consistency tests (WP3)"
+python3 -m pytest -q tests/test_bab_p40_decision_consistency.py
+echo "[bab_gate] P40 decision replay (WP3)"
+python3 "$ROOT/scripts/bab_replay_decisions.py" --subset p40_decision.md
+echo "[bab_gate] P40 GREEN"

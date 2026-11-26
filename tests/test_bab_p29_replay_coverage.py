@@ -109,6 +109,11 @@ EXPECTED_NAMES = {
     "tail_risk_summary",
     "regime_summary",
     "cross_fixture_summary",
+    # P40 WP0 multi-fixture meta-analysis summary artifact (json_only=True,
+    # no_xproc=True in bab_replay_full.py REGISTRY; no .md sidecar replayed
+    # here -- the .md is rendered by build_summary() and pinned by
+    # tests/test_bab_p40_meta_analysis.py).
+    "meta_summary",
 }
 
 

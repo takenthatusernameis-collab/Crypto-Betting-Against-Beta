@@ -131,6 +131,15 @@ REGISTRY: list[dict] = [
         ],
     },
     {
+        "name": "p40_decision.md",
+        "module": "generate_p40_decision",
+        "gen_dir": ROOT,
+        "kind": "decision",
+        "outputs": [
+            {"constant": "REPORT_PATH", "committed": ROOT / "docs/BAB_P40_DECISION.md"},
+        ],
+    },
+    {
         # P32 WP2: charter-generated KICKOFF docs, rendered read-only via the
         # charter module's build_charter() + render_markdown() (never the
         # write_artifacts() path, which would touch the frozen research_state

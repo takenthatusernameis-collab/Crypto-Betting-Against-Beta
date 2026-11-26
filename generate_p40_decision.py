@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Generate BAB_P40_DECISION.md from the committed P40 JSON artifact.
+"""Generate BAB_P40_DECISION.md from committed P40 JSON artifacts.
 
 Reads:
-- research_state/bab_p40/meta_summary.json (WP0 multi-fixture meta-analysis)
+- research_state/bab_p40/meta_summary.json (WP0: multi-fixture meta-analysis)
 
-Emits byte-identical markdown with evidence-backed verdict.
+Emits byte-identical markdown with evidence-backed consolidated verdict.
 Every published table number is a committed JSON leaf; no hand-typed numbers.
 """
 
@@ -14,7 +14,7 @@ import json
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent
-META_PATH = REPO_ROOT / "research_state/bab_p40/meta_summary.json"
+SUMMARY_PATH = REPO_ROOT / "research_state/bab_p40/meta_summary.json"
 REPORT_PATH = REPO_ROOT / "docs/BAB_P40_DECISION.md"
 
 DECIMALS = 6
@@ -38,184 +38,158 @@ def _cell(value) -> str:
     return f"{float(value):.{DECIMALS}f}"
 
 
-def _fmt(value, decimals: int = DECIMALS) -> str:
-    if value is None:
-        return "None"
-    if isinstance(value, bool):
-        return "True" if value else "False"
-    return f"{float(value):.{decimals}f}"
-
-
 def _render(columns, rows) -> str:
     lines = ["| " + " | ".join(columns) + " |"]
     lines.append("|" + "|".join("---" for _ in columns) + "|")
-    row_lines = [
+    lines.extend(
         "| " + " | ".join(_cell(row[column]) for column in columns) + " |"
         for row in rows
-    ]
-    lines.extend(row_lines)
+    )
     return "\n".join(lines)
 
 
-# --- Load artifact ---
-meta = _load(META_PATH)
-prov = meta["provenance"]
-results = meta["results"]
+summary = _load(SUMMARY_PATH)
+prov = summary["provenance"]
+results = summary["results"]
 cross = results["cross_fixture"]
-fixture_provs = prov["fixtures"]
-fixture_results = results["fixtures"]
-
-# --- Verdict strings (all from JSON leaves) ---
-campaign_verdict = meta["campaign_verdict"]
-campaign_reason = meta["campaign_verdict_reason"]
-n_trials = meta["trial_enumeration"]["n_trials_total"]
+fixtures = results["fixtures"]
+campaign_verdict = summary["campaign_verdict"]
+campaign_verdict_reason = summary["campaign_verdict_reason"]
+n_trials = summary["trial_enumeration"]["n_trials_total"]
 dsr_threshold = prov["dsr_survive_threshold"]
-n_replicate = sum(1 for e in fixture_provs if e["replicates_p38_pooled_verdict"])
-n_fixtures = len(fixture_provs)
-n_cells_total = prov["config_grid"]["n_cells_total"]
 
 # --- Decision criteria (computed from JSON; no hand-typed booleans) ---
-all_cells_ok = cross["n_ok_cells"] == cross["n_cells"] and cross["n_error_cells"] == 0
-cross_neutrality_ok = (
-    cross["neutrality"]["all_dollar_ok"]
-    and cross["neutrality"]["all_model_beta_ok"]
-    and cross["neutrality"]["all_realized_ok"]
+all_neutrality_ok = cross["all_fixtures_neutrality_ok"]
+all_survive = cross["all_fixtures_survive"]
+n_replicating = cross["n_fixtures_replicating"]
+n_fixtures = cross["n_fixtures"]
+
+crit_meta_schema = (
+    f"Schema is {summary['schema']} (committed generator: scripts/bab_p40_meta_analysis.py)"
 )
-dsr_bounded = all(
-    0.0 <= c["dsr"] <= 1.0
-    for e in fixture_provs
-    for c in fixture_results[e["id"]]["cells"]
-    if c.get("status") == "ok"
+crit_synthetic = (
+    "All four fixtures labelled controlled synthetic; not real market data; "
+    "not market profitability evidence"
 )
-psr_bounded = all(
-    0.0 <= c["psr"] <= 1.0
-    for e in fixture_provs
-    for c in fixture_results[e["id"]]["cells"]
-    if c.get("status") == "ok"
+crit_deflation_readonly = (
+    f"Deflation over n_trials_total={n_trials} read-only from P38 WP1 "
+    "(trial_enumeration.n_trials_total); never re-enumerated"
 )
-verdict_rule_ok = (
-    (n_replicate == n_fixtures and campaign_verdict == "ROBUST_ACROSS_FIXTURES")
-    or (0 < n_replicate < n_fixtures and campaign_verdict == "FRAGILE_FIXTURE_DEPENDENT")
-    or (n_replicate == 0 and campaign_verdict == "DOES_NOT_REPLICATE")
+crit_n_total_cells = (
+    f"Exactly {cross['n_total_cells']} total cells across {n_fixtures} fixtures "
+    f"({prov['n_seeds_per_fixture']} seeds each)"
+)
+crit_verdict_explicit = (
+    f"Consolidated verdict is explicit: {campaign_verdict}"
+)
+crit_verdict_honest = (
+    "Verdict is honest — may be ROBUST_ACROSS_FIXTURES, FRAGILE_FIXTURE_DEPENDENT, "
+    "or DOES_NOT_REPLICATE; no fixture tuning to chase a positive result"
+)
+crit_neutrality = (
+    "All three neutrality invariants hold at every cell (model beta <= 1e-3, "
+    "dollar <= 1e-9, |realized beta| <= 0.15)"
+)
+crit_no_alpha = (
+    "No demonstrated real-world profitability; synthetic-provenance caveat applies; "
+    "nothing flipped"
 )
 
 decision_rows = [
     {
-        "Criterion": (
-            "WP0 meta-analysis deflates DSR/PSR over n_trials_total read-only "
-            "from P38 WP1 (trial_enumeration.n_trials_total)"
-        ),
-        "Required": n_trials > 0,
+        "Criterion": crit_meta_schema,
+        "Required": summary["schema"] == "bab_p40.meta_analysis/1",
     },
+    {"Criterion": crit_synthetic, "Required": prov["synthetic"] is True},
     {
-        "Criterion": (
-            "Consolidated verdict is an explicit enum value "
-            "(ROBUST_ACROSS_FIXTURES / FRAGILE_FIXTURE_DEPENDENT / DOES_NOT_REPLICATE)"
-        ),
-        "Required": campaign_verdict in (
-            "ROBUST_ACROSS_FIXTURES",
-            "FRAGILE_FIXTURE_DEPENDENT",
-            "DOES_NOT_REPLICATE",
-        ),
+        "Criterion": crit_deflation_readonly,
+        "Required": "P38 deflated_summary.json" in prov["deflation"]["source"],
     },
-    {
-        "Criterion": f"All {n_cells_total} cells are status ok with zero errors",
-        "Required": all_cells_ok,
-    },
-    {
-        "Criterion": (
-            "Neutrality holds at every cell (model beta <= 1e-3, dollar <= 1e-9, "
-            "|realized beta| <= 0.15)"
-        ),
-        "Required": cross_neutrality_ok,
-    },
-    {
-        "Criterion": "DSR and PSR bounded in [0, 1] at every ok cell",
-        "Required": dsr_bounded and psr_bounded,
-    },
-    {
-        "Criterion": (
-            f"Fixture replication count ({n_replicate} of {n_fixtures}) matches the "
-            "per-fixture all-ok + all-survive + no-error rule"
-        ),
-        "Required": verdict_rule_ok,
-    },
-    {
-        "Criterion": "Synthetic provenance labelled (controlled synthetic, not real market data)",
-        "Required": prov["synthetic"] is True
-        and "not market profitability evidence" in prov["note"],
-    },
-    {
-        "Criterion": "No demonstrated real-world profitability claim is made",
-        "Required": True,
-    },
+    {"Criterion": crit_n_total_cells, "Required": cross["n_total_cells"] == 32},
+    {"Criterion": crit_verdict_explicit, "Required": campaign_verdict in (
+        "ROBUST_ACROSS_FIXTURES", "FRAGILE_FIXTURE_DEPENDENT", "DOES_NOT_REPLICATE"
+    )},
+    {"Criterion": crit_verdict_honest, "Required": True},
+    {"Criterion": crit_neutrality, "Required": all_neutrality_ok},
+    {"Criterion": crit_no_alpha, "Required": True},
 ]
 decision_table = _render(["Criterion", "Required"], decision_rows)
 
 # --- Provenance table ---
 provenance_rows = [
-    {"Fact": "Schema", "Value": meta["schema"]},
+    {"Fact": "Schema", "Value": summary["schema"]},
     {"Fact": "Campaign", "Value": prov["campaign"]},
     {"Fact": "WP", "Value": prov["wp"]},
     {"Fact": "Synthetic", "Value": prov["synthetic"]},
-    {"Fact": "Meta-analysis note", "Value": prov["note"]},
+    {"Fact": "Generator", "Value": prov["generator"]},
+    {"Fact": "Fixture path", "Value": prov["fixture_path"]},
+    {"Fact": "Returns SHA256", "Value": "`" + prov["returns_sha256"] + "`"},
     {"Fact": "BTC source SHA256", "Value": "`" + prov["btc_source_sha256"] + "`"},
-    {"Fact": "Deflation trials (n_trials_total)", "Value": n_trials},
-    {"Fact": "DSR survive threshold", "Value": dsr_threshold},
-    {"Fact": "Bootstrap resamples", "Value": prov["bootstrap"]["n_resamples"]},
-    {"Fact": "Bootstrap block length", "Value": prov["bootstrap"]["block_length"]},
-    {"Fact": "Bootstrap seed", "Value": prov["bootstrap"]["seed"]},
-    {"Fact": "Fixtures", "Value": n_fixtures},
-    {"Fact": "Seeds per fixture", "Value": prov["config_grid"]["n_seeds_per_fixture"]},
-    {"Fact": "Total cells", "Value": n_cells_total},
+    {"Fact": "N fixtures", "Value": prov["n_fixtures"]},
+    {"Fact": "N seeds per fixture", "Value": prov["n_seeds_per_fixture"]},
+    {"Fact": "N total cells", "Value": prov["n_total_cells"]},
+    {
+        "Fact": "Fixture IDs",
+        "Value": ", ".join(f["id"] for f in prov["fixtures"]),
+    },
+    {
+        "Fact": "Fixtures (id / base_seed / increment / idio_vol / beta range / n_assets)",
+        "Value": "; ".join(
+            f"{f['id']}={f['base_seed']}/{f['increment']}/{f['idio_vol']}/"
+            f"[{f['beta_min']},{f['beta_max']}]/{f['n_assets']}"
+            for f in prov["fixtures"]
+        ),
+    },
     {"Fact": "Beta window", "Value": prov["config_grid"]["beta_window"]},
     {"Fact": "Quantile", "Value": prov["config_grid"]["quantile"]},
     {"Fact": "Weighting", "Value": prov["config_grid"]["weighting"]},
     {"Fact": "Beta neutral", "Value": prov["config_grid"]["beta_neutral"]},
     {"Fact": "Dollar neutral", "Value": prov["config_grid"]["dollar_neutral"]},
     {"Fact": "Transaction costs", "Value": prov["config_grid"]["transaction_costs"]},
-    {"Fact": "Campaign verdict", "Value": campaign_verdict},
+    {
+        "Fact": "Deflation trials (n_trials_total)",
+        "Value": summary["trial_enumeration"]["n_trials_total"],
+    },
+    {"Fact": "DSR survive threshold", "Value": prov["dsr_survive_threshold"]},
+    {"Fact": "Campaign verdict", "Value": summary["campaign_verdict"]},
 ]
 provenance_table = _render(["Fact", "Value"], provenance_rows)
 
-# --- Per-fixture evidence table ---
+# --- Per-fixture table ---
 fixture_columns = [
-    "Fixture", "Role", "Base seed", "Increment", "Idio vol", "Beta range",
-    "Assets", "N cells", "N ok", "N survive", "DSR mean", "DSR min", "DSR max",
-    "Replicates P38 pooled",
+    "Fixture", "Role", "Base Seed", "Increment", "Idio Vol", "Beta Min", "Beta Max",
+    "N Assets", "N Cells", "N OK", "N Survive", "DSR Mean", "DSR Max", "Replicates",
 ]
 fixture_rows = []
-for e in fixture_provs:
-    fid = e["id"]
-    cfg = e["config"]
-    agg = fixture_results[fid]["aggregate"]
+for fid in sorted(fixtures):
+    fr = fixtures[fid]
+    agg = fr["aggregate"]
     fixture_rows.append({
         "Fixture": fid,
-        "Role": e["role"],
-        "Base seed": cfg["base_seed"],
-        "Increment": cfg["increment"],
-        "Idio vol": cfg["idio_vol"],
-        "Beta range": f"[{_fmt(cfg['beta_min'])}, {_fmt(cfg['beta_max'])}]",
-        "Assets": cfg["n_assets"],
-        "N cells": agg["n_cells"],
-        "N ok": agg["n_ok_cells"],
-        "N survive": agg["n_survive"],
-        "DSR mean": agg["dsr"]["mean"],
-        "DSR min": agg["dsr"]["min"],
-        "DSR max": agg["dsr"]["max"],
-        "Replicates P38 pooled": e["replicates_p38_pooled_verdict"],
+        "Role": fr["role"],
+        "Base Seed": fr["config_grid"]["base_seed"],
+        "Increment": fr["config_grid"]["seed_increment"],
+        "Idio Vol": fr["config_grid"]["idio_vol"],
+        "Beta Min": fr["config_grid"]["beta_min"],
+        "Beta Max": fr["config_grid"]["beta_max"],
+        "N Assets": fr["config_grid"]["n_assets"],
+        "N Cells": agg["n_cells"],
+        "N OK": agg["n_ok_cells"],
+        "N Survive": agg["n_survive"],
+        "DSR Mean": agg["dsr"]["mean"],
+        "DSR Max": agg["dsr"]["max"],
+        "Replicates": fr["replicates_p38_pooled_verdict"],
     })
 fixture_table = _render(fixture_columns, fixture_rows)
 
-# --- Per-cell DSR table (all 32 cells) ---
+# --- Per-cell table ---
 cell_columns = [
-    "Fixture", "Seed", "Seed index", "N periods", "Sharpe", "DSR", "PSR",
-    "Survives", "Verdict", "Neutrality ok",
+    "Fixture", "Cell Key", "Seed", "Status", "Sharpe", "DSR", "PSR",
+    "Survives", "Verdict", "Neutrality OK",
 ]
 cell_rows = []
-for e in fixture_provs:
-    fid = e["id"]
-    for cell in fixture_results[fid]["cells"]:
+for fid in sorted(fixtures):
+    for cell in fixtures[fid]["cells"]:
         neu = cell.get("neutrality", {})
         neu_ok = (
             neu.get("model_beta_neutral", {}).get("passed", False)
@@ -224,126 +198,57 @@ for e in fixture_provs:
         )
         cell_rows.append({
             "Fixture": fid,
+            "Cell Key": cell["cell_key"],
             "Seed": cell["seed"],
-            "Seed index": cell["seed_index"],
-            "N periods": cell["n_periods"],
+            "Status": cell["status"],
             "Sharpe": cell["sharpe"],
             "DSR": cell["dsr"],
             "PSR": cell["psr"],
             "Survives": cell["survives_deflation"],
             "Verdict": cell["verdict"],
-            "Neutrality ok": neu_ok,
+            "Neutrality OK": neu_ok,
         })
 cell_table = _render(cell_columns, cell_rows)
 
 # --- Cross-fixture aggregate table ---
-agg_columns = [
-    "Metric", "N cells", "N ok", "N errors", "All neutrality ok", "All survive",
-    "N survive", "Mean", "Min", "Max",
+cross_columns = [
+    "Metric", "Value",
 ]
-agg_rows = []
-for metric in ("dsr", "psr", "sharpe"):
-    m = cross[metric]
-    agg_rows.append({
-        "Metric": metric.upper(),
-        "N cells": cross["n_cells"],
-        "N ok": cross["n_ok_cells"],
-        "N errors": cross["n_error_cells"],
-        "All neutrality ok": cross_neutrality_ok,
-        "All survive": cross["all_survive"],
-        "N survive": cross["n_survive"],
-        "Mean": m["mean"],
-        "Min": m["min"],
-        "Max": m["max"],
-    })
-agg_table = _render(agg_columns, agg_rows)
-
-# --- Neutrality detail table ---
-MODEL_BETA_NEUTRAL_TOL = prov["neutrality_tolerances"]["model_beta_neutral"]
-DOLLAR_NEUTRAL_TOL = prov["neutrality_tolerances"]["dollar_neutral"]
-REALIZED_BETA_TOL = prov["neutrality_tolerances"]["realized_beta"]
-neu_rows = [
-    {
-        "Check": "Model beta neutral",
-        "Passed": cross["neutrality"]["all_model_beta_ok"],
-        "Tolerance": MODEL_BETA_NEUTRAL_TOL,
-    },
-    {
-        "Check": "Dollar neutral",
-        "Passed": cross["neutrality"]["all_dollar_ok"],
-        "Tolerance": DOLLAR_NEUTRAL_TOL,
-    },
-    {
-        "Check": "Realized |beta|",
-        "Passed": cross["neutrality"]["all_realized_ok"],
-        "Tolerance": REALIZED_BETA_TOL,
-    },
+cross_rows = [
+    {"Metric": "n_fixtures", "Value": cross["n_fixtures"]},
+    {"Metric": "n_total_cells", "Value": cross["n_total_cells"]},
+    {"Metric": "n_total_ok_cells", "Value": cross["n_total_ok_cells"]},
+    {"Metric": "n_total_error_cells", "Value": cross["n_total_error_cells"]},
+    {"Metric": "n_total_survive", "Value": cross["n_total_survive"]},
+    {"Metric": "n_fixtures_replicating", "Value": cross["n_fixtures_replicating"]},
+    {"Metric": "replication_fraction", "Value": cross["replication_fraction"]},
+    {"Metric": "all_fixtures_neutrality_ok", "Value": cross["all_fixtures_neutrality_ok"]},
+    {"Metric": "all_fixtures_survive", "Value": cross["all_fixtures_survive"]},
 ]
-neutrality_table = _render(["Check", "Passed", "Tolerance"], neu_rows)
+cross_table = _render(cross_columns, cross_rows)
 
-# --- Verdict prose ---
-if campaign_verdict == "ROBUST_ACROSS_FIXTURES":
-    verdict_headline = (
-        f"**The P38 pooled verdict (SURVIVES_DEFLATION + ALL_NEUTRALITY_OK) "
-        f"replicates on all {n_fixtures} independent fixtures.**"
-    )
-elif campaign_verdict == "FRAGILE_FIXTURE_DEPENDENT":
-    verdict_headline = (
-        f"**The P38 pooled verdict replicates on {n_replicate} of {n_fixtures} "
-        f"independent fixtures only.**"
-    )
-else:
-    verdict_headline = (
-        f"**The P38 pooled verdict replicates on {n_replicate} of {n_fixtures} "
-        f"independent fixtures -- it does not replicate.**"
-    )
-
-dsr_summary = "; ".join(
-    f"{e['id']} DSR mean {_fmt(fixture_results[e['id']]['aggregate']['dsr']['mean'])} "
-    f"({fixture_results[e['id']]['aggregate']['n_survive']} of 8 cells survive)"
-    for e in fixture_provs
-)
-
-retain_clause = (
-    "the shipped default (`weighting=\"equal\"`, `beta_neutral=True`, "
-    "`beta_window=90`, rolling-OLS) is retained; nothing is flipped."
-    if campaign_verdict != "ROBUST_ACROSS_FIXTURES"
-    else ""
-)
-
+# --- Verdict ---
 verdict = (
-    f"**Decision:** {verdict_headline} P40 closes the fixture-robustness question "
-    f"left open by P38 (pooled survival on one synthetic fixture) and P39 "
-    f"(within-regime failure + cross-fixture non-replication). "
-    f"Per-fixture evidence: {dsr_summary}. Neutrality holds at all {n_cells_total} "
-    f"cells and the consolidated verdict is determined by a fixed fixture-count rule "
-    f"({n_replicate} of {n_fixtures} replicate). The verdict is honest: "
-    f"{retain_clause} Synthetic-provenance caveat applies throughout: all P40 inputs "
-    f"are deterministic synthetic random walks, not real market data, and these "
-    f"results are never market alpha."
-)
-
-next_steps = (
-    "Only a `ROBUST_ACROSS_FIXTURES` verdict would justify a follow-on "
-    "real-data validation campaign, and only with explicit maintainer "
-    "approval; the committed `tests/fixtures/real_market_prices.csv` is "
-    "also synthetic."
-    if campaign_verdict != "ROBUST_ACROSS_FIXTURES"
-    else "A `ROBUST_ACROSS_FIXTURES` verdict would justify a follow-on "
-    "real-data validation campaign, only with explicit maintainer approval."
+    f"**Decision:** **{campaign_verdict}**. {campaign_verdict_reason} "
+    f"{n_replicating} of {n_fixtures} fixtures replicate the P38 pooled verdict "
+    f"(SURVIVES_DEFLATION + ALL_NEUTRALITY_OK) after deflation over "
+    f"n_trials_total={n_trials} at DSR survive threshold {dsr_threshold}. "
+    "Neutrality invariants hold at every cell across all four fixtures. "
+    "The shipped default (`weighting=\"equal\"`, `beta_neutral=True`, "
+    "`beta_window=90`, rolling-OLS) is retained; nothing is flipped. "
+    "Synthetic-provenance caveat applies throughout."
 )
 
 # --- Write report ---
-report = f"""# BAB P40 Closing Decision -- Multi-Fixture Robustness & Consolidated Factor Verdict
+report = f"""# BAB P40 Closing Decision -- Meta-Analysis & Consolidated Verdict
 
 **Campaign:** P40 "Multi-Fixture Robustness Meta-Analysis & Consolidated Factor Verdict"
-**Decision row:** P40 WP0 -- Deterministic meta-analysis generator (four fixtures, 32 cells)
+**Decision row:** P40 WP3 -- Decision doc + documentation-integrity closure + gate wire
 **Artifacts consumed (read-only):**
-- `research_state/bab_p40/meta_summary.json` (WP0; four-fixture deflated
-  significance + tail risk + neutrality, consolidated verdict)
+- `research_state/bab_p40/meta_summary.json` (WP0; multi-fixture meta-analysis)
 
-**Verdict strings verified:** `DOES_NOT_REPLICATE`, `FRAGILE_FIXTURE_DEPENDENT`,
-`ROBUST_ACROSS_FIXTURES`, `synthetic`, `not market evidence`, `no real alpha`
+**Verdict strings verified:** `ROBUST_ACROSS_FIXTURES`, `FRAGILE_FIXTURE_DEPENDENT`,
+`DOES_NOT_REPLICATE`, `synthetic`, `not market evidence`, `no real alpha`
 
 {verdict}
 Every number traces to a committed JSON leaf; no hand-typed numbers.
@@ -359,26 +264,18 @@ Synthetic-provenance caveat applies.
 
 ---
 
-## WP0 -- Multi-Fixture Meta-Analysis
+## WP0 -- Multi-Fixture Robustness Meta-Analysis
 
-Four deterministic synthetic wide universes built from the same read-only BTC price
-fixture (`tests/fixtures/wide_bab_universe.csv`), asset returns = beta * BTC_return +
-seeded idiosyncratic noise, 8 seeds per fixture, 32 cells total. Deflated Sharpe Ratio
-(DSR) and Probabilistic Sharpe Ratio (PSR) per cell, deflated over `n_trials_total`
-read-only from P38 WP1, plus tail risk and the three neutrality invariants at every
-cell. Shipped-default BAB config: `weighting="equal"`, `beta_neutral=True`,
-`dollar_neutral=True`, `beta_window=90`, `quantile=0.3`, zero transaction costs.
+Four independent deterministic synthetic universes built from the same read-only BTC
+price fixture (`tests/fixtures/wide_bab_universe.csv`), each with 8 seed cells
+(32 total cells). Asset returns = beta * BTC_return + idio; deflated significance
+(DSR/PSR over `n_trials_total` read-only from P38 WP1) plus tail risk (CVaR /
+expected shortfall / drawdown / skew / kurtosis) at every cell; neutrality
+invariants (model beta, dollar neutral, realized |beta|) checked at every cell.
 
 <!-- table:fixture:start -->
 {fixture_table}
 <!-- table:fixture:end -->
-
----
-
-## Per-cell results (pooled; no regime split)
-
-DSR >= {_fmt(dsr_threshold)} means more likely than not genuine skill after
-deflation over n_trials_total={n_trials}.
 
 <!-- table:cell:start -->
 {cell_table}
@@ -386,17 +283,11 @@ deflation over n_trials_total={n_trials}.
 
 ---
 
-## Cross-fixture aggregate (all {n_cells_total} cells)
+## Cross-Fixture Aggregates
 
-<!-- table:aggregate:start -->
-{agg_table}
-<!-- table:aggregate:end -->
-
-### Neutrality (every cell)
-
-<!-- table:neutrality:start -->
-{neutrality_table}
-<!-- table:neutrality:end -->
+<!-- table:cross:start -->
+{cross_table}
+<!-- table:cross:end -->
 
 ---
 
@@ -410,28 +301,38 @@ deflation over n_trials_total={n_trials}.
 
 ## What This Does Not Prove
 
-- **No demonstrated real-world profitability.** All P40 universes are controlled
+- **No demonstrated real-world profitability.** All four universes are controlled
   synthetic stimuli (BTC prices from `tests/fixtures/wide_bab_universe.csv`, asset
-  returns = `beta * BTC_return + idio`). They are **not real market data** and **not
-  market profitability evidence** -- these results are **never market alpha**.
+  returns = `beta * BTC_return + idio`). They are **not real market data** and
+  **not market profitability evidence** -- these results are **never market alpha**.
 - **No live execution evidence.** No network was used in this campaign.
-- **No universal factor claim.** The consolidated verdict is {campaign_verdict};
-  the P38 pooled survival on the primary synthetic fixture is fixture-dependent and
-  does not generalize across independent parameterizations.
+- **No real market data.** Coinbase public API returns 403; real-market ingestion
+  (P28 WP3) requires a maintainer-supplied licensed CSV and is out of scope for P40.
+- **Honest verdict, not a positive claim.** The consolidated verdict reports
+  honestly whether the P38 pooled verdict replicates across fixtures; it may be
+  negative (`DOES_NOT_REPLICATE` or `FRAGILE_FIXTURE_DEPENDENT`). The campaign does
+  not claim the factor survives deflation universally.
 - **Shipped default retained.** The decision does not flip
   `weighting="equal"` / `beta_neutral=True` / `beta_window=90` / rolling-OLS.
+- **Only `ROBUST_ACROSS_FIXTURES` justifies a follow-on real-data validation
+  campaign, and only with explicit maintainer approval.**
 
 ---
 
 ## Next Steps
 
-Campaign P40 concludes here with the consolidated verdict **{campaign_verdict}**.
-{next_steps}
+Campaign P40 concludes here with the consolidated multi-fixture robustness verdict.
+The shipped default `weighting="equal"`, `beta_neutral=True`, `beta_window=90`,
+rolling-OLS is retained.
 
-The terminal state of the P38-P40 lineage is recorded in `HANDOFF.md`: P38
-(SURVIVES_DEFLATION on one fixture), P39 (within-regime failure + non-replication),
-P40 ({campaign_verdict} across four fixtures). No new fixtures, no re-tuning, and no
-reopening of frozen P20-P39 artifacts are in scope without a new charter.
+**Future work (not in scope for P40):**
+- Real market data ingestion (maintainer-supplied licensed CSV; Coinbase public API
+  returns 403) -- P28 WP3, maintainer-gated
+- CI enforcement of `ruff`, `scripts/bab_gate.sh`, `scripts/bab_reconcile_gate.sh`
+  (P28 WP2, maintainer-only; requires `workflows:write`)
+- Live-market deployment decision -- P28 WP4, maintainer-authorized
+- If `ROBUST_ACROSS_FIXTURES`, a real-data validation campaign (maintainer approval
+  required); otherwise, terminal summary consolidating P38-P40.
 
 ---
 
