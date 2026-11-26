@@ -199,6 +199,56 @@ DAY_MS = 86_400_000
 MINIMUM_REQUEST_INTERVAL_SECONDS = 0.12
 
 
+def filter_bab_positive_stop_longs(
+    rankings: MEXCRankings,
+    history: dict[int, list[dict[str, Any]]],
+    tickers: dict[int, dict[str, Any]],
+) -> MEXCRankings:
+    """Revalidate 3x-ATR long stops, including rankings frozen by earlier runs."""
+    executable_longs: list[Candidate] = []
+    rejected: list[str] = []
+    for candidate in rankings.executable_longs:
+        instrument = rankings.instruments_by_key.get(candidate.symbol)
+        if instrument is None:
+            rejected.append(f"{candidate.symbol}:MISSING_INSTRUMENT_FOR_LONG_STOP_CHECK")
+            continue
+        instrument_id = int(instrument["instrument_id"])
+        ticker = tickers.get(instrument_id, {})
+        reference_price = None
+        for value in (
+            ticker.get("ask_price"),
+            ticker.get("mark_price"),
+            ticker.get("mid_price"),
+            candidate.close_price,
+        ):
+            try:
+                parsed = Decimal(str(value))
+            except Exception:
+                continue
+            if parsed.is_finite() and parsed > 0:
+                reference_price = float(parsed)
+                break
+        if reference_price is None or not _has_positive_long_stop(
+            history.get(instrument_id, []),
+            reference_price,
+        ):
+            rejected.append(
+                f"{instrument.get('symbol', candidate.symbol)}:"
+                "NONPOSITIVE_OR_UNAVAILABLE_3X_ATR_LONG_STOP"
+            )
+            continue
+        executable_longs.append(candidate)
+
+    return MEXCRankings(
+        research_longs=rankings.research_longs,
+        research_shorts=rankings.research_shorts,
+        executable_longs=executable_longs,
+        executable_shorts=rankings.executable_shorts,
+        instruments_by_key=rankings.instruments_by_key,
+        excluded=list(rankings.excluded) + rejected,
+    )
+
+
 def refresh_bab_rolling_history(
     client: Any,
     store: Any,
@@ -424,6 +474,23 @@ def main() -> int:
         return rows
 
     engine._ranking_report_rows = bab_ranking_report_rows
+
+    # A pending BAB signal may have been frozen by an earlier run before the
+    # ATR-stop filter existed. Revalidate it at the shared pair-selection
+    # boundary, including during retry cycles, without resetting the ledger.
+    original_try_pair = engine._try_pair
+
+    def bab_try_pair(client, rankings, history, tickers, state, now_ms, *, max_pairs=100):
+        safe_rankings = filter_bab_positive_stop_longs(
+            rankings, history, tickers
+        )
+        return original_try_pair(
+            client, safe_rankings, history, tickers, state, now_ms,
+            max_pairs=max_pairs,
+        )
+
+    engine._try_pair = bab_try_pair
+
     # A blocked portfolio decision is a failed paper cycle. Do not convert
     # missing history, API errors, or incomplete ranking coverage into green CI.
     return int(engine._run())
