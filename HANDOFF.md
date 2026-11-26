@@ -1,6 +1,6 @@
 # DURABLE HANDOFF — Crypto-Betting-Against-Beta
-**Timestamp:** 2026-11-26T00:50:13Z
-**Session:** Kilo General Agent Loop — Next Activation (Campaign B initial task)
+**Timestamp:** 2026-11-26T00:53:00Z
+**Session:** Kilo General Agent Loop — Next Activation (Campaign B initial task — MANDATORY)
 **Repository:** Crypto-Betting-Against-Beta (Betting Against Beta crypto quant research)
 
 ---
@@ -40,6 +40,8 @@ This is a systematic quantitative research project implementing the **Betting Ag
 
 ## IMMEDIATE BOTTLENECKS REMOVING PROGRESS
 
+These are the only active blockers. Campaign B (below) removes Bottleneck 1 directly; Bottleneck 2 is deferred until B lands; Bottleneck 3 is closed. Do not open new campaigns or fixtures until Bottleneck 1 is resolved.
+
 **Bottleneck 1 (PRIMARY — must fix now): High-Vol Failure Mode**
 `bull_high_vol` consistently produces near-zero or negative Sharpe (−1.86 to +3.3 across seeds; mean DSR = 0.53, only 4/8 survive). `bear_mid_vol` also fails (mean DSR = 0.35, only 3/8 survive). Beta estimation noise + idiosyncratic vol swamps signal in high-vol regimes. This is the core reason the strategy fails regime-conditional deflation.
 
@@ -63,9 +65,9 @@ The `research_state/bab_p37/` directory already contains three summary artifacts
 
 ---
 
-## NEXT FOCUS CAMPAIGN — MANDATORY, SINGLE TASK
+## NEXT FOCUS CAMPAIGN — MANDATORY, SINGLE TASK (NO EXPLORATION, NO OPTIONS)
 
-The next agent **must** execute the following campaign as the initial task. No "exploration," no picking among options. Complete fully and produce a JSON + MD artifact in `research_state/`. Update this HANDOFF.md with the outcome before exiting.
+The next agent **must** execute Campaign B as the initial task. This is the single source of truth for this session. **Do not** explore, do not pick among options, do not open new campaigns/fixtures, do not reopen P20–P39 (frozen). Complete Campaign B fully and produce a JSON + MD artifact in `research_state/`. Update this HANDOFF.md with the outcome before exiting.
 
 ### CAMPAIGN B (MANDATORY): P37 Capacity/Turnover/Cost Surface Deep-Dive — Diagnose & Mitigate High-Vol Failure (REGIME-CONDITIONAL)
 
