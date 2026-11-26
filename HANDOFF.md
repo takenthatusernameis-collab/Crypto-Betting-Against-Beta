@@ -1,5 +1,5 @@
 # DURABLE HANDOFF — Crypto-Betting-Against-Beta
-**Timestamp (UTC): 2026-11-26T09:49:54Z**
+**Timestamp (UTC): 2026-11-26T09:53:28Z**
 **Session:** Kilo General Agent Loop — baseline GREEN and clean; **P42 OPEN (sole binding row)**
 **Repository:** Crypto-Betting-Against-Beta (Betting Against Beta crypto quant research)
 **Verified baseline (HEAD `d42847e`, re-verified this session at 09:49:54Z):**
@@ -32,7 +32,7 @@
 
 ## READ FIRST — INITIAL TASK MESSAGE FOR THE NEXT SESSION
 
-> **Timestamped initial task (2026-11-26T09:49:54Z):** Execute **Campaign P42
+> **Timestamped initial task (2026-11-26T09:53:28Z):** Execute **Campaign P42
 > "Planted-Alpha Detectability Frontier & Minimum Detectable Effect," WP0 → WP3.**
 > P20–P41 are frozen; P41 WP1/WP2/WP3 are complete and committed. HEAD is `d42847e`
 > with a **clean working tree** — the baseline repair is already committed (`9ef2983`),
