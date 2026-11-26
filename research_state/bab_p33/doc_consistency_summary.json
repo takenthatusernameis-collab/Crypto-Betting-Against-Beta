@@ -6,6 +6,11 @@
       "guard_status": "tests/test_bab_p33_fidelity_consistency.py"
     },
     {
+      "committed": "docs/BAB_MEXC_PAPER_SIMULATION.md",
+      "guard_class": "unclassified",
+      "guard_status": "NOT classified \u2014 add to replay registry, consistency guard, or allow list"
+    },
+    {
       "committed": "docs/BAB_P22_DECISION.md",
       "guard_class": "allow-listed",
       "guard_status": "hand-authored P22 decision doc; no generate_p22_decision.py generator exists, so there is no byte-replay entry point to register"

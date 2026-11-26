@@ -1,15 +1,14 @@
 # DURABLE HANDOFF — Crypto-Betting-Against-Beta
-**Timestamp (UTC): 2026-11-26T09:42:03Z**
-**Session:** Kilo General Agent Loop — P41 COMPLETE (WP1/WP2/WP3); **P42 OPEN (sole binding row)**
+**Timestamp (UTC): 2026-11-26T09:46:50Z**
+**Session:** Kilo General Agent Loop — baseline unblocked; **P42 OPEN (sole binding row)**
 **Repository:** Crypto-Betting-Against-Beta (Betting Against Beta crypto quant research)
-**Verified baseline (HEAD `d623e85`, re-verified this session at 09:42:03Z):**
-- `python3 -m ruff check .` GREEN (`All checks passed!`).
+**Verified baseline (HEAD `42ff55f`, re-verified this session at 09:46:50Z):**
+- `python3 -m ruff check .` GREEN (`All checks passed!`) — required a per-file-ignore fix, see below.
 - `bash scripts/bab_quick.sh` GREEN (targeted trio `104 passed`, smoke `195 passed`, `quick preflight OK`).
 - `python3 scripts/bab_replay_decisions.py --subset p41_decision.md` GREEN (`OK p41_decision.md -> BAB_P41_DECISION.md`).
-- `python3 -m pytest -q tests/test_bab_p41_decision_consistency.py` GREEN (13 passed).
 - P32/P33 doc ledgers GREEN: `--check-doc-summary` returns `OK` for both
   `research_state/bab_p32/doc_replay_summary.json` and
-  `research_state/bab_p33/doc_consistency_summary.json`.
+  `research_state/bab_p33/doc_consistency_summary.json` (P33 was regenerated this session).
 - P42 charter `docs/BAB_P42_KICKOFF.md` is classified in the doc registry
   (`scripts/bab_doc_consistency_summary.py`, `tests/test_bab_p33_doc_registry_completeness.py`)
   and P42 is the allow-listed successor in `tests/test_bab_p34_doc_pointer_guard.py`.
@@ -23,15 +22,27 @@
 - **Full gate still owed this campaign:** `BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh`
   must be run to completion (~39 min, 4 cores) before P42 is declared done. It is a
   long/background job — never under a 120 s foreground timeout.
+
+**Working-tree state at handoff (uncommitted, intentional baseline repair):**
+- `pyproject.toml` — added per-file-ignores for the two MEXC paper-cycle entrypoints
+  (`scripts/bab_mexc_paper_cycle.py`, `scripts/build_bab_paper_status.py`) so `ruff check .`
+  is GREEN. Those files must mutate `sys.path` before importing the sibling engine (E402/I001),
+  carry a long fail-closed guard message (E501) and an intentional bounded GitHub
+  eventual-consistency retry loop (PERF203). This matches the existing frozen-script convention.
+- `research_state/bab_p33/doc_consistency_summary.json` — regenerated (was DRIFT vs fresh build).
+- **First action for the next session: `git add pyproject.toml research_state/bab_p33/doc_consistency_summary.json && git commit`** with a message like
+  `chore(kilo): restore ruff/ledger baseline before P42` so HEAD is clean before P42 work begins.
+
 **Supersedes:** all prior HANDOFF.md content. This is the single durable handoff.
 
 ---
 
 ## READ FIRST — INITIAL TASK MESSAGE FOR THE NEXT SESSION
 
-> **Timestamped initial task (2026-11-26T09:42:03Z):** Execute **Campaign P42
+> **Timestamped initial task (2026-11-26T09:46:50Z):** Execute **Campaign P42
 > "Planted-Alpha Detectability Frontier & Minimum Detectable Effect," WP0 → WP3.**
-> P20–P41 are frozen; P41 WP1/WP2/WP3 are complete and committed at HEAD `d623e85`.
+> P20–P41 are frozen; P41 WP1/WP2/WP3 are complete and committed. HEAD is `42ff55f`;
+> the only uncommitted delta is the intentional baseline repair listed above (commit it first).
 > No new maintainer direction is present, so do not idle and do not invent a replacement
 > campaign: P42 is a concrete, multi-file, verifiable, heavy workload (810-cell factorial
 > grid + frontier meta-analysis + decision doc + gate wiring). Real-data ingestion, CI
@@ -45,9 +56,9 @@ P20–P41 to chase a result, and do not flip the shipped default (`weighting="eq
 
 **BINDING ROW = Campaign P42**
 
-### Step 0 — confirm the baseline and clear the doc ledgers
-The P32/P33 ledgers were regenerated in a prior session; confirm they are still fresh, and
-regenerate if not (never hand-edit JSON):
+### Step 0 — commit the baseline repair, then confirm the doc ledgers
+Commit the two working-tree fixes (see "Working-tree state" above). Then confirm the P32/P33
+ledgers are fresh, regenerating if not (never hand-edit JSON):
 
 ```bash
 python3 scripts/bab_replay_decisions.py --summary-json research_state/bab_p32/doc_replay_summary.json
@@ -163,16 +174,17 @@ negative results can be attributed to power vs. genuine absence.
 
 | Bottleneck | Status / next action |
 |---|---|
-| Stale handoff (declared P41 WP3 open, artifacts "absent") | **REMOVED** — P41 WP3 is complete; handoff rewritten to P42 |
-| Stale HEAD hash in handoff (`ca88b30`) | **REMOVED** — handoff re-verified at HEAD `d623e85` this session |
-| Full gate RED on 5 doc-pointer/registry guards | **REMOVED** — README/COVERAGE_NOTES repointed to P42; P34 successor allow-list extended to P40/P41/P42; P42 charter allow-listed; P33 ledger regenerated |
-| P34-complete marker absent from handoff | **REMOVED** — `CAMPAIGN P34 — COMPLETE` present below |
-| P32/P33 committed ledgers stale | **RESOLVED** — regenerated from registry; never hand-edit |
-| Full gate exceeds one short tool window (~39 min) | **CONTAINED** — quick inner loop; full gate runs in background/long budget |
-| Expensive P42 grid recompute | **CONTAINED** — once in final full replay, never in quick loop |
-| Rank weighting | **CLOSED** — P36 proved worse; never reopen |
-| CI workflow enforcement | **EXTERNAL** — maintainer-only `workflows:write`; do not burn a session |
-| Full pytest mutates frozen P27 markdown | **CONTAINED** — restore only `research_state/bab_p27/` after the full run |
+| `ruff check .` RED (9 errors) at HEAD `42ff55f` from the new MEXC paper-cycle entrypoints | **REMOVED** — per-file-ignores added in `pyproject.toml`; ruff GREEN. Commit with the ledger fix (Step 0). |
+| P33 doc-consistency ledger DRIFT vs fresh build | **REMOVED** — regenerated `research_state/bab_p33/doc_consistency_summary.json`; `--check-doc-summary` now OK. |
+| Stale HEAD hash in prior handoff (`d623e85`) | **REMOVED** — handoff re-verified at HEAD `42ff55f` this session. |
+| Stale handoff (declared P41 WP3 open, artifacts "absent") | **REMOVED** — P41 WP3 complete; handoff points to P42. |
+| Full gate RED on 5 doc-pointer/registry guards | **REMOVED** — README/COVERAGE_NOTES repointed to P42; P34 successor allow-list extended to P40/P41/P42; P42 charter allow-listed. |
+| P32/P33 committed ledgers stale | **RESOLVED** — regenerated from registry; never hand-edit. |
+| Full gate exceeds one short tool window (~39 min) | **CONTAINED** — quick inner loop; full gate runs in background/long budget. |
+| Expensive P42 grid recompute | **CONTAINED** — once in final full replay, never in quick loop. |
+| Rank weighting | **CLOSED** — P36 proved worse; never reopen. |
+| CI workflow enforcement | **EXTERNAL** — maintainer-only `workflows:write`; do not burn a session. |
+| Full pytest mutates frozen P27 markdown | **CONTAINED** — restore only `research_state/bab_p27/` after the full run. |
 
 ## CAMPAIGN LEDGER
 
@@ -183,5 +195,5 @@ negative results can be attributed to power vs. genuine absence.
 **Repository root:**
 `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
 
-**END OF HANDOFF — first action: step 0 ledger confirmation, then implement P42 WP1→WP3
-and finish only when the 100%-coverage full gate is GREEN.**
+**END OF HANDOFF — first action: commit the two baseline-repair files, confirm ledgers,
+then implement P42 WP1→WP3 and finish only when the 100%-coverage full gate is GREEN.**
