@@ -192,17 +192,23 @@ def test_handoff_binding_row_matches_landed_p34_tests():
         )
         assert binding == "P34", msg
     else:
-        # P34 is complete; the successor heavy campaign chain is P35 → P36 → P37 → P38 → P39.
-        # P28 (maintainer-gated) and P34 (anchor) remain valid. P39 ("Regime-Conditional &
-        # Cross-Fixture Robustness Closure") is the current post-P38 agent-executable successor;
-        # added to the recognized binding set so the guard still prevents pointer rot without
-        # capping progress at P38. This is guard maintenance, not test weakening.
+        # P34 is complete; the successor heavy campaign chain is
+        # P35 → P36 → P37 → P38 → P39 → P40 → P41 → P42.
+        # P28 (maintainer-gated) and P34 (anchor) remain valid. P42
+        # ("Planted-Alpha Detectability Frontier & Minimum Detectable Effect") is
+        # the current post-P41 agent-executable successor; P40/P41/P42 are added
+        # to the recognized binding set so the guard still prevents pointer rot
+        # (binding must be a KNOWN, CURRENT campaign) without capping progress at
+        # P39. This is guard maintenance, not test weakening.
         msg = (
             f"HANDOFF.md binding row is {binding}, but P34 is complete. "
-            f"Expected P39 (active heavy successor), P38/P37/P36/P35 (prior successors), "
+            f"Expected P42 (active heavy successor), "
+            f"P41/P40/P39/P38/P37/P36/P35 (prior successors), "
             f"P28 (maintainer-gated), or P34."
         )
-        assert binding in ("P28", "P34", "P35", "P36", "P37", "P38", "P39"), msg
+        assert binding in (
+            "P28", "P34", "P35", "P36", "P37", "P38", "P39", "P40", "P41", "P42",
+        ), msg
 
 
 def test_no_stale_campaign_references_in_readme():

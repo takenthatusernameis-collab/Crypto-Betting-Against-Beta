@@ -58,9 +58,16 @@ ALLOW_LIST: dict[str, str] = {
     "docs/BAB_P41_KICKOFF.md": (
         "hand-authored P41 binding campaign charter (non-Gaussian & regime-switching "
         "stress battery); it is a forward-looking kickoff/charter, not a generated "
-        "decision doc, so it has no byte-replay entry point. P41 WP3 will register the "
+        "decision doc, so it has no byte-replay entry point. P41 WP3 registers the "
         "generated BAB_P41_DECISION.md in the replay registry; this KICKOFF stays "
         "allow-listed with this written reason"
+    ),
+    "docs/BAB_P42_KICKOFF.md": (
+        "hand-authored P42 binding campaign charter (planted-alpha detectability "
+        "frontier & minimum detectable effect); it is a forward-looking kickoff/charter, "
+        "not a generated decision doc, so it has no byte-replay entry point. P42 WP3 "
+        "will register the generated BAB_P42_DECISION.md in the replay registry; this "
+        "KICKOFF stays allow-listed with this written reason"
     ),
     "docs/COVERAGE_NOTES.md": (
         "hand-authored coverage notes; no deterministic generator or report "

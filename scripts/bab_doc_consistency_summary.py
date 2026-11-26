@@ -59,6 +59,12 @@ ALLOW_LIST: dict[str, str] = {
         "decision is replay-gated separately, so the charter itself is "
         "allow-listed rather than replay-registered"
     ),
+    "docs/BAB_P42_KICKOFF.md": (
+        "hand-authored binding P42 campaign charter; constants are declared in "
+        "the doc by design (schema bab_p42.charter/1) and the generated P42 "
+        "decision is replay-gated separately, so the charter itself is "
+        "allow-listed rather than replay-registered"
+    ),
 }
 
 
