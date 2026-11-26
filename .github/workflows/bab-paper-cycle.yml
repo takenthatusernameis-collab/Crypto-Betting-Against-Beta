@@ -124,7 +124,7 @@ jobs:
           for attempt in 1 2 3; do
             git -C strategy fetch origin main
             git -C strategy checkout -B main origin/main
-            git -C strategy add PAPER_STATUS.md equal_exposure_equity_curve.svg alternative_path_equity_curve.svg
+            git -C strategy add PAPER_STATUS.md PAPER_TRADE_JOURNAL.md equal_exposure_equity_curve.svg alternative_path_equity_curve.svg
             if git -C strategy diff --cached --quiet; then
               echo "BAB paper status unchanged."
               exit 0
