@@ -1,16 +1,42 @@
 # DURABLE HANDOFF — Crypto-Betting-Against-Beta
-**Timestamp:** 2026-11-26T02:57:04Z
+**Timestamp:** 2026-11-26T02:57:52Z
 **Session:** Kilo General Agent Loop — Next Activation (Campaign P40 initial task — MANDATORY)
 **Repository:** Crypto-Betting-Against-Beta (Betting Against Beta crypto quant research)
-**Verified baseline:** HEAD `0e62466`, working tree clean. Every claim below was re-checked
-against the live repo this session (P40 absent; P38 `SURVIVES_DEFLATION` n_trials=552;
-P39 regime `DOES_NOT_SURVIVE_DEFLATION_IN_SOME_REGIME`; P39 cross `DOES_NOT_REPLICATE`).
-**Supersedes:** all prior HANDOFF.md content. Campaign B / P37 regime-conditional is
-CLOSED. P20–P39 are COMPLETE and FROZEN. The single binding campaign is **P40** below.
+**Verified baseline:** HEAD `4a6f9d9`, working tree clean. Every claim below was re-checked
+against the live repo this session: P40 is ABSENT (no `research_state/bab_p40/`, no
+`scripts/bab_p40_*`, no `tests/test_bab_p40_*`, no `generate_p40_decision.py`, no
+`docs/BAB_P40_DECISION.md`); P38 `campaign_verdict=SURVIVES_DEFLATION` with
+`trial_enumeration.n_trials_total=552`; P39 regime `DOES_NOT_SURVIVE_DEFLATION_IN_SOME_REGIME`;
+P39 cross `DOES_NOT_REPLICATE`. All reference scripts/tests/registries named below exist.
+**Supersedes:** all prior HANDOFF.md content. Campaign B / P37 regime-conditional is CLOSED.
+P20–P39 are COMPLETE and FROZEN. The single binding campaign is **P40** below.
 
 ---
 
-## INITIAL TASK FOR THE NEXT SESSION (read this first, then execute)
+## READ FIRST — ANTI-SPIN CONTRACT (the reason this file keeps getting rewritten)
+
+Recent sessions (commits `4ab4539`..`4a6f9d9`, ~8 sessions in one hour) changed **only this
+file** and produced **zero** P40 artifacts. That is a FAILED session. Do not repeat it.
+
+**The only acceptable outcome of the next session is P40 artifacts on disk plus passing fast
+gates.** Concretely, a session is successful ONLY if all of these are true at exit:
+
+1. `scripts/bab_p40_meta_analysis.py` exists and runs.
+2. `research_state/bab_p40/meta_summary.json` and `.md` exist and are byte-stable.
+3. `generate_p40_decision.py` exists and `docs/BAB_P40_DECISION.md` is generated from the JSON.
+4. `tests/test_bab_p40_meta_analysis.py` and `tests/test_bab_p40_decision_consistency.py` pass.
+5. The replay registries (`bab_replay_full.py`, `bab_replay_decisions.py`) and their guards
+   (`test_bab_p29_replay_coverage.py`, `test_bab_p29_decision_replay.py`) include P40.
+6. `bash scripts/bab_quick.sh` is GREEN and the targeted P40/registry pytest commands pass.
+
+**Editing HANDOFF.md without landing items 1–6 is forbidden.** Do not commit a handoff-only
+change. Do not spend the session re-validating frozen P20–P39, re-running the 56-minute gate,
+or asking which option to pick. The work is fully specified below and a working blueprint
+(`scripts/bab_p39_cross_fixture.py`) already exists — copy it and generalize. Execute.
+
+---
+
+## INITIAL TASK FOR THE NEXT SESSION (execute this, do not explore)
 
 You are the next agentic work session for **Crypto-Betting-Against-Beta**. The repository's
 core deliverable is a trustworthy BAB verdict for crypto. P38 says the factor survives pooled
@@ -18,12 +44,13 @@ deflation on one synthetic fixture; P39 WP1 finds high-vol regime failures and P
 non-replication on a second fixture. **Your initial and only research task is to execute
 Campaign P40: Multi-Fixture Robustness Meta-Analysis & Consolidated Factor Verdict.**
 
-Start by implementing `scripts/bab_p40_meta_analysis.py`; do not spend the session exploring,
-re-validating frozen work, or asking which option to pick. P40 is a heavy, deterministic,
-offline research campaign with four work packages (WP0–WP3), byte-stable artifacts, a decision
-document, replay registration, tests, and fast-gate verification. Complete all four work
-packages and update this file with the outcome before exiting. If the evidence is negative,
-publish the negative verdict honestly; do not tune fixtures to chase a positive result.
+Start by creating `scripts/bab_p40_meta_analysis.py` by generalizing
+`scripts/bab_p39_cross_fixture.py` (the closest working template) to the four fixed fixtures
+below. P40 is a heavy, deterministic, offline research campaign with four work packages
+(WP0–WP3), byte-stable artifacts, a decision document, replay registration, tests, and
+fast-gate verification. Complete all four work packages and update this file with the outcome
+before exiting. If the evidence is negative, publish the negative verdict honestly; do not
+tune fixtures to chase a positive result.
 
 **Binding definition of done:** WP0–WP3 all land; `research_state/bab_p40/meta_summary.json`
 and `.md` are byte-stable; `docs/BAB_P40_DECISION.md` is generated from committed JSON;
@@ -33,7 +60,7 @@ per-fixture DSR table, consolidated verdict, test evidence, and next state.
 
 ---
 
-## PROJECT STATE SUMMARY (verified this session, HEAD `0e62466`)
+## PROJECT STATE SUMMARY (verified this session, HEAD `4a6f9d9`)
 
 Systematic quantitative research implementing the **Betting Against Beta (BAB)** strategy
 (Frazzini & Pedersen) for cryptocurrencies on deterministic synthetic fixtures. These are
@@ -64,9 +91,10 @@ with `timeout: 600000` and re-invoke `logs`; a bare `bash` call can be killed mi
 spurious coverage-only failures plus P27/P30 newline side-effects. Restore those side-effects
 with `git checkout -- research_state/bab_p27/ research_state/bab_p30/`.
 
-**Bottleneck 2 (ACTIVE — the reason P40 is stuck): no P40 artifacts exist.**
-`research_state/bab_p40/` does not exist, and no P40 generator/test/doc is present. This is the
-gap the next session must close with heavy, real work. The exact P40 contract is below.
+**Bottleneck 2 (ACTIVE — the reason P40 is stuck): no P40 artifacts exist, and prior sessions
+only rewrote this file.** `research_state/bab_p40/` does not exist, and no P40 generator/test/doc
+is present. This is the gap the next session must close with heavy, real work. The exact P40
+contract is below, and `scripts/bab_p39_cross_fixture.py` is a complete working blueprint.
 
 **Bottleneck 3 (CLOSED): rank weighting.** P36 proved it strictly worse. Never reopen.
 
@@ -97,11 +125,15 @@ a single honest consolidated verdict.
 - Do not tune seeds/parameters after seeing results to obtain a preferred verdict.
 - Do not hand-edit generated JSON/Markdown; change generators and regenerate.
 - Do not commit unless the user explicitly asks; leave the worktree ready for inspection.
+- **Do not rewrite this HANDOFF.md without landing the artifacts (see Anti-Spin Contract).**
 
 ### WP0 — Implement the deterministic meta-analysis generator
 
-Create `scripts/bab_p40_meta_analysis.py` as a standalone entry point. Reuse the P39 WP1 regime
-labels and P39 WP2 cross-fixture generator as the base, but generalize to the following **four
+Create `scripts/bab_p40_meta_analysis.py` as a standalone entry point. **Copy the structure of
+`scripts/bab_p39_cross_fixture.py`** (it already implements the full pipeline: fixture build,
+rolling-OLS beta, equal-weight beta/dollar-neutral portfolio, DSR/PSR deflation over the
+read-only `n_trials_total=552`, tail metrics, neutrality invariants, rounding, byte-stable
+JSON+Markdown, `--check-*` flag) and generalize the single fixture into the following **four
 fixed fixtures** (8 seeds each; 32 total cells):
 
 | Fixture | Base seed | Increment | Idio vol | Beta range | Assets | Role |
@@ -116,9 +148,9 @@ For every fixture use 8 seeds (`base + increment * i`, `i=0..7`), the read-only 
 shipped-default BAB config: beta_window=90, quantile=0.3, equal-weight, beta-neutral,
 dollar-neutral, zero transaction costs. Compute per cell: Sharpe, DSR (deflate over the
 read-only `n_trials_total=552` at JSON path `trial_enumeration.n_trials_total` in
-`research_state/bab_p38/deflated_summary.json`), PSR,
-annualized volatility, max drawdown, turnover, tail metrics consistent with P39, and all three
-neutrality invariants (model beta <= 1e-3, dollar <= 1e-9, |realized beta| <= 0.15).
+`research_state/bab_p38/deflated_summary.json`), PSR, annualized volatility, max drawdown,
+turnover, tail metrics consistent with P39, and all three neutrality invariants (model beta
+<= 1e-3, dollar <= 1e-9, |realized beta| <= 0.15).
 
 Aggregate per fixture and across fixtures: `n_cells`, `n_ok_cells`, `n_error_cells`,
 `n_survive`, mean/min/max DSR/PSR/Sharpe, `all_survive`, `all_neutrality_ok`, and the fraction
@@ -195,9 +227,12 @@ commands above pass and the artifacts are byte-stable.
 ## CONTEXT FOR NEXT AGENT
 
 - **Repository root:** `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
-- **Key prior scripts:** `scripts/bab_p39_regime_conditional.py` (regime labels),
-  `scripts/bab_p39_cross_fixture.py` (2nd-fixture generator), `scripts/bab_p38_deflated_significance.py`
-  (DSR/deflation math; read-only n_trials).
+- **KEY BLUEPRINT:** `scripts/bab_p39_cross_fixture.py` — a complete, working single-fixture
+  generator (fixture build, beta, portfolio, DSR/PSR deflation, tail, neutrality, byte-stable
+  JSON/MD, `--check-cross-fixture-summary`). Generalize its constants + loop to the four P40
+  fixtures. Its `--check-cross-fixture-summary` flag is the naming model for `--check-meta-summary`.
+- **Other prior scripts:** `scripts/bab_p39_regime_conditional.py` (regime labels),
+  `scripts/bab_p38_deflated_significance.py` (DSR/deflation math; read-only n_trials).
 - **Reference tests:** `tests/test_bab_p39_cross_fixture.py`,
   `tests/test_bab_p39_decision_consistency.py`, `tests/test_bab_p29_replay_coverage.py`,
   `tests/test_bab_p29_decision_replay.py`.
@@ -229,4 +264,5 @@ validation campaign, and only with explicit maintainer approval; the committed
 **This handoff is durable. The next agent reads this file, executes Campaign P40 WP0–WP3 as the
 initial task, completes the heavy work fully, verifies with the fast commands above, and updates
 this file with the outcome before exiting. Do not run the full 56-minute gate. Do not reopen
-P20–P39.**
+P20–P39. Do NOT rewrite this file without landing P40 artifacts — a handoff-only commit is a
+failed session.**
