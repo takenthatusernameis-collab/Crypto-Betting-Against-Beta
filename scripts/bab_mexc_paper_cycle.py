@@ -146,6 +146,163 @@ def rank_bab_mexc_universe(
     )
 
 
+DAY_MS = 86_400_000
+MINIMUM_REQUEST_INTERVAL_SECONDS = 0.12
+
+
+def refresh_bab_rolling_history(
+    client: Any,
+    store: Any,
+    instruments: list[dict[str, Any]],
+    server_ms: int,
+    latest_completed_bar_ms: int,
+    batch_size: int,
+) -> tuple[int, int, list[dict[str, Any]]]:
+    """Refresh only the rolling BAB beta window for the complete USDT universe.
+
+    Unlike the ATH/ATL engine, BAB does not need a contract's lifetime history.
+    A 90-day window is sufficient for its 90-return beta estimate, with a
+    60-aligned-return minimum. Newer/illiquid contracts are recorded as
+    insufficient-history exclusions; an API error remains a fail-closed gate.
+    """
+    del batch_size  # BAB refreshes the full eligible cross-section in one pass.
+    if latest_completed_bar_ms <= 0:
+        raise ValueError("latest_completed_bar_ms must be positive")
+
+    window_start_ms = latest_completed_bar_ms - BETA_WINDOW * DAY_MS
+    end_ms = min(int(server_ms), int(latest_completed_bar_ms) + DAY_MS)
+    if end_ms <= latest_completed_bar_ms:
+        raise RuntimeError("MEXC server clock has not reached the completed-bar boundary")
+
+    history_by_id = store.load_all_candles(start_timestamp_ms=window_start_ms)
+    candle_updates: list[dict[str, Any]] = []
+    api_failures: list[dict[str, Any]] = []
+    checked_count = 0
+    available_count = 0
+    insufficient_count = 0
+
+    print(
+        f"[bab-history] refreshing rolling {BETA_WINDOW}-day window for "
+        f"{len(instruments)} eligible USDT contracts in one daily pass",
+        flush=True,
+    )
+
+    for instrument in instruments:
+        if not bool(instrument.get("usdt_account_eligible")):
+            continue
+
+        instrument_id = int(instrument["instrument_id"])
+        symbol = str(instrument["symbol"])
+        record = store.manifest["instruments"].get(str(instrument_id))
+        if record is None:
+            raise RuntimeError(f"BAB market-data manifest is missing {symbol} ({instrument_id})")
+
+        listing_time = instrument.get("opening_time_ms") or instrument.get("create_time_ms")
+        listing_day_ms = (
+            (int(listing_time) // DAY_MS) * DAY_MS
+            if listing_time is not None else window_start_ms
+        )
+        expected_start_ms = max(window_start_ms, listing_day_ms)
+        expected_stamps = list(range(
+            expected_start_ms, latest_completed_bar_ms + 1, DAY_MS
+        ))
+
+        existing_rows = history_by_id.get(instrument_id, [])
+        by_timestamp = {
+            int(row["timestamp_ms"]): dict(row)
+            for row in existing_rows
+            if expected_start_ms <= int(row["timestamp_ms"]) <= latest_completed_bar_ms
+        }
+        missing_stamps = [stamp for stamp in expected_stamps if stamp not in by_timestamp]
+
+        if missing_stamps:
+            try:
+                fetched = client.candles(
+                    symbol,
+                    start_timestamp_ms=missing_stamps[0],
+                    end_timestamp_ms=end_ms,
+                    interval="Day1",
+                )
+                for candle in fetched:
+                    stamp = int(candle["timestamp_ms"])
+                    if expected_start_ms <= stamp <= latest_completed_bar_ms:
+                        normalized = {
+                            **candle,
+                            "instrument_id": instrument_id,
+                            "symbol": symbol,
+                        }
+                        by_timestamp[stamp] = normalized
+                        candle_updates.append(normalized)
+                record["last_bootstrap_error"] = None
+            except Exception as exc:
+                api_failures.append({
+                    "instrument_id": instrument_id,
+                    "symbol": symbol,
+                    "error": f"{type(exc).__name__}: {str(exc)[:240]}",
+                })
+                record["last_bootstrap_error"] = (
+                    f"{type(exc).__name__}: {str(exc)[:240]}"
+                )
+                continue
+
+        # Require at least 61 consecutive completed closes ending at the
+        # decision candle, which gives at least 60 genuine daily returns.
+        consecutive_closes = 0
+        stamp = latest_completed_bar_ms
+        while stamp in by_timestamp:
+            consecutive_closes += 1
+            stamp -= DAY_MS
+
+        expected_present = sum(stamp in by_timestamp for stamp in expected_stamps)
+        gap_count = max(0, len(expected_stamps) - expected_present)
+        if consecutive_closes >= MIN_BETA_OBSERVATIONS + 1:
+            history_status = "AVAILABLE"
+            available_count += 1
+        else:
+            history_status = (
+                "NO_TRADES_IN_WINDOW" if not by_timestamp else "INSUFFICIENT_HISTORY"
+            )
+            insufficient_count += 1
+
+        store.mark_bootstrap_complete(
+            instrument_id,
+            completed_at_ms=server_ms,
+            history_status=history_status,
+        )
+        record["last_checked_daily_bar_ms"] = latest_completed_bar_ms
+        record["history_first_candle_timestamp_ms"] = (
+            min(by_timestamp) if by_timestamp else None
+        )
+        record["history_last_candle_timestamp_ms"] = (
+            max(by_timestamp) if by_timestamp else None
+        )
+        record["history_observed_daily_gap_count"] = gap_count
+        record["bootstrap_attempts"] = int(record.get("bootstrap_attempts", 0)) + 1
+        checked_count += 1
+
+    if candle_updates:
+        store.append_candles(candle_updates)
+    store.save_manifest(server_ms)
+
+    remaining = sum(
+        not bool(store.manifest["instruments"][str(int(row["instrument_id"]))].get("bootstrap_complete"))
+        or int(
+            store.manifest["instruments"][str(int(row["instrument_id"]))].get(
+                "last_checked_daily_bar_ms"
+            ) or 0
+        ) < latest_completed_bar_ms
+        for row in instruments
+        if bool(row.get("usdt_account_eligible"))
+    )
+    print(
+        f"[bab-history] checked={checked_count}; available={available_count}; "
+        f"insufficient-history={insufficient_count}; api-failures={len(api_failures)}; "
+        f"decision-bar-pending={remaining}",
+        flush=True,
+    )
+    return checked_count, remaining, api_failures
+
+
 def main() -> int:
     if not (ENGINE_ROOT / "scripts" / "high_low_paper_cycle.py").is_file():
         raise RuntimeError("MEXC paper engine checkout is missing at ../engine")
@@ -185,6 +342,24 @@ def main() -> int:
     engine.STRATEGY_ID = STRATEGY_ID
     engine.INITIAL_CAPITAL = Decimal("100")
     engine.rank_mexc_universe = rank_bab_mexc_universe
+    engine._bootstrap_or_increment = refresh_bab_rolling_history
+
+    # The established MEXC engine discovers the market once and obtains all
+    # tickers through one WebSocket subscription. BAB narrows its signal and
+    # history refresh to the actual USDT-settled account universe.
+    base_client = engine.MEXCPublicClient
+
+    class BABMEXCPublicClient(base_client):
+        def __init__(self, *args, **kwargs):
+            kwargs.setdefault(
+                "minimum_interval_seconds", MINIMUM_REQUEST_INTERVAL_SECONDS
+            )
+            super().__init__(*args, **kwargs)
+
+        def instruments(self, *, usdt_only: bool = True):
+            return super().instruments(usdt_only=True)
+
+    engine.MEXCPublicClient = BABMEXCPublicClient
 
     original_report_rows = engine._ranking_report_rows
 
@@ -200,31 +375,9 @@ def main() -> int:
         return rows
 
     engine._ranking_report_rows = bab_ranking_report_rows
-    result = int(engine._run())
-
-    # A clean bounded history-bootstrap batch is normal progress. Keep it green
-    # while the full universe is being collected; API errors and stale/missing
-    # current bars still fail the run and remain visible in latest_cycle.json.
-    report_path = (
-        Path(os.environ.get("MARKET_DATA_DIR", "../market-data"))
-        / "data" / "reports" / "mexc" / "latest_cycle.json"
-    )
-    if result != 0 and report_path.is_file():
-        report = json.loads(report_path.read_text(encoding="utf-8"))
-        expected_bootstrap = (
-            report.get("paper_decision_status") == "BLOCKED_INCOMPLETE_MARKET_DATA"
-            and int(report.get("bootstrap_remaining", 0)) > 0
-            and int(report.get("api_failure_count", 0)) == 0
-            and int(report.get("missing_ticker_count", 0)) == 0
-            and int(report.get("missing_latest_bar_count", 0)) == 0
-        )
-        if expected_bootstrap:
-            print(
-                "[bab-bootstrap] Full-universe history is still being collected; "
-                "portfolio changes remain blocked. This is normal resumable progress."
-            )
-            return 0
-    return result
+    # A blocked portfolio decision is a failed paper cycle. Do not convert
+    # missing history, API errors, or incomplete ranking coverage into green CI.
+    return int(engine._run())
 
 
 if __name__ == "__main__":
