@@ -2,7 +2,10 @@ from __future__ import annotations
 
 from decimal import Decimal
 
-from scripts.bab_mexc_paper_cycle import rank_bab_mexc_universe
+from scripts.bab_mexc_paper_cycle import (
+    rank_bab_mexc_universe,
+    refresh_bab_rolling_history,
+)
 
 DAY = 86_400_000
 
@@ -70,3 +73,153 @@ def test_bab_requires_at_least_two_eligible_non_benchmark_contracts() -> None:
         assert "fewer than two" in str(exc)
     else:
         raise AssertionError("A one-contract universe must not create a self-hedged pair")
+
+
+
+class _FakeStore:
+    def __init__(self, instruments, history=None):
+        self.manifest = {
+            "instruments": {
+                str(row["instrument_id"]): {
+                    "bootstrap_complete": False,
+                    "bootstrap_attempts": 0,
+                    "last_checked_daily_bar_ms": None,
+                }
+                for row in instruments
+            }
+        }
+        self.rows = {
+            int(iid): {int(row["timestamp_ms"]): dict(row) for row in rows}
+            for iid, rows in (history or {}).items()
+        }
+
+    def load_all_candles(self, *, start_timestamp_ms=None):
+        output = {}
+        for iid, items in self.rows.items():
+            selected = [
+                dict(row) for stamp, row in sorted(items.items())
+                if start_timestamp_ms is None or stamp >= start_timestamp_ms
+            ]
+            if selected:
+                output[iid] = selected
+        return output
+
+    def append_candles(self, rows):
+        for row in rows:
+            iid = int(row["instrument_id"])
+            self.rows.setdefault(iid, {})[int(row["timestamp_ms"])] = dict(row)
+
+    def mark_bootstrap_complete(self, instrument_id, *, completed_at_ms, history_status):
+        record = self.manifest["instruments"][str(int(instrument_id))]
+        record["bootstrap_complete"] = True
+        record["bootstrap_completed_at_ms"] = int(completed_at_ms)
+        record["history_status"] = history_status
+
+    def save_manifest(self, now_ms):
+        self.manifest["updated_at_ms"] = int(now_ms)
+
+
+class _FakeCandleClient:
+    def __init__(self, *, failures=None):
+        self.failures = set(failures or [])
+        self.calls = []
+
+    def candles(self, symbol, *, start_timestamp_ms, end_timestamp_ms, interval):
+        self.calls.append((symbol, start_timestamp_ms, end_timestamp_ms, interval))
+        if symbol in self.failures:
+            raise RuntimeError("simulated public candle endpoint failure")
+        return [
+            {
+                "timestamp_ms": stamp,
+                "open": "100",
+                "high": "101",
+                "low": "99",
+                "close": str(100 + (stamp // DAY) / 1000),
+                "volume_contracts": "10",
+                "turnover_quote": "1000",
+            }
+            for stamp in range(start_timestamp_ms, end_timestamp_ms, DAY)
+        ]
+
+
+def test_bab_refreshes_full_usdt_universe_in_one_daily_pass() -> None:
+    latest = 100 * DAY
+    instruments = [
+        {"instrument_id": 1, "symbol": "BTC_USDT", "usdt_account_eligible": True},
+        {"instrument_id": 2, "symbol": "LOW_USDT", "usdt_account_eligible": True},
+        {
+            "instrument_id": 3,
+            "symbol": "NEW_USDT",
+            "usdt_account_eligible": True,
+            "opening_time_ms": 80 * DAY,
+        },
+    ]
+    store = _FakeStore(instruments)
+    client = _FakeCandleClient()
+
+    checked, remaining, failures = refresh_bab_rolling_history(
+        client, store, instruments, 102 * DAY, latest, batch_size=150
+    )
+
+    assert checked == 3
+    assert remaining == 0
+    assert failures == []
+    assert [call[0] for call in client.calls] == [
+        "BTC_USDT", "LOW_USDT", "NEW_USDT"
+    ]
+    assert store.manifest["instruments"]["1"]["history_status"] == "AVAILABLE"
+    assert store.manifest["instruments"]["2"]["history_status"] == "AVAILABLE"
+    assert store.manifest["instruments"]["3"]["history_status"] == "INSUFFICIENT_HISTORY"
+    assert store.manifest["instruments"]["3"]["last_checked_daily_bar_ms"] == latest
+
+
+def test_bab_refresh_skips_history_already_complete_through_decision_bar() -> None:
+    latest = 100 * DAY
+    instruments = [
+        {"instrument_id": 1, "symbol": "BTC_USDT", "usdt_account_eligible": True},
+        {"instrument_id": 2, "symbol": "ALT_USDT", "usdt_account_eligible": True},
+    ]
+    history = {
+        iid: [
+            {
+                "timestamp_ms": stamp,
+                "open": "100",
+                "high": "101",
+                "low": "99",
+                "close": "100",
+            }
+            for stamp in range(latest - 90 * DAY, latest + 1, DAY)
+        ]
+        for iid in (1, 2)
+    }
+    store = _FakeStore(instruments, history)
+    client = _FakeCandleClient()
+
+    checked, remaining, failures = refresh_bab_rolling_history(
+        client, store, instruments, 102 * DAY, latest, batch_size=0
+    )
+
+    assert checked == 2
+    assert remaining == 0
+    assert failures == []
+    assert client.calls == []
+
+
+def test_bab_candle_api_failure_keeps_the_daily_decision_blocked() -> None:
+    latest = 100 * DAY
+    instruments = [
+        {"instrument_id": 1, "symbol": "BTC_USDT", "usdt_account_eligible": True},
+        {"instrument_id": 2, "symbol": "BROKEN_USDT", "usdt_account_eligible": True},
+    ]
+    store = _FakeStore(instruments)
+    client = _FakeCandleClient(failures={"BROKEN_USDT"})
+
+    checked, remaining, failures = refresh_bab_rolling_history(
+        client, store, instruments, 102 * DAY, latest, batch_size=0
+    )
+
+    assert checked == 1
+    assert remaining == 1
+    assert len(failures) == 1
+    assert failures[0]["symbol"] == "BROKEN_USDT"
+    assert not store.manifest["instruments"]["2"]["bootstrap_complete"]
