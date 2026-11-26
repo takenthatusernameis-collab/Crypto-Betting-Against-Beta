@@ -7,11 +7,11 @@
 - Account: `mexc-usdt-forward-bab-100usdt-v1`
 - Strategy generation: `crypto-bab-low-beta-long-high-beta-short-v1`
 - Starting capital: **100.00000000 USDT**
-- Account state: **READY — WAITING FOR FIRST FINANCIAL PAPER EVENT**
-- Last report build: 2026-11-26 09:41:06 UTC
-- Latest workflow run: [45794162212](https://github.com/takenthatusernameis-collab/Crypto-Betting-Against-Beta/actions/runs/45794162212) · run #—, attempt — · failure · push
+- Account state: **INITIALIZED — FORWARD PAPER**
+- Last report build: 2026-11-26 09:49:34 UTC
+- Latest workflow run: [45794551000](https://github.com/takenthatusernameis-collab/Crypto-Betting-Against-Beta/actions/runs/45794551000) · run #—, attempt — · failure · push
 - Latest processed daily candle: —
-- Latest account event: —
+- Latest account event: 2026-11-26 09:49:19 UTC
 - Primary execution journal: [PAPER_TRADE_JOURNAL.md](PAPER_TRADE_JOURNAL.md)
 
 ## Current performance
@@ -28,8 +28,8 @@
 | Gross exposure | 0.000× NAV |
 | Net exposure | 0.000× NAV |
 | Current drawdown from risk-window peak | +0.000% |
-| Lifetime / cross-session maximum drawdown | Unavailable — no account observations yet |
-| Worst risk-session maximum drawdown | Unavailable — no account observations yet |
+| Lifetime / cross-session maximum drawdown | +0.000% |
+| Worst risk-session maximum drawdown | +0.000% |
 | Sharpe ratio | Unavailable — sample gate not met |
 | Sortino ratio | Unavailable — sample gate not met |
 | Annualized daily volatility | Unavailable — sample gate not met |
@@ -38,7 +38,7 @@
 
 | Session start (UTC) | Starting NAV | Latest NAV | Max drawdown | Marks |
 |---|---:|---:|---:|---:|
-| No risk sessions observed | — | — | — | 0 |
+| 2026-11-26 00:00:00 UTC | 100.00000000 | 100.00000000 | +0.000% | 1 |
 
 ## Open positions
 
@@ -69,7 +69,7 @@ At each rebalance, the quieter leg receives the larger share using inverse 30-co
 
 ## Next workflow action
 
-The next eligible cycle can process the latest genuine completed UTC daily candle; the new account has no consumed-candle watermark.
+The next daily decision requires a newer completed UTC candle and a passing data-coverage gate.
 
 The daily-candle watermark is not advanced by this report. Only the paper workflow can consume a completed candle after full-history and execution gates pass. A blocked or incomplete run remains visible.
 
