@@ -19,6 +19,7 @@ sys.path.insert(0, str(ENGINE_ROOT / "src"))
 
 from high_vs_low.github_state import GitHubStateError, GitHubStatePublisher
 from high_vs_low.indicators import wilder_atr
+from high_vs_low.mexc_api import _normalize_ticker_row, _payload_rows
 from high_vs_low.mexc_paper import Candidate, MEXCRankings
 from strategies.betting_against_beta.beta import calculate_beta
 
@@ -26,6 +27,44 @@ BETA_WINDOW = 90
 MIN_BETA_OBSERVATIONS = 60
 ACCOUNT_ID = "mexc-usdt-forward-bab-100usdt-v1"
 STRATEGY_ID = "crypto-bab-low-beta-long-high-beta-short-v1"
+
+
+def fetch_bab_tickers_with_rest_fallback(
+    client: Any,
+    websocket_tickers: Any,
+) -> list[dict[str, Any]]:
+    """Prefer the established all-market WS feed, then use MEXC bulk REST.
+
+    MEXC's public GET /api/v1/contract/ticker endpoint returns all contracts
+    when no symbol parameter is supplied. This avoids per-symbol REST calls
+    when GitHub-hosted runners cannot complete the public WebSocket handshake.
+    """
+    try:
+        rows = websocket_tickers()
+        if rows:
+            return rows
+        raise RuntimeError("MEXC all-market WebSocket returned an empty ticker set")
+    except Exception as websocket_error:
+        try:
+            payload = client._request("/api/v1/contract/ticker")
+            raw_rows = _payload_rows(payload)
+            normalized = [_normalize_ticker_row(row) for row in raw_rows]
+            if not normalized:
+                raise RuntimeError("MEXC bulk REST ticker endpoint returned no usable rows")
+            print(
+                "[bab-tickers] all-market WebSocket unavailable; "
+                f"bulk REST fallback returned {len(normalized)} contract tickers "
+                f"({type(websocket_error).__name__})",
+                flush=True,
+            )
+            return normalized
+        except Exception as rest_error:
+            raise RuntimeError(
+                "MEXC ticker acquisition failed via both all-market WebSocket "
+                f"and bulk REST; websocket={type(websocket_error).__name__}: "
+                f"{str(websocket_error)[:140]}; "
+                f"rest={type(rest_error).__name__}: {str(rest_error)[:140]}"
+            ) from rest_error
 
 
 def _close_map(rows: list[dict[str, Any]], cutoff_ms: int) -> dict[int, float]:
@@ -457,6 +496,9 @@ def main() -> int:
 
         def instruments(self, *, usdt_only: bool = True):
             return super().instruments(usdt_only=True)
+
+        def tickers(self):
+            return fetch_bab_tickers_with_rest_fallback(self, super().tickers)
 
     engine.MEXCPublicClient = BABMEXCPublicClient
 
