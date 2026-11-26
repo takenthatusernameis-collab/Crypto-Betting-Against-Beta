@@ -1,73 +1,33 @@
 # MEXC High-Low ATH/ATL Paper Research
 
-- Run (UTC): 2026-11-26T22:11:26.353632+00:00
-- Active cross-margin USDT perpetuals: 1087
-- Bootstrap remaining: 0
-- History coverage gate: True
+- Run (UTC): 2026-11-26T22:20:06.664000+00:00
+- Active cross-margin USDT perpetuals: not refreshed in snapshot mode
+- Bootstrap remaining: not refreshed in snapshot mode
+- History coverage gate: not checked in snapshot mode
 - State write mode: UNPROTECTED_SINGLE_WRITER_APPEND_ONLY
 - Paper simulation enabled: True
-- Decision: DAILY_REFRESH_BLOCKED:ValueError:Initial stop price is non-positive
+- Decision: RETRY_EXECUTION_BLOCKED
 
 ## Research long ranking — closest to ATH
 
 | Symbol | Distance (%) | Extreme price |
 |---|---:|---:|
-| AKE_USDT | -3.360082498561552 | None |
-| SOXS_USDT | -2.3547501277232388 | None |
-| SKDD_USDT | -1.7142559678544846 | None |
-| UVXY_USDT | -1.5536392690839815 | None |
-| NVD_USDT | -1.3106859557794535 | None |
-| SQQQ_USDT | -1.2999249628521792 | None |
-| SOPH_USDT | -1.0248825019826207 | None |
-| TZA_USDT | -0.6613974846024581 | None |
-| BTW_USDT | -0.5772568016369573 | None |
-| MAGMA_USDT | -0.5181695611127829 | None |
-| DODO_USDT | -0.407018774365974 | None |
-| UAI_USDT | -0.33079066054054335 | None |
-| UKOIL_USDT | -0.3198099376828488 | None |
-| USO_USDT | -0.30710289688982656 | None |
-| USOIL_USDT | -0.2999242348409233 | None |
-| BLESS_USDT | -0.28391932300514416 | None |
-| APHSTOCK_USDT | -0.2401914771331927 | None |
-| COPSTOCK_USDT | -0.22559850148155575 | None |
-| FF_USDT | -0.21574492318557728 | None |
-| ON_USDT | -0.1993226162037664 | None |
 
 ## Research short ranking — closest to ATL
 
 | Symbol | Distance (%) | Extreme price |
 |---|---:|---:|
-| SI_USDT | 4.322266813146608 | None |
-| MSTU_USDT | 3.8421547490514065 | None |
-| CATE_USDT | 3.253992605505298 | None |
-| USELESS_USDT | 2.9877139687930425 | None |
-| BULLA_USDT | 2.951234113828696 | None |
-| SNXX_USDT | 2.436819746688795 | None |
-| SOXL_USDT | 2.39647928922836 | None |
-| PONS_USDT | 2.353728058395553 | None |
-| CHIP_USDT | 2.320956316667175 | None |
-| ANSEM_USDT | 2.281339080964963 | None |
-| INTW_USDT | 2.206979608558177 | None |
-| STRK_USDT | 2.2056751178944465 | None |
-| MVLL_USDT | 2.195031050606141 | None |
-| BR_USDT | 2.07032921355624 | None |
-| FWDISTOCK_USDT | 2.060496463597381 | None |
-| AR_USDT | 2.0496687048649247 | None |
-| KORU_USDT | 1.9853365674382613 | None |
-| JCT_USDT | 1.982896496799709 | None |
-| FARTCOIN_USDT | 1.9591070657715146 | None |
-| MSTRSTOCK_USDT | 1.945664153505593 | None |
 
 ## Data completeness
 
-- Ticker coverage: 1169
+- Ticker coverage: 0
 - Missing latest daily bars: 0
-- All-time history verified: 912
-- All-time history unverified: 257
-- Observed missing daily timestamps: 2658
-- Missing provider listing timestamps: 0
+- All-time history verified: not refreshed
+- All-time history unverified: not refreshed
+- Observed missing daily timestamps: not refreshed
+- Missing provider listing timestamps: not refreshed
 - API failures: 0
-- Excluded/unranked records sampled: 50
+- Excluded/unranked records sampled: 0
 
 ## Portfolio accounting
 

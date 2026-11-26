@@ -58113,9 +58113,9 @@
   "last_daily_workflow_bar_ms": 1795564800000,
   "last_processed_daily_bar_ms": null,
   "last_research_daily_bar_ms": 1795564800000,
-  "last_snapshot_ms": 1795731057867,
+  "last_snapshot_ms": 1795731606664,
   "provider": "mexc",
   "schema_version": 1,
   "selected_provider": "mexc",
-  "updated_at_ms": 1795731057867
+  "updated_at_ms": 1795731606664
 }

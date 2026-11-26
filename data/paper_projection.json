@@ -1,5 +1,5 @@
 {
-  "last_run_utc": "2026-11-26T22:10:57.867000+00:00",
+  "last_run_utc": "2026-11-26T22:20:06.664000+00:00",
   "portfolio_state": {
     "account_id": "mexc-usdt-forward-bab-100usdt-v1",
     "cash": "100",
@@ -174,16 +174,35 @@
         "short_notional_usdt": "0",
         "timestamp_ms": 1795731057867,
         "utc_date": "2026-11-26"
+      },
+      {
+        "daily_drawdown_pct": "0",
+        "daily_peak_nav": "100",
+        "daily_return_pct": "0",
+        "daily_starting_nav": "100",
+        "daily_starting_reference": "first_observation_of_utc_day",
+        "drawdown_window_reference": "first_observation_of_utc_day",
+        "drawdown_window_starting_nav": "100",
+        "emergency_stop_flattened": false,
+        "emergency_stop_newly_triggered": false,
+        "emergency_stop_triggered": false,
+        "gross_exposure": "0",
+        "long_notional_usdt": "0",
+        "nav": "100",
+        "roi_pct": "0",
+        "short_notional_usdt": "0",
+        "timestamp_ms": 1795731606664,
+        "utc_date": "2026-11-26"
       }
     ],
     "fees_paid": "0",
     "initial_capital": "100",
     "last_decision_attempt_daily_bar_ms": 1795564800000,
     "last_processed_daily_bar_ms": null,
-    "last_snapshot_ms": 1795731057867,
+    "last_snapshot_ms": 1795731606664,
     "partial_realized_net_pnls": [],
     "pending_entry_signal": {
-      "attempt_count": 0,
+      "attempt_count": 1,
       "daily_bar_timestamp_ms": 1795564800000,
       "executable_longs": [
         {
@@ -409,7 +428,7 @@
           "semi_cycle_direction": null
         }
       ],
-      "last_attempt_ms": null
+      "last_attempt_ms": 1795731606664
     },
     "positions": [],
     "realized_gross_pnl": "0",
@@ -420,9 +439,9 @@
   },
   "schema_version": 1,
   "state_event": {
-    "batch_hash": "2af54a591e883f2fed103c29be49ebef08b103bc044b8ae5545fe33740484e6d",
-    "commit_sha": "a92493f45c3ce07d98277de491957a7170b687e7",
+    "batch_hash": "f77e9c292e69a619c66cb83eba8253f655f1f896536543424bacb931ebc7eb9b",
+    "commit_sha": "53509454f11a62d46b1e400e65417d84bd619173",
     "created": true,
-    "path": "events/2026/11/risk-1795731057867.json"
+    "path": "events/2026/11/snapshot-1795731606664.json"
   }
 }
