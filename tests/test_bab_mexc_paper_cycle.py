@@ -7,6 +7,7 @@ from scripts.bab_mexc_paper_cycle import (
     rank_bab_mexc_universe,
     refresh_bab_rolling_history,
     filter_bab_positive_stop_longs,
+    fetch_bab_tickers_with_rest_fallback,
 )
 
 DAY = 86_400_000
@@ -329,3 +330,76 @@ def test_bab_retry_filter_removes_stale_invalid_long_from_frozen_ranking() -> No
         "UNSAFE_USDT:NONPOSITIVE_OR_UNAVAILABLE_3X_ATR_LONG_STOP" in item
         for item in filtered.excluded
     )
+
+
+
+def test_bab_tickers_fall_back_to_one_bulk_rest_request_after_ws_403() -> None:
+    class FakeClient:
+        def __init__(self):
+            self.paths = []
+
+        def _request(self, path):
+            self.paths.append(path)
+            return {
+                "success": True,
+                "code": 0,
+                "data": [
+                    {
+                        "symbol": "BTC_USDT",
+                        "lastPrice": "60000",
+                        "bid1": "59999",
+                        "ask1": "60001",
+                        "fairPrice": "60000",
+                        "indexPrice": "60000",
+                        "fundingRate": "0.0001",
+                        "volume24": "1000",
+                        "amount24": "60000000",
+                        "holdVol": "500",
+                        "riseFallRate": "0.01",
+                        "timestamp": 1_800_000_000_000,
+                    },
+                    {
+                        "symbol": "ETH_USDT",
+                        "lastPrice": "3000",
+                        "bid1": "2999",
+                        "ask1": "3001",
+                        "fairPrice": "3000",
+                        "indexPrice": "3000",
+                        "fundingRate": "-0.0001",
+                        "volume24": "2000",
+                        "amount24": "6000000",
+                        "holdVol": "800",
+                        "riseFallRate": "-0.01",
+                        "timestamp": 1_800_000_000_000,
+                    },
+                ],
+            }
+
+    client = FakeClient()
+
+    def blocked_websocket():
+        raise ConnectionError("403 Forbidden during WebSocket handshake")
+
+    rows = fetch_bab_tickers_with_rest_fallback(client, blocked_websocket)
+
+    assert client.paths == ["/api/v1/contract/ticker"]
+    assert [row["symbol"] for row in rows] == ["BTC_USDT", "ETH_USDT"]
+    assert rows[0]["mark_price"] == "60000"
+    assert rows[0]["bid_price"] == "59999"
+    assert rows[1]["funding_rate"] == "-0.0001"
+
+
+def test_bab_ticker_fallback_fails_closed_when_bulk_rest_is_unavailable() -> None:
+    class FakeClient:
+        def _request(self, path):
+            raise RuntimeError("REST unavailable")
+
+    try:
+        fetch_bab_tickers_with_rest_fallback(
+            FakeClient(),
+            lambda: (_ for _ in ()).throw(ConnectionError("WebSocket 403")),
+        )
+    except RuntimeError as exc:
+        assert "both all-market WebSocket and bulk REST" in str(exc)
+    else:
+        raise AssertionError("Ticker acquisition must fail closed when both sources fail")
