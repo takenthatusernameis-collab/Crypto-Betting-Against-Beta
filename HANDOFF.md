@@ -1,130 +1,176 @@
 # DURABLE HANDOFF — Crypto-Betting-Against-Beta
-**Timestamp:** 2026-11-26T00:53:00Z
-**Session:** Kilo General Agent Loop — Next Activation (Campaign B initial task — MANDATORY)
+**Timestamp:** 2026-11-26T01:58:00Z
+**Session:** Kilo General Agent Loop — Next Activation (Campaign P40 initial task — MANDATORY)
 **Repository:** Crypto-Betting-Against-Beta (Betting Against Beta crypto quant research)
+**Supersedes:** all prior HANDOFF.md content. The previous file described a stale
+"Campaign B / P37 regime-conditional" plan that was superseded by P39 WP0 and is
+now CLOSED. Do not execute Campaign B. The single binding campaign is **P40** below.
 
 ---
 
-## PROJECT STATE SUMMARY
+## PROJECT STATE SUMMARY (verified this session, HEAD `4ab4539`)
 
-This is a systematic quantitative research project implementing the **Betting Against Beta (BAB)** strategy (Frazzini & Pedersen) for cryptocurrencies. The codebase has progressed through **P20–P39+** research phases with deterministic synthetic fixtures and extensive test campaigns (70+ test files, 50+ scripts).
+Systematic quantitative research implementing the **Betting Against Beta (BAB)**
+strategy (Frazzini & Pedersen) for cryptocurrencies, on deterministic synthetic
+fixtures (NOT real market data — never present results as real profitability).
 
-**Critical Verdicts (Latest Completed Phases):**
+**Phase status — P20–P39 are COMPLETE and FROZEN. Do not reopen.**
 
 | Phase | Campaign | Verdict | Key Finding |
 |-------|----------|---------|-------------|
-| **P38** | Deflated Significance (n_trials=552) | **SURVIVES_DEFLATION** | Default config (β_window=90, quantile=0.3, equal-weight) passes; best in-sample (β_window=180, quantile=0.2) also passes |
-| **P39 WP1** | Regime-Conditional + Tail Risk | **DOES_NOT_SURVIVE_DEFLATION_IN_SOME_REGIME** | `bull_high_vol`: 4/8 seeds survive (mean DSR=0.53, mean Sharpe≈0); `bear_mid_vol`: 3/8 seeds survive (mean DSR=0.35, negative Sharpe); `bull_mid_vol`: 4/8 survive (mean DSR=0.53). Low-vol regimes survive well (5-6/8). |
-| **P39 WP2** | Cross-Fixture Replication (2nd synthetic universe) | **DOES_NOT_REPLICATE** | Only 3/8 seeds survive deflation; mean DSR = 0.396 (< 0.5 threshold) |
-| **P36** | Rank-Weighted vs Equal-Weight | **RANK UNDERPERFORMS** | Rank weighting: negative Sharpe (−0.55), higher vol (3.4% vs 0.66%), worse maxDD (−5.5% vs −0.8%) |
+| **P38 WP1** | Deflated Significance (n_trials=552) | **SURVIVES_DEFLATION** | Default (β=90,q=0.3,equal) DSR=0.921; best in-sample (β=180,q=0.2) DSR=0.944 |
+| **P39 WP1** | Regime-Conditional Deflation | **DOES_NOT_SURVIVE_IN_SOME_REGIME** | `bear_mid_vol` 3/8 survive (DSR 0.35); `bull_high_vol`/`bull_mid_vol` 4/8 (DSR 0.53); low-vol regimes 5–6/8 |
+| **P39 WP2** | Cross-Fixture Replication (2nd universe) | **DOES_NOT_REPLICATE** | Only 3/8 survive; mean DSR 0.396 (< 0.5) |
+| **P39 WP0** | Full-Gate Close-Out (100% cov) | **GREEN (committed)** | `BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh` exit 0, TOTAL 100%, 7675 passed/39 skipped, ~56 min. Commit `098a3a4` is ancestor of HEAD. |
+| **P36** | Rank-Weighted vs Equal-Weight | **RANK UNDERPERFORMS** | Negative Sharpe, higher vol, worse maxDD. Dead end — do not pursue. |
 
-**The strategy survives pooled deflation (P38) but fails when conditioned on high-volatility regimes and fails to replicate on a second independent synthetic parameterization.**
-
----
-
-## CURRENT STATE CORRECTION
-
-**IMPORTANT:** The previous HANDOFF.md (timestamp 2026-11-25T22:49:34Z) claimed a "Regime Coverage Gap" where `bear_high_vol` had only 9 periods per seed. **That bottleneck is ALREADY FIXED.** The current committed artifact at `research_state/bab_p39/regime_summary.json` shows:
-
-- **All 6 regimes have `n_ok_cells = 8`** (all 8 seeds well-populated)
-- `bear_high_vol`: 30 periods/seed, 6/8 survive, mean DSR=0.70
-- `bear_mid_vol`: 39 periods/seed, 3/8 survive, mean DSR=0.35
-- `bear_low_vol`: 48 periods/seed, 6/8 survive, mean DSR=0.68
-- `bull_high_vol`: 69 periods/seed, 4/8 survive, mean DSR=0.53, **mean Sharpe ≈ 0**
-- `bull_mid_vol`: 82 periods/seed, 4/8 survive, mean DSR=0.53
-- `bull_low_vol`: 69 periods/seed, 5/8 survive, mean DSR=0.63
-
-**The regime coverage gap is RESOLVED. The current blocker is the HIGH-VOL FAILURE MODE.**
+**One-line verdict:** The BAB factor survives pooled deflation (P38) on the primary
+synthetic fixture but **fails in high-vol regimes (P39 WP1) and fails to replicate
+on a second independent fixture (P39 WP2)**. P39 WP0 (the 100%-coverage full gate)
+is DONE and committed — that bottleneck is removed.
 
 ---
 
-## IMMEDIATE BOTTLENECKS REMOVING PROGRESS
+## BOTTLENECKS — CURRENT STATUS (read before acting)
 
-These are the only active blockers. Campaign B (below) removes Bottleneck 1 directly; Bottleneck 2 is deferred until B lands; Bottleneck 3 is closed. Do not open new campaigns or fixtures until Bottleneck 1 is resolved.
+**Bottleneck 1 (RESOLVED this session): "Full gate cannot complete."**
+The full gate (`BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh`) takes ~56 min
+and exceeds any single tool-call window. It is GREEN when allowed to finish
+(coverage notes + commit `098a3a4`). **Do NOT re-run the full gate to "verify" P39
+WP0 — it is already committed GREEN.** If you must run it, use the
+`background_process` `monitor` action with `timeout: 600000` and re-invoke `logs`
+until the process exits; a bare `bash` call WILL be killed mid-run and leave the
+working tree with spurious coverage-only failures and P27/P30 newline side-effects
+(restore with `git checkout -- research_state/`).
 
-**Bottleneck 1 (PRIMARY — must fix now): High-Vol Failure Mode**
-`bull_high_vol` consistently produces near-zero or negative Sharpe (−1.86 to +3.3 across seeds; mean DSR = 0.53, only 4/8 survive). `bear_mid_vol` also fails (mean DSR = 0.35, only 3/8 survive). Beta estimation noise + idiosyncratic vol swamps signal in high-vol regimes. This is the core reason the strategy fails regime-conditional deflation.
+**Bottleneck 2 (ACTIVE — the reason P40 is stuck): No P40 artifacts exist.**
+`research_state/bab_p40/` does not exist. P40 is the sole binding agent-executable
+row (README line 246, COVERAGE_NOTES line 7). Nothing has been started. This is the
+gap the next session must close with heavy, real work (below).
 
-**Bottleneck 2 (secondary): Cross-Fixture Non-Replication**
-Second universe yields mean DSR = 0.396. P38 pooled verdict is fragile to universe parameterization. Defer until Bottleneck 1 is resolved.
+**Bottleneck 3 (CLOSED): Rank weighting.** P36 proved it strictly worse. Never reopen.
 
-**Bottleneck 3 (dead end, closed): Rank Weighting Dead End**
-P36 proves rank weighting is strictly worse. Do not pursue rank-weighting as a fix.
-
----
-
-## EXISTING P37 ARTIFACTS (NOT REGIME-CONDITIONAL — NEED EXTENSION)
-
-The `research_state/bab_p37/` directory already contains three summary artifacts, but they analyze the **full sample without regime conditioning**:
-
-1. **`capacity_summary.json`** — Market-impact participation-rate break-even across 8 seeds (break-even impacts range 0.7–5.6bp; seeds 3, 4, 6 have negative costed Sharpe even at zero impact)
-2. **`turnover_summary.json`** — Hysteresis no-trade band validation (turnover reduction confirmed, monotonicity holds)
-3. **`cost_surface_summary.json`** — Cost x turnover surface (monotonicity verified across cost grid)
-
-**These are necessary but insufficient.** They do not break down by P39 regimes (`bull_high_vol`, `bear_mid_vol`, etc.). The high-vol failure mode requires a **regime-conditional** P37 analysis.
+**Bottleneck 4 (CLOSED): Regime coverage gap.** The old "bear_high_vol only 9 periods"
+gap is fixed — all 6 regimes have `n_ok_cells = 8` in
+`research_state/bab_p39/regime_summary.json`.
 
 ---
 
 ## NEXT FOCUS CAMPAIGN — MANDATORY, SINGLE TASK (NO EXPLORATION, NO OPTIONS)
 
-The next agent **must** execute Campaign B as the initial task. This is the single source of truth for this session. **Do not** explore, do not pick among options, do not open new campaigns/fixtures, do not reopen P20–P39 (frozen). Complete Campaign B fully and produce a JSON + MD artifact in `research_state/`. Update this HANDOFF.md with the outcome before exiting.
+The next agent **must** execute **Campaign P40** as the initial task. This is the
+single source of truth. **Do not** explore, do not pick among options, do not reopen
+P20–P39 (frozen), do not re-run the full gate for P39 WP0 (done). Complete P40 fully
+and produce byte-stable JSON + MD artifacts in `research_state/bab_p40/`. Update this
+HANDOFF.md with the outcome before exiting.
 
-### CAMPAIGN B (MANDATORY): P37 Capacity/Turnover/Cost Surface Deep-Dive — Diagnose & Mitigate High-Vol Failure (REGIME-CONDITIONAL)
+### CAMPAIGN P40 (MANDATORY): Multi-Fixture Robustness Meta-Analysis & Consolidated Factor Verdict
 
-**Goal:** Diagnose *why* the BAB signal collapses in high-volatility regimes (`bull_high_vol`, `bear_mid_vol`) by extending the existing P37 analyses to be **regime-conditional**, using the same regime labels, seeds, and fixture as P39 WP1.
+**Goal:** Resolve the central open question left by P38/P39 — *is the BAB factor's
+pooled survival (P38) a genuine factor property, or an artifact of a single synthetic
+fixture?* P39 WP2 showed non-replication on ONE second fixture (mean DSR 0.396). P40
+must generalize this to a **multi-fixture meta-analysis** across several independent
+synthetic parameterizations and emit a single consolidated verdict.
 
 **Steps (execute in order, do not skip):**
 
-1. **Create a new regime-conditional P37 script** (e.g., `scripts/bab_p37_regime_capacity.py`) that:
-   - Uses the same 8 seeds, same P35 wide-universe fixture, same regime labels as P39 WP1 (`scripts/bab_p39_regime_conditional.py`)
-   - For each (seed, regime) cell: computes turnover, gross leverage, transaction cost drag at varying cost levels (0bp, 1bp, 5bp, 10bp, 20bp)
-   - Computes capacity limits: at what AUM does the strategy's own flow impact returns in each regime?
-   - Analyzes beta estimation stability in high-vol regimes: rolling beta estimation error (vs true beta) per regime; tests if `BETA_WINDOW=90` is too short (noisy) or too long (stale) for high-vol; tests alternative estimators (shrinkage, EWMA, Kalman) within high-vol regimes only
+1. **Create `scripts/bab_p40_meta_analysis.py`** (standalone entry point, deterministic)
+   that:
+   - Reuses the P39 WP1 regime labels + P39 WP2 cross-fixture generator as the base.
+   - Defines **≥ 4 independent synthetic fixtures** varying at minimum: seed base,
+     idio_vol, beta grid range, n_assets (e.g. the P39 WP2 fixture + 3 new ones). Each
+     fixture is a deterministic seeded random walk — document the exact parameters.
+   - For each (fixture, seed) cell: runs the shipped-default BAB config (β=90, q=0.3,
+     equal-weight, beta+dollar neutral), computes Sharpe, DSR (deflate over the
+     read-only `n_trials_total=552` from `bab_p38/deflated_summary.json`), PSR, and
+     neutrality invariants.
+   - Aggregates per-fixture and across-fixture: n_survive, mean/min/max DSR,
+     fraction of fixtures where the pooled P38 verdict replicates.
+   - Emits a **consolidated factor verdict** with a fixed enum, e.g.
+     `ROBUST_ACROSS_FIXTURES` / `FRAGILE_FIXTURE_DEPENDENT` / `DOES_NOT_REPLICATE`.
 
-2. **Produce diagnostic artifact:** `research_state/bab_p37/capacity_cost_surface_v2.json` + `.md` (byte-stable: deterministic seeds, sorted keys, fixed decimals) that:
-   - Identifies the primary driver of high-vol failure (turnover? beta noise? cost drag? idiosyncratic vol?)
-   - Recommends a *specific, testable* mitigation (e.g., "increase beta_window to 180 in high_vol", "add vol-targeting", "widen quantile to 0.4 in high_vol", "add minimum holding period")
-   - OR honestly documents that no simple fix exists within current architecture
+2. **Produce byte-stable artifacts:** `research_state/bab_p40/meta_summary.json` +
+   `meta_summary.md` (deterministic seeds, sorted keys, fixed decimals — match the
+   formatting of existing `research_state/bab_p*/*.json`). Include a per-fixture
+   parameter table and the consolidated verdict + honest reason.
 
-3. **Verify tests pass:** `python -m pytest -x -q` before claiming completion.
+3. **Add a consistency test** `tests/test_bab_p40_decision_consistency.py` mirroring
+   `tests/test_bab_p38_decision_consistency.py` / `test_bab_p39_*` (schema pinned,
+   committed JSON matches fresh build, byte-identical rebuild, markdown matches
+   renderer). Register it in the P31/P32 decision registry if those tests require it.
 
-4. **Commit:** `git commit` the artifact with message: `chore(research): P37 regime-conditional capacity/cost surface deep-dive — <finding>`
+4. **Verify (fast, NOT the full gate):**
+   - `python -m pytest -x -q tests/test_bab_p40_decision_consistency.py` passes.
+   - `python -m pytest -x -q tests/test_bab_p31_registry_completeness.py tests/test_bab_p32_decision_registry_completeness.py` still pass (registry not broken).
+   - `bash scripts/bab_quick.sh` is GREEN (ruff + targeted trio + smoke, ~10s).
+   - **Do NOT run the full 56-min gate.** It is already GREEN at HEAD for P39 WP0.
 
-5. **Update this HANDOFF.md** with the outcome (root cause, recommended mitigation, next steps) before exiting.
+5. **Commit:** `git commit` with message
+   `chore(research): P40 multi-fixture robustness meta-analysis — <consolidated verdict>`.
+   Restore any P27/P30 newline side-effects first (`git checkout -- research_state/bab_p27/ research_state/bab_p30/`).
 
-**Why this campaign is mandatory (repo-name prioritization):** The repository is `Crypto-Betting-Against-Beta` — its core deliverable is the BAB strategy for crypto. P39 WP1 proved the strategy fails in high-vol regimes. P37 (Capacity/Turnover/Cost Surface) is the *only* existing campaign designed to diagnose execution/structural drivers of failure. Without this **regime-conditional** diagnosis, no mitigation can be credibly designed. This is the highest-leverage, most repo-aligned work.
+6. **Update this HANDOFF.md** with the P40 outcome (per-fixture DSR table, consolidated
+   verdict, next steps) before exiting.
+
+**Why P40 is mandatory (repo-name prioritization):** The repo is
+`Crypto-Betting-Against-Beta` — its core deliverable is a *trustworthy* BAB verdict for
+crypto. P38 says "survives" on one fixture; P39 WP2 says "does not replicate" on a
+second. P40 is the only campaign that resolves this contradiction with a
+multi-fixture meta-analysis and a single consolidated verdict. Without it, no honest
+claim about the factor can be made. This is the highest-leverage, most repo-aligned work.
 
 ---
 
 ## EXECUTION CONSTRAINTS
 
-- **No new synthetic fixtures** without a documented reason tied to the high-vol failure mode.
-- **No "try X and see" loops** — the campaign above has a binary success criterion (diagnostic artifact with root cause + testable mitigation).
-- **Artifacts must be byte-stable**: deterministic seeds, sorted keys, fixed decimals (see existing `research_state/bab_p*/*.json`).
-- **Tests must pass**: `python -m pytest -x -q` before claiming completion.
-- **Git commit** the artifact with message: `chore(research): P37 regime-conditional capacity/cost surface deep-dive — <finding>`.
+- **No new synthetic fixtures** beyond the ≥4 P40 fixtures, each justified by the
+  robustness question (vary seed/idio_vol/beta-grid/n_assets). Document every parameter.
+- **No "try X and see" loops** — P40 has a binary success criterion (byte-stable
+  meta_summary.{json,md} + consolidated verdict + passing consistency test).
+- **Artifacts byte-stable:** deterministic seeds, sorted keys, fixed decimals.
+- **Do NOT run the full `bab_gate.sh`** — it is ~56 min, already GREEN for P39 WP0, and
+  gets killed mid-run by tool timeouts (leaving spurious failures + P27/P30 side-effects).
+  Use `bab_quick.sh` + the targeted P40/registry tests for verification.
+- **Tests must pass** before claiming completion.
+- **Git commit** the artifacts with the P40 message above.
 - **Update this HANDOFF.md** with the outcome before exiting.
 
 ---
 
 ## CONTEXT FOR NEXT AGENT
 
-- **Repository root**: `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
-- **Key prior script**: `scripts/bab_p39_regime_conditional.py` (produced current regime_summary.json)
-- **Reference scripts**: `scripts/bab_p37_capacity.py`, `scripts/bab_p37_turnover.py`, `scripts/bab_p37_cost_surface.py` (adapt for regime-conditioning)
-- **Key config**: `strategies/betting_against_beta/config.py` (BABConfig), `strategies/betting_against_beta/strategy.py` (BABStrategy)
-- **Fixture**: `tests/fixtures/wide_bab_universe.csv` (BTC + 40 synthetic assets, deterministic seed 20261120)
-- **Run command**: `python scripts/<script>.py` (all scripts are standalone entry points)
-- **Test command**: `python -m pytest -x -q` (full suite ~3 min; use `-k` for subsets)
-- **Current artifact**: `research_state/bab_p39/regime_summary.json` (shows high-vol failure mode with full per-seed, per-regime breakdown)
-- **Existing P37 artifacts**: `research_state/bab_p37/capacity_summary.json`, `turnover_summary.json`, `cost_surface_summary.json` (full-sample, NOT regime-conditional)
+- **Repository root:** `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
+- **Key prior scripts:** `scripts/bab_p39_regime_conditional.py` (regime labels),
+  `scripts/bab_p39_cross_fixture.py` (2nd-fixture generator — extend to ≥4 fixtures),
+  `scripts/bab_p38_deflated_significance.py` (DSR/deflation math — reuse, read-only n_trials).
+- **Reference consistency test:** `tests/test_bab_p38_decision_consistency.py`.
+- **Key config:** `strategies/betting_against_beta/config.py` (BABConfig),
+  `strategies/betting_against_beta/strategy.py` (BABStrategy).
+- **Fixtures:** `tests/fixtures/wide_bab_universe.csv` (BTC + 40 synthetic assets,
+  deterministic seed 20261120). P39 WP2 uses a 2nd parameterization (seed base 20270101,
+  idio_vol 0.006, 32 assets, beta 0.2–2.4).
+- **Read-only trial count:** `n_trials_total=552` from
+  `research_state/bab_p38/deflated_summary.json` — never re-enumerate.
+- **Run command:** `python scripts/<script>.py` (standalone entry points).
+- **Fast verify:** `bash scripts/bab_quick.sh` (~10s) + targeted pytest. **Not** the full gate.
+- **Current artifacts:** `research_state/bab_p39/regime_summary.json` (high-vol failure),
+  `research_state/bab_p39/cross_fixture_summary.json` (non-replication),
+  `research_state/bab_p38/deflated_summary.json` (pooled survival).
 
 ---
 
-## IF CAMPAIGN B FARES NEGATIVELY
+## IF P40 PRODUCES AN HONEST NEGATIVE VERDICT
 
-If Campaign B produces an honest negative verdict (no actionable mitigation found for high-vol failure), proceed to **Campaign D** (P35 Signal Stability / Estimator Bakeoff) as the next mandatory task to address the beta estimation noise in high-vol regimes. Only if B and D both produce honest negative verdicts should the next session write a terminal summary artifact (`research_state/TERMINAL_SUMMARY.json`) and stop further synthetic research.
+If P40's consolidated verdict is `DOES_NOT_REPLICATE` / `FRAGILE_FIXTURE_DEPENDENT`,
+that is a valid, publishable honest result — record it and proceed to write a terminal
+summary artifact `research_state/TERMINAL_SUMMARY.json` consolidating P38–P40, then
+stop further synthetic research. Do NOT invent new fixtures or reopen frozen phases to
+chase a positive result. Only a `ROBUST_ACROSS_FIXTURES` verdict justifies a follow-on
+real-data validation campaign (and only with explicit maintainer approval, since
+`tests/fixtures/real_market_prices.csv` is also synthetic — see README line 246).
 
 ---
 
-**This handoff is durable. The next agent reads this file, executes Campaign B as the initial task, completes it fully, and updates this file with the outcome before exiting.**
+**This handoff is durable. The next agent reads this file, executes Campaign P40 as the
+initial task, completes it fully with heavy real work, and updates this file with the
+outcome before exiting. Do not run the full 56-min gate. Do not reopen P20–P39.**
