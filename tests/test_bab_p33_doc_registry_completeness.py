@@ -55,6 +55,13 @@ ALLOW_LIST: dict[str, str] = {
         "hand-authored P23 decision doc; no generate_p23_decision.py generator "
         "exists, so there is no byte-replay entry point to register"
     ),
+    "docs/BAB_P41_KICKOFF.md": (
+        "hand-authored P41 binding campaign charter (non-Gaussian & regime-switching "
+        "stress battery); it is a forward-looking kickoff/charter, not a generated "
+        "decision doc, so it has no byte-replay entry point. P41 WP3 will register the "
+        "generated BAB_P41_DECISION.md in the replay registry; this KICKOFF stays "
+        "allow-listed with this written reason"
+    ),
     "docs/COVERAGE_NOTES.md": (
         "hand-authored coverage notes; no deterministic generator or report "
         "consistency test exists for it; intentionally outside the replay and "
