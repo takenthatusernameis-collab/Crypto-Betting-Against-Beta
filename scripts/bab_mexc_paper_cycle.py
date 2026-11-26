@@ -18,6 +18,7 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ENGINE_ROOT / "src"))
 
 from high_vs_low.github_state import GitHubStateError, GitHubStatePublisher
+from high_vs_low.indicators import wilder_atr
 from high_vs_low.mexc_paper import Candidate, MEXCRankings
 from strategies.betting_against_beta.beta import calculate_beta
 
@@ -47,6 +48,40 @@ def _daily_returns(rows: list[dict[str, Any]], cutoff_ms: int) -> dict[int, floa
         current: closes[current] / closes[previous] - 1.0
         for previous, current in zip(stamps, stamps[1:])
     }
+
+
+def _has_positive_long_stop(
+    rows: list[dict[str, Any]],
+    entry_price: float,
+    *,
+    stop_atr_multiple: Decimal = Decimal("3"),
+) -> bool:
+    """Keep only long candidates whose inherited 3x-ATR stop is above zero."""
+    ordered = sorted(
+        (
+            row for row in rows
+            if int(row.get("timestamp_ms", 0)) > 0
+        ),
+        key=lambda row: int(row["timestamp_ms"]),
+    )
+    if len(ordered) < 14:
+        return False
+    try:
+        atr_values = wilder_atr(
+            [float(row["high"]) for row in ordered],
+            [float(row["low"]) for row in ordered],
+            [float(row["close"]) for row in ordered],
+            period=14,
+        )
+        atr = atr_values[-1]
+        if atr is None or not math.isfinite(float(atr)) or float(atr) <= 0:
+            return False
+        return (
+            Decimal(str(entry_price))
+            - Decimal(str(atr)) * stop_atr_multiple
+        ) > 0
+    except (KeyError, TypeError, ValueError, ArithmeticError):
+        return False
 
 
 def rank_bab_mexc_universe(
@@ -114,20 +149,34 @@ def rank_bab_mexc_universe(
         )
 
     low_beta_first: list[Candidate] = []
+    executable_longs: list[Candidate] = []
     high_beta_first: list[Candidate] = []
     instruments_by_key: dict[str, dict[str, Any]] = {}
     for beta, key, instrument, close in ranked:
         instruments_by_key[key] = dict(instrument)
-        low_beta_first.append(Candidate(
+        long_candidate = Candidate(
             symbol=key, distance_pct=beta, extreme_price=None,
             direction="long", close_price=close,
             decision_timestamp_ms=as_of_timestamp_ms,
-        ))
+        )
+        low_beta_first.append(long_candidate)
+        if _has_positive_long_stop(
+            histories.get(int(instrument["instrument_id"]), []),
+            close,
+        ):
+            executable_longs.append(long_candidate)
+        else:
+            excluded.append(f"{instrument.get('symbol', key)}:NONPOSITIVE_OR_UNAVAILABLE_3X_ATR_LONG_STOP")
         high_beta_first.append(Candidate(
             symbol=key, distance_pct=beta, extreme_price=None,
             direction="short", close_price=close,
             decision_timestamp_ms=as_of_timestamp_ms,
         ))
+
+    if not executable_longs:
+        raise RuntimeError(
+            "BAB ranking blocked: no low-beta long candidate has a valid positive 3x-ATR stop"
+        )
 
     # The engine tests the top ten ranked candidates for executable pair fills.
     # It therefore keeps the best-ranked candidate first and falls back only
@@ -139,7 +188,7 @@ def rank_bab_mexc_universe(
     return MEXCRankings(
         research_longs=low_beta_first,
         research_shorts=high_beta_first,
-        executable_longs=low_beta_first,
+        executable_longs=executable_longs,
         executable_shorts=high_beta_first,
         instruments_by_key=instruments_by_key,
         excluded=excluded,
