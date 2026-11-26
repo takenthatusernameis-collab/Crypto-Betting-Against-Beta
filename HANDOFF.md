@@ -1,8 +1,8 @@
 # DURABLE HANDOFF — Crypto-Betting-Against-Beta
-**Timestamp (UTC): 2026-11-26T09:46:50Z**
+**Timestamp (UTC): 2026-11-26T09:47:20Z**
 **Session:** Kilo General Agent Loop — baseline unblocked; **P42 OPEN (sole binding row)**
 **Repository:** Crypto-Betting-Against-Beta (Betting Against Beta crypto quant research)
-**Verified baseline (HEAD `42ff55f`, re-verified this session at 09:46:50Z):**
+**Verified baseline (HEAD `42ff55f`, re-verified this session at 09:47:20Z):**
 - `python3 -m ruff check .` GREEN (`All checks passed!`) — required a per-file-ignore fix, see below.
 - `bash scripts/bab_quick.sh` GREEN (targeted trio `104 passed`, smoke `195 passed`, `quick preflight OK`).
 - `python3 scripts/bab_replay_decisions.py --subset p41_decision.md` GREEN (`OK p41_decision.md -> BAB_P41_DECISION.md`).
@@ -39,7 +39,7 @@
 
 ## READ FIRST — INITIAL TASK MESSAGE FOR THE NEXT SESSION
 
-> **Timestamped initial task (2026-11-26T09:46:50Z):** Execute **Campaign P42
+> **Timestamped initial task (2026-11-26T09:47:20Z):** Execute **Campaign P42
 > "Planted-Alpha Detectability Frontier & Minimum Detectable Effect," WP0 → WP3.**
 > P20–P41 are frozen; P41 WP1/WP2/WP3 are complete and committed. HEAD is `42ff55f`;
 > the only uncommitted delta is the intentional baseline repair listed above (commit it first).
