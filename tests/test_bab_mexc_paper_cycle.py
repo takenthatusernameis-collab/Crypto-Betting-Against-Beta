@@ -12,10 +12,22 @@ DAY = 86_400_000
 
 def _history(asset_returns: list[float], start: int) -> list[dict]:
     price = 100.0
-    rows = [{"timestamp_ms": start, "close": str(price)}]
+    rows = [{
+        "timestamp_ms": start,
+        "open": str(price),
+        "high": str(price * 1.01),
+        "low": str(price * 0.99),
+        "close": str(price),
+    }]
     for i, value in enumerate(asset_returns, start=1):
         price *= 1.0 + value
-        rows.append({"timestamp_ms": start + i * DAY, "close": str(price)})
+        rows.append({
+            "timestamp_ms": start + i * DAY,
+            "open": str(price),
+            "high": str(price * 1.01),
+            "low": str(price * 0.99),
+            "close": str(price),
+        })
     return rows
 
 
@@ -223,3 +235,44 @@ def test_bab_candle_api_failure_keeps_the_daily_decision_blocked() -> None:
     assert len(failures) == 1
     assert failures[0]["symbol"] == "BROKEN_USDT"
     assert not store.manifest["instruments"]["2"]["bootstrap_complete"]
+
+
+
+def test_bab_keeps_research_rank_but_skips_nonpositive_atr_long_stop() -> None:
+    start = 1_700_000_000_000
+    benchmark_returns = [0.012 * ((i % 7) - 3) for i in range(100)]
+    low_returns = [0.25 * value for value in benchmark_returns]
+    medium_returns = [0.9 * value for value in benchmark_returns]
+    high_returns = [1.8 * value for value in benchmark_returns]
+    histories = {
+        1: _history(benchmark_returns, start),
+        2: _history(low_returns, start),
+        3: _history(medium_returns, start),
+        4: _history(high_returns, start),
+    }
+    # Preserve the low-beta signal while making its 3x-ATR long stop
+    # mathematically non-positive, as occurred with the first candidate in run #9.
+    for row in histories[2]:
+        close = float(row["close"])
+        row["high"] = str(close * 2.0)
+        row["low"] = str(close * 0.1)
+
+    instruments = [
+        {"instrument_id": 1, "symbol": "BTC_USDT", "usdt_account_eligible": True},
+        {"instrument_id": 2, "symbol": "LOW_USDT", "usdt_account_eligible": True},
+        {"instrument_id": 3, "symbol": "MID_USDT", "usdt_account_eligible": True},
+        {"instrument_id": 4, "symbol": "HIGH_USDT", "usdt_account_eligible": True},
+    ]
+    tickers = {iid: {"last_price": "100"} for iid in histories}
+
+    result = rank_bab_mexc_universe(
+        instruments,
+        histories,
+        tickers,
+        Decimal("100"),
+        as_of_timestamp_ms=start + 100 * DAY,
+    )
+
+    assert result.research_longs[0].symbol == "mexc:2"
+    assert result.executable_longs[0].symbol == "mexc:3"
+    assert any("NONPOSITIVE_OR_UNAVAILABLE_3X_ATR_LONG_STOP" in item for item in result.excluded)
