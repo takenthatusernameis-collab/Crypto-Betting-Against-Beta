@@ -8,10 +8,10 @@
 - Strategy generation: `crypto-bab-low-beta-long-high-beta-short-v1`
 - Starting capital: **100.00000000 USDT**
 - Account state: **INITIALIZED — FORWARD PAPER**
-- Last report build: 2026-11-26 19:22:07 UTC
-- Latest workflow run: [45882496729](https://github.com/takenthatusernameis-collab/Crypto-Betting-Against-Beta/actions/runs/45882496729) · run #7, attempt 1 · success · schedule
+- Last report build: 2026-11-26 22:07:03 UTC
+- Latest workflow run: [45902126190](https://github.com/takenthatusernameis-collab/Crypto-Betting-Against-Beta/actions/runs/45902126190) · run #8, attempt 1 · success · workflow_dispatch
 - Latest processed daily candle: —
-- Latest account event: 2026-11-26 19:21:46 UTC
+- Latest account event: 2026-11-26 22:06:43 UTC
 - Primary execution journal: [PAPER_TRADE_JOURNAL.md](PAPER_TRADE_JOURNAL.md)
 
 
@@ -21,7 +21,7 @@
 - Active cross-margin contracts: 1169
 - USDT-settled eligible contracts: 1087
 - New histories completed this run: 150
-- Histories remaining: 269
+- Histories remaining: 119
 - API failures: 0
 - Latest completed daily bar (UTC ms): 1795564800000
 - Portfolio decision status: `BLOCKED_INCOMPLETE_MARKET_DATA`
@@ -38,9 +38,9 @@ Not execution-approved until full-universe coverage passes.
 - SKDD_USDT: β(BTC)=-1.7142559678544846
 
 **Highest-beta short candidates**
+- SI_USDT: β(BTC)=4.3222668131466095
 - MSTU_USDT: β(BTC)=3.8421547490514065
 - CATE_USDT: β(BTC)=3.253992605505298
-- USELESS_USDT: β(BTC)=2.9877139687930425
 ## Current performance
 
 | Metric | Value |
@@ -65,7 +65,7 @@ Not execution-approved until full-universe coverage passes.
 
 | Session start (UTC) | Starting NAV | Latest NAV | Max drawdown | Marks |
 |---|---:|---:|---:|---:|
-| 2026-11-26 00:00:00 UTC | 100.00000000 | 100.00000000 | +0.000% | 6 |
+| 2026-11-26 00:00:00 UTC | 100.00000000 | 100.00000000 | +0.000% | 7 |
 
 ## Open positions
 
