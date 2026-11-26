@@ -154,6 +154,7 @@ jobs:
           path: |
             market-data/data/reports/mexc/
             strategy/PAPER_STATUS.md
+            strategy/PAPER_TRADE_JOURNAL.md
             strategy/equal_exposure_equity_curve.svg
             strategy/alternative_path_equity_curve.svg
           if-no-files-found: warn
