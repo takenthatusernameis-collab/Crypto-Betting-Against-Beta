@@ -1,144 +1,171 @@
 # DURABLE HANDOFF — Crypto-Betting-Against-Beta
-**Timestamp:** 2026-11-26T06:16:17Z
-**Session:** Kilo General Agent Loop — P40 COMPLETE/FROZEN; P41 WP1 COMPLETE; P41 WP2 COMPLETE; **P41 WP3 OPEN (sole next binding row)**
+**Timestamp:** 2026-11-26T06:16:37Z
+**Session:** Kilo General Agent Loop — P41 WP1 COMPLETE; P41 WP2 COMPLETE; **P41 WP3 OPEN (sole binding row)**
 **Repository:** Crypto-Betting-Against-Beta (Betting Against Beta crypto quant research)
-**Verified baseline (this session, HEAD `47f6c6e`, working tree clean):**
-`python3 -m ruff check .` GREEN (`All checks passed!`);
-`python3 scripts/bab_p41_stress.py --check-estimator-bakeoff` PASS (byte-identical).
-P20–P40 COMPLETE and FROZEN. `research_state/bab_p41/estimator_bakeoff.json` (+ `.md`)
-and `scripts/bab_p41_stress.py` landed and verified — **P41 WP1 complete**.
-`research_state/bab_p41/stress_summary.json` (schema `bab_p41.stress_summary/1`) + `.md`
-landed and verified — **P41 WP2 complete. Verdict: `FRAGILE_DGP_DEPENDENT`** (79 of 160
-cells survive deflation over read-only n_trials_total=552; 0 of 5 DGPs fully replicate;
-neutrality holds at every cell; honest, negative-leaning finding — nothing tuned to a
-positive; shipped default retained).
-**P41 WP3 does not exist yet** (`generate_p41_decision.py` and `docs/BAB_P41_DECISION.md`
-are absent — confirmed this session) and is the **sole next binding workload**.
+**Verified baseline (before this handoff edit, HEAD `f4ab1fa`, clean tree):**
+- `python3 -m ruff check .` GREEN.
+- `python3 scripts/bab_p41_stress.py --check-estimator-bakeoff` PASS (byte-identical).
+- `bash scripts/bab_quick.sh` GREEN (299 passed).
+- `generate_p41_decision.py`, `docs/BAB_P41_DECISION.md`, and
+  `tests/test_bab_p41_decision_consistency.py` are absent.
+- **Current full-gate blockers found this session:** committed
+  `research_state/bab_p32/doc_replay_summary.json` and
+  `research_state/bab_p33/doc_consistency_summary.json` both FAIL their
+  `--check-*-summary` commands at HEAD. They are stale generated ledgers, not
+  permission to idle; steps 0 and 5 below remove them.
 **Supersedes:** all prior HANDOFF.md content.
 
 ---
 
-## READ FIRST — INITIAL TASK FOR THE NEXT SESSION (do this, in order)
+## READ FIRST — INITIAL TASK FOR THE NEXT SESSION
 
-**You are executing Campaign P41 "Non-Gaussian & Regime-Switching Synthetic Stress
-Battery." P41 WP1 (estimator bakeoff) and P41 WP2 (stress meta-analysis) are COMPLETE.
-The single remaining binding, fully agent-executable row is P41 WP3. This is not a
-terminal state and there is no idle fallback: WP3 is a concrete, multi-file, verifiable
-workload that cannot be satisfied by a re-run of any frozen harness.**
+Execute **Campaign P41 "Non-Gaussian & Regime-Switching Synthetic Stress
+Battery," WP3: Decision Doc + Gate Wire.** P20–P40 are frozen; P41 WP1/WP2 are
+complete and frozen. No new maintainer direction is present, so do not idle and
+do not invent a replacement campaign: WP3 is a concrete, multi-file, verifiable,
+heavy workload. Real-data ingestion, CI workflow changes, and live deployment
+remain maintainer-gated and are out of scope.
 
-The single source of truth for the campaign is **[`docs/BAB_P41_KICKOFF.md`](docs/BAB_P41_KICKOFF.md)**.
-Read it end-to-end before writing code. Then execute WP3 exactly as below.
+The campaign charter is [`docs/BAB_P41_KICKOFF.md`](docs/BAB_P41_KICKOFF.md);
+read it end-to-end before editing. The committed read-only WP2 source of truth is
+`research_state/bab_p41/stress_summary.json` (schema
+`bab_p41.stress_summary/1`, verdict `FRAGILE_DGP_DEPENDENT`). Do not tune seeds
+or parameters, do not rerun WP0–WP2 to chase a result, and do not flip the
+shipped default (`weighting="equal"`, `beta_neutral=True`, `beta_window=90`,
+rolling-OLS).
 
-### P41 WP3 — Decision Doc + Gate Wire (IMMEDIATE NEXT STEP; sole deliverable)
+### Step 0 — remove the stale-ledger bottleneck immediately
 
-Per [`docs/BAB_P41_KICKOFF.md`](docs/BAB_P41_KICKOFF.md) §"WPs in order", and mirroring
-the committed P40 pattern (`generate_p40_decision.py`, `scripts/bab_replay_decisions.py:133`,
-`tests/test_bab_p29_*`, `scripts/bab_gate.sh:240`):
+Regenerate the P32 document replay ledger from the current registry, then verify
+it. Do not hand-edit the JSON:
 
-1. **`generate_p41_decision.py` → `docs/BAB_P41_DECISION.md`** from committed JSON only
-   (`research_state/bab_p41/stress_summary.json`). Copy the P40 generator shape
-   (`generate_p40_decision.py`: `REPO_ROOT`, `SUMMARY_PATH`, `REPORT_PATH`, `DECIMALS`,
-   `_load`, `_cell`). Reproduce the P41 WP2 numbers with **min 100 matched numbers, 0
-   unmatched cells**, explicit `synthetic / not market` strings, and shipped default
-   retained (do not flip `weighting`, `beta_neutral`, `beta_window`, or the estimator).
-2. **Register P41 in `scripts/bab_replay_decisions.py`** — add a `p41_decision.md` entry
-   (`module: "generate_p41_decision"`, `gen_dir: ROOT`, `kind: "decision"`, outputs →
-   `docs/BAB_P41_DECISION.md`) next to the `p40_decision.md` block at line ~133.
-3. **Register P41 in `scripts/bab_replay_full.py`** — mirror the P40 JSON-only artifact
-   block at line ~155 so `--xproc/--check-provenance` consumes the committed
-   `stress_summary.json` read-only (do NOT run the slow `--check-stress-summary` there).
-4. **Add `EXPECTED_NAMES` entries** in `tests/test_bab_p29_replay_coverage.py` (line ~62)
-   and `tests/test_bab_p29_decision_replay.py` (line ~32, add `"p41_decision.md"`).
-5. **Add the `bab_p41` block to `scripts/bab_gate.sh`** (mirror P40 at line ~240):
-   `--check-stress-summary` is expensive — gate on the committed JSON / decision-replay
-   subset (`bab_replay_decisions.py --subset p41_decision.md`) + the P41 decision-consistency
-   test, not a fresh stress recompute.
-6. **Add `docs/BAB_P41_KICKOFF.md` to the doc-registry allow-list** in
-   `scripts/bab_doc_consistency_summary.py` `ALLOW_LIST` (line ~42) with a written reason
-   (charter doc; replay-gated via the P41 decision entry, no separate generator).
-7. **Verify:** `python3 -m ruff check .` GREEN **and** `bash scripts/bab_quick.sh` GREEN.
+```bash
+python3 scripts/bab_replay_decisions.py --summary-json research_state/bab_p32/doc_replay_summary.json
+python3 scripts/bab_replay_decisions.py --check-doc-summary research_state/bab_p32/doc_replay_summary.json
+```
 
-**Definition of done for the next session:** `python3 -m ruff check .` GREEN,
-`bash scripts/bab_quick.sh` GREEN, `docs/BAB_P41_DECISION.md` exists and matches the
-committed `stress_summary.json` (verdict `FRAGILE_DGP_DEPENDENT`, ≥100 matched numbers,
-0 unmatched), P41 registered in replay + gate, the KICKOFF allow-listed, and
-`generate_p41_decision.py` runs cleanly. Do **not** start work beyond P41 WP3
-(real-data ingestion, CI enforcement, live deployment are maintainer-gated).
+The P33 ledger is regenerated in step 5, after the P41 registry/allow-list
+changes, so it is not written twice.
+
+### Step 1 — generate the decision document
+
+Create `generate_p41_decision.py` → `docs/BAB_P41_DECISION.md` using committed
+JSON only. Mirror `generate_p40_decision.py` (`REPO_ROOT`, `SUMMARY_PATH`,
+`REPORT_PATH`, `DECIMALS`, `_load`, `_cell`). Requirements:
+
+- Reproduce the WP2 evidence with **at least 100 matched numeric table cells and
+  zero unmatched cells**.
+- State the explicit verdict `FRAGILE_DGP_DEPENDENT` and retain the shipped
+  default; include the strings `synthetic`, `not real market data`,
+  `not market profitability evidence`, and `never market alpha`.
+- Every published number must resolve to a committed JSON leaf; no hand-typed
+  performance numbers.
+
+### Step 2 — add the decision-consistency acceptance test
+
+Create `tests/test_bab_p41_decision_consistency.py`, mirroring
+`tests/test_bab_p40_decision_consistency.py`. It must prove table byte-identity,
+≥100 matched numeric cells, zero unmatched cells, explicit verdict/provenance
+strings, no harness imports/calls, and ruff cleanliness. This test is a binding
+deliverable, not optional extra coverage.
+
+### Step 3 — register P41 in both replay layers
+
+- In `scripts/bab_replay_decisions.py`, add `p41_decision.md` next to the P40
+  block: `module: "generate_p41_decision"`, `gen_dir: ROOT`,
+  `kind: "decision"`, output `docs/BAB_P41_DECISION.md`.
+- In `scripts/bab_replay_full.py`, mirror the P40 JSON-only pattern with
+  `module: "bab_p41_stress"`, `build: "build_stress_summary"`,
+  `dir: "bab_p41"`, `name: "stress_summary"`, `json_only: True`,
+  `no_xproc: True`. This intentionally invokes the expensive stress build once
+  during the final full replay; do not replace it with a vacuous JSON loader and
+  do not run `--check-stress-summary` separately in the inner loop.
+- Add `"p41_decision.md"` to `EXPECTED_NAMES` in
+  `tests/test_bab_p29_decision_replay.py` and `"stress_summary"` to
+  `EXPECTED_NAMES` in `tests/test_bab_p29_replay_coverage.py`. Keep exact
+  equality; do not loosen the guards.
+
+### Step 4 — wire the gate
+
+Add a `bab_p41` block to `scripts/bab_gate.sh` after P40. It must run the P41
+estimator byte-check, the P41 estimator/decision tests, the P41 decision replay
+subset, and the P33 doc-summary check. Do not add the slow
+`--check-stress-summary` command to `bab_quick.sh`; the full replay gate covers
+the committed stress JSON once at final verification.
+
+### Step 5 — classify and regenerate the doc ledgers
+
+Add `docs/BAB_P41_KICKOFF.md` to `ALLOW_LIST` in
+`scripts/bab_doc_consistency_summary.py` with a written reason: it is the
+hand-authored binding charter, while the generated P41 decision is replay-gated.
+Then regenerate and verify both ledgers:
+
+```bash
+python3 scripts/bab_replay_decisions.py --summary-json research_state/bab_p32/doc_replay_summary.json
+python3 scripts/bab_doc_consistency_summary.py --summary-json research_state/bab_p33/doc_consistency_summary.json
+python3 scripts/bab_replay_decisions.py --check-doc-summary research_state/bab_p32/doc_replay_summary.json
+python3 scripts/bab_doc_consistency_summary.py --check-doc-summary research_state/bab_p33/doc_consistency_summary.json
+```
+
+### Step 6 — heavy verification (quick checks are not completion)
+
+Run the fast inner loop while iterating:
+
+```bash
+python3 -m ruff check .
+bash scripts/bab_quick.sh
+python3 scripts/bab_replay_decisions.py --subset p41_decision.md
+```
+
+Then run the **mandatory full gate** to completion, with the release coverage
+floor and a long/background budget rather than a 120-second foreground timeout:
+
+```bash
+BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh
+```
+
+If the full gate exposes only the known P27 trailing-newline mutation, restore
+`research_state/bab_p27/` with `git checkout -- research_state/bab_p27/` and
+rerun the affected check. Do not lower coverage, delete tests, weaken exact
+registry equality, or claim success from `bab_quick.sh` alone.
+
+**Definition of done:** ruff GREEN; quick GREEN; P41 decision replay GREEN;
+P32/P33 ledger checks GREEN; `docs/BAB_P41_DECISION.md` matches committed
+`stress_summary.json` with ≥100 matched numbers and zero unmatched; P41 is
+registered in replay/tests/gate; and `BAB_GATE_MIN_COVERAGE=100 bash
+scripts/bab_gate.sh` exits 0. Stop after WP3; do not start maintainer-gated work.
 
 ---
 
-## PROJECT STATE SUMMARY (FROZEN P20–P40, P41 WP1–WP2 COMPLETE)
+## PROJECT STATE (frozen inputs, open WP3)
 
-| Phase | Campaign | Verdict | Key Finding |
-|-------|----------|---------|-------------|
-| P38 WP1 | Deflated Significance (n_trials=552) | **SURVIVES_DEFLATION** | Default DSR=0.921; best in-sample DSR=0.944 |
-| P39 WP1 | Regime-Conditional Deflation | **DOES_NOT_SURVIVE_IN_SOME_REGIME** | `bear_mid_vol` 3/8 survive; low-vol regimes 5–6/8 |
-| P39 WP2 | Cross-Fixture Replication | **DOES_NOT_REPLICATE** | Only 3/8 survive; mean DSR 0.396 (< 0.5) |
-| P39 WP0 | Full-Gate Close-Out (100% cov) | **GREEN** | `BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh` exit 0 |
-| P36 | Rank-Weighted vs Equal-Weight | **RANK UNDERPERFORMS** | Negative Sharpe, higher vol, worse maxDD. Dead end. |
-| P40 WP0 | Multi-Fixture Meta-Analysis (4 fixtures, 32 cells) | **DOES_NOT_REPLICATE** | 0 of 4 fixtures replicate; 16/32 cells survive; neutrality holds |
-| **P41 WP1** | **Estimator Bakeoff (5 DGPs, 160 cells)** | **COMPLETE** | shrinkage_i0.3_t1.0 least-broken; estimator_bakeoff.json landed, byte-identical, neutrality holds |
-| **P41 WP2** | **Stress Meta-Analysis (5 DGPs, 160 cells)** | **COMPLETE** | `FRAGILE_DGP_DEPENDENT`; 79/160 cells survive; 0/5 DGPs fully replicate; neutrality everywhere; stress_summary.json landed, byte-identical |
-| **P41 WP3** | **Decision Doc + Gate Wire** | **OPEN — binding** | Next session; generate_p41_decision.py → BAB_P41_DECISION.md; replay + gate wiring |
+| Phase | State | Evidence |
+|---|---|---|
+| P20–P40 | COMPLETE/FROZEN | Do not reopen; P32/P33 ledger maintenance above is guard upkeep only |
+| P41 WP1 | COMPLETE | `estimator_bakeoff.json` + `.md`; byte-check PASS |
+| P41 WP2 | COMPLETE | `stress_summary.json` + `.md`; 160 cells, 79 survive, 0/5 DGPs fully replicate, neutrality holds |
+| P41 WP3 | **OPEN — binding** | Decision generator/test, replay registration, gate wire, ledger regeneration, full gate |
 
-**One-line verdict (P38–P41, frozen):** BAB survives pooled deflation on the primary
-synthetic fixture (P38) but fails in high-vol regimes (P39 WP1), fails to replicate on a
-second fixture (P39 WP2), does not replicate across four independent Gaussian fixtures
-(P40), and under non-Gaussian idio the result is `FRAGILE_DGP_DEPENDENT` — survival is
-DGP/seed-dependent, not robust across all five DGPs. Synthetic only; never market alpha.
+**Scientific finding:** BAB survives pooled deflation on the primary Gaussian
+fixture but is `FRAGILE_DGP_DEPENDENT` under non-Gaussian/regime-switching
+synthetic DGPs. This is honest negative-leaning evidence, **not market alpha**.
 
----
+## BOTTLENECKS — RESOLVED OR CONTAINED
 
-## BOTTLENECKS — STATUS
+| Bottleneck | Status / next action |
+|---|---|
+| Stale handoff HEAD `47f6c6e` | **REMOVED** — rebased to `f4ab1fa` with fresh green checks |
+| P32/P33 committed ledgers stale | **OPEN, step 0/5** — regenerate from registry; never hand-edit |
+| Full gate exceeds one short tool window | **CONTAINED** — quick inner loop; full gate runs in background/long budget |
+| Expensive P41 stress recompute | **CONTAINED** — once in final full replay, never in quick loop |
+| P41 WP3 acceptance test omitted | **REMOVED** — step 2 is explicit and binding |
+| “Terminal / no campaign remains” framing | **REMOVED** — WP3 is mandatory; no idle fallback |
+| Rank weighting | **CLOSED** — P36 proved worse; never reopen |
+| CI workflow enforcement | **EXTERNAL** — maintainer-only `workflows:write`; do not burn a session |
+| Full pytest mutates frozen P27 markdown | **CONTAINED** — restore only `research_state/bab_p27/` after the full run |
 
-| # | Bottleneck | Status | Resolution |
-|---|------------|--------|------------|
-| 1 | Full gate cannot complete in one tool window | **RESOLVED** | Use `scripts/bab_quick.sh` for inner loop; full gate only at P41 WP3 |
-| 2 | P40 artifacts not landed | **RESOLVED** | All P40 WP0–WP3 artifacts exist, replay-registered, test-covered, gate-wired |
-| 3 | Rank weighting | **CLOSED** | P36 proved strictly worse. Never reopen. |
-| 4 | Regime coverage gap | **CLOSED** | All six regimes have `n_ok_cells = 8` in `research_state/bab_p39/regime_summary.json` |
-| 5 | "Terminal / no campaign remains" framing | **REMOVED** | Prior HANDOFF guaranteed idle session. Rescinded. P41 is binding workload. |
-| 6 | P41 WP2 stress meta-analysis open | **RESOLVED** | WP2 complete; stress_summary.json + .md landed, byte-identical |
-| 7 | CI workflow enforcement | **EXTERNAL** | Maintainer-only (repo token lacks `workflows:write`). Do not burn session. |
-| 8 | Expensive stress re-check / stale baseline | **REMOVED** | This handoff is rebased to HEAD `47f6c6e`; use committed WP2 JSON and the quick inner loop, not the slow stress checker. |
-| 9 | P41 WP3 not started | **OPEN — binding** | Sole next workload; fully specified above with exact file touch-points. |
+**Repository root:**
+`/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
 
----
-
-## NEXT STATE (binding: P41 WP3)
-
-P20–P40 are COMPLETE and FROZEN — do not reopen them. P41 WP1 and WP2 are COMPLETE and
-frozen. The next session executes **P41 WP3** (decision doc + gate wire) per
-[`docs/BAB_P41_KICKOFF.md`](docs/BAB_P41_KICKOFF.md). Any further work beyond P41
-(real-data ingestion, CI enforcement, live deployment) is maintainer-gated and requires
-explicit approval; do not invent additional agent-executable campaigns beyond P41 WP3
-without maintainer direction.
-
-**Repository root:** `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
-**Fast verify (baseline, before P41 WP3):** `python3 -m ruff check .`,
-`python3 scripts/bab_p41_stress.py --check-estimator-bakeoff`, and `bash scripts/bab_quick.sh`.
-The committed `research_state/bab_p41/stress_summary.json` is the read-only WP2 source of
-truth; do not run the slow `--check-stress-summary` in the inner loop. Do not run the full
-56-minute gate to re-verify frozen P20–P40; run full gate only at P41 WP3. Note: a full
-pytest / `bab_gate` run appends one trailing newline to the frozen
-`research_state/bab_p27/{risk_controls,reconciliation_e2e}.md` (the `run_*()` P27 tests
-write to the committed path) — restore with `git checkout -- research_state/bab_p27/`
-after a full run. `scripts/bab_bootstrap.sh` installs missing test/runtime deps on fresh
-runners.
-
----
-
-## SCIENTIFIC TARGET (why this is not busywork)
-
-Every prior campaign (P20–P40) drew synthetic universes from **one i.i.d.-Gaussian family**
-(`strategies/betting_against_beta/data.py`: `asset = beta*bm + N(0, idio)`). P41 measures
-whether the BAB estimator's behaviour is an artifact of the Gaussian assumption, across
-Student-t, regime-switching, jump-diffusion, and stochastic-vol DGPs. WP2's verdict
-`FRAGILE_DGP_DEPENDENT` is a valid, publishable negative-leaning finding. **Do not tune
-seeds/parameters to chase a positive. Do not flip the shipped default.**
-
----
-
-## END OF HANDOFF — The next agent's first action is P41 WP3: `generate_p41_decision.py`
-→ `docs/BAB_P41_DECISION.md` from the committed `stress_summary.json`, plus replay and
-gate wiring, per [`docs/BAB_P41_KICKOFF.md`](docs/BAB_P41_KICKOFF.md).
+**END OF HANDOFF — first action: step 0 ledger regeneration, then implement P41
+WP3 and finish only when the 100%-coverage full gate is GREEN.**
