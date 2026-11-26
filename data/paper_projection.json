@@ -1,8 +1,8 @@
 {
-  "last_run_utc": "2026-11-26T22:20:06.664000+00:00",
+  "last_run_utc": "2026-11-26T22:22:23.771000+00:00",
   "portfolio_state": {
     "account_id": "mexc-usdt-forward-bab-100usdt-v1",
-    "cash": "100",
+    "cash": "99.969396800",
     "closed_trade_net_pnls": [],
     "confirmed_funding": "0",
     "currency": "USDT",
@@ -12,11 +12,13 @@
       "calendar_day_starting_reference": "first_observation_of_utc_day",
       "flatten_attempts": 0,
       "flattened": false,
-      "peak_nav": "100",
-      "peak_timestamp_ms": 1795651200000,
-      "starting_nav": "100",
-      "starting_reference": "first_observation_of_utc_day",
-      "starting_timestamp_ms": 1795651200000,
+      "peak_nav": "99.868396800",
+      "peak_timestamp_ms": 1795731752331,
+      "risk_window_reset_at_ms": 1795731752331,
+      "risk_window_reset_reason": "daily_portfolio_full_refresh_retry",
+      "starting_nav": "99.868396800",
+      "starting_reference": "daily_portfolio_full_refresh_retry",
+      "starting_timestamp_ms": 1795731752331,
       "stop_reason": null,
       "stop_triggered": false,
       "stop_triggered_at_ms": null,
@@ -195,253 +197,62 @@
         "utc_date": "2026-11-26"
       }
     ],
-    "fees_paid": "0",
+    "fees_paid": "0.030603200",
     "initial_capital": "100",
     "last_decision_attempt_daily_bar_ms": 1795564800000,
     "last_processed_daily_bar_ms": null,
     "last_snapshot_ms": 1795731606664,
     "partial_realized_net_pnls": [],
-    "pending_entry_signal": {
-      "attempt_count": 1,
-      "daily_bar_timestamp_ms": 1795564800000,
-      "executable_longs": [
-        {
-          "candidate_key": "mexc:1428",
-          "cycle_age": null,
-          "decision_timestamp_ms": 1795564800000,
-          "direction": "long",
-          "distance_pct": "-3.360082498561552",
-          "extreme_price": null,
-          "extreme_timestamp_ms": null,
-          "instrument_id": 1428,
-          "semi_cycle_direction": null
-        },
-        {
-          "candidate_key": "mexc:1982",
-          "cycle_age": null,
-          "decision_timestamp_ms": 1795564800000,
-          "direction": "long",
-          "distance_pct": "-2.3547501277232388",
-          "extreme_price": null,
-          "extreme_timestamp_ms": null,
-          "instrument_id": 1982,
-          "semi_cycle_direction": null
-        },
-        {
-          "candidate_key": "mexc:2219",
-          "cycle_age": null,
-          "decision_timestamp_ms": 1795564800000,
-          "direction": "long",
-          "distance_pct": "-1.7142559678544846",
-          "extreme_price": null,
-          "extreme_timestamp_ms": null,
-          "instrument_id": 2219,
-          "semi_cycle_direction": null
-        },
-        {
-          "candidate_key": "mexc:1967",
-          "cycle_age": null,
-          "decision_timestamp_ms": 1795564800000,
-          "direction": "long",
-          "distance_pct": "-1.5536392690839815",
-          "extreme_price": null,
-          "extreme_timestamp_ms": null,
-          "instrument_id": 1967,
-          "semi_cycle_direction": null
-        },
-        {
-          "candidate_key": "mexc:2140",
-          "cycle_age": null,
-          "decision_timestamp_ms": 1795564800000,
-          "direction": "long",
-          "distance_pct": "-1.3106859557794535",
-          "extreme_price": null,
-          "extreme_timestamp_ms": null,
-          "instrument_id": 2140,
-          "semi_cycle_direction": null
-        },
-        {
-          "candidate_key": "mexc:1981",
-          "cycle_age": null,
-          "decision_timestamp_ms": 1795564800000,
-          "direction": "long",
-          "distance_pct": "-1.2999249628521792",
-          "extreme_price": null,
-          "extreme_timestamp_ms": null,
-          "instrument_id": 1981,
-          "semi_cycle_direction": null
-        },
-        {
-          "candidate_key": "mexc:1235",
-          "cycle_age": null,
-          "decision_timestamp_ms": 1795564800000,
-          "direction": "long",
-          "distance_pct": "-1.0248825019826207",
-          "extreme_price": null,
-          "extreme_timestamp_ms": null,
-          "instrument_id": 1235,
-          "semi_cycle_direction": null
-        },
-        {
-          "candidate_key": "mexc:2119",
-          "cycle_age": null,
-          "decision_timestamp_ms": 1795564800000,
-          "direction": "long",
-          "distance_pct": "-0.6613974846024581",
-          "extreme_price": null,
-          "extreme_timestamp_ms": null,
-          "instrument_id": 2119,
-          "semi_cycle_direction": null
-        },
-        {
-          "candidate_key": "mexc:1776",
-          "cycle_age": null,
-          "decision_timestamp_ms": 1795564800000,
-          "direction": "long",
-          "distance_pct": "-0.5772568016369573",
-          "extreme_price": null,
-          "extreme_timestamp_ms": null,
-          "instrument_id": 1776,
-          "semi_cycle_direction": null
-        },
-        {
-          "candidate_key": "mexc:1671",
-          "cycle_age": null,
-          "decision_timestamp_ms": 1795564800000,
-          "direction": "long",
-          "distance_pct": "-0.5181695611127829",
-          "extreme_price": null,
-          "extreme_timestamp_ms": null,
-          "instrument_id": 1671,
-          "semi_cycle_direction": null
-        }
-      ],
-      "executable_shorts": [
-        {
-          "candidate_key": "mexc:2409",
-          "cycle_age": null,
-          "decision_timestamp_ms": 1795564800000,
-          "direction": "short",
-          "distance_pct": "4.322266813146608",
-          "extreme_price": null,
-          "extreme_timestamp_ms": null,
-          "instrument_id": 2409,
-          "semi_cycle_direction": null
-        },
-        {
-          "candidate_key": "mexc:2076",
-          "cycle_age": null,
-          "decision_timestamp_ms": 1795564800000,
-          "direction": "short",
-          "distance_pct": "3.8421547490514065",
-          "extreme_price": null,
-          "extreme_timestamp_ms": null,
-          "instrument_id": 2076,
-          "semi_cycle_direction": null
-        },
-        {
-          "candidate_key": "mexc:687",
-          "cycle_age": null,
-          "decision_timestamp_ms": 1795564800000,
-          "direction": "short",
-          "distance_pct": "3.253992605505298",
-          "extreme_price": null,
-          "extreme_timestamp_ms": null,
-          "instrument_id": 687,
-          "semi_cycle_direction": null
-        },
-        {
-          "candidate_key": "mexc:1206",
-          "cycle_age": null,
-          "decision_timestamp_ms": 1795564800000,
-          "direction": "short",
-          "distance_pct": "2.9877139687930425",
-          "extreme_price": null,
-          "extreme_timestamp_ms": null,
-          "instrument_id": 1206,
-          "semi_cycle_direction": null
-        },
-        {
-          "candidate_key": "mexc:1281",
-          "cycle_age": null,
-          "decision_timestamp_ms": 1795564800000,
-          "direction": "short",
-          "distance_pct": "2.951234113828696",
-          "extreme_price": null,
-          "extreme_timestamp_ms": null,
-          "instrument_id": 1281,
-          "semi_cycle_direction": null
-        },
-        {
-          "candidate_key": "mexc:2103",
-          "cycle_age": null,
-          "decision_timestamp_ms": 1795564800000,
-          "direction": "short",
-          "distance_pct": "2.436819746688795",
-          "extreme_price": null,
-          "extreme_timestamp_ms": null,
-          "instrument_id": 2103,
-          "semi_cycle_direction": null
-        },
-        {
-          "candidate_key": "mexc:1955",
-          "cycle_age": null,
-          "decision_timestamp_ms": 1795564800000,
-          "direction": "short",
-          "distance_pct": "2.39647928922836",
-          "extreme_price": null,
-          "extreme_timestamp_ms": null,
-          "instrument_id": 1955,
-          "semi_cycle_direction": null
-        },
-        {
-          "candidate_key": "mexc:2109",
-          "cycle_age": null,
-          "decision_timestamp_ms": 1795564800000,
-          "direction": "short",
-          "distance_pct": "2.353728058395553",
-          "extreme_price": null,
-          "extreme_timestamp_ms": null,
-          "instrument_id": 2109,
-          "semi_cycle_direction": null
-        },
-        {
-          "candidate_key": "mexc:1861",
-          "cycle_age": null,
-          "decision_timestamp_ms": 1795564800000,
-          "direction": "short",
-          "distance_pct": "2.320956316667175",
-          "extreme_price": null,
-          "extreme_timestamp_ms": null,
-          "instrument_id": 1861,
-          "semi_cycle_direction": null
-        },
-        {
-          "candidate_key": "mexc:2031",
-          "cycle_age": null,
-          "decision_timestamp_ms": 1795564800000,
-          "direction": "short",
-          "distance_pct": "2.281339080964963",
-          "extreme_price": null,
-          "extreme_timestamp_ms": null,
-          "instrument_id": 2031,
-          "semi_cycle_direction": null
-        }
-      ],
-      "last_attempt_ms": 1795731606664
-    },
-    "positions": [],
+    "pending_entry_signal": null,
+    "positions": [
+      {
+        "category": "crypto",
+        "entry_fee": "0.011618",
+        "entry_price": "58.09",
+        "entry_timestamp_ms": 1795731752331,
+        "highest_since_entry": "58.09",
+        "initial_margin_usdt": "29.045",
+        "instrument_id": 1982,
+        "last_funding_timestamp_ms": 1795731752331,
+        "last_mark_price": "58.08",
+        "leverage": "2",
+        "lowest_since_entry": "58.09",
+        "quantity": "1",
+        "side": "long",
+        "stop_price": "21.5382250819912",
+        "symbol": "SOXS_USDT",
+        "unresolved_funding_count": 0
+      },
+      {
+        "category": "crypto",
+        "entry_fee": "0.018985200",
+        "entry_price": "0.07302",
+        "entry_timestamp_ms": 1795731752331,
+        "highest_since_entry": "0.07302",
+        "initial_margin_usdt": "47.46300",
+        "instrument_id": 1206,
+        "last_funding_timestamp_ms": 1795731752331,
+        "last_mark_price": "0.07309",
+        "leverage": "2",
+        "lowest_since_entry": "0.07302",
+        "quantity": "1300",
+        "side": "short",
+        "stop_price": "0.121003979618761929",
+        "symbol": "USELESS_USDT",
+        "unresolved_funding_count": 0
+      }
+    ],
     "realized_gross_pnl": "0",
     "schema_version": 1,
     "status": "INITIALIZED_PAPER_ONLY",
     "strategy_id": "crypto-bab-low-beta-long-high-beta-short-v1",
-    "unresolved_funding_count": 0
+    "unresolved_funding_count": 2
   },
   "schema_version": 1,
   "state_event": {
-    "batch_hash": "f77e9c292e69a619c66cb83eba8253f655f1f896536543424bacb931ebc7eb9b",
-    "commit_sha": "53509454f11a62d46b1e400e65417d84bd619173",
+    "batch_hash": "16fc36c24bac4e0180b1fc3b925774f255c8e38b90bf0f32e1f0fc6c700dc597",
+    "commit_sha": "db371c6f8d6fee67ac009b736727891d9ebdec97",
     "created": true,
-    "path": "events/2026/11/snapshot-1795731606664.json"
+    "path": "events/2026/11/snapshot-1795731743771.json"
   }
 }
