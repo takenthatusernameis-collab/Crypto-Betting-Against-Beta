@@ -87,7 +87,7 @@ if coverage_path.is_file():
         row.get("history_status") in {"INSUFFICIENT_HISTORY", "NO_TRADES_IN_WINDOW"}
         for row in eligible_rows
     )
-    coverage_note = "\\n".join([
+    coverage_note = "\n".join([
         "",
         "## MEXC market-data coverage",
         "",
@@ -138,7 +138,7 @@ if coverage_path.is_file():
         "The latest completed UTC daily candle is waiting for full-universe history coverage; no portfolio decision has been consumed.",
         progress_text,
     )
-    coverage_note += "The portfolio remains a paper simulation; all fills are simulated and no exchange orders are submitted.\\n"
+    coverage_note += "The portfolio remains a paper simulation; all fills are simulated and no exchange orders are submitted.\n"
 
     if mode != "PORTFOLIO_SNAPSHOT_ONLY":
         long_preview = coverage.get("research_long_top", [])[:3]
@@ -160,7 +160,7 @@ if coverage_path.is_file():
             f"- {row.get('symbol', '—')}: β(BTC)={row.get('beta_vs_btc_90d', row.get('distance_pct', '—'))}"
             for row in short_preview
         )
-        coverage_note += "\\n".join(preview_lines) + "\\n"
+        coverage_note += "\\n".join(preview_lines) + "\n"
     markdown = markdown.replace("## Current performance", coverage_note + "## Current performance")
 
 (ROOT / "PAPER_STATUS.md").write_text(markdown, encoding="utf-8")
