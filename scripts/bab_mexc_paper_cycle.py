@@ -10,6 +10,7 @@ from __future__ import annotations
 import importlib.util
 import math
 import sys
+import time
 from decimal import Decimal
 from pathlib import Path
 from typing import Any
@@ -20,6 +21,7 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ENGINE_ROOT / "src"))
 
 from high_vs_low.mexc_paper import Candidate, MEXCRankings
+from high_vs_low.github_state import GitHubStateError, GitHubStatePublisher
 from strategies.betting_against_beta.beta import calculate_beta
 
 BETA_WINDOW = 90
@@ -170,6 +172,27 @@ def main() -> int:
 
     # Keep the engine's tested execution, funding, ledger and snapshot logic.
     # Only its strategy ranking and account namespace are changed.
+    # GitHub's Git Data endpoints can briefly return a stale ref/tree immediately
+    # after a successful ref update. Retry only the precise eventual-consistency
+    # symptom; preserve all integrity and fork checks as hard failures.
+    original_verify = GitHubStatePublisher._verify_remote_batch
+
+    def verify_remote_batch_with_retry(self, *args, **kwargs):
+        last_error = None
+        for attempt in range(5):
+            try:
+                return original_verify(self, *args, **kwargs)
+            except GitHubStateError as exc:
+                if (
+                    "Required event batch is missing from remote chain" not in str(exc)
+                    and "Published event batch is not in the verified remote chain" not in str(exc)
+                ):
+                    raise
+                last_error = exc
+                time.sleep(min(2 ** attempt, 8))
+        raise last_error
+
+    GitHubStatePublisher._verify_remote_batch = verify_remote_batch_with_retry
     engine.ACCOUNT_ID = ACCOUNT_ID
     engine.STRATEGY_ID = STRATEGY_ID
     engine.INITIAL_CAPITAL = Decimal("100")
