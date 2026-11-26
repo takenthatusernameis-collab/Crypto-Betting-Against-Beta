@@ -8,10 +8,10 @@
 - Strategy generation: `crypto-bab-low-beta-long-high-beta-short-v1`
 - Starting capital: **100.00000000 USDT**
 - Account state: **INITIALIZED — FORWARD PAPER**
-- Last report build: 2026-11-26 22:20:23 UTC
-- Latest workflow run: [45904031939](https://github.com/takenthatusernameis-collab/Crypto-Betting-Against-Beta/actions/runs/45904031939) · run #10, attempt 1 · failure · push
+- Last report build: 2026-11-26 22:22:46 UTC
+- Latest workflow run: [45904294165](https://github.com/takenthatusernameis-collab/Crypto-Betting-Against-Beta/actions/runs/45904294165) · run #11, attempt 1 · success · push
 - Latest processed daily candle: —
-- Latest account event: 2026-11-26 22:20:06 UTC
+- Latest account event: 2026-11-26 22:22:23 UTC
 - Primary execution journal: [PAPER_TRADE_JOURNAL.md](PAPER_TRADE_JOURNAL.md)
 
 
@@ -24,7 +24,7 @@
 - Histories remaining: not refreshed in snapshot mode
 - API failures: 0
 - Latest completed daily bar (UTC ms): 1795564800000
-- Portfolio decision status: `RETRY_EXECUTION_BLOCKED`
+- Portfolio decision status: `RETRY_PAIR_REBUILT`
 
 Portfolio changes remain blocked until the full active cross-section has the required current daily history.
 
@@ -40,14 +40,14 @@ Not execution-approved until full-universe coverage passes.
 | Metric | Value |
 |---|---:|
 | Initial capital | 100.00000000 USDT |
-| **NAV** | **100.00000000 USDT** |
-| Total return | +0.000% |
-| Cash | 100.00000000 USDT |
-| Unrealized P&L | +0.00000000 USDT |
-| Fees paid | 0.00000000 USDT |
+| **NAV** | **99.86839680 USDT** |
+| Total return | -0.132% |
+| Cash | 99.96939680 USDT |
+| Unrealized P&L | -0.10100000 USDT |
+| Fees paid | 0.03060320 USDT |
 | Confirmed funding | +0.00000000 USDT |
-| Gross exposure | 0.000× NAV |
-| Net exposure | 0.000× NAV |
+| Gross exposure | 1.533× NAV |
+| Net exposure | 0.370× NAV |
 | Current drawdown from risk-window peak | +0.000% |
 | Lifetime / cross-session maximum drawdown | +0.000% |
 | Worst risk-session maximum drawdown | +0.000% |
@@ -65,7 +65,8 @@ Not execution-approved until full-universe coverage passes.
 
 | Symbol | Side | Quantity | Entry price | Mark | Notional (USDT) |
 |---|---|---:|---:|---:|---:|
-| No open positions yet | — | — | — | — | — |
+| SOXS_USDT | long | 1 | 58.09 | 58.08 | 58.080000 |
+| USELESS_USDT | short | 1300 | 0.07302 | 0.07309 | 95.017000 |
 
 ## Primary path — equal exposure
 
@@ -79,10 +80,10 @@ This chart is a **visual-only counterfactual**, not an executed account. It reus
 
 At each rebalance, the quieter leg receives the larger share using inverse 30-completed-day realized volatility. The leverage overlay is the ratio of equal-exposure pair volatility to the inverse-volatility pair’s base estimated volatility. It increases modeled gross exposure only when the alternative has lower estimated volatility. Estimates use only data available at that rebalance.
 
-- Latest long / short allocation: **50.0% / 50.0%** of alternative gross notional.
-- Latest volatility-matching leverage multiplier: **1.000×**.
-- Estimated base volatility reduction before leverage: **+0.00%**.
-- Volatility observations used: **0**; status: `AWAITING_FIRST_PAIR`.
+- Latest long / short allocation: **39.6% / 60.4%** of alternative gross notional.
+- Latest volatility-matching leverage multiplier: **1.054×**.
+- Estimated base volatility reduction before leverage: **+5.13%**.
+- Volatility observations used: **30**; status: `RISK_MATCHED_INVERSE_VOLATILITY`.
 
 ![Inverse-volatility alternative equity curve](alternative_path_equity_curve.svg)
 

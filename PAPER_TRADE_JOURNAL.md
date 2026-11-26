@@ -5,12 +5,13 @@
 - Account: `mexc-usdt-forward-bab-100usdt-v1`
 - Strategy generation: `crypto-bab-low-beta-long-high-beta-short-v1`
 - Starting capital: **100.00000000 USDT**
-- Generated: 2026-11-26 22:20:23 UTC
-- Latest workflow: [45904031939](https://github.com/takenthatusernameis-collab/Crypto-Betting-Against-Beta/actions/runs/45904031939)
-- Recorded primary events: **0**
+- Generated: 2026-11-26 22:22:46 UTC
+- Latest workflow: [45904294165](https://github.com/takenthatusernameis-collab/Crypto-Betting-Against-Beta/actions/runs/45904294165)
+- Recorded primary events: **2**
 
 | Timestamp (UTC) | Symbol | Side | Action | Quantity | Price | Fee (USDT) | Realized net P&L (USDT) | Funding (USDT) | Event ID |
 |---|---|---|---|---:|---:|---:|---:|---:|---|
-| No primary fills or funding events recorded yet | — | — | — | — | — | — | — | — | — |
+| 2026-11-26 22:22:32 UTC | SOXS_USDT | long | OPENED | 1 | 58.09 | 0.011618 | — | — | `paper_entry_retry-snapshot-1795731743771` |
+| 2026-11-26 22:22:32 UTC | USELESS_USDT | short | OPENED | 1300 | 0.07302 | 0.018985200 | — | — | `paper_entry_retry-snapshot-1795731743771` |
 
 This journal covers only the primary paper account. The inverse-volatility alternative path has no separate trade journal, positions or event stream.
