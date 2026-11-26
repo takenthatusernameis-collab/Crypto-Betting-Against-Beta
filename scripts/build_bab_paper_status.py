@@ -104,7 +104,7 @@ if coverage_path.is_file():
         f"- {row.get('symbol', '—')}: β(BTC)={row.get('beta_vs_btc_90d', row.get('distance_pct', '—'))}"
         for row in short_preview
     )
-    coverage_note += "\\n".join(preview_lines) + "\\n"
+    coverage_note += "\n".join(preview_lines) + "\n"
     markdown = markdown.replace("## Current performance", coverage_note + "## Current performance")
 
 (ROOT / "PAPER_STATUS.md").write_text(markdown, encoding="utf-8")
@@ -113,5 +113,10 @@ journal = status.render_primary_trade_journal(
     generated_at_ms=generated_at_ms,
     workflow_metadata=metadata,
 )
-journal = journal.replace("HIGH-LOW", "BAB").replace("High-Low", "BAB").replace("ATH/ATL", "BAB")\n(ROOT / "PAPER_TRADE_JOURNAL.md").write_text(journal, encoding="utf-8")
+journal = (
+    journal.replace("HIGH-LOW", "BAB")
+    .replace("High-Low", "BAB")
+    .replace("ATH/ATL", "BAB")
+)
+(ROOT / "PAPER_TRADE_JOURNAL.md").write_text(journal, encoding="utf-8")
 print("Published BAB status, primary trade journal and both equity curves.")
