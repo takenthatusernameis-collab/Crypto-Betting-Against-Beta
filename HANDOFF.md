@@ -1,14 +1,16 @@
 # DURABLE HANDOFF — Crypto-Betting-Against-Beta
-**Timestamp (UTC): 2026-11-26T09:47:20Z**
-**Session:** Kilo General Agent Loop — baseline unblocked; **P42 OPEN (sole binding row)**
+**Timestamp (UTC): 2026-11-26T09:49:25Z**
+**Session:** Kilo General Agent Loop — baseline GREEN and clean; **P42 OPEN (sole binding row)**
 **Repository:** Crypto-Betting-Against-Beta (Betting Against Beta crypto quant research)
-**Verified baseline (HEAD `42ff55f`, re-verified this session at 09:47:20Z):**
-- `python3 -m ruff check .` GREEN (`All checks passed!`) — required a per-file-ignore fix, see below.
+**Verified baseline (HEAD `d42847e`, re-verified this session at 09:49:25Z):**
+- Working tree is **CLEAN** — the prior baseline repair is already committed (`9ef2983`).
+  There is **no uncommitted delta**; do not re-commit or re-derive it.
+- `python3 -m ruff check .` GREEN (`All checks passed!`).
 - `bash scripts/bab_quick.sh` GREEN (targeted trio `104 passed`, smoke `195 passed`, `quick preflight OK`).
 - `python3 scripts/bab_replay_decisions.py --subset p41_decision.md` GREEN (`OK p41_decision.md -> BAB_P41_DECISION.md`).
 - P32/P33 doc ledgers GREEN: `--check-doc-summary` returns `OK` for both
   `research_state/bab_p32/doc_replay_summary.json` and
-  `research_state/bab_p33/doc_consistency_summary.json` (P33 was regenerated this session).
+  `research_state/bab_p33/doc_consistency_summary.json`.
 - P42 charter `docs/BAB_P42_KICKOFF.md` is classified in the doc registry
   (`scripts/bab_doc_consistency_summary.py`, `tests/test_bab_p33_doc_registry_completeness.py`)
   and P42 is the allow-listed successor in `tests/test_bab_p34_doc_pointer_guard.py`.
@@ -16,22 +18,13 @@
   `generate_p42_decision.py`, `tests/test_bab_p42_*`, `docs/BAB_P42_DECISION.md`) are
   **absent** — P42 is genuinely open.
 - All five P42 registration points are confirmed present for the P41 pattern and awaiting
-  the P42 mirror: `scripts/bab_replay_decisions.py`, `scripts/bab_replay_full.py`,
-  `scripts/bab_gate.sh`, `tests/test_bab_p29_decision_replay.py` (`EXPECTED_NAMES`),
+  the P42 mirror: `scripts/bab_replay_decisions.py` (P41 block at L143–144),
+  `scripts/bab_replay_full.py` (P41 block at L164–167), `scripts/bab_gate.sh` (P41 block
+  at L253–257), `tests/test_bab_p29_decision_replay.py` (`EXPECTED_NAMES`, L56),
   `tests/test_bab_p29_replay_coverage.py` (`EXPECTED_NAMES`).
 - **Full gate still owed this campaign:** `BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh`
   must be run to completion (~39 min, 4 cores) before P42 is declared done. It is a
   long/background job — never under a 120 s foreground timeout.
-
-**Working-tree state at handoff (uncommitted, intentional baseline repair):**
-- `pyproject.toml` — added per-file-ignores for the two MEXC paper-cycle entrypoints
-  (`scripts/bab_mexc_paper_cycle.py`, `scripts/build_bab_paper_status.py`) so `ruff check .`
-  is GREEN. Those files must mutate `sys.path` before importing the sibling engine (E402/I001),
-  carry a long fail-closed guard message (E501) and an intentional bounded GitHub
-  eventual-consistency retry loop (PERF203). This matches the existing frozen-script convention.
-- `research_state/bab_p33/doc_consistency_summary.json` — regenerated (was DRIFT vs fresh build).
-- **First action for the next session: `git add pyproject.toml research_state/bab_p33/doc_consistency_summary.json && git commit`** with a message like
-  `chore(kilo): restore ruff/ledger baseline before P42` so HEAD is clean before P42 work begins.
 
 **Supersedes:** all prior HANDOFF.md content. This is the single durable handoff.
 
@@ -39,14 +32,15 @@
 
 ## READ FIRST — INITIAL TASK MESSAGE FOR THE NEXT SESSION
 
-> **Timestamped initial task (2026-11-26T09:47:20Z):** Execute **Campaign P42
+> **Timestamped initial task (2026-11-26T09:49:25Z):** Execute **Campaign P42
 > "Planted-Alpha Detectability Frontier & Minimum Detectable Effect," WP0 → WP3.**
-> P20–P41 are frozen; P41 WP1/WP2/WP3 are complete and committed. HEAD is `42ff55f`;
-> the only uncommitted delta is the intentional baseline repair listed above (commit it first).
-> No new maintainer direction is present, so do not idle and do not invent a replacement
-> campaign: P42 is a concrete, multi-file, verifiable, heavy workload (810-cell factorial
-> grid + frontier meta-analysis + decision doc + gate wiring). Real-data ingestion, CI
-> workflow changes, and live deployment remain maintainer-gated and out of scope.
+> P20–P41 are frozen; P41 WP1/WP2/WP3 are complete and committed. HEAD is `d42847e`
+> with a **clean working tree** — the baseline repair is already committed (`9ef2983`),
+> so **skip any commit step and start directly at Step 1**. No new maintainer direction
+> is present, so do not idle and do not invent a replacement campaign: P42 is a concrete,
+> multi-file, verifiable, heavy workload (810-cell factorial grid + frontier meta-analysis
+> + decision doc + gate wiring). Real-data ingestion, CI workflow changes, and live
+> deployment remain maintainer-gated and out of scope.
 
 The campaign charter is [`docs/BAB_P42_KICKOFF.md`](docs/BAB_P42_KICKOFF.md); read it
 end-to-end before editing. It declares every constant (grid, seeds, planted-alpha
@@ -56,13 +50,11 @@ P20–P41 to chase a result, and do not flip the shipped default (`weighting="eq
 
 **BINDING ROW = Campaign P42**
 
-### Step 0 — commit the baseline repair, then confirm the doc ledgers
-Commit the two working-tree fixes (see "Working-tree state" above). Then confirm the P32/P33
-ledgers are fresh, regenerating if not (never hand-edit JSON):
+### Step 0 — confirm the baseline (no commit needed)
+The tree is clean and the ledgers are fresh. Confirm only; regenerate (never hand-edit JSON)
+if any check is not `OK`:
 
 ```bash
-python3 scripts/bab_replay_decisions.py --summary-json research_state/bab_p32/doc_replay_summary.json
-python3 scripts/bab_doc_consistency_summary.py --summary-json research_state/bab_p33/doc_consistency_summary.json
 python3 scripts/bab_replay_decisions.py --check-doc-summary research_state/bab_p32/doc_replay_summary.json
 python3 scripts/bab_doc_consistency_summary.py --check-doc-summary research_state/bab_p33/doc_consistency_summary.json
 ```
@@ -154,7 +146,7 @@ start maintainer-gated work.
 
 | Phase | State | Evidence |
 |---|---|---|
-| P20–P40 | COMPLETE/FROZEN | Do not reopen; P32/P33 ledger maintenance above is guard upkeep only |
+| P20–P40 | COMPLETE/FROZEN | Do not reopen; P32/P33 ledger upkeep above is guard maintenance only |
 | P41 WP1 | COMPLETE | `estimator_bakeoff.json` + `.md`; byte-check PASS |
 | P41 WP2 | COMPLETE | `stress_summary.json` + `.md`; 160 cells, 79 survive, 0/5 DGPs fully replicate, neutrality holds |
 | P41 WP3 | COMPLETE | `generate_p41_decision.py`, `docs/BAB_P41_DECISION.md`, `tests/test_bab_p41_decision_consistency.py`, replay/gate registration all committed and GREEN |
@@ -174,9 +166,8 @@ negative results can be attributed to power vs. genuine absence.
 
 | Bottleneck | Status / next action |
 |---|---|
-| `ruff check .` RED (9 errors) at HEAD `42ff55f` from the new MEXC paper-cycle entrypoints | **REMOVED** — per-file-ignores added in `pyproject.toml`; ruff GREEN. Commit with the ledger fix (Step 0). |
-| P33 doc-consistency ledger DRIFT vs fresh build | **REMOVED** — regenerated `research_state/bab_p33/doc_consistency_summary.json`; `--check-doc-summary` now OK. |
-| Stale HEAD hash in prior handoff (`d623e85`) | **REMOVED** — handoff re-verified at HEAD `42ff55f` this session. |
+| Baseline ruff/ledger repair (uncommitted at prior handoff) | **RESOLVED** — committed in `9ef2983`; tree clean at `d42847e`. No action; do not re-commit. |
+| Stale HEAD hash in prior handoff (`42ff55f`) | **REMOVED** — handoff re-verified at HEAD `d42847e` this session. |
 | Stale handoff (declared P41 WP3 open, artifacts "absent") | **REMOVED** — P41 WP3 complete; handoff points to P42. |
 | Full gate RED on 5 doc-pointer/registry guards | **REMOVED** — README/COVERAGE_NOTES repointed to P42; P34 successor allow-list extended to P40/P41/P42; P42 charter allow-listed. |
 | P32/P33 committed ledgers stale | **RESOLVED** — regenerated from registry; never hand-edit. |
@@ -190,10 +181,10 @@ negative results can be attributed to power vs. genuine absence.
 
 - **CAMPAIGN P34 — COMPLETE** (multiseed robustness + honesty battery + doc pointer guard).
 - **CAMPAIGN P41 — COMPLETE** (non-Gaussian & regime-switching synthetic stress battery).
-- **CAMPAIGN P42 — ACTIVE BINDING ROW** (planted-alpha detectability frontier; heavy 810-cell factorial grid — cannot be satisfied by a single fixture, re-used seed, or any frozen-harness rerun).
+- **CAMPAIGN P42 — ACTIVE BINDING ROW** (planted-alpha detectability frontier; heavy 810-cell factorial grid — cannot be satisfied by a single fixture, re-used seed, or any frozen-harness rerun). This is the mandatory heavy workload: a future session cannot substitute a quick check, a single fixture, or a frozen-harness rerun for the 810-cell grid + frontier + decision + 100%-coverage gate.
 
 **Repository root:**
 `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
 
-**END OF HANDOFF — first action: commit the two baseline-repair files, confirm ledgers,
-then implement P42 WP1→WP3 and finish only when the 100%-coverage full gate is GREEN.**
+**END OF HANDOFF — first action: confirm ledgers (Step 0), then implement P42 WP1→WP3 and
+finish only when the 100%-coverage full gate is GREEN.**
