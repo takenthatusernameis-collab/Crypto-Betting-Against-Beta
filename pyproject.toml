@@ -60,7 +60,7 @@ select = [
 # retry loop (PERF203). Suppressed here, matching the frozen-script convention,
 # so `ruff check .` stays GREEN without editing the delivered feature files.
 "scripts/bab_mexc_paper_cycle.py" = ["E402", "I001", "E501", "PERF203"]
-"scripts/build_bab_paper_status.py" = ["E402", "I001"]
+"scripts/build_bab_paper_status.py" = ["E402", "I001", "E501"]
 "strategies/betting_against_beta/data_loader.py" = ["PERF203"]
 "strategies/betting_against_beta/portfolio.py" = ["PERF203"]
 "strategies/betting_against_beta/quality.py" = ["PERF203"]

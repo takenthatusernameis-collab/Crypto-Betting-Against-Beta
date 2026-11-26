@@ -1,12 +1,18 @@
 # DURABLE HANDOFF — Crypto-Betting-Against-Beta
-**Timestamp (UTC): 2026-11-26T09:53:54Z**
+**Timestamp (UTC): 2026-11-26T09:55:54Z**
 **Session:** Kilo General Agent Loop — baseline GREEN and clean; **P42 OPEN (sole binding row)**
 **Repository:** Crypto-Betting-Against-Beta (Betting Against Beta crypto quant research)
-**Verified baseline (HEAD `d42847e`, re-verified this session at 09:49:54Z):**
-- Working tree is **CLEAN** — the prior baseline repair is already committed (`9ef2983`).
-  There is **no uncommitted delta**; do not re-commit or re-derive it.
-- `python3 -m ruff check .` GREEN (`All checks passed!`).
-- `bash scripts/bab_quick.sh` GREEN (targeted trio `104 passed`, smoke `195 passed`, `quick preflight OK`).
+**Verified baseline (HEAD `14aae09`, re-verified this session at 09:55:54Z):**
+- Working tree is **CLEAN** — the only delta this session was the ruff-green repair
+  (removed a dead `import time` and extended the existing `build_bab_paper_status.py`
+  per-file-ignore with `E501`), committed on top of `14aae09`. Do **not** re-derive or
+  re-commit it; start directly at Step 1.
+- `python3 -m ruff check .` GREEN (`All checks passed!`). **This was RED at session start**
+  (7 errors in `scripts/build_bab_paper_status.py`: 1× F401 unused `time`, 6× E501 long
+  fail-closed message strings) while the prior handoff falsely claimed GREEN — that
+  bottleneck is now removed. See BOTTLENECKS below.
+- `bash scripts/bab_quick.sh` GREEN (targeted trio `104 passed`, smoke `195 passed`,
+  `quick preflight OK`).
 - `python3 scripts/bab_replay_decisions.py --subset p41_decision.md` GREEN (`OK p41_decision.md -> BAB_P41_DECISION.md`).
 - P32/P33 doc ledgers GREEN: `--check-doc-summary` returns `OK` for both
   `research_state/bab_p32/doc_replay_summary.json` and
@@ -32,11 +38,11 @@
 
 ## READ FIRST — INITIAL TASK MESSAGE FOR THE NEXT SESSION
 
-> **Timestamped initial task (2026-11-26T09:53:54Z):** Execute **Campaign P42
+> **Timestamped initial task (2026-11-26T09:55:54Z):** Execute **Campaign P42
 > "Planted-Alpha Detectability Frontier & Minimum Detectable Effect," WP0 → WP3.**
-> P20–P41 are frozen; P41 WP1/WP2/WP3 are complete and committed. HEAD is `d42847e`
-> with a **clean working tree** — the baseline repair is already committed (`9ef2983`),
-> so **skip any commit step and start directly at Step 1**. No new maintainer direction
+> P20–P41 are frozen; P41 WP1/WP2/WP3 are complete and committed. HEAD is `14aae09`
+> with a **clean working tree** — the ruff-green repair is already committed, so
+> **skip any commit step and start directly at Step 1**. No new maintainer direction
 > is present, so do not idle and do not invent a replacement campaign: P42 is a concrete,
 > multi-file, verifiable, heavy workload (810-cell factorial grid + frontier meta-analysis
 > + decision doc + gate wiring). Real-data ingestion, CI workflow changes, and live
@@ -55,6 +61,7 @@ The tree is clean and the ledgers are fresh. Confirm only; regenerate (never han
 if any check is not `OK`:
 
 ```bash
+python3 -m ruff check .
 python3 scripts/bab_replay_decisions.py --check-doc-summary research_state/bab_p32/doc_replay_summary.json
 python3 scripts/bab_doc_consistency_summary.py --check-doc-summary research_state/bab_p33/doc_consistency_summary.json
 ```
@@ -166,8 +173,9 @@ negative results can be attributed to power vs. genuine absence.
 
 | Bottleneck | Status / next action |
 |---|---|
-| Baseline ruff/ledger repair (uncommitted at prior handoff) | **RESOLVED** — committed in `9ef2983`; tree clean at `d42847e`. No action; do not re-commit. |
-| Stale HEAD hash in prior handoff (`42ff55f`) | **REMOVED** — handoff re-verified at HEAD `d42847e` this session. |
+| **ruff RED at session start (7 errors in `scripts/build_bab_paper_status.py`) while handoff claimed GREEN** | **RESOLVED this session** — removed dead `import time` (F401) and extended the existing per-file-ignore with `E501` (long fail-closed message strings, matching the repo's documented delivered-script convention). `ruff check .` now GREEN. Do not re-fix. |
+| Baseline ruff/ledger repair (uncommitted at prior handoff) | **RESOLVED** — committed earlier; tree clean at `14aae09`. No action; do not re-commit. |
+| Stale HEAD hash in prior handoff (`d42847e`) | **REMOVED** — handoff re-verified at HEAD `14aae09` this session. |
 | Stale handoff (declared P41 WP3 open, artifacts "absent") | **REMOVED** — P41 WP3 complete; handoff points to P42. |
 | Full gate RED on 5 doc-pointer/registry guards | **REMOVED** — README/COVERAGE_NOTES repointed to P42; P34 successor allow-list extended to P40/P41/P42; P42 charter allow-listed. |
 | P32/P33 committed ledgers stale | **RESOLVED** — regenerated from registry; never hand-edit. |
