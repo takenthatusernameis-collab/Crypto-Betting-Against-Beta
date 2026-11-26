@@ -1,0 +1,65 @@
+{
+  "last_run_utc": "2026-11-26T09:49:19.395000+00:00",
+  "portfolio_state": {
+    "account_id": "mexc-usdt-forward-bab-100usdt-v1",
+    "cash": "100",
+    "closed_trade_net_pnls": [],
+    "confirmed_funding": "0",
+    "currency": "USDT",
+    "daily_equity": [],
+    "daily_risk": {
+      "calendar_day_starting_nav": "100",
+      "calendar_day_starting_reference": "first_observation_of_utc_day",
+      "flatten_attempts": 0,
+      "flattened": false,
+      "peak_nav": "100",
+      "peak_timestamp_ms": 1795651200000,
+      "starting_nav": "100",
+      "starting_reference": "first_observation_of_utc_day",
+      "starting_timestamp_ms": 1795651200000,
+      "stop_reason": null,
+      "stop_triggered": false,
+      "stop_triggered_at_ms": null,
+      "utc_date": "2026-11-26"
+    },
+    "equity_curve": [
+      {
+        "daily_drawdown_pct": "0",
+        "daily_peak_nav": "100",
+        "daily_return_pct": "0",
+        "daily_starting_nav": "100",
+        "daily_starting_reference": "first_observation_of_utc_day",
+        "drawdown_window_reference": "first_observation_of_utc_day",
+        "drawdown_window_starting_nav": "100",
+        "emergency_stop_flattened": false,
+        "emergency_stop_newly_triggered": false,
+        "emergency_stop_triggered": false,
+        "gross_exposure": "0",
+        "long_notional_usdt": "0",
+        "nav": "100",
+        "roi_pct": "0",
+        "short_notional_usdt": "0",
+        "timestamp_ms": 1795686559395,
+        "utc_date": "2026-11-26"
+      }
+    ],
+    "fees_paid": "0",
+    "initial_capital": "100",
+    "last_processed_daily_bar_ms": null,
+    "last_snapshot_ms": 1795686559395,
+    "partial_realized_net_pnls": [],
+    "positions": [],
+    "realized_gross_pnl": "0",
+    "schema_version": 1,
+    "status": "INITIALIZED_PAPER_ONLY",
+    "strategy_id": "crypto-bab-low-beta-long-high-beta-short-v1",
+    "unresolved_funding_count": 0
+  },
+  "schema_version": 1,
+  "state_event": {
+    "batch_hash": "a4c2d66ce0af1ba7135e204b9bdb73bc7a981c2eca4ec07401f6614f3b59dc9a",
+    "commit_sha": "fa965674ce83bd024e32b0a2c5f957f5bec4a790",
+    "created": true,
+    "path": "events/2026/11/account-init-1795686559395.json"
+  }
+}
