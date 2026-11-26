@@ -152,6 +152,13 @@ REGISTRY: list[dict] = [
     {"module": "bab_p39_cross_fixture", "build": "build_summary",
      "dir": "bab_p39", "name": "cross_fixture_summary",
      "inject_determinism": False, "json_only": True, "no_xproc": True},
+    # P40 WP0 multi-fixture meta-analysis summary artifact (JSON-only; no .md
+    # sidecar replayed here -- the .md is rendered by build_summary() and pinned
+    # by tests/test_bab_p40_meta_analysis.py; gated out of --xproc/--check-provenance
+    # so the frozen P29 provenance_audit.json ledger is never rewritten).
+    {"module": "bab_p40_meta_analysis", "build": "build_summary",
+     "dir": "bab_p40", "name": "meta_summary",
+     "inject_determinism": False, "json_only": True, "no_xproc": True},
 ]
 
 # Cheap subset (fast generators) used by the drift self-test so it runs in
