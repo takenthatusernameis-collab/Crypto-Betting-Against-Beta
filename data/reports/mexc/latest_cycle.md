@@ -1,12 +1,12 @@
 # MEXC High-Low ATH/ATL Paper Research
 
-- Run (UTC): 2026-11-26T22:22:23.771000+00:00
+- Run (UTC): 2026-11-26T22:25:04.549000+00:00
 - Active cross-margin USDT perpetuals: not refreshed in snapshot mode
 - Bootstrap remaining: not refreshed in snapshot mode
 - History coverage gate: not checked in snapshot mode
 - State write mode: UNPROTECTED_SINGLE_WRITER_APPEND_ONLY
 - Paper simulation enabled: True
-- Decision: RETRY_PAIR_REBUILT
+- Decision: UNAVAILABLE_STALE_OR_MISSING_POSITION_MARK
 
 ## Research long ranking — closest to ATH
 
