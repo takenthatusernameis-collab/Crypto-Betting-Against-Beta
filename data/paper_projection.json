@@ -1,5 +1,5 @@
 {
-  "last_run_utc": "2026-11-26T22:22:23.771000+00:00",
+  "last_run_utc": "2026-11-26T22:27:06.870000+00:00",
   "portfolio_state": {
     "account_id": "mexc-usdt-forward-bab-100usdt-v1",
     "cash": "99.969396800",
@@ -195,13 +195,32 @@
         "short_notional_usdt": "0",
         "timestamp_ms": 1795731606664,
         "utc_date": "2026-11-26"
+      },
+      {
+        "daily_drawdown_pct": "-0.0811067390640239055084140500",
+        "daily_peak_nav": "99.868396800",
+        "daily_return_pct": "-0.212603200",
+        "daily_starting_nav": "100",
+        "daily_starting_reference": "first_observation_of_utc_day",
+        "drawdown_window_reference": "daily_portfolio_full_refresh_retry",
+        "drawdown_window_starting_nav": "99.868396800",
+        "emergency_stop_flattened": false,
+        "emergency_stop_newly_triggered": false,
+        "emergency_stop_triggered": false,
+        "gross_exposure": "1.532638438364392726597313139",
+        "long_notional_usdt": "57.96",
+        "nav": "99.787396800",
+        "roi_pct": "-0.212603200",
+        "short_notional_usdt": "94.97800",
+        "timestamp_ms": 1795732026870,
+        "utc_date": "2026-11-26"
       }
     ],
     "fees_paid": "0.030603200",
     "initial_capital": "100",
     "last_decision_attempt_daily_bar_ms": 1795564800000,
     "last_processed_daily_bar_ms": null,
-    "last_snapshot_ms": 1795731606664,
+    "last_snapshot_ms": 1795732026870,
     "partial_realized_net_pnls": [],
     "pending_entry_signal": null,
     "positions": [
@@ -214,7 +233,7 @@
         "initial_margin_usdt": "29.045",
         "instrument_id": 1982,
         "last_funding_timestamp_ms": 1795731752331,
-        "last_mark_price": "58.08",
+        "last_mark_price": "57.96",
         "leverage": "2",
         "lowest_since_entry": "58.09",
         "quantity": "1",
@@ -232,7 +251,7 @@
         "initial_margin_usdt": "47.46300",
         "instrument_id": 1206,
         "last_funding_timestamp_ms": 1795731752331,
-        "last_mark_price": "0.07309",
+        "last_mark_price": "0.07306",
         "leverage": "2",
         "lowest_since_entry": "0.07302",
         "quantity": "1300",
@@ -246,13 +265,13 @@
     "schema_version": 1,
     "status": "INITIALIZED_PAPER_ONLY",
     "strategy_id": "crypto-bab-low-beta-long-high-beta-short-v1",
-    "unresolved_funding_count": 2
+    "unresolved_funding_count": 0
   },
   "schema_version": 1,
   "state_event": {
-    "batch_hash": "16fc36c24bac4e0180b1fc3b925774f255c8e38b90bf0f32e1f0fc6c700dc597",
-    "commit_sha": "db371c6f8d6fee67ac009b736727891d9ebdec97",
+    "batch_hash": "65ea4233cda1b79f85675d7532861d4ddde61b62dd773e3192fa0ad2cc54f7ec",
+    "commit_sha": "fb53741a282f947fce4ed42b8c46e9c34df395fa",
     "created": true,
-    "path": "events/2026/11/snapshot-1795731743771.json"
+    "path": "events/2026/11/snapshot-1795732026870.json"
   }
 }
