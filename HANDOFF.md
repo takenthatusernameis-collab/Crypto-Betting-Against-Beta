@@ -1,5 +1,5 @@
 # DURABLE HANDOFF — Crypto-Betting-Against-Beta
-**Timestamp:** 2026-11-26T06:16:37Z
+**Timestamp:** 2026-11-26T06:40:25Z
 **Session:** Kilo General Agent Loop — P41 WP1 COMPLETE; P41 WP2 COMPLETE; **P41 WP3 OPEN (sole binding row)**
 **Repository:** Crypto-Betting-Against-Beta (Betting Against Beta crypto quant research)
 **Verified baseline (before this handoff edit, HEAD `f4ab1fa`, clean tree):**
