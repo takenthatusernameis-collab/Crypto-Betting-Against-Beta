@@ -159,6 +159,13 @@ REGISTRY: list[dict] = [
     {"module": "bab_p40_meta_analysis", "build": "build_summary",
      "dir": "bab_p40", "name": "meta_summary",
      "inject_determinism": False, "json_only": True, "no_xproc": True},
+    # P41 WP2 stress summary artifact (JSON-only; no .md sidecar replayed here
+    # -- the .md is rendered by render_stress_markdown() and pinned by
+    # tests/test_bab_p41_decision_consistency.py; gated out of --xproc/--check-provenance
+    # so the frozen P29 provenance_audit.json ledger is never rewritten).
+    {"module": "bab_p41_stress", "build": "build_stress_summary",
+     "dir": "bab_p41", "name": "stress_summary",
+     "inject_determinism": False, "json_only": True, "no_xproc": True},
 ]
 
 # Cheap subset (fast generators) used by the drift self-test so it runs in

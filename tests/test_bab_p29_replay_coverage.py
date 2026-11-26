@@ -114,6 +114,11 @@ EXPECTED_NAMES = {
     # here -- the .md is rendered by build_summary() and pinned by
     # tests/test_bab_p40_meta_analysis.py).
     "meta_summary",
+    # P41 WP2 stress summary artifact (json_only=True, no_xproc=True in
+    # bab_replay_full.py REGISTRY; no .md sidecar replayed here -- the .md
+    # is rendered by render_stress_markdown() and pinned by
+    # tests/test_bab_p41_decision_consistency.py).
+    "stress_summary",
 }
 
 

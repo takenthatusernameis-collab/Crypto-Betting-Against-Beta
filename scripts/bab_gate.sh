@@ -247,3 +247,12 @@ python3 -m pytest -q tests/test_bab_p40_decision_consistency.py
 echo "[bab_gate] P40 decision replay (WP3)"
 python3 "$ROOT/scripts/bab_replay_decisions.py" --subset p40_decision.md
 echo "[bab_gate] P40 GREEN"
+
+# --- P41 WP1/WP2/WP3: estimator bakeoff + stress meta-analysis + decision doc + gate wire ---
+echo "[bab_gate] P41 estimator bakeoff summary check (WP1)"
+python3 "$ROOT/scripts/bab_p41_stress.py" --check-estimator-bakeoff
+echo "[bab_gate] P41 decision-consistency tests (WP3)"
+python3 -m pytest -q tests/test_bab_p41_decision_consistency.py
+echo "[bab_gate] P41 decision replay (WP3)"
+python3 "$ROOT/scripts/bab_replay_decisions.py" --subset p41_decision.md
+echo "[bab_gate] P41 GREEN"

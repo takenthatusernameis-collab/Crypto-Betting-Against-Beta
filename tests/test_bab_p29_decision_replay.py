@@ -53,6 +53,7 @@ EXPECTED_NAMES = {
     "p38_decision.md",
     "p39_decision.md",
     "p40_decision.md",
+    "p41_decision.md",
 }
 
 COMMITTED_FILES = [
