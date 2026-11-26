@@ -1,25 +1,19 @@
 # DURABLE HANDOFF — Crypto-Betting-Against-Beta
-**Timestamp:** 2026-11-26T06:08:43Z
-**Session:** Kilo General Agent Loop — P40 COMPLETE/FROZEN; P41 WP1 COMPLETE; **P41 WP2 COMPLETE; P41 WP3 OPEN (next binding row)**
+**Timestamp:** 2026-11-26T06:13:51Z
+**Session:** Kilo General Agent Loop — P40 COMPLETE/FROZEN; P41 WP1 COMPLETE; P41 WP2 COMPLETE; **P41 WP3 OPEN (sole next binding row)**
 **Repository:** Crypto-Betting-Against-Beta (Betting Against Beta crypto quant research)
-**Verified baseline (this session, HEAD `f057e07`, working tree clean):**
-`python3 -m ruff check .` GREEN;
+**Verified baseline (this session, HEAD `47f6c6e`, working tree clean):**
+`python3 -m ruff check .` GREEN (`All checks passed!`);
 `python3 scripts/bab_p41_stress.py --check-estimator-bakeoff` PASS (byte-identical).
-P20–P40 COMPLETE and FROZEN. `research_state/bab_p41/estimator_bakeoff.json` (+ `.md` sidecar)
+P20–P40 COMPLETE and FROZEN. `research_state/bab_p41/estimator_bakeoff.json` (+ `.md`)
 and `scripts/bab_p41_stress.py` landed and verified — **P41 WP1 complete**.
-P41 WP2 artifacts are committed and verified in the prior session:
-`research_state/bab_p41/stress_summary.json` (schema `bab_p41.stress_summary/1`) + `.md` sidecar.
-**P41 WP2 verdict: `FRAGILE_DGP_DEPENDENT`** (79 of 160 cells survive deflation over
-read-only n_trials_total=552; 0 of 5 DGPs fully replicate; neutrality holds at every cell;
-honest, negative-leaning finding — nothing tuned to a positive; shipped default retained).
-The stress checker is expensive and is not an inner-loop command; consume the committed
-WP2 JSON read-only. P41 WP3 (`generate_p41_decision.py` → `docs/BAB_P41_DECISION.md`,
-replay + gate wiring) does not exist yet and is the **sole next binding workload**.
-P40 artifacts landed and verified: `research_state/bab_p40/meta_summary.json` + `.md`,
-`scripts/bab_p40_meta_analysis.py`, `generate_p40_decision.py`, `docs/BAB_P40_DECISION.md`,
-`tests/test_bab_p40_meta_analysis.py`, `tests/test_bab_p40_decision_consistency.py`.
-P40 verdict: **DOES_NOT_REPLICATE** (0 of 4 fixtures replicate the P38 pooled verdict;
-16 of 32 cells survive deflation over n_trials_total=552; neutrality holds everywhere).
+`research_state/bab_p41/stress_summary.json` (schema `bab_p41.stress_summary/1`) + `.md`
+landed and verified — **P41 WP2 complete. Verdict: `FRAGILE_DGP_DEPENDENT`** (79 of 160
+cells survive deflation over read-only n_trials_total=552; 0 of 5 DGPs fully replicate;
+neutrality holds at every cell; honest, negative-leaning finding — nothing tuned to a
+positive; shipped default retained).
+**P41 WP3 does not exist yet** (`generate_p41_decision.py` and `docs/BAB_P41_DECISION.md`
+are absent — confirmed this session) and is the **sole next binding workload**.
 **Supersedes:** all prior HANDOFF.md content.
 
 ---
@@ -30,31 +24,46 @@ P40 verdict: **DOES_NOT_REPLICATE** (0 of 4 fixtures replicate the P38 pooled ve
 Battery." P41 WP1 (estimator bakeoff) and P41 WP2 (stress meta-analysis) are COMPLETE.
 The single remaining binding, fully agent-executable row is P41 WP3. This is not a
 terminal state and there is no idle fallback: WP3 is a concrete, multi-file, verifiable
-workload.**
+workload that cannot be satisfied by a re-run of any frozen harness.**
 
 The single source of truth for the campaign is **[`docs/BAB_P41_KICKOFF.md`](docs/BAB_P41_KICKOFF.md)**.
-Read it end-to-end before writing code. Then execute WP3:
+Read it end-to-end before writing code. Then execute WP3 exactly as below.
 
 ### P41 WP3 — Decision Doc + Gate Wire (IMMEDIATE NEXT STEP; sole deliverable)
 
-Per [`docs/BAB_P41_KICKOFF.md`](docs/BAB_P41_KICKOFF.md) §"WPs in order":
+Per [`docs/BAB_P41_KICKOFF.md`](docs/BAB_P41_KICKOFF.md) §"WPs in order", and mirroring
+the committed P40 pattern (`generate_p40_decision.py`, `scripts/bab_replay_decisions.py:133`,
+`tests/test_bab_p29_*`, `scripts/bab_gate.sh:240`):
 
-- `generate_p41_decision.py` → `docs/BAB_P41_DECISION.md` from committed JSON only
-  (`research_state/bab_p41/stress_summary.json`), reproducing the P41 WP2 numbers
-  (min 100 matched numbers, 0 unmatched cells), explicit `synthetic / not market`
-  strings, shipped default retained.
-- Register P41 in `scripts/bab_replay_decisions.py` + `scripts/bab_replay_full.py`.
-- Add `EXPECTED_NAMES` entries in `tests/test_bab_p29_replay_coverage.py` and
-  `tests/test_bab_p29_decision_replay.py`.
-- Add the `bab_p41` block to `scripts/bab_gate.sh`.
-- Add `docs/BAB_P41_KICKOFF.md` to the doc-registry allow-list with a written reason.
-- `ruff` + `scripts/bab_quick.sh` GREEN.
+1. **`generate_p41_decision.py` → `docs/BAB_P41_DECISION.md`** from committed JSON only
+   (`research_state/bab_p41/stress_summary.json`). Copy the P40 generator shape
+   (`generate_p40_decision.py`: `REPO_ROOT`, `SUMMARY_PATH`, `REPORT_PATH`, `DECIMALS`,
+   `_load`, `_cell`). Reproduce the P41 WP2 numbers with **min 100 matched numbers, 0
+   unmatched cells**, explicit `synthetic / not market` strings, and shipped default
+   retained (do not flip `weighting`, `beta_neutral`, `beta_window`, or the estimator).
+2. **Register P41 in `scripts/bab_replay_decisions.py`** — add a `p41_decision.md` entry
+   (`module: "generate_p41_decision"`, `gen_dir: ROOT`, `kind: "decision"`, outputs →
+   `docs/BAB_P41_DECISION.md`) next to the `p40_decision.md` block at line ~133.
+3. **Register P41 in `scripts/bab_replay_full.py`** — mirror the P40 JSON-only artifact
+   block at line ~155 so `--xproc/--check-provenance` consumes the committed
+   `stress_summary.json` read-only (do NOT run the slow `--check-stress-summary` there).
+4. **Add `EXPECTED_NAMES` entries** in `tests/test_bab_p29_replay_coverage.py` (line ~62)
+   and `tests/test_bab_p29_decision_replay.py` (line ~32, add `"p41_decision.md"`).
+5. **Add the `bab_p41` block to `scripts/bab_gate.sh`** (mirror P40 at line ~240):
+   `--check-stress-summary` is expensive — gate on the committed JSON / decision-replay
+   subset (`bab_replay_decisions.py --subset p41_decision.md`) + the P41 decision-consistency
+   test, not a fresh stress recompute.
+6. **Add `docs/BAB_P41_KICKOFF.md` to the doc-registry allow-list** in
+   `scripts/bab_doc_consistency_summary.py` `ALLOW_LIST` (line ~42) with a written reason
+   (charter doc; replay-gated via the P41 decision entry, no separate generator).
+7. **Verify:** `python3 -m ruff check .` GREEN **and** `bash scripts/bab_quick.sh` GREEN.
 
 **Definition of done for the next session:** `python3 -m ruff check .` GREEN,
 `bash scripts/bab_quick.sh` GREEN, `docs/BAB_P41_DECISION.md` exists and matches the
-committed `stress_summary.json` (FRAGILE_DGP_DEPENDENT), P41 registered in replay + gate,
-and `generate_p41_decision.py` runs cleanly. Do not start any work beyond P41 WP3
-(real-data ingestion, CI enforcement, live deployment is maintainer-gated).
+committed `stress_summary.json` (verdict `FRAGILE_DGP_DEPENDENT`, ≥100 matched numbers,
+0 unmatched), P41 registered in replay + gate, the KICKOFF allow-listed, and
+`generate_p41_decision.py` runs cleanly. Do **not** start work beyond P41 WP3
+(real-data ingestion, CI enforcement, live deployment are maintainer-gated).
 
 ---
 
@@ -89,9 +98,10 @@ DGP/seed-dependent, not robust across all five DGPs. Synthetic only; never marke
 | 3 | Rank weighting | **CLOSED** | P36 proved strictly worse. Never reopen. |
 | 4 | Regime coverage gap | **CLOSED** | All six regimes have `n_ok_cells = 8` in `research_state/bab_p39/regime_summary.json` |
 | 5 | "Terminal / no campaign remains" framing | **REMOVED** | Prior HANDOFF guaranteed idle session. Rescinded. P41 is binding workload. |
-| 6 | P41 WP2 stress meta-analysis open | **RESOLVED** | WP2 complete in the prior session; stress_summary.json + .md landed, byte-identical |
+| 6 | P41 WP2 stress meta-analysis open | **RESOLVED** | WP2 complete; stress_summary.json + .md landed, byte-identical |
 | 7 | CI workflow enforcement | **EXTERNAL** | Maintainer-only (repo token lacks `workflows:write`). Do not burn session. |
-| 8 | Expensive stress re-check / stale baseline | **REMOVED** | This handoff is rebased to HEAD `f057e07`; use committed WP2 JSON and the quick inner loop, not the slow stress checker. |
+| 8 | Expensive stress re-check / stale baseline | **REMOVED** | This handoff is rebased to HEAD `47f6c6e`; use committed WP2 JSON and the quick inner loop, not the slow stress checker. |
+| 9 | P41 WP3 not started | **OPEN — binding** | Sole next workload; fully specified above with exact file touch-points. |
 
 ---
 
