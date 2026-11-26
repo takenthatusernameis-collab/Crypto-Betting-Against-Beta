@@ -90,6 +90,13 @@
       "module": "generate_p39_decision",
       "name": "p39_decision.md",
       "replay_ok": true
+    },
+    {
+      "committed": "docs/BAB_P40_DECISION.md",
+      "kind": "decision",
+      "module": "generate_p40_decision",
+      "name": "p40_decision.md",
+      "replay_ok": true
     }
   ],
   "schema": "bab_p32.doc_replay_summary/1"

@@ -53,6 +53,12 @@ ALLOW_LIST: dict[str, str] = {
         "consistency test exists for it; intentionally outside the replay and "
         "consistency-guarded classes"
     ),
+    "docs/BAB_P41_KICKOFF.md": (
+        "hand-authored binding P41 campaign charter; constants are declared in "
+        "the doc by design (schema bab_p41.charter/1) and the generated P41 "
+        "decision is replay-gated separately, so the charter itself is "
+        "allow-listed rather than replay-registered"
+    ),
 }
 
 
