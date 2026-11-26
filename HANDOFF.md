@@ -1,5 +1,5 @@
 # DURABLE HANDOFF — Crypto-Betting-Against-Beta
-**Timestamp:** 2026-11-26T04:43:19Z
+**Timestamp:** 2026-11-26T04:44:49Z
 **Session:** Kilo General Agent Loop — P40 COMPLETE/FROZEN; **P41 binding campaign OPENED**
 **Repository:** Crypto-Betting-Against-Beta (Betting Against Beta crypto quant research)
 **Verified baseline (re-confirmed this session, HEAD `1df6b87`, working tree clean):**
@@ -128,5 +128,5 @@ seeds/parameters to chase a positive. Do not flip the shipped default.**
 
 ---
 
-**END OF HANDOFF — The next agent's first action must be creating `scripts/bab_p41_stress.py`
-with `--check-estimator-bakeoff` per the P41 WP1 specification above.**
+## END OF HANDOFF — The next agent's first action must be creating `scripts/bab_p41_stress.py`
+with `--check-estimator-bakeoff` per the P41 WP1 specification above.
