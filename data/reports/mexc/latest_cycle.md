@@ -1,8 +1,8 @@
 # MEXC High-Low ATH/ATL Paper Research
 
-- Run (UTC): 2026-11-26T10:52:21.817195+00:00
+- Run (UTC): 2026-11-26T19:22:02.995355+00:00
 - Active cross-margin USDT perpetuals: 1087
-- Bootstrap remaining: 419
+- Bootstrap remaining: 269
 - History coverage gate: False
 - State write mode: UNPROTECTED_SINGLE_WRITER_APPEND_ONLY
 - Paper simulation enabled: True
@@ -13,57 +13,57 @@
 | Symbol | Distance (%) | Extreme price |
 |---|---:|---:|
 | AKE_USDT | -3.360082498561552 | None |
+| SOXS_USDT | -2.3547501277232388 | None |
+| SKDD_USDT | -1.7142559678544846 | None |
 | UVXY_USDT | -1.5536392690839815 | None |
+| NVD_USDT | -1.3106859557794535 | None |
+| SQQQ_USDT | -1.2999249628521792 | None |
 | SOPH_USDT | -1.0248825019826207 | None |
+| TZA_USDT | -0.6613974846024581 | None |
 | BTW_USDT | -0.5772568016369573 | None |
 | MAGMA_USDT | -0.5181695611127829 | None |
 | DODO_USDT | -0.407018774365974 | None |
 | UAI_USDT | -0.33079066054054335 | None |
 | UKOIL_USDT | -0.3198099376828488 | None |
+| USO_USDT | -0.30710289688982656 | None |
 | USOIL_USDT | -0.2999242348409233 | None |
 | BLESS_USDT | -0.28391932300514416 | None |
+| APHSTOCK_USDT | -0.2401914771331927 | None |
 | COPSTOCK_USDT | -0.22559850148155575 | None |
 | FF_USDT | -0.21574492318557728 | None |
 | ON_USDT | -0.1993226162037664 | None |
-| CVXSTOCK_USDT | -0.1851552502464414 | None |
-| XOMSTOCK_USDT | -0.17473421700048788 | None |
-| PARTI_USDT | -0.1555592243229894 | None |
-| NGAS_USDT | -0.13700522996675857 | None |
-| PEPSTOCK_USDT | -0.13300096274621637 | None |
-| OXYSTOCK_USDT | -0.12685657767637995 | None |
-| XLE_USDT | -0.0960879926135543 | None |
 
 ## Research short ranking — closest to ATL
 
 | Symbol | Distance (%) | Extreme price |
 |---|---:|---:|
+| MSTU_USDT | 3.8421547490514065 | None |
 | CATE_USDT | 3.253992605505298 | None |
 | USELESS_USDT | 2.9877139687930425 | None |
 | BULLA_USDT | 2.951234113828696 | None |
+| SNXX_USDT | 2.436819746688795 | None |
 | SOXL_USDT | 2.39647928922836 | None |
+| PONS_USDT | 2.353728058395553 | None |
 | CHIP_USDT | 2.320956316667175 | None |
+| ANSEM_USDT | 2.281339080964963 | None |
+| INTW_USDT | 2.206979608558177 | None |
 | STRK_USDT | 2.2056751178944465 | None |
+| MVLL_USDT | 2.195031050606141 | None |
 | BR_USDT | 2.07032921355624 | None |
+| FWDISTOCK_USDT | 2.060496463597381 | None |
 | AR_USDT | 2.0496687048649247 | None |
+| KORU_USDT | 1.9853365674382613 | None |
 | JCT_USDT | 1.982896496799709 | None |
 | FARTCOIN_USDT | 1.9591070657715146 | None |
 | MSTRSTOCK_USDT | 1.945664153505593 | None |
-| BMNRSTOCK_USDT | 1.8853138963551554 | None |
-| BAT_USDT | 1.8824136700773337 | None |
-| ELSA_USDT | 1.8747009024734829 | None |
-| EDGE_USDT | 1.8735771223884112 | None |
-| ZETA_USDT | 1.8573211473715117 | None |
-| AXTISTOCK_USDT | 1.8467283376607762 | None |
-| ZAMA_USDT | 1.8412895453988396 | None |
-| ARB_USDT | 1.8402227979192065 | None |
-| EVAA_USDT | 1.8063859234443556 | None |
+| MARSCOIN_USDT | 1.9151523363978555 | None |
 
 ## Data completeness
 
 - Ticker coverage: 1169
 - Missing latest daily bars: 0
-- All-time history verified: 596
-- All-time history unverified: 573
+- All-time history verified: 731
+- All-time history unverified: 438
 - Observed missing daily timestamps: 2658
 - Missing provider listing timestamps: 0
 - API failures: 0

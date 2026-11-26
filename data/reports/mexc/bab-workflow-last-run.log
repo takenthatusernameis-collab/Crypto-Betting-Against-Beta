@@ -1,19 +1,19 @@
 [mexc-history] resolved batch size=150 for 1169 active cross-margin perpetuals (0 configuration means full universe)
 [mexc-history] selected 150 stale instruments from 1169 active contracts for daily bar 1795564800000
-[mexc-history] checkpoint 25/150; new histories bootstrapped=25; bootstrap histories remaining=544; API failures=0
-[mexc-history] checkpoint 50/150; new histories bootstrapped=50; bootstrap histories remaining=519; API failures=0
-[mexc-history] checkpoint 75/150; new histories bootstrapped=75; bootstrap histories remaining=494; API failures=0
-[mexc-history] checkpoint 100/150; new histories bootstrapped=100; bootstrap histories remaining=469; API failures=0
-[mexc-history] checkpoint 125/150; new histories bootstrapped=125; bootstrap histories remaining=444; API failures=0
-[mexc-history] checkpoint 150/150; new histories bootstrapped=150; bootstrap histories remaining=419; API failures=0
-[mexc-history] batch finished: checked=150/150; new histories bootstrapped=150; bootstrap histories remaining=419; API failures=0
+[mexc-history] checkpoint 25/150; new histories bootstrapped=25; bootstrap histories remaining=394; API failures=0
+[mexc-history] checkpoint 50/150; new histories bootstrapped=50; bootstrap histories remaining=369; API failures=0
+[mexc-history] checkpoint 75/150; new histories bootstrapped=75; bootstrap histories remaining=344; API failures=0
+[mexc-history] checkpoint 100/150; new histories bootstrapped=100; bootstrap histories remaining=319; API failures=0
+[mexc-history] checkpoint 125/150; new histories bootstrapped=125; bootstrap histories remaining=294; API failures=0
+[mexc-history] checkpoint 150/150; new histories bootstrapped=150; bootstrap histories remaining=269; API failures=0
+[mexc-history] batch finished: checked=150/150; new histories bootstrapped=150; bootstrap histories remaining=269; API failures=0
 {
   "account_id": "mexc-usdt-forward-bab-100usdt-v1",
   "active_cross_margin_perpetual_count": 1169,
   "active_cross_usdt_perpetual_count": 1087,
   "all_time_history_daily_gap_count": 2658,
-  "all_time_history_unverified_count": 573,
-  "all_time_history_verified_count": 596,
+  "all_time_history_unverified_count": 438,
+  "all_time_history_verified_count": 731,
   "api_failure_count": 0,
   "api_failure_sample": [],
   "asset_class_counts": {
@@ -24,8 +24,8 @@
     "unclassified": 201
   },
   "bootstrap_completed_this_run": 150,
-  "bootstrap_remaining": 419,
-  "candle_rows_stored": 579945,
+  "bootstrap_remaining": 269,
+  "candle_rows_stored": 599825,
   "credentials_used": false,
   "daily_decision_due": true,
   "daily_refresh_complete": false,
@@ -40,46 +40,46 @@
     "PGSTOCK_USDT:INSUFFICIENT_ALIGNED_BETA_HISTORY:40",
     "WFCSTOCK_USDT:INSUFFICIENT_ALIGNED_BETA_HISTORY:41",
     "ABTSTOCK_USDT:INSUFFICIENT_ALIGNED_BETA_HISTORY:56",
-    "TWLOSTOCK_USDT:MISSING_DECISION_CANDLE",
-    "KIOXIASTOCK_USDT:MISSING_DECISION_CANDLE",
-    "GRAM_USDT:MISSING_DECISION_CANDLE",
-    "SMH_USDT:MISSING_DECISION_CANDLE",
-    "TQQQ_USDT:MISSING_DECISION_CANDLE",
-    "SQQQ_USDT:MISSING_DECISION_CANDLE",
-    "SOXS_USDT:MISSING_DECISION_CANDLE",
-    "CCLSTOCK_USDT:MISSING_DECISION_CANDLE",
-    "CMCSASTOCK_USDT:MISSING_DECISION_CANDLE",
-    "MARSTOCK_USDT:MISSING_DECISION_CANDLE",
-    "FOXASTOCK_USDT:MISSING_DECISION_CANDLE",
-    "XLU_USDT:MISSING_DECISION_CANDLE",
-    "XLK_USDT:MISSING_DECISION_CANDLE",
-    "ISRGSTOCK_USDT:MISSING_DECISION_CANDLE",
-    "O_USDT:MISSING_DECISION_CANDLE",
-    "RE_USDT:MISSING_DECISION_CANDLE",
-    "OKLOSTOCK_USDT:MISSING_DECISION_CANDLE",
-    "AALSTOCK_USDT:MISSING_DECISION_CANDLE",
-    "MINIMAXSTOCK_USDT:MISSING_DECISION_CANDLE",
-    "ALABSTOCK_USDT:MISSING_DECISION_CANDLE",
-    "TERSTOCK_USDT:MISSING_DECISION_CANDLE",
-    "NEMSTOCK_USDT:MISSING_DECISION_CANDLE",
-    "SLBSTOCK_USDT:MISSING_DECISION_CANDLE",
-    "TEMSTOCK_USDT:MISSING_DECISION_CANDLE",
-    "ZHIPUSTOCK_USDT:MISSING_DECISION_CANDLE",
-    "ARX_USDT:MISSING_DECISION_CANDLE",
-    "VSTSTOCK_USDT:MISSING_DECISION_CANDLE",
-    "FCXSTOCK_USDT:MISSING_DECISION_CANDLE",
-    "BLKSTOCK_USDT:MISSING_DECISION_CANDLE",
-    "AXPSTOCK_USDT:MISSING_DECISION_CANDLE",
-    "SONYSTOCK_USDT:MISSING_DECISION_CANDLE",
-    "KORU_USDT:MISSING_DECISION_CANDLE",
-    "XBI_USDT:MISSING_DECISION_CANDLE",
-    "MVLL_USDT:MISSING_DECISION_CANDLE",
-    "ANETSTOCK_USDT:MISSING_DECISION_CANDLE",
-    "ETNSTOCK_USDT:MISSING_DECISION_CANDLE",
-    "CCJSTOCK_USDT:MISSING_DECISION_CANDLE",
-    "APDSTOCK_USDT:MISSING_DECISION_CANDLE",
-    "NES_USDT:MISSING_DECISION_CANDLE",
-    "WENSTOCK_USDT:MISSING_DECISION_CANDLE"
+    "CCJSTOCK_USDT:INSUFFICIENT_ALIGNED_BETA_HISTORY:7",
+    "NIOSTOCK_USDT:INSUFFICIENT_ALIGNED_BETA_HISTORY:5",
+    "SLSSTOCK_USDT:INSUFFICIENT_ALIGNED_BETA_HISTORY:7",
+    "STMSTOCK_USDT:INSUFFICIENT_ALIGNED_BETA_HISTORY:30",
+    "CTSHSTOCK_USDT:INSUFFICIENT_ALIGNED_BETA_HISTORY:33",
+    "XYZSTOCK_USDT:INSUFFICIENT_ALIGNED_BETA_HISTORY:19",
+    "NTRASTOCK_USDT:INSUFFICIENT_ALIGNED_BETA_HISTORY:23",
+    "CSOPSKHYNIX2L_USDT:MISSING_DECISION_CANDLE",
+    "MEITUANSTOCK_USDT:MISSING_DECISION_CANDLE",
+    "KUAISHOUSTOCK_USDT:MISSING_DECISION_CANDLE",
+    "VLOSTOCK_USDT:MISSING_DECISION_CANDLE",
+    "MPCSTOCK_USDT:MISSING_DECISION_CANDLE",
+    "DVNSTOCK_USDT:MISSING_DECISION_CANDLE",
+    "ENTGSTOCK_USDT:MISSING_DECISION_CANDLE",
+    "JBLSTOCK_USDT:MISSING_DECISION_CANDLE",
+    "KKRSTOCK_USDT:MISSING_DECISION_CANDLE",
+    "NAVERSTOCK_USDT:MISSING_DECISION_CANDLE",
+    "SAMSUNGEMSTOCK_USDT:MISSING_DECISION_CANDLE",
+    "HANMISTOCK_USDT:MISSING_DECISION_CANDLE",
+    "KODEX200_USDT:MISSING_DECISION_CANDLE",
+    "LGELECTRONICS_USDT:MISSING_DECISION_CANDLE",
+    "ZHONGJISTOCK_USDT:MISSING_DECISION_CANDLE",
+    "RBLXSTOCK_USDT:MISSING_DECISION_CANDLE",
+    "GPNSTOCK_USDT:MISSING_DECISION_CANDLE",
+    "NIULAI_USDT:MISSING_DECISION_CANDLE",
+    "SKSQUARESTOCK_USDT:MISSING_DECISION_CANDLE",
+    "MITSUBISHISTOCK_USDT:MISSING_DECISION_CANDLE",
+    "SOFTBANKSTOCK_USDT:MISSING_DECISION_CANDLE",
+    "MURATASTOCK_USDT:MISSING_DECISION_CANDLE",
+    "LYTE_USDT:MISSING_DECISION_CANDLE",
+    "SMTCSTOCK_USDT:MISSING_DECISION_CANDLE",
+    "LULUSTOCK_USDT:MISSING_DECISION_CANDLE",
+    "PSXSTOCK_USDT:MISSING_DECISION_CANDLE",
+    "CMESTOCK_USDT:MISSING_DECISION_CANDLE",
+    "MRNASTOCK_USDT:MISSING_DECISION_CANDLE",
+    "FUJIKURASTOCK_USDT:MISSING_DECISION_CANDLE",
+    "FURUKAWASTOCK_USDT:MISSING_DECISION_CANDLE",
+    "TOYOTASTOCK_USDT:MISSING_DECISION_CANDLE",
+    "HITACHISTOCK_USDT:MISSING_DECISION_CANDLE",
+    "IBIDENSTOCK_USDT:MISSING_DECISION_CANDLE"
   ],
   "execution_long_top": [
     {
@@ -96,6 +96,32 @@
       "symbol": "AKE_USDT"
     },
     {
+      "beta_vs_btc_90d": "-2.3547501277232388",
+      "category": "crypto",
+      "completed_close": "61.66",
+      "decision_bar_timestamp_ms": 1795564800000,
+      "direction": "long",
+      "distance_metric": "rolling_90d_ols_beta_vs_btc",
+      "distance_pct": "-2.3547501277232388",
+      "extreme_price": null,
+      "extreme_timestamp_ms": null,
+      "instrument_id": 1982,
+      "symbol": "SOXS_USDT"
+    },
+    {
+      "beta_vs_btc_90d": "-1.7142559678544846",
+      "category": "crypto",
+      "completed_close": "11.219",
+      "decision_bar_timestamp_ms": 1795564800000,
+      "direction": "long",
+      "distance_metric": "rolling_90d_ols_beta_vs_btc",
+      "distance_pct": "-1.7142559678544846",
+      "extreme_price": null,
+      "extreme_timestamp_ms": null,
+      "instrument_id": 2219,
+      "symbol": "SKDD_USDT"
+    },
+    {
       "beta_vs_btc_90d": "-1.5536392690839815",
       "category": "crypto",
       "completed_close": "25.72",
@@ -109,6 +135,32 @@
       "symbol": "UVXY_USDT"
     },
     {
+      "beta_vs_btc_90d": "-1.3106859557794535",
+      "category": "crypto",
+      "completed_close": "4.61",
+      "decision_bar_timestamp_ms": 1795564800000,
+      "direction": "long",
+      "distance_metric": "rolling_90d_ols_beta_vs_btc",
+      "distance_pct": "-1.3106859557794535",
+      "extreme_price": null,
+      "extreme_timestamp_ms": null,
+      "instrument_id": 2140,
+      "symbol": "NVD_USDT"
+    },
+    {
+      "beta_vs_btc_90d": "-1.2999249628521792",
+      "category": "crypto",
+      "completed_close": "49.52",
+      "decision_bar_timestamp_ms": 1795564800000,
+      "direction": "long",
+      "distance_metric": "rolling_90d_ols_beta_vs_btc",
+      "distance_pct": "-1.2999249628521792",
+      "extreme_price": null,
+      "extreme_timestamp_ms": null,
+      "instrument_id": 1981,
+      "symbol": "SQQQ_USDT"
+    },
+    {
       "beta_vs_btc_90d": "-1.0248825019826207",
       "category": "crypto",
       "completed_close": "0.000854",
@@ -120,6 +172,19 @@
       "extreme_timestamp_ms": null,
       "instrument_id": 1235,
       "symbol": "SOPH_USDT"
+    },
+    {
+      "beta_vs_btc_90d": "-0.6613974846024581",
+      "category": "crypto",
+      "completed_close": "50.52",
+      "decision_bar_timestamp_ms": 1795564800000,
+      "direction": "long",
+      "distance_metric": "rolling_90d_ols_beta_vs_btc",
+      "distance_pct": "-0.6613974846024581",
+      "extreme_price": null,
+      "extreme_timestamp_ms": null,
+      "instrument_id": 2119,
+      "symbol": "TZA_USDT"
     },
     {
       "beta_vs_btc_90d": "-0.5772568016369573",
@@ -187,6 +252,19 @@
       "symbol": "UKOIL_USDT"
     },
     {
+      "beta_vs_btc_90d": "-0.30710289688982656",
+      "category": "crypto",
+      "completed_close": "139.11",
+      "decision_bar_timestamp_ms": 1795564800000,
+      "direction": "long",
+      "distance_metric": "rolling_90d_ols_beta_vs_btc",
+      "distance_pct": "-0.30710289688982656",
+      "extreme_price": null,
+      "extreme_timestamp_ms": null,
+      "instrument_id": 2083,
+      "symbol": "USO_USDT"
+    },
+    {
       "beta_vs_btc_90d": "-0.2999242348409233",
       "category": "commodity",
       "completed_close": "84.1",
@@ -211,6 +289,19 @@
       "extreme_timestamp_ms": null,
       "instrument_id": 1511,
       "symbol": "BLESS_USDT"
+    },
+    {
+      "beta_vs_btc_90d": "-0.2401914771331927",
+      "category": "crypto",
+      "completed_close": "74.41",
+      "decision_bar_timestamp_ms": 1795564800000,
+      "direction": "long",
+      "distance_metric": "rolling_90d_ols_beta_vs_btc",
+      "distance_pct": "-0.2401914771331927",
+      "extreme_price": null,
+      "extreme_timestamp_ms": null,
+      "instrument_id": 2115,
+      "symbol": "APHSTOCK_USDT"
     },
     {
       "beta_vs_btc_90d": "-0.22559850148155575",
@@ -250,100 +341,22 @@
       "extreme_timestamp_ms": null,
       "instrument_id": 1577,
       "symbol": "ON_USDT"
-    },
-    {
-      "beta_vs_btc_90d": "-0.1851552502464414",
-      "category": "crypto",
-      "completed_close": "211.32",
-      "decision_bar_timestamp_ms": 1795564800000,
-      "direction": "long",
-      "distance_metric": "rolling_90d_ols_beta_vs_btc",
-      "distance_pct": "-0.1851552502464414",
-      "extreme_price": null,
-      "extreme_timestamp_ms": null,
-      "instrument_id": 1778,
-      "symbol": "CVXSTOCK_USDT"
-    },
-    {
-      "beta_vs_btc_90d": "-0.17473421700048788",
-      "category": "crypto",
-      "completed_close": "158.1",
-      "decision_bar_timestamp_ms": 1795564800000,
-      "direction": "long",
-      "distance_metric": "rolling_90d_ols_beta_vs_btc",
-      "distance_pct": "-0.17473421700048788",
-      "extreme_price": null,
-      "extreme_timestamp_ms": null,
-      "instrument_id": 1708,
-      "symbol": "XOMSTOCK_USDT"
-    },
-    {
-      "beta_vs_btc_90d": "-0.1555592243229894",
-      "category": "unclassified",
-      "completed_close": "0.03586",
-      "decision_bar_timestamp_ms": 1795564800000,
-      "direction": "long",
-      "distance_metric": "rolling_90d_ols_beta_vs_btc",
-      "distance_pct": "-0.1555592243229894",
-      "extreme_price": null,
-      "extreme_timestamp_ms": null,
-      "instrument_id": 1114,
-      "symbol": "PARTI_USDT"
-    },
-    {
-      "beta_vs_btc_90d": "-0.13700522996675857",
-      "category": "commodity",
-      "completed_close": "3.681",
-      "decision_bar_timestamp_ms": 1795564800000,
-      "direction": "long",
-      "distance_metric": "rolling_90d_ols_beta_vs_btc",
-      "distance_pct": "-0.13700522996675857",
-      "extreme_price": null,
-      "extreme_timestamp_ms": null,
-      "instrument_id": 1742,
-      "symbol": "NGAS_USDT"
-    },
-    {
-      "beta_vs_btc_90d": "-0.13300096274621637",
-      "category": "crypto",
-      "completed_close": "144.13",
-      "decision_bar_timestamp_ms": 1795564800000,
-      "direction": "long",
-      "distance_metric": "rolling_90d_ols_beta_vs_btc",
-      "distance_pct": "-0.13300096274621637",
-      "extreme_price": null,
-      "extreme_timestamp_ms": null,
-      "instrument_id": 1657,
-      "symbol": "PEPSTOCK_USDT"
-    },
-    {
-      "beta_vs_btc_90d": "-0.12685657767637995",
-      "category": "crypto",
-      "completed_close": "54.21",
-      "decision_bar_timestamp_ms": 1795564800000,
-      "direction": "long",
-      "distance_metric": "rolling_90d_ols_beta_vs_btc",
-      "distance_pct": "-0.12685657767637995",
-      "extreme_price": null,
-      "extreme_timestamp_ms": null,
-      "instrument_id": 1786,
-      "symbol": "OXYSTOCK_USDT"
-    },
-    {
-      "beta_vs_btc_90d": "-0.0960879926135543",
-      "category": "crypto",
-      "completed_close": "60.95",
-      "decision_bar_timestamp_ms": 1795564800000,
-      "direction": "long",
-      "distance_metric": "rolling_90d_ols_beta_vs_btc",
-      "distance_pct": "-0.0960879926135543",
-      "extreme_price": null,
-      "extreme_timestamp_ms": null,
-      "instrument_id": 1911,
-      "symbol": "XLE_USDT"
     }
   ],
   "execution_short_top": [
+    {
+      "beta_vs_btc_90d": "3.8421547490514065",
+      "category": "crypto",
+      "completed_close": "9.68",
+      "decision_bar_timestamp_ms": 1795564800000,
+      "direction": "short",
+      "distance_metric": "rolling_90d_ols_beta_vs_btc",
+      "distance_pct": "3.8421547490514065",
+      "extreme_price": null,
+      "extreme_timestamp_ms": null,
+      "instrument_id": 2076,
+      "symbol": "MSTU_USDT"
+    },
     {
       "beta_vs_btc_90d": "3.253992605505298",
       "category": "crypto",
@@ -384,6 +397,19 @@
       "symbol": "BULLA_USDT"
     },
     {
+      "beta_vs_btc_90d": "2.436819746688795",
+      "category": "crypto",
+      "completed_close": "1.492",
+      "decision_bar_timestamp_ms": 1795564800000,
+      "direction": "short",
+      "distance_metric": "rolling_90d_ols_beta_vs_btc",
+      "distance_pct": "2.436819746688795",
+      "extreme_price": null,
+      "extreme_timestamp_ms": null,
+      "instrument_id": 2103,
+      "symbol": "SNXX_USDT"
+    },
+    {
       "beta_vs_btc_90d": "2.39647928922836",
       "category": "crypto",
       "completed_close": "32.34",
@@ -395,6 +421,19 @@
       "extreme_timestamp_ms": null,
       "instrument_id": 1955,
       "symbol": "SOXL_USDT"
+    },
+    {
+      "beta_vs_btc_90d": "2.353728058395553",
+      "category": "crypto",
+      "completed_close": "0.086",
+      "decision_bar_timestamp_ms": 1795564800000,
+      "direction": "short",
+      "distance_metric": "rolling_90d_ols_beta_vs_btc",
+      "distance_pct": "2.353728058395553",
+      "extreme_price": null,
+      "extreme_timestamp_ms": null,
+      "instrument_id": 2109,
+      "symbol": "PONS_USDT"
     },
     {
       "beta_vs_btc_90d": "2.320956316667175",
@@ -410,6 +449,32 @@
       "symbol": "CHIP_USDT"
     },
     {
+      "beta_vs_btc_90d": "2.281339080964963",
+      "category": "crypto",
+      "completed_close": "0.02122",
+      "decision_bar_timestamp_ms": 1795564800000,
+      "direction": "short",
+      "distance_metric": "rolling_90d_ols_beta_vs_btc",
+      "distance_pct": "2.281339080964963",
+      "extreme_price": null,
+      "extreme_timestamp_ms": null,
+      "instrument_id": 2031,
+      "symbol": "ANSEM_USDT"
+    },
+    {
+      "beta_vs_btc_90d": "2.206979608558177",
+      "category": "crypto",
+      "completed_close": "4.725",
+      "decision_bar_timestamp_ms": 1795564800000,
+      "direction": "short",
+      "distance_metric": "rolling_90d_ols_beta_vs_btc",
+      "distance_pct": "2.206979608558177",
+      "extreme_price": null,
+      "extreme_timestamp_ms": null,
+      "instrument_id": 2104,
+      "symbol": "INTW_USDT"
+    },
+    {
       "beta_vs_btc_90d": "2.2056751178944465",
       "category": "crypto",
       "completed_close": "0.03109",
@@ -421,6 +486,19 @@
       "extreme_timestamp_ms": null,
       "instrument_id": 541,
       "symbol": "STRK_USDT"
+    },
+    {
+      "beta_vs_btc_90d": "2.195031050606141",
+      "category": "crypto",
+      "completed_close": "6.839",
+      "decision_bar_timestamp_ms": 1795564800000,
+      "direction": "short",
+      "distance_metric": "rolling_90d_ols_beta_vs_btc",
+      "distance_pct": "2.195031050606141",
+      "extreme_price": null,
+      "extreme_timestamp_ms": null,
+      "instrument_id": 2014,
+      "symbol": "MVLL_USDT"
     },
     {
       "beta_vs_btc_90d": "2.07032921355624",
@@ -436,6 +514,19 @@
       "symbol": "BR_USDT"
     },
     {
+      "beta_vs_btc_90d": "2.060496463597381",
+      "category": "crypto",
+      "completed_close": "3.41",
+      "decision_bar_timestamp_ms": 1795564800000,
+      "direction": "short",
+      "distance_metric": "rolling_90d_ols_beta_vs_btc",
+      "distance_pct": "2.060496463597381",
+      "extreme_price": null,
+      "extreme_timestamp_ms": null,
+      "instrument_id": 2108,
+      "symbol": "FWDISTOCK_USDT"
+    },
+    {
       "beta_vs_btc_90d": "2.0496687048649247",
       "category": "crypto",
       "completed_close": "2.302",
@@ -447,6 +538,19 @@
       "extreme_timestamp_ms": null,
       "instrument_id": 167,
       "symbol": "AR_USDT"
+    },
+    {
+      "beta_vs_btc_90d": "1.9853365674382613",
+      "category": "crypto",
+      "completed_close": "5.335",
+      "decision_bar_timestamp_ms": 1795564800000,
+      "direction": "short",
+      "distance_metric": "rolling_90d_ols_beta_vs_btc",
+      "distance_pct": "1.9853365674382613",
+      "extreme_price": null,
+      "extreme_timestamp_ms": null,
+      "instrument_id": 2012,
+      "symbol": "KORU_USDT"
     },
     {
       "beta_vs_btc_90d": "1.982896496799709",
@@ -488,121 +592,17 @@
       "symbol": "MSTRSTOCK_USDT"
     },
     {
-      "beta_vs_btc_90d": "1.8853138963551554",
+      "beta_vs_btc_90d": "1.9151523363978555",
       "category": "crypto",
-      "completed_close": "13.6",
+      "completed_close": "0.02813",
       "decision_bar_timestamp_ms": 1795564800000,
       "direction": "short",
       "distance_metric": "rolling_90d_ols_beta_vs_btc",
-      "distance_pct": "1.8853138963551554",
+      "distance_pct": "1.9151523363978555",
       "extreme_price": null,
       "extreme_timestamp_ms": null,
-      "instrument_id": 1419,
-      "symbol": "BMNRSTOCK_USDT"
-    },
-    {
-      "beta_vs_btc_90d": "1.8824136700773337",
-      "category": "crypto",
-      "completed_close": "0.07894",
-      "decision_bar_timestamp_ms": 1795564800000,
-      "direction": "short",
-      "distance_metric": "rolling_90d_ols_beta_vs_btc",
-      "distance_pct": "1.8824136700773337",
-      "extreme_price": null,
-      "extreme_timestamp_ms": null,
-      "instrument_id": 32,
-      "symbol": "BAT_USDT"
-    },
-    {
-      "beta_vs_btc_90d": "1.8747009024734829",
-      "category": "unclassified",
-      "completed_close": "0.08222",
-      "decision_bar_timestamp_ms": 1795564800000,
-      "direction": "short",
-      "distance_metric": "rolling_90d_ols_beta_vs_btc",
-      "distance_pct": "1.8747009024734829",
-      "extreme_price": null,
-      "extreme_timestamp_ms": null,
-      "instrument_id": 1720,
-      "symbol": "ELSA_USDT"
-    },
-    {
-      "beta_vs_btc_90d": "1.8735771223884112",
-      "category": "unclassified",
-      "completed_close": "0.2665",
-      "decision_bar_timestamp_ms": 1795564800000,
-      "direction": "short",
-      "distance_metric": "rolling_90d_ols_beta_vs_btc",
-      "distance_pct": "1.8735771223884112",
-      "extreme_price": null,
-      "extreme_timestamp_ms": null,
-      "instrument_id": 1151,
-      "symbol": "EDGE_USDT"
-    },
-    {
-      "beta_vs_btc_90d": "1.8573211473715117",
-      "category": "crypto",
-      "completed_close": "0.02734",
-      "decision_bar_timestamp_ms": 1795564800000,
-      "direction": "short",
-      "distance_metric": "rolling_90d_ols_beta_vs_btc",
-      "distance_pct": "1.8573211473715117",
-      "extreme_price": null,
-      "extreme_timestamp_ms": null,
-      "instrument_id": 535,
-      "symbol": "ZETA_USDT"
-    },
-    {
-      "beta_vs_btc_90d": "1.8467283376607762",
-      "category": "crypto",
-      "completed_close": "32.56",
-      "decision_bar_timestamp_ms": 1795564800000,
-      "direction": "short",
-      "distance_metric": "rolling_90d_ols_beta_vs_btc",
-      "distance_pct": "1.8467283376607762",
-      "extreme_price": null,
-      "extreme_timestamp_ms": null,
-      "instrument_id": 1952,
-      "symbol": "AXTISTOCK_USDT"
-    },
-    {
-      "beta_vs_btc_90d": "1.8412895453988396",
-      "category": "unclassified",
-      "completed_close": "0.05628",
-      "decision_bar_timestamp_ms": 1795564800000,
-      "direction": "short",
-      "distance_metric": "rolling_90d_ols_beta_vs_btc",
-      "distance_pct": "1.8412895453988396",
-      "extreme_price": null,
-      "extreme_timestamp_ms": null,
-      "instrument_id": 1698,
-      "symbol": "ZAMA_USDT"
-    },
-    {
-      "beta_vs_btc_90d": "1.8402227979192065",
-      "category": "crypto",
-      "completed_close": "0.11304",
-      "decision_bar_timestamp_ms": 1795564800000,
-      "direction": "short",
-      "distance_metric": "rolling_90d_ols_beta_vs_btc",
-      "distance_pct": "1.8402227979192065",
-      "extreme_price": null,
-      "extreme_timestamp_ms": null,
-      "instrument_id": 342,
-      "symbol": "ARB_USDT"
-    },
-    {
-      "beta_vs_btc_90d": "1.8063859234443556",
-      "category": "unclassified",
-      "completed_close": "2.8354",
-      "decision_bar_timestamp_ms": 1795564800000,
-      "direction": "short",
-      "distance_metric": "rolling_90d_ols_beta_vs_btc",
-      "distance_pct": "1.8063859234443556",
-      "extreme_price": null,
-      "extreme_timestamp_ms": null,
-      "instrument_id": 1538,
-      "symbol": "EVAA_USDT"
+      "instrument_id": 2171,
+      "symbol": "MARSCOIN_USDT"
     }
   ],
   "extreme_rankings_recalculated": true,
@@ -618,17 +618,17 @@
   "minimum_order_size_diagnostics": {
     "contracts_satisfying_minimum_quantity_and_step": {
       "at_10_usdt_per_leg": 1074,
-      "at_1_usdt_per_leg": 811
+      "at_1_usdt_per_leg": 809
     },
     "contracts_with_minimum_notional_above_10_usdt": 13,
-    "contracts_with_minimum_notional_above_1_usdt": 276,
+    "contracts_with_minimum_notional_above_1_usdt": 278,
     "evaluated_contracts": 1087,
     "minimum_order_notional_usdt": {
-      "maximum": "92.7200",
-      "median": "0.27171",
-      "p10": "0.0301",
-      "p75": "1.02190",
-      "p90": "2.712"
+      "maximum": "99.1500",
+      "median": "0.27370",
+      "p10": "0.030280",
+      "p75": "1.05400",
+      "p90": "2.705"
     },
     "scope_note": "Minimum quantity and lot-step affordability only; turnover, book depth, fees and shortfall remain separate execution gates.",
     "status": "MEASURED_FROM_CURRENT_PUBLIC_TICKERS"
@@ -765,6 +765,25 @@
         "short_notional_usdt": "0",
         "timestamp_ms": 1795690329685,
         "utc_date": "2026-11-26"
+      },
+      {
+        "daily_drawdown_pct": "0",
+        "daily_peak_nav": "100",
+        "daily_return_pct": "0",
+        "daily_starting_nav": "100",
+        "daily_starting_reference": "first_observation_of_utc_day",
+        "drawdown_window_reference": "first_observation_of_utc_day",
+        "drawdown_window_starting_nav": "100",
+        "emergency_stop_flattened": false,
+        "emergency_stop_newly_triggered": false,
+        "emergency_stop_triggered": false,
+        "gross_exposure": "0",
+        "long_notional_usdt": "0",
+        "nav": "100",
+        "roi_pct": "0",
+        "short_notional_usdt": "0",
+        "timestamp_ms": 1795720906866,
+        "utc_date": "2026-11-26"
       }
     ],
     "fees_paid": "0",
@@ -808,6 +827,32 @@
       "symbol": "AKE_USDT"
     },
     {
+      "beta_vs_btc_90d": "-2.3547501277232388",
+      "category": "crypto",
+      "completed_close": "61.66",
+      "decision_bar_timestamp_ms": 1795564800000,
+      "direction": "long",
+      "distance_metric": "rolling_90d_ols_beta_vs_btc",
+      "distance_pct": "-2.3547501277232388",
+      "extreme_price": null,
+      "extreme_timestamp_ms": null,
+      "instrument_id": 1982,
+      "symbol": "SOXS_USDT"
+    },
+    {
+      "beta_vs_btc_90d": "-1.7142559678544846",
+      "category": "crypto",
+      "completed_close": "11.219",
+      "decision_bar_timestamp_ms": 1795564800000,
+      "direction": "long",
+      "distance_metric": "rolling_90d_ols_beta_vs_btc",
+      "distance_pct": "-1.7142559678544846",
+      "extreme_price": null,
+      "extreme_timestamp_ms": null,
+      "instrument_id": 2219,
+      "symbol": "SKDD_USDT"
+    },
+    {
       "beta_vs_btc_90d": "-1.5536392690839815",
       "category": "crypto",
       "completed_close": "25.72",
@@ -821,6 +866,32 @@
       "symbol": "UVXY_USDT"
     },
     {
+      "beta_vs_btc_90d": "-1.3106859557794535",
+      "category": "crypto",
+      "completed_close": "4.61",
+      "decision_bar_timestamp_ms": 1795564800000,
+      "direction": "long",
+      "distance_metric": "rolling_90d_ols_beta_vs_btc",
+      "distance_pct": "-1.3106859557794535",
+      "extreme_price": null,
+      "extreme_timestamp_ms": null,
+      "instrument_id": 2140,
+      "symbol": "NVD_USDT"
+    },
+    {
+      "beta_vs_btc_90d": "-1.2999249628521792",
+      "category": "crypto",
+      "completed_close": "49.52",
+      "decision_bar_timestamp_ms": 1795564800000,
+      "direction": "long",
+      "distance_metric": "rolling_90d_ols_beta_vs_btc",
+      "distance_pct": "-1.2999249628521792",
+      "extreme_price": null,
+      "extreme_timestamp_ms": null,
+      "instrument_id": 1981,
+      "symbol": "SQQQ_USDT"
+    },
+    {
       "beta_vs_btc_90d": "-1.0248825019826207",
       "category": "crypto",
       "completed_close": "0.000854",
@@ -832,6 +903,19 @@
       "extreme_timestamp_ms": null,
       "instrument_id": 1235,
       "symbol": "SOPH_USDT"
+    },
+    {
+      "beta_vs_btc_90d": "-0.6613974846024581",
+      "category": "crypto",
+      "completed_close": "50.52",
+      "decision_bar_timestamp_ms": 1795564800000,
+      "direction": "long",
+      "distance_metric": "rolling_90d_ols_beta_vs_btc",
+      "distance_pct": "-0.6613974846024581",
+      "extreme_price": null,
+      "extreme_timestamp_ms": null,
+      "instrument_id": 2119,
+      "symbol": "TZA_USDT"
     },
     {
       "beta_vs_btc_90d": "-0.5772568016369573",
@@ -899,6 +983,19 @@
       "symbol": "UKOIL_USDT"
     },
     {
+      "beta_vs_btc_90d": "-0.30710289688982656",
+      "category": "crypto",
+      "completed_close": "139.11",
+      "decision_bar_timestamp_ms": 1795564800000,
+      "direction": "long",
+      "distance_metric": "rolling_90d_ols_beta_vs_btc",
+      "distance_pct": "-0.30710289688982656",
+      "extreme_price": null,
+      "extreme_timestamp_ms": null,
+      "instrument_id": 2083,
+      "symbol": "USO_USDT"
+    },
+    {
       "beta_vs_btc_90d": "-0.2999242348409233",
       "category": "commodity",
       "completed_close": "84.1",
@@ -923,6 +1020,19 @@
       "extreme_timestamp_ms": null,
       "instrument_id": 1511,
       "symbol": "BLESS_USDT"
+    },
+    {
+      "beta_vs_btc_90d": "-0.2401914771331927",
+      "category": "crypto",
+      "completed_close": "74.41",
+      "decision_bar_timestamp_ms": 1795564800000,
+      "direction": "long",
+      "distance_metric": "rolling_90d_ols_beta_vs_btc",
+      "distance_pct": "-0.2401914771331927",
+      "extreme_price": null,
+      "extreme_timestamp_ms": null,
+      "instrument_id": 2115,
+      "symbol": "APHSTOCK_USDT"
     },
     {
       "beta_vs_btc_90d": "-0.22559850148155575",
@@ -962,101 +1072,23 @@
       "extreme_timestamp_ms": null,
       "instrument_id": 1577,
       "symbol": "ON_USDT"
-    },
-    {
-      "beta_vs_btc_90d": "-0.1851552502464414",
-      "category": "crypto",
-      "completed_close": "211.32",
-      "decision_bar_timestamp_ms": 1795564800000,
-      "direction": "long",
-      "distance_metric": "rolling_90d_ols_beta_vs_btc",
-      "distance_pct": "-0.1851552502464414",
-      "extreme_price": null,
-      "extreme_timestamp_ms": null,
-      "instrument_id": 1778,
-      "symbol": "CVXSTOCK_USDT"
-    },
-    {
-      "beta_vs_btc_90d": "-0.17473421700048788",
-      "category": "crypto",
-      "completed_close": "158.1",
-      "decision_bar_timestamp_ms": 1795564800000,
-      "direction": "long",
-      "distance_metric": "rolling_90d_ols_beta_vs_btc",
-      "distance_pct": "-0.17473421700048788",
-      "extreme_price": null,
-      "extreme_timestamp_ms": null,
-      "instrument_id": 1708,
-      "symbol": "XOMSTOCK_USDT"
-    },
-    {
-      "beta_vs_btc_90d": "-0.1555592243229894",
-      "category": "unclassified",
-      "completed_close": "0.03586",
-      "decision_bar_timestamp_ms": 1795564800000,
-      "direction": "long",
-      "distance_metric": "rolling_90d_ols_beta_vs_btc",
-      "distance_pct": "-0.1555592243229894",
-      "extreme_price": null,
-      "extreme_timestamp_ms": null,
-      "instrument_id": 1114,
-      "symbol": "PARTI_USDT"
-    },
-    {
-      "beta_vs_btc_90d": "-0.13700522996675857",
-      "category": "commodity",
-      "completed_close": "3.681",
-      "decision_bar_timestamp_ms": 1795564800000,
-      "direction": "long",
-      "distance_metric": "rolling_90d_ols_beta_vs_btc",
-      "distance_pct": "-0.13700522996675857",
-      "extreme_price": null,
-      "extreme_timestamp_ms": null,
-      "instrument_id": 1742,
-      "symbol": "NGAS_USDT"
-    },
-    {
-      "beta_vs_btc_90d": "-0.13300096274621637",
-      "category": "crypto",
-      "completed_close": "144.13",
-      "decision_bar_timestamp_ms": 1795564800000,
-      "direction": "long",
-      "distance_metric": "rolling_90d_ols_beta_vs_btc",
-      "distance_pct": "-0.13300096274621637",
-      "extreme_price": null,
-      "extreme_timestamp_ms": null,
-      "instrument_id": 1657,
-      "symbol": "PEPSTOCK_USDT"
-    },
-    {
-      "beta_vs_btc_90d": "-0.12685657767637995",
-      "category": "crypto",
-      "completed_close": "54.21",
-      "decision_bar_timestamp_ms": 1795564800000,
-      "direction": "long",
-      "distance_metric": "rolling_90d_ols_beta_vs_btc",
-      "distance_pct": "-0.12685657767637995",
-      "extreme_price": null,
-      "extreme_timestamp_ms": null,
-      "instrument_id": 1786,
-      "symbol": "OXYSTOCK_USDT"
-    },
-    {
-      "beta_vs_btc_90d": "-0.0960879926135543",
-      "category": "crypto",
-      "completed_close": "60.95",
-      "decision_bar_timestamp_ms": 1795564800000,
-      "direction": "long",
-      "distance_metric": "rolling_90d_ols_beta_vs_btc",
-      "distance_pct": "-0.0960879926135543",
-      "extreme_price": null,
-      "extreme_timestamp_ms": null,
-      "instrument_id": 1911,
-      "symbol": "XLE_USDT"
     }
   ],
   "research_refresh_performed": true,
   "research_short_top": [
+    {
+      "beta_vs_btc_90d": "3.8421547490514065",
+      "category": "crypto",
+      "completed_close": "9.68",
+      "decision_bar_timestamp_ms": 1795564800000,
+      "direction": "short",
+      "distance_metric": "rolling_90d_ols_beta_vs_btc",
+      "distance_pct": "3.8421547490514065",
+      "extreme_price": null,
+      "extreme_timestamp_ms": null,
+      "instrument_id": 2076,
+      "symbol": "MSTU_USDT"
+    },
     {
       "beta_vs_btc_90d": "3.253992605505298",
       "category": "crypto",
@@ -1097,6 +1129,19 @@
       "symbol": "BULLA_USDT"
     },
     {
+      "beta_vs_btc_90d": "2.436819746688795",
+      "category": "crypto",
+      "completed_close": "1.492",
+      "decision_bar_timestamp_ms": 1795564800000,
+      "direction": "short",
+      "distance_metric": "rolling_90d_ols_beta_vs_btc",
+      "distance_pct": "2.436819746688795",
+      "extreme_price": null,
+      "extreme_timestamp_ms": null,
+      "instrument_id": 2103,
+      "symbol": "SNXX_USDT"
+    },
+    {
       "beta_vs_btc_90d": "2.39647928922836",
       "category": "crypto",
       "completed_close": "32.34",
@@ -1108,6 +1153,19 @@
       "extreme_timestamp_ms": null,
       "instrument_id": 1955,
       "symbol": "SOXL_USDT"
+    },
+    {
+      "beta_vs_btc_90d": "2.353728058395553",
+      "category": "crypto",
+      "completed_close": "0.086",
+      "decision_bar_timestamp_ms": 1795564800000,
+      "direction": "short",
+      "distance_metric": "rolling_90d_ols_beta_vs_btc",
+      "distance_pct": "2.353728058395553",
+      "extreme_price": null,
+      "extreme_timestamp_ms": null,
+      "instrument_id": 2109,
+      "symbol": "PONS_USDT"
     },
     {
       "beta_vs_btc_90d": "2.320956316667175",
@@ -1123,6 +1181,32 @@
       "symbol": "CHIP_USDT"
     },
     {
+      "beta_vs_btc_90d": "2.281339080964963",
+      "category": "crypto",
+      "completed_close": "0.02122",
+      "decision_bar_timestamp_ms": 1795564800000,
+      "direction": "short",
+      "distance_metric": "rolling_90d_ols_beta_vs_btc",
+      "distance_pct": "2.281339080964963",
+      "extreme_price": null,
+      "extreme_timestamp_ms": null,
+      "instrument_id": 2031,
+      "symbol": "ANSEM_USDT"
+    },
+    {
+      "beta_vs_btc_90d": "2.206979608558177",
+      "category": "crypto",
+      "completed_close": "4.725",
+      "decision_bar_timestamp_ms": 1795564800000,
+      "direction": "short",
+      "distance_metric": "rolling_90d_ols_beta_vs_btc",
+      "distance_pct": "2.206979608558177",
+      "extreme_price": null,
+      "extreme_timestamp_ms": null,
+      "instrument_id": 2104,
+      "symbol": "INTW_USDT"
+    },
+    {
       "beta_vs_btc_90d": "2.2056751178944465",
       "category": "crypto",
       "completed_close": "0.03109",
@@ -1134,6 +1218,19 @@
       "extreme_timestamp_ms": null,
       "instrument_id": 541,
       "symbol": "STRK_USDT"
+    },
+    {
+      "beta_vs_btc_90d": "2.195031050606141",
+      "category": "crypto",
+      "completed_close": "6.839",
+      "decision_bar_timestamp_ms": 1795564800000,
+      "direction": "short",
+      "distance_metric": "rolling_90d_ols_beta_vs_btc",
+      "distance_pct": "2.195031050606141",
+      "extreme_price": null,
+      "extreme_timestamp_ms": null,
+      "instrument_id": 2014,
+      "symbol": "MVLL_USDT"
     },
     {
       "beta_vs_btc_90d": "2.07032921355624",
@@ -1149,6 +1246,19 @@
       "symbol": "BR_USDT"
     },
     {
+      "beta_vs_btc_90d": "2.060496463597381",
+      "category": "crypto",
+      "completed_close": "3.41",
+      "decision_bar_timestamp_ms": 1795564800000,
+      "direction": "short",
+      "distance_metric": "rolling_90d_ols_beta_vs_btc",
+      "distance_pct": "2.060496463597381",
+      "extreme_price": null,
+      "extreme_timestamp_ms": null,
+      "instrument_id": 2108,
+      "symbol": "FWDISTOCK_USDT"
+    },
+    {
       "beta_vs_btc_90d": "2.0496687048649247",
       "category": "crypto",
       "completed_close": "2.302",
@@ -1160,6 +1270,19 @@
       "extreme_timestamp_ms": null,
       "instrument_id": 167,
       "symbol": "AR_USDT"
+    },
+    {
+      "beta_vs_btc_90d": "1.9853365674382613",
+      "category": "crypto",
+      "completed_close": "5.335",
+      "decision_bar_timestamp_ms": 1795564800000,
+      "direction": "short",
+      "distance_metric": "rolling_90d_ols_beta_vs_btc",
+      "distance_pct": "1.9853365674382613",
+      "extreme_price": null,
+      "extreme_timestamp_ms": null,
+      "instrument_id": 2012,
+      "symbol": "KORU_USDT"
     },
     {
       "beta_vs_btc_90d": "1.982896496799709",
@@ -1201,130 +1324,26 @@
       "symbol": "MSTRSTOCK_USDT"
     },
     {
-      "beta_vs_btc_90d": "1.8853138963551554",
+      "beta_vs_btc_90d": "1.9151523363978555",
       "category": "crypto",
-      "completed_close": "13.6",
+      "completed_close": "0.02813",
       "decision_bar_timestamp_ms": 1795564800000,
       "direction": "short",
       "distance_metric": "rolling_90d_ols_beta_vs_btc",
-      "distance_pct": "1.8853138963551554",
+      "distance_pct": "1.9151523363978555",
       "extreme_price": null,
       "extreme_timestamp_ms": null,
-      "instrument_id": 1419,
-      "symbol": "BMNRSTOCK_USDT"
-    },
-    {
-      "beta_vs_btc_90d": "1.8824136700773337",
-      "category": "crypto",
-      "completed_close": "0.07894",
-      "decision_bar_timestamp_ms": 1795564800000,
-      "direction": "short",
-      "distance_metric": "rolling_90d_ols_beta_vs_btc",
-      "distance_pct": "1.8824136700773337",
-      "extreme_price": null,
-      "extreme_timestamp_ms": null,
-      "instrument_id": 32,
-      "symbol": "BAT_USDT"
-    },
-    {
-      "beta_vs_btc_90d": "1.8747009024734829",
-      "category": "unclassified",
-      "completed_close": "0.08222",
-      "decision_bar_timestamp_ms": 1795564800000,
-      "direction": "short",
-      "distance_metric": "rolling_90d_ols_beta_vs_btc",
-      "distance_pct": "1.8747009024734829",
-      "extreme_price": null,
-      "extreme_timestamp_ms": null,
-      "instrument_id": 1720,
-      "symbol": "ELSA_USDT"
-    },
-    {
-      "beta_vs_btc_90d": "1.8735771223884112",
-      "category": "unclassified",
-      "completed_close": "0.2665",
-      "decision_bar_timestamp_ms": 1795564800000,
-      "direction": "short",
-      "distance_metric": "rolling_90d_ols_beta_vs_btc",
-      "distance_pct": "1.8735771223884112",
-      "extreme_price": null,
-      "extreme_timestamp_ms": null,
-      "instrument_id": 1151,
-      "symbol": "EDGE_USDT"
-    },
-    {
-      "beta_vs_btc_90d": "1.8573211473715117",
-      "category": "crypto",
-      "completed_close": "0.02734",
-      "decision_bar_timestamp_ms": 1795564800000,
-      "direction": "short",
-      "distance_metric": "rolling_90d_ols_beta_vs_btc",
-      "distance_pct": "1.8573211473715117",
-      "extreme_price": null,
-      "extreme_timestamp_ms": null,
-      "instrument_id": 535,
-      "symbol": "ZETA_USDT"
-    },
-    {
-      "beta_vs_btc_90d": "1.8467283376607762",
-      "category": "crypto",
-      "completed_close": "32.56",
-      "decision_bar_timestamp_ms": 1795564800000,
-      "direction": "short",
-      "distance_metric": "rolling_90d_ols_beta_vs_btc",
-      "distance_pct": "1.8467283376607762",
-      "extreme_price": null,
-      "extreme_timestamp_ms": null,
-      "instrument_id": 1952,
-      "symbol": "AXTISTOCK_USDT"
-    },
-    {
-      "beta_vs_btc_90d": "1.8412895453988396",
-      "category": "unclassified",
-      "completed_close": "0.05628",
-      "decision_bar_timestamp_ms": 1795564800000,
-      "direction": "short",
-      "distance_metric": "rolling_90d_ols_beta_vs_btc",
-      "distance_pct": "1.8412895453988396",
-      "extreme_price": null,
-      "extreme_timestamp_ms": null,
-      "instrument_id": 1698,
-      "symbol": "ZAMA_USDT"
-    },
-    {
-      "beta_vs_btc_90d": "1.8402227979192065",
-      "category": "crypto",
-      "completed_close": "0.11304",
-      "decision_bar_timestamp_ms": 1795564800000,
-      "direction": "short",
-      "distance_metric": "rolling_90d_ols_beta_vs_btc",
-      "distance_pct": "1.8402227979192065",
-      "extreme_price": null,
-      "extreme_timestamp_ms": null,
-      "instrument_id": 342,
-      "symbol": "ARB_USDT"
-    },
-    {
-      "beta_vs_btc_90d": "1.8063859234443556",
-      "category": "unclassified",
-      "completed_close": "2.8354",
-      "decision_bar_timestamp_ms": 1795564800000,
-      "direction": "short",
-      "distance_metric": "rolling_90d_ols_beta_vs_btc",
-      "distance_pct": "1.8063859234443556",
-      "extreme_price": null,
-      "extreme_timestamp_ms": null,
-      "instrument_id": 1538,
-      "symbol": "EVAA_USDT"
+      "instrument_id": 2171,
+      "symbol": "MARSCOIN_USDT"
     }
   ],
-  "run_utc": "2026-11-26T10:52:21.817195+00:00",
-  "snapshot_partition": "../market-data/data/snapshots/2026-11-26/10.jsonl.gz",
+  "run_utc": "2026-11-26T19:22:02.995355+00:00",
+  "snapshot_partition": "../market-data/data/snapshots/2026-11-26/19.jsonl.gz",
   "state_event": {
-    "batch_hash": "97192eb19d6c26458ddc1d00bdcca4f23ee71479f9dd86968da97155ce6a4c6e",
-    "commit_sha": "d83d58b168afb31501d970908e4b89ad14a83d01",
+    "batch_hash": "7604932f36612e3555a931cdc0b91460234d2cb9d8601d1bf5744607e6fd4519",
+    "commit_sha": "d32b5b37aa823ebcf83c0b5f8c987704f441e5f8",
     "created": true,
-    "path": "events/2026/11/risk-1795690329685.json"
+    "path": "events/2026/11/risk-1795720906866.json"
   },
   "state_recovery_probe_verified_from_prior_checkout": true,
   "state_write_mode": "UNPROTECTED_SINGLE_WRITER_APPEND_ONLY",
