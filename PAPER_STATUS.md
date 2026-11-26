@@ -1,4 +1,4 @@
-# ACTIVE PAPER STATUS — HIGH-LOW $100 USDT
+# ACTIVE PAPER STATUS — BAB $100 USDT
 
 **🟢 ACTIVE · PAPER ONLY · NO LIVE ORDERS**
 
@@ -8,12 +8,25 @@
 - Strategy generation: `crypto-bab-low-beta-long-high-beta-short-v1`
 - Starting capital: **100.00000000 USDT**
 - Account state: **INITIALIZED — FORWARD PAPER**
-- Last report build: 2026-11-26 09:49:34 UTC
-- Latest workflow run: [45794551000](https://github.com/takenthatusernameis-collab/Crypto-Betting-Against-Beta/actions/runs/45794551000) · run #—, attempt — · failure · push
+- Last report build: 2026-11-26 09:57:34 UTC
+- Latest workflow run: [45796093021](https://github.com/takenthatusernameis-collab/Crypto-Betting-Against-Beta/actions/runs/45796093021) · run #3, attempt 1 · success · push
 - Latest processed daily candle: —
-- Latest account event: 2026-11-26 09:49:19 UTC
+- Latest account event: 2026-11-26 09:57:17 UTC
 - Primary execution journal: [PAPER_TRADE_JOURNAL.md](PAPER_TRADE_JOURNAL.md)
 
+
+## MEXC market-data coverage
+
+- Coverage state: **BOOTSTRAPPING**
+- Active cross-margin contracts: 1169
+- USDT-settled eligible contracts: 1087
+- New histories completed this run: 150
+- Histories remaining: 869
+- API failures: 0
+- Latest completed daily bar (UTC ms): 1795564800000
+- Portfolio decision status: `BLOCKED_INCOMPLETE_MARKET_DATA`
+
+Portfolio changes remain blocked until the full active cross-section has the required current daily history.
 ## Current performance
 
 | Metric | Value |
@@ -38,7 +51,7 @@
 
 | Session start (UTC) | Starting NAV | Latest NAV | Max drawdown | Marks |
 |---|---:|---:|---:|---:|
-| 2026-11-26 00:00:00 UTC | 100.00000000 | 100.00000000 | +0.000% | 1 |
+| 2026-11-26 00:00:00 UTC | 100.00000000 | 100.00000000 | +0.000% | 2 |
 
 ## Open positions
 
@@ -69,7 +82,7 @@ At each rebalance, the quieter leg receives the larger share using inverse 30-co
 
 ## Next workflow action
 
-The next daily decision requires a newer completed UTC candle and a passing data-coverage gate.
+The latest completed UTC daily candle is waiting for full-universe history coverage; no portfolio decision has been consumed.
 
 The daily-candle watermark is not advanced by this report. Only the paper workflow can consume a completed candle after full-history and execution gates pass. A blocked or incomplete run remains visible.
 
