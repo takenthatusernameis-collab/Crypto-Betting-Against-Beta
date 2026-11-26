@@ -1,23 +1,21 @@
 # DURABLE HANDOFF — Crypto-Betting-Against-Beta
-**Timestamp (UTC): 2026-11-26T08:29:59Z**
+**Timestamp (UTC): 2026-11-26T08:44:59Z**
 **Session:** Kilo General Agent Loop — P41 COMPLETE (WP1/WP2/WP3); **P42 OPEN (sole binding row)**
 **Repository:** Crypto-Betting-Against-Beta (Betting Against Beta crypto quant research)
-**Verified baseline (HEAD `b0a6848`, before this handoff edit):**
-- `python3 -m ruff check .` GREEN.
-- `bash scripts/bab_quick.sh` GREEN (299 passed).
-- `python3 scripts/bab_replay_decisions.py --subset p41_decision.md` GREEN.
+**Verified baseline (HEAD `f7c0cc0`, re-verified this session at 08:44:59Z):**
+- `python3 -m ruff check .` GREEN (`All checks passed!`).
+- `bash scripts/bab_quick.sh` GREEN (smoke stage `195 passed`, `quick preflight OK`).
+- `python3 scripts/bab_replay_decisions.py --subset p41_decision.md` GREEN (`OK p41_decision.md -> BAB_P41_DECISION.md`).
 - `python3 -m pytest -q tests/test_bab_p41_decision_consistency.py` GREEN (13 passed).
-- P32/P33 doc ledgers GREEN after regeneration (see step 0).
-- **Full gate finding this session:** `BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh`
-  ran to completion (2329 s) and exposed **5 failures**, all doc-pointer/registry
-  guards, now fixed by guard maintenance (not test loosening):
-  1. `test_readme_campaign_not_older_than_handoff` — README pointed at P41 (< new binding).
-  2. `test_coverage_notes_campaign_not_older_than_handoff` — COVERAGE_NOTES pointed at P39.
-  3. `test_handoff_binding_row_matches_landed_p34_tests` — successor allow-list capped at P39.
-  4. `test_no_stale_campaign_references_in_coverage_notes` — COVERAGE_NOTES cited P39.
-  5. `test_every_doc_is_classified` — new `docs/BAB_P42_KICKOFF.md` was unclassified.
-  The full gate must be re-run to confirm end-to-end GREEN (it is a ~39 min job; run it
-  in the background/long budget, never under a 120 s foreground timeout).
+- P32/P33 doc ledgers GREEN: `--check-doc-summary` returns `OK` for both
+  `research_state/bab_p32/doc_replay_summary.json` and
+  `research_state/bab_p33/doc_consistency_summary.json`.
+- P42 charter `docs/BAB_P42_KICKOFF.md` is classified in the doc registry
+  (`scripts/bab_doc_consistency_summary.py`, `tests/test_bab_p33_doc_registry_completeness.py`)
+  and P42 is the allow-listed successor in `tests/test_bab_p34_doc_pointer_guard.py`.
+- **Full gate still owed this campaign:** `BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh`
+  must be run to completion (~39 min, 4 cores) before P42 is declared done. It is a
+  long/background job — never under a 120 s foreground timeout.
 **Supersedes:** all prior HANDOFF.md content.
 
 ---
