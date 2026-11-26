@@ -1,12 +1,13 @@
 # DURABLE HANDOFF — Crypto-Betting-Against-Beta
-**Timestamp:** 2026-11-26T04:44:49Z
-**Session:** Kilo General Agent Loop — P40 COMPLETE/FROZEN; **P41 binding campaign OPENED**
+**Timestamp:** 2026-11-26T04:46:13Z
+**Session:** Kilo General Agent Loop — P40 COMPLETE/FROZEN; **P41 WP1 COMPLETE; P41 WP2 OPEN**
 **Repository:** Crypto-Betting-Against-Beta (Betting Against Beta crypto quant research)
 **Verified baseline (re-confirmed this session, HEAD `1df6b87`, working tree clean):**
-`python3 -m ruff check .` GREEN; `bash scripts/bab_quick.sh` GREEN (299 passed);
-`python3 scripts/bab_p40_meta_analysis.py --check-meta-summary` byte-identical PASS.
-P20–P40 COMPLETE and FROZEN. No `research_state/bab_p41/`, `scripts/bab_p41_stress.py`,
-or `generate_p41_decision.py` exists yet — P41 is unstarted and is the sole next workload.
+`python3 -m ruff check .` GREEN; `bash scripts/bab_quick.sh` GREEN (195 passed);
+`python3 scripts/bab_p41_stress.py --check-estimator-bakeoff` byte-identical PASS.
+P20–P40 COMPLETE and FROZEN. `research_state/bab_p41/estimator_bakeoff.json` (+ `.md` sidecar)
+and `scripts/bab_p41_stress.py` landed and verified — **P41 WP1 complete**. P41 WP2 is the
+sole next workload; `generate_p41_decision.py` / `docs/BAB_P41_DECISION.md` do not exist yet (WP3).
 P40 artifacts landed and verified: `research_state/bab_p40/meta_summary.json` + `.md`,
 `scripts/bab_p40_meta_analysis.py`, `generate_p40_decision.py`, `docs/BAB_P40_DECISION.md`,
 `tests/test_bab_p40_meta_analysis.py`, `tests/test_bab_p40_decision_consistency.py`.
@@ -26,46 +27,40 @@ construction and cannot be satisfied by re-running any frozen P20–P40 harness.
 The single source of truth for the campaign is **[`docs/BAB_P41_KICKOFF.md`](docs/BAB_P41_KICKOFF.md)**.
 Read it end-to-end before writing code. Then execute its WPs in order:
 
-### P41 WP1 — Estimator Bakeoff Under Non-Gaussian Idio (IMMEDIATE FIRST STEP)
+### P41 WP1 — Estimator Bakeoff Under Non-Gaussian Idio (COMPLETE)
 
-**Create `scripts/bab_p41_stress.py` with `--check-estimator-bakeoff` that publishes
-`research_state/bab_p41/estimator_bakeoff.json` (schema `bab_p41.estimator_bakeoff/1`).**
+**Done.** `scripts/bab_p41_stress.py` created with `--check-estimator-bakeoff`;
+`research_state/bab_p41/estimator_bakeoff.json` (schema `bab_p41.estimator_bakeoff/1`)
+and `.md` sidecar landed and verified byte-identical. 160 cells (5 DGPs × 8 seeds ×
+4 estimators), all ok, 0 errors, neutrality invariants hold at every cell.
+Bakeoff verdict: `shrinkage_i0.3_t1.0_LEAST_BROKEN` (shrinkage intensity=0.3,
+target=1.0 least-broken by non-Gaussianity among neutrality-passing estimators;
+honest, negative-allowed ranking). Test file `tests/test_bab_p41_estimator_bakeoff.py`
+added (pins schema, cell count, neutrality, DSR/PSR bounds, byte-identity, shas).
 
-This is the **only** deliverable for the first session. Do not start WP2 or WP3.
-The script must:
+**Do not re-run or re-derive WP1.** Move to WP2.
 
-1. **Implement 5 DGPs** (charter constants from KICKOFF doc — do not derive, do not edit):
-   - GAUSSIAN_IID (control): idio ~ N(0, idio_vol), beta ∈ [0.2, 2.4]
-   - STUDENT_T: idio ~ Student-t(ν=4) with scale matched to GAUSSIAN variance
-   - REGIME_SWITCH: 2-state Markov vol (calm 0.5×, stress 2.0× base vol; persistence 0.95)
-   - JUMP_DIFFUSION: Merton jump idio (intensity 0.05/day, mean −0.5σ, sd 1.5σ)
-   - STOCHASTIC_VOL: log-normal vol process (vol-of-vol 0.4, mean-reversion 0.1)
+### P41 WP2 — Five-DGP Stress Meta-Analysis (IMMEDIATE NEXT STEP; sole deliverable)
 
-2. **Per-DGP grid** (charter constants):
-   - 8 seeds per DGP (base_seed + increment per KICKOFF table; 32 cells/DGP; 160 total)
-   - Beta window: 90 (shipped default, never relaxed)
-   - Quantile: 0.30 / 0.30 (shipped default)
-   - Weighting: equal (shipped default)
-   - Beta neutral: True (shipped default)
-   - Deflation trials: read-only n_trials_total=552 from P38 WP1
+**Extend `scripts/bab_p41_stress.py` with `--check-stress-summary` that publishes
+`research_state/bab_p41/stress_summary.json` (schema `bab_p41.stress_summary/1`)
+plus `.md` sidecar.** The single source of truth for the full WP2 spec is
+**[`docs/BAB_P41_KICKOFF.md`](docs/BAB_P41_KICKOFF.md)** — read its WP2 section
+end-to-end before writing code.
 
-3. **Compare estimator families** (shipped rolling-OLS vs P35 runner-ups):
-   - Rolling-OLS (window=90)
-   - EWMA (halflife=40)
-   - Shrinkage (intensity=0.3, target=1.0 and cross_sectional_mean)
-   - Report which estimator (if any) is least-broken by non-Gaussianity
+WP2 must (per charter):
+- Reuse the 160 WP1 cells (5 DGPs × 8 seeds × 4 estimators); per-cell DSR/PSR
+  deflated over read-only n_trials_total=552, tail risk, and the three neutrality
+  invariants; every cell labelled synthetic; not market evidence.
+- Emit a consolidated verdict ∈ {`ROBUST_ACROSS_DGPS`, `FRAGILE_DGP_DEPENDENT`,
+  `DOES_NOT_REPLICATE`} — honest, may be negative; **no seed/parameter tuning
+  to chase a positive.**
+- `--check-stress-summary` verifies byte-identical recomputation.
 
-4. **Output**: `research_state/bab_p41/estimator_bakeoff.json` with schema
-   `bab_p41.estimator_bakeoff/1` including provenance (fixture SHA256, BTC SHA256,
-   seeds, config grid, neutrality tolerances) and per-cell metrics (realized beta,
-   model beta-neutrality ≤1e-3, dollar-neutrality ≤1e-9, rank-stability vs OLS,
-   turnover, net-of-cost Sharpe, ann vol, max-DD).
-
-5. **Gate**: `--check-estimator-bakeoff` must verify byte-identical recomputation.
-
-**Definition of done for this session:** `python3 -m ruff check .` GREEN,
-`python3 scripts/bab_p41_stress.py --check-estimator-bakeoff` PASS (byte-identical),
-new artifact exists at `research_state/bab_p41/estimator_bakeoff.json`.
+**Definition of done for the next session:** `python3 -m ruff check .` GREEN,
+`python3 scripts/bab_p41_stress.py --check-stress-summary` PASS (byte-identical),
+new artifact exists at `research_state/bab_p41/stress_summary.json` (+ `.md`).
+Do not start WP3.
 
 ---
 
@@ -79,7 +74,8 @@ new artifact exists at `research_state/bab_p41/estimator_bakeoff.json`.
 | P39 WP0 | Full-Gate Close-Out (100% cov) | **GREEN** | `BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh` exit 0 |
 | P36 | Rank-Weighted vs Equal-Weight | **RANK UNDERPERFORMS** | Negative Sharpe, higher vol, worse maxDD. Dead end. |
 | P40 WP0 | Multi-Fixture Meta-Analysis (4 fixtures, 32 cells) | **DOES_NOT_REPLICATE** | 0 of 4 fixtures replicate; 16/32 cells survive; neutrality holds |
-| **P41** | **Non-Gaussian Stress (5 DGPs, 160 cells)** | **OPEN — binding** | Measures whether P38/P40 Gaussian verdicts are a Gaussian artifact |
+| **P41 WP1** | **Estimator Bakeoff (5 DGPs, 160 cells)** | **COMPLETE** | shrinkage_i0.3_t1.0 least-broken; estimator_bakeoff.json landed, byte-identical, neutrality holds |
+| **P41 WP2** | **Stress Meta-Analysis (5 DGPs, 160 cells)** | **OPEN — binding** | Next session; verdict ∈ {ROBUST_ACROSS_DGPS, FRAGILE_DGP_DEPENDENT, DOES_NOT_REPLICATE} |
 
 **One-line verdict (P38–P40, frozen):** BAB survives pooled deflation on the primary
 synthetic fixture (P38) but fails in high-vol regimes (P39 WP1), fails to replicate on a
@@ -103,16 +99,17 @@ second fixture (P39 WP2), and does not replicate across four independent Gaussia
 
 ## NEXT STATE (binding: P41)
 
-P20–P40 are COMPLETE and FROZEN — do not reopen them. The next session executes **P41 WP1**
-per [`docs/BAB_P41_KICKOFF.md`](docs/BAB_P41_KICKOFF.md). Any further work beyond P41
+P20–P40 are COMPLETE and FROZEN — do not reopen them. The next session executes
+**P41 WP2** (stress meta-analysis) per [`docs/BAB_P41_KICKOFF.md`](docs/BAB_P41_KICKOFF.md);
+P41 WP1 is complete and frozen. Any further work beyond P41
 (real-data ingestion, CI enforcement, live deployment) is maintainer-gated and requires
 explicit approval; do not invent additional agent-executable campaigns beyond P41 without
 maintainer direction.
 
 **Repository root:** `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
-**Fast verify (baseline, before P41 lands):** `python scripts/bab_p40_meta_analysis.py --check-meta-summary`
+**Fast verify (baseline, before P41 WP2):** `python scripts/bab_p40_meta_analysis.py --check-meta-summary`
 and `bash scripts/bab_quick.sh` (both GREEN). Do not run the full 56-minute gate to
-re-verify frozen P20–P40.
+re-verify frozen P20–P40; run full gate only at P41 WP3.
 
 ---
 
@@ -128,5 +125,7 @@ seeds/parameters to chase a positive. Do not flip the shipped default.**
 
 ---
 
-## END OF HANDOFF — The next agent's first action must be creating `scripts/bab_p41_stress.py`
-with `--check-estimator-bakeoff` per the P41 WP1 specification above.
+## END OF HANDOFF — The next agent's first action is P41 WP2: extend
+`scripts/bab_p41_stress.py` with `--check-stress-summary` and publish
+`research_state/bab_p41/stress_summary.json` (schema `bab_p41.stress_summary/1`)
+plus `.md` sidecar, per [`docs/BAB_P41_KICKOFF.md`](docs/BAB_P41_KICKOFF.md).
