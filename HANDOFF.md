@@ -1,8 +1,8 @@
 # DURABLE HANDOFF — Crypto-Betting-Against-Beta
-**Timestamp (UTC): 2026-11-26T08:55:16Z**
+**Timestamp (UTC): 2026-11-26T08:57:31Z**
 **Session:** Kilo General Agent Loop — P41 COMPLETE (WP1/WP2/WP3); **P42 OPEN (sole binding row)**
 **Repository:** Crypto-Betting-Against-Beta (Betting Against Beta crypto quant research)
-**Verified baseline (HEAD `ca88b30`, re-verified this session at 08:55:10Z):**
+**Verified baseline (HEAD `d623e85`, re-verified this session at 08:57:31Z):**
 - `python3 -m ruff check .` GREEN (`All checks passed!`).
 - `bash scripts/bab_quick.sh` GREEN (targeted trio `104 passed`, smoke `195 passed`, `quick preflight OK`).
 - `python3 scripts/bab_replay_decisions.py --subset p41_decision.md` GREEN (`OK p41_decision.md -> BAB_P41_DECISION.md`).
@@ -14,19 +14,24 @@
   (`scripts/bab_doc_consistency_summary.py`, `tests/test_bab_p33_doc_registry_completeness.py`)
   and P42 is the allow-listed successor in `tests/test_bab_p34_doc_pointer_guard.py`.
 - P42 artifacts (`scripts/bab_p42_power.py`, `research_state/bab_p42/`,
-  `generate_p42_decision.py`, `tests/test_bab_p42_*`) are **absent** — P42 is genuinely open.
+  `generate_p42_decision.py`, `tests/test_bab_p42_*`, `docs/BAB_P42_DECISION.md`) are
+  **absent** — P42 is genuinely open.
+- All five P42 registration points are confirmed present for the P41 pattern and awaiting
+  the P42 mirror: `scripts/bab_replay_decisions.py`, `scripts/bab_replay_full.py`,
+  `scripts/bab_gate.sh`, `tests/test_bab_p29_decision_replay.py` (`EXPECTED_NAMES`),
+  `tests/test_bab_p29_replay_coverage.py` (`EXPECTED_NAMES`).
 - **Full gate still owed this campaign:** `BAB_GATE_MIN_COVERAGE=100 bash scripts/bab_gate.sh`
   must be run to completion (~39 min, 4 cores) before P42 is declared done. It is a
   long/background job — never under a 120 s foreground timeout.
-**Supersedes:** all prior HANDOFF.md content.
+**Supersedes:** all prior HANDOFF.md content. This is the single durable handoff.
 
 ---
 
 ## READ FIRST — INITIAL TASK MESSAGE FOR THE NEXT SESSION
 
-> **Timestamped initial task (2026-11-26T08:55:16Z):** Execute **Campaign P42
+> **Timestamped initial task (2026-11-26T08:57:31Z):** Execute **Campaign P42
 > "Planted-Alpha Detectability Frontier & Minimum Detectable Effect," WP0 → WP3.**
-> P20–P41 are frozen; P41 WP1/WP2/WP3 are complete and committed at HEAD `ca88b30`.
+> P20–P41 are frozen; P41 WP1/WP2/WP3 are complete and committed at HEAD `d623e85`.
 > No new maintainer direction is present, so do not idle and do not invent a replacement
 > campaign: P42 is a concrete, multi-file, verifiable, heavy workload (810-cell factorial
 > grid + frontier meta-analysis + decision doc + gate wiring). Real-data ingestion, CI
@@ -159,7 +164,7 @@ negative results can be attributed to power vs. genuine absence.
 | Bottleneck | Status / next action |
 |---|---|
 | Stale handoff (declared P41 WP3 open, artifacts "absent") | **REMOVED** — P41 WP3 is complete; handoff rewritten to P42 |
-| Stale HEAD hash in handoff | **REMOVED** — handoff re-verified at HEAD `ca88b30` this session |
+| Stale HEAD hash in handoff (`ca88b30`) | **REMOVED** — handoff re-verified at HEAD `d623e85` this session |
 | Full gate RED on 5 doc-pointer/registry guards | **REMOVED** — README/COVERAGE_NOTES repointed to P42; P34 successor allow-list extended to P40/P41/P42; P42 charter allow-listed; P33 ledger regenerated |
 | P34-complete marker absent from handoff | **REMOVED** — `CAMPAIGN P34 — COMPLETE` present below |
 | P32/P33 committed ledgers stale | **RESOLVED** — regenerated from registry; never hand-edit |
@@ -173,7 +178,7 @@ negative results can be attributed to power vs. genuine absence.
 
 - **CAMPAIGN P34 — COMPLETE** (multiseed robustness + honesty battery + doc pointer guard).
 - **CAMPAIGN P41 — COMPLETE** (non-Gaussian & regime-switching synthetic stress battery).
-- **CAMPAIGN P42 — ACTIVE BINDING ROW** (planted-alpha detectability frontier).
+- **CAMPAIGN P42 — ACTIVE BINDING ROW** (planted-alpha detectability frontier; heavy 810-cell factorial grid — cannot be satisfied by a single fixture, re-used seed, or any frozen-harness rerun).
 
 **Repository root:**
 `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
