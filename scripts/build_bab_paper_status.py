@@ -16,7 +16,7 @@ import high_vs_low.paper_status as status
 
 status.ACCOUNT_ID = "mexc-usdt-forward-bab-100usdt-v1"
 status.STRATEGY_ID = "crypto-bab-low-beta-long-high-beta-short-v1"
-status.INITIAL_CAPITAL = __import__("decimal").Decimal("100")
+status.INITIAL_CAPITAL = Decimal("100")
 
 market_data = Path(os.environ.get("MARKET_DATA_DIR", "../market-data"))
 state_dir = Path(os.environ.get("PAPER_STATE_DIR", "../state"))
@@ -24,7 +24,7 @@ store = MarketDataStore(market_data, provider="mexc")
 metadata = {
     "repository": os.environ.get("GITHUB_REPOSITORY", ""),
     "server_url": os.environ.get("GITHUB_SERVER_URL", "https://github.com"),
-    "run_id": os.environ.get("GITHUB_RUN_ID", ""),
+    "run_id": os.environ.get("GITHUB_RUN_ID", ""),\n    "run_number": os.environ.get("GITHUB_RUN_NUMBER", ""),\n    "run_attempt": os.environ.get("GITHUB_RUN_ATTEMPT", ""),
     "run_url": (
         f"{os.environ.get('GITHUB_SERVER_URL', 'https://github.com')}/"
         f"{os.environ.get('GITHUB_REPOSITORY', '')}/actions/runs/"
