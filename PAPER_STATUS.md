@@ -8,8 +8,8 @@
 - Strategy generation: `crypto-bab-low-beta-long-high-beta-short-v1`
 - Starting capital: **100.00000000 USDT**
 - Account state: **INITIALIZED — FORWARD PAPER**
-- Last report build: 2026-11-26 22:22:46 UTC
-- Latest workflow run: [45904294165](https://github.com/takenthatusernameis-collab/Crypto-Betting-Against-Beta/actions/runs/45904294165) · run #11, attempt 1 · success · push
+- Last report build: 2026-11-26 22:25:06 UTC
+- Latest workflow run: [45904582977](https://github.com/takenthatusernameis-collab/Crypto-Betting-Against-Beta/actions/runs/45904582977) · run #12, attempt 1 · failure · push
 - Latest processed daily candle: —
 - Latest account event: 2026-11-26 22:22:23 UTC
 - Primary execution journal: [PAPER_TRADE_JOURNAL.md](PAPER_TRADE_JOURNAL.md)
@@ -17,24 +17,15 @@
 
 ## MEXC market-data coverage
 
-- Coverage state: **READY**
-- Active cross-margin contracts: —
-- USDT-settled eligible contracts: not refreshed in snapshot mode
-- New histories completed this run: 0
-- Histories remaining: not refreshed in snapshot mode
-- API failures: 0
+- Coverage state: **VERIFIED — SNAPSHOT ONLY**
+- Active USDT-settled trading contracts: 1087
+- Contracts with at least 60 aligned daily beta returns: 988
+- Contracts excluded for insufficient rolling history: 99
 - Latest completed daily bar (UTC ms): 1795564800000
-- Portfolio decision status: `RETRY_PAIR_REBUILT`
+- Portfolio decision status: `UNAVAILABLE_STALE_OR_MISSING_POSITION_MARK`
 
-Portfolio changes remain blocked until the full active cross-section has the required current daily history.
-
-### Provisional BAB ranking preview
-
-Not execution-approved until full-universe coverage passes.
-
-**Lowest-beta long candidates**
-
-**Highest-beta short candidates**
+The complete eligible USDT universe is evaluated through the rolling-history gate at each daily decision. Snapshot-only runs reuse the last verified daily gate and do not recompute the ranking.
+The portfolio remains a paper simulation; all fills are simulated and no exchange orders are submitted.
 ## Current performance
 
 | Metric | Value |
@@ -91,7 +82,7 @@ At each rebalance, the quieter leg receives the larger share using inverse 30-co
 
 ## Next workflow action
 
-The latest completed UTC daily candle is waiting for full-universe history coverage; no portfolio decision has been consumed.
+The latest daily decision has already been processed. Intervening five-minute runs only mark the existing paper positions and update equity, funding and risk; the next ranking occurs after a new completed UTC daily candle.
 
 The daily-candle watermark is not advanced by this report. Only the paper workflow can consume a completed candle after full-history and execution gates pass. A blocked or incomplete run remains visible.
 
