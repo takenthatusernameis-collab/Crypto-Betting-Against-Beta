@@ -1,7 +1,10 @@
 # DURABLE HANDOFF — Crypto-Betting-Against-Beta
-**Timestamp:** 2026-11-26T02:54:14Z
+**Timestamp:** 2026-11-26T02:55:52Z
 **Session:** Kilo General Agent Loop — Next Activation (Campaign P40 initial task — MANDATORY)
 **Repository:** Crypto-Betting-Against-Beta (Betting Against Beta crypto quant research)
+**Verified baseline:** HEAD `0e62466`, working tree clean. Every claim below was re-checked
+against the live repo this session (P40 absent; P38 `SURVIVES_DEFLATION` n_trials=552;
+P39 regime `DOES_NOT_SURVIVE_DEFLATION_IN_SOME_REGIME`; P39 cross `DOES_NOT_REPLICATE`).
 **Supersedes:** all prior HANDOFF.md content. Campaign B / P37 regime-conditional is
 CLOSED. P20–P39 are COMPLETE and FROZEN. The single binding campaign is **P40** below.
 
@@ -30,7 +33,7 @@ per-fixture DSR table, consolidated verdict, test evidence, and next state.
 
 ---
 
-## PROJECT STATE SUMMARY (verified this session, HEAD `3e60ccb`)
+## PROJECT STATE SUMMARY (verified this session, HEAD `0e62466`)
 
 Systematic quantitative research implementing the **Betting Against Beta (BAB)** strategy
 (Frazzini & Pedersen) for cryptocurrencies on deterministic synthetic fixtures. These are
@@ -112,7 +115,8 @@ For every fixture use 8 seeds (`base + increment * i`, `i=0..7`), the read-only 
 `tests/fixtures/wide_bab_universe.csv`, asset returns `beta * BTC_return + seeded idio`, and the
 shipped-default BAB config: beta_window=90, quantile=0.3, equal-weight, beta-neutral,
 dollar-neutral, zero transaction costs. Compute per cell: Sharpe, DSR (deflate over the
-read-only `n_trials_total=552` from `research_state/bab_p38/deflated_summary.json`), PSR,
+read-only `n_trials_total=552` at JSON path `trial_enumeration.n_trials_total` in
+`research_state/bab_p38/deflated_summary.json`), PSR,
 annualized volatility, max drawdown, turnover, tail metrics consistent with P39, and all three
 neutrality invariants (model beta <= 1e-3, dollar <= 1e-9, |realized beta| <= 0.15).
 
@@ -201,7 +205,7 @@ commands above pass and the artifacts are byte-stable.
   `strategies/betting_against_beta/strategy.py` (BABStrategy).
 - **Fixtures:** `tests/fixtures/wide_bab_universe.csv` (BTC + 40 synthetic assets,
   deterministic seed 20261120). All P40 fixtures are deterministic synthetic random walks.
-- **Read-only trial count:** `n_trials_total=552` from
+- **Read-only trial count:** `n_trials_total=552` at `trial_enumeration.n_trials_total` in
   `research_state/bab_p38/deflated_summary.json` — never re-enumerate.
 - **Fast verify:** `bash scripts/bab_quick.sh` plus the targeted P40/registry tests. **Not** the
   full gate.
