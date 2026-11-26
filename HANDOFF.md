@@ -1,21 +1,20 @@
 # DURABLE HANDOFF — Crypto-Betting-Against-Beta
-**Timestamp:** 2026-11-26T05:40:01Z
+**Timestamp:** 2026-11-26T06:08:43Z
 **Session:** Kilo General Agent Loop — P40 COMPLETE/FROZEN; P41 WP1 COMPLETE; **P41 WP2 COMPLETE; P41 WP3 OPEN (next binding row)**
 **Repository:** Crypto-Betting-Against-Beta (Betting Against Beta crypto quant research)
-**Verified baseline (re-confirmed this session, HEAD `1df6b87`, working tree clean):**
-`python3 -m ruff check .` GREEN; `bash scripts/bab_quick.sh` GREEN (195 passed);
-`python3 scripts/bab_p41_stress.py --check-estimator-bakeoff` PASS (byte-identical);
-`python3 scripts/bab_p41_stress.py --check-stress-summary` PASS (byte-identical).
+**Verified baseline (this session, HEAD `f057e07`, working tree clean):**
+`python3 -m ruff check .` GREEN;
+`python3 scripts/bab_p41_stress.py --check-estimator-bakeoff` PASS (byte-identical).
 P20–P40 COMPLETE and FROZEN. `research_state/bab_p41/estimator_bakeoff.json` (+ `.md` sidecar)
 and `scripts/bab_p41_stress.py` landed and verified — **P41 WP1 complete**.
-P41 WP2 artifacts landed and verified this session:
+P41 WP2 artifacts are committed and verified in the prior session:
 `research_state/bab_p41/stress_summary.json` (schema `bab_p41.stress_summary/1`) + `.md` sidecar.
 **P41 WP2 verdict: `FRAGILE_DGP_DEPENDENT`** (79 of 160 cells survive deflation over
 read-only n_trials_total=552; 0 of 5 DGPs fully replicate; neutrality holds at every cell;
 honest, negative-leaning finding — nothing tuned to a positive; shipped default retained).
-P41 WP3 (`generate_p41_decision.py` → `docs/BAB_P41_DECISION.md`, replay + gate wiring) does
-not exist yet and is the **sole next binding workload**. `generate_p41_decision.py` /
-`docs/BAB_P41_DECISION.md` do not exist yet (WP3).
+The stress checker is expensive and is not an inner-loop command; consume the committed
+WP2 JSON read-only. P41 WP3 (`generate_p41_decision.py` → `docs/BAB_P41_DECISION.md`,
+replay + gate wiring) does not exist yet and is the **sole next binding workload**.
 P40 artifacts landed and verified: `research_state/bab_p40/meta_summary.json` + `.md`,
 `scripts/bab_p40_meta_analysis.py`, `generate_p40_decision.py`, `docs/BAB_P40_DECISION.md`,
 `tests/test_bab_p40_meta_analysis.py`, `tests/test_bab_p40_decision_consistency.py`.
@@ -29,7 +28,9 @@ P40 verdict: **DOES_NOT_REPLICATE** (0 of 4 fixtures replicate the P38 pooled ve
 
 **You are executing Campaign P41 "Non-Gaussian & Regime-Switching Synthetic Stress
 Battery." P41 WP1 (estimator bakeoff) and P41 WP2 (stress meta-analysis) are COMPLETE.
-The single remaining binding, fully agent-executable row is P41 WP3.**
+The single remaining binding, fully agent-executable row is P41 WP3. This is not a
+terminal state and there is no idle fallback: WP3 is a concrete, multi-file, verifiable
+workload.**
 
 The single source of truth for the campaign is **[`docs/BAB_P41_KICKOFF.md`](docs/BAB_P41_KICKOFF.md)**.
 Read it end-to-end before writing code. Then execute WP3:
@@ -88,8 +89,9 @@ DGP/seed-dependent, not robust across all five DGPs. Synthetic only; never marke
 | 3 | Rank weighting | **CLOSED** | P36 proved strictly worse. Never reopen. |
 | 4 | Regime coverage gap | **CLOSED** | All six regimes have `n_ok_cells = 8` in `research_state/bab_p39/regime_summary.json` |
 | 5 | "Terminal / no campaign remains" framing | **REMOVED** | Prior HANDOFF guaranteed idle session. Rescinded. P41 is binding workload. |
-| 6 | P41 WP2 stress meta-analysis open | **RESOLVED** | WP2 complete this session; stress_summary.json + .md landed, byte-identical |
+| 6 | P41 WP2 stress meta-analysis open | **RESOLVED** | WP2 complete in the prior session; stress_summary.json + .md landed, byte-identical |
 | 7 | CI workflow enforcement | **EXTERNAL** | Maintainer-only (repo token lacks `workflows:write`). Do not burn session. |
+| 8 | Expensive stress re-check / stale baseline | **REMOVED** | This handoff is rebased to HEAD `f057e07`; use committed WP2 JSON and the quick inner loop, not the slow stress checker. |
 
 ---
 
@@ -103,13 +105,14 @@ explicit approval; do not invent additional agent-executable campaigns beyond P4
 without maintainer direction.
 
 **Repository root:** `/home/runner/work/Crypto-Betting-Against-Beta/Crypto-Betting-Against-Beta`
-**Fast verify (baseline, before P41 WP3):** `python scripts/bab_p40_meta_analysis.py --check-meta-summary`,
-`python3 scripts/bab_p41_stress.py --check-estimator-bakeoff`,
-`python3 scripts/bab_p41_stress.py --check-stress-summary`, and `bash scripts/bab_quick.sh`
-(all GREEN). Do not run the full 56-minute gate to re-verify frozen P20–P40; run full gate
-only at P41 WP3. Note: a full pytest / `bab_gate` run appends one trailing newline to the
-frozen `research_state/bab_p27/{risk_controls,reconciliation_e2e}.md` (the `run_*()` P27
-tests write to the committed path) — restore with `git checkout -- research_state/bab_p27/`
+**Fast verify (baseline, before P41 WP3):** `python3 -m ruff check .`,
+`python3 scripts/bab_p41_stress.py --check-estimator-bakeoff`, and `bash scripts/bab_quick.sh`.
+The committed `research_state/bab_p41/stress_summary.json` is the read-only WP2 source of
+truth; do not run the slow `--check-stress-summary` in the inner loop. Do not run the full
+56-minute gate to re-verify frozen P20–P40; run full gate only at P41 WP3. Note: a full
+pytest / `bab_gate` run appends one trailing newline to the frozen
+`research_state/bab_p27/{risk_controls,reconciliation_e2e}.md` (the `run_*()` P27 tests
+write to the committed path) — restore with `git checkout -- research_state/bab_p27/`
 after a full run. `scripts/bab_bootstrap.sh` installs missing test/runtime deps on fresh
 runners.
 
