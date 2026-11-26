@@ -137,6 +137,15 @@ jobs:
           done
           echo "Unable to publish BAB status after three retries."
           exit 1
+      - name: Fail when the paper cycle itself is blocked or failed
+        if: always()
+        env:
+          CYCLE_OUTCOME: ${{ steps.cycle.outcome }}
+        run: |
+          if [ "$CYCLE_OUTCOME" != "success" ]; then
+            echo "::error::BAB paper cycle did not complete successfully ($CYCLE_OUTCOME)."
+            exit 1
+          fi
       - name: Upload BAB paper status and diagnostics
         if: always()
         uses: actions/upload-artifact@v4
@@ -144,8 +153,8 @@ jobs:
           name: bab-mexc-100usdt-paper-status
           path: |
             market-data/data/reports/mexc/
-            PAPER_STATUS.md
-            equal_exposure_equity_curve.svg
-            alternative_path_equity_curve.svg
+            strategy/PAPER_STATUS.md
+            strategy/equal_exposure_equity_curve.svg
+            strategy/alternative_path_equity_curve.svg
           if-no-files-found: warn
           retention-days: 30
