@@ -1,11 +1,10 @@
 # DURABLE HANDOFF — Crypto-Betting-Against-Beta
-**Timestamp (UTC): 2026-11-26T08:54:02Z**
+**Timestamp (UTC): 2026-11-26T08:55:16Z**
 **Session:** Kilo General Agent Loop — P41 COMPLETE (WP1/WP2/WP3); **P42 OPEN (sole binding row)**
 **Repository:** Crypto-Betting-Against-Beta (Betting Against Beta crypto quant research)
-**Verified baseline (HEAD `3c7ba29`, re-verified this session at 08:53:55Z):**
+**Verified baseline (HEAD `ca88b30`, re-verified this session at 08:55:10Z):**
 - `python3 -m ruff check .` GREEN (`All checks passed!`).
-- `bash scripts/bab_quick.sh` GREEN (targeted trio `104 passed`, smoke `195 passed`,
-  `quick preflight OK`).
+- `bash scripts/bab_quick.sh` GREEN (targeted trio `104 passed`, smoke `195 passed`, `quick preflight OK`).
 - `python3 scripts/bab_replay_decisions.py --subset p41_decision.md` GREEN (`OK p41_decision.md -> BAB_P41_DECISION.md`).
 - `python3 -m pytest -q tests/test_bab_p41_decision_consistency.py` GREEN (13 passed).
 - P32/P33 doc ledgers GREEN: `--check-doc-summary` returns `OK` for both
@@ -25,9 +24,9 @@
 
 ## READ FIRST — INITIAL TASK MESSAGE FOR THE NEXT SESSION
 
-> **Timestamped initial task (2026-11-26T08:54:02Z):** Execute **Campaign P42
+> **Timestamped initial task (2026-11-26T08:55:16Z):** Execute **Campaign P42
 > "Planted-Alpha Detectability Frontier & Minimum Detectable Effect," WP0 → WP3.**
-> P20–P41 are frozen; P41 WP1/WP2/WP3 are complete and committed at HEAD `01d3603`.
+> P20–P41 are frozen; P41 WP1/WP2/WP3 are complete and committed at HEAD `ca88b30`.
 > No new maintainer direction is present, so do not idle and do not invent a replacement
 > campaign: P42 is a concrete, multi-file, verifiable, heavy workload (810-cell factorial
 > grid + frontier meta-analysis + decision doc + gate wiring). Real-data ingestion, CI
@@ -160,7 +159,7 @@ negative results can be attributed to power vs. genuine absence.
 | Bottleneck | Status / next action |
 |---|---|
 | Stale handoff (declared P41 WP3 open, artifacts "absent") | **REMOVED** — P41 WP3 is complete; handoff rewritten to P42 |
-| Stale HEAD hash in handoff (`f7c0cc0` vs actual `01d3603`) | **REMOVED** — handoff re-verified at HEAD `01d3603` this session |
+| Stale HEAD hash in handoff | **REMOVED** — handoff re-verified at HEAD `ca88b30` this session |
 | Full gate RED on 5 doc-pointer/registry guards | **REMOVED** — README/COVERAGE_NOTES repointed to P42; P34 successor allow-list extended to P40/P41/P42; P42 charter allow-listed; P33 ledger regenerated |
 | P34-complete marker absent from handoff | **REMOVED** — `CAMPAIGN P34 — COMPLETE` present below |
 | P32/P33 committed ledgers stale | **RESOLVED** — regenerated from registry; never hand-edit |
