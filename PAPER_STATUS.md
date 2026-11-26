@@ -8,23 +8,23 @@
 - Strategy generation: `crypto-bab-low-beta-long-high-beta-short-v1`
 - Starting capital: **100.00000000 USDT**
 - Account state: **INITIALIZED — FORWARD PAPER**
-- Last report build: 2026-11-26 22:11:30 UTC
-- Latest workflow run: [45902130869](https://github.com/takenthatusernameis-collab/Crypto-Betting-Against-Beta/actions/runs/45902130869) · run #9, attempt 1 · failure · workflow_dispatch
+- Last report build: 2026-11-26 22:20:23 UTC
+- Latest workflow run: [45904031939](https://github.com/takenthatusernameis-collab/Crypto-Betting-Against-Beta/actions/runs/45904031939) · run #10, attempt 1 · failure · push
 - Latest processed daily candle: —
-- Latest account event: 2026-11-26 22:10:57 UTC
+- Latest account event: 2026-11-26 22:20:06 UTC
 - Primary execution journal: [PAPER_TRADE_JOURNAL.md](PAPER_TRADE_JOURNAL.md)
 
 
 ## MEXC market-data coverage
 
 - Coverage state: **READY**
-- Active cross-margin contracts: 1169
-- USDT-settled eligible contracts: 1087
-- New histories completed this run: 119
-- Histories remaining: 0
+- Active cross-margin contracts: —
+- USDT-settled eligible contracts: not refreshed in snapshot mode
+- New histories completed this run: 0
+- Histories remaining: not refreshed in snapshot mode
 - API failures: 0
 - Latest completed daily bar (UTC ms): 1795564800000
-- Portfolio decision status: `DAILY_REFRESH_BLOCKED:ValueError:Initial stop price is non-positive`
+- Portfolio decision status: `RETRY_EXECUTION_BLOCKED`
 
 Portfolio changes remain blocked until the full active cross-section has the required current daily history.
 
@@ -33,14 +33,8 @@ Portfolio changes remain blocked until the full active cross-section has the req
 Not execution-approved until full-universe coverage passes.
 
 **Lowest-beta long candidates**
-- AKE_USDT: β(BTC)=-3.360082498561552
-- SOXS_USDT: β(BTC)=-2.3547501277232388
-- SKDD_USDT: β(BTC)=-1.7142559678544846
 
 **Highest-beta short candidates**
-- SI_USDT: β(BTC)=4.322266813146608
-- MSTU_USDT: β(BTC)=3.8421547490514065
-- CATE_USDT: β(BTC)=3.253992605505298
 ## Current performance
 
 | Metric | Value |
@@ -65,7 +59,7 @@ Not execution-approved until full-universe coverage passes.
 
 | Session start (UTC) | Starting NAV | Latest NAV | Max drawdown | Marks |
 |---|---:|---:|---:|---:|
-| 2026-11-26 00:00:00 UTC | 100.00000000 | 100.00000000 | +0.000% | 8 |
+| 2026-11-26 00:00:00 UTC | 100.00000000 | 100.00000000 | +0.000% | 9 |
 
 ## Open positions
 
