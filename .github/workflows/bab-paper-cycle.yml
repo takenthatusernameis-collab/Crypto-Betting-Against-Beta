@@ -3,6 +3,10 @@ name: "BAB MEXC $100 USDT PAPER ONLY — DAILY CLOSE / FIVE-MINUTE SNAPSHOTS"
 run-name: "BAB MEXC paper cycle — ${{ github.event_name }} — run #${{ github.run_number }}"
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/activations/bab-paper-first-run-once"
   schedule:
     # Intended monitoring target: every five minutes. GitHub Actions scheduling
     # is best-effort and may start later during queueing or platform load.
@@ -18,6 +22,7 @@ concurrency:
 
 jobs:
   cycle:
+    if: ${{ github.event_name != 'push' || contains(github.event.head_commit.message, '[BAB_PAPER_BOOTSTRAP]') }}
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     env:
@@ -76,6 +81,7 @@ jobs:
         shell: bash
         timeout-minutes: 12
         run: |
+          mkdir -p ../market-data/data/reports/mexc
           set -o pipefail
           python scripts/bab_mexc_paper_cycle.py | tee ../market-data/data/reports/mexc/bab-workflow-last-run.log
       - name: Commit MEXC public market data and research reports
