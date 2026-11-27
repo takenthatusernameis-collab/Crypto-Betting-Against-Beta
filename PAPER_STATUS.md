@@ -8,39 +8,40 @@
 - Strategy generation: `crypto-bab-low-beta-long-high-beta-short-v1`
 - Starting capital: **100.00000000 USDT**
 - Account state: **INITIALIZED — FORWARD PAPER**
-- Last report build: 2026-11-26 22:27:19 UTC
-- Latest workflow run: [45904798401](https://github.com/takenthatusernameis-collab/Crypto-Betting-Against-Beta/actions/runs/45904798401) · run #13, attempt 1 · success · push
-- Latest processed daily candle: —
-- Latest account event: 2026-11-26 22:27:06 UTC
+- Last report build: 2026-11-27 02:20:22 UTC
+- Latest workflow run: [45927333220](https://github.com/takenthatusernameis-collab/Crypto-Betting-Against-Beta/actions/runs/45927333220) · run #14, attempt 1 · success · schedule
+- Latest processed daily candle: 2026-11-26 00:00:00 UTC
+- Latest account event: 2026-11-27 02:19:56 UTC
 - Primary execution journal: [PAPER_TRADE_JOURNAL.md](PAPER_TRADE_JOURNAL.md)
 
 
 ## MEXC market-data coverage
 
-- Coverage state: **VERIFIED — SNAPSHOT ONLY**
+- Coverage state: **READY**
 - Active USDT-settled trading contracts: 1087
-- Contracts with at least 60 aligned daily beta returns: 988
-- Contracts excluded for insufficient rolling history: 99
-- Latest completed daily bar (UTC ms): 1795564800000
-- Portfolio decision status: `MONITORING_ONLY_NO_STRATEGY_DECISIONS`
+- Contracts with at least 60 aligned daily beta returns: 895
+- Contracts excluded for insufficient rolling history: 192
+- Latest completed daily bar (UTC ms): 1795651200000
+- Portfolio decision status: `PAIR_REBUILT`
 
-The complete eligible USDT universe is evaluated through the rolling-history gate at each daily decision. Snapshot-only runs reuse the last verified daily gate and do not recompute the ranking.
+The full eligible USDT cross-section must pass the rolling-history, ticker and latest-bar gates before a daily portfolio decision.
 The portfolio remains a paper simulation; all fills are simulated and no exchange orders are submitted.
+\n### BAB daily ranking preview\n\nResearch ranks include assets excluded from executable sizing; execution eligibility is shown separately in exclusions.\n\n**Lowest-beta long candidates**\n- AKE_USDT: β(BTC)=-3.020115920109588\n- SOXS_USDT: β(BTC)=-2.35901691176408\n- SKDD_USDT: β(BTC)=-1.7506158181206548\n\n**Highest-beta short candidates**\n- SI_USDT: β(BTC)=4.3380943905309\n- MSTU_USDT: β(BTC)=3.8104267829840697\n- CATE_USDT: β(BTC)=3.176123825833995
 ## Current performance
 
 | Metric | Value |
 |---|---:|
 | Initial capital | 100.00000000 USDT |
-| **NAV** | **99.78739680 USDT** |
-| Total return | -0.213% |
-| Cash | 99.96939680 USDT |
-| Unrealized P&L | -0.18200000 USDT |
-| Fees paid | 0.03060320 USDT |
+| **NAV** | **95.62560740 USDT** |
+| Total return | -4.374% |
+| Cash | 95.36160740 USDT |
+| Unrealized P&L | +0.26400000 USDT |
+| Fees paid | 0.09139260 USDT |
 | Confirmed funding | +0.00000000 USDT |
-| Gross exposure | 1.533× NAV |
-| Net exposure | 0.371× NAV |
-| Current drawdown from risk-window peak | -0.081% |
-| Lifetime / cross-session maximum drawdown | -0.213% |
+| Gross exposure | 1.580× NAV |
+| Net exposure | 0.411× NAV |
+| Current drawdown from risk-window peak | +0.000% |
+| Lifetime / cross-session maximum drawdown | -4.614% |
 | Worst risk-session maximum drawdown | -0.081% |
 | Sharpe ratio | Unavailable — sample gate not met |
 | Sortino ratio | Unavailable — sample gate not met |
@@ -52,13 +53,15 @@ The portfolio remains a paper simulation; all fills are simulated and no exchang
 |---|---:|---:|---:|---:|
 | 2026-11-26 00:00:00 UTC | 100.00000000 | 100.00000000 | +0.000% | 9 |
 | 2026-11-26 22:22:32 UTC | 99.86839680 | 99.78739680 | -0.081% | 1 |
+| 2026-11-27 00:00:00 UTC | 95.38639680 | 95.38639680 | +0.000% | 1 |
+| 2026-11-27 02:20:07 UTC | 95.62560740 | 95.62560740 | +0.000% | 1 |
 
 ## Open positions
 
 | Symbol | Side | Quantity | Entry price | Mark | Notional (USDT) |
 |---|---|---:|---:|---:|---:|
-| SOXS_USDT | long | 1 | 58.09 | 57.96 | 57.960000 |
-| USELESS_USDT | short | 1300 | 0.07302 | 0.07306 | 94.978000 |
+| SOXS_USDT | long | 1 | 55.74 | 55.86 | 55.860000 |
+| BULLA_USDT | short | 1600 | 0.05959 | 0.0595 | 95.200000 |
 
 ## Primary path — equal exposure
 
@@ -72,9 +75,9 @@ This chart is a **visual-only counterfactual**, not an executed account. It reus
 
 At each rebalance, the quieter leg receives the larger share using inverse 30-completed-day realized volatility. The leverage overlay is the ratio of equal-exposure pair volatility to the inverse-volatility pair’s base estimated volatility. It increases modeled gross exposure only when the alternative has lower estimated volatility. Estimates use only data available at that rebalance.
 
-- Latest long / short allocation: **39.6% / 60.4%** of alternative gross notional.
-- Latest volatility-matching leverage multiplier: **1.054×**.
-- Estimated base volatility reduction before leverage: **+5.13%**.
+- Latest long / short allocation: **60.7% / 39.3%** of alternative gross notional.
+- Latest volatility-matching leverage multiplier: **1.068×**.
+- Estimated base volatility reduction before leverage: **+6.35%**.
 - Volatility observations used: **30**; status: `RISK_MATCHED_INVERSE_VOLATILITY`.
 
 ![Inverse-volatility alternative equity curve](alternative_path_equity_curve.svg)
@@ -83,7 +86,7 @@ At each rebalance, the quieter leg receives the larger share using inverse 30-co
 
 ## Next workflow action
 
-The latest daily decision has already been processed. Intervening five-minute runs only mark the existing paper positions and update equity, funding and risk; the next ranking occurs after a new completed UTC daily candle.
+The complete eligible USDT cross-section passed the rolling-history and execution-data gates for the latest daily decision. The next ranking occurs after a new completed UTC daily candle.
 
 The daily decision watermark is maintained by the persistent paper state. A new ranking is performed only after the next completed UTC daily candle and a passing rolling-window and execution-data gate.
 
