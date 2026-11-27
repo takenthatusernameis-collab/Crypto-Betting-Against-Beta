@@ -8,10 +8,10 @@
 - Strategy generation: `crypto-bab-low-beta-long-high-beta-short-v1`
 - Starting capital: **100.00000000 USDT**
 - Account state: **INITIALIZED — FORWARD PAPER**
-- Last report build: 2026-11-27 10:57:29 UTC
-- Latest workflow run: [45986320326](https://github.com/takenthatusernameis-collab/Crypto-Betting-Against-Beta/actions/runs/45986320326) · run #15, attempt 1 · success · schedule
+- Last report build: 2026-11-27 19:47:16 UTC
+- Latest workflow run: [46059019450](https://github.com/takenthatusernameis-collab/Crypto-Betting-Against-Beta/actions/runs/46059019450) · run #16, attempt 1 · success · schedule
 - Latest processed daily candle: 2026-11-26 00:00:00 UTC
-- Latest account event: 2026-11-27 10:57:14 UTC
+- Latest account event: 2026-11-27 19:47:01 UTC
 - Primary execution journal: [PAPER_TRADE_JOURNAL.md](PAPER_TRADE_JOURNAL.md)
 
 
@@ -31,15 +31,15 @@ The portfolio remains a paper simulation; all fills are simulated and no exchang
 | Metric | Value |
 |---|---:|
 | Initial capital | 100.00000000 USDT |
-| **NAV** | **80.39560740 USDT** |
-| Total return | -19.604% |
+| **NAV** | **88.96560740 USDT** |
+| Total return | -11.034% |
 | Cash | 95.36160740 USDT |
-| Unrealized P&L | -14.96600000 USDT |
+| Unrealized P&L | -6.39600000 USDT |
 | Fees paid | 0.09139260 USDT |
 | Confirmed funding | +0.00000000 USDT |
-| Gross exposure | 1.998× NAV |
-| Net exposure | 0.679× NAV |
-| Current drawdown from risk-window peak | -15.927% |
+| Gross exposure | 1.736× NAV |
+| Net exposure | 0.517× NAV |
+| Current drawdown from risk-window peak | -6.965% |
 | Lifetime / cross-session maximum drawdown | -19.604% |
 | Worst risk-session maximum drawdown | -15.927% |
 | Sharpe ratio | Unavailable — sample gate not met |
@@ -53,14 +53,14 @@ The portfolio remains a paper simulation; all fills are simulated and no exchang
 | 2026-11-26 00:00:00 UTC | 100.00000000 | 100.00000000 | +0.000% | 9 |
 | 2026-11-26 22:22:32 UTC | 99.86839680 | 99.78739680 | -0.081% | 1 |
 | 2026-11-27 00:00:00 UTC | 95.38639680 | 95.38639680 | +0.000% | 1 |
-| 2026-11-27 02:20:07 UTC | 95.62560740 | 80.39560740 | -15.927% | 2 |
+| 2026-11-27 02:20:07 UTC | 95.62560740 | 88.96560740 | -15.927% | 3 |
 
 ## Open positions
 
 | Symbol | Side | Quantity | Entry price | Mark | Notional (USDT) |
 |---|---|---:|---:|---:|---:|
-| SOXS_USDT | long | 1 | 55.74 | 53.03 | 53.030000 |
-| BULLA_USDT | short | 1600 | 0.05959 | 0.06725 | 107.600000 |
+| SOXS_USDT | long | 1 | 55.74 | 54.24 | 54.240000 |
+| BULLA_USDT | short | 1600 | 0.05959 | 0.06265 | 100.240000 |
 
 ## Primary path — equal exposure
 
