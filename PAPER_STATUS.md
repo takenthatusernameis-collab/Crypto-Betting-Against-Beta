@@ -8,38 +8,37 @@
 - Strategy generation: `crypto-bab-low-beta-long-high-beta-short-v1`
 - Starting capital: **100.00000000 USDT**
 - Account state: **INITIALIZED — FORWARD PAPER**
-- Last report build: 2026-11-28 02:19:33 UTC
-- Latest workflow run: [46097008013](https://github.com/takenthatusernameis-collab/Crypto-Betting-Against-Beta/actions/runs/46097008013) · run #17, attempt 1 · success · schedule
+- Last report build: 2026-11-28 10:28:52 UTC
+- Latest workflow run: [46135311690](https://github.com/takenthatusernameis-collab/Crypto-Betting-Against-Beta/actions/runs/46135311690) · run #18, attempt 1 · success · schedule
 - Latest processed daily candle: 2026-11-27 00:00:00 UTC
-- Latest account event: 2026-11-28 02:19:02 UTC
+- Latest account event: 2026-11-28 10:28:35 UTC
 - Primary execution journal: [PAPER_TRADE_JOURNAL.md](PAPER_TRADE_JOURNAL.md)
 
 
 ## MEXC market-data coverage
 
-- Coverage state: **READY**
+- Coverage state: **VERIFIED — SNAPSHOT ONLY**
 - Active USDT-settled trading contracts: 1090
 - Contracts with at least 60 aligned daily beta returns: 902
 - Contracts excluded for insufficient rolling history: 188
 - Latest completed daily bar (UTC ms): 1795737600000
-- Portfolio decision status: `PAIR_REBUILT`
+- Portfolio decision status: `MONITORING_ONLY_NO_STRATEGY_DECISIONS`
 
-The full eligible USDT cross-section must pass the rolling-history, ticker and latest-bar gates before a daily portfolio decision.
+The complete eligible USDT universe is evaluated through the rolling-history gate at each daily decision. Snapshot-only runs reuse the last verified daily gate and do not recompute the ranking.
 The portfolio remains a paper simulation; all fills are simulated and no exchange orders are submitted.
-\n### BAB daily ranking preview\n\nResearch ranks include assets excluded from executable sizing; execution eligibility is shown separately in exclusions.\n\n**Lowest-beta long candidates**\n- AKE_USDT: β(BTC)=-2.892747220896728\n- SOXS_USDT: β(BTC)=-2.335013204752769\n- SKDD_USDT: β(BTC)=-1.7125348897354038\n\n**Highest-beta short candidates**\n- SI_USDT: β(BTC)=4.364864152447454\n- MSTU_USDT: β(BTC)=3.800900658961753\n- CATE_USDT: β(BTC)=3.1519331222574087
 ## Current performance
 
 | Metric | Value |
 |---|---:|
 | Initial capital | 100.00000000 USDT |
-| **NAV** | **100.88824620 USDT** |
-| Total return | +0.888% |
+| **NAV** | **102.18124620 USDT** |
+| Total return | +2.181% |
 | Cash | 101.01924620 USDT |
-| Unrealized P&L | -0.13100000 USDT |
+| Unrealized P&L | +1.16200000 USDT |
 | Fees paid | 0.14975380 USDT |
 | Confirmed funding | +0.00000000 USDT |
-| Gross exposure | 1.488× NAV |
-| Net exposure | 0.420× NAV |
+| Gross exposure | 1.456× NAV |
+| Net exposure | 0.402× NAV |
 | Current drawdown from risk-window peak | +0.000% |
 | Lifetime / cross-session maximum drawdown | -19.604% |
 | Worst risk-session maximum drawdown | -15.927% |
@@ -56,14 +55,14 @@ The portfolio remains a paper simulation; all fills are simulated and no exchang
 | 2026-11-27 00:00:00 UTC | 95.38639680 | 95.38639680 | +0.000% | 1 |
 | 2026-11-27 02:20:07 UTC | 95.62560740 | 88.96560740 | -15.927% | 3 |
 | 2026-11-28 00:00:00 UTC | 101.49560740 | 101.49560740 | +0.000% | 1 |
-| 2026-11-28 02:19:14 UTC | 100.88824620 | 100.88824620 | +0.000% | 1 |
+| 2026-11-28 02:19:14 UTC | 100.88824620 | 102.18124620 | +0.000% | 2 |
 
 ## Open positions
 
 | Symbol | Side | Quantity | Entry price | Mark | Notional (USDT) |
 |---|---|---:|---:|---:|---:|
-| SOXS_USDT | long | 1 | 53.93 | 53.89 | 53.890000 |
-| USELESS_USDT | short | 1300 | 0.07396 | 0.07403 | 96.239000 |
+| SOXS_USDT | long | 1 | 53.93 | 53.87 | 53.870000 |
+| USELESS_USDT | short | 1300 | 0.07396 | 0.07302 | 94.926000 |
 
 ## Primary path — equal exposure
 
@@ -88,7 +87,7 @@ At each rebalance, the quieter leg receives the larger share using inverse 30-co
 
 ## Next workflow action
 
-The complete eligible USDT cross-section passed the rolling-history and execution-data gates for the latest daily decision. The next ranking occurs after a new completed UTC daily candle.
+The latest daily decision has already been processed. Intervening five-minute runs only mark the existing paper positions and update equity, funding and risk; the next ranking occurs after a new completed UTC daily candle.
 
 The daily decision watermark is maintained by the persistent paper state. A new ranking is performed only after the next completed UTC daily candle and a passing rolling-window and execution-data gate.
 
